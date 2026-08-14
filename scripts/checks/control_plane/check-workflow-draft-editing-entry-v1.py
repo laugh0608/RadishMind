@@ -58,11 +58,17 @@ def assert_fixture_shape(fixture: dict[str, Any]) -> None:
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    panel_text = read(str(contract.get("panel_file")))
     designer_text = read(str(contract.get("designer_file")))
     style_text = read(str(contract.get("style_file")))
 
     for literal in contract.get("required_app_literals") or []:
         require(str(literal) in app_text, f"App missing workflow draft editing literal: {literal}")
+    for literal in contract.get("required_panel_literals") or []:
+        require(
+            str(literal) in panel_text,
+            f"workflowDraftDesignerPanel missing workflow draft editing literal: {literal}",
+        )
     for literal in contract.get("required_designer_literals") or []:
         require(str(literal) in designer_text, f"workflowDraftDesigner missing literal: {literal}")
     for selector in contract.get("required_style_selectors") or []:
@@ -70,17 +76,17 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
 
     require(
         app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
-        < app_text.index("validateWorkflowDraftDevRecord(activeWorkflowDraft"),
+        < app_text.index("validateWorkflowDraftDevRecord("),
         "validate must consume context-owned active workflow draft after local edit state is wired",
     )
     require(
         app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
-        < app_text.index("saveWorkflowDraftDevRecord(activeWorkflowDraft"),
+        < app_text.index("saveWorkflowDraftDevRecord("),
         "save must consume context-owned active workflow draft after local edit state is wired",
     )
     require(
         app_text.index("activeWorkflowDraftOverride: editableWorkflowDraft")
-        < app_text.index("readWorkflowDraftDevRecord(activeWorkflowDraft"),
+        < app_text.index("readWorkflowDraftDevRecord("),
         "read must consume context-owned active workflow draft after local edit state is wired",
     )
 
@@ -101,7 +107,7 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         "onUpdateNodeLabel",
         "onUpdateEdgeCondition",
     ):
-        require(literal in app_text, f"workflow draft editing UI missing literal: {literal}")
+        require(literal in panel_text, f"workflow draft editing UI missing literal: {literal}")
 
 
 def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:

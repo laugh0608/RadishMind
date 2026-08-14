@@ -19,15 +19,45 @@ const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const DEFAULT_WORKSPACE_ID = "workspace_demo";
 const DEFAULT_TENANT_REF = "tenant_demo";
 const DEFAULT_SUBJECT_REF = "subject_demo_user";
-const DEFAULT_SCOPES = "workflow_drafts:read,workflow_drafts:write";
+const DEFAULT_READ_SCOPES = "workflow_drafts:read";
+const DEFAULT_WRITE_SCOPES = "workflow_drafts:read,workflow_drafts:write";
+const DEFAULT_ARCHIVE_SCOPES = "workflow_drafts:read,workflow_drafts:archive";
 const SAVED_DRAFT_SCHEMA_VERSION = "saved_workflow_draft.v1";
 const DESIGNER_LAYOUT_VERSION = "designer_layout_v1";
 const DESIGNER_LAYOUT_SOURCE = "workflow_node_designer";
 const DESIGNER_LAYOUT_PERSISTENCE = "saved_draft_metadata";
+const DERIVATION_METADATA_VERSION = 1;
+const DERIVATION_SOURCE_KIND = "saved_workflow_draft";
 const EXECUTOR_V0_METADATA_VERSION = "workflow_executor_v0";
 const MAX_DESIGNER_LAYOUT_COORDINATE = 10000;
 
 export type WorkflowSavedDraftConsumerMode = "sample_only" | "dev_saved_draft_http";
+export type WorkflowSavedDraftLifecycleState = "active" | "archived";
+export type WorkflowSavedDraftCurrentLifecycleState = WorkflowSavedDraftLifecycleState | "unknown";
+export type WorkflowSavedDraftValidationState =
+  | ""
+  | "valid_for_review"
+  | "invalid_draft"
+  | "blocked_capability"
+  | "schema_unsupported";
+export type WorkflowSavedDraftProvenanceKind =
+  | ""
+  | "unversioned"
+  | "workflow_definition"
+  | "saved_draft_derivation";
+
+export type WorkflowSavedDraftLibraryFilters = {
+  namePrefix: string;
+  validationState: WorkflowSavedDraftValidationState;
+  provenanceKind: WorkflowSavedDraftProvenanceKind;
+};
+
+export type WorkflowSavedDraftListQuery = {
+  lifecycleState: WorkflowSavedDraftLifecycleState;
+  filters: WorkflowSavedDraftLibraryFilters;
+  cursor?: string;
+  limit?: number;
+};
 
 export type WorkflowSavedDraftConsumerConfig = {
   mode: WorkflowSavedDraftConsumerMode;
@@ -58,6 +88,8 @@ export type WorkflowSavedDraftConsumerState = {
   summary: string;
   failureCode: string | null;
   currentDraftVersion: number;
+  currentLifecycleVersion: number;
+  currentLifecycleState: WorkflowSavedDraftCurrentLifecycleState;
   conflictDraftVersion: number | null;
   auditRef: string;
   requestId: string;
@@ -69,7 +101,7 @@ export type WorkflowSavedDraftListStatus =
   | "ready"
   | "empty"
   | "list_failed"
-  | "restore_failed";
+  | "open_failed";
 
 export type WorkflowSavedDraftSummary = {
   draftId: string;
@@ -77,6 +109,12 @@ export type WorkflowSavedDraftSummary = {
   applicationRef: string;
   workflowDefinitionId: string;
   draftVersion: number;
+  lifecycleState: WorkflowSavedDraftLifecycleState;
+  lifecycleVersion: number;
+  archivedAt: string | null;
+  libraryUpdatedAt: string;
+  lifecycleUpdatedByActorRef: string;
+  provenanceKind: Exclude<WorkflowSavedDraftProvenanceKind, "">;
   draftStatus: string;
   name: string;
   description: string;
@@ -96,10 +134,27 @@ export type WorkflowSavedDraftListState = {
   sourceLabel: string;
   summary: string;
   applicationRef: string;
+  lifecycleState: WorkflowSavedDraftLifecycleState;
+  filters: WorkflowSavedDraftLibraryFilters;
+  nextCursor: string;
+  hasMore: boolean;
   failureCode: string | null;
   auditRef: string;
   requestId: string;
   summaries: WorkflowSavedDraftSummary[];
+};
+
+export type WorkflowSavedDraftLifecycleOperationState = {
+  status: "idle" | "transitioning" | "archived" | "unarchived" | "failed";
+  draftId: string;
+  targetState: WorkflowSavedDraftLifecycleState | null;
+  currentDraftVersion: number;
+  currentLifecycleVersion: number;
+  currentLifecycleState: WorkflowSavedDraftCurrentLifecycleState;
+  failureCode: string | null;
+  requestId: string;
+  auditRef: string;
+  summary: string;
 };
 
 export type WorkflowSavedDraftConflictMetadataState =
@@ -110,7 +165,7 @@ export type WorkflowSavedDraftConflictMetadataState =
   | "disabled"
   | "missing";
 
-export type WorkflowSavedDraftRestoreResult = {
+export type WorkflowSavedDraftOpenResult = {
   state: WorkflowSavedDraftConsumerState;
   draft: WorkflowDraftDesignerDraft | null;
 };
@@ -133,8 +188,8 @@ export type WorkflowSavedDraftConflictReviewSummary = {
   savedBlockedCapabilityCount: number | null;
   savedMetadataLoaded: boolean;
   savedMetadataState: WorkflowSavedDraftConflictMetadataState;
-  restoreActionState: "restore_available" | "restore_requires_saved_list";
-  restoreUnavailableReason: string | null;
+  openActionState: "open_available" | "open_requires_saved_list";
+  openUnavailableReason: string | null;
   localDraftPreservationSummary: string;
   nextReviewerStep: string;
   requestId: string;
@@ -142,7 +197,7 @@ export type WorkflowSavedDraftConflictReviewSummary = {
   summary: string;
   reviewerQuestion: string;
   canContinueLocalDraft: boolean;
-  canRestoreFromSavedDraft: boolean;
+  canOpenSavedDraft: boolean;
   canAutoOverwriteLocalDraft: false;
   canAutoMergeDraft: false;
 };
@@ -154,6 +209,8 @@ type SavedWorkflowDraftEnvelope = {
   draft: SavedWorkflowDraftDocument | null;
   failure_code: string | null;
   current_draft_version: number;
+  current_lifecycle_version: number;
+  current_lifecycle_state: string;
   validation_summary: SavedWorkflowDraftValidationSummary;
   blocked_capabilities: SavedWorkflowDraftBlockedCapability[];
   audit_ref: string;
@@ -164,12 +221,20 @@ type SavedWorkflowDraftListEnvelope = {
   workspace_id: string;
   application_id: string;
   draft_summaries: SavedWorkflowDraftSummaryDocument[];
+  next_cursor: string;
+  has_more: boolean;
   failure_code: string | null;
   audit_ref: string;
 };
 
-type SavedWorkflowDraftDocument = SavedWorkflowDraftPayload & {
+export type SavedWorkflowDraftDocument = SavedWorkflowDraftPayload & {
   draft_version: number;
+  lifecycle_state: WorkflowSavedDraftLifecycleState;
+  lifecycle_version: number;
+  archived_at: string | null;
+  library_updated_at: string;
+  lifecycle_updated_by_actor_ref: string;
+  provenance_kind: Exclude<WorkflowSavedDraftProvenanceKind, "">;
   draft_status: string;
   created_at: string;
   updated_at: string;
@@ -187,6 +252,12 @@ type SavedWorkflowDraftSummaryDocument = {
   application_id: string;
   source_definition_id: string;
   draft_version: number;
+  lifecycle_state: WorkflowSavedDraftLifecycleState;
+  lifecycle_version: number;
+  archived_at: string | null;
+  library_updated_at: string;
+  lifecycle_updated_by_actor_ref: string;
+  provenance_kind: Exclude<WorkflowSavedDraftProvenanceKind, "">;
   schema_version: string;
   draft_status: string;
   name: string;
@@ -199,6 +270,27 @@ type SavedWorkflowDraftSummaryDocument = {
   validation_state: string;
   valid_for_review: boolean;
   sample_or_unsaved_draft_status: string;
+};
+
+type SavedWorkflowDraftLifecycleDocument = {
+  draft_id: string;
+  lifecycle_state: WorkflowSavedDraftLifecycleState;
+  lifecycle_version: number;
+  archived_at: string | null;
+  library_updated_at: string;
+  lifecycle_updated_by_actor_ref: string;
+};
+
+type SavedWorkflowDraftLifecycleEnvelope = {
+  request_id: string;
+  workspace_id: string;
+  application_id: string;
+  lifecycle: SavedWorkflowDraftLifecycleDocument | null;
+  failure_code: string | null;
+  current_draft_version: number;
+  current_lifecycle_version: number;
+  current_lifecycle_state: string;
+  audit_ref: string;
 };
 
 type SavedWorkflowDraftPayload = {
@@ -223,9 +315,17 @@ type SavedWorkflowDraftPayload = {
 
 type SavedWorkflowDraftAdditionalFields = {
   designer_layout_v1?: SavedWorkflowDraftDesignerLayoutV1;
+  derivation_v1?: SavedWorkflowDraftDerivationV1Metadata;
   executor_v0?: SavedWorkflowDraftExecutorV0Metadata;
   rag_retrieval_v1?: SavedWorkflowDraftRAGRetrievalV1Metadata;
 } & Record<string, unknown>;
+
+type SavedWorkflowDraftDerivationV1Metadata = {
+  version: typeof DERIVATION_METADATA_VERSION;
+  source_kind: typeof DERIVATION_SOURCE_KIND;
+  source_draft_id: string;
+  source_draft_version: number;
+};
 
 type SavedWorkflowDraftExecutorV0Metadata = {
   version: typeof EXECUTOR_V0_METADATA_VERSION;
@@ -336,6 +436,8 @@ export function initialWorkflowSavedDraftConsumerState(
       summary: "Offline sample draft is available for review without persistence.",
       failureCode: null,
       currentDraftVersion: 0,
+      currentLifecycleVersion: 0,
+      currentLifecycleState: "active",
       conflictDraftVersion: null,
       auditRef: "audit_workflow_saved_draft_sample",
       requestId: "workflow-saved-draft-sample",
@@ -348,6 +450,8 @@ export function initialWorkflowSavedDraftConsumerState(
     summary: "Local draft can be validated or saved through the dev-only saved draft route.",
     failureCode: null,
     currentDraftVersion: 0,
+    currentLifecycleVersion: 0,
+    currentLifecycleState: "active",
     conflictDraftVersion: null,
     auditRef: "audit_workflow_saved_draft_unsaved",
     requestId: "workflow-saved-draft-unsaved",
@@ -357,6 +461,8 @@ export function initialWorkflowSavedDraftConsumerState(
 export function initialWorkflowSavedDraftListState(
   config: WorkflowSavedDraftConsumerConfig,
   applicationRef = "",
+  lifecycleState: WorkflowSavedDraftLifecycleState = "active",
+  filters: WorkflowSavedDraftLibraryFilters = emptyWorkflowSavedDraftLibraryFilters(),
 ): WorkflowSavedDraftListState {
   if (config.mode !== "dev_saved_draft_http") {
     return {
@@ -365,6 +471,10 @@ export function initialWorkflowSavedDraftListState(
       sourceLabel: "sample-only",
       summary: "Saved draft list stays disabled until the dev-only saved draft route is enabled.",
       applicationRef,
+      lifecycleState,
+      filters,
+      nextCursor: "",
+      hasMore: false,
       failureCode: null,
       auditRef: "audit_workflow_saved_draft_list_sample",
       requestId: "workflow-saved-draft-list-sample",
@@ -377,6 +487,10 @@ export function initialWorkflowSavedDraftListState(
     sourceLabel: "not loaded",
     summary: "Saved draft list can be loaded from the dev-only list route for the selected application.",
     applicationRef,
+    lifecycleState,
+    filters,
+    nextCursor: "",
+    hasMore: false,
     failureCode: null,
     auditRef: "audit_workflow_saved_draft_list_idle",
     requestId: "workflow-saved-draft-list-idle",
@@ -388,11 +502,13 @@ export async function saveWorkflowDraftDevRecord(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
   expectedDraftVersion: number,
+  expectedLifecycleVersion = 0,
 ): Promise<WorkflowSavedDraftConsumerState> {
   const envelope = await requestSavedWorkflowDraftEnvelope("/v1/user-workspace/workflow-drafts", config, draft, {
     method: "POST",
     body: JSON.stringify({
       expected_draft_version: expectedDraftVersion,
+      expected_lifecycle_version: expectedLifecycleVersion,
       draft: toSavedWorkflowDraftPayload(draft, config),
     }),
   });
@@ -403,6 +519,8 @@ export async function validateWorkflowDraftDevRecord(
   draft: WorkflowDraftDesignerDraft,
   config: WorkflowSavedDraftConsumerConfig,
   currentDraftVersion = 0,
+  currentLifecycleVersion = 0,
+  currentLifecycleState: WorkflowSavedDraftCurrentLifecycleState = "active",
 ): Promise<WorkflowSavedDraftConsumerState> {
   const envelope = await requestSavedWorkflowDraftEnvelope(
     "/v1/user-workspace/workflow-drafts/validate",
@@ -413,7 +531,13 @@ export async function validateWorkflowDraftDevRecord(
       body: JSON.stringify({ draft: toSavedWorkflowDraftPayload(draft, config) }),
     },
   );
-  return stateFromSavedWorkflowDraftEnvelope(envelope, "validate", currentDraftVersion);
+  return stateFromSavedWorkflowDraftEnvelope(
+    envelope,
+    "validate",
+    currentDraftVersion,
+    currentLifecycleVersion,
+    currentLifecycleState,
+  );
 }
 
 export async function readWorkflowDraftDevRecord(
@@ -437,23 +561,34 @@ export async function readWorkflowDraftDevRecord(
 export async function listWorkflowDraftDevRecords(
   applicationRef: string,
   config: WorkflowSavedDraftConsumerConfig,
+  request: WorkflowSavedDraftListQuery = {
+    lifecycleState: "active",
+    filters: emptyWorkflowSavedDraftLibraryFilters(),
+  },
 ): Promise<WorkflowSavedDraftListState> {
+  const normalized = normalizeWorkflowSavedDraftListQuery(request);
   const query = new URLSearchParams({
     workspace_id: config.workspaceId,
     application_id: applicationRef,
+    lifecycle_state: normalized.lifecycleState,
+    limit: String(normalized.limit),
   });
+  if (normalized.cursor) query.set("cursor", normalized.cursor);
+  if (normalized.filters.namePrefix) query.set("name_prefix", normalized.filters.namePrefix);
+  if (normalized.filters.validationState) query.set("validation_state", normalized.filters.validationState);
+  if (normalized.filters.provenanceKind) query.set("provenance_kind", normalized.filters.provenanceKind);
   const envelope = await requestSavedWorkflowDraftListEnvelope(
     `/v1/user-workspace/workflow-drafts?${query.toString()}`,
     config,
     applicationRef,
   );
-  return listStateFromSavedWorkflowDraftEnvelope(envelope);
+  return listStateFromSavedWorkflowDraftEnvelope(envelope, normalized);
 }
 
-export async function restoreWorkflowDraftDevRecord(
+export async function openWorkflowDraftDevRecord(
   summary: WorkflowSavedDraftSummary,
   config: WorkflowSavedDraftConsumerConfig,
-): Promise<WorkflowSavedDraftRestoreResult> {
+): Promise<WorkflowSavedDraftOpenResult> {
   const query = new URLSearchParams({
     workspace_id: config.workspaceId,
     application_id: summary.applicationRef,
@@ -462,7 +597,7 @@ export async function restoreWorkflowDraftDevRecord(
     `/v1/user-workspace/workflow-drafts/${encodeURIComponent(summary.draftId)}?${query.toString()}`,
     config,
     summary.applicationRef,
-    `dev-saved-draft-restore-${summary.draftId}`,
+    `dev-saved-draft-open-${summary.draftId}`,
     { method: "GET" },
   );
   const state = stateFromSavedWorkflowDraftEnvelope(envelope, "read", summary.draftVersion);
@@ -470,6 +605,79 @@ export async function restoreWorkflowDraftDevRecord(
     return { state, draft: null };
   }
   return { state, draft: workflowDraftFromSavedWorkflowDraftDocument(envelope.draft) };
+}
+
+export function initialWorkflowSavedDraftLifecycleOperationState(): WorkflowSavedDraftLifecycleOperationState {
+  return {
+    status: "idle",
+    draftId: "",
+    targetState: null,
+    currentDraftVersion: 0,
+    currentLifecycleVersion: 0,
+    currentLifecycleState: "active",
+    failureCode: null,
+    requestId: "workflow-saved-draft-lifecycle-idle",
+    auditRef: "audit_workflow_saved_draft_lifecycle_idle",
+    summary: "No saved draft lifecycle transition is pending.",
+  };
+}
+
+export async function archiveWorkflowDraftDevRecord(
+  summary: WorkflowSavedDraftSummary,
+  config: WorkflowSavedDraftConsumerConfig,
+): Promise<WorkflowSavedDraftLifecycleOperationState> {
+  return transitionWorkflowDraftDevRecord(summary, config, "archived");
+}
+
+export async function unarchiveWorkflowDraftDevRecord(
+  summary: WorkflowSavedDraftSummary,
+  config: WorkflowSavedDraftConsumerConfig,
+): Promise<WorkflowSavedDraftLifecycleOperationState> {
+  return transitionWorkflowDraftDevRecord(summary, config, "active");
+}
+
+export function mergeWorkflowSavedDraftListPage(
+  current: WorkflowSavedDraftListState,
+  page: WorkflowSavedDraftListState,
+): WorkflowSavedDraftListState {
+  if (
+    current.applicationRef !== page.applicationRef ||
+    current.lifecycleState !== page.lifecycleState ||
+    !sameWorkflowSavedDraftLibraryFilters(current.filters, page.filters)
+  ) {
+    return page;
+  }
+  const summaries = [...current.summaries];
+  const seenDraftIds = new Set(summaries.map((summary) => summary.draftId));
+  for (const summary of page.summaries) {
+    if (!seenDraftIds.has(summary.draftId)) {
+      seenDraftIds.add(summary.draftId);
+      summaries.push(summary);
+    }
+  }
+  return {
+    ...page,
+    status: summaries.length === 0 ? "empty" : "ready",
+    summaries,
+    summary: `${summaries.length} ${page.lifecycleState} saved draft summaries are loaded.`,
+  };
+}
+
+export function workflowSavedDraftRequestIsCurrent(
+  expectedGeneration: number,
+  currentGeneration: number,
+  expectedScopeKey: string,
+  currentScopeKey: string,
+): boolean {
+  return expectedGeneration === currentGeneration && expectedScopeKey === currentScopeKey;
+}
+
+export function emptyWorkflowSavedDraftLibraryFilters(): WorkflowSavedDraftLibraryFilters {
+  return {
+    namePrefix: "",
+    validationState: "",
+    provenanceKind: "",
+  };
 }
 
 export function continueLocalWorkflowDraftAfterVersionConflict(
@@ -484,7 +692,7 @@ export function continueLocalWorkflowDraftAfterVersionConflict(
     ...state,
     status: "conflict_local_continued",
     sourceLabel: "local draft continued",
-    summary: `Local draft ${draft.draftId} remains active after explicit conflict review; retry save against saved version ${savedDraftVersion} or restore the saved draft explicitly.`,
+    summary: `Local draft ${draft.draftId} remains active after explicit conflict review; retry save against saved version ${savedDraftVersion} or open the saved draft explicitly.`,
     failureCode: "draft_version_conflict",
     currentDraftVersion: savedDraftVersion,
     conflictDraftVersion: savedDraftVersion,
@@ -511,22 +719,22 @@ export function buildWorkflowSavedDraftConflictReviewSummary(
   const savedMetadataState = savedMetadataLoaded
     ? "loaded"
     : conflictMetadataStateFromSavedDraftListStatus(savedDraftListStatus);
-  const restoreActionState = savedMetadataLoaded ? "restore_available" : "restore_requires_saved_list";
-  const restoreUnavailableReason = savedMetadataLoaded
+  const openActionState = savedMetadataLoaded ? "open_available" : "open_requires_saved_list";
+  const openUnavailableReason = savedMetadataLoaded
     ? null
-    : conflictRestoreUnavailableReason(savedMetadataState, savedDraftListFailureCode);
+    : conflictOpenUnavailableReason(savedMetadataState, savedDraftListFailureCode);
   const savedMetadataLabel = savedSummary
     ? `saved version ${savedSummary.draftVersion} updated at ${savedSummary.updatedAt} by ${savedSummary.updatedByActorRef}`
     : `saved version ${savedDraftVersion} metadata is not loaded in the sanitized saved draft list`;
   const localDraftPreservationSummary =
     status === "local_draft_continued"
       ? `Local draft ${draft.draftId} remains active after explicit continue; the next save retries against saved version ${savedDraftVersion}.`
-      : `Local draft ${draft.draftId} remains active and unchanged; no saved version has been restored or merged.`;
+      : `Local draft ${draft.draftId} remains active and unchanged; no saved version has been opened or merged.`;
   const nextReviewerStep =
     status === "local_draft_continued"
-      ? "Review the local edits before the next save attempt; restoring the saved version remains an explicit separate action."
+      ? "Review the local edits before the next save attempt; opening the saved version remains an explicit separate action."
       : savedMetadataLoaded
-        ? "Choose continue local draft to keep the current browser edits, or restore saved version to replace the active draft explicitly."
+        ? "Choose continue local draft to keep the current browser edits, or open the saved draft to replace the active draft explicitly."
         : conflictNextReviewerStep(savedMetadataState);
   return {
     reviewId: "saved_draft_conflict_review",
@@ -546,17 +754,17 @@ export function buildWorkflowSavedDraftConflictReviewSummary(
     savedBlockedCapabilityCount: savedSummary?.blockedCapabilityCount ?? null,
     savedMetadataLoaded,
     savedMetadataState,
-    restoreActionState,
-    restoreUnavailableReason,
+    openActionState,
+    openUnavailableReason,
     localDraftPreservationSummary,
     nextReviewerStep,
     requestId: state.requestId,
     auditRef: state.auditRef,
     summary: `Version conflict review keeps local draft ${draft.draftId} active with ${draft.nodes.length} nodes and ${draft.edges.length} edges while ${savedMetadataLabel} remains the remote saved draft source.`,
     reviewerQuestion:
-      "Should the reviewer keep editing the local draft or explicitly restore the saved draft before another save attempt?",
+      "Should the reviewer keep editing the local draft or explicitly open the saved draft before another save attempt?",
     canContinueLocalDraft: true,
-    canRestoreFromSavedDraft: savedMetadataLoaded,
+    canOpenSavedDraft: savedMetadataLoaded,
     canAutoOverwriteLocalDraft: false,
     canAutoMergeDraft: false,
   };
@@ -573,7 +781,7 @@ function conflictMetadataStateFromSavedDraftListStatus(
     case "empty":
       return "empty";
     case "list_failed":
-    case "restore_failed":
+    case "open_failed":
       return "failed";
     case "ready":
       return "missing";
@@ -582,46 +790,51 @@ function conflictMetadataStateFromSavedDraftListStatus(
   }
 }
 
-function conflictRestoreUnavailableReason(
+function conflictOpenUnavailableReason(
   metadataState: WorkflowSavedDraftConflictMetadataState,
   failureCode: string | null | undefined,
 ): string {
   switch (metadataState) {
     case "disabled":
-      return "Saved draft list is disabled outside the dev-only saved draft route; restore stays unavailable.";
+      return "Saved draft list is disabled outside the dev-only saved draft route; open stays unavailable.";
     case "empty":
-      return "Saved draft list returned no sanitized summary for this draft; restore stays disabled and the local draft remains active.";
+      return "Saved draft list returned no sanitized summary for this draft; open stays disabled and the local draft remains active.";
     case "failed":
-      return `Saved version metadata refresh failed with ${failureCode ?? "unknown_failure"}; restore stays disabled and no sample fallback was used.`;
+      return `Saved version metadata refresh failed with ${failureCode ?? "unknown_failure"}; open stays disabled and no sample fallback was used.`;
     case "missing":
-      return "Saved draft list is ready but does not include this draft summary; restore stays disabled until matching sanitized metadata is available.";
+      return "Saved draft list is ready but does not include this draft summary; open stays disabled until matching sanitized metadata is available.";
     case "refreshing":
     case "loaded":
-      return "Saved version metadata is refreshing from the dev-only saved draft list before restore is enabled.";
+      return "Saved version metadata is refreshing from the dev-only saved draft list before open is enabled.";
   }
 }
 
 function conflictNextReviewerStep(metadataState: WorkflowSavedDraftConflictMetadataState): string {
   switch (metadataState) {
     case "disabled":
-      return "Enable the dev-only saved draft route before trying to restore; local browser edits stay active.";
+      return "Enable the dev-only saved draft route before trying to open the saved draft; local browser edits stay active.";
     case "empty":
     case "missing":
-      return "Refresh saved drafts or keep editing locally; restore remains blocked until a matching sanitized summary is available.";
+      return "Refresh saved drafts or keep editing locally; open remains blocked until a matching sanitized summary is available.";
     case "failed":
-      return "Resolve the saved draft list failure before restore; keep reviewing the local draft without auto overwrite or auto merge.";
+      return "Resolve the saved draft list failure before open; keep reviewing the local draft without auto overwrite or auto merge.";
     case "refreshing":
     case "loaded":
-      return "Keep reviewing the local draft while the saved draft list refreshes; restore stays disabled until sanitized saved metadata is available.";
+      return "Keep reviewing the local draft while the saved draft list refreshes; open stays disabled until sanitized saved metadata is available.";
   }
 }
 
 function listStateFromSavedWorkflowDraftEnvelope(
   envelope: SavedWorkflowDraftListEnvelope,
+  request: Required<WorkflowSavedDraftListQuery>,
 ): WorkflowSavedDraftListState {
   const base = {
     mode: "dev_saved_draft_http" as const,
     applicationRef: envelope.application_id,
+    lifecycleState: request.lifecycleState,
+    filters: request.filters,
+    nextCursor: envelope.next_cursor,
+    hasMore: envelope.has_more,
     failureCode: envelope.failure_code,
     auditRef: envelope.audit_ref,
     requestId: envelope.request_id,
@@ -640,14 +853,14 @@ function listStateFromSavedWorkflowDraftEnvelope(
       ...base,
       status: "empty",
       sourceLabel: "empty",
-      summary: "No saved dev draft records were returned for the selected application.",
+      summary: `No ${request.lifecycleState} saved dev draft records matched the current filters.`,
     };
   }
   return {
     ...base,
     status: "ready",
-    sourceLabel: "saved dev drafts",
-    summary: `${envelope.draft_summaries.length} saved dev draft summaries are available for restore.`,
+    sourceLabel: `${request.lifecycleState} saved dev drafts`,
+    summary: `${envelope.draft_summaries.length} ${request.lifecycleState} saved dev draft summaries are available.`,
   };
 }
 
@@ -655,6 +868,8 @@ function stateFromSavedWorkflowDraftEnvelope(
   envelope: SavedWorkflowDraftEnvelope,
   operation: "save" | "read" | "validate",
   previousDraftVersion: number,
+  previousLifecycleVersion = 0,
+  previousLifecycleState: WorkflowSavedDraftCurrentLifecycleState = "unknown",
 ): WorkflowSavedDraftConsumerState {
   const base = {
     mode: "dev_saved_draft_http" as const,
@@ -665,6 +880,12 @@ function stateFromSavedWorkflowDraftEnvelope(
       envelopeDraftVersion: envelope.current_draft_version,
       previousDraftVersion,
     }),
+    currentLifecycleVersion:
+      operation === "validate" ? previousLifecycleVersion : envelope.current_lifecycle_version,
+    currentLifecycleState:
+      operation === "validate"
+        ? previousLifecycleState
+        : normalizeCurrentWorkflowSavedDraftLifecycleState(envelope.current_lifecycle_state),
     conflictDraftVersion: null,
     auditRef: envelope.audit_ref,
     requestId: envelope.request_id,
@@ -701,7 +922,58 @@ function stateFromSavedWorkflowDraftEnvelope(
     ...base,
     status: "saved_dev_record",
     sourceLabel: envelope.draft?.sample_or_unsaved_draft_status || "saved dev record",
-    summary: `Draft is saved in the dev-only store at version ${envelope.current_draft_version}.`,
+    summary: envelope.current_lifecycle_state === "archived"
+      ? `Draft version ${envelope.current_draft_version} is open for archived read-only review.`
+      : `Draft is saved in the dev-only store at version ${envelope.current_draft_version}.`,
+  };
+}
+
+async function transitionWorkflowDraftDevRecord(
+  summary: WorkflowSavedDraftSummary,
+  config: WorkflowSavedDraftConsumerConfig,
+  targetState: WorkflowSavedDraftLifecycleState,
+): Promise<WorkflowSavedDraftLifecycleOperationState> {
+  const transition = targetState === "archived" ? "archive" : "unarchive";
+  const envelope = await requestSavedWorkflowDraftLifecycleEnvelope(
+    `/v1/user-workspace/workflow-drafts/${encodeURIComponent(summary.draftId)}/${transition}`,
+    config,
+    summary.applicationRef,
+    `dev-saved-draft-${transition}-${summary.draftId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        workspace_id: config.workspaceId,
+        application_id: summary.applicationRef,
+        expected_draft_version: summary.draftVersion,
+        expected_lifecycle_version: summary.lifecycleVersion,
+      }),
+    },
+  );
+  const base = {
+    draftId: summary.draftId,
+    targetState,
+    currentDraftVersion: envelope.current_draft_version,
+    currentLifecycleVersion: envelope.current_lifecycle_version,
+    currentLifecycleState: normalizeCurrentWorkflowSavedDraftLifecycleState(envelope.current_lifecycle_state),
+    failureCode: envelope.failure_code,
+    requestId: envelope.request_id,
+    auditRef: envelope.audit_ref,
+  };
+  if (envelope.failure_code || !envelope.lifecycle) {
+    return {
+      ...base,
+      status: "failed",
+      summary: `Saved draft ${transition} failed with ${envelope.failure_code ?? "draft_lifecycle_transition_failed"}.`,
+    };
+  }
+  return {
+    ...base,
+    status: targetState === "archived" ? "archived" : "unarchived",
+    currentLifecycleVersion: envelope.lifecycle.lifecycle_version,
+    currentLifecycleState: envelope.lifecycle.lifecycle_state,
+    summary: targetState === "archived"
+      ? `Draft ${summary.draftId} was archived and remains available for read-only review.`
+      : `Draft ${summary.draftId} was unarchived; reopen it explicitly before editing.`,
   };
 }
 
@@ -732,14 +1004,23 @@ async function requestSavedWorkflowDraftEnvelopeForApplication(
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
-    headers: savedWorkflowDraftHeadersForApplication(config, applicationRef, requestId),
+    headers: savedWorkflowDraftHeadersForApplication(
+      config,
+      applicationRef,
+      requestId,
+      init.method === "POST" ? "write" : "read",
+    ),
   });
   const body: unknown = await response.json();
-  if (!response.ok) {
-    throw new Error(`saved draft route returned HTTP ${response.status}`);
-  }
   if (!isSavedWorkflowDraftEnvelope(body)) {
-    throw new Error("saved draft route returned an unexpected envelope");
+    throw new Error(
+      response.ok
+        ? "saved draft route returned an unexpected envelope"
+        : `saved draft route returned HTTP ${response.status} without a stable failure envelope`,
+    );
+  }
+  if (body.workspace_id !== config.workspaceId || body.application_id !== applicationRef) {
+    throw new Error("saved draft route returned a scope-drifted envelope");
   }
   return body;
 }
@@ -758,23 +1039,67 @@ async function requestSavedWorkflowDraftListEnvelope(
       config,
       applicationRef,
       `dev-saved-draft-list-${applicationRef}`,
+      "read",
     ),
   });
   const body: unknown = await response.json();
-  if (!response.ok) {
-    throw new Error(`saved draft list route returned HTTP ${response.status}`);
-  }
   if (!isSavedWorkflowDraftListEnvelope(body)) {
-    throw new Error("saved draft list route returned an unexpected envelope");
+    throw new Error(
+      response.ok
+        ? "saved draft list route returned an unexpected envelope"
+        : `saved draft list route returned HTTP ${response.status} without a stable failure envelope`,
+    );
+  }
+  if (body.workspace_id !== config.workspaceId || body.application_id !== applicationRef) {
+    throw new Error("saved draft list route returned a scope-drifted envelope");
   }
   return body;
 }
 
-function savedWorkflowDraftHeadersForApplication(
+async function requestSavedWorkflowDraftLifecycleEnvelope(
+  path: string,
   config: WorkflowSavedDraftConsumerConfig,
   applicationRef: string,
   requestId: string,
+  init: RequestInit,
+): Promise<SavedWorkflowDraftLifecycleEnvelope> {
+  if (config.mode !== "dev_saved_draft_http") {
+    throw new Error("saved draft dev HTTP source is disabled");
+  }
+  const response = await fetch(`${config.baseUrl}${path}`, {
+    ...init,
+    headers: savedWorkflowDraftHeadersForApplication(config, applicationRef, requestId, "archive"),
+  });
+  const body: unknown = await response.json();
+  if (!isSavedWorkflowDraftLifecycleEnvelope(body)) {
+    throw new Error(
+      response.ok
+        ? "saved draft lifecycle route returned an unexpected envelope"
+        : `saved draft lifecycle route returned HTTP ${response.status} without a stable failure envelope`,
+    );
+  }
+  if (body.workspace_id !== config.workspaceId || body.application_id !== applicationRef) {
+    throw new Error("saved draft lifecycle route returned a scope-drifted envelope");
+  }
+  return body;
+}
+
+export function savedWorkflowDraftHeadersForApplication(
+  config: WorkflowSavedDraftConsumerConfig,
+  applicationRef: string,
+  requestId: string,
+  access: "read" | "write" | "archive",
 ): HeadersInit {
+  const scopes = access === "archive"
+    ? DEFAULT_ARCHIVE_SCOPES
+    : access === "write"
+      ? DEFAULT_WRITE_SCOPES
+      : DEFAULT_READ_SCOPES;
+  const membershipPermissions = access === "archive"
+    ? "workflow_drafts:read,workflow_drafts:archive"
+    : access === "write"
+      ? "workflow_drafts:read,workflow_drafts:write"
+      : "workflow_drafts:read";
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -782,8 +1107,11 @@ function savedWorkflowDraftHeadersForApplication(
     "X-RadishMind-Dev-Read-Identity": "dev-saved-draft-consumer",
     "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
-    "X-RadishMind-Dev-Read-Scopes": DEFAULT_SCOPES,
+    "X-RadishMind-Dev-Read-Scopes": scopes,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_saved_draft_consumer",
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": membershipPermissions,
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationRef,
   };
@@ -876,6 +1204,14 @@ function toSavedWorkflowDraftAdditionalFields(
       side_effect_policy: "retrieval_and_provider_once",
     };
   }
+  if (draft.derivation) {
+    additionalFields.derivation_v1 = {
+      version: DERIVATION_METADATA_VERSION,
+      source_kind: DERIVATION_SOURCE_KIND,
+      source_draft_id: draft.derivation.sourceDraftId,
+      source_draft_version: draft.derivation.sourceDraftVersion,
+    };
+  }
   return Object.keys(additionalFields).length > 0 ? additionalFields : undefined;
 }
 
@@ -907,6 +1243,12 @@ function toWorkflowSavedDraftSummary(document: SavedWorkflowDraftSummaryDocument
     applicationRef: document.application_id,
     workflowDefinitionId: document.source_definition_id,
     draftVersion: document.draft_version,
+    lifecycleState: document.lifecycle_state,
+    lifecycleVersion: document.lifecycle_version,
+    archivedAt: document.archived_at,
+    libraryUpdatedAt: document.library_updated_at,
+    lifecycleUpdatedByActorRef: document.lifecycle_updated_by_actor_ref,
+    provenanceKind: document.provenance_kind,
     draftStatus: document.draft_status,
     name: document.name,
     description: document.description,
@@ -921,7 +1263,7 @@ function toWorkflowSavedDraftSummary(document: SavedWorkflowDraftSummaryDocument
   };
 }
 
-function workflowDraftFromSavedWorkflowDraftDocument(
+export function workflowDraftFromSavedWorkflowDraftDocument(
   document: SavedWorkflowDraftDocument,
 ): WorkflowDraftDesignerDraft {
   const validationState = document.validation_summary?.validation_state || document.draft_status || "invalid_draft";
@@ -929,6 +1271,10 @@ function workflowDraftFromSavedWorkflowDraftDocument(
   const nodes = document.nodes.map(toWorkflowDraftDesignerNode);
   const isRAGRetrievalV1 = isSavedWorkflowDraftRAGRetrievalV1Metadata(
     document.additional_fields?.rag_retrieval_v1,
+  );
+  const derivation = savedWorkflowDraftDerivationFromMetadata(
+    document.additional_fields?.derivation_v1,
+    document.draft_id,
   );
   return {
     draftId: document.draft_id,
@@ -952,33 +1298,33 @@ function workflowDraftFromSavedWorkflowDraftDocument(
     designerLayout: workflowDraftDesignerLayoutFromSavedDraftAdditionalFields(document.additional_fields, nodes),
     readiness: [
       {
-        checkId: "saved_draft_restore_validation",
+        checkId: "saved_draft_open_validation",
         label: "Saved draft validation",
         status: document.validation_summary?.valid_for_review ? "ready" : "review_required",
-        summary: `Restored dev saved draft version ${document.draft_version} with ${validationState}.`,
+        summary: `Opened dev saved draft version ${document.draft_version} with ${validationState}.`,
       },
       {
-        checkId: "saved_draft_restore_scope",
+        checkId: "saved_draft_open_scope",
         label: "Scope guard",
         status: "ready",
-        summary: "Restore used workspace and application scoped dev-only read route.",
+        summary: "Open used the workspace- and application-scoped dev-only read route.",
       },
     ],
-    risks: buildRestoredWorkflowDraftRisks(document),
+    risks: buildOpenedWorkflowDraftRisks(document),
     blockedCapabilities: blockedCapabilities.map((capability) => ({
       capabilityId: capability.capability_id,
       label: capability.capability_id,
       status: "blocked",
       missingPrerequisite: capability.missing_prerequisite ?? "independent workflow runtime target",
-      summary: capability.summary ?? "Capability remains blocked after saved draft restore.",
-      auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_restore",
+      summary: capability.summary ?? "Capability remains blocked after the saved draft is opened.",
+      auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_open",
     })),
     routeMetadata: {
       sourceRouteId: "workflow-definition-summary-list-route",
       draftRouteId: "workflow-draft-designer-offline-draft",
       routePath: CONTROL_PLANE_READ_ROUTES.workflowDefinitions,
-      requestId: document.request_audit_metadata?.request_id ?? `restore_${document.draft_id}`,
-      auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_restore",
+      requestId: document.request_audit_metadata?.request_id ?? `open_${document.draft_id}`,
+      auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_open",
     },
     localOnlyInteraction: "inspect_only",
     executionProfile: isSavedWorkflowDraftExecutorV0Metadata(document.additional_fields?.executor_v0)
@@ -986,6 +1332,34 @@ function workflowDraftFromSavedWorkflowDraftDocument(
       : isRAGRetrievalV1
         ? "rag_retrieval_v1"
         : "review_only",
+    ...(derivation ? { derivation } : {}),
+  };
+}
+
+function savedWorkflowDraftDerivationFromMetadata(
+  value: unknown,
+  draftId: string,
+): WorkflowDraftDesignerDraft["derivation"] {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const candidate = value as Partial<SavedWorkflowDraftDerivationV1Metadata>;
+  if (
+    candidate.version !== DERIVATION_METADATA_VERSION ||
+    candidate.source_kind !== DERIVATION_SOURCE_KIND ||
+    typeof candidate.source_draft_id !== "string" ||
+    candidate.source_draft_id.trim() === "" ||
+    candidate.source_draft_id === draftId ||
+    !Number.isInteger(candidate.source_draft_version) ||
+    (candidate.source_draft_version ?? 0) < 1
+  ) {
+    return undefined;
+  }
+  return {
+    version: DERIVATION_METADATA_VERSION,
+    sourceKind: DERIVATION_SOURCE_KIND,
+    sourceDraftId: candidate.source_draft_id,
+    sourceDraftVersion: candidate.source_draft_version as number,
   };
 }
 
@@ -1100,7 +1474,7 @@ function toWorkflowDraftDesignerNode(node: SavedWorkflowDraftNode): WorkflowDraf
     outputMappingSummary: node.output_mapping_summary || "Saved draft output mapping restored from dev record.",
     riskLevel: toWorkflowDraftRiskLevel(node.risk_level),
     requiresConfirmation: node.requires_confirmation,
-    previewOnlyReason: "Restored from dev-only saved draft record; execution remains blocked.",
+    previewOnlyReason: "Opened from a dev-only saved draft record; execution remains blocked.",
   };
 }
 
@@ -1219,16 +1593,16 @@ function toWorkflowDraftRiskLevel(riskLevel: string): WorkflowDraftDesignerNode[
   return "low";
 }
 
-function buildRestoredWorkflowDraftRisks(document: SavedWorkflowDraftDocument): WorkflowDraftDesignerDraft["risks"] {
+function buildOpenedWorkflowDraftRisks(document: SavedWorkflowDraftDocument): WorkflowDraftDesignerDraft["risks"] {
   const riskNodes = document.nodes.filter((node) => node.requires_confirmation || node.risk_level === "high");
   if (riskNodes.length === 0) {
     return [
       {
-        riskId: "saved_draft_restore_review",
+        riskId: "saved_draft_open_review",
         label: "Saved draft review",
         riskLevel: "low",
         requiresConfirmation: false,
-        summary: "Restored draft keeps advisory-only review state and does not unlock execution.",
+        summary: "Opened draft keeps advisory-only review state and does not unlock execution.",
       },
     ];
   }
@@ -1237,36 +1611,318 @@ function buildRestoredWorkflowDraftRisks(document: SavedWorkflowDraftDocument): 
     label: node.label,
     riskLevel: toWorkflowDraftRiskLevel(node.risk_level),
     requiresConfirmation: node.requires_confirmation,
-    summary: "Risk marker restored for review; confirmation decision storage remains unavailable.",
+    summary: "Risk marker was opened for review; confirmation decision storage remains unavailable.",
   }));
 }
 
 function isSavedWorkflowDraftEnvelope(value: unknown): value is SavedWorkflowDraftEnvelope {
-  if (!value || typeof value !== "object") {
+  if (!hasExactKeys(value, [
+    "request_id",
+    "workspace_id",
+    "application_id",
+    "draft",
+    "failure_code",
+    "current_draft_version",
+    "current_lifecycle_version",
+    "current_lifecycle_state",
+    "validation_summary",
+    "blocked_capabilities",
+    "audit_ref",
+  ])) {
     return false;
   }
-  const candidate = value as Partial<SavedWorkflowDraftEnvelope>;
-  return typeof candidate.request_id === "string" &&
-    typeof candidate.workspace_id === "string" &&
+  const candidate = value as SavedWorkflowDraftEnvelope;
+  return isNonEmptyString(candidate.request_id) &&
+    isNonEmptyString(candidate.workspace_id) &&
     typeof candidate.application_id === "string" &&
-    typeof candidate.current_draft_version === "number" &&
-    typeof candidate.audit_ref === "string" &&
-    (typeof candidate.failure_code === "string" || candidate.failure_code === null) &&
-    !!candidate.validation_summary &&
-    typeof candidate.validation_summary === "object";
+    isNonNegativeInteger(candidate.current_draft_version) &&
+    isNonNegativeInteger(candidate.current_lifecycle_version) &&
+    isCurrentWorkflowSavedDraftLifecycleState(candidate.current_lifecycle_state) &&
+    isNonEmptyString(candidate.audit_ref) &&
+    (isNonEmptyString(candidate.failure_code) || candidate.failure_code === null) &&
+    (candidate.draft === null || isSavedWorkflowDraftDocument(candidate.draft)) &&
+    isSavedWorkflowDraftValidationSummary(candidate.validation_summary) &&
+    Array.isArray(candidate.blocked_capabilities) &&
+    candidate.blocked_capabilities.every(isSavedWorkflowDraftBlockedCapability);
 }
 
 function isSavedWorkflowDraftListEnvelope(value: unknown): value is SavedWorkflowDraftListEnvelope {
+  if (!hasExactKeys(value, [
+    "request_id",
+    "workspace_id",
+    "application_id",
+    "draft_summaries",
+    "next_cursor",
+    "has_more",
+    "failure_code",
+    "audit_ref",
+  ])) {
+    return false;
+  }
+  const candidate = value as SavedWorkflowDraftListEnvelope;
+  return isNonEmptyString(candidate.request_id) &&
+    isNonEmptyString(candidate.workspace_id) &&
+    typeof candidate.application_id === "string" &&
+    Array.isArray(candidate.draft_summaries) &&
+    candidate.draft_summaries.every(isSavedWorkflowDraftSummaryDocument) &&
+    typeof candidate.next_cursor === "string" &&
+    typeof candidate.has_more === "boolean" &&
+    candidate.has_more === (candidate.next_cursor.length > 0) &&
+    isNonEmptyString(candidate.audit_ref) &&
+    (isNonEmptyString(candidate.failure_code) || candidate.failure_code === null) &&
+    (candidate.failure_code === null ||
+      (candidate.draft_summaries.length === 0 && !candidate.has_more && candidate.next_cursor === ""));
+}
+
+function isSavedWorkflowDraftLifecycleEnvelope(value: unknown): value is SavedWorkflowDraftLifecycleEnvelope {
+  if (!hasExactKeys(value, [
+    "request_id",
+    "workspace_id",
+    "application_id",
+    "lifecycle",
+    "failure_code",
+    "current_draft_version",
+    "current_lifecycle_version",
+    "current_lifecycle_state",
+    "audit_ref",
+  ])) {
+    return false;
+  }
+  const candidate = value as SavedWorkflowDraftLifecycleEnvelope;
+  return isNonEmptyString(candidate.request_id) &&
+    isNonEmptyString(candidate.workspace_id) &&
+    isNonEmptyString(candidate.application_id) &&
+    (candidate.lifecycle === null || isSavedWorkflowDraftLifecycleDocument(candidate.lifecycle)) &&
+    (isNonEmptyString(candidate.failure_code) || candidate.failure_code === null) &&
+    isNonNegativeInteger(candidate.current_draft_version) &&
+    isNonNegativeInteger(candidate.current_lifecycle_version) &&
+    isCurrentWorkflowSavedDraftLifecycleState(candidate.current_lifecycle_state) &&
+    isNonEmptyString(candidate.audit_ref) &&
+    (candidate.failure_code !== null || candidate.lifecycle !== null);
+}
+
+function isSavedWorkflowDraftSummaryDocument(value: unknown): value is SavedWorkflowDraftSummaryDocument {
+  if (!hasExactKeys(value, [
+    "draft_id",
+    "workspace_id",
+    "application_id",
+    "source_definition_id",
+    "draft_version",
+    "lifecycle_state",
+    "lifecycle_version",
+    "archived_at",
+    "library_updated_at",
+    "lifecycle_updated_by_actor_ref",
+    "provenance_kind",
+    "schema_version",
+    "draft_status",
+    "name",
+    "description",
+    "updated_at",
+    "updated_by_actor_ref",
+    "node_count",
+    "edge_count",
+    "blocked_capability_count",
+    "validation_state",
+    "valid_for_review",
+    "sample_or_unsaved_draft_status",
+  ])) {
+    return false;
+  }
+  const candidate = value as SavedWorkflowDraftSummaryDocument;
+  return isNonEmptyString(candidate.draft_id) &&
+    isNonEmptyString(candidate.workspace_id) &&
+    isNonEmptyString(candidate.application_id) &&
+    typeof candidate.source_definition_id === "string" &&
+    isPositiveInteger(candidate.draft_version) &&
+    isWorkflowSavedDraftLifecycleState(candidate.lifecycle_state) &&
+    isPositiveInteger(candidate.lifecycle_version) &&
+    isArchivedAt(candidate.archived_at, candidate.lifecycle_state) &&
+    isTimestamp(candidate.library_updated_at) &&
+    typeof candidate.lifecycle_updated_by_actor_ref === "string" &&
+    isWorkflowSavedDraftProvenanceKind(candidate.provenance_kind) &&
+    candidate.schema_version === SAVED_DRAFT_SCHEMA_VERSION &&
+    isWorkflowSavedDraftValidationState(candidate.draft_status) &&
+    isNonEmptyString(candidate.name) &&
+    typeof candidate.description === "string" &&
+    isTimestamp(candidate.updated_at) &&
+    isNonEmptyString(candidate.updated_by_actor_ref) &&
+    isNonNegativeInteger(candidate.node_count) &&
+    isNonNegativeInteger(candidate.edge_count) &&
+    isNonNegativeInteger(candidate.blocked_capability_count) &&
+    isWorkflowSavedDraftValidationState(candidate.validation_state) &&
+    typeof candidate.valid_for_review === "boolean" &&
+    typeof candidate.sample_or_unsaved_draft_status === "string";
+}
+
+function isSavedWorkflowDraftLifecycleDocument(value: unknown): value is SavedWorkflowDraftLifecycleDocument {
+  if (!hasExactKeys(value, [
+    "draft_id",
+    "lifecycle_state",
+    "lifecycle_version",
+    "archived_at",
+    "library_updated_at",
+    "lifecycle_updated_by_actor_ref",
+  ])) {
+    return false;
+  }
+  const candidate = value as SavedWorkflowDraftLifecycleDocument;
+  return isNonEmptyString(candidate.draft_id) &&
+    isWorkflowSavedDraftLifecycleState(candidate.lifecycle_state) &&
+    isPositiveInteger(candidate.lifecycle_version) &&
+    isArchivedAt(candidate.archived_at, candidate.lifecycle_state) &&
+    isTimestamp(candidate.library_updated_at) &&
+    typeof candidate.lifecycle_updated_by_actor_ref === "string";
+}
+
+function isSavedWorkflowDraftDocument(value: unknown): value is SavedWorkflowDraftDocument {
   if (!value || typeof value !== "object") {
     return false;
   }
-  const candidate = value as Partial<SavedWorkflowDraftListEnvelope>;
-  return typeof candidate.request_id === "string" &&
-    typeof candidate.workspace_id === "string" &&
-    typeof candidate.application_id === "string" &&
-    Array.isArray(candidate.draft_summaries) &&
-    typeof candidate.audit_ref === "string" &&
-    (typeof candidate.failure_code === "string" || candidate.failure_code === null);
+  const candidate = value as Partial<SavedWorkflowDraftDocument>;
+  return isNonEmptyString(candidate.draft_id) &&
+    isNonEmptyString(candidate.workspace_id) &&
+    isNonEmptyString(candidate.application_id) &&
+    isPositiveInteger(candidate.draft_version) &&
+    isWorkflowSavedDraftLifecycleState(candidate.lifecycle_state) &&
+    isPositiveInteger(candidate.lifecycle_version) &&
+    isArchivedAt(candidate.archived_at, candidate.lifecycle_state) &&
+    isTimestamp(candidate.library_updated_at) &&
+    isWorkflowSavedDraftProvenanceKind(candidate.provenance_kind) &&
+    candidate.schema_version === SAVED_DRAFT_SCHEMA_VERSION &&
+    Array.isArray(candidate.nodes) &&
+    Array.isArray(candidate.edges) &&
+    Array.isArray(candidate.provider_refs) &&
+    Array.isArray(candidate.tool_refs) &&
+    Array.isArray(candidate.rag_refs) &&
+    Array.isArray(candidate.requested_capabilities) &&
+    isSavedWorkflowDraftValidationSummary(candidate.validation_summary) &&
+    Array.isArray(candidate.blocked_capability_summary) &&
+    candidate.blocked_capability_summary.every(isSavedWorkflowDraftBlockedCapability);
+}
+
+function isSavedWorkflowDraftValidationSummary(value: unknown): value is SavedWorkflowDraftValidationSummary {
+  if (!hasExactKeys(value, ["validation_state", "valid_for_review", "findings"])) {
+    return false;
+  }
+  const candidate = value as Required<SavedWorkflowDraftValidationSummary>;
+  return typeof candidate.validation_state === "string" &&
+    typeof candidate.valid_for_review === "boolean" &&
+    Array.isArray(candidate.findings);
+}
+
+function isSavedWorkflowDraftBlockedCapability(value: unknown): value is SavedWorkflowDraftBlockedCapability {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as SavedWorkflowDraftBlockedCapability;
+  return isNonEmptyString(candidate.capability_id) &&
+    (candidate.missing_prerequisite === undefined || typeof candidate.missing_prerequisite === "string") &&
+    (candidate.summary === undefined || typeof candidate.summary === "string");
+}
+
+function normalizeWorkflowSavedDraftListQuery(
+  request: WorkflowSavedDraftListQuery,
+): Required<WorkflowSavedDraftListQuery> {
+  if (!isWorkflowSavedDraftLifecycleState(request.lifecycleState)) {
+    throw new Error("saved draft lifecycle filter is invalid");
+  }
+  const filters = {
+    namePrefix: request.filters.namePrefix.trim(),
+    validationState: request.filters.validationState,
+    provenanceKind: request.filters.provenanceKind,
+  };
+  if (
+    filters.namePrefix.length > 80 ||
+    !isWorkflowSavedDraftValidationState(filters.validationState, true) ||
+    !isWorkflowSavedDraftProvenanceKind(filters.provenanceKind, true)
+  ) {
+    throw new Error("saved draft list filter is invalid");
+  }
+  const limit = request.limit ?? 25;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw new Error("saved draft list limit is invalid");
+  }
+  return {
+    lifecycleState: request.lifecycleState,
+    filters,
+    cursor: request.cursor?.trim() ?? "",
+    limit,
+  };
+}
+
+function sameWorkflowSavedDraftLibraryFilters(
+  left: WorkflowSavedDraftLibraryFilters,
+  right: WorkflowSavedDraftLibraryFilters,
+): boolean {
+  return left.namePrefix === right.namePrefix &&
+    left.validationState === right.validationState &&
+    left.provenanceKind === right.provenanceKind;
+}
+
+function normalizeCurrentWorkflowSavedDraftLifecycleState(value: string): WorkflowSavedDraftCurrentLifecycleState {
+  return isWorkflowSavedDraftLifecycleState(value) ? value : "unknown";
+}
+
+function isCurrentWorkflowSavedDraftLifecycleState(value: unknown): value is string {
+  return value === "" || isWorkflowSavedDraftLifecycleState(value);
+}
+
+function isWorkflowSavedDraftLifecycleState(value: unknown): value is WorkflowSavedDraftLifecycleState {
+  return value === "active" || value === "archived";
+}
+
+function isWorkflowSavedDraftValidationState(
+  value: unknown,
+  allowEmpty = false,
+): value is WorkflowSavedDraftValidationState {
+  return (allowEmpty && value === "") ||
+    value === "valid_for_review" ||
+    value === "invalid_draft" ||
+    value === "blocked_capability" ||
+    value === "schema_unsupported";
+}
+
+function isWorkflowSavedDraftProvenanceKind(
+  value: unknown,
+  allowEmpty = false,
+): value is WorkflowSavedDraftProvenanceKind {
+  return (allowEmpty && value === "") ||
+    value === "unversioned" ||
+    value === "workflow_definition" ||
+    value === "saved_draft_derivation";
+}
+
+function isArchivedAt(value: unknown, lifecycleState: WorkflowSavedDraftLifecycleState | undefined): boolean {
+  return lifecycleState === "active"
+    ? value === null
+    : lifecycleState === "archived" && isTimestamp(value);
+}
+
+function isTimestamp(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && Number.isFinite(Date.parse(value));
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 0;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 1;
+}
+
+function hasExactKeys(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const actualKeys = Object.keys(value as Record<string, unknown>).sort();
+  const expectedKeys = [...keys].sort();
+  return actualKeys.length === expectedKeys.length &&
+    actualKeys.every((key, index) => key === expectedKeys[index]);
 }
 
 function normalizeBaseUrl(baseUrl: string): string {

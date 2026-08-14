@@ -13,9 +13,19 @@ var errSavedWorkflowDraftStoredRecordContract = errors.New(
 	"stored saved workflow draft does not match the repository contract",
 )
 
+var errSavedWorkflowDraftStoredLibraryProjection = errors.New(
+	"stored saved workflow draft library projection does not match the payload",
+)
+
 func savedWorkflowDraftRecordValues(
 	record SavedWorkflowDraftRepositoryStoredRecord,
 ) ([]byte, []byte, []byte, time.Time, time.Time, SavedWorkflowDraftFailureCode) {
+	normalized, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(record.Draft)
+	if !ok {
+		return nil, nil, nil, time.Time{}, time.Time{},
+			SavedWorkflowDraftFailureLifecycleStoreContract
+	}
+	record.Draft = normalized
 	document := savedWorkflowDraftDocumentPointer(&record.Draft)
 	if document == nil {
 		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
@@ -41,6 +51,34 @@ func savedWorkflowDraftRecordValues(
 		return nil, nil, nil, time.Time{}, time.Time{}, SavedWorkflowDraftFailureStoreContractMismatch
 	}
 	return payload, validation, blocked, createdAt.UTC(), updatedAt.UTC(), ""
+}
+
+func applySavedWorkflowDraftStoredLibraryProjection(
+	record SavedWorkflowDraftRepositoryStoredRecord,
+	lifecycleState string,
+	lifecycleVersion int,
+	archivedAt string,
+	libraryUpdatedAt string,
+	lifecycleUpdatedByActorRef string,
+	draftName string,
+	validationState string,
+	provenanceKind string,
+) (SavedWorkflowDraftRepositoryStoredRecord, error) {
+	record.Draft.LifecycleState = SavedWorkflowDraftLifecycleState(lifecycleState)
+	record.Draft.LifecycleVersion = lifecycleVersion
+	record.Draft.ArchivedAt = archivedAt
+	record.Draft.LibraryUpdatedAt = libraryUpdatedAt
+	record.Draft.LifecycleUpdatedByActorRef = lifecycleUpdatedByActorRef
+	record.Draft.ProvenanceKind = SavedWorkflowDraftProvenanceKind(provenanceKind)
+	normalized, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(record.Draft)
+	if !ok ||
+		normalized.Name != draftName ||
+		string(normalized.ValidationSummary.ValidationState) != validationState ||
+		string(normalized.ProvenanceKind) != provenanceKind {
+		return SavedWorkflowDraftRepositoryStoredRecord{}, errSavedWorkflowDraftStoredLibraryProjection
+	}
+	record.Draft = normalized
+	return record, nil
 }
 
 func decodeSavedWorkflowDraftStoredRecord(

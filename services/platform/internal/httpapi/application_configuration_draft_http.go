@@ -67,13 +67,19 @@ func (server *Server) handleValidateApplicationConfigurationDraft(writer http.Re
 	if !server.allowApplicationDraftDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(request, "application_drafts:write")
+	requestContext := applicationConfigurationDraftMutationContext(request, trace, auth, "", false, "validate")
+	if failureCode != "" {
+		writeApplicationConfigurationDraftResultWithStatus(writer, status, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+		return
+	}
 	var body applicationConfigurationDraftValidateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode := applicationConfigurationDraftContextFromRequest(request, trace, body.Draft.WorkspaceID, body.Draft.ApplicationID, "application_drafts:write", false, "validate")
-	if failureCode != "" {
-		writeApplicationConfigurationDraftResult(writer, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+	requestContext = applicationConfigurationDraftMutationContext(request, trace, auth, body.Draft.ApplicationID, false, "validate")
+	if body.Draft.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeApplicationConfigurationDraftResultWithStatus(writer, http.StatusForbidden, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writeApplicationConfigurationDraftResult(writer, trace, requestContext, server.applicationConfigurationDraftService().Validate(requestContext, body.Draft))
@@ -84,13 +90,19 @@ func (server *Server) handleSaveApplicationConfigurationDraft(writer http.Respon
 	if !server.allowApplicationDraftDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(request, "application_drafts:write")
+	requestContext := applicationConfigurationDraftMutationContext(request, trace, auth, "", server.config.ApplicationDraftDevWriteEnabled, "save")
+	if failureCode != "" {
+		writeApplicationConfigurationDraftResultWithStatus(writer, status, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+		return
+	}
 	var body applicationConfigurationDraftSaveBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode := applicationConfigurationDraftContextFromRequest(request, trace, body.Draft.WorkspaceID, body.Draft.ApplicationID, "application_drafts:write", server.config.ApplicationDraftDevWriteEnabled, "save")
-	if failureCode != "" {
-		writeApplicationConfigurationDraftResult(writer, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+	requestContext = applicationConfigurationDraftMutationContext(request, trace, auth, body.Draft.ApplicationID, server.config.ApplicationDraftDevWriteEnabled, "save")
+	if body.Draft.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeApplicationConfigurationDraftResultWithStatus(writer, http.StatusForbidden, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	result := server.applicationConfigurationDraftService().Save(requestContext, body.Draft, body.ExpectedDraftVersion)
@@ -102,13 +114,25 @@ func (server *Server) handleBindApplicationConfigurationDraftPromptTemplate(writ
 	if !server.allowApplicationDraftDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(
+		request, "application_drafts:write", "prompt_application_templates:bind",
+	)
+	requestContext := applicationConfigurationDraftMutationContext(
+		request, trace, auth, "", server.config.ApplicationDraftDevWriteEnabled, "prompt-template-binding",
+	)
+	if failureCode != "" {
+		writeApplicationConfigurationDraftResultWithStatus(writer, status, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+		return
+	}
 	var body applicationConfigurationDraftPromptTemplateBindingBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode := applicationConfigurationDraftContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "application_drafts:write", server.config.ApplicationDraftDevWriteEnabled, "prompt-template-binding")
-	if failureCode != "" {
-		writeApplicationConfigurationDraftResult(writer, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+	requestContext = applicationConfigurationDraftMutationContext(
+		request, trace, auth, body.ApplicationID, server.config.ApplicationDraftDevWriteEnabled, "prompt-template-binding",
+	)
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeApplicationConfigurationDraftResultWithStatus(writer, http.StatusForbidden, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	result := server.applicationConfigurationDraftService().BindPromptTemplate(requestContext, request.PathValue("draft_id"), PromptApplicationTemplateBindingInput{
@@ -122,16 +146,25 @@ func (server *Server) handleBindApplicationConfigurationDraftAgentProfile(writer
 	if !server.allowApplicationDraftDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(
+		request, "application_drafts:write", "agent_copilot_profiles:bind",
+	)
+	requestContext := applicationConfigurationDraftMutationContext(
+		request, trace, auth, "", server.config.ApplicationDraftDevWriteEnabled, "agent-copilot-profile-binding",
+	)
+	if failureCode != "" {
+		writeApplicationConfigurationDraftResultWithStatus(writer, status, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+		return
+	}
 	var body applicationConfigurationDraftAgentProfileBindingBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode := applicationConfigurationDraftContextFromRequest(
-		request, trace, body.WorkspaceID, body.ApplicationID, "application_drafts:write",
-		server.config.ApplicationDraftDevWriteEnabled, "agent-copilot-profile-binding",
+	requestContext = applicationConfigurationDraftMutationContext(
+		request, trace, auth, body.ApplicationID, server.config.ApplicationDraftDevWriteEnabled, "agent-copilot-profile-binding",
 	)
-	if failureCode != "" {
-		writeApplicationConfigurationDraftResult(writer, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: failureCode})
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeApplicationConfigurationDraftResultWithStatus(writer, http.StatusForbidden, trace, requestContext, ApplicationConfigurationDraftResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	result := server.applicationConfigurationDraftService().BindAgentCopilotProfile(
@@ -276,6 +309,31 @@ func applicationConfigurationDraftContextFromRequest(
 	return requestContext, ""
 }
 
+func applicationConfigurationDraftMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) ApplicationConfigurationDraftContext {
+	subjectRef := strings.TrimSpace(auth.SubjectBinding)
+	return ApplicationConfigurationDraftContext{
+		RequestContext:         request.Context(),
+		RequestID:              trace.requestID,
+		TenantRef:              strings.TrimSpace(auth.TenantBinding),
+		WorkspaceID:            strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID:          strings.TrimSpace(applicationID),
+		ActorRef:               subjectRef,
+		OwnerSubjectRef:        subjectRef,
+		WriteEnabled:           writeEnabled,
+		BindingEnabled:         workspacePermissionEnabled(auth, "workflow_rag_promotions:bind"),
+		TemplateBindingEnabled: workspacePermissionEnabled(auth, "prompt_application_templates:bind"),
+		ProfileBindingEnabled:  workspacePermissionEnabled(auth, "agent_copilot_profiles:bind"),
+		AuditRef:               "audit_" + trace.requestID + "_application-draft-" + auditSuffix,
+	}
+}
+
 func workflowRAGPromotionContextFromDraft(ctx ApplicationConfigurationDraftContext) WorkflowRAGPromotionContext {
 	return WorkflowRAGPromotionContext{
 		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef,
@@ -290,6 +348,16 @@ func writeApplicationConfigurationDraftResult(
 	requestContext ApplicationConfigurationDraftContext,
 	result ApplicationConfigurationDraftResult,
 ) {
+	writeApplicationConfigurationDraftResultWithStatus(writer, http.StatusOK, trace, requestContext, result)
+}
+
+func writeApplicationConfigurationDraftResultWithStatus(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	requestContext ApplicationConfigurationDraftContext,
+	result ApplicationConfigurationDraftResult,
+) {
 	validation := result.ValidationSummary
 	if validation.Findings == nil {
 		validation.Findings = []ApplicationConfigurationDraftValidationFinding{}
@@ -297,7 +365,7 @@ func writeApplicationConfigurationDraftResult(
 	if validation.State == "" {
 		validation.State = applicationDraftValidationInvalid
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, applicationConfigurationDraftEnvelope{
+	writeObservedJSON(writer, status, trace, applicationConfigurationDraftEnvelope{
 		RequestID: trace.requestID, WorkspaceID: requestContext.WorkspaceID, ApplicationID: requestContext.ApplicationID,
 		Draft: result.Draft, FailureCode: optionalApplicationDraftFailure(result.FailureCode),
 		CurrentDraftVersion: result.CurrentDraftVersion, ValidationSummary: validation, AuditRef: requestContext.AuditRef,

@@ -7,6 +7,8 @@ export const APPLICATION_DEVELOPMENT_STAGE_IDS = [
 ] as const;
 
 export type ApplicationDevelopmentStageId = typeof APPLICATION_DEVELOPMENT_STAGE_IDS[number];
+export type ApplicationRuntimeReviewSurface = "run" | "request" | "evidence";
+export type WorkflowReviewSurface = "runs" | "comparison" | "cases" | "release";
 export type ApplicationDevelopmentWorkspaceStatus = "active" | "archived" | "unavailable";
 export type ApplicationDevelopmentStageAvailability = "available" | "read_only" | "blocked";
 export type ApplicationDevelopmentSurfaceKind =
@@ -93,6 +95,7 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
       "workspace-api-keys",
       "application-rag-invocation",
       "prompt-application-invocation",
+      "prompt-application-session",
       "agent-copilot-invocation",
       "agent-copilot-session",
       "model-gateway-playground",
@@ -103,7 +106,18 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     label: "Run / Evaluation Review",
     summary: "Inspect durable runs, comparison, evaluation, request, and operations evidence.",
     anchor: "workspace-run-history",
-    aliases: ["workflow-rag-evaluation-panel", "application-operations", "model-gateway-request-history"],
+    aliases: [
+      "application-evaluation-plan",
+      "application-evaluation-campaign",
+      "application-evaluation-pair",
+      "application-evaluation-handoff",
+      "workflow-run-comparison",
+      "workflow-evaluation-cases",
+      "workflow-evaluation-release-review",
+      "workflow-rag-evaluation-panel",
+      "application-operations",
+      "model-gateway-request-history",
+    ],
   },
   {
     stageId: "release_readiness",
@@ -183,6 +197,30 @@ export function applicationDevelopmentStageForHash(hash: string): ApplicationDev
   return STAGE_DEFINITIONS.find((stage) => stage.anchor === anchor || stage.aliases.includes(anchor))?.stageId ?? null;
 }
 
+export function applicationDevelopmentHashTargetsOwnerSurface(hash: string): boolean {
+  const anchor = hash.trim().replace(/^#/u, "");
+  if (applicationRuntimeReviewSurfaceForHash(anchor)) return false;
+  if (workflowReviewSurfaceForHash(anchor)) return false;
+  return STAGE_DEFINITIONS.some((stage) => stage.aliases.includes(anchor));
+}
+
+export function applicationRuntimeReviewSurfaceForHash(hash: string): ApplicationRuntimeReviewSurface | null {
+  const anchor = hash.trim().replace(/^#/u, "");
+  if (anchor === "model-gateway-playground") return "run";
+  if (anchor === "model-gateway-request-history") return "request";
+  if (anchor === "application-operations") return "evidence";
+  return null;
+}
+
+export function workflowReviewSurfaceForHash(hash: string): WorkflowReviewSurface | null {
+  const anchor = hash.trim().replace(/^#/u, "");
+  if (anchor === "workspace-run-history") return "runs";
+  if (anchor === "workflow-run-comparison") return "comparison";
+  if (anchor === "workflow-evaluation-cases") return "cases";
+  if (anchor === "workflow-evaluation-release-review") return "release";
+  return null;
+}
+
 function applicationDevelopmentGenerationKey(
   applicationId: string,
   lifecycleState: ApplicationDevelopmentWorkspaceContext["lifecycleState"],
@@ -198,5 +236,5 @@ function stageAvailability(
 ): ApplicationDevelopmentStageAvailability {
   if (status === "unavailable") return "blocked";
   if (status === "active") return "available";
-  return stageId === "controlled_test" ? "blocked" : "read_only";
+  return "read_only";
 }

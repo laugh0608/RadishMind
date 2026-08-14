@@ -224,8 +224,8 @@ export type RunRecordSummary = {
   status: string;
   failure_code: string | null;
   cost_summary: {
-    estimated_cost: number;
-    currency: string;
+    estimated_cost?: number;
+    currency?: string;
   };
   trace_id: string;
   started_at: string;

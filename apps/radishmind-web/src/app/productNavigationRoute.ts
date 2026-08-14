@@ -1,0 +1,59 @@
+const APPLICATION_API_ACCESS_PRIMARY_HREF = "#workspace-api-keys" as const;
+const WORKFLOW_DESIGNER_PRIMARY_HREF = "#workspace-workflow-definitions" as const;
+const WORKFLOW_REVIEW_PRIMARY_HREF = "#workspace-run-history" as const;
+const ADMIN_CONTROL_PLANE_PRIMARY_HREF = "#admin-control-plane" as const;
+
+const APPLICATION_API_ACCESS_ANCHORS = new Set([
+  "#application-api-integration",
+  "#workspace-api-keys",
+]);
+
+const WORKFLOW_DESIGNER_ANCHORS = new Set([
+  "#workflow-user-workspace-home",
+  "#workflow-draft-designer",
+  "#workflow-draft-validation-inspector",
+  "#workflow-execution-plan-preview",
+  "#workflow-runtime-readiness-inspector",
+  "#workflow-review-handoff",
+]);
+
+const WORKFLOW_REVIEW_ANCHORS = new Set([
+  "#workspace-run-history",
+  "#workflow-run-comparison",
+  "#workflow-evaluation-cases",
+  "#workflow-evaluation-release-review",
+]);
+
+const ADMIN_CONTROL_PLANE_ANCHORS = new Set([
+  "#admin-control-plane",
+  "#admin-tenant-overview",
+  "#admin-user-directory",
+  "#admin-role-policy",
+  "#admin-audit-log",
+  "#admin-provider-config",
+  "#admin-profile-config",
+  "#admin-route-config",
+  "#admin-gateway-request-quota",
+  "#admin-operations-review",
+  "#admin-provider-deployment-review",
+]);
+
+export function applicationApiAccessPrimaryHref(
+  activeHash: string,
+): typeof APPLICATION_API_ACCESS_PRIMARY_HREF | null {
+  return APPLICATION_API_ACCESS_ANCHORS.has(activeHash) ? APPLICATION_API_ACCESS_PRIMARY_HREF : null;
+}
+
+export function workflowDesignerPrimaryHref(activeHash: string): typeof WORKFLOW_DESIGNER_PRIMARY_HREF | null {
+  return WORKFLOW_DESIGNER_ANCHORS.has(activeHash) ? WORKFLOW_DESIGNER_PRIMARY_HREF : null;
+}
+
+export function workflowReviewPrimaryHref(activeHash: string): typeof WORKFLOW_REVIEW_PRIMARY_HREF | null {
+  return WORKFLOW_REVIEW_ANCHORS.has(activeHash) ? WORKFLOW_REVIEW_PRIMARY_HREF : null;
+}
+
+export function adminControlPlanePrimaryHref(
+  activeHash: string,
+): typeof ADMIN_CONTROL_PLANE_PRIMARY_HREF | null {
+  return ADMIN_CONTROL_PLANE_ANCHORS.has(activeHash) ? ADMIN_CONTROL_PLANE_PRIMARY_HREF : null;
+}

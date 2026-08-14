@@ -71,13 +71,19 @@ func (server *Server) handleValidateAgentCopilotProfile(writer http.ResponseWrit
 	if !server.allowAgentCopilotProfileDevHTTP(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "agent_copilot_profiles:write")
+	ctx := agentCopilotProfileMutationContext(request, trace, auth, "", false, "validate")
+	if failure != "" {
+		writeAgentCopilotProfileResultWithStatus(writer, status, trace, ctx, AgentCopilotProfileResult{FailureCode: failure})
+		return
+	}
 	var body agentCopilotProfileValidateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := agentCopilotProfileContextFromRequest(request, trace, body.Profile.WorkspaceID, body.Profile.ApplicationID, "agent_copilot_profiles:write", false, "validate")
-	if failure != "" {
-		writeAgentCopilotProfileResult(writer, trace, ctx, AgentCopilotProfileResult{FailureCode: failure})
+	ctx = agentCopilotProfileMutationContext(request, trace, auth, body.Profile.ApplicationID, false, "validate")
+	if body.Profile.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeAgentCopilotProfileResultWithStatus(writer, http.StatusForbidden, trace, ctx, AgentCopilotProfileResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writeAgentCopilotProfileResult(writer, trace, ctx, server.agentCopilotProfileService().Validate(ctx, body.Profile))
@@ -88,13 +94,19 @@ func (server *Server) handleSaveAgentCopilotProfile(writer http.ResponseWriter, 
 	if !server.allowAgentCopilotProfileDevHTTP(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "agent_copilot_profiles:write")
+	ctx := agentCopilotProfileMutationContext(request, trace, auth, "", server.config.AgentCopilotProfileDevWriteEnabled, "save")
+	if failure != "" {
+		writeAgentCopilotProfileResultWithStatus(writer, status, trace, ctx, AgentCopilotProfileResult{FailureCode: failure})
+		return
+	}
 	var body agentCopilotProfileSaveBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := agentCopilotProfileContextFromRequest(request, trace, body.Profile.WorkspaceID, body.Profile.ApplicationID, "agent_copilot_profiles:write", server.config.AgentCopilotProfileDevWriteEnabled, "save")
-	if failure != "" {
-		writeAgentCopilotProfileResult(writer, trace, ctx, AgentCopilotProfileResult{FailureCode: failure})
+	ctx = agentCopilotProfileMutationContext(request, trace, auth, body.Profile.ApplicationID, server.config.AgentCopilotProfileDevWriteEnabled, "save")
+	if body.Profile.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeAgentCopilotProfileResultWithStatus(writer, http.StatusForbidden, trace, ctx, AgentCopilotProfileResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writeAgentCopilotProfileResult(writer, trace, ctx, server.agentCopilotProfileService().SaveDraft(ctx, body.Profile, body.ExpectedDraftVersion))
@@ -140,13 +152,19 @@ func (server *Server) handleCreateAgentCopilotProfileVersion(writer http.Respons
 	if !server.allowAgentCopilotProfileDevHTTP(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "agent_copilot_profiles:version")
+	ctx := agentCopilotProfileMutationContext(request, trace, auth, "", server.config.AgentCopilotProfileDevWriteEnabled, "version")
+	if failure != "" {
+		writeAgentCopilotProfileResultWithStatus(writer, status, trace, ctx, AgentCopilotProfileResult{FailureCode: failure})
+		return
+	}
 	var body agentCopilotProfileVersionCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := agentCopilotProfileContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "agent_copilot_profiles:version", server.config.AgentCopilotProfileDevWriteEnabled, "version")
-	if failure != "" {
-		writeAgentCopilotProfileResult(writer, trace, ctx, AgentCopilotProfileResult{FailureCode: failure})
+	ctx = agentCopilotProfileMutationContext(request, trace, auth, body.ApplicationID, server.config.AgentCopilotProfileDevWriteEnabled, "version")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writeAgentCopilotProfileResultWithStatus(writer, http.StatusForbidden, trace, ctx, AgentCopilotProfileResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writeAgentCopilotProfileResult(writer, trace, ctx, server.agentCopilotProfileService().CreateVersion(ctx, request.PathValue("profile_id"), body.SourceDraftVersion))
@@ -244,6 +262,28 @@ func agentCopilotProfileContextFromRequest(request *http.Request, trace requestT
 	return ctx, ""
 }
 
+func agentCopilotProfileMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) AgentCopilotProfileContext {
+	subjectRef := strings.TrimSpace(auth.SubjectBinding)
+	return AgentCopilotProfileContext{
+		RequestContext:  request.Context(),
+		RequestID:       trace.requestID,
+		TenantRef:       strings.TrimSpace(auth.TenantBinding),
+		WorkspaceID:     strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID:   strings.TrimSpace(applicationID),
+		ActorRef:        subjectRef,
+		OwnerSubjectRef: subjectRef,
+		WriteEnabled:    writeEnabled,
+		AuditRef:        "audit_" + trace.requestID + "_agent-copilot-profile-" + auditSuffix,
+	}
+}
+
 func (server *Server) allowAgentCopilotProfileDevHTTP(writer http.ResponseWriter, trace requestTrace) bool {
 	if server.config.AgentCopilotProfileDevHTTPEnabled {
 		return true
@@ -266,6 +306,10 @@ func agentCopilotProfileQueryAllowed(request *http.Request, allowed ...string) b
 }
 
 func writeAgentCopilotProfileResult(writer http.ResponseWriter, trace requestTrace, ctx AgentCopilotProfileContext, result AgentCopilotProfileResult) {
+	writeAgentCopilotProfileResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeAgentCopilotProfileResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx AgentCopilotProfileContext, result AgentCopilotProfileResult) {
 	validation := result.ValidationSummary
 	if validation.Findings == nil {
 		validation.Findings = []ApplicationConfigurationDraftValidationFinding{}
@@ -273,7 +317,7 @@ func writeAgentCopilotProfileResult(writer http.ResponseWriter, trace requestTra
 	if validation.State == "" {
 		validation.State = applicationDraftValidationInvalid
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, agentCopilotProfileEnvelope{
+	writeObservedJSON(writer, status, trace, agentCopilotProfileEnvelope{
 		RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		Draft: result.Draft, Version: result.Version, FailureCode: optionalAgentCopilotProfileFailure(result.FailureCode),
 		CurrentDraftVersion: result.CurrentDraftVersion, CurrentProfileVersion: result.CurrentProfileVersion,

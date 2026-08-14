@@ -12,13 +12,14 @@ function run(runId: string, status: "succeeded" | "failed") {
 }
 
 function envelope(overrides: Record<string, unknown> = {}) {
-  return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, execution_source_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
+  return { request_id: "request_compare", workspace_id: "workspace_demo", application_id: "app_demo", failure_code: null, failure_summary: "", audit_ref: "audit_compare", comparison: { schema_version: "workflow_run_comparison.v1", run_profile: "workflow_standard.v1", classification: "regression", comparison_state: "comparable", baseline: run("run_base", "succeeded"), candidate: run("run_candidate", "failed"), draft_changed: false, execution_source_changed: false, provider_changed: false, model_changed: false, status_changed: true, failure_changed: true, duration_delta_ms: 20, provider_call_delta: 0, nodes: [{ node_id: "node_model", node_type: "llm", change: "changed", baseline_status: "succeeded", candidate_status: "failed", baseline_duration_ms: 50, candidate_duration_ms: 70, duration_delta_ms: 20 }], findings: [{ code: "status_regressed", severity: "review_required" }], recommended_review_action: "check_gateway_capacity" }, ...overrides };
 }
 
 const digest = `sha256:${"a".repeat(64)}`;
 function ragEnvelope() {
   const body = envelope();
   body.comparison.schema_version = "workflow_run_comparison.v2" as "workflow_run_comparison.v1";
+  body.comparison.run_profile = "workflow_rag_retrieval.v1";
   body.comparison.classification = "unchanged";
   for (const value of [body.comparison.baseline, body.comparison.candidate]) {
     value.schema_version = "workflow_run_record.v3";
@@ -100,6 +101,7 @@ test("workflow run comparison maps the application RAG v4 review profile", async
     Object.assign(value, { execution_kind: "application_rag_invocation", execution_source_kind: "application_configuration_draft", execution_source_id: "appdraft_aaaaaaaaaaaaaaaa", execution_source_version: 2 });
   }
   body.comparison.schema_version = "workflow_run_comparison.v3" as "workflow_run_comparison.v1";
+  body.comparison.run_profile = "workflow_rag_application_invocation.v1";
   body.comparison.retrieval.run_profile = "workflow_rag_application_invocation.v1";
   body.comparison.retrieval.retrieval_node_id = "application_rag_retrieval";
   const authority = (suffix: "a" | "b") => ({
@@ -173,6 +175,52 @@ test("workflow run comparison maps definition-bound v4 without execution", async
     assert.equal(comparison.schemaVersion, "workflow_run_comparison.v4");
     assert.equal(comparison.runProfile, "workflow_definition_executor.v1");
     assert.equal(comparison.baseline.executionProfile, "workflow_definition_executor_v1");
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run comparison maps structured definition v7 without input values", async () => {
+  const originalFetch = globalThis.fetch;
+  const definitionDigest = `sha256:${"d".repeat(64)}`;
+  const contractDigest = `sha256:${"c".repeat(64)}`;
+  const structuredRun = (runId: string) => ({
+    run_id: runId, schema_version: "workflow_run_record.v8", draft_id: "", draft_version: 0,
+    execution_kind: "workflow_definition_execution", execution_source_kind: "workflow_definition",
+    execution_source_id: "definition_structured", execution_source_version: 1,
+    execution_profile: "workflow_definition_executor_v2", input_contract_id: "contract_structured",
+    input_contract_digest: contractDigest, definition_digest: definitionDigest,
+    status: "succeeded", failure_code: "", failure_boundary: "", gateway_failure_category: "none",
+    selected_provider: "mock", selected_profile: "", selected_model: "mock", duration_ms: 100,
+    stale_running: false, request_id: `request_${runId}`, audit_ref: `audit_${runId}`,
+    side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
+  });
+  const body = {
+    request_id: "request_structured_definition_compare", workspace_id: "workspace_demo", application_id: "app_demo",
+    comparison: { schema_version: "workflow_run_comparison.v7", run_profile: "workflow_definition_executor.v2",
+      classification: "unchanged", comparison_state: "comparable", baseline: structuredRun("run_structured_base"),
+      candidate: structuredRun("run_structured_candidate"), draft_changed: false, execution_source_changed: false,
+      provider_changed: false, model_changed: false, status_changed: false, failure_changed: false,
+      duration_delta_ms: 0, provider_call_delta: 0, nodes: [], findings: [], recommended_review_action: "" },
+    failure_code: null, failure_summary: "", audit_ref: "audit_structured_definition_compare",
+  };
+  globalThis.fetch = async () => new Response(JSON.stringify(body), { status: 200 });
+  try {
+    const comparison = await compareWorkflowRuns("app_demo", "run_structured_base", "run_structured_candidate", live);
+    assert.equal(comparison.schemaVersion, "workflow_run_comparison.v7");
+    assert.equal(comparison.runProfile, "workflow_definition_executor.v2");
+    assert.equal(comparison.baseline.inputContractId, "contract_structured");
+    assert.equal(comparison.baseline.inputContractDigest, contractDigest);
+  } finally { globalThis.fetch = originalFetch; }
+
+  const missingContractDigest = structuredRun("run_structured_candidate") as Record<string, unknown>;
+  delete missingContractDigest.input_contract_digest;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    ...body, comparison: { ...body.comparison, candidate: missingContractDigest },
+  }), { status: 200 });
+  try {
+    await assert.rejects(
+      () => compareWorkflowRuns("app_demo", "run_structured_base", "run_structured_candidate", live),
+      /route failed/,
+    );
   } finally { globalThis.fetch = originalFetch; }
 });
 

@@ -359,6 +359,7 @@ function failedCandidateOperation(failureCode: string) {
 
 function candidateHeaders(config: ApplicationPublishCandidateConfig, applicationId: string, requestId: string, operation: "read" | "write" | "review"): Record<string, string> {
   const scope = `${operation === "read" ? "application_publish_candidates:read" : operation === "review" ? "application_publish_candidates:review" : "application_publish_candidates:write"},workflow_rag_promotions:read,prompt_application_templates:read_source,agent_copilot_profiles:read_source`;
+  const mutationPermissions = operation === "read" ? "" : scope;
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-publish-dev",
@@ -366,6 +367,11 @@ function candidateHeaders(config: ApplicationPublishCandidateConfig, application
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scope,
     "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
+    ...(mutationPermissions ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermissions,
+    } : {}),
     "X-RadishMind-Dev-Application-Publish-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Application-Publish-Application": applicationId,
   };

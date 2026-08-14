@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughAgentCopilotInvocationProjections(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationEvaluation(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 15 {
+	if len(migrations) != 19 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -56,8 +56,55 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughAgentCopilotInvocationProje
 	if migrations[13].ID != agentRuntimeMigrationID || migrations[13].StoreSchemaVersion != agentRuntimeSchemaVersion {
 		t.Fatalf("Agent Copilot runtime assignment migration drifted: %#v", migrations[13])
 	}
-	if migrations[14].ID != MigrationID || migrations[14].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[14].ID != agentInvocationMigrationID || migrations[14].StoreSchemaVersion != agentInvocationSchemaVersion {
 		t.Fatalf("Agent Copilot invocation projection migration drifted: %#v", migrations[14])
+	}
+	if migrations[15].ID != applicationEvaluationMigrationID || migrations[15].StoreSchemaVersion != applicationEvaluationSchemaVersion {
+		t.Fatalf("application evaluation campaign migration drifted: %#v", migrations[15])
+	}
+	if migrations[16].ID != structuredDefinitionMigrationID || migrations[16].StoreSchemaVersion != structuredDefinitionSchemaVersion {
+		t.Fatalf("workflow definition structured input migration drifted: %#v", migrations[16])
+	}
+	if migrations[17].ID != structuredSessionMigrationID || migrations[17].StoreSchemaVersion != structuredSessionSchemaVersion {
+		t.Fatalf("application structured session migration drifted: %#v", migrations[17])
+	}
+	if migrations[18].ID != MigrationID || migrations[18].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("application structured evaluation migration drifted: %#v", migrations[18])
+	}
+	for _, required := range []string{
+		"workflow_run_record.v8",
+		"input_contract_id",
+		"input_contract_digest",
+		"workflow_runs_store_v6",
+		"workflow_run_records_pre_structured_inputs",
+	} {
+		if !strings.Contains(upSQLV17, required) {
+			t.Fatalf("SQLite workflow definition structured input migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"application_session.v4",
+		"application_session_turn.v4",
+		"application_runtime_authority.v4",
+		"workflow_definition_executor_v2",
+		"input_contract_digest",
+		"application_interaction_sessions_pre_structured_inputs",
+	} {
+		if !strings.Contains(upSQLV18, required) {
+			t.Fatalf("SQLite application structured session migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"application_evaluation_plan.v2",
+		"application_evaluation_plan_version.v2",
+		"application_evaluation_campaign.v2",
+		"workflow_definition_executor_v2",
+		"input_contract",
+		"application_evaluation_campaigns_pre_structured_inputs",
+	} {
+		if !strings.Contains(upSQLV19, required) {
+			t.Fatalf("SQLite application structured evaluation migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_interaction_sessions",
@@ -70,6 +117,17 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughAgentCopilotInvocationProje
 	} {
 		if !strings.Contains(upSQLV12, required) {
 			t.Fatalf("SQLite application interaction session migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE application_evaluation_plans",
+		"CREATE TABLE application_evaluation_plan_versions",
+		"CREATE TABLE application_evaluation_campaigns",
+		"application_evaluation_plan_versions_no_update",
+		"application_evaluation_campaigns_controlled_update",
+	} {
+		if !strings.Contains(upSQLV16, required) {
+			t.Fatalf("SQLite application evaluation migration is missing %q", required)
 		}
 	}
 	for _, required := range []string{
@@ -282,7 +340,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 15 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 19 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -364,6 +422,17 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 	)`).Scan(&agentProjectionTriggerCount); err != nil || agentProjectionTriggerCount != 6 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("Agent Copilot invocation projection triggers are incomplete: count=%d err=%v", agentProjectionTriggerCount, err)
+	}
+	var applicationEvaluationTableCount, applicationEvaluationTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'application_evaluation_plans','application_evaluation_plan_versions','application_evaluation_campaigns'
+	)`).Scan(&applicationEvaluationTableCount); err != nil || applicationEvaluationTableCount != 3 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("application evaluation tables are incomplete: count=%d err=%v", applicationEvaluationTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'application_evaluation_%'`).Scan(&applicationEvaluationTriggerCount); err != nil || applicationEvaluationTriggerCount != 6 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("application evaluation triggers are incomplete: count=%d err=%v", applicationEvaluationTriggerCount, err)
 	}
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
 		'workflow_http_tool_action_plans',

@@ -1,6 +1,6 @@
 # Gateway Playground / Request Review Loop v1
 
-更新时间：2026-07-12
+更新时间：2026-08-09
 
 状态：`gateway_playground_request_review_loop_v1_complete`
 
@@ -15,6 +15,8 @@
 2026-07-12 已完成独立 lazy consumer / panel、三协议 unary / stream adapter、SSE terminal parser、用户 abort、稳定失败、20,000 字符输出预算、offline 零请求、双端 launcher 配置和 request-id history handoff。后续 Application API Integration 在不复制调用逻辑的前提下扩展 application / protocol / model handoff，Playground 请求与 History detail 现在都使用当前 application scope。Web consumer 单测覆盖三协议 request / response、caller scope、SSE、HTTP failure、correlation mismatch、malformed response、invalid input、abort、output budget、network failure和动态 application scope。
 
 真实浏览器验证 Chat Completions 与 Responses unary、Messages stream、页面按钮取消和 history handoff。Playground 只把本地 abort 表达为 `client / gateway_playground_request_canceled / HTTP not observed`；同 request id 的 PostgreSQL detail 提供服务端事实 `408 / BRIDGE_WORKER_CANCELED / python_bridge`，record 为 `gateway_request_record.v1 · version 3 · postgres_dev_test`。URL、localStorage 与 sessionStorage 不含输入输出，全新会话为 0 error / 0 warning。功能 v1 已关闭，下一批不追加 prompt history、分享、导出或 production key / quota / billing。
+
+2026-08-09 的真实 API Key quota 连续链确认 `gateway_quota_exceeded / quota_admission` 原本只显示技术码和 Request History 入口，无法说明 UTC 日预算、零 provider 副作用或权威处理 owner。该接缝按五维评分 `0 / 0 / 0 / 1 / 1 = 2` 采用 `C / 直接实现`：Playground 只对稳定的 missing policy、exceeded 与 store unavailable admission failure 显示允许列表引导，明确 provider 调用为零，并把同一当前 application 交给既有 `#admin-gateway-request-quota` owner。页面不读取 Admin response、不显示或推算 used / remaining、不自动重试或修改 limit；Request History 继续只负责脱敏请求证据。
 
 ## 目标用户与主路径
 
@@ -115,6 +117,13 @@ base URL、tenant、workspace、consumer、application 和 subject 复用 Gatewa
 - 输入 / 输出不进入 URL、浏览器持久存储或 Request History detail。
 - 成功、失败和取消均可按同一 request id 打开真实 history detail。
 - lazy chunk 通过现有 64 KiB 普通 chunk 预算；不扩大 `App.tsx` 业务逻辑。
+
+## 2026-08-08 Family UI S5 产品化衔接
+
+- 既有 Playground owner 已进入 Application Runtime Review 的 `Run request` 任务，不再以全局独立面板常驻；S5 只负责编排 application / workspace / lifecycle context 和精确 Request History handoff，不复制 Gateway 请求或响应逻辑。
+- 调用资格现在同时要求 active application、当前 workspace 与 Gateway workspace 一致、模型目录 ready、选中模型真实声明所选协议，并已取得当前组件内存中的开发测试态 credential。任一条件不满足时零调用失败关闭。
+- application 切换会中止在途请求并清空 credential、catalog、model、protocol、input、stream 与 result，避免旧应用结果挂在新上下文；跨应用 handoff 会被拒绝。
+- 原始输入与响应继续只存在于当前组件内存，Request History 仍只接收脱敏 envelope；archived application 不允许发起调用。本批没有新增自动 retry / fallback、provider 路由承诺、生产认证、API 或持久化 owner。
 
 ## 停止线
 

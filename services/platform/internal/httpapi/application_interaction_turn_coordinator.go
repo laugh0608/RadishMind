@@ -21,6 +21,7 @@ type ApplicationInteractionTurnExecutionInput struct {
 	ExpectedSessionVersion int
 	ClientTurnKey          string
 	InputText              string
+	Inputs                 map[string]any
 	ConditionValues        map[string]bool
 	Model                  string
 	Temperature            *float64
@@ -30,6 +31,17 @@ type ApplicationInteractionTurnExecutionInput struct {
 	AgentConversationID    string
 	AgentArtifacts         []AgentCopilotArtifact
 	AgentContext           map[string]any
+	inputTextProvided      bool
+	inputsProvided         bool
+	structuredInput        *workflowStructuredInputNormalization
+}
+
+type applicationInteractionTurnInputMetadata struct {
+	InputDigest         string
+	InputBytes          int
+	InputContractID     string
+	InputContractDigest string
+	InputFields         []WorkflowStructuredInputMetadataField
 }
 
 type ApplicationInteractionTurnExecutionResult struct {
@@ -107,22 +119,25 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 	if failure != "" {
 		return applicationInteractionTurnExecutionFailure(failure, summary)
 	}
-	if (current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflow && coordinator.executeWorkflow == nil) ||
+	if ((current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflow || current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflowStructured) && coordinator.executeWorkflow == nil) ||
 		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileRAG && coordinator.invokeRAG == nil) ||
 		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfilePrompt && coordinator.invokePrompt == nil) ||
 		(current.Session.ProfileBinding.ExecutionProfile == applicationInteractionProfileAgentCopilot && coordinator.invokeAgent == nil) {
 		return applicationInteractionTurnExecutionFailure(ApplicationInteractionFailureExecutionUnavailable, "The selected application session execution profile is unavailable.")
 	}
 	startedAt := coordinator.currentTime()
-	inputDigest, inputBytes, digestErr := applicationInteractionInputMetadata(*current.Session, normalized)
+	inputMetadata, digestErr := applicationInteractionInputMetadata(*current.Session, normalized)
 	if digestErr != nil {
 		return applicationInteractionTurnExecutionFailure(ApplicationInteractionFailurePayloadInvalid, "Application session turn input is invalid.")
 	}
 	reserved := coordinator.sessions.ReserveTurn(ctx, sessionID, ApplicationInteractionTurnReservationInput{
 		ExpectedSessionVersion: normalized.ExpectedSessionVersion,
 		ClientTurnKey:          normalized.ClientTurnKey,
-		InputDigest:            inputDigest,
-		InputBytes:             inputBytes,
+		InputDigest:            inputMetadata.InputDigest,
+		InputBytes:             inputMetadata.InputBytes,
+		InputContractID:        inputMetadata.InputContractID,
+		InputContractDigest:    inputMetadata.InputContractDigest,
+		InputFields:            inputMetadata.InputFields,
 		StartedAt:              startedAt,
 	})
 	if reserved.FailureCode != "" || reserved.Turn == nil || reserved.Session == nil {
@@ -142,7 +157,7 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 		}
 		return coordinator.completeFailure(ctx, *reserved.Turn, authorityFailure, "Application runtime authority changed before delegated execution.", nil)
 	}
-	if reserved.Turn.ExecutionProfile == applicationInteractionProfileWorkflow {
+	if reserved.Turn.ExecutionProfile == applicationInteractionProfileWorkflow || reserved.Turn.ExecutionProfile == applicationInteractionProfileWorkflowStructured {
 		return coordinator.executeWorkflowTurn(ctx, *reserved.Turn, normalized)
 	}
 	if reserved.Turn.ExecutionProfile == applicationInteractionProfilePrompt {
@@ -197,9 +212,10 @@ func (coordinator applicationInteractionTurnCoordinator) executeWorkflowTurn(
 	result := coordinator.executeWorkflow(runContext, WorkflowDefinitionRunRequest{
 		DefinitionID: authority.DefinitionID, ExpectedPointerVersion: authority.ActivationPointerVersion,
 		ExpectedDefinitionVersion: authority.DefinitionVersion, ExpectedDefinitionDigest: authority.DefinitionDigest,
-		InputText: input.InputText, ConditionValues: input.ConditionValues, Model: input.Model, Temperature: input.Temperature,
+		InputText: input.InputText, Inputs: cloneWorkflowStructuredInputValues(input.Inputs), ConditionValues: input.ConditionValues, Model: input.Model, Temperature: input.Temperature,
+		inputTextProvided: input.inputTextProvided, inputsProvided: input.inputsProvided,
 	})
-	status, failureCode, failureSummary, runRef := applicationInteractionWorkflowTerminal(result)
+	status, failureCode, failureSummary, runRef := applicationInteractionWorkflowTerminal(turn.ExecutionProfile, result)
 	completed := coordinator.sessions.CompleteTurn(ctx, turn.SessionID, turn.TurnID, ApplicationInteractionTurnCompletionInput{
 		Status: status, RunRef: runRef, FailureCode: failureCode, FailureSummary: failureSummary, CompletedAt: coordinator.currentTime(),
 	})
@@ -339,7 +355,10 @@ func normalizeApplicationInteractionTurnExecutionInput(
 	input.Model = strings.TrimSpace(input.Model)
 	switch session.ProfileBinding.ExecutionProfile {
 	case applicationInteractionProfileWorkflow:
-		if input.InputText == "" || !utf8Safe(input.InputText) || input.PromptVariables != nil {
+		if !input.inputTextProvided {
+			input.inputTextProvided = input.InputText != ""
+		}
+		if input.InputText == "" || !utf8Safe(input.InputText) || input.PromptVariables != nil || input.inputsProvided || input.Inputs != nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Application session turn input is invalid."
 		}
 		authority := session.Authority.WorkflowDefinition
@@ -355,8 +374,32 @@ func normalizeApplicationInteractionTurnExecutionInput(
 			return ApplicationInteractionTurnExecutionInput{}, string(code), summary
 		}
 		input.InputText, input.ConditionValues, input.Model, input.Temperature = normalized.InputText, normalized.ConditionValues, normalized.Model, normalized.Temperature
+		input.inputTextProvided = true
+	case applicationInteractionProfileWorkflowStructured:
+		if !input.inputsProvided {
+			input.inputsProvided = input.Inputs != nil
+		}
+		authority := session.Authority.WorkflowDefinition
+		if authority == nil || authority.InputContract == nil || input.inputTextProvided || input.InputText != "" || !input.inputsProvided || input.Inputs == nil || input.PromptVariables != nil {
+			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Structured workflow session turn input is invalid."
+		}
+		normalized, code, summary := normalizeWorkflowStructuredInputValues(savedWorkflowDraftContractFromDefinition(*authority.InputContract), input.Inputs)
+		if code != "" {
+			return ApplicationInteractionTurnExecutionInput{}, string(code), summary
+		}
+		request, code, summary := normalizeWorkflowDefinitionRunRequest(WorkflowDefinitionRunRequest{
+			DefinitionID: authority.DefinitionID, ExpectedPointerVersion: authority.ActivationPointerVersion,
+			ExpectedDefinitionVersion: authority.DefinitionVersion, ExpectedDefinitionDigest: authority.DefinitionDigest,
+			Inputs: cloneWorkflowStructuredInputValues(input.Inputs), ConditionValues: input.ConditionValues, Model: input.Model, Temperature: input.Temperature,
+			inputsProvided: true,
+		})
+		if code != "" {
+			return ApplicationInteractionTurnExecutionInput{}, string(code), summary
+		}
+		input.Inputs, input.ConditionValues, input.Model, input.Temperature = request.Inputs, request.ConditionValues, request.Model, request.Temperature
+		input.inputsProvided, input.structuredInput = true, &normalized
 	case applicationInteractionProfileRAG:
-		if input.InputText == "" || !utf8Safe(input.InputText) || input.PromptVariables != nil ||
+		if input.InputText == "" || !utf8Safe(input.InputText) || input.PromptVariables != nil || input.Inputs != nil || input.inputsProvided ||
 			len([]byte(input.InputText)) > workflowRAGApplicationInvocationMaxBytes || len(input.ConditionValues) != 0 || input.Model != "" || input.Temperature != nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Application RAG session turns do not accept workflow execution options."
 		}
@@ -364,14 +407,14 @@ func normalizeApplicationInteractionTurnExecutionInput(
 			return ApplicationInteractionTurnExecutionInput{}, WorkflowRAGApplicationFailureSecretForbidden, workflowRAGApplicationFailureSummary(WorkflowRAGApplicationFailureSecretForbidden)
 		}
 	case applicationInteractionProfilePrompt:
-		if input.InputText != "" || input.PromptVariables == nil || len(input.ConditionValues) != 0 || input.Model != "" || input.Temperature != nil {
+		if input.InputText != "" || input.Inputs != nil || input.inputsProvided || input.PromptVariables == nil || len(input.ConditionValues) != 0 || input.Model != "" || input.Temperature != nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Prompt application session turns only accept variables."
 		}
 		if _, _, err := canonicalPromptApplicationInvocationInput(input.PromptVariables); err != nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Prompt application session variables are invalid."
 		}
 	case applicationInteractionProfileAgentCopilot:
-		if input.InputText != "" || input.PromptVariables != nil || len(input.ConditionValues) != 0 ||
+		if input.InputText != "" || input.Inputs != nil || input.inputsProvided || input.PromptVariables != nil || len(input.ConditionValues) != 0 ||
 			input.Model != "" || input.Temperature != nil || strings.TrimSpace(input.AgentTask) == "" ||
 			strings.TrimSpace(input.AgentLocale) == "" || input.AgentContext == nil {
 			return ApplicationInteractionTurnExecutionInput{}, ApplicationInteractionFailurePayloadInvalid, "Agent Copilot session turns only accept canonical request data."
@@ -384,7 +427,17 @@ func normalizeApplicationInteractionTurnExecutionInput(
 	return input, "", ""
 }
 
-func applicationInteractionInputMetadata(session ApplicationInteractionSession, input ApplicationInteractionTurnExecutionInput) (string, int, error) {
+func applicationInteractionInputMetadata(session ApplicationInteractionSession, input ApplicationInteractionTurnExecutionInput) (applicationInteractionTurnInputMetadata, error) {
+	if session.ProfileBinding.ExecutionProfile == applicationInteractionProfileWorkflowStructured {
+		if input.structuredInput == nil {
+			return applicationInteractionTurnInputMetadata{}, errApplicationSessionContract
+		}
+		return applicationInteractionTurnInputMetadata{
+			InputDigest: input.structuredInput.InputDigest, InputBytes: input.structuredInput.InputBytes,
+			InputContractID: input.structuredInput.Contract.ContractID, InputContractDigest: input.structuredInput.Contract.ContractDigest,
+			InputFields: cloneWorkflowStructuredInputMetadataFields(input.structuredInput.Fields),
+		}, nil
+	}
 	if session.ProfileBinding.ExecutionProfile != applicationInteractionProfilePrompt {
 		if session.ProfileBinding.ExecutionProfile == applicationInteractionProfileAgentCopilot {
 			payload, err := json.Marshal(struct {
@@ -398,17 +451,17 @@ func applicationInteractionInputMetadata(session ApplicationInteractionSession, 
 				Artifacts: input.AgentArtifacts, Context: input.AgentContext,
 			})
 			if err != nil || len(payload) > agentCopilotMaximumInvocationBytes {
-				return "", 0, errApplicationSessionContract
+				return applicationInteractionTurnInputMetadata{}, errApplicationSessionContract
 			}
-			return workflowRAGSHA256(string(payload)), len(payload), nil
+			return applicationInteractionTurnInputMetadata{InputDigest: workflowRAGSHA256(string(payload)), InputBytes: len(payload)}, nil
 		}
-		return workflowDefinitionInputDigest(input.InputText), len([]byte(input.InputText)), nil
+		return applicationInteractionTurnInputMetadata{InputDigest: workflowDefinitionInputDigest(input.InputText), InputBytes: len([]byte(input.InputText))}, nil
 	}
 	payload, _, err := canonicalPromptApplicationInvocationInput(input.PromptVariables)
 	if err != nil {
-		return "", 0, err
+		return applicationInteractionTurnInputMetadata{}, err
 	}
-	return workflowRAGSHA256(string(payload)), len(payload), nil
+	return applicationInteractionTurnInputMetadata{InputDigest: workflowRAGSHA256(string(payload)), InputBytes: len(payload)}, nil
 }
 
 func applicationInteractionAgentCopilotTerminal(ctx context.Context, result AgentCopilotInvocationResult) (string, string, string, *ApplicationInteractionRunRef) {
@@ -440,8 +493,8 @@ func applicationInteractionAgentCopilotTerminal(ctx context.Context, result Agen
 	return status, failureCode, failureSummary, ref
 }
 
-func applicationInteractionWorkflowTerminal(result WorkflowRunResult) (string, string, string, *ApplicationInteractionRunRef) {
-	ref, valid := applicationInteractionDelegatedRunRef(applicationInteractionProfileWorkflow, result.Record)
+func applicationInteractionWorkflowTerminal(executionProfile string, result WorkflowRunResult) (string, string, string, *ApplicationInteractionRunRef) {
+	ref, valid := applicationInteractionDelegatedRunRef(executionProfile, result.Record)
 	if result.Record != nil && !valid {
 		return string(WorkflowRunStatusFailed), ApplicationInteractionFailureDelegatedRunContract, "Delegated workflow run metadata is invalid.", nil
 	}

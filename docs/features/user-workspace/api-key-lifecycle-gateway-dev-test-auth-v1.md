@@ -1,6 +1,6 @@
 # 用户工作区 API 密钥生命周期与 Gateway 开发测试态认证 v1
 
-更新时间：2026-07-18
+更新时间：2026-08-08
 
 状态：`api_key_lifecycle_gateway_dev_test_auth_v1_complete`
 
@@ -35,6 +35,10 @@
 真实浏览器连续验收已经完成并关闭本专题。验收以同一活跃应用完成配置校验与保存、两枚密钥签发与一次性交接、六个模型发现、单次 / 流式 / 取消调用、精确请求历史关联、最近使用时间更新、CAS 吊销和吊销后 `api_key_revoked` 拒绝；Platform / Web 重启后应用、配置草案、脱敏密钥记录、吊销状态、最近使用时间和请求历史均恢复，原始令牌不可恢复。过程中修正了 API 密钥模式下摘要查询缺少工作区作用域、请求历史仍使用固定消费方、严格历史消费端拒绝 `sqlite_dev`，以及应用配置无法安全复用模型目录的问题；模型目录现在只以严格校验的脱敏事件交接，不把 Bearer 凭据扩散到配置面板。
 
 浏览器专项确认原始令牌在签发视图只出现一次，交接后不再存在于页面、URL、`localStorage`、`sessionStorage` 或 cookie；浏览器产物、Web / Platform 日志以及 SQLite 数据库、WAL 和共享内存扫描均未检出令牌，原始测试输入也未进入服务日志或数据库。两枚验收密钥最终均已吊销。开发请求头仍是普通启动模式的默认认证；只有显式选择 API 密钥本地产品开关时才由 `api_key_dev_test` 保护 Gateway，不能从本次完成反推生产凭据能力成立。
+
+2026-08-08 的 Family UI `S4 R1` 没有改动上述领域和认证边界，只治理真实页面编排：七项 scope、一次性交接、详情、吊销和引导式轮换继续由现有 lifecycle owner 持有；应用切换时先清空旧列表，避免旧应用记录在新应用标题下短暂可见。Application Workspace archived 状态仍挂载 Key metadata / detail / revoke，只阻断新签发、轮换、模型接入与调用；默认 offline `APIKeySummary` 明确标注为 workspace 只读证据，不与当前 application lifecycle 记录或计数合并。
+
+生命周期 owner 现在同时接收 Application Workspace 的 `workspaceId` 并与显式 API Key 配置作用域失败关闭核对；不一致时不发请求，也不把配置漂移表现为可用。一次性面板只有在成功签发返回原始令牌时才获得风险层级，刷新、离开、切换应用或显式清除后回到中性空态。S4 浏览器验收签发并吊销了一枚开发测试 Key，未记录或输出原始令牌；没有新增 API、schema、repository、permission、task card 或专项 checker。
 
 ## 已交付用户流程
 
@@ -88,6 +92,9 @@
 | `chat:invoke` | `POST /v1/chat/completions` |
 | `responses:invoke` | `POST /v1/responses` |
 | `messages:invoke` | `POST /v1/messages` |
+| `application_rag:invoke` | `POST /v1/application-rag/invocations` |
+| `prompt_application:invoke` | `POST /v1/prompt-applications/invocations` |
+| `agent_copilot:invoke` | `POST /v1/agent-copilot/invocations` |
 
 创建时至少选择一个作用域。`usage:read`、`runs:read`、管理 API、密钥管理 API、配额和计费能力不包含在本批密钥授权中。
 
@@ -257,7 +264,7 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 
 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)已实现显式 `application_rag:invoke` scope、独立 invocation route、SQLite / PostgreSQL durable assignment 和 Web 一次性交接，`0012` 真实专项与浏览器连续链已通过。该 scope 复用本专题的随机令牌、不可逆摘要、有效期 / 吊销、active application 与可信调用上下文，但不会自动授予 `chat:invoke`、`responses:invoke`、`messages:invoke` 或任何管理权限；反向也不继承。配额、生产认证和生产 API key 仍未启用。
 
-[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已实现独立 `prompt_application:invoke` scope 与 `POST /v1/prompt-applications/invocations`。该 scope 同样复用随机令牌、不可逆摘要、有效期 / 吊销、active application 和可信 tenant / workspace / application 上下文，但不继承通用协议、RAG 或管理 scope；既有 scope 也不会隐式获得 Prompt 调用权。当前 Web API key 创建面尚未开放该 scope，需通过受控开发测试路径签发。
+[提示词应用模板版本审查与受控调用（开发 / 测试态）v1](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)已实现独立 `prompt_application:invoke` scope 与 `POST /v1/prompt-applications/invocations`。该 scope 同样复用随机令牌、不可逆摘要、有效期 / 吊销、active application 和可信 tenant / workspace / application 上下文，但不继承通用协议、RAG 或管理 scope；既有 scope 也不会隐式获得 Prompt 调用权。当前 Web API Key 创建面已开放该 scope，并在一次性令牌仍存在于组件内存时提供到现有 Prompt Application owner 的受控 handoff；该交接不保存或转发令牌到 URL、浏览器持久化介质或 API 接入区。
 
 ## 停止线
 
@@ -267,3 +274,5 @@ PostgreSQL 使用独立 `api_key_records` 和 `api_key_schema_versions`，不复
 - 不允许密钥调用管理端、密钥生命周期、应用生命周期、配置草案或发布审查 API。
 - 不提供原始令牌再次查看、恢复、导出、物理删除、反吊销、原地换密、作用域修改或有效期延长。
 - 不为本功能逐项新增 readiness、refresh、fixture 或 checker 链；新增 schema 和高风险认证边界由单一实施任务卡、代码测试、PostgreSQL 集成和现有聚合门禁承载。
+
+开发测试态“先签发、验证后吊销”的用户编排已由独立的[API 密钥引导式轮换与验证后退役 v1](api-key-guided-rotation-verified-retirement-dev-test-v1.md)承接。它只复用本专题既有 issue、一次性交接、`last_used_at` 与 revoke CAS，不修改这里已经完成的凭据领域、Gateway 认证或生产停止线。

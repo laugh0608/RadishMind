@@ -40,6 +40,7 @@ type controlPlaneReadCursorListSpec struct {
 	AuditSuffix           string
 	AllowedFilter         []string
 	StrictAuditPagination bool
+	WorkspaceScoped       bool
 	ReadItems             func(ControlPlaneReadRepository, ReadRepositoryContext, ReadRepositoryRequest) controlPlaneReadRepositoryListResult
 }
 
@@ -85,15 +86,16 @@ func (s *Server) handleControlPlaneTenantSummary(writer http.ResponseWriter, req
 }
 
 func (s *Server) handleUserWorkspaceApplicationSummaryList(writer http.ResponseWriter, request *http.Request) {
-	if s.config.ApplicationCatalogDevHTTPEnabled {
+	if s.config.ApplicationCatalogDevHTTPEnabled && strings.TrimSpace(request.Header.Get(activeWorkspaceHeader)) == "" {
 		s.handleListApplicationCatalogRecords(writer, request)
 		return
 	}
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
-		RoutePattern:  controlPlaneApplicationSummaryListRoute,
-		RequiredScope: "applications:read",
-		AuditSuffix:   "applications",
-		AllowedFilter: []string{"application_kind", "owner_subject_ref", "last_run_status"},
+		RoutePattern:    controlPlaneApplicationSummaryListRoute,
+		RequiredScope:   "applications:read",
+		AuditSuffix:     "applications",
+		AllowedFilter:   []string{"application_kind", "owner_subject_ref", "last_run_status"},
+		WorkspaceScoped: true,
 		ReadItems: func(repository ControlPlaneReadRepository, context ReadRepositoryContext, request ReadRepositoryRequest) controlPlaneReadRepositoryListResult {
 			result := repository.ListApplicationSummaries(context, ListApplicationSummariesRequest{ReadRepositoryRequest: request})
 			return controlPlaneReadRepositoryListResult{
@@ -108,15 +110,16 @@ func (s *Server) handleUserWorkspaceApplicationSummaryList(writer http.ResponseW
 }
 
 func (s *Server) handleUserWorkspaceAPIKeySummaryList(writer http.ResponseWriter, request *http.Request) {
-	if s.config.APIKeyLifecycleDevHTTPEnabled {
+	if s.config.APIKeyLifecycleDevHTTPEnabled && strings.TrimSpace(request.Header.Get(activeWorkspaceHeader)) == "" {
 		s.handleListAPIKeys(writer, request)
 		return
 	}
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
-		RoutePattern:  controlPlaneAPIKeySummaryListRoute,
-		RequiredScope: "api_keys:read",
-		AuditSuffix:   "api-keys",
-		AllowedFilter: []string{"state", "owner_subject_ref", "scope"},
+		RoutePattern:    controlPlaneAPIKeySummaryListRoute,
+		RequiredScope:   "api_keys:read",
+		AuditSuffix:     "api-keys",
+		AllowedFilter:   []string{"state", "owner_subject_ref", "scope"},
+		WorkspaceScoped: true,
 		ReadItems: func(repository ControlPlaneReadRepository, context ReadRepositoryContext, request ReadRepositoryRequest) controlPlaneReadRepositoryListResult {
 			result := repository.ListAPIKeySummaries(context, ListAPIKeySummariesRequest{ReadRepositoryRequest: request})
 			return controlPlaneReadRepositoryListResult{
@@ -139,35 +142,26 @@ func (s *Server) handleUserWorkspaceQuotaSummary(writer http.ResponseWriter, req
 		return
 	}
 
-	auth, failureCode, failureStatus := authorizeControlPlaneReadRequest(request, "", "usage:read")
+	auth, failureCode, failureStatus := s.authorizeWorkspaceScopedReadRequest(request, "usage:read")
 	if failureCode != "" {
 		writeControlPlaneReadFailureWithStatus(writer, trace, controlPlaneReadTenantRefFromRequest(request), failureCode, auditRefForControlPlaneRead(trace, "quota-summary-denied"), failureStatus)
 		return
 	}
-
-	auditRef := auditRefForControlPlaneRead(trace, "quota-summary")
-	result := s.controlPlaneReadRepository().ReadQuotaSummary(
-		controlPlaneReadRepositoryContext(request, trace, auth, auditRef),
-		ReadQuotaSummaryRequest{},
+	writeControlPlaneReadFailureWithStatus(
+		writer, trace, auth.TenantBinding, "quota_policy_unavailable",
+		auditRefForControlPlaneRead(trace, "quota-summary-policy-unavailable"), http.StatusServiceUnavailable,
 	)
-	if result.FailureCode != "" {
-		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, string(result.FailureCode), auditRef)
-		return
-	}
-	if len(result.Items) == 0 {
-		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, "quota_policy_missing", auditRefForControlPlaneRead(trace, "quota-summary-missing"))
-		return
-	}
+	return
 
-	writeControlPlaneReadSuccess(writer, trace, result.TenantRef, []map[string]any{quotaSummaryToControlPlaneReadMap(result.Items[0])}, nil, auditRef)
 }
 
 func (s *Server) handleUserWorkspaceWorkflowDefinitionSummaryList(writer http.ResponseWriter, request *http.Request) {
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
-		RoutePattern:  controlPlaneWorkflowDefinitionSummaryListRoute,
-		RequiredScope: "applications:read",
-		AuditSuffix:   "workflow-definitions",
-		AllowedFilter: []string{"application_ref", "definition_status", "risk_level"},
+		RoutePattern:    controlPlaneWorkflowDefinitionSummaryListRoute,
+		RequiredScope:   "applications:read",
+		AuditSuffix:     "workflow-definitions",
+		AllowedFilter:   []string{"application_ref", "definition_status", "risk_level"},
+		WorkspaceScoped: true,
 		ReadItems: func(repository ControlPlaneReadRepository, context ReadRepositoryContext, request ReadRepositoryRequest) controlPlaneReadRepositoryListResult {
 			result := repository.ListWorkflowDefinitionSummaries(context, ListWorkflowDefinitionSummariesRequest{ReadRepositoryRequest: request})
 			return controlPlaneReadRepositoryListResult{
@@ -183,10 +177,11 @@ func (s *Server) handleUserWorkspaceWorkflowDefinitionSummaryList(writer http.Re
 
 func (s *Server) handleUserWorkspaceRunRecordSummaryList(writer http.ResponseWriter, request *http.Request) {
 	s.handleControlPlaneReadCursorList(writer, request, controlPlaneReadCursorListSpec{
-		RoutePattern:  controlPlaneRunRecordSummaryListRoute,
-		RequiredScope: "runs:read",
-		AuditSuffix:   "runs",
-		AllowedFilter: []string{"application_ref", "workflow_definition_id", "status", "failure_code"},
+		RoutePattern:    controlPlaneRunRecordSummaryListRoute,
+		RequiredScope:   "runs:read",
+		AuditSuffix:     "runs",
+		AllowedFilter:   []string{"application_ref", "workflow_definition_id", "status", "failure_code"},
+		WorkspaceScoped: true,
 		ReadItems: func(repository ControlPlaneReadRepository, context ReadRepositoryContext, request ReadRepositoryRequest) controlPlaneReadRepositoryListResult {
 			result := repository.ListRunRecordSummaries(context, ListRunRecordSummariesRequest{ReadRepositoryRequest: request})
 			return controlPlaneReadRepositoryListResult{
@@ -229,7 +224,14 @@ func (s *Server) handleControlPlaneReadCursorList(writer http.ResponseWriter, re
 		return
 	}
 
-	auth, failureCode, failureStatus := authorizeControlPlaneReadRequest(request, "", spec.RequiredScope)
+	var auth controlPlaneReadAuthContext
+	var failureCode string
+	var failureStatus int
+	if spec.WorkspaceScoped {
+		auth, failureCode, failureStatus = s.authorizeWorkspaceScopedReadRequest(request, spec.RequiredScope)
+	} else {
+		auth, failureCode, failureStatus = authorizeControlPlaneReadRequest(request, "", spec.RequiredScope)
+	}
 	if failureCode != "" {
 		writeControlPlaneReadFailureWithStatus(writer, trace, controlPlaneReadTenantRefFromRequest(request), failureCode, auditRefForControlPlaneRead(trace, spec.AuditSuffix+"-denied"), failureStatus)
 		return
@@ -251,8 +253,12 @@ func (s *Server) handleControlPlaneReadCursorList(writer http.ResponseWriter, re
 		writeControlPlaneReadFailure(writer, trace, auth.TenantBinding, requestFailureCode, auditRefForControlPlaneRead(trace, spec.AuditSuffix+"-invalid-pagination"))
 		return
 	}
+	repository := s.controlPlaneReadRepository()
+	if spec.WorkspaceScoped {
+		repository = s.workspaceScopedControlPlaneReadRepository()
+	}
 	result := spec.ReadItems(
-		s.controlPlaneReadRepository(),
+		repository,
 		controlPlaneReadRepositoryContext(request, trace, auth, auditRef),
 		repositoryRequest,
 	)
@@ -269,11 +275,70 @@ func controlPlaneReadRepositoryContext(request *http.Request, trace requestTrace
 		RequestID:      trace.requestID,
 		TenantRef:      auth.TenantBinding,
 		SubjectRef:     auth.SubjectBinding,
+		WorkspaceID:    auth.ResourceBinding.WorkspaceID,
 		ScopeGrants:    append([]string{}, auth.ScopeGrants...),
 		AuditRef:       auditRef,
 		IssuerRef:      auth.IssuerRef,
 		SessionRef:     auth.SessionRef,
 	}
+}
+
+func (s *Server) authorizeWorkspaceScopedReadRequest(
+	request *http.Request,
+	requiredPermission string,
+) (controlPlaneReadAuthContext, string, int) {
+	return s.authorizeWorkspaceScopedRequest(request, requiredPermission)
+}
+
+func (s *Server) authorizeWorkspaceScopedRequest(
+	request *http.Request,
+	requiredPermission string,
+) (controlPlaneReadAuthContext, string, int) {
+	return s.authorizeWorkspaceScopedPermissions(request, requiredPermission)
+}
+
+func (s *Server) authorizeWorkspaceScopedPermissions(
+	request *http.Request,
+	requiredPermissions ...string,
+) (controlPlaneReadAuthContext, string, int) {
+	permissions, valid := normalizeRequiredWorkspacePermissions(requiredPermissions)
+	if !valid {
+		return controlPlaneReadAuthContext{}, "workspace_permission_denied", http.StatusForbidden
+	}
+	auth, failureCode, status := authorizeControlPlaneReadRequest(request, "", permissions[0])
+	if failureCode != "" {
+		return auth, failureCode, status
+	}
+	for _, permission := range permissions[1:] {
+		if !controlPlaneReadHasScope(auth.ScopeGrants, permission) {
+			return auth, "scope_denied", http.StatusForbidden
+		}
+	}
+	values := request.Header.Values(activeWorkspaceHeader)
+	if len(values) == 0 || strings.TrimSpace(values[0]) == "" {
+		return auth, "workspace_selection_missing", http.StatusBadRequest
+	}
+	if len(values) != 1 {
+		return auth, "workspace_binding_mismatch", http.StatusForbidden
+	}
+	provider := s.workspaceMembershipProvider
+	if provider == nil {
+		return auth, "workspace_membership_unavailable", http.StatusServiceUnavailable
+	}
+	decision := provider.AuthorizeWorkspace(request.Context(), WorkspaceMembershipRequest{
+		Auth: auth, ActiveWorkspaceID: strings.TrimSpace(values[0]), RequiredPermissions: permissions,
+	})
+	if decision.FailureCode != "" {
+		return auth, decision.FailureCode, decision.HTTPStatus
+	}
+	auth.ResourceBinding = decision.Binding
+	return auth, "", http.StatusOK
+}
+
+func workspacePermissionEnabled(auth controlPlaneReadAuthContext, permission string) bool {
+	return auth.ResourceBinding.WorkspaceMembershipVerified &&
+		controlPlaneReadHasScope(auth.ScopeGrants, permission) &&
+		controlPlaneReadHasScope(auth.ResourceBinding.WorkspacePermissionGrants, permission)
 }
 
 func controlPlaneReadRepositoryRequestFromQuery(request *http.Request, filters map[string]string, strictAuditPagination bool) (ReadRepositoryRequest, string) {
@@ -474,9 +539,13 @@ func controlPlaneReadFailureHTTPStatus(failureCode string) int {
 		return http.StatusForbidden
 	case "invalid_filter":
 		return http.StatusBadRequest
+	case "workspace_selection_missing":
+		return http.StatusBadRequest
 	case "tenant_not_found", "quota_policy_missing":
 		return http.StatusNotFound
-	case "read_store_unavailable", "database_read_disabled", "schema_migration_not_applied", "schema_version_mismatch", "identity_provider_unavailable", "workspace_membership_unavailable":
+	case "workspace_binding_mismatch", "workspace_membership_denied", "workspace_membership_expired", "workspace_permission_denied":
+		return http.StatusForbidden
+	case "read_store_unavailable", "database_read_disabled", "schema_migration_not_applied", "schema_version_mismatch", "identity_provider_unavailable", "workspace_membership_unavailable", "quota_policy_unavailable":
 		return http.StatusServiceUnavailable
 	case "read_store_contract_mismatch":
 		return http.StatusInternalServerError

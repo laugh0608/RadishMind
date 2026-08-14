@@ -83,12 +83,16 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_CONTROL_PLANE_READ_DEV_TEST_MIGRATION_DATABASE_URL",
 	}) {
@@ -583,6 +587,41 @@ func TestWorkflowRAGEvaluationDevGateIsIndependentAndRequiresVerifiedAuth(t *tes
 	}
 	if validateErr := ValidateServerStart(cfg); validateErr != nil {
 		t.Fatalf("workflow RAG evaluation gate rejected complete verified auth: %v", validateErr)
+	}
+}
+
+func TestApplicationEvaluationCampaignDevGateRequiresOwnersAndBoundEnvironment(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV", "1")
+	if _, err := LoadFromEnv(); err == nil || !strings.Contains(err.Error(), "requires control plane read dev auth") {
+		t.Fatalf("application evaluation campaign accepted missing owners: %v", err)
+	}
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT", "test")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load application evaluation campaign gate: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if !cfg.ApplicationEvaluationCampaignDevEnabled || cfg.ApplicationEvaluationCampaignEnvironment != "test" ||
+		!summary.ApplicationEvaluationCampaignDevEnabled || summary.ApplicationEvaluationCampaignEnvironment != "test" ||
+		cfg.FieldSources["application_evaluation_campaign_dev"] != configSourceEnv ||
+		cfg.FieldSources["application_evaluation_campaign_environment"] != configSourceEnv {
+		t.Fatalf("application evaluation campaign summary or source is incomplete: %#v", summary)
+	}
+	if validateErr := ValidateServerStart(cfg); validateErr != nil {
+		t.Fatalf("application evaluation campaign rejected complete owners: %v", validateErr)
+	}
+	cfg.ApplicationEvaluationCampaignEnvironment = "production"
+	if validateErr := ValidateServerStart(cfg); validateErr == nil || !strings.Contains(validateErr.Error(), "must be development or test") {
+		t.Fatalf("application evaluation campaign accepted production: %v", validateErr)
 	}
 }
 
@@ -1275,8 +1314,10 @@ func TestSQLiteDevLocalPersistenceProjectsEffectiveStoresAndRequiresDevelopmentG
 		summary.SQLiteDevSchemaStatus != "startup_migrations_configured" ||
 		summary.ApplicationCatalogStoreMode != "sqlite_dev" || summary.ApplicationDraftStoreMode != "sqlite_dev" ||
 		summary.ApplicationPublishStoreMode != "sqlite_dev" || summary.PromptTemplateStoreMode != "sqlite_dev" ||
-		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.APIKeyStoreMode != "sqlite_dev" ||
-		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
+		summary.AgentCopilotProfileStoreMode != "sqlite_dev" || summary.AdminProviderRouteStoreMode != "sqlite_dev" ||
+		summary.APIKeyStoreMode != "sqlite_dev" ||
+		summary.GatewayRequestStoreMode != "sqlite_dev" || summary.GatewayModelPricingStoreMode != "sqlite_dev" ||
+		summary.WorkflowSavedDraftStoreMode != "sqlite_dev" ||
 		summary.WorkflowRunStoreMode != "sqlite_dev" {
 		t.Fatalf("unexpected sqlite_dev sanitized summary: %#v", summary)
 	}
@@ -1511,6 +1552,220 @@ func TestGatewayRequestStoreRejectsUnknownModeAndInvalidTimeout(t *testing.T) {
 	}
 }
 
+func TestAdminProviderRouteStoreConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE", "postgres_dev_test")
+	t.Setenv(
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+		"postgresql://admin-provider-route.invalid/private",
+	)
+	t.Setenv("RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT", "17s")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load admin provider route store configuration: %v", err)
+	}
+	if cfg.AdminProviderRouteStoreMode != "postgres_dev_test" ||
+		cfg.AdminProviderRouteDatabaseURL == "" ||
+		cfg.AdminProviderRouteDatabaseTimeout != 17*time.Second ||
+		!cfg.AdminProviderRouteDevHTTPEnabled ||
+		!cfg.AdminProviderRouteDevWriteEnabled {
+		t.Fatalf("unexpected admin provider route configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.AdminProviderRouteStoreMode != "postgres_dev_test" ||
+		!summary.AdminProviderRouteDatabaseConfigured ||
+		!summary.AdminProviderRouteDevHTTPEnabled ||
+		!summary.AdminProviderRouteDevWriteEnabled ||
+		summary.Timeouts["admin_provider_route_database"] != "17s" ||
+		len(summary.MissingRequiredFields) != 0 {
+		t.Fatalf("unexpected admin provider route summary: %#v", summary)
+	}
+
+	cfg.AdminProviderRouteStoreMode = "future_backend"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "admin provider route store must be memory_dev, sqlite_dev, or postgres_dev_test" {
+		t.Fatalf("unknown admin provider route store mode must fail closed: %v", err)
+	}
+
+	cfg = defaultConfig()
+	cfg.AdminProviderRouteDevHTTPEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "admin provider route dev HTTP requires control plane dev auth" {
+		t.Fatalf("admin provider route HTTP gate opened without verified dev auth: %v", err)
+	}
+
+	cfg = defaultConfig()
+	cfg.AdminProviderRouteDevWriteEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "admin provider route dev write requires admin provider route dev HTTP" {
+		t.Fatalf("admin provider route write gate opened without HTTP gate: %v", err)
+	}
+}
+
+func TestGatewayRequestQuotaConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL", "postgresql://quota.invalid/private")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_DATABASE_TIMEOUT", "19s")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load gateway request quota configuration: %v", err)
+	}
+	if !cfg.GatewayRequestQuotaDevHTTPEnabled || !cfg.GatewayRequestQuotaDevWriteEnabled ||
+		!cfg.GatewayRequestQuotaEnforcementDevEnabled || cfg.GatewayRequestQuotaEnvironment != "test" ||
+		cfg.GatewayRequestQuotaStoreMode != "postgres_dev_test" || cfg.GatewayRequestQuotaDatabaseTimeout != 19*time.Second {
+		t.Fatalf("unexpected gateway request quota configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.GatewayRequestQuotaDatabaseConfigured || summary.GatewayRequestQuotaEnvironment != "test" ||
+		summary.Timeouts["gateway_request_quota_database"] != "19s" {
+		t.Fatalf("unexpected gateway request quota summary: %#v", summary)
+	}
+
+	cfg.GatewayRequestQuotaEnvironment = "production"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway request quota enforcement environment must be development or test" {
+		t.Fatalf("production quota environment must fail closed: %v", err)
+	}
+}
+
+func TestGatewayModelPricingConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_STORE", "postgres_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL", "postgresql://pricing.invalid/private")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT", "17s")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load gateway model pricing configuration: %v", err)
+	}
+	if !cfg.GatewayModelPricingDevHTTPEnabled || !cfg.GatewayModelPricingDevWriteEnabled ||
+		!cfg.GatewayModelPricingCaptureDevEnabled || cfg.GatewayModelPricingEnvironment != "test" ||
+		cfg.GatewayModelPricingStoreMode != "postgres_dev_test" || cfg.GatewayModelPricingDatabaseTimeout != 17*time.Second {
+		t.Fatalf("unexpected gateway model pricing configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.GatewayModelPricingDatabaseConfigured || summary.GatewayModelPricingEnvironment != "test" ||
+		summary.Timeouts["gateway_model_pricing_database"] != "17s" {
+		t.Fatalf("unexpected gateway model pricing summary: %#v", summary)
+	}
+
+	cfg.GatewayModelPricingEnvironment = "production"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway model pricing environment must be development or test when enabled" {
+		t.Fatalf("production pricing environment must fail closed: %v", err)
+	}
+}
+
+func TestGatewayProviderRouteSourceConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE", "admin_snapshot_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID", "gateway-default")
+
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load Gateway Provider route configuration: %v", err)
+	}
+	if EffectiveGatewayProviderRouteSource(cfg) != "admin_snapshot_dev_test" ||
+		cfg.GatewayProviderRouteEnvironment != "test" ||
+		cfg.GatewayProviderRouteConfigurationID != "gateway-default" {
+		t.Fatalf("unexpected Gateway Provider route configuration: %#v", cfg)
+	}
+	summary := cfg.SanitizedSummary()
+	if summary.GatewayProviderRouteSource != "admin_snapshot_dev_test" ||
+		summary.GatewayProviderRouteEnvironment != "test" ||
+		summary.GatewayProviderRouteConfigurationID != "gateway-default" ||
+		summary.FieldSources["gateway_provider_route_source"] != configSourceEnv {
+		t.Fatalf("unexpected Gateway Provider route summary: %#v", summary)
+	}
+
+	cfg = defaultConfig()
+	cfg.GatewayProviderRouteEnvironment = "test"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway static_config provider route source forbids Admin snapshot scope" {
+		t.Fatalf("static Provider routing accepted Admin snapshot scope: %v", err)
+	}
+
+	cfg = defaultConfig()
+	cfg.GatewayProviderRouteSource = "admin_snapshot_dev_test"
+	cfg.GatewayProviderRouteEnvironment = "production"
+	cfg.GatewayProviderRouteConfigurationID = "gateway-default"
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.APIKeyLifecycleDevHTTPEnabled = true
+	cfg.GatewayAuthMode = "api_key_dev_test"
+	cfg.GatewayRequestHistoryDevEnabled = true
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway admin_snapshot_dev_test provider route environment must be development or test" {
+		t.Fatalf("production Provider route environment was not rejected: %v", err)
+	}
+
+	cfg.GatewayProviderRouteEnvironment = "test"
+	cfg.GatewayProviderRouteConfigurationID = "invalid/config"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway admin_snapshot_dev_test provider route configuration ID is invalid" {
+		t.Fatalf("invalid Provider route configuration ID was not rejected: %v", err)
+	}
+}
+
+func TestGatewayProviderFallbackDevConfiguration(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_API_KEY_LIFECYCLE_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_GATEWAY_AUTH_MODE", "api_key_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE", "admin_snapshot_dev_test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID", "gateway-default")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV", "1")
+	t.Setenv("RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT", "test")
+	t.Setenv("RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV", "1")
+
+	cfg, err := LoadFromEnv()
+	if err != nil || !cfg.GatewayProviderFallbackDevEnabled || !cfg.SanitizedSummary().GatewayProviderFallbackDevEnabled {
+		t.Fatalf("load Gateway provider fallback dev configuration: cfg=%#v err=%v", cfg, err)
+	}
+
+	cfg.GatewayModelPricingCaptureDevEnabled = false
+	cfg.GatewayModelPricingEnvironment = ""
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway provider fallback dev requires API key auth, Admin snapshot routing, request history, quota enforcement, and pricing capture" {
+		t.Fatalf("fallback accepted incomplete prerequisites: %v", err)
+	}
+	cfg.GatewayModelPricingCaptureDevEnabled = true
+	cfg.GatewayModelPricingEnvironment = "development"
+	if err := validateBridgeRuntimeConfig(cfg); err == nil ||
+		err.Error() != "Gateway provider fallback dev requires matching route, quota, and pricing environments" {
+		t.Fatalf("fallback accepted mismatched environments: %v", err)
+	}
+}
+
 func clearPlatformEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
@@ -1554,6 +1809,21 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_REQUEST_DATABASE_TIMEOUT",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_REQUEST_QUOTA_DATABASE_TIMEOUT",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_STORE",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT",
 		"RADISHMIND_LOCAL_PERSISTENCE_MODE",
 		"RADISHMIND_SQLITE_DEV_DATABASE_PATH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
@@ -1570,6 +1840,12 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_AGENT_COPILOT_PROFILE_DATABASE_TIMEOUT",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_HTTP",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_WRITE",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL",
+		"RADISHMIND_ADMIN_PROVIDER_ROUTE_DATABASE_TIMEOUT",
 		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_HTTP",
 		"RADISHMIND_AGENT_COPILOT_RUNTIME_DEV_WRITE",
 		"RADISHMIND_PROMPT_APPLICATION_TEMPLATE_STORE",
@@ -1600,6 +1876,10 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_API_KEY_DATABASE_TIMEOUT",
 		"RADISHMIND_GATEWAY_AUTH_MODE",
+		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_SOURCE",
+		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT",
+		"RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID",
+		"RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV",
 		"RADISHMIND_WORKFLOW_RUN_STORE",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_RUN_DEV_TEST_MIGRATION_DATABASE_URL",

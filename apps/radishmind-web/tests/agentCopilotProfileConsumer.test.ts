@@ -43,6 +43,8 @@ test("Agent Profile save carries exact CAS source and immutable policy fields", 
   assert.equal(result.status, "saved");
   assert.equal(result.draft?.profileId, input.profileId);
   assert.equal(request?.headers.get("X-RadishMind-Dev-Read-Scopes"), "agent_copilot_profiles:write");
+  assert.equal(request?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(request?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "agent_copilot_profiles:write");
   assert.equal(request?.body.expected_draft_version, 0);
   assert.deepEqual(request?.body.profile.tool_hints_policy, {
     allow_retrieval: false,

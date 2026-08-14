@@ -7,7 +7,7 @@ import {
   type APIKeySummary,
   type ControlPlaneReadCollectionViewModel,
   type ControlPlaneReadResponseByRoute,
-} from "../../../../../contracts/typescript/control-plane-read-api";
+} from "../../../../../contracts/typescript/control-plane-read-api.ts";
 
 export type WorkspaceApiKeysStateId =
   | "ready"

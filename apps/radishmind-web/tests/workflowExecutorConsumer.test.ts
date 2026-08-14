@@ -52,6 +52,8 @@ test("executor eligibility requires the exact saved clean graph", () => {
     summary: "saved",
     failureCode: null,
     currentDraftVersion: 3,
+    currentLifecycleVersion: 1,
+    currentLifecycleState: "active" as const,
     conflictDraftVersion: null,
     auditRef: "audit_saved",
     requestId: "req_saved",
@@ -64,6 +66,14 @@ test("executor eligibility requires the exact saved clean graph", () => {
   const dirty = evaluateWorkflowExecutorEligibility(draft, savedState, true);
   assert.equal(dirty.eligible, false);
   assert.equal(dirty.reasons.some((reason) => reason.code === "unsaved_local_changes"), true);
+  assert.equal(
+    evaluateWorkflowExecutorEligibility(
+      draft,
+      { ...savedState, currentLifecycleState: "archived" },
+      false,
+    ).eligible,
+    false,
+  );
 
   const unsafeDraft = {
     ...draft,
@@ -119,10 +129,16 @@ test("executor HTTP consumer maps terminal record without retaining raw input", 
   assert.equal(String(requests[0]?.init.body).includes(rawInput), true);
   const headers = requests[0]?.init.headers as Record<string, string>;
   assert.equal(headers["X-RadishMind-Dev-Read-Scopes"], "workflow_drafts:read,workflow_runs:execute,workflow_runs:read");
+  assert.equal(headers["X-RadishMind-Active-Workspace"], "workspace_demo");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Workspace"], "workspace_demo");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Permissions"], "workflow_runs:execute,workflow_drafts:read");
 
   const reloaded = await readWorkflowRunDevRecord(started.record!, executorConfig);
   assert.equal(reloaded.status, "succeeded");
   assert.equal(requests[1]?.url.includes("/v1/user-workspace/workflow-runs/run_0123456789abcdef?"), true);
+  const readHeaders = requests[1]?.init.headers as Record<string, string>;
+  assert.equal(readHeaders["X-RadishMind-Active-Workspace"], undefined);
+  assert.equal(readHeaders["X-RadishMind-Dev-Read-Membership-Permissions"], undefined);
 });
 
 test("executor consumer maps v1 structured diagnostic and rejects raw provider material", async (t) => {

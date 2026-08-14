@@ -148,11 +148,35 @@
   },
   "required_files": [
     "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
+    "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
     "apps/radishmind-web/src/features/control-plane-read/workflowDefinitionDetail.ts",
     "apps/radishmind-web/src/features/control-plane-read/workflowConfirmationPlaceholder.ts",
     "apps/radishmind-web/src/app/App.tsx",
     "apps/radishmind-web/src/styles.css"
   ],
+  "source_expectations": {
+    "required_app_state_action_literals": [
+      "WorkflowDraftDesignerPanel",
+      "workflowDraftDesigner",
+      "selectedWorkflowDraftId",
+      "setSelectedWorkflowDraftId",
+      "selectedDraftId={selectedWorkflowDraft.draftId}",
+      "onSelectDraft={handleSelectWorkflowDraft}",
+      "onValidateDraft={handleValidateWorkflowDraft}",
+      "onSaveDraft={handleSaveWorkflowDraft}",
+      "onReadDraft={handleReadWorkflowDraft}"
+    ],
+    "required_panel_display_literals": [
+      "WorkflowDraftDesignerPanel",
+      "WorkflowDraftTemplateButton",
+      "WorkflowDraftNodeCard",
+      "WorkflowDraftEdgeCard",
+      "WorkflowDraftReadinessCard",
+      "WorkflowDraftRiskCard",
+      "WorkflowDraftBlockedCapabilityCard",
+      "workflow-draft-designer"
+    ]
+  },
   "forbidden_source_literals": [
     "fetch(",
     "XMLHttpRequest",

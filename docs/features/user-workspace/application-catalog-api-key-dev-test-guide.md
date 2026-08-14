@@ -14,7 +14,7 @@
 
 当前实现支持 `memory_dev`、默认本地产品档 `sqlite_dev` 与显式 `postgres_dev_test`。它不代表生产身份系统、生产密钥服务、公开生产网关或正式配额计费已经可用。产品 Web 已支持应用目录创建、API 密钥签发与吊销、一次性令牌内存交接，以及使用 Bearer 凭据进入既有 Gateway Playground；真实浏览器连续验收与重启复验已经完成。
 
-2026-07-14 已完成当时七组件共享 SQLite 本地产品链和真实 PostgreSQL 专项门禁：migration、角色隔离、类型 / 索引、稳定分页、advisory lock、多连接并发、认证 / 吊销与应用归档竞态、重启恢复和 no-fallback 均已通过。2026-07-21 聚合 runtime 加入第八个 Prompt Template owner；2026-07-25 加入第九个 Agent / Copilot Profile owner。Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 投影复用 Workflow Run Store，不增加独立存储组件。2026-07-15 已完成 Web 一次性交接、严格消费端、生产构建和真实浏览器连续链：应用配置、密钥签发、模型发现、单次 / 流式 / 取消调用、精确历史、最近使用、吊销后拒绝与重启恢复均成立；令牌未进入 URL、浏览器持久化介质、日志、浏览器产物或 SQLite 物理文件。
+2026-07-14 已完成当时七组件共享 SQLite 本地产品链和真实 PostgreSQL 专项门禁：migration、角色隔离、类型 / 索引、稳定分页、advisory lock、多连接并发、认证 / 吊销与应用归档竞态、重启恢复和 no-fallback 均已通过。2026-07-21 聚合 runtime 加入第八个 Prompt Template owner；2026-07-25 加入第九个 Agent / Copilot Profile owner；2026-08-08 加入第十个 Admin Provider / Route owner；2026-08-09 加入第十一个 application request quota owner。Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 投影复用 Workflow Run Store，不增加独立存储组件。2026-07-15 已完成 Web 一次性交接、严格消费端、生产构建和真实浏览器连续链：应用配置、密钥签发、模型发现、单次 / 流式 / 取消调用、精确历史、最近使用、吊销后拒绝与重启恢复均成立；令牌未进入 URL、浏览器持久化介质、日志、浏览器产物或 SQLite 物理文件。
 
 ## 两类身份必须分开
 
@@ -55,7 +55,7 @@ RADISHMIND_PLATFORM_LISTEN_ADDR=127.0.0.1:7100 \
 ./scripts/run-platform-service.sh serve
 ```
 
-这是长期运行的本地服务命令，应由开发者在本机终端启动，并在验证结束后停止。默认 `local-product` 档会一次性选择九组件 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 和所需开发门禁；`config-check` 只检查配置，不创建数据库。应用、密钥、调用记录、配置草案、Prompt Template、Agent / Copilot Profile 和工作流数据会在服务重启后恢复。需要回到显式内存或 PostgreSQL 组件配置时，改用 `--profile configured` 并完整提供对应门禁与 store 配置。
+这是长期运行的本地服务命令，应由开发者在本机终端启动，并在验证结束后停止。默认 `local-product` 档会一次性选择十一组件 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 和既有开发门禁；`config-check` 只检查配置，不创建数据库。应用、密钥、调用记录、配置草案、Prompt Template、Agent / Copilot Profile、Provider / Route 配置、quota policy / usage 和工作流数据会在服务重启后恢复；Provider / Route 写入和 quota 管理 / enforcement 不因 store 选择自动开放。需要回到显式内存或 PostgreSQL 组件配置时，改用 `--profile configured` 并完整提供对应门禁与 store 配置。
 
 以下示例统一使用：
 
@@ -194,7 +194,7 @@ curl --fail-with-body --silent --show-error \
 
 ## PostgreSQL 开发测试模式
 
-PostgreSQL 模式必须为九个产品组件分别提供 runtime DML 连接，并使用独立 migration 连接执行 DDL。仓库继续保留历史文件名的统一 runner；它实际覆盖九组产品 migration / repository、独立 Control Plane read schema 和 `configured` 启动档：
+PostgreSQL 完整门禁必须为十一个产品组件分别提供 runtime DML 连接，并使用独立 migration 连接执行 DDL。仓库继续保留历史文件名的统一 runner；它实际覆盖十一组产品 migration / repository、独立 Control Plane read schema 和 `configured` 启动档：
 
 ```bash
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check

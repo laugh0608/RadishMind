@@ -153,7 +153,8 @@ func TestPostgresConfiguredProductChainRestartRacesAndNoFallback(t *testing.T) {
 	apiKeyContext.TenantRef = catalogContext.TenantRef
 	apiKeyContext.WorkspaceID = catalogContext.WorkspaceID
 	keyService := newAPIKeyService(server.apiKeyRepository, server.applicationCatalogRepository)
-	keyService.now = func() time.Time { return time.Date(2026, 7, 14, 9, 5, 0, 0, time.UTC) }
+	gatewayAuthenticationFixtureTime := time.Now().UTC().Truncate(time.Second)
+	keyService.now = func() time.Time { return gatewayAuthenticationFixtureTime }
 	apiKeyIDs := []string{"key_aaaaaaaaaaaaaaaa", "key_bbbbbbbbbbbbbbbb", "key_cccccccccccccccc"}
 	nextAPIKeyID := 0
 	keyService.newID = func() (string, error) {
@@ -534,6 +535,9 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		application_evaluation_campaigns,
+		application_evaluation_plan_versions,
+		application_evaluation_plans,
 		agent_copilot_run_records,
 		agent_copilot_session_turns,
 		agent_copilot_sessions,
@@ -583,6 +587,8 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 		application_publish_candidates,
 		application_configuration_drafts,
 		application_catalog_records,
+		saved_workflow_draft_lifecycle_events,
+		saved_workflow_draft_revisions,
 		saved_workflow_drafts,
 		workflow_run_schema_versions,
 		prompt_application_template_schema_versions,
@@ -605,6 +611,12 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_http_tool_append_only_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL append-only guard: %v", err)
 	}
+	if _, err := pool.Exec(
+		ctx,
+		`DROP FUNCTION IF EXISTS reject_saved_workflow_draft_lifecycle_event_mutation()`,
+	); err != nil {
+		t.Fatalf("reset configured PostgreSQL saved draft lifecycle guard: %v", err)
+	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_workflow_rag_snapshot_append_only_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL RAG append-only guard: %v", err)
 	}
@@ -613,6 +625,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_prompt_application_runtime_mutation(), enforce_prompt_application_run_update(), enforce_prompt_application_turn_update(), enforce_prompt_application_session_update(), enforce_prompt_application_assignment_update(), reject_prompt_application_template_mutation(), enforce_prompt_application_template_draft_update()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL prompt application guards: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_mutation(), enforce_application_evaluation_campaign_update(), enforce_application_evaluation_plan_update()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL application evaluation guards: %v", err)
 	}
 }
 
@@ -633,6 +648,10 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"gateway_request_records", "sanitized_request_record", "jsonb"},
 		{"gateway_request_records", "started_at", "timestamp with time zone"},
 		{"saved_workflow_drafts", "sanitized_draft_payload", "jsonb"},
+		{"saved_workflow_drafts", "lifecycle_state", "text"},
+		{"saved_workflow_drafts", "lifecycle_version", "bigint"},
+		{"saved_workflow_drafts", "library_updated_at", "timestamp with time zone"},
+		{"saved_workflow_draft_lifecycle_events", "occurred_at", "timestamp with time zone"},
 		{"workflow_run_records", "sanitized_run_record", "jsonb"},
 		{"workflow_run_records", "started_at", "timestamp with time zone"},
 		{"workflow_http_tool_action_plans", "tool_version", "integer"},
@@ -678,7 +697,7 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"prompt_application_template_versions_scope_idx", "template_version DESC"},
 		{"gateway_request_records_history_idx", "started_at DESC, request_id DESC"},
 		{"gateway_request_records_selection_idx", "started_at DESC, request_id DESC"},
-		{"saved_workflow_drafts_owner_list_idx", "updated_at DESC, draft_id"},
+		{"saved_workflow_drafts_owner_lifecycle_list_idx", "library_updated_at DESC, draft_id"},
 		{"workflow_run_records_history_idx", "started_at DESC, run_id DESC"},
 		{"workflow_http_tool_execution_attempts_status_idx", "status, claimed_at, attempt_id"},
 		{"workflow_rag_snapshot_resources_list_idx", "lifecycle_state, snapshot_key"},

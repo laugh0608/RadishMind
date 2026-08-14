@@ -63,13 +63,20 @@ func (s *Server) handleCreateWorkflowHTTPToolActionPlan(writer http.ResponseWrit
 	if !s.allowWorkflowHTTPToolActionDev(writer, trace) {
 		return
 	}
+	requiredPermissions := []string{"workflow_drafts:read", "workflow_tool_actions:plan"}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, requiredPermissions...)
+	ctx := workflowHTTPToolActionMutationContext(request, trace, auth, "", "plan")
+	if failureCode != "" {
+		writeWorkflowHTTPToolActionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureCode(failureCode), "Workflow HTTP tool plan authorization is denied."))
+		return
+	}
 	var body workflowHTTPToolCreatePlanBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowHTTPToolActionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "plan", "workflow_drafts:read", "workflow_tool_actions:plan")
-	if failure != "" {
-		writeWorkflowHTTPToolActionResult(writer, trace, ctx, workflowHTTPToolActionFailure(failure, "Workflow HTTP tool plan scope is denied."))
+	ctx = workflowHTTPToolActionMutationContext(request, trace, auth, body.ApplicationID, "plan")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowHTTPToolActionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureCode("workspace_binding_mismatch"), "Workflow HTTP tool plan workspace binding is denied."))
 		return
 	}
 	service, err := s.workflowHTTPToolActionService()
@@ -114,13 +121,19 @@ func (s *Server) handleDecideWorkflowHTTPToolActionPlan(writer http.ResponseWrit
 	if !s.allowWorkflowHTTPToolActionDev(writer, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_tool_actions:confirm")
+	ctx := workflowHTTPToolActionMutationContext(request, trace, auth, "", "decision")
+	if failureCode != "" {
+		writeWorkflowHTTPToolActionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureCode(failureCode), "Workflow HTTP tool confirmation authorization is denied."))
+		return
+	}
 	var body workflowHTTPToolDecisionBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowHTTPToolActionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "decision", "workflow_tool_actions:confirm")
-	if failure != "" {
-		writeWorkflowHTTPToolActionResult(writer, trace, ctx, workflowHTTPToolActionFailure(failure, "Workflow HTTP tool confirmation scope is denied."))
+	ctx = workflowHTTPToolActionMutationContext(request, trace, auth, body.ApplicationID, "decision")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowHTTPToolActionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureCode("workspace_binding_mismatch"), "Workflow HTTP tool confirmation workspace binding is denied."))
 		return
 	}
 	service, err := s.workflowHTTPToolActionService()
@@ -139,20 +152,19 @@ func (s *Server) handleExecuteWorkflowHTTPToolActionPlan(writer http.ResponseWri
 	if !s.allowWorkflowHTTPToolExecutionDev(writer, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, workflowHTTPToolExecutionRequiredScopes...)
+	ctx := workflowHTTPToolActionMutationContext(request, trace, auth, "", "execution")
+	if failureCode != "" {
+		writeWorkflowHTTPToolExecutionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode(failureCode), "Workflow HTTP tool execution authorization is denied."))
+		return
+	}
 	var body workflowHTTPToolExecutionBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowHTTPToolActionContextFromRequest(
-		request,
-		trace,
-		body.WorkspaceID,
-		body.ApplicationID,
-		"execution",
-		workflowHTTPToolExecutionRequiredScopes...,
-	)
-	if failure != "" {
-		writeWorkflowHTTPToolExecutionResult(writer, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureScopeDenied, "Workflow HTTP tool execution scope is denied."))
+	ctx = workflowHTTPToolActionMutationContext(request, trace, auth, body.ApplicationID, "execution")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowHTTPToolExecutionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow HTTP tool execution workspace binding is denied."))
 		return
 	}
 	service, err := s.workflowHTTPToolExecutionService()
@@ -210,8 +222,27 @@ func workflowHTTPToolActionContextFromRequest(
 	return ctx, ""
 }
 
+func workflowHTTPToolActionMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	auditSuffix string,
+) WorkflowHTTPToolActionContext {
+	runContext := workflowRunMutationContext(request, trace, auth, applicationID, "tool-action-"+auditSuffix)
+	return WorkflowHTTPToolActionContext{
+		RequestContext: runContext.RequestContext, RequestID: runContext.RequestID, TenantRef: runContext.TenantRef,
+		WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID, ActorRef: runContext.ActorRef,
+		ScopeGrants: cloneStringSlice(runContext.ScopeGrants), AuditRef: runContext.AuditRef,
+	}
+}
+
 func writeWorkflowHTTPToolActionResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowHTTPToolActionContext, result WorkflowHTTPToolActionResult) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowHTTPToolActionEnvelope{
+	writeWorkflowHTTPToolActionResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowHTTPToolActionResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowHTTPToolActionContext, result WorkflowHTTPToolActionResult) {
+	writeObservedJSON(writer, status, trace, workflowHTTPToolActionEnvelope{
 		RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		ActionPlan: result.ActionPlan, ConfirmationDecision: result.ConfirmationDecision,
 		FailureCode: workflowHTTPToolActionFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary,
@@ -225,7 +256,17 @@ func writeWorkflowHTTPToolExecutionResult(
 	ctx WorkflowHTTPToolActionContext,
 	result WorkflowHTTPToolExecutionResult,
 ) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowHTTPToolExecutionEnvelope{
+	writeWorkflowHTTPToolExecutionResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowHTTPToolExecutionResultWithStatus(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	ctx WorkflowHTTPToolActionContext,
+	result WorkflowHTTPToolExecutionResult,
+) {
+	writeObservedJSON(writer, status, trace, workflowHTTPToolExecutionEnvelope{
 		RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		ActionPlan: result.ActionPlan, Run: result.Record,
 		FailureCode: workflowRunFailureCodePointer(result.FailureCode), FailureSummary: result.FailureSummary,

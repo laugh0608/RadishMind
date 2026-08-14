@@ -98,6 +98,17 @@ export type APIKeyOperationResult = {
   summary: string;
 };
 
+export function replaceAPIKeyListRecord(
+  list: APIKeyListResult,
+  record: APIKeyRecord,
+): APIKeyListResult {
+  if (!list.records.some((item) => item.apiKeyId === record.apiKeyId)) return list;
+  return {
+    ...list,
+    records: list.records.map((item) => item.apiKeyId === record.apiKeyId ? record : item),
+  };
+}
+
 type APIKeyRecordDocument = {
   schema_version: string;
   api_key_id: string;
@@ -459,11 +470,14 @@ function apiKeyManagementHeaders(
         .__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
     const token = tokenProvider?.().trim() ?? "";
     if (!token) throw new Error("API key lifecycle auth token is unavailable in browser memory");
-    return { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}` };
+    const headers = { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}` };
+    return operation === "read"
+      ? headers
+      : { ...headers, "X-RadishMind-Active-Workspace": config.workspaceId };
   }
   const scopes = operation === "revoke" ? "api_keys:revoke,api_keys:read" :
     operation === "issue" ? "api_keys:write,api_keys:read" : "api_keys:read";
-  return {
+  const headers = {
     Accept: "application/json",
     "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-api-key-lifecycle-dev",
@@ -471,6 +485,14 @@ function apiKeyManagementHeaders(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scopes,
     "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
+  };
+  if (operation === "read") return headers;
+  const permission = operation === "issue" ? "api_keys:write" : "api_keys:revoke";
+  return {
+    ...headers,
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": permission,
   };
 }
 

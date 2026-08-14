@@ -42,6 +42,17 @@
 - dev / test 与 production 分别验收；生产门禁默认约束 capability enablement、运行配置和发布声明，不长期以未来 adapter、migration、repository 文件必须不存在作为完成条件
 - 历史 readiness / review / refresh 证据保留为归档，不再派生同层链；新增 checker 必须证明现有单元测试、集成测试或聚合门禁无法承载
 
+## UI 规范
+
+- UI 家族通用参考基线采用 RadishX `docs/design/family-ui/` `v26.7.3`；family-ui 不替具体项目规定配色分工、技术接入、采用状态或迁移节奏，RadishMind 的项目选择、专属组件与迁移偏差只维护在 `docs/ui-addendum.md`
+- `apps/radishmind-web/` 主动选择 family-ui `Workbench` Profile，并把当前版本的 `tokens.css` 与 `tokens.json` 精确镜像作为本项目接入策略；项目组件消费 `--rd-*` 语义层或 `--rm-*` L2 别名，不直接消费调色板层
+- 跨界面稳定且可复用的新语义优先回到 family-ui 讨论；只服务 RadishMind 业务对象的语义留在项目别名层，但不得用无语义硬编码颜色绕开 token
+- UI 产品化先确认真实任务、页面状态和代码现状，再按页面族判断 Pencil 覆盖级别并实施纵向切片；不得把未实现能力、开发测试态 owner、首分页窗口或离线 evidence 画成生产就绪、全量统计或可自动执行
+- Pencil 只承载设计基准面的信息层级、布局、交互、风险表达和响应式顺序，不承载完整页面、功能、文案或按钮清单；功能事实继续以对应功能文档、API 契约和当前代码为准
+- “主要页面”统一定义为能为页面族冻结新结构、交互模型、风险表达或响应式策略的最小设计基准面；完整 Pencil、局部 Pencil 和直接实现的分级与首批覆盖矩阵以 `docs/features/user-workspace/radishmind-family-ui-productization-v1.md` 为准
+- 同族相似页面默认复用已实现组件与模式后直接开发，并以运行中的 React 页面、真实浏览器桌面 / 窄屏复核和现有测试验收；只有结构性设计决策变化时才回写 Pencil
+- RadishMind Workbench 使用纸色、灰玉身份、墨蓝主交互、玉色正向辅助、小面积紫色类型区分和小面积胭脂关注提示，不使用品牌面纹样；颜色不得成为状态的唯一通道
+
 ## 文档真相源
 
 `docs/` 是本仓库的正式文档源，优先级最高的文档如下：

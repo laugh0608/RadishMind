@@ -28,7 +28,7 @@ type anthropicMessagesResponse struct {
 	Model        string                    `json:"model"`
 	StopReason   string                    `json:"stop_reason"`
 	StopSequence any                       `json:"stop_sequence"`
-	Usage        anthropicMessagesUsage    `json:"usage"`
+	Usage        *anthropicMessagesUsage   `json:"usage,omitempty"`
 }
 
 type anthropicMessageContent struct {
@@ -59,9 +59,9 @@ type anthropicContentDelta struct {
 }
 
 type anthropicMessageDeltaEvent struct {
-	Type  string                 `json:"type"`
-	Delta anthropicStopDelta     `json:"delta"`
-	Usage anthropicMessagesUsage `json:"usage"`
+	Type  string                  `json:"type"`
+	Delta anthropicStopDelta      `json:"delta"`
+	Usage *anthropicMessagesUsage `json:"usage,omitempty"`
 }
 
 type anthropicStopDelta struct {
@@ -76,7 +76,7 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 	var messageRequest anthropicMessagesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &messageRequest, jsonRequestBodyOptions{
-		maxBytes: maxNorthboundJSONRequestBodyBytes,
+		maxBytes: maxNorthboundJSONRequestBodyBytes, rejectDuplicateFields: true,
 	}) {
 		return
 	}
@@ -87,10 +87,17 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
+	ctx = withGatewayProviderAttemptMarker(ctx, &trace)
 
-	selection := s.resolveNorthboundSelection(ctx, messageRequest.Model, messageRequest.RadishMind)
+	execution, selection, selectionFailure := s.prepareGatewayProviderAttemptExecution(
+		ctx, &trace, northboundProtocolMessages,
+		messageRequest.Model, messageRequest.RadishMind, messageRequest.Stream,
+	)
 	trace.applySelection(selection)
-	s.checkpointGatewayRequestTrace(&trace, messageRequest.Stream)
+	if selectionFailure != "" {
+		s.writePlatformError(writer, trace, selectionFailure, "")
+		return
+	}
 	promptText, northboundFields, err := buildMessagesPromptText(messageRequest, selection)
 	if err != nil {
 		s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", err.Error())
@@ -111,13 +118,51 @@ func (s *Server) handleMessages(writer http.ResponseWriter, request *http.Reques
 	}
 
 	if messageRequest.Stream {
-		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), trace); err != nil {
+		s.checkpointGatewayRequestTrace(&trace, true)
+		if err := s.streamAnthropicMessagesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(messageRequest.Temperature, s.config.Temperature), &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 		return
 	}
+	if validGatewayProviderAttemptPlan(execution.plan) {
+		canonicalRequests := make([][]byte, 0, len(execution.selections))
+		canonicalRequests = append(canonicalRequests, canonicalRequest)
+		for _, targetSelection := range execution.selections[1:] {
+			targetPrompt, targetFields, targetErr := buildMessagesPromptText(messageRequest, targetSelection)
+			if targetErr != nil {
+				s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", targetErr.Error())
+				return
+			}
+			targetRequest, targetErr := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+				requestID: trace.requestID, route: "/v1/messages", protocol: northboundProtocolMessages,
+				locale: resolveNorthboundLocale(messageRequest.RadishMind), promptText: targetPrompt,
+				northboundFields: targetFields,
+			})
+			if targetErr != nil {
+				s.writePlatformError(writer, trace, "INVALID_MESSAGES_REQUEST", targetErr.Error())
+				return
+			}
+			canonicalRequests = append(canonicalRequests, targetRequest)
+		}
+		result := s.invokeGatewayProviderAttempts(
+			ctx, &trace, execution, canonicalRequests,
+			effectiveTemperature(messageRequest.Temperature, s.config.Temperature),
+		)
+		if result.FailureCode != "" {
+			s.writePlatformError(writer, trace, result.FailureCode, result.FailureDetail)
+			return
+		}
+		responseDocument, err := buildAnthropicMessagesResponse(result.Envelope, result.Selection.model)
+		if err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
+			return
+		}
+		writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
+		return
+	}
+	s.checkpointGatewayRequestTrace(&trace, false)
 
 	envelope, err := s.bridge.HandleEnvelope(
 		ctx,
@@ -203,10 +248,7 @@ func buildAnthropicMessagesResponseWithID(envelope bridge.GatewayEnvelope, model
 				Text: content,
 			},
 		},
-		Usage: anthropicMessagesUsage{
-			InputTokens:  0,
-			OutputTokens: 0,
-		},
+		Usage: anthropicMessagesUsageFromEnvelope(envelope),
 	}, nil
 }
 
@@ -218,10 +260,6 @@ func buildAnthropicMessagesResponseSkeleton(responseID string, model string) ant
 		Model:      model,
 		StopReason: "",
 		Content:    nil,
-		Usage: anthropicMessagesUsage{
-			InputTokens:  0,
-			OutputTokens: 0,
-		},
 	}
 }
 
@@ -231,7 +269,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
-	trace requestTrace,
+	trace *requestTrace,
 ) error {
 	responseID := buildNorthboundResponseID("msg-", trace.requestID)
 	streamStarted := false
@@ -244,7 +282,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 			return nil
 		}
 		prepareSSEHeaders(writer)
-		writeTraceHeaders(writer, trace)
+		writeTraceHeaders(writer, *trace)
 		if err := writeSSEEvent(writer, "message_start", anthropicMessageStartEvent{
 			Type:    "message_start",
 			Message: buildAnthropicMessagesResponseSkeleton(responseID, selection.model),
@@ -315,6 +353,7 @@ func (s *Server) streamAnthropicMessagesResponse(
 	if completedEnvelope == nil {
 		return fmt.Errorf("platform bridge stream completed without envelope")
 	}
+	s.applyGatewayEnvelopeToTrace(trace, *completedEnvelope)
 
 	responseDocument, err := buildAnthropicMessagesResponseWithID(*completedEnvelope, selection.model, responseID)
 	if err != nil {
@@ -341,6 +380,17 @@ func (s *Server) streamAnthropicMessagesResponse(
 	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
 		return err
 	}
-	logRequestTrace(trace, http.StatusOK, "", "")
+	logRequestTrace(*trace, http.StatusOK, "", "")
 	return nil
+}
+
+func anthropicMessagesUsageFromEnvelope(envelope bridge.GatewayEnvelope) *anthropicMessagesUsage {
+	usage := gatewayUsageFromEnvelope(envelope)
+	if usage.Availability != GatewayRequestUsageReported {
+		return nil
+	}
+	return &anthropicMessagesUsage{
+		InputTokens:  usage.InputTokens,
+		OutputTokens: usage.OutputTokens,
+	}
 }

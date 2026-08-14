@@ -78,7 +78,7 @@ export type ApplicationCatalogListResult = {
 };
 
 export type ApplicationCatalogOperationResult = {
-  status: "offline" | "created" | "loaded" | "updated" | "archived" | "version_conflict" | "record_archived" | "scope_denied" | "failed";
+  status: "offline" | "created" | "loaded" | "updated" | "archived" | "unarchived" | "version_conflict" | "record_archived" | "scope_denied" | "failed";
   record: ApplicationCatalogRecord | null;
   failureCode: string;
   currentRecordVersion: number;
@@ -300,13 +300,36 @@ export async function archiveApplicationCatalogRecord(
   );
 }
 
+export async function unarchiveApplicationCatalogRecord(
+  config: ApplicationCatalogConfig,
+  applicationId: string,
+  expectedVersion: number,
+): Promise<ApplicationCatalogOperationResult> {
+  if (config.mode === "offline") return offlineOperationResult();
+  if (!APPLICATION_ID_PATTERN.test(applicationId) || !Number.isInteger(expectedVersion) || expectedVersion < 1) {
+    return localValidationFailure("application_catalog_payload_invalid");
+  }
+  return writeApplicationCatalogRecord(
+    config,
+    `${APPLICATION_CATALOG_COLLECTION_PATH}/${encodeURIComponent(applicationId)}/unarchive`,
+    "POST",
+    {
+      workspace_id: config.workspaceId,
+      expected_version: expectedVersion,
+      acknowledge_existing_access_reactivation: true,
+    },
+    "unarchive",
+    "unarchived",
+  );
+}
+
 async function writeApplicationCatalogRecord(
   config: ApplicationCatalogConfig,
   path: string,
   method: "POST" | "PUT",
   body: unknown,
-  operation: "create" | "update" | "archive",
-  successStatus: "created" | "updated" | "archived",
+  operation: "create" | "update" | "archive" | "unarchive",
+  successStatus: "created" | "updated" | "archived" | "unarchived",
 ): Promise<ApplicationCatalogOperationResult> {
   const requestId = createRequestId(`application-catalog-${operation}`);
   try {
@@ -325,7 +348,7 @@ async function writeApplicationCatalogRecord(
 function mapOperationEnvelope(
   value: unknown,
   config: ApplicationCatalogConfig,
-  successStatus: "created" | "loaded" | "updated" | "archived",
+  successStatus: "created" | "loaded" | "updated" | "archived" | "unarchived",
 ): ApplicationCatalogOperationResult {
   if (!isApplicationCatalogOperationEnvelope(value, config)) {
     return failedOperationResult("application_catalog_store_unavailable");
@@ -357,6 +380,8 @@ function mapOperationEnvelope(
           ? "Application metadata updated with the expected record version."
           : successStatus === "archived"
             ? "Application archived; new configuration, publish, and invocation handoffs are disabled."
+            : successStatus === "unarchived"
+              ? "Application unarchived; eligible existing credentials and runtime bindings may resume under their own state checks."
             : "Application catalog record loaded.",
   };
 }
@@ -466,8 +491,11 @@ function mapApplicationCatalogSummary(document: ApplicationCatalogSummaryDocumen
 function applicationCatalogHeaders(
   config: ApplicationCatalogConfig,
   requestId: string,
-  operation: "read" | "create" | "update" | "archive",
+  operation: "read" | "create" | "update" | "archive" | "unarchive",
 ): Record<string, string> {
+  const mutationPermission = operation === "unarchive"
+    ? "applications:archive,applications:write"
+    : operation === "archive" ? "applications:archive" : "applications:write";
   if (config.authMode !== "dev_headers") {
     const tokenProvider = config.authMode === "signed_test_token"
       ? (globalThis as typeof globalThis & { __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string })
@@ -476,10 +504,17 @@ function applicationCatalogHeaders(
         .__RADISHMIND_CONTROL_PLANE_OIDC_INTEGRATION_TOKEN__;
     const token = tokenProvider?.().trim() ?? "";
     if (!token) throw new Error("application catalog auth token is unavailable in browser memory");
-    return { Accept: "application/json", "X-Request-Id": requestId, Authorization: `Bearer ${token}` };
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      Authorization: `Bearer ${token}`,
+      ...(operation === "read" ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
+    };
   }
-  const scope = operation === "archive" ? "applications:archive,applications:read" :
-    operation === "read" ? "applications:read" : "applications:write,applications:read";
+  const scope = operation === "unarchive"
+    ? "applications:archive,applications:write,applications:read"
+    : operation === "archive" ? "applications:archive,applications:read"
+      : operation === "read" ? "applications:read" : "applications:write,applications:read";
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,
@@ -488,6 +523,11 @@ function applicationCatalogHeaders(
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scope,
     "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
+    ...(operation === "read" ? {} : {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermission,
+    }),
   };
 }
 

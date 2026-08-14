@@ -135,8 +135,14 @@ def assert_lifecycle_contract(fixture: dict[str, Any]) -> None:
 def assert_app_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("app_contract") or {}
     app_text = read(str(contract.get("file")))
-    for literal in contract.get("required_literals") or []:
-        require(str(literal) in app_text, f"App missing saved draft consumer literal: {literal}")
+    panel_text = read(str(contract.get("panel_file")))
+    for literal in contract.get("required_state_action_literals") or []:
+        require(str(literal) in app_text, f"App missing saved draft consumer owner literal: {literal}")
+    for literal in contract.get("required_panel_display_literals") or []:
+        require(
+            str(literal) in panel_text,
+            f"workflowDraftDesignerPanel missing saved draft display literal: {literal}",
+        )
 
 
 def assert_docs_and_fast_baseline(fixture: dict[str, Any]) -> None:

@@ -71,13 +71,19 @@ func (server *Server) handleValidatePromptApplicationTemplate(writer http.Respon
 	if !server.allowPromptApplicationTemplateDevHTTP(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "prompt_application_templates:write")
+	ctx := promptApplicationTemplateMutationContext(request, trace, auth, "", false, "validate")
+	if failure != "" {
+		writePromptApplicationTemplateResultWithStatus(writer, status, trace, ctx, PromptApplicationTemplateResult{FailureCode: failure})
+		return
+	}
 	var body promptApplicationTemplateValidateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := promptApplicationTemplateContextFromRequest(request, trace, body.Template.WorkspaceID, body.Template.ApplicationID, "prompt_application_templates:write", false, "validate")
-	if failure != "" {
-		writePromptApplicationTemplateResult(writer, trace, ctx, PromptApplicationTemplateResult{FailureCode: failure})
+	ctx = promptApplicationTemplateMutationContext(request, trace, auth, body.Template.ApplicationID, false, "validate")
+	if body.Template.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writePromptApplicationTemplateResultWithStatus(writer, http.StatusForbidden, trace, ctx, PromptApplicationTemplateResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writePromptApplicationTemplateResult(writer, trace, ctx, server.promptApplicationTemplateService().Validate(ctx, body.Template))
@@ -88,13 +94,19 @@ func (server *Server) handleSavePromptApplicationTemplate(writer http.ResponseWr
 	if !server.allowPromptApplicationTemplateDevHTTP(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "prompt_application_templates:write")
+	ctx := promptApplicationTemplateMutationContext(request, trace, auth, "", server.config.PromptTemplateDevWriteEnabled, "save")
+	if failure != "" {
+		writePromptApplicationTemplateResultWithStatus(writer, status, trace, ctx, PromptApplicationTemplateResult{FailureCode: failure})
+		return
+	}
 	var body promptApplicationTemplateSaveBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := promptApplicationTemplateContextFromRequest(request, trace, body.Template.WorkspaceID, body.Template.ApplicationID, "prompt_application_templates:write", server.config.PromptTemplateDevWriteEnabled, "save")
-	if failure != "" {
-		writePromptApplicationTemplateResult(writer, trace, ctx, PromptApplicationTemplateResult{FailureCode: failure})
+	ctx = promptApplicationTemplateMutationContext(request, trace, auth, body.Template.ApplicationID, server.config.PromptTemplateDevWriteEnabled, "save")
+	if body.Template.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writePromptApplicationTemplateResultWithStatus(writer, http.StatusForbidden, trace, ctx, PromptApplicationTemplateResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writePromptApplicationTemplateResult(writer, trace, ctx, server.promptApplicationTemplateService().SaveDraft(ctx, body.Template, body.ExpectedDraftVersion))
@@ -140,13 +152,19 @@ func (server *Server) handleCreatePromptApplicationTemplateVersion(writer http.R
 	if !server.allowPromptApplicationTemplateDevHTTP(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "prompt_application_templates:version")
+	ctx := promptApplicationTemplateMutationContext(request, trace, auth, "", server.config.PromptTemplateDevWriteEnabled, "version")
+	if failure != "" {
+		writePromptApplicationTemplateResultWithStatus(writer, status, trace, ctx, PromptApplicationTemplateResult{FailureCode: failure})
+		return
+	}
 	var body promptApplicationTemplateVersionCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := promptApplicationTemplateContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "prompt_application_templates:version", server.config.PromptTemplateDevWriteEnabled, "version")
-	if failure != "" {
-		writePromptApplicationTemplateResult(writer, trace, ctx, PromptApplicationTemplateResult{FailureCode: failure})
+	ctx = promptApplicationTemplateMutationContext(request, trace, auth, body.ApplicationID, server.config.PromptTemplateDevWriteEnabled, "version")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID {
+		writePromptApplicationTemplateResultWithStatus(writer, http.StatusForbidden, trace, ctx, PromptApplicationTemplateResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writePromptApplicationTemplateResult(writer, trace, ctx, server.promptApplicationTemplateService().CreateVersion(ctx, request.PathValue("template_id"), body.SourceDraftVersion))
@@ -241,6 +259,28 @@ func promptApplicationTemplateContextFromRequest(request *http.Request, trace re
 	return ctx, ""
 }
 
+func promptApplicationTemplateMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) PromptApplicationTemplateContext {
+	subjectRef := strings.TrimSpace(auth.SubjectBinding)
+	return PromptApplicationTemplateContext{
+		RequestContext:  request.Context(),
+		RequestID:       trace.requestID,
+		TenantRef:       strings.TrimSpace(auth.TenantBinding),
+		WorkspaceID:     strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID:   strings.TrimSpace(applicationID),
+		ActorRef:        subjectRef,
+		OwnerSubjectRef: subjectRef,
+		WriteEnabled:    writeEnabled,
+		AuditRef:        "audit_" + trace.requestID + "_prompt-template-" + auditSuffix,
+	}
+}
+
 func (server *Server) allowPromptApplicationTemplateDevHTTP(writer http.ResponseWriter, trace requestTrace) bool {
 	if server.config.PromptTemplateDevHTTPEnabled {
 		return true
@@ -263,6 +303,10 @@ func promptApplicationTemplateQueryAllowed(request *http.Request, allowed ...str
 }
 
 func writePromptApplicationTemplateResult(writer http.ResponseWriter, trace requestTrace, ctx PromptApplicationTemplateContext, result PromptApplicationTemplateResult) {
+	writePromptApplicationTemplateResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writePromptApplicationTemplateResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx PromptApplicationTemplateContext, result PromptApplicationTemplateResult) {
 	validation := result.ValidationSummary
 	if validation.Findings == nil {
 		validation.Findings = []PromptApplicationTemplateFinding{}
@@ -270,7 +314,7 @@ func writePromptApplicationTemplateResult(writer http.ResponseWriter, trace requ
 	if validation.State == "" {
 		validation.State = promptApplicationTemplateValidationInvalid
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, promptApplicationTemplateEnvelope{
+	writeObservedJSON(writer, status, trace, promptApplicationTemplateEnvelope{
 		RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		Draft: result.Draft, Version: result.Version, FailureCode: optionalPromptApplicationTemplateFailure(result.FailureCode),
 		CurrentDraftVersion: result.CurrentDraftVersion, CurrentTemplateVersion: result.CurrentTemplateVersion,

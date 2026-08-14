@@ -7,7 +7,7 @@ import {
   type ControlPlaneReadCollectionViewModel,
   type ControlPlaneReadResponseByRoute,
   type WorkflowDefinitionSummary,
-} from "../../../../../contracts/typescript/control-plane-read-api";
+} from "../../../../../contracts/typescript/control-plane-read-api.ts";
 
 export type WorkspaceWorkflowDefinitionsStateId =
   | "ready"

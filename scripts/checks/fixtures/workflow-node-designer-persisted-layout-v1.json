@@ -69,6 +69,7 @@
     "draft_type_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
     "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
     "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "clone_file": "apps/radishmind-web/src/features/control-plane-read/workflowSavedDraftDerivation.ts",
     "node_designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowNodeDesigner.tsx",
     "handoff_file": "apps/radishmind-web/src/features/control-plane-read/workflowReviewHandoff.ts",
     "required_type_literals": [
@@ -91,9 +92,11 @@
       "workflowDraftDesignerLayoutCoordinate("
     ],
     "required_app_literals": [
-      "persistence: layout.persistence",
       "persistence: \"ui_only\"",
       "workflowDraftLayoutWithNodePosition("
+    ],
+    "required_clone_literals": [
+      "persistence: layout.persistence"
     ],
     "required_node_designer_literals": [
       "Layout metadata",

@@ -38,9 +38,10 @@ type Props = {
   applicationName: string;
   applicationActive: boolean;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
+  onOpenConfigurationAttach: (candidateId: string) => void;
 };
 
-export default function WorkflowRAGPromotionPanel({ applicationId, applicationName, applicationActive, onEvidenceChange }: Props) {
+export default function WorkflowRAGPromotionPanel({ applicationId, applicationName, applicationActive, onEvidenceChange, onOpenConfigurationAttach }: Props) {
   const [datasets, setDatasets] = useState<WorkflowRAGEvaluationListResult>(() => emptyDatasets());
   const [reviews, setReviews] = useState<WorkflowRAGCandidateReviewListResult>(() => emptyReviews());
   const [drafts, setDrafts] = useState<ApplicationConfigurationDraftListState>(() => initialApplicationConfigurationDraftListState(draftConfig));
@@ -163,7 +164,7 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
     }
   }
 
-  if (promotionConfig.mode === "offline") return <section className="workflow-rag-promotion-panel offline" aria-label="Workflow RAG knowledge promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion</p><h4>知识基线晋级审查未启用</h4></div><span className="status-badge neutral">offline</span></div><p>Offline mode sends zero promotion requests. Dataset、草案、decision 与 binding 均不会在浏览器中伪造。</p></section>;
+  if (promotionConfig.mode === "offline") return <section className="workflow-rag-promotion-panel offline" id="workflow-rag-promotion-review" aria-label="Workflow RAG knowledge promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion</p><h4>知识基线晋级审查未启用</h4></div><span className="status-badge neutral">offline</span></div><p>Offline mode sends zero promotion requests. Dataset、草案、decision 与 binding 均不会在浏览器中伪造。</p></section>;
 
   return <section className="workflow-rag-promotion-panel" id="workflow-rag-promotion-review" aria-labelledby="workflow-rag-promotion-title">
     <div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion & binding</p><h4 id="workflow-rag-promotion-title">知识证据晋级、人工决定与配置绑定资格</h4></div><span className={`status-badge ${detail?.eligibility.eligible ? "good" : operation.failureCode ? "bad" : "neutral"}`}>{detail?.candidate.candidateState ?? operation.status}</span></div>
@@ -192,18 +193,26 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
       </article>
     </div>}
 
-    {detail ? <PromotionDetail detail={detail} /> : null}
+    {detail ? <PromotionDetail detail={detail} applicationActive={applicationActive} onOpenConfigurationAttach={onOpenConfigurationAttach} /> : null}
 
     <article className="workflow-rag-promotion-saved"><div className="application-api-card-heading"><div><p className="eyebrow">Durable candidates</p><h5>{promotions.summary}</h5></div><button type="button" onClick={() => void refreshPromotions()}>Refresh candidates</button></div>{promotions.failureCode ? <p className="failure-summary">{promotions.failureCode}</p> : null}<div className="workflow-rag-promotion-list">{promotions.summaries.map((item) => <button type="button" key={item.candidateId} onClick={() => void openCandidate(item.candidateId)}><strong>{item.candidateId}</strong><span>{item.candidateState} · record v{item.recordVersion} · {item.eligibilityStatus}</span><small>{item.dataset.datasetId} v{item.dataset.datasetVersion} · {item.blockerCount} blocker(s)</small></button>)}</div></article>
     <p className="boundary-note">Approved means an immutable configuration binding is eligible. It never means attached, released, published, or production-ready.</p>
   </section>;
 }
 
-function PromotionDetail({ detail }: { detail: WorkflowRAGPromotionDetail }) {
+function PromotionDetail({
+  detail,
+  applicationActive,
+  onOpenConfigurationAttach,
+}: {
+  detail: WorkflowRAGPromotionDetail;
+  applicationActive: boolean;
+  onOpenConfigurationAttach: (candidateId: string) => void;
+}) {
   const evidence = detail.candidate.evidence;
   return <div className="workflow-rag-promotion-detail">
     <article><div className="application-api-card-heading"><div><p className="eyebrow">Immutable evidence</p><h5>{evidence.dataset.datasetId} · v{evidence.dataset.datasetVersion}</h5></div><span className="status-badge neutral">{evidence.candidateReviewId}</span></div><EvidenceRow label="Dataset digest" value={evidence.dataset.datasetDigest} /><EvidenceRow label="Baseline snapshot" value={`${evidence.baselineSnapshot.snapshotId} v${evidence.baselineSnapshot.snapshotVersion} · ${evidence.baselineSnapshot.ragRef}`} /><EvidenceRow label="Baseline digest" value={evidence.baselineSnapshot.snapshotDigest} /><EvidenceRow label="Candidate snapshot" value={`${evidence.candidateSnapshot.snapshotId} v${evidence.candidateSnapshot.snapshotVersion} · ${evidence.candidateSnapshot.ragRef}`} /><EvidenceRow label="Candidate digest" value={evidence.candidateSnapshot.snapshotDigest} /><EvidenceRow label="Lexical profile" value={`${evidence.profile.profileId} v${evidence.profile.profileVersion} · ${evidence.profile.profileDigest}`} /><EvidenceRow label="Source draft" value={`${evidence.sourceDraft.draftId} v${evidence.sourceDraft.draftVersion} · ${evidence.sourceDraft.draftDigest}`} /></article>
-    <article><div className="application-api-card-heading"><div><p className="eyebrow">Dynamic eligibility</p><h5>{detail.eligibility.status}</h5></div><span className={`status-badge ${detail.eligibility.eligible ? "good" : "bad"}`}>{detail.eligibility.blockers.length} blockers</span></div>{detail.eligibility.blockers.length ? <ul>{detail.eligibility.blockers.map((code) => <li key={code}><code>{code}</code></li>)}</ul> : <p>All current authorities still match the approved binding.</p>}{detail.binding ? <div className="workflow-rag-binding-card"><strong>Immutable binding ready for explicit attach</strong><code>{detail.binding.bindingId} · v{detail.binding.bindingVersion}</code><code>{detail.binding.bindingDigest}</code><a href="#application-configuration-draft">Open configuration draft attach step</a></div> : <p className="boundary-note">No binding exists until an explicit approve decision succeeds.</p>}</article>
+    <article><div className="application-api-card-heading"><div><p className="eyebrow">Dynamic eligibility</p><h5>{detail.eligibility.status}</h5></div><span className={`status-badge ${detail.eligibility.eligible ? "good" : "bad"}`}>{detail.eligibility.blockers.length} blockers</span></div>{detail.eligibility.blockers.length ? <ul>{detail.eligibility.blockers.map((code) => <li key={code}><code>{code}</code></li>)}</ul> : <p>All current authorities still match the approved binding.</p>}{detail.binding ? <div className="workflow-rag-binding-card"><strong>Immutable binding ready for explicit attach</strong><code>{detail.binding.bindingId} · v{detail.binding.bindingVersion}</code><code>{detail.binding.bindingDigest}</code><button type="button" disabled={!applicationActive || !detail.eligibility.eligible} onClick={() => onOpenConfigurationAttach(detail.candidate.candidateId)}>Open configuration draft attach step</button></div> : <p className="boundary-note">No binding exists until an explicit approve decision succeeds.</p>}</article>
     <article><div className="application-api-card-heading"><div><p className="eyebrow">Decision history</p><h5>{detail.decisions.length} append-only records</h5></div></div>{detail.decisions.length ? detail.decisions.map((item) => <div className="workflow-rag-decision-record" key={item.decisionId}><strong>{item.decision} · v{item.beforeRecordVersion} → v{item.afterRecordVersion}</strong><span>{item.actorRef} · {item.occurredAt}</span><p>{item.reason}</p></div>) : <p className="boundary-note">No human decision recorded.</p>}</article>
   </div>;
 }

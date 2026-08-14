@@ -44,6 +44,9 @@ test("candidate create sends only binding fields and exact application scope", a
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Application-Publish-Application"), "app_flow_copilot");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_publish_candidates:write,workflow_rag_promotions:read,prompt_application_templates:read_source,agent_copilot_profiles:read_source");
+  assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "application_publish_candidates:write,workflow_rag_promotions:read,prompt_application_templates:read_source,agent_copilot_profiles:read_source");
   assert.equal("configuration" in captured!.body, false);
 });
 

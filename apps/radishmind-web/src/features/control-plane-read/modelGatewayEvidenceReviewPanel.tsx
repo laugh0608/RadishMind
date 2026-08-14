@@ -1,5 +1,3 @@
-import { lazy, Suspense } from "react";
-
 import type {
   ModelGatewayEvidenceChecklistItem,
   ModelGatewayEvidenceLockedCapability,
@@ -8,8 +6,6 @@ import type {
   ModelGatewayEvidenceReviewViewModel,
   ModelGatewayEvidenceRisk,
 } from "./modelGatewayEvidenceReview";
-
-const ModelGatewayRequestHistoryPanel = lazy(() => import("./modelGatewayRequestHistoryPanel.tsx"));
 
 type StatusBadgeTone = "good" | "bad" | "neutral";
 
@@ -60,9 +56,14 @@ export function ModelGatewayEvidenceReviewPanel({
         </dl>
       </article>
 
-      <Suspense fallback={<div className="model-gateway-overview-section"><p>Loading Gateway request history…</p></div>}>
-        <ModelGatewayRequestHistoryPanel />
-      </Suspense>
+      <div className="model-gateway-overview-section model-gateway-runtime-review-link">
+        <div className="model-gateway-overview-subheading">
+          <p className="eyebrow">Current request evidence</p>
+          <h4>Open the application-scoped runtime review</h4>
+        </div>
+        <p>Real request history now stays with its selected Application and exact consumer scope. This formal review remains an offline readiness projection.</p>
+        <a href="#model-gateway-request-history">Open sanitized request history <span aria-hidden="true">→</span></a>
+      </div>
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">

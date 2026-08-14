@@ -79,6 +79,44 @@ func (store *combinedWorkflowRunStore) ListRuns(ctx WorkflowRunContext, filter W
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
 }
 
+func (store *combinedWorkflowRunStore) ListWorkspaceRuns(
+	ctx WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	records := make([]WorkflowRunRecord, 0)
+	hasMore := false
+	for _, runStore := range []workflowRunStore{store.workflow, store.prompt, store.agent} {
+		if runStore == nil {
+			continue
+		}
+		projection, ok := runStore.(workflowWorkspaceRunProjection)
+		if !ok {
+			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+		}
+		page, err := projection.ListWorkspaceRuns(ctx, filter)
+		if err != nil {
+			return WorkflowRunListPage{}, err
+		}
+		records = append(records, page.Records...)
+		hasMore = hasMore || page.HasMore
+	}
+	sort.Slice(records, func(left, right int) bool {
+		if records[left].StartedAt != records[right].StartedAt {
+			return records[left].StartedAt > records[right].StartedAt
+		}
+		if records[left].RunID != records[right].RunID {
+			return records[left].RunID > records[right].RunID
+		}
+		return records[left].ApplicationID > records[right].ApplicationID
+	})
+	limit := workflowRunStoreListLimit(filter.Limit)
+	hasMore = hasMore || len(records) > limit
+	if len(records) > limit {
+		records = records[:limit]
+	}
+	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
+}
+
 func newAgentCopilotRunStoreForWorkflowRunStore(store workflowRunStore) (workflowRunStore, error) {
 	switch typed := store.(type) {
 	case *memoryWorkflowRunStore:
@@ -220,6 +258,40 @@ WHERE tenant_ref=? AND workspace_id=? AND application_id=? ORDER BY started_at_u
 	})
 }
 
+func (store *sqlitePromptApplicationRunStore) ListWorkspaceRuns(
+	ctx WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	if store == nil || store.database == nil || !validWorkflowWorkspaceRunListContext(ctx) {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	beforeTime, err := optionalWorkflowRunUnixNano(filter.BeforeTime)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	rows, err := store.database.QueryContext(ctx.RequestContext, store.statement(`SELECT application_id,sanitized_run_payload FROM prompt_application_run_records
+WHERE tenant_ref=? AND workspace_id=? AND (?='' OR application_id=?)
+AND (? IS NULL OR started_at_unix_nano < ? OR
+    (started_at_unix_nano = ? AND (run_id < ? OR (run_id = ? AND application_id < ?))))
+ORDER BY started_at_unix_nano DESC,run_id DESC,application_id DESC`),
+		ctx.TenantRef, ctx.WorkspaceID, filter.ApplicationID, filter.ApplicationID,
+		beforeTime, beforeTime, beforeTime, filter.BeforeRunID, filter.BeforeRunID, filter.BeforeApplicationID)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+	}
+	defer rows.Close()
+	return collectWorkspaceApplicationProjectionRuns(ctx, filter, store.expectedSchema(), func() (string, []byte, bool, error) {
+		if !rows.Next() {
+			return "", nil, false, rows.Err()
+		}
+		var applicationID, payload string
+		if scanErr := rows.Scan(&applicationID, &payload); scanErr != nil {
+			return "", nil, false, scanErr
+		}
+		return applicationID, []byte(payload), true, nil
+	})
+}
+
 type postgresPromptApplicationRunStore struct {
 	pool   *pgxpool.Pool
 	table  string
@@ -311,6 +383,36 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 ORDER BY started_a
 	})
 }
 
+func (store *postgresPromptApplicationRunStore) ListWorkspaceRuns(
+	ctx WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	if store == nil || store.pool == nil || !validWorkflowWorkspaceRunListContext(ctx) {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	rows, err := store.pool.Query(ctx.RequestContext, store.statement(`SELECT application_id,sanitized_run_payload FROM prompt_application_run_records
+WHERE tenant_ref=$1 AND workspace_id=$2 AND ($3='' OR application_id=$3)
+AND ($4::timestamptz IS NULL OR (started_at,run_id,application_id) < ($4,$5,$6))
+ORDER BY started_at DESC,run_id DESC,application_id DESC`),
+		ctx.TenantRef, ctx.WorkspaceID, filter.ApplicationID,
+		filter.BeforeTime, filter.BeforeRunID, filter.BeforeApplicationID)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+	}
+	defer rows.Close()
+	return collectWorkspaceApplicationProjectionRuns(ctx, filter, store.expectedSchema(), func() (string, []byte, bool, error) {
+		if !rows.Next() {
+			return "", nil, false, rows.Err()
+		}
+		var applicationID string
+		var payload []byte
+		if scanErr := rows.Scan(&applicationID, &payload); scanErr != nil {
+			return "", nil, false, scanErr
+		}
+		return applicationID, payload, true, nil
+	})
+}
+
 func collectPromptApplicationRuns(ctx WorkflowRunContext, filter WorkflowRunListFilter, next func() ([]byte, bool, error)) (WorkflowRunListPage, error) {
 	records := make([]WorkflowRunRecord, 0)
 	for {
@@ -330,6 +432,44 @@ func collectPromptApplicationRuns(ctx WorkflowRunContext, filter WorkflowRunList
 		}
 	}
 	limit := workflowRunStoreListLimit(filter.Limit)
+	hasMore := len(records) > limit
+	if hasMore {
+		records = records[:limit]
+	}
+	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
+}
+
+func collectWorkspaceApplicationProjectionRuns(
+	ctx WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+	expectedSchema string,
+	next func() (string, []byte, bool, error),
+) (WorkflowRunListPage, error) {
+	limit := workflowRunStoreListLimit(filter.Limit)
+	records := make([]WorkflowRunRecord, 0, limit+1)
+	for len(records) <= limit {
+		applicationID, payload, ok, err := next()
+		if err != nil {
+			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+		}
+		if !ok {
+			break
+		}
+		record, decodeErr := decodeWorkflowRunStorageRecord(WorkflowRunContext{
+			RequestContext: ctx.RequestContext, TenantRef: ctx.TenantRef,
+			WorkspaceID: ctx.WorkspaceID, ApplicationID: applicationID,
+		}, payload)
+		if decodeErr != nil {
+			return WorkflowRunListPage{}, decodeErr
+		}
+		if record.SchemaVersion != expectedSchema {
+			return WorkflowRunListPage{}, errWorkflowRunStoreContract
+		}
+		if record.ActorRef == ctx.OwnerSubjectRef &&
+			workflowRunMatchesFilter(record, filter.WorkflowRunListFilter) {
+			records = append(records, record)
+		}
+	}
 	hasMore := len(records) > limit
 	if hasMore {
 		records = records[:limit]
@@ -380,3 +520,6 @@ func applicationProjectionRunAuthorityDigest(record WorkflowRunRecord) string {
 var _ workflowRunStore = (*combinedWorkflowRunStore)(nil)
 var _ workflowRunStore = (*sqlitePromptApplicationRunStore)(nil)
 var _ workflowRunStore = (*postgresPromptApplicationRunStore)(nil)
+var _ workflowWorkspaceRunProjection = (*combinedWorkflowRunStore)(nil)
+var _ workflowWorkspaceRunProjection = (*sqlitePromptApplicationRunStore)(nil)
+var _ workflowWorkspaceRunProjection = (*postgresPromptApplicationRunStore)(nil)

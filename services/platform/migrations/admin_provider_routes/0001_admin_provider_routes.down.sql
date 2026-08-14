@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS admin_provider_route_activation_records;
+DROP TABLE IF EXISTS admin_provider_route_active_snapshots;
+DROP TABLE IF EXISTS admin_provider_route_reviews;
+DROP TABLE IF EXISTS admin_provider_route_candidates;
+DROP TABLE IF EXISTS admin_provider_route_drafts;
+DROP TABLE IF EXISTS admin_provider_route_schema_versions;
+DROP FUNCTION IF EXISTS enforce_admin_provider_route_draft_update();
+DROP FUNCTION IF EXISTS enforce_admin_provider_route_candidate_update();
+DROP FUNCTION IF EXISTS enforce_admin_provider_route_snapshot_update();
+DROP FUNCTION IF EXISTS reject_admin_provider_route_mutation();

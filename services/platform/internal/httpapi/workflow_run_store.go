@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"errors"
 	"sort"
 	"strings"
@@ -31,6 +32,7 @@ type WorkflowRunListFilter struct {
 	StartedTo              *time.Time
 	BeforeTime             *time.Time
 	BeforeRunID            string
+	BeforeApplicationID    string
 	Limit                  int
 }
 
@@ -43,6 +45,25 @@ type workflowRunStore interface {
 	UpsertRun(context WorkflowRunContext, record *WorkflowRunRecord) error
 	ReadRun(context WorkflowRunContext, runID string) (WorkflowRunRecord, bool, error)
 	ListRuns(context WorkflowRunContext, filter WorkflowRunListFilter) (WorkflowRunListPage, error)
+}
+
+type WorkflowWorkspaceRunListContext struct {
+	RequestContext  context.Context
+	TenantRef       string
+	WorkspaceID     string
+	OwnerSubjectRef string
+}
+
+type WorkflowWorkspaceRunListFilter struct {
+	WorkflowRunListFilter
+	ApplicationID string
+}
+
+type workflowWorkspaceRunProjection interface {
+	ListWorkspaceRuns(
+		context WorkflowWorkspaceRunListContext,
+		filter WorkflowWorkspaceRunListFilter,
+	) (WorkflowRunListPage, error)
 }
 
 type memoryWorkflowRunStore struct {
@@ -136,6 +157,42 @@ func (store *memoryWorkflowRunStore) ListRuns(
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
 }
 
+func (store *memoryWorkflowRunStore) ListWorkspaceRuns(
+	runContext WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	if !validWorkflowWorkspaceRunListContext(runContext) {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	store.mu.RLock()
+	defer store.mu.RUnlock()
+	records := make([]WorkflowRunRecord, 0)
+	prefix := runContext.TenantRef + "\x00" + runContext.WorkspaceID + "\x00"
+	for key, record := range store.records {
+		if strings.HasPrefix(key, prefix) &&
+			record.ActorRef == runContext.OwnerSubjectRef &&
+			(filter.ApplicationID == "" || record.ApplicationID == filter.ApplicationID) &&
+			workflowRunMatchesFilter(record, filter.WorkflowRunListFilter) {
+			records = append(records, cloneWorkflowRunRecord(record))
+		}
+	}
+	sort.Slice(records, func(left, right int) bool {
+		if records[left].StartedAt != records[right].StartedAt {
+			return records[left].StartedAt > records[right].StartedAt
+		}
+		if records[left].RunID != records[right].RunID {
+			return records[left].RunID > records[right].RunID
+		}
+		return records[left].ApplicationID > records[right].ApplicationID
+	})
+	limit := workflowRunStoreListLimit(filter.Limit)
+	hasMore := len(records) > limit
+	if hasMore {
+		records = records[:limit]
+	}
+	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
+}
+
 func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFilter) bool {
 	if filter.Status != "" && record.Status != filter.Status {
 		return false
@@ -174,7 +231,10 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 		return false
 	}
 	if filter.BeforeTime != nil {
-		if startedAt.After(*filter.BeforeTime) || (startedAt.Equal(*filter.BeforeTime) && record.RunID >= filter.BeforeRunID) {
+		if startedAt.After(*filter.BeforeTime) ||
+			(startedAt.Equal(*filter.BeforeTime) && record.RunID > filter.BeforeRunID) ||
+			(startedAt.Equal(*filter.BeforeTime) && record.RunID == filter.BeforeRunID &&
+				(filter.BeforeApplicationID == "" || record.ApplicationID >= filter.BeforeApplicationID)) {
 			return false
 		}
 	}
@@ -185,6 +245,13 @@ func workflowRunMatchesFilter(record WorkflowRunRecord, filter WorkflowRunListFi
 		}
 	}
 	return true
+}
+
+func validWorkflowWorkspaceRunListContext(runContext WorkflowWorkspaceRunListContext) bool {
+	return runContext.RequestContext != nil &&
+		strings.TrimSpace(runContext.TenantRef) != "" &&
+		strings.TrimSpace(runContext.WorkspaceID) != "" &&
+		strings.TrimSpace(runContext.OwnerSubjectRef) != ""
 }
 
 func workflowRunStoreListLimit(limit int) int {
@@ -214,6 +281,10 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		}
 	} else if record.SchemaVersion == agentCopilotRunV7Schema {
 		if err := validateAgentCopilotWorkflowRunRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
+	} else if record.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion {
+		if err := validateWorkflowDefinitionStructuredRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
 	} else if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
@@ -268,7 +339,8 @@ func validWorkflowRunRecordSchema(schemaVersion string) bool {
 	return schemaVersion == workflowRunRecordSchemaVersion || schemaVersion == workflowRunRecordLegacySchemaVersion ||
 		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
 		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion ||
-		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema
+		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema ||
+		schemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {
@@ -291,6 +363,7 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		cloned.Diagnostic = &diagnostic
 	}
 	cloned.ConditionNodeIDs = cloneStringSlice(record.ConditionNodeIDs)
+	cloned.InputFields = cloneWorkflowStructuredInputMetadataFields(record.InputFields)
 	if record.ToolAttempt != nil {
 		attempt := *record.ToolAttempt
 		attempt.OutputProjection = make(map[string]any, len(record.ToolAttempt.OutputProjection))
@@ -349,3 +422,5 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 	}
 	return cloned
 }
+
+var _ workflowWorkspaceRunProjection = (*memoryWorkflowRunStore)(nil)

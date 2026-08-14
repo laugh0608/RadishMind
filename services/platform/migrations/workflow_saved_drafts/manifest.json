@@ -276,13 +276,14 @@
       ]
     },
     {
-      "id": "saved_drafts_owner_list",
+      "id": "saved_drafts_owner_lifecycle_list",
       "fields": [
         "tenant_ref",
         "workspace_id",
         "application_id",
         "owner_subject_ref",
-        "updated_at",
+        "lifecycle_state",
+        "library_updated_at",
         "draft_id"
       ],
       "unique": false,
@@ -305,19 +306,54 @@
       ]
     },
     {
-      "id": "saved_drafts_status_list",
+      "id": "saved_drafts_validation_list",
       "fields": [
         "tenant_ref",
         "workspace_id",
         "application_id",
         "owner_subject_ref",
-        "draft_status",
-        "updated_at",
+        "lifecycle_state",
+        "validation_state",
+        "library_updated_at",
         "draft_id"
       ],
       "unique": false,
       "required_for": [
         "ListWorkflowDraftRecords"
+      ]
+    },
+    {
+      "id": "saved_drafts_provenance_list",
+      "fields": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "owner_subject_ref",
+        "lifecycle_state",
+        "provenance_kind",
+        "library_updated_at",
+        "draft_id"
+      ],
+      "unique": false,
+      "required_for": [
+        "ListWorkflowDraftLibraryPage"
+      ]
+    },
+    {
+      "id": "saved_drafts_name_list",
+      "fields": [
+        "tenant_ref",
+        "workspace_id",
+        "application_id",
+        "owner_subject_ref",
+        "lifecycle_state",
+        "draft_name",
+        "library_updated_at",
+        "draft_id"
+      ],
+      "unique": false,
+      "required_for": [
+        "ListWorkflowDraftLibraryPage"
       ]
     },
     {
@@ -336,9 +372,13 @@
   ],
   "migration_plan": {
     "migration_id": "0001_saved_workflow_drafts",
+    "latest_migration_id": "0004_saved_workflow_draft_structured_inputs",
     "migration_root": "services/platform/migrations/workflow_saved_drafts",
     "up_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.up.sql",
     "down_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.down.sql",
+    "latest_up_migration_path": "services/platform/migrations/workflow_saved_drafts/0004_saved_workflow_draft_structured_inputs.up.sql",
+    "latest_down_migration_path": "services/platform/migrations/workflow_saved_drafts/0004_saved_workflow_draft_structured_inputs.down.sql",
+    "checksum_scope": "ordered_up_migration_chain",
     "forward_only_exception": null,
     "manual_apply_required": true,
     "startup_auto_migration_allowed": false,
@@ -354,6 +394,72 @@
     "go_baseline": "1.25",
     "runtime_role": "table_dml_without_schema_create",
     "migration_role": "explicit_one_time_ddl"
+  },
+  "revision_history_extension": {
+    "revision_schema_version": "saved_workflow_draft_revision.v1",
+    "table_name": "saved_workflow_draft_revisions",
+    "scope_predicate": [
+      "tenant_ref",
+      "workspace_id",
+      "application_id",
+      "draft_id",
+      "draft_version"
+    ],
+    "revision_kinds": [
+      "saved",
+      "restored",
+      "backfilled_current"
+    ],
+    "current_write_and_revision_append_atomic": true,
+    "runtime_allowed_operations": [
+      "SELECT",
+      "INSERT"
+    ],
+    "runtime_forbidden_operations": [
+      "UPDATE",
+      "DELETE"
+    ],
+    "migration_backfill": "current_snapshot_only",
+    "pre_migration_history_inference_allowed": false,
+    "operations": [
+      "ReadWorkflowDraftRevisionRecord",
+      "ListWorkflowDraftRevisionRecords",
+      "SaveRestoredWorkflowDraftRevisionRecord"
+    ]
+  },
+  "draft_library_lifecycle_extension": {
+    "lifecycle_event_schema_version": "saved_workflow_draft_lifecycle_event.v1",
+    "event_table_name": "saved_workflow_draft_lifecycle_events",
+    "current_projection_fields": [
+      "lifecycle_state",
+      "lifecycle_version",
+      "archived_at",
+      "library_updated_at",
+      "lifecycle_updated_by_actor_ref",
+      "draft_name",
+      "validation_state",
+      "provenance_kind"
+    ],
+    "list_order": [
+      "library_updated_at DESC",
+      "draft_id ASC"
+    ],
+    "current_transition_and_event_append_atomic": true,
+    "content_save_requires_active_lifecycle_cas": true,
+    "runtime_allowed_event_operations": [
+      "SELECT",
+      "INSERT"
+    ],
+    "runtime_forbidden_event_operations": [
+      "UPDATE",
+      "DELETE"
+    ],
+    "migration_backfill": "active_v1_without_lifecycle_event",
+    "projection_payload_mismatch_fails_closed": true,
+    "operations": [
+      "ListWorkflowDraftLibraryPage",
+      "TransitionWorkflowDraftLifecycle"
+    ]
   },
   "evidence_refs": {
     "ddl_review": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",
@@ -373,6 +479,7 @@
         "scope lookup",
         "owner / actor audit",
         "draft_version optimistic concurrency",
+        "active lifecycle and lifecycle_version optimistic concurrency",
         "store / payload schema preflight"
       ],
       "fallback_to_memory_dev_store_allowed": false,
@@ -397,22 +504,42 @@
       "side_effect_allowed": false
     },
     {
-      "operation": "ListWorkflowDraftRecords",
+      "operation": "ListWorkflowDraftLibraryPage",
       "required_scope": "workflow_drafts:read",
       "required_indexes": [
-        "saved_drafts_owner_list",
-        "saved_drafts_status_list",
+        "saved_drafts_owner_lifecycle_list",
+        "saved_drafts_validation_list",
+        "saved_drafts_provenance_list",
+        "saved_drafts_name_list",
         "saved_drafts_schema_version"
       ],
       "predicate_coverage": [
         "workspace / application list predicate",
         "owner predicate",
-        "status optional filter",
+        "lifecycle, validation, provenance and name prefix filters",
+        "keyset cursor anchor",
         "sanitized summary projection"
       ],
       "fallback_to_memory_dev_store_allowed": false,
       "fallback_to_sample_allowed": false,
       "side_effect_allowed": false
+    },
+    {
+      "operation": "TransitionWorkflowDraftLifecycle",
+      "required_scope": "workflow_drafts:write",
+      "required_indexes": [
+        "saved_drafts_scope_lookup",
+        "saved_drafts_owner_lifecycle_list"
+      ],
+      "predicate_coverage": [
+        "scope and owner predicate",
+        "draft_version and lifecycle_version optimistic concurrency",
+        "source lifecycle state predicate",
+        "current update and lifecycle event append in one transaction"
+      ],
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": true
     }
   ],
   "failure_mapping_smoke_cases": [
@@ -420,11 +547,16 @@
     "draft_store_schema_version_mismatch",
     "draft_store_migration_unavailable",
     "draft_store_contract_mismatch",
+    "draft_lifecycle_store_contract_mismatch",
+    "draft_lifecycle_event_write_failed",
     "repository_store_disabled",
     "invalid_draft_store_mode"
   ],
   "preserve_existing_failure_codes": [
     "draft_version_conflict",
+    "draft_lifecycle_version_conflict",
+    "draft_lifecycle_state_conflict",
+    "draft_archived",
     "draft_scope_denied",
     "draft_not_found",
     "draft_store_unavailable"
@@ -438,6 +570,8 @@
   "allowed_dev_test_side_effects": [
     "manual_migration_apply",
     "saved_workflow_draft_insert",
-    "saved_workflow_draft_compare_and_swap_update"
+    "saved_workflow_draft_compare_and_swap_update",
+    "saved_workflow_draft_lifecycle_compare_and_swap_update",
+    "saved_workflow_draft_lifecycle_event_insert"
   ]
 }

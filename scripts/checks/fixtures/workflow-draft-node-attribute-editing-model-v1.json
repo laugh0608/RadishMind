@@ -26,6 +26,8 @@
   ],
   "frontend_contract": {
     "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+    "clone_file": "apps/radishmind-web/src/features/control-plane-read/workflowSavedDraftDerivation.ts",
     "designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",
     "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
     "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
@@ -52,7 +54,30 @@
       "handleWorkflowDraftNodeOutputFieldsChange",
       "handleWorkflowDraftNodeOutputMappingChange",
       "parseWorkflowDraftContractFields",
+      "onUpdateNodeProviderRef={handleWorkflowDraftNodeProviderRefChange}",
+      "onUpdateNodeToolRef={handleWorkflowDraftNodeToolRefChange}",
+      "onUpdateNodeRagRef={handleWorkflowDraftNodeRagRefChange}",
+      "onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}",
+      "onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}",
+      "onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}"
+    ],
+    "required_panel_literals": [
+      "WorkflowDraftNodeCard",
       "workflow-draft-node-attribute-grid",
+      "onUpdateProviderRef",
+      "onUpdateToolRef",
+      "onUpdateRagRef",
+      "onUpdateInputFields",
+      "onUpdateOutputFields",
+      "onUpdateOutputMapping",
+      "Provider ref",
+      "Tool ref",
+      "RAG ref",
+      "Input fields",
+      "Output fields",
+      "Output mapping"
+    ],
+    "required_clone_literals": [
       "inputContractFields: [...node.inputContractFields]",
       "outputContractFields: [...node.outputContractFields]"
     ],
@@ -117,8 +142,9 @@
       "Workflow Draft Node Attribute Editing Model v1"
     ],
     "docs/features/workflow/draft-designer-surface.md": [
-      "Workflow Draft Node Attribute Editing Model v1",
-      "节点属性编辑"
+      "节点属性",
+      "contract fields",
+      "output mapping"
     ],
     "docs/features/workflow/saved-workflow-draft-v1.md": [
       "Workflow Draft Node Attribute Editing Model v1",

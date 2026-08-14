@@ -28,6 +28,13 @@ func (s *Server) controlPlaneReadRepository() ControlPlaneReadRepository {
 	return newControlPlaneReadRepository(s.controlPlaneReadDataStore())
 }
 
+func (s *Server) workspaceScopedControlPlaneReadRepository() ControlPlaneReadRepository {
+	if s.workspaceControlPlaneReadRepo != nil {
+		return s.workspaceControlPlaneReadRepo
+	}
+	return s.controlPlaneReadRepository()
+}
+
 func (repo fakeStoreControlPlaneReadRepository) ReadTenantSummary(
 	context ReadRepositoryContext,
 	request ReadTenantSummaryRequest,

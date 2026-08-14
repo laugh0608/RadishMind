@@ -18,7 +18,7 @@
     "execution_source_id": { "$ref": "#/$defs/ref" },
     "execution_source_version": { "type": "integer", "minimum": 1 },
     "status": { "enum": ["running", "succeeded", "failed", "canceled"] },
-    "failure_code": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^workflow_rag_runtime_[a-z_]{3,96}$" }] },
+    "failure_code": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^(workflow_rag_runtime_[a-z_]{3,96}|gateway_quota_[a-z_]{3,96})$" }] },
     "failure_summary": { "type": "string", "maxLength": 256 },
     "started_at": { "type": "string", "format": "date-time" },
     "completed_at": { "oneOf": [{ "type": "null" }, { "type": "string", "format": "date-time" }] },

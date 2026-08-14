@@ -71,13 +71,19 @@ func (s *Server) handleCreateWorkflowEvaluationSuite(writer http.ResponseWriter,
 	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_evaluations:write", "workflow_runs:read")
+	ctx := workflowRunMutationContext(request, trace, auth, "", "evaluation-suite-create")
+	if failureCode != "" {
+		writeWorkflowEvaluationSuiteResultWithStatus(writer, status, trace, ctx, suiteFailure(WorkflowEvaluationSuiteFailureCode(failureCode)))
+		return
+	}
 	var body workflowEvaluationSuiteCreateHTTPBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, code := workflowRunContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "evaluation-suite-create", "workflow_evaluations:write", "workflow_runs:read")
-	if code != "" {
-		writeWorkflowEvaluationSuiteResult(writer, trace, ctx, suiteFailure(WorkflowEvaluationSuiteFailureCode(code)))
+	ctx = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "evaluation-suite-create")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowEvaluationSuiteResultWithStatus(writer, http.StatusForbidden, trace, ctx, suiteFailure(WorkflowEvaluationSuiteFailureCode("workspace_binding_mismatch")))
 		return
 	}
 	writeWorkflowEvaluationSuiteResult(writer, trace, ctx, s.workflowEvaluationSuiteService().Create(ctx, WorkflowEvaluationSuiteCreateRequest{Name: body.Name, CaseRefs: body.CaseRefs}))
@@ -127,13 +133,19 @@ func (s *Server) handleCreateWorkflowEvaluationDecision(writer http.ResponseWrit
 	if !s.allowWorkflowEvaluationDev(writer, trace) {
 		return
 	}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, "workflow_evaluations:write", "workflow_runs:read")
+	ctx := workflowRunMutationContext(request, trace, auth, "", "evaluation-suite-decision")
+	if failureCode != "" {
+		writeWorkflowEvaluationSuiteResultWithStatus(writer, status, trace, ctx, suiteFailure(WorkflowEvaluationSuiteFailureCode(failureCode)))
+		return
+	}
 	var body workflowEvaluationDecisionHTTPBody
 	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, code := workflowRunContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "evaluation-suite-decision", "workflow_evaluations:write", "workflow_runs:read")
-	if code != "" {
-		writeWorkflowEvaluationSuiteResult(writer, trace, ctx, suiteFailure(WorkflowEvaluationSuiteFailureCode(code)))
+	ctx = workflowRunMutationContext(request, trace, auth, body.ApplicationID, "evaluation-suite-decision")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowEvaluationSuiteResultWithStatus(writer, http.StatusForbidden, trace, ctx, suiteFailure(WorkflowEvaluationSuiteFailureCode("workspace_binding_mismatch")))
 		return
 	}
 	writeWorkflowEvaluationSuiteResult(writer, trace, ctx, s.workflowEvaluationSuiteService().Decide(ctx, request.PathValue("suite_id"), WorkflowEvaluationDecisionRequest{ExpectedDecisionVersion: body.ExpectedDecisionVersion, Decision: strings.TrimSpace(body.Decision), ReviewDigest: strings.TrimSpace(body.ReviewDigest)}))
@@ -191,7 +203,11 @@ func workflowEvaluationSuiteFailurePointer(code WorkflowEvaluationSuiteFailureCo
 }
 
 func writeWorkflowEvaluationSuiteResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRunContext, result WorkflowEvaluationSuiteResult) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowEvaluationSuiteEnvelope{RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Suite: result.Suite, Decision: result.Decision, FailureCode: workflowEvaluationSuiteFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: ctx.AuditRef})
+	writeWorkflowEvaluationSuiteResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowEvaluationSuiteResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowRunContext, result WorkflowEvaluationSuiteResult) {
+	writeObservedJSON(writer, status, trace, workflowEvaluationSuiteEnvelope{RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Suite: result.Suite, Decision: result.Decision, FailureCode: workflowEvaluationSuiteFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: ctx.AuditRef})
 }
 
 func writeWorkflowEvaluationSuiteReviewResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRunContext, result WorkflowEvaluationSuiteReviewResult) {

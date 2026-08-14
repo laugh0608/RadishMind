@@ -27,6 +27,7 @@
   ],
   "frontend_contract": {
     "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
     "context_file": "apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts",
     "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
     "style_file": "apps/radishmind-web/src/styles.css",
@@ -46,16 +47,22 @@
       "moveWorkflowDraftNode",
       "canRemoveWorkflowDraftNode",
       "rebuildWorkflowDraftEdges",
-      "workflow-draft-structure-controls",
-      "workflow-draft-add-node-grid",
-      "workflow-draft-node-type-button",
-      "workflow-draft-node-actions",
       "onAddNode={handleWorkflowDraftAddNode}",
       "onMoveNode={handleWorkflowDraftMoveNode}",
       "onRemoveNode={handleWorkflowDraftRemoveNode}",
       "inspector={activeWorkflowDraftValidationInspector}",
       "preview={activeWorkflowExecutionPlanPreview}",
       "readiness={activeWorkflowRuntimeReadinessInspector}"
+    ],
+    "required_panel_literals": [
+      "workflow-designer-node-palette",
+      "workflow-draft-add-node-grid",
+      "workflow-draft-node-type-button",
+      "workflow-draft-node-actions",
+      "nodeTypeOptions.map((option) => (",
+      "onClick={() => onAddNode(option.nodeType)}",
+      "onMoveNode",
+      "onRemoveNode"
     ],
     "required_context_literals": [
       "activeWorkflowDraftOverride?: WorkflowDraftDesignerDraft | null;",
@@ -72,7 +79,7 @@
       "return \"preview\";"
     ],
     "required_style_selectors": [
-      ".workflow-draft-structure-controls",
+      ".workflow-designer-node-palette",
       ".workflow-draft-add-node-grid",
       ".workflow-draft-node-type-button",
       ".workflow-draft-node-actions",
@@ -96,8 +103,8 @@
       "workflow_draft_designer_editing_model_v2_implemented"
     ],
     "docs/features/workflow/draft-designer-surface.md": [
-      "Workflow Draft Designer Editing Model v2",
-      "本地图结构编辑"
+      "节点结构",
+      "active draft"
     ],
     "docs/features/workflow/draft-editing-entry-v1.md": [
       "Workflow Draft Designer Editing Model v2",

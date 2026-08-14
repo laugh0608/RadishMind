@@ -1,6 +1,6 @@
 # Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1
 
-更新时间：2026-07-19
+更新时间：2026-08-09
 
 状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed`
 
@@ -191,6 +191,16 @@ HTTP Tool 与 Workflow RAG 后续只有在独立兼容评审完成后，才允�
 - 同步当前焦点、功能入口、路线图、能力矩阵、架构、契约和周志并关闭专题。
 
 完成证据：Web 151 项测试与 production build 通过；Platform 全包、definition / v5 相关 race、`go vet`、SQLite launcher loopback、PostgreSQL integration suite、repository fast / full 与真实浏览器均通过。浏览器重启后恢复 approved candidate、inactive pointer v2、两条 v5 run、Evaluation case 与 Suite；localStorage、sessionStorage、cookie 为空，SQLite 主文件、WAL 与 SHM 未发现一次性 input 或 advisory output。
+
+### 2026-08-09 真实连续链复验与资格收紧
+
+状态：已完成。SQLite 本地产品重新从 Saved Draft 贯通 candidate、review、activation、两条 v5 run、Comparison、Evaluation Case / Suite 和 digest-bound human decision；复验没有改变专题的 API、schema、repository 模式或生产停止线。
+
+- 通用 Definition candidate 只接受 `prompt | llm | condition | output` 节点；RAG / HTTP Tool 节点在 durable candidate 或 audit 写入前拒绝。Web 对 RAG 草案零请求禁用 candidate，并交接独立 Workflow RAG Promotion owner，不把知识晋级塞入通用 activation。
+- candidate 创建复用 executor 图验证产生稳定 `execution_profile_incompatible:<failure_code>` blocker；人工仍可保留 review evidence，但 blocker version 不得 activation。activation 对精确 snapshot 再运行同一资格验证，旧数据中的过时 `activation_eligible` 标记不能绕过当前执行约束。
+- SQLite / PostgreSQL candidate 事务写入本次新追加的最后一条 audit；append-only audit 即使因本地人工清理留下孤立历史，也不会让后续 candidate 重用旧 `audit_id` 或伪装成 CAS conflict。
+- 从不可变 version 派生 Saved Draft 时按 edge 拓扑排列节点与 designer layout，不依赖 canonical snapshot 的节点存储顺序；循环或损坏图仍保守保留原顺序，并由现有 graph validation 失败关闭。
+- 浏览器实证以 `wf_radishflow_copilot_latest v3` 运行 `run_5e42adffb22e7a6358e9f349` 与 `run_96222ba99e2db9bb93e6f62a`，二者均为 metadata-only、两次 provider call、零 forbidden write；Suite `suite_8c6a4735054251688a5182ec` 通过并追加 approved decision。历史本地 v1 / v2 记录保持不可变审计证据，active pointer 只指向已复验 v3。
 
 ## 验收方式
 

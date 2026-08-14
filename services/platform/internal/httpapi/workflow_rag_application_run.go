@@ -130,7 +130,7 @@ func validateWorkflowRAGApplicationRunRecordV4(record workflowRAGApplicationRunR
 			return errWorkflowRunStoreContract
 		}
 	}
-	if record.FailureCode != nil && !workflowRAGRunFailurePattern.MatchString(*record.FailureCode) {
+	if record.FailureCode != nil && !workflowRAGApplicationFailureCodeAllowed(*record.FailureCode) {
 		return errWorkflowRunStoreContract
 	}
 	if record.Status == string(WorkflowRunStatusSucceeded) && (record.FailureCode != nil || record.RetrievalAttempt.Status != "succeeded" || record.SideEffects.RetrievalCalls != 1 || record.SideEffects.ProviderCalls != 1 || len(record.RetrievalAttempt.CitationRefs) == 0) {
@@ -157,6 +157,21 @@ func validateWorkflowRAGApplicationRunRecordV4(record workflowRAGApplicationRunR
 		citations[citation] = true
 	}
 	return nil
+}
+
+func workflowRAGApplicationFailureCodeAllowed(value string) bool {
+	if workflowRAGRunFailurePattern.MatchString(value) {
+		return true
+	}
+	switch value {
+	case GatewayRequestQuotaFailurePolicyNotFound,
+		GatewayRequestQuotaFailureAttemptConflict,
+		GatewayRequestQuotaFailureExceeded,
+		GatewayRequestQuotaFailureStoreUnavailable:
+		return true
+	default:
+		return false
+	}
 }
 
 func workflowRAGApplicationRunAuthorityValid(authority workflowRAGApplicationRunAuthority, snapshot workflowRAGRunSnapshotBinding, retrieval workflowRAGRunRetrievalAttempt, sourceID string, sourceVersion int) bool {

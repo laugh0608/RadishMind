@@ -301,10 +301,11 @@ func TestWorkflowDefinitionExecutionHTTPStrictAuthorityAndScope(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := workflowDefinitionRunHTTPBody{WorkspaceID: "workspace_demo", ApplicationID: applicationID, DefinitionID: version.DefinitionID, ExpectedPointerVersion: activation.PointerVersion, ExpectedDefinitionVersion: version.Version, ExpectedDefinitionDigest: version.DefinitionDigest, InputText: "HTTP bounded input", ConditionValues: map[string]bool{}}
+	body := workflowDefinitionRunHTTPBody{WorkspaceID: "workspace_demo", ApplicationID: applicationID, DefinitionID: version.DefinitionID, ExpectedPointerVersion: activation.PointerVersion, ExpectedDefinitionVersion: version.Version, ExpectedDefinitionDigest: version.DefinitionDigest, InputText: json.RawMessage(`"HTTP bounded input"`), ConditionValues: map[string]bool{}}
 	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-definition-runs", bytes.NewReader(mustWorkflowRunJSON(t, body)))
 	setControlPlaneReadDevAuthHeaders(request)
 	request.Header.Set(controlPlaneReadDevScopesHeader, "workflow_runs:execute,workflow_definitions:read")
+	request.Header.Set(controlPlaneReadDevMembershipPermHeader, "workflow_runs:execute,workflow_definitions:read")
 	request.Header.Set(savedWorkflowDraftDevWorkspaceHeader, "workspace_demo")
 	request.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
 	response := httptest.NewRecorder()
@@ -317,6 +318,7 @@ func TestWorkflowDefinitionExecutionHTTPStrictAuthorityAndScope(t *testing.T) {
 	unknownRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/workflow-definition-runs", bytes.NewReader(unknownPayload))
 	setControlPlaneReadDevAuthHeaders(unknownRequest)
 	unknownRequest.Header.Set(controlPlaneReadDevScopesHeader, "workflow_runs:execute,workflow_definitions:read")
+	unknownRequest.Header.Set(controlPlaneReadDevMembershipPermHeader, "workflow_runs:execute,workflow_definitions:read")
 	unknownRequest.Header.Set(savedWorkflowDraftDevWorkspaceHeader, "workspace_demo")
 	unknownRequest.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
 	unknownResponse := httptest.NewRecorder()

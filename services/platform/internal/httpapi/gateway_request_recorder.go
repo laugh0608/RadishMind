@@ -67,8 +67,14 @@ func (s *Server) startGatewayRequestTrace(
 		)
 		return nil
 	}
+	schemaVersion := gatewayRequestRecordSchemaVersionV1
+	costEstimate := GatewayRequestCostEstimate{}
+	if s.config.GatewayModelPricingCaptureDevEnabled {
+		schemaVersion = gatewayRequestRecordSchemaVersionV2
+		costEstimate = gatewayRequestCostUnavailable(GatewayRequestCostNotApplicable, "provider_not_attempted")
+	}
 	record := GatewayRequestRecord{
-		SchemaVersion: gatewayRequestRecordSchemaVersion,
+		SchemaVersion: schemaVersion,
 		StoreMode:     s.gatewayRequestHistoryStoreMode,
 		RequestID:     trace.requestID,
 		AuditRef:      requestContext.AuditRef,
@@ -82,6 +88,7 @@ func (s *Server) startGatewayRequestTrace(
 		Status:        GatewayRequestStatusStarted,
 		StartedAt:     trace.startedAt.UTC().Format(time.RFC3339Nano),
 		Usage:         GatewayRequestUsage{Availability: GatewayRequestUsageNotReported},
+		CostEstimate:  costEstimate,
 	}
 	if err := s.gatewayRequestStore().CreateRequest(requestContext, &record); err != nil {
 		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "create_failed")
@@ -103,6 +110,7 @@ func (s *Server) checkpointGatewayRequestTrace(trace *requestTrace, stream bool)
 	record := trace.gatewayRequest
 	record.Stream = stream
 	applyGatewayRequestSelection(record, *trace)
+	s.bindGatewayModelPricingSnapshot(trace)
 	if err := s.gatewayRequestStore().UpdateRequest(trace.gatewayRequestContext, record); err != nil {
 		logGatewayRequestStoreOutcome(trace.requestID, trace.route, record.StoreMode, "checkpoint_failed")
 		return
@@ -122,6 +130,7 @@ func (s *Server) applyGatewayEnvelopeToTrace(trace *requestTrace, envelope bridg
 		trace.gatewayRequest.ProviderDurationMS = value
 		trace.gatewayRequest.ProviderDurationAvailable = true
 	}
+	trace.gatewayRequest.Usage = gatewayUsageFromEnvelope(envelope)
 }
 
 func (s *Server) finishGatewayRequestTrace(
@@ -135,6 +144,9 @@ func (s *Server) finishGatewayRequestTrace(
 		return
 	}
 	record := trace.gatewayRequest
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV3 {
+		return
+	}
 	applyGatewayRequestSelection(record, *trace)
 	record.Status = status
 	record.CompletedAt = time.Now().UTC().Format(time.RFC3339Nano)
@@ -142,6 +154,16 @@ func (s *Server) finishGatewayRequestTrace(
 	record.HTTPStatusCode = httpStatusCode
 	record.FailureCode = strings.TrimSpace(failureCode)
 	record.FailureBoundary = strings.TrimSpace(failureBoundary)
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV2 {
+		if !trace.providerAttempted {
+			record.Usage = GatewayRequestUsage{Availability: GatewayRequestUsageNotApplicable}
+		}
+		record.CostEstimate = buildGatewayRequestCostEstimate(
+			trace.providerAttempted,
+			record.Usage,
+			trace.gatewayPricingSnapshot,
+		)
+	}
 	requestContext, cancel := s.gatewayRequestTerminalStoreContext(trace.gatewayRequestContext)
 	defer cancel()
 	if err := s.gatewayRequestStore().UpdateRequest(requestContext, record); err != nil {
@@ -175,6 +197,9 @@ func applyGatewayRequestSelection(record *GatewayRequestRecord, trace requestTra
 	record.SelectedProvider = strings.TrimSpace(trace.selection.provider)
 	record.SelectedProfile = strings.TrimSpace(trace.selection.providerProfile)
 	record.SelectedModel = strings.TrimSpace(trace.selection.model)
+	record.ProviderRouteConfigurationID = strings.TrimSpace(trace.selection.routeConfigurationID)
+	record.ProviderRouteGeneration = trace.selection.routeGeneration
+	record.ProviderRouteSnapshotDigest = strings.TrimSpace(trace.selection.routeSnapshotDigest)
 }
 
 func gatewayMetadataInt64(metadata map[string]any, key string) (int64, bool) {
@@ -193,6 +218,45 @@ func gatewayMetadataInt64(metadata map[string]any, key string) (int64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func gatewayUsageFromEnvelope(envelope bridge.GatewayEnvelope) GatewayRequestUsage {
+	notReported := GatewayRequestUsage{Availability: GatewayRequestUsageNotReported}
+	rawUsage, ok := envelope.Metadata["usage"].(map[string]any)
+	if !ok {
+		return notReported
+	}
+	availability, _ := rawUsage["availability"].(string)
+	if GatewayRequestUsageAvailability(strings.TrimSpace(availability)) != GatewayRequestUsageReported {
+		return notReported
+	}
+	source, _ := rawUsage["source"].(string)
+	source = strings.TrimSpace(source)
+	switch source {
+	case "openai_compatible_usage", "gemini_usage_metadata", "anthropic_usage",
+		"huggingface_usage", "ollama_usage", "ollama_eval_counts":
+	default:
+		return notReported
+	}
+	inputTokens, inputOK := gatewayMetadataInt64(rawUsage, "input_tokens")
+	outputTokens, outputOK := gatewayMetadataInt64(rawUsage, "output_tokens")
+	totalTokens, totalOK := gatewayMetadataInt64(rawUsage, "total_tokens")
+	maxInt := int64(^uint(0) >> 1)
+	if !inputOK || !outputOK || !totalOK ||
+		inputTokens > maxInt || outputTokens > maxInt || totalTokens > maxInt {
+		return notReported
+	}
+	usage := GatewayRequestUsage{
+		Availability: GatewayRequestUsageReported,
+		Source:       source,
+		InputTokens:  int(inputTokens),
+		OutputTokens: int(outputTokens),
+		TotalTokens:  int(totalTokens),
+	}
+	if !validGatewayRequestUsage(usage) {
+		return notReported
+	}
+	return usage
 }
 
 func logGatewayRequestStoreOutcome(requestID string, route string, storeMode string, outcome string) {

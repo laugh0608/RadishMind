@@ -60,6 +60,49 @@ func TestPromptApplicationInvocationUsesExactAuthorityAndDoesNotReplay(t *testin
 	}
 }
 
+func TestPromptApplicationInvocationQuotaRejectsBeforeProviderAndReplayDoesNotConsume(t *testing.T) {
+	fixture := newPromptApplicationInvocationFixture(t)
+	repository := newMemoryGatewayRequestQuotaRepository()
+	quotaContext := GatewayRequestQuotaContext{
+		RequestContext: context.Background(), TenantRef: fixture.ctx.TenantRef, WorkspaceID: fixture.ctx.WorkspaceID,
+		Environment: "test", ApplicationID: fixture.ctx.ApplicationID, ActorRef: fixture.ctx.ActorRef,
+		RequestID: "request-prompt-quota-policy", AuditRef: "audit-prompt-quota-policy",
+	}
+	now := time.Date(2026, 8, 9, 17, 0, 0, 0, time.UTC)
+	if _, err := repository.PutPolicy(quotaContext, 0, 1, now); err != nil {
+		t.Fatalf("put Prompt quota policy: %v", err)
+	}
+	quotaBridge := newGatewayRequestQuotaBridgeClient(fixture.bridge, repository)
+	quotaBridge.now = func() time.Time { return now }
+	fixture.service.bridge = quotaBridge
+	input := PromptApplicationInvocationInput{
+		ClientInvocationKey: "prompt-quota-first",
+		Variables:           map[string]any{"question": "quota first", "tone": "clear"},
+	}
+	firstContext := fixture.ctx
+	firstContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-prompt-quota-first", "POST "+promptApplicationInvocationRoute)
+	first := fixture.service.Invoke(firstContext, input)
+	if first.FailureCode != "" || first.Run == nil || first.Run.SideEffects.ProviderCalls != 1 || fixture.bridge.callCount() != 1 {
+		t.Fatalf("Prompt quota first admission drifted: result=%+v calls=%d", first, fixture.bridge.callCount())
+	}
+	replayContext := fixture.ctx
+	replayContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-prompt-quota-replay", "POST "+promptApplicationInvocationRoute)
+	replay := fixture.service.Invoke(replayContext, input)
+	if !replay.IdempotentReplay || replay.FailureCode != "" || fixture.bridge.callCount() != 1 {
+		t.Fatalf("Prompt replay consumed quota or provider: result=%+v calls=%d", replay, fixture.bridge.callCount())
+	}
+	overContext := fixture.ctx
+	overContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-prompt-quota-over", "POST "+promptApplicationInvocationRoute)
+	over := fixture.service.Invoke(overContext, PromptApplicationInvocationInput{
+		ClientInvocationKey: "prompt-quota-over",
+		Variables:           map[string]any{"question": "quota over", "tone": "clear"},
+	})
+	if over.FailureCode != GatewayRequestQuotaFailureExceeded || over.Run == nil ||
+		over.Run.SideEffects.ProviderCalls != 0 || fixture.bridge.callCount() != 1 {
+		t.Fatalf("Prompt quota rejection crossed provider: result=%+v calls=%d", over, fixture.bridge.callCount())
+	}
+}
+
 func TestPromptApplicationInvocationFailsBeforeProviderOnAuthorityDrift(t *testing.T) {
 	fixture := newPromptApplicationInvocationFixture(t)
 	fixture.service.runStore = authorityDriftPromptRunStore{

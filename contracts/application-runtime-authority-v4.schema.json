@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-runtime-authority-v4.schema.json",
+  "title": "Application Runtime Authority v4",
+  "description": "Workflow Definition v2 会话的 exact metadata-only authority；冻结应用、激活指针、不可变 Definition 与结构化输入合同。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "execution_profile", "application_id", "application_record_version", "application_lifecycle", "workflow_definition", "application_rag", "authority_digest"],
+  "properties": {
+    "schema_version": {"const": "application_runtime_authority.v4"},
+    "execution_profile": {"const": "workflow_definition_executor_v2"},
+    "application_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "application_record_version": {"type": "integer", "minimum": 1},
+    "application_lifecycle": {"const": "active"},
+    "workflow_definition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definition_id", "definition_version", "definition_digest", "activation_pointer_version", "candidate_id", "candidate_review_version", "input_contract"],
+      "properties": {
+        "definition_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+        "definition_version": {"type": "integer", "minimum": 1},
+        "definition_digest": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/digest"},
+        "activation_pointer_version": {"type": "integer", "minimum": 1},
+        "candidate_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+        "candidate_review_version": {"type": "integer", "minimum": 1},
+        "input_contract": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/structured_input_contract"}
+      }
+    },
+    "application_rag": {"type": "null"},
+    "authority_digest": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/digest"}
+  }
+}

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createWorkflowRAGPromotionCandidate,
   decideWorkflowRAGPromotionCandidate,
+  findExactEligibleWorkflowRAGPromotionBinding,
   listWorkflowRAGPromotionCandidates,
   readWorkflowRAGPromotionCandidate,
   workflowRAGPromotionDecisionAllowed,
@@ -48,6 +49,9 @@ test("promotion create sends exact authority refs and dedicated scopes", async (
       dataset_digest: digest("d"), candidate_review_id: "wragr_aaaaaaaaaaaaaaaa", draft_id: "app-config-flow", expected_draft_version: 1,
     });
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_promotions:write,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read");
+    assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_promotions:write,workflow_rag_evaluation_datasets:read,workflow_rag_snapshots:read,application_drafts:read");
     assert.equal("baseline_snapshot" in captured!.body, false);
   } finally { globalThis.fetch = originalFetch; }
 });
@@ -99,6 +103,37 @@ test("promotion state transitions stay explicit", () => {
   assert.equal(workflowRAGPromotionDecisionAllowed("approved", "cancel"), true);
   assert.equal(workflowRAGPromotionDecisionAllowed("approved", "approve"), false);
   assert.equal(workflowRAGPromotionDecisionAllowed("canceled", "cancel"), false);
+});
+
+test("binding handoff selection requires the exact eligible approved candidate without fallback", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => jsonResponse({
+    ...promotionListEnvelope(),
+    items: [
+      {
+        ...promotionListEnvelope().items[0],
+        candidate_state: "approved",
+        record_version: 2,
+        binding_ref: bindingRefDocument(),
+        eligibility_status: "eligible",
+        blocker_count: 0,
+      },
+      {
+        ...promotionListEnvelope().items[0],
+        candidate_id: "wragp_bbbbbbbbbbbbbbbb",
+        candidate_state: "approved",
+        record_version: 2,
+        binding_ref: { binding_id: "wragb_bbbbbbbbbbbbbbbb", binding_version: 1, binding_digest: digest("b") },
+        eligibility_status: "blocked",
+      },
+    ],
+  });
+  try {
+    const result = await listWorkflowRAGPromotionCandidates(live, "app_flow_copilot");
+    assert.equal(findExactEligibleWorkflowRAGPromotionBinding(result.summaries, "wragp_aaaaaaaaaaaaaaaa")?.bindingRef?.bindingId, "wragb_aaaaaaaaaaaaaaaa");
+    assert.equal(findExactEligibleWorkflowRAGPromotionBinding(result.summaries, "wragp_bbbbbbbbbbbbbbbb"), null);
+    assert.equal(findExactEligibleWorkflowRAGPromotionBinding(result.summaries, "wragp_cccccccccccccccc"), null);
+  } finally { globalThis.fetch = originalFetch; }
 });
 
 function promotionListEnvelope() {

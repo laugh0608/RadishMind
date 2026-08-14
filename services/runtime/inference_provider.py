@@ -39,20 +39,151 @@ from .provider_registry import (
     OPENAI_COMPATIBLE_PROVIDER_ID,
     get_provider_spec,
 )
+from .provider_attempt_failure import normalized_provider_attempt_error
 
 GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 StreamHandler = Callable[[dict[str, Any]], None]
 
 
+def not_reported_provider_usage() -> dict[str, Any]:
+    return {
+        "availability": "not_reported",
+        "source": "",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+    }
+
+
+def build_reported_provider_usage(
+    *,
+    source: str,
+    input_tokens: Any,
+    output_tokens: Any,
+    total_tokens: Any | None = None,
+    require_reported_total: bool = False,
+) -> dict[str, Any]:
+    counts = (input_tokens, output_tokens)
+    if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in counts):
+        return not_reported_provider_usage()
+    calculated_total = input_tokens + output_tokens
+    if require_reported_total and total_tokens is None:
+        return not_reported_provider_usage()
+    if total_tokens is not None and (
+        isinstance(total_tokens, bool)
+        or not isinstance(total_tokens, int)
+        or total_tokens < 0
+        or total_tokens != calculated_total
+    ):
+        return not_reported_provider_usage()
+    return {
+        "availability": "reported",
+        "source": source,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": calculated_total,
+    }
+
+
+def optional_non_negative_token_count(value: Any) -> int | None:
+    if value is None:
+        return 0
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None
+    return value
+
+
+def normalize_provider_usage(
+    raw_response: Any,
+    *,
+    provider_id: str,
+    api_style: str = "",
+) -> dict[str, Any]:
+    if not isinstance(raw_response, dict):
+        return not_reported_provider_usage()
+
+    normalized_api_style = str(api_style or "").strip()
+    if normalized_api_style == "gemini-native":
+        usage = raw_response.get("usageMetadata")
+        if not isinstance(usage, dict):
+            return not_reported_provider_usage()
+        if any(
+            key not in usage
+            for key in ("promptTokenCount", "candidatesTokenCount", "totalTokenCount")
+        ):
+            return not_reported_provider_usage()
+        prompt_tokens = optional_non_negative_token_count(usage.get("promptTokenCount"))
+        candidate_tokens = optional_non_negative_token_count(usage.get("candidatesTokenCount"))
+        total_tokens = optional_non_negative_token_count(usage.get("totalTokenCount"))
+        if (
+            prompt_tokens is None
+            or candidate_tokens is None
+            or total_tokens is None
+            or total_tokens < prompt_tokens
+            or candidate_tokens > total_tokens - prompt_tokens
+        ):
+            return not_reported_provider_usage()
+        return build_reported_provider_usage(
+            source="gemini_usage_metadata",
+            input_tokens=prompt_tokens,
+            output_tokens=total_tokens - prompt_tokens,
+            total_tokens=total_tokens,
+            require_reported_total=True,
+        )
+
+    if normalized_api_style == "anthropic-messages":
+        usage = raw_response.get("usage")
+        if not isinstance(usage, dict):
+            return not_reported_provider_usage()
+        if "input_tokens" not in usage or "output_tokens" not in usage:
+            return not_reported_provider_usage()
+        input_tokens = optional_non_negative_token_count(usage.get("input_tokens"))
+        cache_creation_tokens = optional_non_negative_token_count(
+            usage.get("cache_creation_input_tokens")
+        )
+        cache_read_tokens = optional_non_negative_token_count(usage.get("cache_read_input_tokens"))
+        if input_tokens is None or cache_creation_tokens is None or cache_read_tokens is None:
+            return not_reported_provider_usage()
+        return build_reported_provider_usage(
+            source="anthropic_usage",
+            input_tokens=input_tokens + cache_creation_tokens + cache_read_tokens,
+            output_tokens=usage.get("output_tokens"),
+        )
+
+    payloads: list[dict[str, Any]] = [raw_response]
+    stream_chunks = raw_response.get("chunks")
+    if isinstance(stream_chunks, list):
+        payloads = [chunk for chunk in reversed(stream_chunks) if isinstance(chunk, dict)]
+    source_by_provider = {
+        OPENAI_COMPATIBLE_PROVIDER_ID: "openai_compatible_usage",
+        HUGGINGFACE_PROVIDER_ID: "huggingface_usage",
+        OLLAMA_PROVIDER_ID: "ollama_usage",
+    }
+    for payload in payloads:
+        usage = payload.get("usage")
+        if isinstance(usage, dict):
+            normalized = build_reported_provider_usage(
+                source=source_by_provider.get(provider_id, "openai_compatible_usage"),
+                input_tokens=usage.get("prompt_tokens"),
+                output_tokens=usage.get("completion_tokens"),
+                total_tokens=usage.get("total_tokens"),
+                require_reported_total=True,
+            )
+            if normalized["availability"] == "reported":
+                return normalized
+        if provider_id == OLLAMA_PROVIDER_ID:
+            normalized = build_reported_provider_usage(
+                source="ollama_eval_counts",
+                input_tokens=payload.get("prompt_eval_count"),
+                output_tokens=payload.get("eval_count"),
+            )
+            if normalized["availability"] == "reported":
+                return normalized
+    return not_reported_provider_usage()
+
+
 def provider_request_failure(exc: BaseException) -> RuntimeError:
-    if isinstance(exc, error.HTTPError):
-        return RuntimeError(f"provider request failed with HTTP {exc.code}")
-    reason = exc.reason if isinstance(exc, error.URLError) else None
-    if isinstance(exc, TimeoutError) or isinstance(reason, TimeoutError):
-        return RuntimeError("provider request timed out")
-    if isinstance(exc, (http.client.RemoteDisconnected, http.client.IncompleteRead)):
-        return RuntimeError("provider connection terminated")
-    return RuntimeError("provider request could not reach upstream")
+    return normalized_provider_attempt_error(exc)
 
 
 def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> dict[str, Any]:
@@ -464,6 +595,13 @@ def call_chat_completion_stream(
             "stream": True,
             "chunks": raw_response_chunks,
         },
+        "provider_usage": normalize_provider_usage(
+            {
+                "stream": True,
+                "chunks": raw_response_chunks,
+            },
+            provider_id=provider_id,
+        ),
         "response": response_document,
     }
 
@@ -506,6 +644,7 @@ def call_chat_completion(
         "messages": messages,
         "raw_request": raw_request,
         "raw_response": raw_response,
+        "provider_usage": normalize_provider_usage(raw_response, provider_id=provider_id),
         "response": response_document,
     }
 
@@ -609,6 +748,11 @@ def call_gemini_native(
         "messages": messages,
         "raw_request": raw_request,
         "raw_response": raw_response,
+        "provider_usage": normalize_provider_usage(
+            raw_response,
+            provider_id=OPENAI_COMPATIBLE_PROVIDER_ID,
+            api_style="gemini-native",
+        ),
         "response": response_document,
     }
 
@@ -649,6 +793,11 @@ def call_anthropic_messages(
         "messages": messages,
         "raw_request": raw_request,
         "raw_response": raw_response,
+        "provider_usage": normalize_provider_usage(
+            raw_response,
+            provider_id=OPENAI_COMPATIBLE_PROVIDER_ID,
+            api_style="anthropic-messages",
+        ),
         "response": response_document,
     }
 
@@ -813,6 +962,7 @@ def run_inference(
                 "provider": MOCK_PROVIDER_ID,
                 "response_preview": response_document["summary"],
             },
+            "provider_usage": not_reported_provider_usage(),
             "response": response_document,
         }
 

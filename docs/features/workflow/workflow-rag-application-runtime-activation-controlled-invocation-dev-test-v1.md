@@ -37,6 +37,14 @@
 - SQLite 与 PostgreSQL 连续链均覆盖 approved candidate → activate → 两次相同输入调用 → comparison v3 → evaluation → revoke 后拒绝 → restart restore；未增加平行 database、pool、selector 或 fallback。
 - 真实浏览器以同一持久应用完成 activation、一次性交接、无证据失败、两次成功 v4、comparison、evaluation、revoke 后 `workflow_rag_runtime_assignment_revoked`、应用切换清理和 SQLite 重启恢复。新标签页 console 为零 error / warning，`localStorage` 与 `sessionStorage` 为空，原始 token、输入和回答未进入浏览器持久介质。
 
+## 2026-08-09 SQLite 当前权威恢复复验
+
+- 复验没有沿用过期 promotion：重新批准 `wragp_zeukzr6yulko5hpb`，生成不可变 binding `wragb_xektdumcd2i2ow7h`，绑定 configuration draft `v3`，再把 current assignment `wragra_ftrte2fisc7t7os5` 显式 replace 到 `v3`。publish candidate 虽完成人工 review，仍由正式 production blockers 保持 `promotion_blocked`。
+- 两把仅含 `models:read + application_rag:invoke` 的一次性 Key 分别完成同输入调用，得到 `run_1949cf836a085db30faa22db` 与 `run_3466592ca7070478fb4310cd`；两侧 assignment、candidate、draft、binding、snapshot、profile 和配置契约完全一致，Comparison v3 为 `unchanged / comparable`，provider call delta 与 forbidden side effects 均为 `0`。
+- Evaluation Case `eval_bb3f960ec14de7d71ccdce1e v1` 与 Suite `suite_eb9b1ec7a6332c95a0ea8683` 均为 `passed`，human decision 以 digest 追加 `approved v1`。该 evidence 不 publish、deploy、retry、replay、resume 或授权 production。
+- 真实调用暴露 Comparison 顶层 `run_profile` 仍为 `workflow_standard.v1`，而嵌套 retrieval 已为 `workflow_rag_application_invocation.v1`。后端现按 v2 / v3 schema 写入对应 profile，Web strict consumer 将顶层字段设为必填并校验 schema-profile 精确映射，不再靠 schema fallback 猜测。
+- 独立 `models:read + responses:invoke` Key 另行验证 northbound `/v1/models` 与 `/v1/responses` Request History；Application Operations 继续读取自己的 `consumer_web_dev` 当前窗口，不把 Gateway 与 Workflow 记录按时间强行关联。三把临时 Key 均已通过 lifecycle owner 撤销。
+
 ## 目标用户与完整路径
 
 目标用户是需要验证“经过知识质量审查和配置审查的 RAG 应用是否能按绑定证据真实调用”的内部应用开发者、Workflow reviewer 和平台维护者。

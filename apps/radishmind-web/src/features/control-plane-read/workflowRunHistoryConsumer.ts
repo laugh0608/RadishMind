@@ -79,6 +79,8 @@ export type WorkflowRunHistorySummary = {
   executionSourceId: string;
   executionSourceVersion: number;
   executionProfile: string;
+  inputContractId: string;
+  inputContractDigest: string;
   definitionDigest: string;
   activationPointerVersion: number;
   sourceDraftId: string;
@@ -181,6 +183,12 @@ export function isWorkflowRunComparisonCompatible(
   if (baselineDefinition !== candidateDefinition) return false;
   if (baselineDefinition) return baseline.executionSourceId === candidate.executionSourceId &&
     baseline.executionProfile === "workflow_definition_executor_v1" && candidate.executionProfile === "workflow_definition_executor_v1";
+  const baselineStructuredDefinition = baseline.schemaVersion === "workflow_run_record.v8";
+  const candidateStructuredDefinition = candidate.schemaVersion === "workflow_run_record.v8";
+  if (baselineStructuredDefinition !== candidateStructuredDefinition) return false;
+  if (baselineStructuredDefinition) return baseline.executionSourceId === candidate.executionSourceId &&
+    baseline.executionProfile === "workflow_definition_executor_v2" && candidate.executionProfile === "workflow_definition_executor_v2" &&
+    baseline.inputContractId === candidate.inputContractId && baseline.inputContractDigest === candidate.inputContractDigest;
   const baselinePrompt = baseline.schemaVersion === "workflow_run_record.v6";
   const candidatePrompt = candidate.schemaVersion === "workflow_run_record.v6";
   if (baselinePrompt !== candidatePrompt) return false;
@@ -215,7 +223,8 @@ type RunSummaryDocument = {
   draft_version: number; workspace_id: string; application_id: string;
   draft_digest?: string;
   execution_kind?: string; execution_source_kind?: string; execution_source_id?: string; execution_source_version?: number;
-  execution_profile?: string; definition_digest?: string; activation_pointer_version?: number;
+  execution_profile?: string; input_contract_id?: string; input_contract_digest?: string;
+  definition_digest?: string; activation_pointer_version?: number;
   source_draft_id?: string; source_draft_version?: number; source_draft_digest?: string;
   runtime_assignment_id?: string; runtime_assignment_version?: number; publish_candidate_id?: string;
   publish_review_version?: number; effective_snapshot_role?: string;
@@ -327,7 +336,8 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     draftId: value.draft_id, draftVersion: value.draft_version, draftDigest: value.draft_digest ?? "", status: value.status, failureCode: value.failure_code,
     executionKind: value.execution_kind ?? "", executionSourceKind: value.execution_source_kind ?? "",
     executionSourceId: value.execution_source_id ?? "", executionSourceVersion: value.execution_source_version ?? 0,
-    executionProfile: value.execution_profile ?? "", definitionDigest: value.definition_digest ?? "",
+    executionProfile: value.execution_profile ?? "", inputContractId: value.input_contract_id ?? "",
+    inputContractDigest: value.input_contract_digest ?? "", definitionDigest: value.definition_digest ?? "",
     activationPointerVersion: value.activation_pointer_version ?? 0, sourceDraftId: value.source_draft_id ?? "",
     sourceDraftVersion: value.source_draft_version ?? 0, sourceDraftDigest: value.source_draft_digest ?? "",
     runtimeAssignmentId: value.runtime_assignment_id ?? "", runtimeAssignmentVersion: value.runtime_assignment_version ?? 0,
@@ -370,7 +380,7 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   if (containsForbiddenHistoryField(raw)) return false;
-  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7";
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7" || item.schema_version === "workflow_run_record.v8";
   const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
     (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7");
   const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
@@ -378,7 +388,15 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
       ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
     : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
   const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" ? isRAGRunSummary(item) : true;
-  const executionMetadataValid = item.schema_version === "workflow_run_record.v7"
+  const executionMetadataValid = item.schema_version === "workflow_run_record.v8"
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
+      item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
+      Number.isInteger(item.execution_source_version) && item.execution_profile === "workflow_definition_executor_v2" &&
+      typeof item.input_contract_id === "string" && item.input_contract_id.length > 0 &&
+      DIGEST_PATTERN.test(item.input_contract_digest ?? "") && DIGEST_PATTERN.test(item.definition_digest ?? "") &&
+      Number.isInteger(item.activation_pointer_version) && typeof item.source_draft_id === "string" &&
+      Number.isInteger(item.source_draft_version) && DIGEST_PATTERN.test(item.source_draft_digest ?? "")
+    : item.schema_version === "workflow_run_record.v7"
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "agent_copilot_suggestion" &&
       item.execution_source_kind === "agent_copilot_profile" && /^acpf_[a-z2-7]{16}$/u.test(item.execution_source_id ?? "") &&
       Number.isInteger(item.execution_source_version) && item.execution_profile === "agent_copilot_suggestion_v1" &&

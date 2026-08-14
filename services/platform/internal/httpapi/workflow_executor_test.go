@@ -183,6 +183,52 @@ func TestWorkflowExecutorConditionBranchRecordsSkippedNode(t *testing.T) {
 	}
 }
 
+func TestWorkflowExecutorScopesQuotaAdmissionByLLMNode(t *testing.T) {
+	draft := executableSequentialWorkflowDraftForTest()
+	innerBridge := &workflowExecutorTestBridge{}
+	repository := newMemoryGatewayRequestQuotaRepository()
+	now := time.Date(2026, 8, 10, 6, 0, 0, 0, time.UTC)
+	quotaContext := GatewayRequestQuotaContext{
+		RequestContext: context.Background(),
+		TenantRef:      "tenant_demo",
+		WorkspaceID:    "workspace_demo",
+		Environment:    "test",
+		ApplicationID:  "app_flow_copilot",
+		ActorRef:       "subject_demo_user",
+		RequestID:      "run_workflow_executor_test",
+		AuditRef:       "audit_run_workflow_executor_test_quota",
+	}
+	if _, err := repository.PutPolicy(quotaContext, 0, 5, now); err != nil {
+		t.Fatalf("put quota policy: %v", err)
+	}
+	quotaBridge := newGatewayRequestQuotaBridgeClient(innerBridge, repository)
+	quotaBridge.now = func() time.Time { return now }
+	service := workflowExecutorTestService(draft, quotaBridge, newMemoryWorkflowRunStore(10))
+	runContext := workflowExecutorTestContext()
+	runContext.RequestContext = withGatewayRequestQuotaBinding(context.Background(), gatewayRequestQuotaBinding{
+		QuotaContext: quotaContext,
+		APIKeyID:     "key_workflow_executor_test",
+		RequestID:    "run_workflow_executor_test",
+		Route:        workflowDefinitionRunCreateRoute,
+	})
+
+	result := service.StartRun(runContext, WorkflowRunRequest{
+		DraftID:   draft.DraftID,
+		InputText: "Exercise both ordered model nodes under one durable run.",
+	})
+
+	if result.FailureCode != "" || result.Record == nil || result.Record.Status != WorkflowRunStatusSucceeded {
+		t.Fatalf("expected quota-bound multi-node workflow success: %#v", result)
+	}
+	if innerBridge.callCount() != 2 || result.Record.SideEffects.ProviderCalls != 2 {
+		t.Fatalf("expected two provider attempts: calls=%d side_effects=%+v", innerBridge.callCount(), result.Record.SideEffects)
+	}
+	usage, found, err := repository.ReadUsage(quotaContext, "2026-08-10")
+	if err != nil || !found || usage.AdmittedRequestCount != 2 || usage.RemainingRequestCount != 3 {
+		t.Fatalf("expected two distinct quota admissions: found=%t usage=%+v err=%v", found, usage, err)
+	}
+}
+
 func TestWorkflowExecutorRejectsUnsafeOrInvalidDraftWithoutGatewaySideEffects(t *testing.T) {
 	testCases := []struct {
 		name            string
@@ -503,6 +549,25 @@ func executableWorkflowDraftForTest() SavedWorkflowDraft {
 		Findings:        []SavedWorkflowDraftValidationFinding{},
 	}
 	return draft
+}
+
+func executableSequentialWorkflowDraftForTest() SavedWorkflowDraft {
+	base := executableWorkflowDraftForTest()
+	promptNode := base.Nodes[0]
+	firstModelNode := base.Nodes[1]
+	firstModelNode.NodeID = "node_model_first"
+	firstModelNode.Label = "First model"
+	secondModelNode := firstModelNode
+	secondModelNode.NodeID = "node_model_second"
+	secondModelNode.Label = "Second model"
+	outputNode := base.Nodes[2]
+	base.Nodes = []SavedWorkflowDraftNode{promptNode, firstModelNode, secondModelNode, outputNode}
+	base.Edges = []SavedWorkflowDraftEdge{
+		{EdgeID: "edge_prompt_first", FromNodeID: promptNode.NodeID, ToNodeID: firstModelNode.NodeID},
+		{EdgeID: "edge_first_second", FromNodeID: firstModelNode.NodeID, ToNodeID: secondModelNode.NodeID},
+		{EdgeID: "edge_second_output", FromNodeID: secondModelNode.NodeID, ToNodeID: outputNode.NodeID},
+	}
+	return base
 }
 
 func executableConditionalWorkflowDraftForTest() SavedWorkflowDraft {

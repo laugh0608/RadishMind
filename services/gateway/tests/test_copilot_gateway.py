@@ -5,6 +5,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import jsonschema
 
@@ -13,7 +14,14 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from services.gateway import GatewayOptions, handle_copilot_request, validate_gateway_envelope  # noqa: E402
+from services.gateway.copilot_gateway import sanitize_provider_usage  # noqa: E402
+from services.runtime.inference_provider import normalize_provider_usage  # noqa: E402
 from services.runtime.inference_support import make_mock_docs_qa_response  # noqa: E402
+from services.runtime.provider_attempt_failure import (  # noqa: E402
+    ProviderAttemptError,
+    provider_http_failure_observation,
+    provider_unknown_outcome_observation,
+)
 
 
 REQUEST_FIXTURE = REPO_ROOT / "datasets/examples/radishflow-copilot-request-ghost-valve-ambiguous-001.json"
@@ -35,6 +43,8 @@ class GatewayTimingMetadataTest(unittest.TestCase):
         self.assertIsInstance(metadata["duration_ms"], int)
         self.assertIsInstance(metadata["provider_duration_ms"], int)
         self.assertGreaterEqual(metadata["duration_ms"], metadata["provider_duration_ms"])
+        self.assertEqual(metadata["usage"]["availability"], "not_reported")
+        self.assertEqual(metadata["usage"]["total_tokens"], 0)
 
     def test_provider_duration_is_required_by_gateway_contract(self) -> None:
         envelope = handle_copilot_request(
@@ -45,6 +55,201 @@ class GatewayTimingMetadataTest(unittest.TestCase):
 
         with self.assertRaises(jsonschema.ValidationError):
             validate_gateway_envelope(envelope)
+
+    def test_gateway_rejects_reported_usage_with_inconsistent_total(self) -> None:
+        envelope = handle_copilot_request(
+            copy.deepcopy(self.request_document),
+            options=GatewayOptions(provider="mock"),
+        )
+        envelope["metadata"]["usage"] = {
+            "availability": "reported",
+            "source": "openai_compatible_usage",
+            "input_tokens": 12,
+            "output_tokens": 5,
+            "total_tokens": 99,
+        }
+
+        with self.assertRaises(jsonschema.ValidationError):
+            validate_gateway_envelope(envelope)
+
+    def test_provider_attempt_failure_crosses_bridge_as_typed_sanitized_evidence(self) -> None:
+        cases = (
+            (provider_http_failure_observation(429), "eligible", "failed"),
+            (provider_http_failure_observation(401), "ineligible", "failed"),
+            (provider_unknown_outcome_observation(), "ineligible", "unknown"),
+        )
+        for observation, disposition, outcome in cases:
+            with self.subTest(code=observation.code):
+                with patch(
+                    "services.gateway.copilot_gateway.run_inference",
+                    side_effect=ProviderAttemptError("sanitized provider failure", observation),
+                ):
+                    envelope = handle_copilot_request(
+                        copy.deepcopy(self.request_document),
+                        options=GatewayOptions(provider="mock"),
+                    )
+                validate_gateway_envelope(envelope)
+                evidence = envelope["provider_attempt_failure"]
+                self.assertEqual(evidence["fallback_disposition"], disposition)
+                self.assertEqual(evidence["outcome"], outcome)
+                self.assertNotIn("sanitized provider failure", json.dumps(evidence))
+
+                unsafe = copy.deepcopy(envelope)
+                unsafe["provider_attempt_failure"]["failure_class"] = (
+                    "provider_authentication_failed"
+                )
+                unsafe["provider_attempt_failure"]["fallback_disposition"] = "eligible"
+                with self.assertRaises(jsonschema.ValidationError):
+                    validate_gateway_envelope(unsafe)
+
+    def test_untyped_gateway_failure_does_not_fabricate_provider_evidence(self) -> None:
+        with patch(
+            "services.gateway.copilot_gateway.run_inference",
+            side_effect=RuntimeError("private bridge failure"),
+        ):
+            envelope = handle_copilot_request(
+                copy.deepcopy(self.request_document),
+                options=GatewayOptions(provider="mock"),
+            )
+        validate_gateway_envelope(envelope)
+        self.assertIsNone(envelope["provider_attempt_failure"])
+
+
+class ProviderUsageNormalizationTest(unittest.TestCase):
+    def test_gateway_sanitizes_invalid_provider_usage_without_preserving_counts(self) -> None:
+        self.assertEqual(
+            sanitize_provider_usage(
+                {
+                    "availability": "reported",
+                    "source": "openai_compatible_usage",
+                    "input_tokens": 3,
+                    "output_tokens": 2,
+                    "total_tokens": 99,
+                }
+            ),
+            {
+                "availability": "not_reported",
+                "source": "",
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "total_tokens": 0,
+            },
+        )
+
+    def test_normalizes_supported_provider_shapes(self) -> None:
+        cases = (
+            (
+                {"usage": {"prompt_tokens": 12, "completion_tokens": 5, "total_tokens": 17}},
+                {"provider_id": "openai-compatible"},
+                "openai_compatible_usage",
+            ),
+            (
+                {
+                    "usageMetadata": {
+                        "promptTokenCount": 20,
+                        "candidatesTokenCount": 8,
+                        "thoughtsTokenCount": 3,
+                        "totalTokenCount": 31,
+                    }
+                },
+                {"provider_id": "openai-compatible", "api_style": "gemini-native"},
+                "gemini_usage_metadata",
+            ),
+            (
+                {
+                    "usage": {
+                        "input_tokens": 31,
+                        "cache_creation_input_tokens": 4,
+                        "cache_read_input_tokens": 6,
+                        "output_tokens": 9,
+                    }
+                },
+                {"provider_id": "openai-compatible", "api_style": "anthropic-messages"},
+                "anthropic_usage",
+            ),
+            (
+                {"prompt_eval_count": 7, "eval_count": 3},
+                {"provider_id": "ollama"},
+                "ollama_eval_counts",
+            ),
+        )
+
+        for raw_response, options, expected_source in cases:
+            with self.subTest(source=expected_source):
+                usage = normalize_provider_usage(raw_response, **options)
+                self.assertEqual(usage["availability"], "reported")
+                self.assertEqual(usage["source"], expected_source)
+                self.assertEqual(
+                    usage["total_tokens"],
+                    usage["input_tokens"] + usage["output_tokens"],
+                )
+        gemini_usage = normalize_provider_usage(
+            {
+                "usageMetadata": {
+                    "promptTokenCount": 20,
+                    "candidatesTokenCount": 8,
+                    "thoughtsTokenCount": 3,
+                    "totalTokenCount": 31,
+                }
+            },
+            provider_id="openai-compatible",
+            api_style="gemini-native",
+        )
+        self.assertEqual(gemini_usage["output_tokens"], 11)
+        anthropic_usage = normalize_provider_usage(
+            {
+                "usage": {
+                    "input_tokens": 31,
+                    "cache_creation_input_tokens": 4,
+                    "cache_read_input_tokens": 6,
+                    "output_tokens": 9,
+                }
+            },
+            provider_id="openai-compatible",
+            api_style="anthropic-messages",
+        )
+        self.assertEqual(anthropic_usage["input_tokens"], 41)
+
+    def test_uses_final_valid_stream_usage_chunk(self) -> None:
+        usage = normalize_provider_usage(
+            {
+                "stream": True,
+                "chunks": [
+                    {"choices": [{"delta": {"content": "first"}}]},
+                    {"usage": {"prompt_tokens": 15, "completion_tokens": 4, "total_tokens": 19}},
+                ],
+            },
+            provider_id="huggingface",
+        )
+
+        self.assertEqual(usage["availability"], "reported")
+        self.assertEqual(usage["source"], "huggingface_usage")
+        self.assertEqual(usage["total_tokens"], 19)
+
+    def test_invalid_or_partial_usage_remains_not_reported(self) -> None:
+        cases = (
+            {"usage": {"prompt_tokens": 2, "completion_tokens": 1}},
+            {"usage": {"prompt_tokens": True, "completion_tokens": 1, "total_tokens": 2}},
+            {"usage": {"prompt_tokens": -1, "completion_tokens": 1, "total_tokens": 0}},
+            {"usage": {"prompt_tokens": 2, "completion_tokens": 1, "total_tokens": 4}},
+        )
+
+        for raw_response in cases:
+            with self.subTest(raw_response=raw_response):
+                usage = normalize_provider_usage(
+                    raw_response,
+                    provider_id="openai-compatible",
+                )
+                self.assertEqual(
+                    usage,
+                    {
+                        "availability": "not_reported",
+                        "source": "",
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "total_tokens": 0,
+                    },
+                )
 
     def test_mock_provider_returns_strict_workflow_rag_answer_for_selected_evidence(self) -> None:
         evidence = [{

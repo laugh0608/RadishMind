@@ -44,6 +44,7 @@ type AgentCopilotInvocationInput struct {
 	Artifacts           []AgentCopilotArtifact
 	Context             map[string]any
 	ClientInvocationKey string
+	RunID               string
 }
 
 type AgentCopilotInvocationResult struct {
@@ -179,6 +180,12 @@ func (service agentCopilotInvocationService) Invoke(ctx AgentCopilotRuntimeConte
 	}
 	runContext := agentCopilotWorkflowRunContext(ctx)
 	runID := agentCopilotInvocationRunID(ctx, clientKey)
+	if input.RunID != "" {
+		if !workflowRAGRunIDPattern.MatchString(input.RunID) {
+			return agentCopilotInvocationFailure(AgentCopilotInvocationFailureInputInvalid)
+		}
+		runID = input.RunID
+	}
 	existing, found, err := service.runStore.ReadRun(runContext, runID)
 	if err != nil {
 		return agentCopilotInvocationFailure(AgentCopilotRuntimeFailureStoreUnavailable)
@@ -208,6 +215,9 @@ func (service agentCopilotInvocationService) Invoke(ctx AgentCopilotRuntimeConte
 	executionContext, cancel := context.WithTimeout(ctx.RequestContext, maxRuntime)
 	defer cancel()
 	responsePayload, gatewayCategory, gatewayFailure := service.callGateway(executionContext, runID, checkpoint, requestPayload)
+	if gatewayRequestQuotaFailureCodeFromValue(gatewayFailure) != "" {
+		return service.complete(runContext, record, nil, WorkflowRunStatusFailed, gatewayFailure, "quota_admission", "provider", "quota")
+	}
 	record.SideEffects.ProviderCalls = 1
 	if gatewayFailure != "" {
 		if gatewayCategory == "canceled" {
@@ -465,6 +475,9 @@ func (service agentCopilotInvocationService) callGateway(ctx context.Context, ru
 	}
 	envelope, err := service.bridge.HandleEnvelope(ctx, requestPayload, service.gatewayOptions(authority.Selection))
 	if err != nil {
+		if quotaFailure := gatewayRequestQuotaFailureCode(err); quotaFailure != "" {
+			return nil, "quota", quotaFailure
+		}
 		if errors.Is(ctx.Err(), context.Canceled) {
 			return nil, "canceled", AgentCopilotInvocationFailureCanceled
 		}
@@ -622,6 +635,12 @@ func agentCopilotInvocationFailureSummary(code string) string {
 		return "Agent Copilot response did not satisfy the canonical contract."
 	case AgentCopilotInvocationFailureOutcomeUnknown:
 		return "Agent Copilot invocation outcome is unknown and was not replayed."
+	case GatewayRequestQuotaFailureExceeded:
+		return "Agent Copilot request quota is exhausted for the current UTC period."
+	case GatewayRequestQuotaFailurePolicyNotFound, GatewayRequestQuotaFailureStoreUnavailable:
+		return "Agent Copilot request quota is unavailable."
+	case GatewayRequestQuotaFailureAttemptConflict:
+		return "Agent Copilot request quota admission conflicts with an existing attempt."
 	default:
 		return "Agent Copilot runtime store is unavailable."
 	}
@@ -637,6 +656,9 @@ func agentCopilotInvocationReviewAction(code string) string {
 		return "review_response_contract"
 	case AgentCopilotInvocationFailureCanceled:
 		return "review_cancellation"
+	case GatewayRequestQuotaFailureExceeded, GatewayRequestQuotaFailurePolicyNotFound,
+		GatewayRequestQuotaFailureAttemptConflict, GatewayRequestQuotaFailureStoreUnavailable:
+		return "review_run"
 	default:
 		return "review_run"
 	}

@@ -51,7 +51,7 @@ const DESTINATIONS: Record<
   draft: { targetStage: "human_promotion", targetAnchor: "application-publish-review" },
   candidate: { targetStage: "human_promotion", targetAnchor: "application-publish-review" },
   definition: { targetStage: "controlled_test", targetAnchor: "application-interaction-session" },
-  binding: { targetStage: "human_promotion", targetAnchor: "workflow-rag-promotion-review" },
+  binding: { targetStage: "configure_build", targetAnchor: "application-configuration-draft" },
   assignment: { targetStage: "controlled_test", targetAnchor: "application-rag-invocation" },
   session: { targetStage: "controlled_test", targetAnchor: "application-interaction-session" },
   run: { targetStage: "evidence_review", targetAnchor: "workspace-run-history" },

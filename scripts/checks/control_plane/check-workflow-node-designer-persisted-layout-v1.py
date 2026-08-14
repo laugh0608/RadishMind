@@ -101,12 +101,18 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     draft_type_text = read(str(contract.get("draft_type_file")))
     consumer_text = read(str(contract.get("consumer_file")))
     app_text = read(str(contract.get("app_file")))
+    clone_text = read(str(contract.get("clone_file")))
     node_designer_text = read(str(contract.get("node_designer_file")))
     handoff_text = read(str(contract.get("handoff_file")))
 
     assert_literals(draft_type_text, contract.get("required_type_literals") or [], "workflowDraftDesigner.ts")
     assert_literals(consumer_text, contract.get("required_consumer_literals") or [], "savedWorkflowDraftConsumer.ts")
     assert_literals(app_text, contract.get("required_app_literals") or [], "App.tsx")
+    assert_literals(
+        clone_text,
+        contract.get("required_clone_literals") or [],
+        "workflowSavedDraftDerivation.ts",
+    )
     assert_literals(node_designer_text, contract.get("required_node_designer_literals") or [], "workflowNodeDesigner.tsx")
     assert_literals(handoff_text, contract.get("required_handoff_literals") or [], "workflowReviewHandoff.ts")
     assert_forbidden_literals(consumer_text, contract.get("forbidden_consumer_literals") or [], "savedWorkflowDraftConsumer.ts")

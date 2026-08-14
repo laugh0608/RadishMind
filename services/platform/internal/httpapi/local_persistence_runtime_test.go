@@ -33,7 +33,7 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != 23 {
+	).Scan(&migrationCount); err != nil || migrationCount != len(localPersistenceSQLiteMigrations()) {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -452,6 +452,7 @@ func decodeLocalProductResponse(t *testing.T, response *httptest.ResponseRecorde
 func setLocalProductControlHeaders(request *http.Request, scopes string) {
 	setControlPlaneReadDevAuthHeaders(request)
 	request.Header.Set(controlPlaneReadDevScopesHeader, scopes)
+	request.Header.Set(controlPlaneReadDevMembershipPermHeader, scopes)
 }
 
 func setLocalProductWorkflowHeaders(request *http.Request, scopes, applicationID string) {
@@ -552,8 +553,8 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 	if _, ok := server.gatewayRequestHistoryStore.(*sqliteGatewayRequestStore); !ok {
 		t.Fatalf("Gateway request did not select SQLite: %T", server.gatewayRequestHistoryStore)
 	}
-	if _, ok := server.savedWorkflowDraftStore.(*repositorySavedWorkflowDraftStore); !ok {
-		t.Fatalf("saved workflow draft did not select the SQLite repository adapter: %T", server.savedWorkflowDraftStore)
+	if _, ok := server.savedWorkflowDraftStore.(*repositorySavedWorkflowDraftLibraryStore); !ok {
+		t.Fatalf("saved workflow draft did not select the SQLite library repository adapter: %T", server.savedWorkflowDraftStore)
 	}
 	if _, ok := server.workflowRunStore.(*sqliteWorkflowRunStore); !ok {
 		t.Fatalf("workflow run did not select SQLite: %T", server.workflowRunStore)
@@ -571,15 +572,16 @@ func assertAggregateSQLiteRepositorySelection(t *testing.T, server *Server) {
 		t.Fatalf("workflow RAG evaluation datasets did not share the SQLite runtime: %T", server.workflowRAGEvaluationDatasetRepository)
 	}
 	for name, mode := range map[string]string{
-		"application_catalog": server.config.ApplicationCatalogStoreMode,
-		"application_draft":   server.config.ApplicationDraftStoreMode,
-		"application_publish": server.config.ApplicationPublishStoreMode,
-		"prompt_template":     server.config.PromptTemplateStoreMode,
-		"agent_profile":       server.config.AgentCopilotProfileStoreMode,
-		"api_key":             server.config.APIKeyStoreMode,
-		"gateway_request":     server.config.GatewayRequestStoreMode,
-		"workflow_draft":      server.config.WorkflowSavedDraftStoreMode,
-		"workflow_run":        server.config.WorkflowRunStoreMode,
+		"application_catalog":  server.config.ApplicationCatalogStoreMode,
+		"application_draft":    server.config.ApplicationDraftStoreMode,
+		"application_publish":  server.config.ApplicationPublishStoreMode,
+		"prompt_template":      server.config.PromptTemplateStoreMode,
+		"agent_profile":        server.config.AgentCopilotProfileStoreMode,
+		"admin_provider_route": server.config.AdminProviderRouteStoreMode,
+		"api_key":              server.config.APIKeyStoreMode,
+		"gateway_request":      server.config.GatewayRequestStoreMode,
+		"workflow_draft":       server.config.WorkflowSavedDraftStoreMode,
+		"workflow_run":         server.config.WorkflowRunStoreMode,
 	} {
 		if mode != "sqlite_dev" {
 			t.Fatalf("aggregate store mode drifted: component=%s mode=%s", name, mode)

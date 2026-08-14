@@ -100,6 +100,7 @@
     "node_designer_file": "apps/radishmind-web/src/features/control-plane-read/workflowNodeDesigner.tsx",
     "consumer_file": "apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts",
     "app_file": "apps/radishmind-web/src/app/App.tsx",
+    "panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
     "validation_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftValidationInspector.ts",
     "style_file": "apps/radishmind-web/src/styles.css",
     "required_node_designer_literals": [
@@ -154,19 +155,26 @@
       "handleWorkflowDraftAddEdge",
       "handleWorkflowDraftRemoveEdge",
       "validationInspector={activeWorkflowDraftValidationInspector}",
-      "validationInspector={validationInspector}",
       "buildWorkflowDraftEdgeForConnection(",
       "workflowDraftReviewableEdgeConditionSummary(",
       "workflowDraftNonEmptyConditionSummary(",
-      "WorkflowDraftEdgeCard",
       "workflowDraftEdgeId(",
       "workflowDraftEdgeKindForConnection(",
       "workflowDraftEdgeConditionSummary(",
       "rebuildWorkflowDraftEdges(",
-      "workflow-draft-edge-heading-main",
-      "<small>{edge.edgeId}</small>",
+      "onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}",
+      "onAddEdge={handleWorkflowDraftAddEdge}",
+      "onRemoveEdge={handleWorkflowDraftRemoveEdge}",
       "status: \"unsaved_local\"",
       "localOnlyInteraction: \"local_edit\""
+    ],
+    "required_panel_literals": [
+      "validationInspector={validationInspector}",
+      "WorkflowDraftEdgeCard",
+      "workflow-draft-edge-heading-main",
+      "<small>{edge.edgeId}</small>",
+      "onUpdateCondition={onUpdateEdgeCondition}",
+      "onRemoveEdge={onRemoveEdge}"
     ],
     "required_validation_literals": [
       "output_audit_path",

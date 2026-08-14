@@ -269,6 +269,12 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     source = app_source_text()
     app_source = read_text("apps/radishmind-web/src/app/App.tsx")
     shell_source = read_text("apps/radishmind-web/src/features/control-plane-read/readShell.ts")
+    admin_workspace_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneWorkspace.tsx"
+    )
+    admin_route_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneRoute.ts"
+    )
     for literal in fixture.get("forbidden_source_literals") or []:
         require(str(literal) not in source, f"apps/radishmind-web must not contain source literal: {literal}")
     for literal in fixture.get("forbidden_control_literals") or []:
@@ -299,8 +305,16 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         ):
             require(literal in page_source, f"{page_id} missing source literal: {literal}")
         require("canRequestLiveBackend:" in page_source, f"{page_id} missing live backend boundary flag")
-        for literal in (expected["builder"], page_id, expected["summary_binding"]):
-            require(literal in app_source, f"App missing rendered binding for {page_id}: {literal}")
+        if expected["surface"] == "Admin Control Plane":
+            require(expected["builder"] in app_source, f"App missing Admin builder for {page_id}")
+            require(page_id in admin_route_source, f"Admin route owner missing anchor for {page_id}")
+            require(
+                expected["summary_binding"] in admin_workspace_source,
+                f"Admin workspace missing rendered binding for {page_id}: {expected['summary_binding']}",
+            )
+        else:
+            for literal in (expected["builder"], page_id, expected["summary_binding"]):
+                require(literal in app_source, f"App missing rendered binding for {page_id}: {literal}")
 
 
 def assert_docs_and_baseline(fixture: dict[str, Any]) -> None:

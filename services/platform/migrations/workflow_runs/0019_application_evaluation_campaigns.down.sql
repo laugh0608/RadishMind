@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS application_evaluation_campaigns_no_delete ON application_evaluation_campaigns;
+DROP TRIGGER IF EXISTS application_evaluation_plan_versions_no_delete ON application_evaluation_plan_versions;
+DROP TRIGGER IF EXISTS application_evaluation_plan_versions_no_update ON application_evaluation_plan_versions;
+DROP TRIGGER IF EXISTS application_evaluation_plans_no_delete ON application_evaluation_plans;
+DROP TRIGGER IF EXISTS application_evaluation_campaigns_controlled_update ON application_evaluation_campaigns;
+DROP TRIGGER IF EXISTS application_evaluation_plans_controlled_update ON application_evaluation_plans;
+DROP FUNCTION IF EXISTS reject_application_evaluation_mutation();
+DROP FUNCTION IF EXISTS enforce_application_evaluation_campaign_update();
+DROP FUNCTION IF EXISTS enforce_application_evaluation_plan_update();
+DROP TABLE IF EXISTS application_evaluation_campaigns;
+DROP TABLE IF EXISTS application_evaluation_plan_versions;
+DROP TABLE IF EXISTS application_evaluation_plans;

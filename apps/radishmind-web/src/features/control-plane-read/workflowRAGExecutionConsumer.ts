@@ -172,8 +172,12 @@ export function evaluateWorkflowRAGExecutionEligibility(
   }
   if (draft.executionProfile !== "rag_retrieval_v1") reasons.push(reason("rag_execution_profile_required", "Create or restore a RAG retrieval v1 draft."));
   if (draftEditDirty) reasons.push(reason("unsaved_local_changes", "Save the current exact draft before execution."));
-  if (savedDraftState.currentDraftVersion < 1 || !["saved_dev_record", "validation_ready"].includes(savedDraftState.status)) {
-    reasons.push(reason("saved_draft_version_unavailable", "An exact valid saved draft version is required."));
+  if (
+    savedDraftState.currentDraftVersion < 1 ||
+    savedDraftState.currentLifecycleState !== "active" ||
+    !["saved_dev_record", "validation_ready"].includes(savedDraftState.status)
+  ) {
+    reasons.push(reason("saved_draft_version_unavailable", "Exact valid content and active lifecycle versions are required."));
   }
   if (draft.blockedCapabilities.length) reasons.push(reason("blocked_capabilities_present", "The saved draft must have zero blocked capabilities."));
 

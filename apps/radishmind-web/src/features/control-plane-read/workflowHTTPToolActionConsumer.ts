@@ -403,10 +403,14 @@ export function evaluateWorkflowHTTPToolActionEligibility(
   const toolNodes = draft.nodes.filter((node) => node.nodeType === "http_tool");
   const toolNode = toolNodes.length === 1 ? toolNodes[0] : null;
 
-  if (savedDraftState.status !== "saved_dev_record" || savedDraftState.currentDraftVersion < 1) {
+  if (
+    savedDraftState.status !== "saved_dev_record" ||
+    savedDraftState.currentDraftVersion < 1 ||
+    savedDraftState.currentLifecycleState !== "active"
+  ) {
     reasons.push({
       code: "workflow_tool_saved_draft_required",
-      summary: "The selected draft must have an exact durable saved version.",
+      summary: "The selected draft must have exact durable content and active lifecycle versions.",
     });
   }
   if (draftEditDirty) {
@@ -667,7 +671,7 @@ function workflowHTTPToolActionHeaders(
   scope: "plan" | "read" | "confirm",
 ): HeadersInit {
   const scopes = scope === "plan" ? PLAN_SCOPE_GRANTS : scope === "confirm" ? CONFIRM_SCOPE_GRANTS : READ_SCOPE_GRANTS;
-  return {
+  const headers = {
     Accept: "application/json",
     "Content-Type": "application/json",
     "X-Request-Id": requestId,
@@ -678,6 +682,13 @@ function workflowHTTPToolActionHeaders(
     "X-RadishMind-Dev-Read-Audit": "audit_dev_workflow_http_tool_action_consumer",
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
+  };
+  if (scope === "read") return headers;
+  return {
+    ...headers,
+    "X-RadishMind-Active-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+    "X-RadishMind-Dev-Read-Membership-Permissions": scopes.join(","),
   };
 }
 

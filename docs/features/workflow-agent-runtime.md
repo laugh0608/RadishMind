@@ -1,6 +1,6 @@
 # Workflow / Agent Runtime 设计与开发文档
 
-更新时间：2026-07-20
+更新时间：2026-08-11
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-07-19 当前结论：Saved Draft durable dev/test repository、R4 Gateway、executor v0、Run History、Failure Review、Run Comparison、Evaluation Cases、[Baseline / Case Versioning](workflow/workflow-evaluation-baseline-case-versioning-v1.md)、[Evaluation Suite / Release Review](workflow/workflow-evaluation-suite-release-review-v1.md)、Gateway Request History 与 Gateway Playground 已完成。Workflow HTTP Tool、RAG Retrieval / Evaluation / 知识质量与晋级链、Application RAG runtime，以及[Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md)均已关闭；definition-bound executor v1、run v5、三种 repository、Web、双数据库连续链和真实浏览器均有可复验证据。下一步由用户工作区功能设计组织这些既有权威能力，不从 Workflow runtime 原地扩自动 activation、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-11 当前结论：Saved Draft durable dev/test repository、版本历史、R4 Gateway、executor、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成 Draft / Definition v2、executor v2、Run v8、Comparison v7、strict contract decoder、Session v4、Evaluation Plan / Campaign v2、三模式 durable chain 与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。当前活跃专题转为 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)：只在既有 snapshot owner 前增加浏览器内材料暂存、确定性切分和结构化审查，不从已关闭专题扩自动 activation、草案自动保存 / 合并 / 同步、分支图、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -20,6 +20,8 @@
 - `Saved Workflow Draft v1` 已完成 platform Go domain service 实现：`SavedWorkflowDraft` v1 类型、内存 dev store boundary、save / read / validate / list 契约、版本冲突、失败语义、sanitized response、no sample fallback 和 no side effects tests 已落地。
 - `Saved Workflow Draft v1` 已完成 dev-only HTTP route、Web consumer、memory / SQLite / PostgreSQL 开发测试态 repository、save / read / validate / list / restore、版本冲突与重启恢复；`Workflow Executor v0` 已完成 Prompt / LLM / condition / output 受控执行和 scoped run record。受控 HTTP Tool 已沿独立版本化 action plan / confirmation / run v2 路径完成三个批次；不得在 v0 上原地放开。
 - 当前已实现 `User Workspace Saved Draft List v1`：dev-only list route 只返回 sanitized summary，Workspace Home 可显示已保存 dev draft、empty / failure state，并通过既有 read route 恢复到 Draft Designer。
+- 当前已完成[已保存 Workflow 草案派生（开发 / 测试态）v1](workflow/saved-workflow-draft-derivation-dev-test-v1.md)：精确 saved version 可以派生独立本地草案，直接来源通过受控 metadata 往返；源记录、owner、审计记录和运行数据不复制。
+- 当前已完成[已保存 Workflow 草案修订历史、版本比较与显式恢复（开发 / 测试态）v1](workflow/saved-workflow-draft-revision-history-restore-dev-test-v1.md)：Memory、SQLite 与 PostgreSQL 原子追加不可变 revision，Web 可稳定分页、精确读取、结构化比较并把历史版本恢复为新版本；不修改历史，不提供自动恢复、合并或分支图。
 - 当前已实现 `Workflow Draft Designer Editing Model v2`：Draft Designer 可本地新增节点、移动节点、删除非受保护节点、重建边，并让 validation inspector、execution plan preview 和 runtime readiness inspector 消费当前 active draft。
 - 当前已实现 `Workflow Draft Node Attribute Editing Model v1`：Draft Designer 提供节点属性编辑，并把节点级 summary、contract fields、output mapping 和 provider / tool / RAG refs 保存 / 恢复到 dev-only saved draft。
 - 当前已实现 `Workflow Review Handoff Active Draft v1`：Review Handoff 新增 active draft review record，汇总 active draft validation inspector、execution plan preview 和 runtime readiness inspector 的状态、blocker count、request / audit metadata 和 reviewer question。
@@ -155,7 +157,7 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md)已完成设计确认并进入批次 A。该设计把 Workflow Definition、RAG assignment、Session、Run History、Comparison、Evaluation / Baseline / Suite 固定为既有只读证据或显式动作来源，并统一 application scope、generation 清理和交接关系；页面层不得复制 authority resolver、执行算法、运行 store 或发布 owner。当前只进入 Web 组合批次，connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
+[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript 严格 UTF-8 Markdown / Text reader、确定性 sectioner、局部 Pencil、单一结构化 fragment editor、来源 / fragment 审查以及 SQLite create / version / CAS / 重启和隐私复验，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。最终仍只把用户显式确认的 replacement 交给既有 snapshot create / version owner；原始文件与 staging 不持久化，没有新增 API、schema、migration、repository、permission、task card、fixture 或 checker。connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
 
 ## 验收方式
 

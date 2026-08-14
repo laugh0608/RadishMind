@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/gateway-model-pricing-policy.schema.json",
+  "title": "GatewayModelPricingPolicyV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_id",
+    "record_version",
+    "tenant_ref",
+    "workspace_id",
+    "environment",
+    "provider_id",
+    "profile_id",
+    "model_id",
+    "currency",
+    "token_unit",
+    "input_price_micros_per_token_unit",
+    "output_price_micros_per_token_unit",
+    "policy_digest",
+    "reason",
+    "updated_at",
+    "updated_by_actor_ref",
+    "request_id",
+    "audit_ref"
+  ],
+  "properties": {
+    "schema_version": { "const": "gateway_model_pricing_policy.v1" },
+    "policy_id": { "type": "string", "pattern": "^gmp_[a-f0-9]{24}$" },
+    "record_version": { "type": "integer", "minimum": 1 },
+    "tenant_ref": { "$ref": "#/$defs/reference" },
+    "workspace_id": { "$ref": "#/$defs/reference" },
+    "environment": { "enum": ["development", "test"] },
+    "provider_id": { "$ref": "#/$defs/reference" },
+    "profile_id": { "$ref": "#/$defs/reference" },
+    "model_id": { "$ref": "#/$defs/reference" },
+    "currency": { "const": "USD" },
+    "token_unit": { "const": 1000000 },
+    "input_price_micros_per_token_unit": { "type": "integer", "minimum": 0 },
+    "output_price_micros_per_token_unit": { "type": "integer", "minimum": 0 },
+    "policy_digest": { "$ref": "#/$defs/digest" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "updated_by_actor_ref": { "$ref": "#/$defs/reference" },
+    "request_id": { "$ref": "#/$defs/reference" },
+    "audit_ref": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    }
+  }
+}

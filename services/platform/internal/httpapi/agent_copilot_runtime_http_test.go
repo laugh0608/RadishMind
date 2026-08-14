@@ -21,6 +21,7 @@ func TestAgentCopilotRuntimeHTTPDefaultClosedScopeAndWriteGate(t *testing.T) {
 
 	server.config = config.Config{AgentCopilotRuntimeDevHTTPEnabled: true}
 	server.agentCopilotRuntimeRepository = newMemoryAgentCopilotRuntimeRepository()
+	server.workspaceMembershipProvider = newDeterministicDevTestWorkspaceMembershipProvider()
 	read := agentCopilotRuntimeHTTPRequest(http.MethodGet, "agent_copilot_runtime:read", nil)
 	readRecorder := httptest.NewRecorder()
 	server.handleReadAgentCopilotRuntimeAssignment(readRecorder, read)
@@ -67,6 +68,13 @@ func agentCopilotRuntimeHTTPRequest(method, scope string, body *strings.Reader) 
 	auth := controlPlaneReadAuthContext{
 		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "verified:dev",
 		TenantBinding: "tenant:one", SubjectBinding: "subject:owner", ScopeGrants: []string{scope},
+	}
+	if method == http.MethodPost {
+		auth.WorkspaceMemberships = []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: "tenant:one", SubjectRef: "subject:owner", WorkspaceID: "workspace_one",
+			PermissionGrants: []string{scope},
+		}}
+		request.Header.Set(activeWorkspaceHeader, "workspace_one")
 	}
 	request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
 	request.Header.Set(agentCopilotRuntimeWorkspaceHeader, "workspace_one")

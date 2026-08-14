@@ -182,6 +182,52 @@ func TestWorkflowRAGApplicationInvocationSucceedsOnceAndStoresV4MetadataOnly(t *
 	}
 }
 
+func TestWorkflowRAGApplicationInvocationQuotaRejectsAfterRetrievalBeforeProvider(t *testing.T) {
+	fixture := newWorkflowRAGApplicationRuntimeTestFixture(t)
+	activated := fixture.runtimeService.Decide(fixture.runtimeContext, WorkflowRAGApplicationRuntimeDecisionInput{
+		ExpectedRecordVersion: 0, Decision: workflowRAGApplicationRuntimeDecisionActivate,
+		PublishCandidateID: fixture.publishCandidate.CandidateID, Reason: "激活候选以验证应用 RAG 配额准入",
+	})
+	if activated.FailureCode != "" {
+		t.Fatalf("activate before quota invocation: %+v", activated)
+	}
+	repository := newMemoryGatewayRequestQuotaRepository()
+	quotaContext := GatewayRequestQuotaContext{
+		RequestContext: context.Background(), TenantRef: fixture.runtimeContext.TenantRef,
+		WorkspaceID: fixture.runtimeContext.WorkspaceID, Environment: "test",
+		ApplicationID: fixture.runtimeContext.ApplicationID, ActorRef: fixture.runtimeContext.ActorRef,
+		RequestID: "request-rag-quota-policy", AuditRef: "audit-rag-quota-policy",
+	}
+	now := time.Date(2026, 8, 9, 18, 0, 0, 0, time.UTC)
+	if _, err := repository.PutPolicy(quotaContext, 0, 1, now); err != nil {
+		t.Fatalf("put application RAG quota policy: %v", err)
+	}
+	quotaBridge := newGatewayRequestQuotaBridgeClient(fixture.bridge, repository)
+	quotaBridge.now = func() time.Time { return now }
+	service := newWorkflowRAGApplicationInvocationService(
+		fixture.runtimeRepository, fixture.resolver, fixture.runStore, quotaBridge,
+	)
+	service.resolveSelection = func(context.Context, string) northboundSelection { return workflowRAGTestSelection() }
+	service.envelopeOptions = func(northboundSelection, float64) bridge.EnvelopeOptions { return bridge.EnvelopeOptions{} }
+	firstContext := fixture.runtimeContext
+	firstContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-rag-quota-first", "POST "+workflowRAGApplicationInvocationRoute)
+	first := service.Invoke(firstContext, WorkflowRAGApplicationInvocationInput{Input: "promotion authority query"})
+	if first.FailureCode != "" || first.Run == nil || first.Run.SideEffects.ProviderCalls != 1 || fixture.bridge.callCount() != 1 {
+		t.Fatalf("application RAG first quota admission drifted: result=%+v calls=%d", first, fixture.bridge.callCount())
+	}
+	overContext := fixture.runtimeContext
+	overContext.RequestContext = gatewayRequestQuotaBridgeTestContextForRoute(quotaContext, "request-rag-quota-over", "POST "+workflowRAGApplicationInvocationRoute)
+	over := service.Invoke(overContext, WorkflowRAGApplicationInvocationInput{Input: "promotion authority query"})
+	if over.FailureCode != GatewayRequestQuotaFailureExceeded || over.Run == nil ||
+		over.Run.SideEffects.RetrievalCalls != 1 || over.Run.SideEffects.ProviderCalls != 0 || fixture.bridge.callCount() != 1 {
+		var validationError error
+		if over.Run != nil {
+			validationError = validateWorkflowRunStoreRecord(workflowRAGApplicationRunContext(overContext), over.Run)
+		}
+		t.Fatalf("application RAG quota rejection crossed provider: result=%+v run=%#v validation=%v calls=%d", over, over.Run, validationError, fixture.bridge.callCount())
+	}
+}
+
 func TestWorkflowRAGApplicationRunComparisonAllowsReviewedAuthorityChange(t *testing.T) {
 	fixture := newWorkflowRAGApplicationRuntimeTestFixture(t)
 	activated := fixture.runtimeService.Decide(fixture.runtimeContext, WorkflowRAGApplicationRuntimeDecisionInput{ExpectedRecordVersion: 0, Decision: workflowRAGApplicationRuntimeDecisionActivate, PublishCandidateID: fixture.publishCandidate.CandidateID, Reason: "人工激活候选用于验证知识晋级比较"})
@@ -275,6 +321,7 @@ func TestWorkflowRAGApplicationRuntimeHTTPManagementAndAPIKeyInvocationBoundarie
 		workflowRAGEvaluationDatasetRepository: fixture.promotionFixture.evaluations,
 		workflowRAGPromotionRepository:         fixture.promotionFixture.promotions,
 		workflowRAGAppRuntimeRepository:        fixture.runtimeRepository,
+		workspaceMembershipProvider:            newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	if controlPlaneReadPermissionGrants["radishmind.workflow-rag-runtime.read"] != "workflow_rag_runtime:read" || controlPlaneReadPermissionGrants["radishmind.workflow-rag-runtime.write"] != "workflow_rag_runtime:write" {
 		t.Fatalf("runtime management permission projection drifted: %#v", controlPlaneReadPermissionGrants)
@@ -284,6 +331,7 @@ func TestWorkflowRAGApplicationRuntimeHTTPManagementAndAPIKeyInvocationBoundarie
 	decisionRequest.SetPathValue("application_id", fixture.runtimeContext.ApplicationID)
 	decisionRequest.Header.Set(savedWorkflowDraftDevWorkspaceHeader, fixture.runtimeContext.WorkspaceID)
 	decisionRequest.Header.Set(savedWorkflowDraftDevApplicationHeader, fixture.runtimeContext.ApplicationID)
+	decisionRequest.Header.Set(activeWorkspaceHeader, fixture.runtimeContext.WorkspaceID)
 	decisionRequest = decisionRequest.WithContext(withControlPlaneReadFakeAuthContext(decisionRequest.Context(), workflowRAGApplicationRuntimeHTTPAuth(fixture, "workflow_rag_runtime:write")))
 	decisionRecorder := httptest.NewRecorder()
 	server.handleDecideWorkflowRAGApplicationRuntimeAssignment(decisionRecorder, decisionRequest)
@@ -344,6 +392,10 @@ func workflowRAGApplicationRuntimeHTTPAuth(fixture *workflowRAGApplicationRuntim
 			SubjectRef: fixture.runtimeContext.ActorRef,
 			TenantRef:  fixture.runtimeContext.TenantRef,
 		},
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: fixture.runtimeContext.TenantRef, SubjectRef: fixture.runtimeContext.ActorRef,
+			WorkspaceID: fixture.runtimeContext.WorkspaceID, PermissionGrants: scopes,
+		}},
 		ResourceBinding: ControlPlaneResourceBinding{TenantRef: fixture.runtimeContext.TenantRef, TenantVerified: true},
 	}
 }

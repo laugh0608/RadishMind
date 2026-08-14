@@ -33,7 +33,7 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 	}
 	if mode == workflowRunStoreModeSQLiteDev {
 		if !cfg.ControlPlaneReadDevAuthEnabled ||
-			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.ApplicationSessionDevEnabled) ||
+			(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.ApplicationSessionDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled) ||
 			((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) {
 			return nil, nil, errors.New("sqlite_dev workflow run store config is incomplete")
 		}
@@ -58,7 +58,7 @@ func newWorkflowRunStoreFromConfigWithSQLiteRuntime(
 		return nil, nil, fmt.Errorf("%s", WorkflowRunFailureStoreModeInvalid)
 	}
 	if !cfg.ControlPlaneReadDevAuthEnabled ||
-		(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.ApplicationSessionDevEnabled) ||
+		(!cfg.WorkflowExecutorDevEnabled && !cfg.WorkflowRAGExecutionDevEnabled && !cfg.WorkflowRAGEvaluationDevEnabled && !cfg.WorkflowRAGPromotionDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled && !cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.ApplicationSessionDevEnabled && !cfg.ApplicationEvaluationCampaignDevEnabled) ||
 		((cfg.WorkflowExecutorDevEnabled || cfg.WorkflowRAGExecutionDevEnabled) && !cfg.WorkflowSavedDraftDevHTTPEnabled) || strings.TrimSpace(cfg.WorkflowRunDatabaseURL) == "" {
 		return nil, nil, errors.New("postgres_dev_test workflow run store config is incomplete")
 	}
@@ -93,6 +93,19 @@ func newWorkflowEvaluationStoreForRunStore(store workflowRunStore) workflowEvalu
 		return newSQLiteWorkflowEvaluationStore(typed.database)
 	case *postgresWorkflowRunStore:
 		return newPostgresWorkflowEvaluationStore(typed.pool)
+	default:
+		return nil
+	}
+}
+
+func newApplicationEvaluationRepositoryForRunStore(store workflowRunStore) applicationEvaluationRepository {
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryApplicationEvaluationRepository(applicationEvaluationMemoryPlanCapacity, applicationEvaluationMemoryRunCapacity)
+	case *sqliteWorkflowRunStore:
+		return newSQLiteApplicationEvaluationRepository(typed.database)
+	case *postgresWorkflowRunStore:
+		return newPostgresApplicationEvaluationRepository(typed.pool)
 	default:
 		return nil
 	}

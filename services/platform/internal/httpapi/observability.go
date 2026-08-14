@@ -20,17 +20,24 @@ const (
 	errorBoundarySouthboundProvider = "southbound_provider"
 	errorBoundaryGatewayAuth        = "gateway_authentication"
 	errorBoundaryConfiguration      = "configuration"
+	errorBoundaryQuotaAdmission     = "quota_admission"
 	errorBoundaryUnknown            = "unknown"
 )
 
 type requestTrace struct {
-	requestID             string
-	route                 string
-	startedAt             time.Time
-	selection             northboundSelection
-	hasSelection          bool
-	gatewayRequestContext GatewayRequestContext
-	gatewayRequest        *GatewayRequestRecord
+	requestID              string
+	route                  string
+	startedAt              time.Time
+	selection              northboundSelection
+	hasSelection           bool
+	gatewayRequestContext  GatewayRequestContext
+	gatewayRequest         *GatewayRequestRecord
+	gatewayPricingSnapshot GatewayModelPricingSnapshot
+	providerAttempted      bool
+	providerAttemptHeaders bool
+	providerAttemptCount   int
+	fallbackUsed           bool
+	terminalSelection      *northboundSelection
 }
 
 type platformErrorDefinition struct {
@@ -76,6 +83,10 @@ func writeTraceHeaders(writer http.ResponseWriter, trace requestTrace) {
 	}
 	if trace.route != "" {
 		writer.Header().Set("X-RadishMind-Route", trace.route)
+	}
+	if trace.providerAttemptHeaders {
+		writer.Header().Set("X-RadishMind-Provider-Attempts", fmt.Sprint(trace.providerAttemptCount))
+		writer.Header().Set("X-RadishMind-Fallback-Used", fmt.Sprint(trace.fallbackUsed))
 	}
 }
 
@@ -166,6 +177,30 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryProviderInventory,
 			defaultMessage:  "model not found",
 		},
+		gatewayProviderRouteFailureSnapshotUnavailable: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "configuration_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "an active Provider route snapshot is unavailable",
+		},
+		gatewayProviderRouteFailureNotFound: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "the requested model and protocol are not present in the active Provider route snapshot",
+		},
+		gatewayProviderRouteFailureInventoryMismatch: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "provider_inventory_error",
+			failureBoundary: errorBoundaryProviderInventory,
+			defaultMessage:  "the active Provider route snapshot no longer matches runtime inventory",
+		},
+		gatewayProviderRouteFailureOverrideForbidden: {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "Provider overrides are forbidden when active snapshot routing is enabled",
+		},
 		"MISSING_MODEL_ID": {
 			statusCode:      http.StatusBadRequest,
 			errorType:       "invalid_request_error",
@@ -249,6 +284,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			errorType:       "invalid_request_error",
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "agent copilot runtime dev HTTP route is disabled",
+		},
+		"ADMIN_PROVIDER_ROUTE_DEV_HTTP_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "admin provider route dev HTTP route is disabled",
 		},
 		AgentCopilotProfileFailurePayloadInvalid: {
 			statusCode:      http.StatusBadRequest,
@@ -340,6 +381,36 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryConfiguration,
 			defaultMessage:  "gateway request history dev route is disabled",
 		},
+		"GATEWAY_PROVIDER_FALLBACK_DEV_DISABLED": {
+			statusCode:      http.StatusForbidden,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "Gateway provider fallback requires explicit development opt-in",
+		},
+		"GATEWAY_PROVIDER_FALLBACK_MODE_INVALID": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "radishmind.fallback_mode must be disabled or allow_configured",
+		},
+		"GATEWAY_PROVIDER_FALLBACK_STREAM_UNSUPPORTED": {
+			statusCode:      http.StatusBadRequest,
+			errorType:       "invalid_request_error",
+			failureBoundary: errorBoundaryNorthboundRequest,
+			defaultMessage:  "configured provider fallback is unavailable for streaming requests",
+		},
+		"GATEWAY_PROVIDER_ATTEMPT_PLAN_UNAVAILABLE": {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "configuration_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "Gateway provider attempt plan is unavailable",
+		},
+		"GATEWAY_PROVIDER_ATTEMPT_HISTORY_UNAVAILABLE": {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryConfiguration,
+			defaultMessage:  "Gateway provider attempt history checkpoint is unavailable",
+		},
 		"CONFIG_REQUIRED_FIELDS_MISSING": {
 			statusCode:      http.StatusServiceUnavailable,
 			errorType:       "configuration_error",
@@ -369,6 +440,12 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			errorType:       "platform_error",
 			failureBoundary: errorBoundaryPythonBridge,
 			defaultMessage:  "platform gateway failed",
+		},
+		"GATEWAY_INFERENCE_FAILED": {
+			statusCode:      http.StatusBadGateway,
+			errorType:       "provider_error",
+			failureBoundary: errorBoundarySouthboundProvider,
+			defaultMessage:  "provider inference failed",
 		},
 		bridge.ErrorCodeWorkerQueueFull: {
 			statusCode:      http.StatusServiceUnavailable,
@@ -424,6 +501,30 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 			failureBoundary: errorBoundaryPythonBridge,
 			defaultMessage:  "platform bridge process failed",
 		},
+		GatewayRequestQuotaFailureExceeded: {
+			statusCode:      http.StatusTooManyRequests,
+			errorType:       "quota_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota is exhausted for the current UTC period",
+		},
+		GatewayRequestQuotaFailurePolicyNotFound: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "configuration_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota policy is unavailable",
+		},
+		GatewayRequestQuotaFailureAttemptConflict: {
+			statusCode:      http.StatusConflict,
+			errorType:       "quota_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota attempt conflicts with a recorded admission",
+		},
+		GatewayRequestQuotaFailureStoreUnavailable: {
+			statusCode:      http.StatusServiceUnavailable,
+			errorType:       "platform_error",
+			failureBoundary: errorBoundaryQuotaAdmission,
+			defaultMessage:  "gateway request quota storage is unavailable",
+		},
 		"PLATFORM_RESPONSE_INVALID": {
 			statusCode:      http.StatusBadGateway,
 			errorType:       "platform_error",
@@ -455,6 +556,9 @@ func lookupPlatformErrorDefinition(code string) platformErrorDefinition {
 }
 
 func bridgeFailureCode(err error) string {
+	if code := gatewayRequestQuotaFailureCode(err); code != "" {
+		return code
+	}
 	if code := bridge.ErrorCode(err); code != "" {
 		return code
 	}
@@ -468,6 +572,16 @@ func buildTraceErrorMetadata(trace requestTrace) map[string]any {
 	if trace.hasSelection {
 		for key, value := range buildNorthboundSelectionMetadata(trace.selection) {
 			metadata[key] = value
+		}
+	}
+	if trace.providerAttemptHeaders {
+		metadata["provider_attempt_count"] = trace.providerAttemptCount
+		metadata["fallback_used"] = trace.fallbackUsed
+		if trace.terminalSelection != nil {
+			metadata["terminal_provider"] = strings.TrimSpace(trace.terminalSelection.provider)
+			metadata["terminal_profile"] = strings.TrimSpace(trace.terminalSelection.providerProfile)
+			metadata["route_generation"] = trace.terminalSelection.routeGeneration
+			metadata["route_snapshot_digest"] = strings.TrimSpace(trace.terminalSelection.routeSnapshotDigest)
 		}
 	}
 	return metadata

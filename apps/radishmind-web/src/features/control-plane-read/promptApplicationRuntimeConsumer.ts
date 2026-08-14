@@ -218,6 +218,11 @@ async function requestRuntime(
           ? "prompt_application_runtime:read,prompt_application_runtime:write"
           : "prompt_application_runtime:read",
         "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
+        ...(method === "POST" ? {
+          "X-RadishMind-Active-Workspace": config.workspaceId,
+          "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+          "X-RadishMind-Dev-Read-Membership-Permissions": "prompt_application_runtime:write",
+        } : {}),
         "X-RadishMind-Dev-Prompt-Runtime-Workspace": config.workspaceId,
         "X-RadishMind-Dev-Prompt-Runtime-Application": applicationId,
       },

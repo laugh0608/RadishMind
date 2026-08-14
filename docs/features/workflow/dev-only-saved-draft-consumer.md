@@ -1,6 +1,6 @@
 # Dev-only Saved Draft Consumer 实现专题
 
-更新时间：2026-07-10
+更新时间：2026-07-29
 
 ## 专题定位
 
@@ -20,11 +20,11 @@
 - dev auth 继续要求 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1`，并通过 `X-RadishMind-Dev-Workflow-Workspace`、`X-RadishMind-Dev-Workflow-Application`、subject、tenant 和 scope headers 固定开发态 scope。
 - 前端 consumer：`apps/radishmind-web/src/features/control-plane-read/savedWorkflowDraftConsumer.ts`，默认 sample-only；只有 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 才调用 dev route。
 - 页面状态：`sample`、`unsaved_local`、`saving`、`validating`、`reading`、`saved_dev_record`、`validation_ready`、`version_conflict`、`conflict_local_continued`、`save_failed`、`read_failed`、`validation_failed`。
-- 路径稳定化：已补 route contract、consumer smoke、`version_conflict` UI 状态和冲突后恢复状态；冲突时展示当前 saved draft version metadata，保留用户当前本地草案，不回退 sample。
-- 版本生命周期稳定化：已保存草案进入 `unsaved_local`、`validation_ready` 或非冲突失败时继续保留 persisted base version；`version_conflict` 未显式 Continue / Restore 前禁止 validate / save / read，不允许重复 Save 绕过冲突审查。
-- 冲突审查派生：`WorkflowSavedDraftConflictReviewSummary` 会表达 `savedMetadataState`、`restoreActionState`、`restoreUnavailableReason`、本地草案保留说明和 reviewer 下一步；恢复 saved version 只在冲突后刷新到匹配的 sanitized saved draft summary 时可用。
+- 路径稳定化：已补 route contract、consumer smoke、`version_conflict` UI 状态和冲突后打开状态；冲突时展示当前 saved draft version metadata，保留用户当前本地草案，不回退 sample。
+- 版本生命周期稳定化：已保存草案进入 `unsaved_local`、`validation_ready` 或非冲突失败时继续保留 persisted base version；`version_conflict` 未显式 Continue / Open 前禁止 validate / save / read，不允许重复 Save 绕过冲突审查。validate 不具备 lifecycle 权威，调用前的精确 lifecycle 版本和状态必须保留。
+- 冲突审查派生：`WorkflowSavedDraftConflictReviewSummary` 会表达 `savedMetadataState`、`openActionState`、`openUnavailableReason`、本地草案保留说明和 reviewer 下一步；打开 saved draft 只在冲突后刷新到匹配的 sanitized saved draft summary 时可用。
 - Draft Designer 已补 [Workflow Draft Editing Entry v1](draft-editing-entry-v1.md)，validate / save / read 使用当前本地草案，而不是只读取原始离线 sample。
-- Workspace Home 已补 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md)，可展示 saved dev draft list、empty / failure state，并通过 read route 恢复到 Draft Designer。
+- Workspace Home 已补 [User Workspace Saved Draft List v1](user-workspace-saved-draft-list-v1.md)，当前已扩展为活动 / 归档草案库，可展示筛选、分页、empty / failure state，并通过 read route 打开到 Draft Designer 或进入归档只读审查。
 
 ## 推荐实现路径
 
@@ -64,16 +64,16 @@ consumer 至少需要表达四类状态：
 
 consumer 不得把 `saved_dev_record` 展示为 publish ready、run ready 或 production ready。`valid_for_review` 只能用于审查入口。
 
-冲突恢复状态只消费当前 application 的 sanitized saved draft list。`savedMetadataState` 为 `refreshing`、`empty`、`failed`、`disabled` 或 `missing` 时，恢复按钮必须保持不可用并显示原因；继续本地草案和恢复 saved version 都必须由用户显式触发，不允许自动覆盖或自动合并。
+冲突打开状态只消费当前 application 的 sanitized saved draft list。`savedMetadataState` 为 `refreshing`、`empty`、`failed`、`disabled` 或 `missing` 时，打开按钮必须保持不可用并显示原因；继续本地草案和打开 saved draft 都必须由用户显式触发，不允许自动覆盖或自动合并。
 
 ## 必测场景
 
 - 成功保存后返回 `saved_dev_record`，并展示递增后的 `draft_version`。
 - 基于旧 `draft_version` 保存时返回 `draft_version_conflict`，不得覆盖当前版本；UI 映射为 `version_conflict`，并保留本地草案。
-- 冲突后刷新当前 application saved draft list，只用 sanitized summary 准备恢复入口；列表刷新中、为空、失败或缺少匹配 summary 时不得启用恢复。
+- 冲突后刷新当前 application saved draft list，只用 sanitized summary 准备打开入口；列表刷新中、为空、失败或缺少匹配 summary 时不得启用打开。
 - 选择继续本地草案后进入 `conflict_local_continued`，并在下一次保存时使用 current saved version 作为 expected version。
 - 已保存草案经过编辑或 validate 后再次保存时，仍使用原 persisted base version；validate 响应中的非持久化版本 `0` 不得覆盖本地 saved baseline。
-- 未处理的 `version_conflict` 必须返回不可保存状态，Validate / Save / Read 和编辑控件保持禁用，直到用户显式 Continue 或 Restore。
+- 未处理的 `version_conflict` 必须返回不可保存状态，Validate / Save / Read 和编辑控件保持禁用，直到用户显式 Continue 或 Open。
 - `draft_write_disabled` 时 UI 仍可展示 sample / unsaved 草案，但不得声明已保存。
 - `draft_scope_denied`、`draft_not_found`、`draft_store_unavailable` 均 fail closed，不回退 sample。
 - blocked capability 草案可以作为审查 finding 展示，但不能解锁 executor、confirmation、writeback 或 replay。
@@ -93,4 +93,4 @@ consumer 不得把 `saved_dev_record` 展示为 publish ready、run ready 或 pr
 - 不实现 workflow executor、publish、run、confirmation decision、decision store、writeback、replay、resume 或 materialized result reader。
 - 不创建 public production API，不接真实数据库、repository adapter、schema migration、store selector、Radish OIDC、token validation、API key lifecycle、quota enforcement、billing 或 cost ledger。
 - 不把 dev-only route、memory dev store 或 saved draft 解释为 durable persistence ready。
-- 不在 `version_conflict` 后自动覆盖本地草案、自动合并 saved version，或把 restored saved version 解释为可执行草案。
+- 不在 `version_conflict` 后自动覆盖本地草案、自动合并 saved version，或把 opened saved draft 解释为可执行草案。

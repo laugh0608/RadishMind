@@ -86,8 +86,8 @@ func TestWorkflowRAGSnapshotHTTPFailClosedBoundaries(t *testing.T) {
 		setSavedWorkflowDraftDevHeaders(request, "workflow_rag_snapshots:read")
 		response := httptest.NewRecorder()
 		server.httpServer.Handler.ServeHTTP(response, request)
-		envelope := decodeWorkflowRAGSnapshotEnvelope(t, response, http.StatusOK)
-		if envelope.FailureCode == nil || *envelope.FailureCode != WorkflowRAGFailureScopeDenied || envelope.Record != nil {
+		envelope := decodeWorkflowRAGSnapshotEnvelope(t, response, http.StatusForbidden)
+		if envelope.FailureCode == nil || *envelope.FailureCode != "scope_denied" || envelope.Record != nil {
 			t.Fatalf("snapshot write without dedicated scope did not fail closed: %#v", envelope)
 		}
 	})

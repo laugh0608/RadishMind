@@ -5,6 +5,7 @@ import {
   initialModelGatewayPlaygroundResult,
   modelGatewayPlaygroundConfigForApplication,
   modelGatewayPlaygroundConfigForAPIKey,
+  modelGatewayQuotaFailureGuidance,
   submitModelGatewayPlaygroundRequest,
   type ModelGatewayPlaygroundConfig,
   type ModelGatewayPlaygroundInput,
@@ -188,6 +189,14 @@ test("Gateway Playground preserves stable HTTP failures and rejects correlation 
     assert.equal(revoked.failureCode, "api_key_revoked");
     assert.equal(revoked.historyReviewAvailable, false);
 
+    globalThis.fetch = async () => jsonResponse({
+      error: { message: "sanitized", code: "gateway_quota_exceeded", failure_boundary: "quota_admission" },
+    }, "playground-test-request", 429);
+    const quotaExceeded = await submitModelGatewayPlaygroundRequest(live, input("responses", false));
+    assert.equal(quotaExceeded.failureCode, "gateway_quota_exceeded");
+    assert.equal(quotaExceeded.failureBoundary, "quota_admission");
+    assert.equal(quotaExceeded.historyReviewAvailable, true);
+
     globalThis.fetch = async () => jsonResponse({ output_text: "must be rejected" }, "different-request");
     const mismatch = await submitModelGatewayPlaygroundRequest(live, input("responses", false));
     assert.equal(mismatch.failureCode, "gateway_playground_response_invalid");
@@ -199,6 +208,23 @@ test("Gateway Playground preserves stable HTTP failures and rejects correlation 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("Gateway Playground gives only authoritative quota-owner recovery guidance", () => {
+  for (const failureCode of [
+    "gateway_quota_policy_not_found",
+    "gateway_quota_exceeded",
+    "gateway_quota_store_unavailable",
+  ]) {
+    const guidance = modelGatewayQuotaFailureGuidance(failureCode, "quota_admission");
+    assert.equal(guidance?.adminAnchor, "admin-gateway-request-quota");
+    assert.equal(guidance?.adminLabel, "Open Admin Quota");
+    assert.match(guidance?.sideEffectSummary ?? "", /No provider call was made/u);
+    assert.equal(JSON.stringify(guidance).includes("remaining"), false);
+    assert.equal(JSON.stringify(guidance).includes("Request History as usage truth"), failureCode === "gateway_quota_store_unavailable");
+  }
+  assert.equal(modelGatewayQuotaFailureGuidance("gateway_quota_exceeded", "provider"), null);
+  assert.equal(modelGatewayQuotaFailureGuidance("BRIDGE_WORKER_TIMEOUT", "quota_admission"), null);
 });
 
 test("Gateway Playground rejects invalid input and maps user abort without retry", async () => {

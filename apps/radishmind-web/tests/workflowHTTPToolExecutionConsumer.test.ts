@@ -88,6 +88,12 @@ test("approved plan executes once with exact scopes and maps a redacted v2 termi
     headers["X-RadishMind-Dev-Read-Scopes"],
     "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read",
   );
+  assert.equal(headers["X-RadishMind-Active-Workspace"], "workspace_demo");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Workspace"], "workspace_demo");
+  assert.equal(
+    headers["X-RadishMind-Dev-Read-Membership-Permissions"],
+    "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read",
+  );
 });
 
 test("unsafe execution evidence is rejected and transport failure is never retried", async (t) => {

@@ -1,6 +1,6 @@
 # 用户工作区应用 API 接入与调用 v1
 
-更新时间：2026-07-18
+更新时间：2026-08-08
 
 状态：`application_api_integration_invocation_v1_complete`
 
@@ -14,11 +14,17 @@ Web 单元测试覆盖离线零请求、目录成功 / 空结果 / HTTP 失败 /
 
 2026-07-15 已完成与开发测试态 API 密钥链的组合：Gateway Playground 在 `api_key_dev_test` 模式下只用内存中的 Bearer 凭据加载模型目录和调用三种协议，并将严格校验后的模型公开字段通过脱敏事件交给 API 接入区和配置草案；Bearer 凭据不会进入交接事件。请求历史交接同时携带调用对应的 `consumer_ref`，使 `api_key:<api_key_id>` 与应用作用域精确匹配；`sqlite_dev` 请求历史已纳入严格消费端允许列表。
 
+2026-08-08 的 Family UI `S4 R1` 把既有接入与凭据 owner 组织为 Application Access 单一任务面：Connect API、Credentials、Validate 与 Verify / retire 只表达用户当前位置，不声称自动完成。模型选择仍来自严格目录；协议选项只开放当前模型实际声明的 `protocols`，不再把三种协议全部画成可用。`api_key_dev_test` 尚未获得一次性 Bearer 凭据时，目录区域显示明确资格阻塞并引导到 Credentials，不保留一个必然失败但看似可执行的普通加载按钮。
+
+S4 同时把当前 Application Workspace 的 `workspaceId` 传入接入 owner，并与显式 Gateway 配置作用域做失败关闭核对；不一致时不发送模型目录请求。`#application-api-integration` 与 `#workspace-api-keys` 继续使用原有锚点和 owner，但都归入产品导航 `API & keys`，深层锚点会先展开当前 Controlled Test owner。应用切换继续清空旧模型、示例和失败；本轮没有新增 API、schema、repository、协议适配器、task card 或专项 checker。
+
+2026-08-09 真实复验覆盖 API Key 一次性交接、作用域模型目录、配额内调用、`429 / gateway_quota_exceeded / quota_admission`、同 request id 脱敏历史与 Admin Quota owner。现有 Playground 现在对允许列表内的 quota admission failure 解释 UTC 日请求边界和零 provider 副作用，并精确打开当前 application 的 Admin Quota；用户工作区不读取 policy / usage，不从 Request History 或旧 `QuotaSummary` 推算 used / remaining，也不自动重试、提额或修改 policy。
+
 ## 功能目标
 
 让内部开发者从用户工作区的应用列表选择一个应用后，在同一应用详情中完成模型发现、接入示例生成、测试调用和调用审查。该路径消费现有 `/v1/models`、Gateway 调试台与脱敏请求历史，不新增上行路由、协议适配器、SSE 解析器、请求状态模型、存储库或模型服务注册表。
 
-本功能仍属于内部开发者预览。独立专题已经提供开发测试态 API 密钥生命周期，但本功能的调用成功只证明当前本地 Gateway 路径可交互、可取消和可审查，不代表生产 API 分发、真实模型服务 SLA、生产认证、生产密钥生命周期、配额或计费已经成立。
+本功能仍属于内部开发者预览。独立专题已经提供开发测试态 API 密钥生命周期和 application request quota admission，但本功能的调用成功只证明当前本地 Gateway 路径可交互、可取消、可审查并受开发测试态日请求上限约束，不代表生产 API 分发、真实模型服务 SLA、生产认证、生产密钥生命周期、production quota 或计费已经成立。
 
 ## 目标用户与连续流程
 
@@ -65,7 +71,7 @@ Web 单元测试覆盖离线零请求、目录成功 / 空结果 / HTTP 失败 /
 
 响应只接受 `object: "list"`、`data: Model[]`。每个模型必须包含单行、非空且长度受限的 `id`，并校验 `object: "model"`、非负 `created` 与字符串 `owned_by`。界面只保留模型标识、所有者和公开协议能力；忽略模型服务凭据状态、端点与未知元数据。顶层或模型公共投影出现凭据、授权、敏感信息、原始错误、端点或请求头载荷时按失败关闭处理。
 
-HTTP 非成功响应保留 `gateway_model_catalog_http_failed`，非法 JSON / 信封保留 `gateway_model_catalog_response_invalid`，网络失败保留 `gateway_model_catalog_network_error`；界面只显示稳定错误码与脱敏摘要，不显示响应正文、调用栈、端点或请求头。
+HTTP 非成功响应若携带结构合法且错误码位于模型目录允许列表内的 Gateway 错误信封，则保留 canonical 错误码并映射固定脱敏摘要；其中应用归档或不可用必须显示 `api_key_application_unavailable`，使用户可以回到 Application Catalog 审查生命周期。未知错误码、非法信封或非 JSON 正文收敛为 `gateway_model_catalog_http_failed`，成功状态下的非法 JSON / 信封保留 `gateway_model_catalog_response_invalid`，网络失败保留 `gateway_model_catalog_network_error`；界面不得显示响应正文、服务端错误消息、调用栈、端点或请求头。
 
 ## 接入示例
 
@@ -117,7 +123,7 @@ HTTP 非成功响应保留 `gateway_model_catalog_http_failed`，非法 JSON / �
 
 ## 停止线
 
-- 本专题不负责 API 密钥签发、吊销或凭据存储；开发测试态生命周期由独立专题承接，生产认证、生产密钥轮换、配额执行、限流、计费和成本账本仍不在本功能内实现。
+- 本专题不负责 API 密钥签发、吊销、凭据存储或 quota policy 管理；开发测试态生命周期与 application request admission 分别由独立专题承接，生产认证、生产密钥轮换、production quota、限流、计费和成本账本仍不在本功能内实现。
 - 不新增上行 API、Gateway schema、请求历史 schema / 存储库、模型服务注册表、协议适配器或 SSE 解析器。
 - 不实现自动重试 / 回退、负载均衡、动态模型服务路由或生产部署。
 - 本专题不负责应用创建、编辑、发布、删除或写入；开发测试态应用目录、配置草案与发布审查由各自专题承接。

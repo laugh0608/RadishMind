@@ -14,6 +14,14 @@ const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const DEFAULT_TENANT_REF = "tenant_demo";
 const DEFAULT_SUBJECT_REF = "subject_demo_user";
 const DEFAULT_SCOPES = "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read";
+const ACTIVE_WORKSPACE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$/u;
+const WORKSPACE_ROUTE_IDS = new Set<ControlPlaneReadRouteId>([
+  "application-summary-list-route",
+  "api-key-summary-list-route",
+  "quota-summary-route",
+  "workflow-definition-summary-list-route",
+  "run-record-summary-list-route",
+]);
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
 export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
@@ -26,9 +34,13 @@ export type ControlPlaneReadDevLiveConfig = {
   subjectRef: string;
   authMode?: ControlPlaneReadAuthMode;
   storeMode?: ControlPlaneReadStoreMode;
-  applicationCatalogEnabled?: boolean;
-  apiKeyLifecycleEnabled?: boolean;
   workspaceId?: string;
+};
+
+export type ControlPlaneReadPageRequest = {
+  cursor?: string;
+  limit?: number;
+  sort?: "recorded_at_desc";
 };
 
 export type ControlPlaneReadDevLiveLoadState =
@@ -64,9 +76,11 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
     authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
     storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
-    applicationCatalogEnabled: env.VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE?.trim() === "dev-application-catalog-http",
-    apiKeyLifecycleEnabled: env.VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE?.trim() === "dev-api-key-lifecycle-http",
-    workspaceId: env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID?.trim() || "workspace_demo",
+    workspaceId: normalizeActiveWorkspaceId(
+      env.VITE_RADISHMIND_ACTIVE_WORKSPACE_ID ??
+      env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID ??
+      "workspace_demo",
+    ) ?? "workspace_demo",
   };
 }
 
@@ -86,8 +100,8 @@ export function initialControlPlaneReadDevLiveLoadState(
     message: config.authMode === "radish_oidc_integration_test"
       ? "Loading Admin reads while workspace operations remain membership-blocked."
       : config.storeMode === "postgres_dev_test"
-      ? "Loading routed PostgreSQL and fake read operations over signed dev/test HTTP."
-      : "Loading fake-store-backed read routes over dev HTTP.",
+      ? "Loading routed PostgreSQL workspace projections over signed development/test HTTP."
+      : "Loading development/test workspace owner projections over HTTP.",
   };
 }
 
@@ -99,14 +113,8 @@ export async function loadControlPlaneReadDevLiveCollections(
   }
   const entries = await Promise.all(
     CONTROL_PLANE_READ_ROUTE_IDS.map(async (routeId) => {
-      const envelope = await fetchDevLiveEnvelope(routeId, config);
-      if (controlPlaneReadResponseHasForbiddenOutput(envelope)) {
-        throw new Error(`${routeId} returned forbidden read-side output`);
-      }
-      return [
-        routeId,
-        toControlPlaneReadCollectionViewModel(routeId, envelope, { source: "dev_live_http" }),
-      ] as const;
+      const collection = await loadControlPlaneReadDevLiveCollection(config, routeId);
+      return [routeId, collection] as const;
     }),
   );
   return Object.fromEntries(entries) as Partial<
@@ -114,8 +122,27 @@ export async function loadControlPlaneReadDevLiveCollections(
   >;
 }
 
-async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig) {
-  const response = await fetch(devLiveRouteUrl(routeId, config), {
+export async function loadControlPlaneReadDevLiveCollection(
+  config: ControlPlaneReadDevLiveConfig,
+  routeId: ControlPlaneReadRouteId,
+  pageRequest: ControlPlaneReadPageRequest = {},
+): Promise<ControlPlaneReadCollectionViewModel> {
+  if (config.mode !== "dev_live_http") {
+    throw new Error("development/test live read source is disabled");
+  }
+  const envelope = await fetchDevLiveEnvelope(routeId, config, pageRequest);
+  if (controlPlaneReadResponseHasForbiddenOutput(envelope)) {
+    throw new Error(`${routeId} returned forbidden read-side output`);
+  }
+  return toControlPlaneReadCollectionViewModel(routeId, envelope, { source: "dev_live_http" });
+}
+
+async function fetchDevLiveEnvelope(
+  routeId: ControlPlaneReadRouteId,
+  config: ControlPlaneReadDevLiveConfig,
+  pageRequest: ControlPlaneReadPageRequest,
+) {
+  const response = await fetch(devLiveRouteUrl(routeId, config, pageRequest), {
     method: "GET",
     headers: devLiveHeaders(routeId, config),
   });
@@ -128,19 +155,52 @@ async function fetchDevLiveEnvelope(routeId: ControlPlaneReadRouteId, config: Co
   };
 }
 
-function devLiveRouteUrl(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): string {
+function devLiveRouteUrl(
+  routeId: ControlPlaneReadRouteId,
+  config: ControlPlaneReadDevLiveConfig,
+  pageRequest: ControlPlaneReadPageRequest,
+): string {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId];
   const path = route.path.replace("{tenant_ref}", encodeURIComponent(config.tenantRef));
-  if (routeId === "application-summary-list-route" && config.applicationCatalogEnabled) {
-    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&lifecycle_state=active&limit=100`;
+  const query = auditPageQuery(routeId, pageRequest);
+  return `${config.baseUrl}${path}${query ? `?${query}` : ""}`;
+}
+
+function auditPageQuery(
+  routeId: ControlPlaneReadRouteId,
+  pageRequest: ControlPlaneReadPageRequest,
+): string {
+  const hasPageRequest = pageRequest.cursor !== undefined ||
+    pageRequest.limit !== undefined ||
+    pageRequest.sort !== undefined;
+  if (!hasPageRequest) {
+    return "";
   }
-  if (routeId === "api-key-summary-list-route" && config.apiKeyLifecycleEnabled) {
-    return `${config.baseUrl}${path}?workspace_id=${encodeURIComponent(config.workspaceId ?? "workspace_demo")}&limit=100`;
+  if (routeId !== "audit-summary-list-route") {
+    throw new Error(`${routeId} does not accept cursor pagination`);
   }
-  return `${config.baseUrl}${path}`;
+  const query = new URLSearchParams();
+  if (pageRequest.cursor !== undefined) {
+    const cursor = pageRequest.cursor.trim();
+    if (!cursor || cursor.length > 1024) {
+      throw new Error("audit cursor is invalid");
+    }
+    query.set("cursor", cursor);
+  }
+  if (pageRequest.limit !== undefined) {
+    if (!Number.isInteger(pageRequest.limit) || pageRequest.limit < 1 || pageRequest.limit > 100) {
+      throw new Error("audit limit is invalid");
+    }
+    query.set("limit", String(pageRequest.limit));
+  }
+  if (pageRequest.sort !== undefined) {
+    query.set("sort", pageRequest.sort);
+  }
+  return query.toString();
 }
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {
+  const workspaceHeaders = devLiveWorkspaceHeaders(routeId, config);
   if (config.authMode === "radish_oidc_integration_test") {
     const tokenProvider = (
       globalThis as typeof globalThis & {
@@ -155,6 +215,7 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
       Accept: "application/json",
       "X-Request-Id": `dev-live-${routeId}`,
       Authorization: `Bearer ${token}`,
+      ...workspaceHeaders,
     };
   }
   if (config.authMode === "signed_test_token") {
@@ -171,6 +232,7 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
       Accept: "application/json",
       "X-Request-Id": `dev-live-${routeId}`,
       Authorization: `Bearer ${token}`,
+      ...workspaceHeaders,
     };
   }
   return {
@@ -181,7 +243,35 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": DEFAULT_SCOPES,
     "X-RadishMind-Dev-Read-Audit": "audit_dev_live_read_consumer",
+    ...workspaceHeaders,
   };
+}
+
+function devLiveWorkspaceHeaders(
+  routeId: ControlPlaneReadRouteId,
+  config: ControlPlaneReadDevLiveConfig,
+): Record<string, string> {
+  if (!WORKSPACE_ROUTE_IDS.has(routeId)) {
+    return {};
+  }
+  const workspaceId = normalizeActiveWorkspaceId(config.workspaceId ?? "workspace_demo");
+  if (!workspaceId) {
+    throw new Error("active workspace selection is invalid");
+  }
+  const headers: Record<string, string> = {
+    "X-RadishMind-Active-Workspace": workspaceId,
+  };
+  if ((config.authMode ?? "dev_headers") === "dev_headers") {
+    headers["X-RadishMind-Dev-Read-Membership-Workspace"] = workspaceId;
+    headers["X-RadishMind-Dev-Read-Membership-Permissions"] =
+      CONTROL_PLANE_READ_ROUTE_DEFINITIONS[routeId].requiredScope;
+  }
+  return headers;
+}
+
+export function normalizeActiveWorkspaceId(value: string): string | null {
+  const normalized = value.trim();
+  return ACTIVE_WORKSPACE_PATTERN.test(normalized) ? normalized : null;
 }
 
 function normalizeAuthMode(value: string | undefined): ControlPlaneReadAuthMode {

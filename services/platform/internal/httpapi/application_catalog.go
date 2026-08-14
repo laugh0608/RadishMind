@@ -103,6 +103,11 @@ type ApplicationCatalogUpdateInput struct {
 	ApplicationKind string
 }
 
+type ApplicationCatalogUnarchiveInput struct {
+	ExpectedVersion                       int
+	AcknowledgeExistingAccessReactivation bool
+}
+
 type ApplicationCatalogListInput struct {
 	LifecycleState  string
 	ApplicationKind string
@@ -147,6 +152,7 @@ type applicationCatalogRepository interface {
 	List(ApplicationCatalogContext, applicationCatalogListQuery) ([]ApplicationCatalogRecord, error)
 	UpdateMetadata(ApplicationCatalogContext, string, int, ApplicationCatalogRecord) (ApplicationCatalogRecord, error)
 	Archive(ApplicationCatalogContext, string, int, ApplicationCatalogRecord) (ApplicationCatalogRecord, error)
+	Unarchive(ApplicationCatalogContext, string, int, ApplicationCatalogRecord) (ApplicationCatalogRecord, error)
 	RequireActive(ApplicationCatalogContext, string) (ApplicationCatalogRecord, error)
 }
 
@@ -316,6 +322,31 @@ func (service applicationCatalogService) Archive(requestContext ApplicationCatal
 	return ApplicationCatalogResult{Record: &archived, CurrentRecordVersion: archived.RecordVersion, CurrentLifecycleState: archived.LifecycleState}
 }
 
+func (service applicationCatalogService) Unarchive(
+	requestContext ApplicationCatalogContext,
+	applicationID string,
+	input ApplicationCatalogUnarchiveInput,
+) ApplicationCatalogResult {
+	if !requestContext.WriteEnabled {
+		return ApplicationCatalogResult{FailureCode: ApplicationCatalogFailureWriteDisabled}
+	}
+	applicationID = strings.TrimSpace(applicationID)
+	if !applicationCatalogIDPattern.MatchString(applicationID) || input.ExpectedVersion < 1 ||
+		!input.AcknowledgeExistingAccessReactivation {
+		return ApplicationCatalogResult{FailureCode: ApplicationCatalogFailurePayloadInvalid}
+	}
+	unarchived, err := service.repository.Unarchive(requestContext, applicationID, input.ExpectedVersion, ApplicationCatalogRecord{
+		LifecycleState: applicationCatalogLifecycleActive, UpdatedAt: service.now().Format(time.RFC3339Nano),
+		UpdatedByActorRef: requestContext.ActorRef, RequestID: requestContext.RequestID, AuditRef: requestContext.AuditRef,
+	})
+	if err != nil {
+		return applicationCatalogRepositoryFailure(err)
+	}
+	return ApplicationCatalogResult{
+		Record: &unarchived, CurrentRecordVersion: unarchived.RecordVersion, CurrentLifecycleState: unarchived.LifecycleState,
+	}
+}
+
 func (service applicationCatalogService) RequireActive(requestContext ApplicationCatalogContext, applicationID string) ApplicationCatalogResult {
 	record, err := service.repository.RequireActive(requestContext, strings.TrimSpace(applicationID))
 	if err != nil {
@@ -467,6 +498,34 @@ func (repository *memoryApplicationCatalogRepository) Archive(requestContext App
 	record.RecordVersion++
 	record.UpdatedAt = update.UpdatedAt
 	record.ArchivedAt = update.ArchivedAt
+	record.UpdatedByActorRef = update.UpdatedByActorRef
+	record.RequestID = update.RequestID
+	record.AuditRef = update.AuditRef
+	repository.records[key] = record
+	return record, nil
+}
+
+func (repository *memoryApplicationCatalogRepository) Unarchive(requestContext ApplicationCatalogContext, applicationID string, expectedVersion int, update ApplicationCatalogRecord) (ApplicationCatalogRecord, error) {
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	if repository.unavailable {
+		return ApplicationCatalogRecord{}, errApplicationCatalogStoreUnavailable
+	}
+	key := applicationCatalogRepositoryKey(requestContext, applicationID)
+	record, exists := repository.records[key]
+	if !exists {
+		return ApplicationCatalogRecord{}, errApplicationCatalogNotFound
+	}
+	if record.RecordVersion != expectedVersion {
+		return ApplicationCatalogRecord{}, applicationCatalogVersionConflictError{CurrentVersion: record.RecordVersion, CurrentState: record.LifecycleState}
+	}
+	if record.LifecycleState != applicationCatalogLifecycleArchived {
+		return ApplicationCatalogRecord{}, errApplicationCatalogTransitionInvalid
+	}
+	record.LifecycleState = update.LifecycleState
+	record.RecordVersion++
+	record.UpdatedAt = update.UpdatedAt
+	record.ArchivedAt = nil
 	record.UpdatedByActorRef = update.UpdatedByActorRef
 	record.RequestID = update.RequestID
 	record.AuditRef = update.AuditRef

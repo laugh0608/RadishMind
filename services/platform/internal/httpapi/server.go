@@ -29,12 +29,14 @@ type bridgeClient interface {
 }
 
 type Server struct {
-	httpServer            *http.Server
-	options               Options
-	bridge                bridgeClient
-	config                config.Config
-	controlPlaneReadStore controlPlaneReadStore
-	controlPlaneReadRepo  ControlPlaneReadRepository
+	httpServer                    *http.Server
+	options                       Options
+	bridge                        bridgeClient
+	config                        config.Config
+	controlPlaneReadStore         controlPlaneReadStore
+	controlPlaneReadRepo          ControlPlaneReadRepository
+	workspaceControlPlaneReadRepo ControlPlaneReadRepository
+	workspaceMembershipProvider   WorkspaceMembershipProvider
 
 	savedWorkflowDraftStore                 savedWorkflowDraftStore
 	applicationDraftRepository              applicationConfigurationDraftRepository
@@ -42,6 +44,8 @@ type Server struct {
 	applicationCatalogRepository            applicationCatalogRepository
 	promptApplicationTemplateRepository     promptApplicationTemplateRepository
 	agentCopilotProfileRepository           agentCopilotProfileRepository
+	adminProviderRouteRepository            adminProviderRouteRepository
+	providerRouteSnapshotProvider           gatewayProviderRouteSnapshotProvider
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
 	applicationSessionRepository            applicationInteractionSessionRepository
 	apiKeyRepository                        apiKeyRepository
@@ -59,17 +63,23 @@ type Server struct {
 	workflowHTTPToolExecutionTransport      *workflowHTTPToolTransport
 	workflowEvaluationStore                 workflowEvaluationStore
 	workflowEvaluationSuiteStore            workflowEvaluationSuiteStore
+	applicationEvaluationRepository         applicationEvaluationRepository
 	gatewayRequestHistoryStore              gatewayRequestStore
 	gatewayRequestHistoryStoreMode          string
+	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
+	gatewayModelPricingRepository           GatewayModelPricingRepository
 	closeSavedWorkflowDraftStore            func()
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
 	closeApplicationCatalogStore            func()
 	closePromptApplicationTemplateStore     func()
 	closeAgentCopilotProfileStore           func()
+	closeAdminProviderRouteStore            func()
 	closeAPIKeyStore                        func()
 	closeWorkflowRunStore                   func()
 	closeGatewayRequestStore                func()
+	closeGatewayRequestQuotaStore           func()
+	closeGatewayModelPricingStore           func()
 	localPersistenceRuntime                 *sqlitedev.Runtime
 	closeControlPlaneReadRepository         func()
 	closeOnce                               sync.Once
@@ -149,6 +159,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore)
 		return nil, err
 	}
+	applicationEvaluationRepository := newApplicationEvaluationRepositoryForRunStore(workflowRunStore)
+	if runtimeConfig.ApplicationEvaluationCampaignDevEnabled && applicationEvaluationRepository == nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, fmt.Errorf("application evaluation campaign requires a supported workflow runtime backend")
+	}
 	applicationInteractionSessionRepository, err := newApplicationInteractionSessionRepositoryForRunStore(workflowRunStore)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -219,6 +234,13 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		return nil, err
 	}
 	combinedRunStore := newCombinedWorkflowRunStoreWithAgent(workflowRunStore, promptApplicationRunStore, agentCopilotRunStore)
+	workspaceControlPlaneReadRepository := newWorkspaceScopedControlPlaneReadRepository(
+		controlPlaneReadRepository,
+		applicationCatalogRepository,
+		apiKeyRepository,
+		workflowDefinitionReleaseRepository,
+		combinedRunStore,
+	)
 	gatewayRequestStore, gatewayRequestStoreMode, closeGatewayRequestStore, err := newGatewayRequestStoreFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -234,10 +256,29 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore)
 		return nil, err
 	}
-	platformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	adminProviderRouteRepository, closeAdminProviderRouteStore, err := newAdminProviderRouteRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore)
 		return nil, err
+	}
+	gatewayRequestQuotaRepository, closeGatewayRequestQuotaStore, err := newGatewayRequestQuotaRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore)
+		return nil, err
+	}
+	gatewayModelPricingRepository, closeGatewayModelPricingStore, err := newGatewayModelPricingRepositoryFromConfigWithSQLiteRuntime(runtimeConfig, localPersistenceRuntime)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore)
+		return nil, err
+	}
+	rawPlatformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore)
+		return nil, err
+	}
+	var platformBridge bridgeClient = newGatewayProviderAttemptBridgeClient(rawPlatformBridge)
+	if runtimeConfig.GatewayRequestQuotaEnforcementDevEnabled {
+		platformBridge = newGatewayRequestQuotaBridgeClient(platformBridge, gatewayRequestQuotaRepository)
 	}
 	mux := http.NewServeMux()
 	workflowHTTPToolActionStore := newWorkflowHTTPToolActionStoreForRunStore(workflowRunStore)
@@ -246,12 +287,16 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		bridge:                                  platformBridge,
 		config:                                  runtimeConfig,
 		controlPlaneReadRepo:                    controlPlaneReadRepository,
+		workspaceControlPlaneReadRepo:           workspaceControlPlaneReadRepository,
+		workspaceMembershipProvider:             newDeterministicDevTestWorkspaceMembershipProvider(),
 		savedWorkflowDraftStore:                 savedWorkflowDraftStore,
 		applicationDraftRepository:              applicationDraftRepository,
 		applicationPublishCandidateRepository:   applicationPublishRepository,
 		applicationCatalogRepository:            applicationCatalogRepository,
 		promptApplicationTemplateRepository:     promptApplicationTemplateRepository,
 		agentCopilotProfileRepository:           agentCopilotProfileRepository,
+		adminProviderRouteRepository:            adminProviderRouteRepository,
+		providerRouteSnapshotProvider:           adminProviderRouteSnapshotProvider{repository: adminProviderRouteRepository},
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
 		apiKeyRepository:                        apiKeyRepository,
@@ -268,17 +313,23 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowHTTPToolExecutionStore:          newWorkflowHTTPToolExecutionStoreForRunStore(workflowRunStore, workflowHTTPToolActionStore),
 		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:            newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
+		applicationEvaluationRepository:         applicationEvaluationRepository,
 		gatewayRequestHistoryStore:              gatewayRequestStore,
 		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
+		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
+		gatewayModelPricingRepository:           gatewayModelPricingRepository,
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
 		closeApplicationCatalogStore:            closeApplicationCatalogStore,
 		closePromptApplicationTemplateStore:     closePromptApplicationTemplateStore,
 		closeAgentCopilotProfileStore:           closeAgentCopilotProfileStore,
+		closeAdminProviderRouteStore:            closeAdminProviderRouteStore,
 		closeAPIKeyStore:                        closeAPIKeyStore,
 		closeWorkflowRunStore:                   closeWorkflowRunStore,
 		closeGatewayRequestStore:                closeGatewayRequestStore,
+		closeGatewayRequestQuotaStore:           closeGatewayRequestQuotaStore,
+		closeGatewayModelPricingStore:           closeGatewayModelPricingStore,
 		localPersistenceRuntime:                 localPersistenceRuntime,
 		closeControlPlaneReadRepository:         closeControlPlaneReadRepository,
 	}
@@ -301,6 +352,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationCatalogReadRoute, server.handleReadApplicationCatalogRecord)
 	mux.HandleFunc(applicationCatalogUpdateRoute, server.handleUpdateApplicationCatalogRecord)
 	mux.HandleFunc(applicationCatalogArchiveRoute, server.handleArchiveApplicationCatalogRecord)
+	mux.HandleFunc(applicationCatalogUnarchiveRoute, server.handleUnarchiveApplicationCatalogRecord)
 	mux.HandleFunc(applicationSessionCreateRoute, server.handleCreateApplicationInteractionSession)
 	mux.HandleFunc(applicationSessionListRoute, server.handleListApplicationInteractionSessions)
 	mux.HandleFunc(applicationSessionReadRoute, server.handleReadApplicationInteractionSession)
@@ -319,6 +371,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(savedWorkflowDraftListRoute, server.handleListWorkflowDrafts)
 	mux.HandleFunc(savedWorkflowDraftReadRoute, server.handleReadWorkflowDraft)
 	mux.HandleFunc(savedWorkflowDraftValidateRoute, server.handleValidateWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftArchiveRoute, server.handleArchiveWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftUnarchiveRoute, server.handleUnarchiveWorkflowDraft)
+	mux.HandleFunc(savedWorkflowDraftRevisionListRoute, server.handleListWorkflowDraftRevisions)
+	mux.HandleFunc(savedWorkflowDraftRevisionReadRoute, server.handleReadWorkflowDraftRevision)
+	mux.HandleFunc(savedWorkflowDraftRevisionRestoreRoute, server.handleRestoreWorkflowDraftRevision)
 	mux.HandleFunc(applicationDraftSaveRoute, server.handleSaveApplicationConfigurationDraft)
 	mux.HandleFunc(applicationDraftListRoute, server.handleListApplicationConfigurationDrafts)
 	mux.HandleFunc(applicationDraftReadRoute, server.handleReadApplicationConfigurationDraft)
@@ -345,6 +402,18 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(agentCopilotProfileVersionCreateRoute, server.handleCreateAgentCopilotProfileVersion)
 	mux.HandleFunc(agentCopilotProfileVersionListRoute, server.handleListAgentCopilotProfileVersions)
 	mux.HandleFunc(agentCopilotProfileVersionReadRoute, server.handleReadAgentCopilotProfileVersion)
+	mux.HandleFunc(adminProviderRouteDraftReadRoute, server.handleReadAdminProviderRouteDraft)
+	mux.HandleFunc(adminProviderRouteDraftPutRoute, server.handlePutAdminProviderRouteDraft)
+	mux.HandleFunc(adminProviderRouteCandidateCreateRoute, server.handleCreateAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteCandidateReadRoute, server.handleReadAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteReviewRoute, server.handleReviewAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteActivationRoute, server.handleActivateAdminProviderRouteCandidate)
+	mux.HandleFunc(adminProviderRouteActiveSnapshotRoute, server.handleReadAdminProviderRouteActiveSnapshot)
+	mux.HandleFunc(adminProviderRouteActivationHistoryRoute, server.handleListAdminProviderRouteActivations)
+	mux.HandleFunc(gatewayRequestQuotaAdminReadRoute, server.handleReadGatewayRequestQuota)
+	mux.HandleFunc(gatewayRequestQuotaAdminPutRoute, server.handlePutGatewayRequestQuota)
+	mux.HandleFunc(gatewayModelPricingAdminReadRoute, server.handleReadGatewayModelPricing)
+	mux.HandleFunc(gatewayModelPricingAdminPutRoute, server.handlePutGatewayModelPricing)
 	mux.HandleFunc(applicationPublishCandidateCreateRoute, server.handleCreateApplicationPublishCandidate)
 	mux.HandleFunc(applicationPublishCandidateListRoute, server.handleListApplicationPublishCandidates)
 	mux.HandleFunc(applicationPublishCandidateReadRoute, server.handleReadApplicationPublishCandidate)
@@ -402,6 +471,19 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowEvaluationSuiteReviewRoute, server.handleReviewWorkflowEvaluationSuite)
 	mux.HandleFunc(workflowEvaluationDecisionCreateRoute, server.handleCreateWorkflowEvaluationDecision)
 	mux.HandleFunc(workflowEvaluationDecisionListRoute, server.handleListWorkflowEvaluationDecisions)
+	mux.HandleFunc(applicationEvaluationPlanCreateRoute, server.handleCreateApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationPlanListRoute, server.handleListApplicationEvaluationPlans)
+	mux.HandleFunc(applicationEvaluationPlanReadRoute, server.handleReadApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationPlanReviseRoute, server.handleReviseApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationPlanArchiveRoute, server.handleArchiveApplicationEvaluationPlan)
+	mux.HandleFunc(applicationEvaluationVersionListRoute, server.handleListApplicationEvaluationPlanVersions)
+	mux.HandleFunc(applicationEvaluationVersionReadRoute, server.handleReadApplicationEvaluationPlanVersion)
+	mux.HandleFunc(applicationEvaluationCampaignExecuteRoute, server.handleExecuteApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationCampaignListRoute, server.handleListApplicationEvaluationCampaigns)
+	mux.HandleFunc(applicationEvaluationCampaignReadRoute, server.handleReadApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationCampaignReconcileRoute, server.handleReconcileApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationPairPreviewRoute, server.handlePreviewApplicationEvaluationCampaignPair)
+	mux.HandleFunc(applicationEvaluationHandoffRoute, server.handleMaterializeApplicationEvaluationHandoff)
 	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)
 	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
@@ -476,6 +558,12 @@ func (s *Server) Close() {
 		if s.closeGatewayRequestStore != nil {
 			s.closeGatewayRequestStore()
 		}
+		if s.closeGatewayRequestQuotaStore != nil {
+			s.closeGatewayRequestQuotaStore()
+		}
+		if s.closeGatewayModelPricingStore != nil {
+			s.closeGatewayModelPricingStore()
+		}
 		if s.closeWorkflowRunStore != nil {
 			s.closeWorkflowRunStore()
 		}
@@ -487,6 +575,9 @@ func (s *Server) Close() {
 		}
 		if s.closeAgentCopilotProfileStore != nil {
 			s.closeAgentCopilotProfileStore()
+		}
+		if s.closeAdminProviderRouteStore != nil {
+			s.closeAdminProviderRouteStore()
 		}
 		if s.closePromptApplicationTemplateStore != nil {
 			s.closePromptApplicationTemplateStore()
@@ -566,6 +657,9 @@ func localConsoleAllowedHeaders() []string {
 		controlPlaneReadDevScopesHeader,
 		controlPlaneReadDevAuditHeader,
 		savedWorkflowDraftDevWorkspaceHeader,
+		activeWorkspaceHeader,
+		controlPlaneReadDevMembershipHeader,
+		controlPlaneReadDevMembershipPermHeader,
 		savedWorkflowDraftDevApplicationHeader,
 		applicationDraftDevWorkspaceHeader,
 		applicationDraftDevApplicationHeader,
@@ -579,6 +673,11 @@ func localConsoleAllowedHeaders() []string {
 		promptApplicationRuntimeApplicationHeader,
 		applicationPublishDevWorkspaceHeader,
 		applicationPublishDevApplicationHeader,
+		adminProviderRouteDevWorkspaceHeader,
+		adminProviderRouteDevEnvironmentHeader,
+		gatewayModelPricingEnvironmentHeader,
+		gatewayRequestQuotaEnvironmentHeader,
+		applicationEvaluationEnvironmentHeader,
 		gatewayRequestDevTenantHeader,
 		gatewayRequestDevWorkspaceHeader,
 		gatewayRequestDevConsumerHeader,

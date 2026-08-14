@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -26,14 +27,27 @@ type chatCompletionMessage struct {
 }
 
 type chatCompletionExtension struct {
-	Locale          string `json:"locale,omitempty"`
-	ConversationID  string `json:"conversation_id,omitempty"`
-	TurnID          string `json:"turn_id,omitempty"`
-	ParentTurnID    string `json:"parent_turn_id,omitempty"`
-	HistoryPolicy   string `json:"history_policy,omitempty"`
-	HistoryWindow   int    `json:"history_window,omitempty"`
-	Provider        string `json:"provider,omitempty"`
-	ProviderProfile string `json:"provider_profile,omitempty"`
+	Locale          string                      `json:"locale,omitempty"`
+	ConversationID  string                      `json:"conversation_id,omitempty"`
+	TurnID          string                      `json:"turn_id,omitempty"`
+	ParentTurnID    string                      `json:"parent_turn_id,omitempty"`
+	HistoryPolicy   string                      `json:"history_policy,omitempty"`
+	HistoryWindow   int                         `json:"history_window,omitempty"`
+	Provider        string                      `json:"provider,omitempty"`
+	ProviderProfile string                      `json:"provider_profile,omitempty"`
+	FallbackMode    GatewayProviderFallbackMode `json:"fallback_mode,omitempty"`
+}
+
+func (extension *chatCompletionExtension) UnmarshalJSON(payload []byte) error {
+	type extensionDocument chatCompletionExtension
+	var document extensionDocument
+	decoder := json.NewDecoder(bytes.NewReader(payload))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&document); err != nil {
+		return err
+	}
+	*extension = chatCompletionExtension(document)
+	return nil
 }
 
 type openAIChatCompletionResponse struct {
@@ -42,6 +56,7 @@ type openAIChatCompletionResponse struct {
 	Created int64                        `json:"created"`
 	Model   string                       `json:"model"`
 	Choices []openAIChatCompletionChoice `json:"choices"`
+	Usage   *openAIChatCompletionUsage   `json:"usage,omitempty"`
 }
 
 type openAIChatCompletionStreamChunk struct {
@@ -50,6 +65,13 @@ type openAIChatCompletionStreamChunk struct {
 	Created int64                              `json:"created"`
 	Model   string                             `json:"model"`
 	Choices []openAIChatCompletionStreamChoice `json:"choices"`
+	Usage   *openAIChatCompletionUsage         `json:"usage,omitempty"`
+}
+
+type openAIChatCompletionUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 type openAIChatCompletionChoice struct {
@@ -81,7 +103,7 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 	}
 	var chatRequest chatCompletionRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &chatRequest, jsonRequestBodyOptions{
-		maxBytes: maxNorthboundJSONRequestBodyBytes,
+		maxBytes: maxNorthboundJSONRequestBodyBytes, rejectDuplicateFields: true,
 	}) {
 		return
 	}
@@ -93,29 +115,66 @@ func (s *Server) handleChatCompletions(writer http.ResponseWriter, request *http
 
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
+	ctx = withGatewayProviderAttemptMarker(ctx, &trace)
 
 	locale := "zh-CN"
 	if chatRequest.RadishMind != nil && strings.TrimSpace(chatRequest.RadishMind.Locale) != "" {
 		locale = strings.TrimSpace(chatRequest.RadishMind.Locale)
 	}
 
-	selection := s.resolveNorthboundSelection(ctx, chatRequest.Model, chatRequest.RadishMind)
+	execution, selection, selectionFailure := s.prepareGatewayProviderAttemptExecution(
+		ctx, &trace, northboundProtocolChatCompletions,
+		chatRequest.Model, chatRequest.RadishMind, chatRequest.Stream,
+	)
 	trace.applySelection(selection)
-	s.checkpointGatewayRequestTrace(&trace, chatRequest.Stream)
-	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
-
-	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
-	if err != nil {
-		s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
+	if selectionFailure != "" {
+		s.writePlatformError(writer, trace, selectionFailure, "")
 		return
 	}
+	temperature := effectiveTemperature(chatRequest.Temperature, s.config.Temperature)
 
 	if chatRequest.Stream {
-		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, trace); err != nil {
+		s.checkpointGatewayRequestTrace(&trace, true)
+		canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
+		if err != nil {
+			s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
+			return
+		}
+		if err := s.streamOpenAIChatCompletionResponse(ctx, writer, canonicalRequest, selection, temperature, &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
+		return
+	}
+	if validGatewayProviderAttemptPlan(execution.plan) {
+		canonicalRequests := make([][]byte, 0, len(execution.selections))
+		for _, targetSelection := range execution.selections {
+			canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, targetSelection, trace.requestID)
+			if err != nil {
+				s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
+				return
+			}
+			canonicalRequests = append(canonicalRequests, canonicalRequest)
+		}
+		result := s.invokeGatewayProviderAttempts(ctx, &trace, execution, canonicalRequests, temperature)
+		if result.FailureCode != "" {
+			s.writePlatformError(writer, trace, result.FailureCode, result.FailureDetail)
+			return
+		}
+		openAIResponse, err := buildOpenAIChatCompletionResponse(result.Envelope, result.Selection.model)
+		if err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
+			return
+		}
+		writeObservedJSON(writer, http.StatusOK, trace, openAIResponse)
+		return
+	}
+
+	s.checkpointGatewayRequestTrace(&trace, false)
+	canonicalRequest, err := buildChatCanonicalRequest(chatRequest, locale, selection, trace.requestID)
+	if err != nil {
+		s.writePlatformError(writer, trace, "INVALID_CHAT_MESSAGES", err.Error())
 		return
 	}
 
@@ -300,6 +359,7 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 	}
 
 	content := buildNorthboundResponseContent(envelope)
+	usage := openAIChatCompletionUsageFromEnvelope(envelope)
 
 	responseID := buildNorthboundResponseID("chatcmpl-", envelope.RequestID)
 
@@ -308,6 +368,7 @@ func buildOpenAIChatCompletionResponse(envelope bridge.GatewayEnvelope, model st
 		Object:  "chat.completion",
 		Created: timeNowUnix(),
 		Model:   model,
+		Usage:   usage,
 		Choices: []openAIChatCompletionChoice{
 			{
 				Index: 0,
@@ -327,20 +388,21 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
-	trace requestTrace,
+	trace *requestTrace,
 ) error {
 	responseID := buildNorthboundResponseID("chatcmpl-", trace.requestID)
 	createdAt := timeNowUnix()
 	streamStarted := false
 	streamCompleted := false
 	emittedContent := false
+	var completedEnvelope *bridge.GatewayEnvelope
 
 	startStream := func() error {
 		if streamStarted {
 			return nil
 		}
 		prepareSSEHeaders(writer)
-		writeTraceHeaders(writer, trace)
+		writeTraceHeaders(writer, *trace)
 		if err := writeSSEEvent(writer, "", openAIChatCompletionStreamChunk{
 			ID:      responseID,
 			Object:  "chat.completion.chunk",
@@ -387,6 +449,9 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 				})
 			case "completed":
 				streamCompleted = true
+				if event.Envelope != nil {
+					completedEnvelope = event.Envelope
+				}
 				if event.Envelope != nil && strings.EqualFold(event.Envelope.Status, "failed") && !emittedContent {
 					return fmt.Errorf("%s", gatewayErrorMessage(event.Envelope.Error))
 				}
@@ -404,6 +469,10 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	if !streamCompleted {
 		return fmt.Errorf("platform bridge stream ended without completion event")
 	}
+	if completedEnvelope == nil {
+		return fmt.Errorf("platform bridge stream completed without envelope")
+	}
+	s.applyGatewayEnvelopeToTrace(trace, *completedEnvelope)
 	if err := startStream(); err != nil {
 		return err
 	}
@@ -421,6 +490,7 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 				FinishReason: &finishReason,
 			},
 		},
+		Usage: openAIChatCompletionUsageFromEnvelope(*completedEnvelope),
 	}); err != nil {
 		return err
 	}
@@ -428,8 +498,20 @@ func (s *Server) streamOpenAIChatCompletionResponse(
 	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
 		return err
 	}
-	logRequestTrace(trace, http.StatusOK, "", "")
+	logRequestTrace(*trace, http.StatusOK, "", "")
 	return nil
+}
+
+func openAIChatCompletionUsageFromEnvelope(envelope bridge.GatewayEnvelope) *openAIChatCompletionUsage {
+	usage := gatewayUsageFromEnvelope(envelope)
+	if usage.Availability != GatewayRequestUsageReported {
+		return nil
+	}
+	return &openAIChatCompletionUsage{
+		PromptTokens:     usage.InputTokens,
+		CompletionTokens: usage.OutputTokens,
+		TotalTokens:      usage.TotalTokens,
+	}
 }
 
 func effectiveTemperature(requestTemperature *float64, fallback float64) float64 {

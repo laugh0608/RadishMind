@@ -32,8 +32,8 @@ func TestWorkflowRAGPromotionHTTPStrictPermissionsLifecycleAndZeroExecution(t *t
 	setWorkflowRAGPromotionHTTPHeaders(deniedRequest, "workflow_rag_promotions:write,workflow_rag_evaluation_datasets:read,application_drafts:read")
 	deniedResponse := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(deniedResponse, deniedRequest)
-	denied := decodeWorkflowRAGPromotionEnvelope(t, deniedResponse, http.StatusOK)
-	if denied.FailureCode == nil || *denied.FailureCode != WorkflowRAGPromotionFailureScopeDenied || denied.Candidate != nil {
+	denied := decodeWorkflowRAGPromotionEnvelope(t, deniedResponse, http.StatusForbidden)
+	if denied.FailureCode == nil || *denied.FailureCode != "scope_denied" || denied.Candidate != nil {
 		t.Fatalf("create accepted a missing snapshot read permission: %#v", denied)
 	}
 

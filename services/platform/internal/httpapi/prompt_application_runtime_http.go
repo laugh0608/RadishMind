@@ -64,13 +64,24 @@ func (server *Server) handleDecidePromptApplicationRuntimeAssignment(writer http
 	if !server.allowPromptApplicationRuntimeDevHTTP(writer, request, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "prompt_application_runtime:write")
+	ctx := promptApplicationRuntimeMutationContext(
+		request, trace, auth, request.PathValue("application_id"),
+		server.config.PromptApplicationRuntimeDevWriteEnabled, "decision",
+	)
+	if failure != "" {
+		writePromptApplicationRuntimeResultWithStatus(writer, status, trace, ctx, promptApplicationRuntimeFailure(failure), true)
+		return
+	}
 	var body promptApplicationRuntimeDecisionBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := promptApplicationRuntimeContextFromRequest(request, trace, body.WorkspaceID, request.PathValue("application_id"), "prompt_application_runtime:write", server.config.PromptApplicationRuntimeDevWriteEnabled, "decision")
-	if failure != "" {
-		writePromptApplicationRuntimeResult(writer, trace, ctx, promptApplicationRuntimeFailure(failure), true)
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(promptApplicationRuntimeWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(promptApplicationRuntimeApplicationHeader)) != ctx.ApplicationID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writePromptApplicationRuntimeResultWithStatus(writer, http.StatusForbidden, trace, ctx, promptApplicationRuntimeFailure("workspace_binding_mismatch"), true)
 		return
 	}
 	result := server.promptApplicationRuntimeService().Decide(ctx, PromptApplicationRuntimeDecisionInput{
@@ -117,12 +128,33 @@ func promptApplicationRuntimeContextFromRequest(request *http.Request, trace req
 	return ctx, ""
 }
 
+func promptApplicationRuntimeMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	writeEnabled bool,
+	auditSuffix string,
+) PromptApplicationRuntimeContext {
+	return PromptApplicationRuntimeContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), WriteEnabled: writeEnabled,
+		AuditRef: "audit_" + trace.requestID + "_prompt-runtime-" + auditSuffix,
+	}
+}
+
 func writePromptApplicationRuntimeResult(writer http.ResponseWriter, trace requestTrace, ctx PromptApplicationRuntimeContext, result PromptApplicationRuntimeResult, includeEvents bool) {
+	writePromptApplicationRuntimeResultWithStatus(writer, http.StatusOK, trace, ctx, result, includeEvents)
+}
+
+func writePromptApplicationRuntimeResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx PromptApplicationRuntimeContext, result PromptApplicationRuntimeResult, includeEvents bool) {
 	events := []PromptApplicationRuntimeAssignmentEvent{}
 	if includeEvents && result.Events != nil {
 		events = result.Events
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, promptApplicationRuntimeEnvelope{
+	writeObservedJSON(writer, status, trace, promptApplicationRuntimeEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		Assignment: result.Assignment, Events: events, FailureCode: optionalApplicationDraftFailure(result.FailureCode),
 		CurrentAssignmentVersion: result.CurrentAssignmentVersion, CurrentState: result.CurrentState, AuditRef: ctx.AuditRef,

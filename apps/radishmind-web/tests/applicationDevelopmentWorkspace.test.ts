@@ -3,6 +3,9 @@ import test from "node:test";
 
 import {
   applicationDevelopmentStageForHash,
+  applicationDevelopmentHashTargetsOwnerSurface,
+  applicationRuntimeReviewSurfaceForHash,
+  workflowReviewSurfaceForHash,
   buildApplicationDevelopmentWorkspaceContext,
   type ApplicationDevelopmentWorkspaceInput,
 } from "../src/features/control-plane-read/applicationDevelopmentWorkspace.ts";
@@ -19,6 +22,7 @@ import {
 } from "../src/features/control-plane-read/applicationDevelopmentHandoff.ts";
 import {
   APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS,
+  applicationDevelopmentEvidenceMatchesScope,
   applyApplicationDevelopmentEvidence,
   buildApplicationDevelopmentReadinessViewModel,
   initialApplicationDevelopmentEvidenceState,
@@ -65,8 +69,49 @@ test("application revision and lifecycle changes rotate the workspace generation
   assert.notEqual(current.generationKey, revised.generationKey);
   assert.notEqual(revised.generationKey, archived.generationKey);
   assert.equal(archived.applicationActive, false);
-  assert.equal(archived.stages.find((stage) => stage.stageId === "controlled_test")?.availability, "blocked");
+  assert.equal(archived.stages.find((stage) => stage.stageId === "controlled_test")?.availability, "read_only");
   assert.equal(archived.stages.find((stage) => stage.stageId === "evidence_review")?.availability, "read_only");
+});
+
+test("opens owner review for exact child anchors without treating stage anchors as child surfaces", () => {
+  for (const anchor of [
+    "#application-api-integration",
+    "#workspace-api-keys",
+    "#prompt-application-invocation",
+  ]) {
+    assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), true);
+  }
+  for (const anchor of [
+    "#application-interaction-session",
+    "#application-development-workspace",
+    "#workspace-applications",
+    "#workspace-api-keys-preview",
+    "#model-gateway-playground",
+    "#model-gateway-request-history",
+    "#application-operations",
+    "#workspace-run-history",
+    "#workflow-run-comparison",
+    "#workflow-evaluation-cases",
+    "#workflow-evaluation-release-review",
+  ]) {
+    assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), false);
+  }
+});
+
+test("runtime review aliases keep one persistent task surface", () => {
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#model-gateway-playground"), "run");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("model-gateway-request-history"), "request");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations"), "evidence");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-api-integration"), null);
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations-preview"), null);
+});
+
+test("workflow review aliases keep one persistent task surface", () => {
+  assert.equal(workflowReviewSurfaceForHash("#workspace-run-history"), "runs");
+  assert.equal(workflowReviewSurfaceForHash("workflow-run-comparison"), "comparison");
+  assert.equal(workflowReviewSurfaceForHash("#workflow-evaluation-cases"), "cases");
+  assert.equal(workflowReviewSurfaceForHash("#workflow-evaluation-release-review"), "release");
+  assert.equal(workflowReviewSurfaceForHash("#workflow-evaluation-release-review-export"), null);
 });
 
 test("missing application fails closed without fabricating a scope", () => {
@@ -123,9 +168,13 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#workflow-rag-evaluation-panel"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#application-operations"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-request-history"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#workflow-run-comparison"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#workflow-evaluation-cases"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#workflow-evaluation-release-review"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-template-workspace"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-runtime-assignment"), "human_promotion");
   assert.equal(applicationDevelopmentStageForHash("#prompt-application-invocation"), "controlled_test");
+  assert.equal(applicationDevelopmentStageForHash("#prompt-application-session"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#agent-copilot-profile-workspace"), "configure_build");
   assert.equal(applicationDevelopmentStageForHash("#agent-copilot-runtime-assignment"), "human_promotion");
   assert.equal(applicationDevelopmentStageForHash("#agent-copilot-invocation"), "controlled_test");
@@ -210,6 +259,25 @@ test("feature-scoped handoff keeps only one exact ref and consumes it at the own
   assert.equal(consumed.state.pending, null);
 });
 
+test("approved RAG binding handoff opens configuration attach with one server-reload ref", () => {
+  const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
+  const issued = issueApplicationDevelopmentHandoff(
+    initialApplicationDevelopmentHandoffState(context),
+    context,
+    {
+      applicationId: context.applicationId,
+      sourceStage: "human_promotion",
+      refKind: "binding",
+      refId: "wragp_aaaaaaaaaaaaaaaa",
+    },
+  );
+
+  assert.equal(issued.pending?.targetStage, "configure_build");
+  assert.equal(issued.pending?.targetAnchor, "application-configuration-draft");
+  assert.equal(issued.pending?.refId, "wragp_aaaaaaaaaaaaaaaa");
+  assert.equal(Object.hasOwn(issued.pending ?? {}, "bindingDigest"), false);
+});
+
 test("handoff rejects scope drift, unsafe refs, and stale workspace generations", () => {
   const context = buildApplicationDevelopmentWorkspaceContext(activeApplication);
   const initial = initialApplicationDevelopmentHandoffState(context);
@@ -273,6 +341,10 @@ test("readiness starts incomplete for an active Application and rolls up all nin
   assert.equal(view.sources.find((source) => source.sourceGroupId === "application")?.status, "available");
   assert.equal(view.canPersistReadiness, false);
   assert.equal(view.canPublish, false);
+  assert.equal(
+    view.sources.find((source) => source.sourceGroupId === "controlled_test")?.missingEvidence.some((item) => item.includes("v8")),
+    true,
+  );
 });
 
 test("offline Application without an authoritative revision stays reviewable but incomplete", () => {
@@ -429,6 +501,33 @@ test("readiness rejects evidence from another application or route generation", 
       ...evidenceInput(context, "configuration_draft", "draft-001"),
       workspaceGenerationKey: "stale-generation",
     }),
+    /generation is stale/,
+  );
+});
+
+test("workspace evidence race guard drops a queued response after application scope replacement", () => {
+  const previousContext = buildApplicationDevelopmentWorkspaceContext(activeApplication);
+  const nextContext = buildApplicationDevelopmentWorkspaceContext({
+    ...activeApplication,
+    applicationId: "app_replacement",
+    displayName: "Replacement application",
+  });
+  const queuedEvidence = evidenceInput(previousContext, "configuration_draft", "draft-queued");
+
+  assert.equal(
+    applicationDevelopmentEvidenceMatchesScope(
+      initialApplicationDevelopmentEvidenceState(nextContext),
+      previousContext,
+      queuedEvidence,
+    ),
+    false,
+  );
+  assert.throws(
+    () => applyApplicationDevelopmentEvidence(
+      initialApplicationDevelopmentEvidenceState(nextContext),
+      previousContext,
+      queuedEvidence,
+    ),
     /generation is stale/,
   );
 });

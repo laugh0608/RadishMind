@@ -47,9 +47,11 @@ test("RAG draft builder binds the selected application scope", () => {
 test("saved draft persistence carries the exact rag_ref and RAG execution metadata", async () => {
   const originalFetch = globalThis.fetch;
   let body: any = null;
+  let headers = new Headers();
   globalThis.fetch = async (_input, init) => {
     body = JSON.parse(String(init?.body));
-    return response({ request_id: "request_save_rag", workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft: null, failure_code: "draft_store_unavailable", current_draft_version: 0, validation_summary: { validation_state: "unavailable", valid_for_review: false }, blocked_capabilities: [], audit_ref: "audit_save_rag" });
+    headers = new Headers(init?.headers);
+    return response({ request_id: "request_save_rag", workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft: null, failure_code: "draft_store_unavailable", current_draft_version: 0, current_lifecycle_version: 0, current_lifecycle_state: "", validation_summary: { validation_state: "unavailable", valid_for_review: false, findings: [] }, blocked_capabilities: [], audit_ref: "audit_save_rag" });
   };
   try {
     await saveWorkflowDraftDevRecord(boundDraft(), { mode: "dev_saved_draft_http", baseUrl: "http://platform.test", tenantRef: "tenant_demo", workspaceId: "workspace_demo", subjectRef: "subject_demo_user" }, 0);
@@ -58,12 +60,24 @@ test("saved draft persistence carries the exact rag_ref and RAG execution metada
     assert.deepEqual(body.draft.additional_fields.rag_retrieval_v1, { version: 1, execution_route: "retrieval_executions", side_effect_policy: "retrieval_and_provider_once" });
     assert.deepEqual(body.draft.edges.map((edge: any) => edge.condition_summary), ["", "", ""]);
     assert.deepEqual(body.draft.requested_capabilities, []);
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_drafts:read,workflow_drafts:write");
+    assert.equal(body.expected_lifecycle_version, 0);
   } finally { globalThis.fetch = originalFetch; }
 });
 
 test("execution eligibility requires every grant, an exact saved version, and the exact topology", () => {
   const draft = boundDraft();
   assert.equal(evaluateWorkflowRAGExecutionEligibility(draft, savedState(), false, config).eligible, true);
+  assert.equal(
+    evaluateWorkflowRAGExecutionEligibility(
+      draft,
+      { ...savedState(), currentLifecycleState: "archived" },
+      false,
+      config,
+    ).eligible,
+    false,
+  );
   assert.equal(evaluateWorkflowRAGExecutionEligibility(draft, savedState(), true, config).reasons.some((reason) => reason.code === "unsaved_local_changes"), true);
 
   const missingScope = { ...config, scopes: new Set(["workflow_rag:execute", "workflow_runs:execute", "workflow_drafts:read"] as const) };
@@ -116,6 +130,9 @@ test("execution posts only the bounded request and maps metadata-only v3 with a 
     assert.equal(result.record?.sideEffects.providerCalls, 1);
     assert.match(captured!.url, /\/workflow-drafts\/draft_app_flow_copilot_rag_v1_01\/retrieval-executions$/u);
     assert.equal(captured!.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read");
+    assert.equal(captured!.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured!.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured!.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read");
     assert.deepEqual(captured!.body, { workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft_version: 4, input_text: "Explain the supported boundary.", model: "mock-rag", temperature: 0.2 });
     for (const forbidden of ["fragment", "rank", "citation", "snapshot_digest", "profile_digest", "rag_ref"]) assert.equal(forbidden in captured!.body, false);
     assert.equal(JSON.stringify(result.record).includes("Explain the supported boundary"), false);
@@ -167,7 +184,7 @@ function sourceDraft() {
 }
 
 function savedState() {
-  return { status: "saved_dev_record" as const, mode: "dev_saved_draft_http" as const, sourceLabel: "saved", summary: "saved", failureCode: null, currentDraftVersion: 4, conflictDraftVersion: null, auditRef: "audit_saved", requestId: "request_saved" };
+  return { status: "saved_dev_record" as const, mode: "dev_saved_draft_http" as const, sourceLabel: "saved", summary: "saved", failureCode: null, currentDraftVersion: 4, currentLifecycleVersion: 1, currentLifecycleState: "active" as const, conflictDraftVersion: null, auditRef: "audit_saved", requestId: "request_saved" };
 }
 
 function validInput() { return { inputText: "Explain the supported boundary.", model: "mock-rag", temperature: 0.2 }; }

@@ -6,7 +6,8 @@ export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v4"
   | "workflow_run_record.v5"
   | "workflow_run_record.v6"
-  | "workflow_run_record.v7";
+  | "workflow_run_record.v7"
+  | "workflow_run_record.v8";
 
 export type WorkflowRunStatus = "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
 
@@ -260,6 +261,9 @@ export type WorkflowRunRecord = {
   executionSourceVersion: number;
   executionProfile?: string;
   inputDigest?: string;
+  inputContractId?: string;
+  inputContractDigest?: string;
+  inputFields?: Array<{ name: string; valueType: "string" | "integer" | "number" | "boolean" }>;
   definitionAuthority?: WorkflowDefinitionRunAuthority | null;
   promptApplicationAuthority?: PromptApplicationRunAuthority | null;
   agentCopilotAuthority?: AgentCopilotRunAuthority | null;
@@ -352,6 +356,10 @@ const DEFINITION_RECORD_KEYS = new Set([
   "upstream_model", "selection_source", "nodes", "output", "request_id", "audit_ref", "actor_ref", "side_effects",
   "diagnostic",
 ]);
+const STRUCTURED_DEFINITION_RECORD_KEYS = new Set([
+  ...DEFINITION_RECORD_KEYS,
+  "input_contract_id", "input_contract_digest", "input_fields",
+]);
 const PROMPT_APPLICATION_RECORD_KEYS = new Set([
   "schema_version", "record_version", "run_id", "tenant_ref", "workspace_id", "application_id",
   "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile",
@@ -377,13 +385,15 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
   if (schemaVersion !== "workflow_run_record.v0" && schemaVersion !== "workflow_run_record.v1" &&
     schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3" &&
     schemaVersion !== "workflow_run_record.v4" && schemaVersion !== "workflow_run_record.v5" &&
-    schemaVersion !== "workflow_run_record.v6" && schemaVersion !== "workflow_run_record.v7") return null;
+    schemaVersion !== "workflow_run_record.v6" && schemaVersion !== "workflow_run_record.v7" &&
+    schemaVersion !== "workflow_run_record.v8") return null;
 
   if (schemaVersion === "workflow_run_record.v3") return parseRAGRunRecord(value);
   if (schemaVersion === "workflow_run_record.v4") return parseApplicationRAGRunRecord(value);
   if (schemaVersion === "workflow_run_record.v5") return parseDefinitionRunRecord(value);
   if (schemaVersion === "workflow_run_record.v6") return parsePromptApplicationRunRecord(value);
   if (schemaVersion === "workflow_run_record.v7") return parseAgentCopilotRunRecord(value);
+  if (schemaVersion === "workflow_run_record.v8") return parseStructuredDefinitionRunRecord(value);
 
   const common = parseCommonRecordFields(value, schemaVersion);
   if (!common) return null;
@@ -732,6 +742,71 @@ function parseDefinitionRunRecord(value: Record<string, unknown>): WorkflowRunRe
     retrievalFragmentPreviews: [], ragApplicationAuthority: null, output: "", requestId: value.request_id,
     auditRef: value.audit_ref, actorRef: value.actor_ref, sideEffects, diagnostic,
   };
+}
+
+function parseStructuredDefinitionRunRecord(value: Record<string, unknown>): WorkflowRunRecord | null {
+  if (Object.keys(value).some((key) => !STRUCTURED_DEFINITION_RECORD_KEYS.has(key)) ||
+    [...STRUCTURED_DEFINITION_RECORD_KEYS].some((key) => key !== "input_fields" && !Object.hasOwn(value, key)) ||
+    !isPatternString(value.run_id, /^run_[a-z0-9_]{8,64}$/u) || !isPositiveInteger(value.record_version) || value.draft_id !== "" ||
+    value.draft_version !== 0 || !isPatternString(value.workspace_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.application_id, REFERENCE_PATTERN) || value.execution_kind !== "workflow_definition_execution" ||
+    value.execution_source_kind !== "workflow_definition" || !isPatternString(value.execution_source_id, REFERENCE_PATTERN) ||
+    !isPositiveInteger(value.execution_source_version) || value.execution_profile !== "workflow_definition_executor_v2" ||
+    !isPatternString(value.input_digest, DIGEST_PATTERN) || !isPatternString(value.input_contract_id, REFERENCE_PATTERN) ||
+    !isPatternString(value.input_contract_digest, DIGEST_PATTERN) || !isWorkflowRunStatus(value.status) || value.status === "outcome_unknown" ||
+    nullableString(value.failure_code) === null || typeof value.failure_summary !== "string" || value.failure_summary.length > 256 ||
+    !isTimestamp(value.started_at) || nullableString(value.completed_at) === null || !isBoundedInteger(value.input_bytes, 2, 8192) ||
+    !isStringArray(value.condition_node_ids) || typeof value.requested_model !== "string" ||
+    typeof value.selected_provider !== "string" || typeof value.selected_profile !== "string" ||
+    typeof value.selected_model !== "string" || typeof value.upstream_model !== "string" ||
+    typeof value.selection_source !== "string" || !Array.isArray(value.nodes) || value.nodes.length < 3 ||
+    value.nodes.length > 16 || typeof value.output !== "string" || value.output !== "" ||
+    !isPatternString(value.request_id, REFERENCE_PATTERN) || !isPatternString(value.audit_ref, REFERENCE_PATTERN) ||
+    !isPatternString(value.actor_ref, REFERENCE_PATTERN)) return null;
+  const inputFields = parseStructuredInputMetadata(value.input_fields ?? []);
+  const nodes = value.nodes.map(parseWorkflowRunNode);
+  const sideEffects = parseSideEffects(value.side_effects);
+  const diagnostic = parseWorkflowRunDiagnostic(value.diagnostic, false);
+  const authority = parseDefinitionAuthority(value.definition_authority);
+  if (!inputFields || nodes.some((node) => !node || node.outputPreview !== "") || !sideEffects || !diagnostic || !authority ||
+    sideEffects.retrievalCalls !== 0 || sideEffects.toolCalls !== 0 || sideEffects.confirmationCalls !== 0 ||
+    sideEffects.businessWrites !== 0 || sideEffects.replayWrites !== 0 || sideEffects.providerCalls > 4 ||
+    authority.definitionId !== value.execution_source_id || authority.definitionVersion !== value.execution_source_version) return null;
+  const completedAt = nullableString(value.completed_at)!;
+  const failureCode = nullableString(value.failure_code)!;
+  if ((value.status === "running" && (completedAt || failureCode)) || (value.status !== "running" && !completedAt) ||
+    (value.status === "succeeded" && failureCode) || ((value.status === "failed" || value.status === "canceled") && !failureCode)) return null;
+  return {
+    schemaVersion: "workflow_run_record.v8", recordVersion: value.record_version, runId: value.run_id,
+    planId: "", confirmationId: "", tenantRef: "", draftId: "", draftVersion: 0, draftDigest: "",
+    executionKind: value.execution_kind, executionSourceKind: value.execution_source_kind,
+    executionSourceId: value.execution_source_id, executionSourceVersion: value.execution_source_version,
+    executionProfile: value.execution_profile, inputDigest: value.input_digest,
+    inputContractId: value.input_contract_id, inputContractDigest: value.input_contract_digest, inputFields,
+    definitionAuthority: authority, workspaceId: value.workspace_id, applicationId: value.application_id, status: value.status,
+    failureCode, failureSummary: value.failure_summary, startedAt: value.started_at, completedAt,
+    inputBytes: value.input_bytes, conditionNodeIds: [...value.condition_node_ids], requestedModel: value.requested_model,
+    selectedProvider: value.selected_provider, selectedProfile: value.selected_profile, selectedModel: value.selected_model,
+    upstreamModel: value.upstream_model, selectionSource: value.selection_source,
+    nodes: nodes as WorkflowRunNodeRecord[], toolAttempt: null, ragSnapshot: null, retrievalAttempt: null,
+    retrievalFragmentPreviews: [], ragApplicationAuthority: null, output: "", requestId: value.request_id,
+    auditRef: value.audit_ref, actorRef: value.actor_ref, sideEffects, diagnostic,
+  };
+}
+
+function parseStructuredInputMetadata(value: unknown): Array<{ name: string; valueType: "string" | "integer" | "number" | "boolean" }> | null {
+  if (!Array.isArray(value) || value.length > 16) return null;
+  const result: Array<{ name: string; valueType: "string" | "integer" | "number" | "boolean" }> = [];
+  const names = new Set<string>();
+  for (const field of value) {
+    if (!isRecord(field) || Object.keys(field).length !== 2 || !Object.hasOwn(field, "name") || !Object.hasOwn(field, "value_type") ||
+      !isPatternString(field.name, /^[a-z][a-z0-9_]{0,63}$/u) ||
+      (field.value_type !== "string" && field.value_type !== "integer" && field.value_type !== "number" && field.value_type !== "boolean") ||
+      names.has(field.name)) return null;
+    names.add(field.name);
+    result.push({ name: field.name, valueType: field.value_type });
+  }
+  return result.every((field, index) => index === 0 || result[index - 1]!.name < field.name) ? result : null;
 }
 
 function parseDefinitionAuthority(value: unknown): WorkflowDefinitionRunAuthority | null {

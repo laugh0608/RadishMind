@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/gateway-request-cost-estimate.schema.json",
+  "title": "GatewayRequestCostEstimateV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "availability", "reason"],
+  "properties": {
+    "schema_version": { "const": "gateway_request_cost_estimate.v1" },
+    "availability": {
+      "enum": [
+        "estimated",
+        "usage_not_reported",
+        "price_not_configured",
+        "price_unavailable",
+        "not_applicable",
+        "legacy_not_captured"
+      ]
+    },
+    "reason": { "type": "string", "maxLength": 160 },
+    "currency": { "const": "USD" },
+    "estimated_cost_micros": { "type": "integer", "minimum": 0 },
+    "token_unit": { "const": 1000000 },
+    "input_price_micros_per_token_unit": { "type": "integer", "minimum": 0 },
+    "output_price_micros_per_token_unit": { "type": "integer", "minimum": 0 },
+    "pricing_policy_id": { "type": "string", "pattern": "^gmp_[a-f0-9]{24}$" },
+    "pricing_policy_version": { "type": "integer", "minimum": 1 },
+    "pricing_policy_digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "rounding_mode": { "const": "half_up_to_currency_micro" }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "currency",
+        "estimated_cost_micros",
+        "token_unit",
+        "input_price_micros_per_token_unit",
+        "output_price_micros_per_token_unit",
+        "pricing_policy_id",
+        "pricing_policy_version",
+        "pricing_policy_digest",
+        "rounding_mode"
+      ],
+      "properties": {
+        "availability": { "const": "estimated" },
+        "reason": { "const": "" }
+      }
+    },
+    {
+      "properties": {
+        "availability": {
+          "enum": [
+            "usage_not_reported",
+            "price_not_configured",
+            "price_unavailable",
+            "not_applicable",
+            "legacy_not_captured"
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1 },
+        "currency": false,
+        "estimated_cost_micros": false,
+        "token_unit": false,
+        "input_price_micros_per_token_unit": false,
+        "output_price_micros_per_token_unit": false,
+        "pricing_policy_id": false,
+        "pricing_policy_version": false,
+        "pricing_policy_digest": false,
+        "rounding_mode": false
+      }
+    }
+  ]
+}

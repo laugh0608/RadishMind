@@ -175,6 +175,7 @@ func newPromptApplicationTemplateHTTPFixture(t *testing.T, applicationKind strin
 		},
 		bridge: bridgeClient, applicationCatalogRepository: catalogRepository,
 		promptApplicationTemplateRepository: newMemoryPromptApplicationTemplateRepository(),
+		workspaceMembershipProvider:         newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	return promptApplicationTemplateHTTPFixture{
 		server: server, bridge: bridgeClient, input: input,
@@ -188,7 +189,14 @@ func (fixture promptApplicationTemplateHTTPFixture) request(method, target strin
 	request := httptest.NewRequest(method, target, strings.NewReader(string(payload)))
 	auth := fixture.auth
 	auth.ScopeGrants = append([]string{}, scopes...)
+	auth.ResourceBinding = ControlPlaneResourceBinding{TenantRef: "tenant_demo", TenantVerified: true}
+	auth.WorkspaceMemberships = []VerifiedWorkspaceMembershipAssertion{{
+		TenantRef: "tenant_demo", SubjectRef: "subject_owner", WorkspaceID: fixture.input.WorkspaceID,
+		PermissionGrants: append([]string{}, scopes...), SourceRef: "membership:test",
+		PolicyVersion: workspaceMembershipPolicyVersion,
+	}}
 	request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+	request.Header.Set(activeWorkspaceHeader, fixture.input.WorkspaceID)
 	request.Header.Set(promptApplicationTemplateDevWorkspaceHeader, fixture.input.WorkspaceID)
 	request.Header.Set(promptApplicationTemplateDevApplicationHeader, fixture.input.ApplicationID)
 	return request

@@ -41,6 +41,16 @@ func TestApplicationCatalogSQLiteRestartRecoveryAndNoFallback(t *testing.T) {
 	if created.Record == nil || created.FailureCode != "" {
 		t.Fatalf("create persistent application catalog record: %#v", created)
 	}
+	archived := service.Archive(requestContext, created.Record.ApplicationID, 1)
+	if archived.FailureCode != "" || archived.Record == nil {
+		t.Fatalf("archive persistent application catalog record: %#v", archived)
+	}
+	unarchived := service.Unarchive(requestContext, created.Record.ApplicationID, ApplicationCatalogUnarchiveInput{
+		ExpectedVersion: 2, AcknowledgeExistingAccessReactivation: true,
+	})
+	if unarchived.FailureCode != "" || unarchived.Record == nil || unarchived.Record.ArchivedAt != nil {
+		t.Fatalf("unarchive persistent application catalog record: %#v", unarchived)
+	}
 	if err := firstRuntime.Close(); err != nil {
 		t.Fatalf("close first application catalog SQLite runtime: %v", err)
 	}
@@ -58,7 +68,9 @@ func TestApplicationCatalogSQLiteRestartRecoveryAndNoFallback(t *testing.T) {
 	t.Cleanup(func() { _ = secondRuntime.Close() })
 	restarted := newApplicationCatalogService(newSQLiteApplicationCatalogRepository(secondRuntime.DB()))
 	restored := restarted.Read(requestContext, created.Record.ApplicationID)
-	if restored.Record == nil || restored.FailureCode != "" || restored.Record.DisplayName != "SQLite App" || restored.Record.RecordVersion != 1 {
+	if restored.Record == nil || restored.FailureCode != "" || restored.Record.DisplayName != "SQLite App" ||
+		restored.Record.RecordVersion != 3 || restored.Record.LifecycleState != applicationCatalogLifecycleActive ||
+		restored.Record.ArchivedAt != nil {
 		t.Fatalf("restore application catalog record after SQLite restart: %#v", restored)
 	}
 	otherOwner := restarted.Read(applicationCatalogTestContext("subject_other"), created.Record.ApplicationID)

@@ -1,6 +1,6 @@
 # Workflow Evaluation Baseline & Case Versioning v1
 
-更新时间：2026-07-11
+更新时间：2026-08-09
 
 状态：`workflow_evaluation_baseline_case_versioning_v1_completed`
 
@@ -86,3 +86,8 @@ revision 请求必须携带正整数 `expected_version`。memory 与 PostgreSQL 
 后续 [Workflow Evaluation Suite / Release Review v1](workflow-evaluation-suite-release-review-v1.md) 已完成：明确 case version 可组成不可变 suite，并提供聚合只读审查和人工 release decision evidence；仍不自动执行、部署、promote 或写回业务系统。
 
 2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 已让相同 immutable retrieval binding 的 v3 case 支持完整 revision、baseline promotion 与历史 review；SQLite shared database 同步补齐 durable case / revision repository。所有版本仍只引用 run id，并在每次 create / revise / review 时由服务端重读验证，不复制检索正文或运行载荷。
+
+## 2026-08-09 Application Evaluation Campaign 交接边界
+
+- Application Evaluation Handoff 要求 baseline / candidate Campaign 都携带当前 `expected_version`，并只把两侧 exact run refs 交给既有 Case owner。每个成功 Case version 立即回写 candidate Campaign 的 partial checkpoint，但 Case family、revision 和 CAS 真相仍完全由本 owner 承载。
+- Handoff 不自动 promotion baseline、不改写既有 Case version、不删除部分成功 evidence；Campaign 只保存 exact case refs 和 partial / complete 状态，不复制 Case 快照或 review body。

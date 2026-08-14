@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/saved-workflow-draft-v2.schema.json",
+  "title": "Saved Workflow Draft v2 Payload",
+  "description": "Versioned workflow draft payload with an immutable, flat structured runtime input contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["draft_id", "workspace_id", "application_id", "source_definition_id", "base_definition_version", "schema_version", "name", "description", "nodes", "edges", "input_contract", "output_contract", "provider_refs", "tool_refs", "rag_refs", "requested_capabilities"],
+  "properties": {
+    "draft_id": {"$ref": "#/$defs/id"},
+    "workspace_id": {"$ref": "#/$defs/id"},
+    "application_id": {"$ref": "#/$defs/id"},
+    "source_definition_id": {"type": "string", "maxLength": 160},
+    "base_definition_version": {"type": "integer", "minimum": 0},
+    "schema_version": {"const": "saved_workflow_draft.v2"},
+    "draft_status": {"enum": ["valid_for_review", "invalid_draft", "blocked_capability", "schema_unsupported"]},
+    "name": {"type": "string", "minLength": 1, "maxLength": 4000},
+    "description": {"type": "string", "maxLength": 4000},
+    "nodes": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "#/$defs/node"}},
+    "edges": {"type": "array", "maxItems": 120, "items": {"$ref": "#/$defs/edge"}},
+    "input_contract": {"$ref": "#/$defs/structured_input_contract"},
+    "output_contract": {"$ref": "#/$defs/output_contract"},
+    "provider_refs": {"$ref": "#/$defs/string_list"},
+    "tool_refs": {"$ref": "#/$defs/string_list"},
+    "rag_refs": {"$ref": "#/$defs/string_list"},
+    "requested_capabilities": {"$ref": "#/$defs/string_list"},
+    "additional_fields": {"type": "object"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "string_list": {"type": "array", "maxItems": 200, "items": {"type": "string", "maxLength": 4000}},
+    "input_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value_type", "required", "label", "description"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+        "value_type": {"enum": ["string", "integer", "number", "boolean"]},
+        "required": {"type": "boolean"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 160},
+        "description": {"type": "string", "maxLength": 4000}
+      }
+    },
+    "structured_input_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "fields", "summary", "contract_digest"],
+      "properties": {
+        "contract_id": {"$ref": "#/$defs/id"},
+        "fields": {"type": "array", "minItems": 1, "maxItems": 16, "items": {"$ref": "#/$defs/input_field"}},
+        "summary": {"type": "string", "maxLength": 4000},
+        "contract_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "output_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "required_fields", "summary"],
+      "properties": {
+        "contract_id": {"$ref": "#/$defs/id"},
+        "required_fields": {"$ref": "#/$defs/string_list"},
+        "summary": {"type": "string", "maxLength": 4000}
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "node_type", "label", "input_summary", "output_summary", "input_contract_ref", "output_contract_ref", "input_contract_fields", "output_contract_fields", "output_mapping_summary", "provider_ref", "tool_ref", "rag_ref", "risk_level", "requires_confirmation"],
+      "properties": {
+        "node_id": {"$ref": "#/$defs/id"},
+        "node_type": {"enum": ["prompt", "llm", "condition", "output"]},
+        "label": {"type": "string", "maxLength": 160},
+        "input_summary": {"type": "string", "maxLength": 4000},
+        "output_summary": {"type": "string", "maxLength": 4000},
+        "input_contract_ref": {"type": "string", "maxLength": 160},
+        "output_contract_ref": {"type": "string", "maxLength": 160},
+        "input_contract_fields": {"$ref": "#/$defs/string_list"},
+        "output_contract_fields": {"$ref": "#/$defs/string_list"},
+        "output_mapping_summary": {"type": "string", "maxLength": 4000},
+        "provider_ref": {"type": "string", "maxLength": 160},
+        "tool_ref": {"type": "string", "maxLength": 160},
+        "rag_ref": {"type": "string", "maxLength": 160},
+        "risk_level": {"type": "string", "maxLength": 80},
+        "requires_confirmation": {"type": "boolean"}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edge_id", "from_node_id", "to_node_id", "condition_summary"],
+      "properties": {
+        "edge_id": {"$ref": "#/$defs/id"},
+        "from_node_id": {"$ref": "#/$defs/id"},
+        "to_node_id": {"$ref": "#/$defs/id"},
+        "condition_summary": {"type": "string", "maxLength": 4000}
+      }
+    }
+  }
+}

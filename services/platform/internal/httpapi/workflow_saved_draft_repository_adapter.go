@@ -45,6 +45,15 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
 	if failureCode := adapter.schemaPreflight.failureCodeFor(draft.SchemaVersion); failureCode != "" {
 		return SaveWorkflowDraftRecordResult{FailureCode: failureCode}
 	}
+	revisionKind := normalizedSavedWorkflowDraftRevisionKind(request.RevisionKind)
+	if (revisionKind == SavedWorkflowDraftRevisionKindSaved && request.RestoredFromVersion != 0) ||
+		(revisionKind == SavedWorkflowDraftRevisionKindRestored && request.RestoredFromVersion < 1) ||
+		(revisionKind != SavedWorkflowDraftRevisionKindSaved &&
+			revisionKind != SavedWorkflowDraftRevisionKindRestored) {
+		return SaveWorkflowDraftRecordResult{
+			FailureCode: SavedWorkflowDraftFailureStoreContractMismatch,
+		}
+	}
 	if adapter.queryExecutor == nil {
 		return SaveWorkflowDraftRecordResult{FailureCode: SavedWorkflowDraftFailureStoreUnavailable}
 	}
@@ -53,6 +62,8 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) SaveWorkflowDraftRecord(
 		ActorContext:         actor,
 		ExpectedDraftVersion: request.ExpectedDraftVersion,
 		Record:               savedWorkflowDraftRepositoryRecordFromDraft(actor, draft, adapter.schemaPreflight),
+		RevisionKind:         revisionKind,
+		RestoredFromVersion:  request.RestoredFromVersion,
 	})
 	if queryResult.FailureCode != "" {
 		return SaveWorkflowDraftRecordResult{
@@ -171,7 +182,7 @@ func (adapter SavedWorkflowDraftRepositoryAdapter) validateStoredRecord(
 		record.Draft.ApplicationID != actor.ApplicationID {
 		return SavedWorkflowDraftFailureStoreContractMismatch
 	}
-	if record.Draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(record.Draft.SchemaVersion) {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
 	}
 	return ""
@@ -223,8 +234,11 @@ func savedWorkflowDraftRepositoryDraftFailure(
 	if draft.WorkspaceID != actor.WorkspaceID || draft.ApplicationID != actor.ApplicationID {
 		return SavedWorkflowDraftFailureScopeDenied
 	}
-	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(draft.SchemaVersion) {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
+	}
+	if _, ok := normalizeAndValidateSavedWorkflowDraftLifecycle(draft); !ok {
+		return SavedWorkflowDraftFailureLifecycleStoreContract
 	}
 	return ""
 }
@@ -282,7 +296,7 @@ func (preflight SavedWorkflowDraftRepositorySchemaPreflight) failureCodeFor(
 	if preflight.StoreSchemaVersion != savedWorkflowDraftRepositoryStoreSchemaVersion {
 		return SavedWorkflowDraftFailureStoreSchemaVersionMismatch
 	}
-	if strings.TrimSpace(payloadSchemaVersion) != savedWorkflowDraftSchemaVersion {
+	if !supportedSavedWorkflowDraftSchemaVersion(strings.TrimSpace(payloadSchemaVersion)) {
 		return SavedWorkflowDraftFailureSchemaVersionUnsupported
 	}
 	return ""

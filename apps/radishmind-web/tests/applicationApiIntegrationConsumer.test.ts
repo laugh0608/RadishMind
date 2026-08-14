@@ -157,6 +157,46 @@ test("Application model catalog separates empty, HTTP failure, and invalid respo
   }
 });
 
+test("Application model catalog preserves allowlisted Gateway auth failures without exposing server messages", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => jsonResponse({
+      error: {
+        message: "private application state and credential detail",
+        code: "api_key_application_unavailable",
+        failure_boundary: "api_key_authentication",
+      },
+    }, "archived-application-request", 403);
+    const unavailable = await loadApplicationModelCatalog(
+      live,
+      "app_flow_copilot",
+      undefined,
+      "archived-application-request",
+    );
+    assert.equal(unavailable.failureCode, "api_key_application_unavailable");
+    assert.equal(unavailable.summary, "The selected application is archived or unavailable for Gateway authentication.");
+    assert.equal(JSON.stringify(unavailable).includes("private application state"), false);
+
+    globalThis.fetch = async () => jsonResponse({
+      error: {
+        message: "unknown internal detail",
+        code: "provider_private_failure",
+        failure_boundary: "provider_runtime",
+      },
+    }, "unknown-gateway-error-request", 503);
+    const unknown = await loadApplicationModelCatalog(
+      live,
+      "app_flow_copilot",
+      undefined,
+      "unknown-gateway-error-request",
+    );
+    assert.equal(unknown.failureCode, "gateway_model_catalog_http_failed");
+    assert.equal(JSON.stringify(unknown).includes("unknown internal detail"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Application API examples cover all protocol and language pairs without secret or dev headers", () => {
   const protocols: ApplicationApiProtocol[] = ["chat_completions", "responses", "messages"];
   const languages: ApplicationApiExampleLanguage[] = ["curl", "python", "typescript"];
@@ -428,9 +468,9 @@ test("Application switch resets catalog, model selection, and failure state", ()
   assert.equal(next.summary.includes("old"), false);
 });
 
-function jsonResponse(body: unknown, requestId: string): Response {
+function jsonResponse(body: unknown, requestId: string, status = 200): Response {
   return new Response(JSON.stringify(body), {
-    status: 200,
+    status,
     headers: { "Content-Type": "application/json", "X-Request-Id": requestId },
   });
 }

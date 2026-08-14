@@ -5,6 +5,7 @@ import {
   issueAPIKey,
   listAPIKeyRecords,
   readAPIKeyRecord,
+  replaceAPIKeyListRecord,
   revokeAPIKey,
   validateAPIKeyIssueInput,
   type APIKeyIssueInput,
@@ -44,6 +45,9 @@ test("issue accepts the one-time credential only with no-store and strict manage
     assert.equal(init?.method, "POST");
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "api_keys:write,api_keys:read");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "api_keys:write");
     assert.equal(headers.has("Authorization"), false);
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     assert.deepEqual(body.scopes, ["models:read", "responses:invoke"]);
@@ -100,6 +104,9 @@ test("list, detail, and revoke preserve application scope without credential mat
     }
     assert.equal(new URL(String(url)).pathname, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke");
     assert.equal(headers.get("X-RadishMind-Dev-Read-Scopes"), "api_keys:revoke,api_keys:read");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "api_keys:revoke");
     assert.deepEqual(JSON.parse(String(init?.body)), { workspace_id: "workspace_demo", expected_version: 1 });
     return jsonResponse(operationEnvelope({ revoked: true, version: 2 }));
   };
@@ -119,6 +126,31 @@ test("list, detail, and revoke preserve application scope without credential mat
     assert.equal(revoked.record?.recordVersion, 2);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("signed issue selects the active workspace without dev membership proof", async () => {
+  const originalFetch = globalThis.fetch;
+  const tokenGlobal = globalThis as typeof globalThis & {
+    __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string;
+  };
+  const originalProvider = tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__;
+  let capturedHeaders = new Headers();
+  tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = () => "signed-api-key-token-in-memory";
+  globalThis.fetch = async (_input, init) => {
+    capturedHeaders = new Headers(init?.headers);
+    return jsonResponse(issueEnvelope(), 201, { "Cache-Control": "private, no-store" });
+  };
+  try {
+    const result = await issueAPIKey({ ...live, authMode: "signed_test_token" }, issueInput());
+    assert.equal(result.status, "issued");
+    assert.equal(capturedHeaders.get("Authorization"), "Bearer signed-api-key-token-in-memory");
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+    tokenGlobal.__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__ = originalProvider;
   }
 });
 
@@ -174,6 +206,28 @@ test("issue input validation rejects invalid scope, expiry, identifiers, and sen
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), scopes: [] }), "api_key_payload_invalid");
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), expiresInDays: 91 }), "api_key_payload_invalid");
   assert.equal(validateAPIKeyIssueInput({ ...issueInput(), displayName: "Authorization: Bearer hidden" }), "api_key_secret_material_forbidden");
+});
+
+test("exact API key detail replaces the matching list projection without changing pagination state", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => jsonResponse(listEnvelope());
+    const list = await listAPIKeyRecords(live, "app_aaaaaaaaaaaaaaaa");
+    const exactRecord = {
+      ...list.records[0]!,
+      lastUsedAt: "2026-07-30T10:22:42Z",
+      requestId: "api-key-exact-read-request",
+      auditRef: "audit-api-key-exact-read-request",
+    };
+    const replaced = replaceAPIKeyListRecord(list, exactRecord);
+
+    assert.equal(replaced.records[0]?.lastUsedAt, "2026-07-30T10:22:42Z");
+    assert.equal(replaced.nextCursor, list.nextCursor);
+    assert.equal(replaced.status, list.status);
+    assert.equal(replaceAPIKeyListRecord(list, { ...exactRecord, apiKeyId: "key_bbbbbbbbbbbbbbbb" }), list);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 function issueInput(): APIKeyIssueInput {

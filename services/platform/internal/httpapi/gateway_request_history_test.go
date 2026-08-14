@@ -36,7 +36,7 @@ func runGatewayRequestHistoryScopeFilterAndCursor(t *testing.T, store gatewayReq
 		if index == 2 {
 			record.Usage = GatewayRequestUsage{
 				Availability: GatewayRequestUsageReported,
-				Source:       "provider_response",
+				Source:       "openai_compatible_usage",
 				InputTokens:  2,
 				OutputTokens: 3,
 				TotalTokens:  5,
@@ -166,6 +166,22 @@ func runGatewayRequestStoreRejectsConcurrentTerminalRewrite(t *testing.T, store 
 
 func TestGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t *testing.T) {
 	runGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t, newMemoryGatewayRequestStore(10))
+}
+
+func TestGatewayRequestHistoryProjectsV1RecordAsLegacyCost(t *testing.T) {
+	store := newMemoryGatewayRequestStore(10)
+	requestContext := gatewayRequestTestContext()
+	record := gatewayRequestTestRecord(requestContext, "request_legacy_cost", time.Now().UTC())
+	if err := store.CreateRequest(requestContext, &record); err != nil {
+		t.Fatal(err)
+	}
+
+	result := newGatewayRequestHistoryService(store).Read(requestContext, record.RequestID)
+	if result.FailureCode != "" || result.Record == nil ||
+		result.Record.CostEstimate.Availability != GatewayRequestCostLegacyNotCaptured ||
+		result.Record.CostEstimate.SchemaVersion != GatewayRequestCostEstimateSchemaVersion {
+		t.Fatalf("v1 request did not project an explicit legacy cost state: %+v", result)
+	}
 }
 
 func runGatewayRequestStoreRejectsSensitiveAndInvalidUsage(t *testing.T, store gatewayRequestStore) {

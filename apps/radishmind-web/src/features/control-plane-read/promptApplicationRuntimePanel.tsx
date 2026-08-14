@@ -86,7 +86,7 @@ export default function PromptApplicationRuntimePanel({
   }
 
   return (
-    <section className="prompt-application-runtime-panel" aria-label="Prompt Application Runtime Assignment">
+    <section className="prompt-application-runtime-panel" id="prompt-application-runtime-assignment" aria-label="Prompt Application Runtime Assignment">
       <div className="application-api-card-heading">
         <div>
           <p className="eyebrow">Prompt Runtime Assignment</p>

@@ -434,6 +434,18 @@ func newSavedWorkflowDraftHTTPTestServerWithStoreMode(writeEnabled bool, storeMo
 func setSavedWorkflowDraftDevHeaders(req *http.Request, scopes string) {
 	setControlPlaneReadDevAuthHeaders(req)
 	req.Header.Set(controlPlaneReadDevScopesHeader, scopes)
+	req.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	membershipPermissions := make([]string, 0)
+	for _, scope := range strings.Split(scopes, ",") {
+		scope = strings.TrimSpace(scope)
+		if _, allowed := workspacePermissionAllowlist[scope]; allowed {
+			membershipPermissions = append(membershipPermissions, scope)
+		}
+	}
+	if len(membershipPermissions) > 0 {
+		req.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+		req.Header.Set(controlPlaneReadDevMembershipPermHeader, strings.Join(membershipPermissions, ","))
+	}
 	req.Header.Set(savedWorkflowDraftDevWorkspaceHeader, "workspace_demo")
 	req.Header.Set(savedWorkflowDraftDevApplicationHeader, "app_flow_copilot")
 }
@@ -495,6 +507,8 @@ func assertSavedWorkflowDraftEnvelopeContract(t *testing.T, rec *httptest.Respon
 		"draft",
 		"failure_code",
 		"current_draft_version",
+		"current_lifecycle_version",
+		"current_lifecycle_state",
 		"validation_summary",
 		"blocked_capabilities",
 		"audit_ref",
@@ -528,6 +542,8 @@ func assertSavedWorkflowDraftListEnvelopeContract(t *testing.T, rec *httptest.Re
 		"workspace_id",
 		"application_id",
 		"draft_summaries",
+		"next_cursor",
+		"has_more",
 		"failure_code",
 		"audit_ref",
 	} {
@@ -550,6 +566,12 @@ func assertSavedWorkflowDraftListEnvelopeContract(t *testing.T, rec *httptest.Re
 			"application_id",
 			"source_definition_id",
 			"draft_version",
+			"lifecycle_state",
+			"lifecycle_version",
+			"archived_at",
+			"library_updated_at",
+			"lifecycle_updated_by_actor_ref",
+			"provenance_kind",
 			"schema_version",
 			"draft_status",
 			"name",

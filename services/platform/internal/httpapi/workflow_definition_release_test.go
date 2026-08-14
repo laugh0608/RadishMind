@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -98,6 +99,63 @@ func TestWorkflowDefinitionReleaseRejectsBlockedDraftAndScopeIsolation(t *testin
 	}
 }
 
+func TestWorkflowDefinitionReleaseRejectsUnsupportedNodeBeforePersistence(t *testing.T) {
+	store := newWorkflowDefinitionReleaseStore()
+	draft := workflowDefinitionTestDraft()
+	draft.Nodes = append(draft.Nodes, SavedWorkflowDraftNode{NodeID: "retrieval", NodeType: "rag_retrieval", RAGRef: "rag:baseline:v1"})
+	draft.RAGRefs = []string{"rag:baseline:v1"}
+
+	if _, err := store.CreateCandidate(workflowDefinitionTestContext(), "candidate-rag", "definition-rag", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+		t.Fatalf("unsupported snapshot node type must be rejected, got %v", err)
+	}
+	if len(store.candidates) != 0 || len(store.audits) != 0 {
+		t.Fatalf("rejected candidate must not persist candidate or audit: candidates=%d audits=%d", len(store.candidates), len(store.audits))
+	}
+}
+
+func TestWorkflowDefinitionReleaseKeepsIncompatibleGraphReviewableButNotActivatable(t *testing.T) {
+	store := newWorkflowDefinitionReleaseStore()
+	ctx := workflowDefinitionTestContext()
+	draft := workflowDefinitionTestDraft()
+	draft.Edges = []SavedWorkflowDraftEdge{{EdgeID: "edge-output-prompt", FromNodeID: "output", ToNodeID: "prompt"}, {EdgeID: "edge-prompt-model", FromNodeID: "prompt", ToNodeID: "model"}}
+
+	candidate, err := store.CreateCandidate(ctx, "candidate-invalid-graph", "definition-invalid-graph", draft, time.Now())
+	if err != nil {
+		t.Fatalf("graph-incompatible candidate should remain reviewable: %v", err)
+	}
+	if candidate.ActivationEligible || !slices.Contains(candidate.EligibilityBlockers, "execution_profile_incompatible:workflow_run_graph_invalid") {
+		t.Fatalf("graph incompatibility must remain explicit: %#v", candidate.EligibilityBlockers)
+	}
+	approved, version, err := store.Review(ctx, candidate.CandidateID, 0, "approve", "reviewed blocked graph", candidate.SourceDraftDigest, time.Now())
+	if err != nil || approved.State != workflowDefinitionStateApproved || version == nil {
+		t.Fatalf("blocked review evidence: %#v %#v %v", approved, version, err)
+	}
+	if _, err = store.Activate(ctx, candidate.DefinitionID, 0, 1, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+		t.Fatalf("graph-incompatible version must not activate, got %v", err)
+	}
+}
+
+func TestWorkflowDefinitionReleaseRechecksLegacyEligibleSnapshotBeforeActivation(t *testing.T) {
+	store := newWorkflowDefinitionReleaseStore()
+	ctx := workflowDefinitionTestContext()
+	candidate, err := store.CreateCandidate(ctx, "candidate-legacy-eligible", "definition-legacy-eligible", workflowDefinitionTestDraft(), time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, version, err := store.Review(ctx, candidate.CandidateID, 0, "approve", "reviewed legacy candidate", candidate.SourceDraftDigest, time.Now())
+	if err != nil || version == nil {
+		t.Fatalf("review legacy candidate: %#v %v", version, err)
+	}
+	definitionKey := workflowDefinitionScopeKey(ctx, candidate.DefinitionID)
+	legacyVersion := store.versions[definitionKey][0]
+	legacyVersion.Snapshot.Edges = []WorkflowDefinitionEdge{{EdgeID: "edge-output-prompt", FromNodeID: "output", ToNodeID: "prompt"}, {EdgeID: "edge-prompt-model", FromNodeID: "prompt", ToNodeID: "model"}}
+	store.versions[definitionKey][0] = legacyVersion
+
+	if _, err = store.Activate(ctx, candidate.DefinitionID, 0, 1, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+		t.Fatalf("legacy eligible marker must not bypass exact snapshot validation, got %v", err)
+	}
+}
+
 func TestWorkflowDefinitionReleaseRejectsSensitiveSnapshotMaterial(t *testing.T) {
 	store := newWorkflowDefinitionReleaseStore()
 	draft := workflowDefinitionTestDraft()
@@ -121,16 +179,21 @@ func TestWorkflowDefinitionReleaseServiceReloadsExactDraftAndRejectsDrift(t *tes
 	ctx := workflowDefinitionTestContext()
 	ctx.ApplicationID = payload.ApplicationID
 	created := service.Create(ctx, WorkflowDefinitionCandidateCreateInput{
-		CandidateID:          "candidate-authority",
-		DefinitionID:         "definition-authority",
-		DraftID:              payload.DraftID,
-		ExpectedDraftVersion: 1,
+		CandidateID:              "candidate-authority",
+		DefinitionID:             "definition-authority",
+		DraftID:                  payload.DraftID,
+		ExpectedDraftVersion:     1,
+		ExpectedLifecycleVersion: 1,
 	})
 	if created.Candidate == nil || created.FailureCode != "" {
 		t.Fatalf("create candidate: %#v", created)
 	}
 	payload.Description = "A newer saved draft version must invalidate the pending authority."
-	if result := draftService.SaveDraft(draftContext, SaveWorkflowDraftRequest{Payload: payload, ExpectedDraftVersion: 1}); result.Draft == nil || result.Draft.DraftVersion != 2 {
+	if result := draftService.SaveDraft(draftContext, SaveWorkflowDraftRequest{
+		Payload:                  payload,
+		ExpectedDraftVersion:     1,
+		ExpectedLifecycleVersion: 1,
+	}); result.Draft == nil || result.Draft.DraftVersion != 2 {
 		t.Fatalf("update draft: %#v", result)
 	}
 	reviewed := service.Review(ctx, created.Candidate.CandidateID, WorkflowDefinitionReviewInput{
@@ -143,6 +206,80 @@ func TestWorkflowDefinitionReleaseServiceReloadsExactDraftAndRejectsDrift(t *tes
 	}
 	if versions, failure := service.ListVersions(ctx, created.Candidate.DefinitionID); failure != "" || len(versions) != 0 {
 		t.Fatalf("drift left a partial version: %#v failure=%s", versions, failure)
+	}
+}
+
+func TestWorkflowDefinitionCandidateRequiresActiveLifecycleButExistingReviewSurvivesArchive(
+	t *testing.T,
+) {
+	draftStore := newMemorySavedWorkflowDraftStore()
+	draftService := newSavedWorkflowDraftService(draftStore)
+	draftContext := savedWorkflowDraftTestContext()
+	payload := validSavedWorkflowDraftPayload()
+	payload.ToolRefs = []string{}
+	payload.RAGRefs = []string{}
+	saved := draftService.SaveDraft(
+		draftContext,
+		SaveWorkflowDraftRequest{Payload: payload},
+	)
+	if saved.FailureCode != "" || saved.Draft == nil {
+		t.Fatalf("seed definition source: %#v", saved)
+	}
+
+	releaseStore := newWorkflowDefinitionReleaseStore()
+	releaseService := newWorkflowDefinitionReleaseService(draftStore, releaseStore)
+	releaseContext := workflowDefinitionTestContext()
+	releaseContext.ApplicationID = payload.ApplicationID
+	created := releaseService.Create(releaseContext, WorkflowDefinitionCandidateCreateInput{
+		CandidateID:              "candidate_before_archive",
+		DefinitionID:             "definition_lifecycle",
+		DraftID:                  saved.Draft.DraftID,
+		ExpectedDraftVersion:     saved.Draft.DraftVersion,
+		ExpectedLifecycleVersion: saved.Draft.LifecycleVersion,
+	})
+	if created.FailureCode != "" || created.Candidate == nil {
+		t.Fatalf("create candidate before archive: %#v", created)
+	}
+	archived := draftService.ArchiveDraft(
+		draftContext,
+		TransitionSavedWorkflowDraftLifecycleRequest{
+			DraftID:                  saved.Draft.DraftID,
+			ExpectedDraftVersion:     saved.Draft.DraftVersion,
+			ExpectedLifecycleVersion: saved.Draft.LifecycleVersion,
+		},
+	)
+	if archived.FailureCode != "" || archived.Draft == nil {
+		t.Fatalf("archive definition source: %#v", archived)
+	}
+
+	blocked := releaseService.Create(releaseContext, WorkflowDefinitionCandidateCreateInput{
+		CandidateID:              "candidate_after_archive",
+		DefinitionID:             "definition_lifecycle",
+		DraftID:                  archived.Draft.DraftID,
+		ExpectedDraftVersion:     archived.Draft.DraftVersion,
+		ExpectedLifecycleVersion: archived.Draft.LifecycleVersion,
+	})
+	if blocked.FailureCode != workflowDefinitionFailureSourceIneligible ||
+		blocked.Candidate != nil {
+		t.Fatalf("candidate creation accepted archived source: %#v", blocked)
+	}
+	candidates, failureCode := releaseService.ListCandidates(releaseContext)
+	if failureCode != "" || len(candidates) != 1 {
+		t.Fatalf("blocked candidate creation left partial state: %#v failure=%s", candidates, failureCode)
+	}
+
+	reviewed := releaseService.Review(
+		releaseContext,
+		created.Candidate.CandidateID,
+		WorkflowDefinitionReviewInput{
+			ExpectedReviewVersion: 0,
+			Decision:              "approve",
+			Reason:                "source snapshot remains reviewable after archive",
+		},
+	)
+	if reviewed.FailureCode != "" || reviewed.Version == nil ||
+		reviewed.Candidate == nil {
+		t.Fatalf("archive invalidated existing candidate review: %#v", reviewed)
 	}
 }
 
@@ -223,10 +360,11 @@ func TestWorkflowDefinitionReleaseHTTPAuthorityReviewVersionAndActivation(t *tes
 		t.Fatalf("seed draft: %#v", result)
 	}
 	created := performWorkflowDefinitionRequest(t, server, http.MethodPost, "/v1/user-workspace/workflow-definition-candidates", workflowDefinitionCandidateCreateBody{
-		CandidateID:          "candidate-http",
-		DefinitionID:         "definition-http",
-		DraftID:              payload.DraftID,
-		ExpectedDraftVersion: 1,
+		CandidateID:              "candidate-http",
+		DefinitionID:             "definition-http",
+		DraftID:                  payload.DraftID,
+		ExpectedDraftVersion:     1,
+		ExpectedLifecycleVersion: 1,
 	}, "workflow_definitions:write")
 	if created.Candidate == nil || created.FailureCode != nil {
 		t.Fatalf("create: %#v", created)
@@ -347,7 +485,7 @@ func workflowDefinitionTestContext() WorkflowDefinitionReleaseContext {
 
 func workflowDefinitionTestDraft() SavedWorkflowDraft {
 	return SavedWorkflowDraft{DraftID: "draft_demo", WorkspaceID: "workspace_demo", ApplicationID: "app_demo", DraftVersion: 1, SchemaVersion: savedWorkflowDraftSchemaVersion,
-		DraftStatus: SavedWorkflowDraftStatusValidForReview, Name: "Reviewed workflow", Nodes: []SavedWorkflowDraftNode{{NodeID: "prompt", NodeType: "prompt"}, {NodeID: "output", NodeType: "output"}},
-		Edges: []SavedWorkflowDraftEdge{{EdgeID: "edge-one", FromNodeID: "prompt", ToNodeID: "output"}}, ValidationSummary: SavedWorkflowDraftValidationSummary{ValidationState: SavedWorkflowDraftStatusValidForReview, ValidForReview: true},
+		DraftStatus: SavedWorkflowDraftStatusValidForReview, Name: "Reviewed workflow", Nodes: []SavedWorkflowDraftNode{{NodeID: "prompt", NodeType: "prompt"}, {NodeID: "model", NodeType: "llm"}, {NodeID: "output", NodeType: "output"}},
+		Edges: []SavedWorkflowDraftEdge{{EdgeID: "edge-prompt-model", FromNodeID: "prompt", ToNodeID: "model"}, {EdgeID: "edge-model-output", FromNodeID: "model", ToNodeID: "output"}}, ValidationSummary: SavedWorkflowDraftValidationSummary{ValidationState: SavedWorkflowDraftStatusValidForReview, ValidForReview: true},
 		BlockedCapabilitySummary: []SavedWorkflowDraftBlockedCapability{}, ProviderRefs: []string{}, ToolRefs: []string{}, RAGRefs: []string{}, RequestedCapabilities: []string{}}
 }

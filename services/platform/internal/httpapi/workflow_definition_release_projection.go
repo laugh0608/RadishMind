@@ -31,7 +31,8 @@ func (store *workflowDefinitionReleaseStore) ListSummaries(ctx ReadRepositoryCon
 	sources := make([]workflowDefinitionSummarySource, 0, len(store.versions))
 	for key, versions := range store.versions {
 		parts := strings.Split(key, "\x00")
-		if len(parts) != 5 || parts[0] != ctx.TenantRef || parts[3] != ctx.SubjectRef || len(versions) == 0 {
+		if len(parts) != 5 || parts[0] != ctx.TenantRef || parts[1] != ctx.WorkspaceID ||
+			parts[3] != ctx.SubjectRef || len(versions) == 0 {
 			continue
 		}
 		latest := cloneWorkflowDefinitionVersion(versions[len(versions)-1])

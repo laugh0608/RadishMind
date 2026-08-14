@@ -1,6 +1,6 @@
 # Workflow Run Comparison / Regression Review v1
 
-更新时间：2026-07-16
+更新时间：2026-08-09
 
 状态：`workflow_run_comparison_regression_review_v1_completed`
 
@@ -79,3 +79,20 @@ Run History 在真实 dev / test 模式提供基线 / 候选选择和比较审�
 - Go test / race / vet、Web 14 项测试 / build、PostgreSQL integration 与真实浏览器均通过；服务、浏览器、容器、网络和 Docker Desktop 已关闭。
 
 后续 `Workflow Evaluation Cases / Batch Regression Review v1`、Baseline / Case Versioning 和 Evaluation Suite / Release Review 均已完成。2026-07-18 独立的 [Workflow RAG Regression Review 与 Evaluation Profile v1](workflow-rag-regression-review-evaluation-profile-dev-test-v1.md) 增加 `workflow_run_comparison.v2`：只比较相同 immutable snapshot / profile / query / retrieval node binding 的 v3 metadata，citation loss 归类为 regression；v0 / v1 继续使用 v1，HTTP Tool v2 继续 unsupported。该扩展不重新执行 retrieval / Gateway，也不保存正文、query、answer 或 prompt。
+
+## 2026-08-08 Family UI S6 R1 产品化
+
+- Run Comparison 已成为 S6 的独立 Compare task，只在该任务被选中时挂载既有 lazy owner。用户从当前 application 的 Run owner 选择精确 baseline / candidate，既有 compatibility 与 scope 规则继续失败关闭。
+- Comparison 仍在请求时即时派生，不持久化、不重新执行 run，也不自动选择 baseline 或宣称 release readiness。普通 run 行保持中性，当前选择使用 action 语义，classification / failure 继续使用独立状态通道。
+- application / workspace 切换会清空双方选择与 comparison 结果，迟到响应不能回填新上下文；offline 和 workspace mismatch 均不发 live 请求。Web 测试、production build 与真实浏览器任务切换通过，未新增 API、schema 或执行能力。
+
+## 2026-08-09 Application RAG profile 契约修正
+
+- SQLite 当前权威复验确认 `workflow_run_comparison.v3` 的嵌套 retrieval profile 正确，但顶层 `run_profile` 仍沿用 standard 默认值，使严格 Web consumer 对 HTTP `200` 失败关闭。根因是 RAG comparison builder 只替换 schema 和 retrieval profile，没有同步顶层稳定判别字段。
+- v2 现固定 `workflow_rag_retrieval.v1`，v3 固定 `workflow_rag_application_invocation.v1`；v1、v4、v5、v6 也由 strict consumer 按 schema 精确校验既有 profile。缺失或错配不再由客户端推断或降级接受。
+- 两次 v4 Application RAG run 的真实 Comparison 已恢复为 `unchanged / comparable`，并继续只返回 metadata authority、差异摘要和零副作用计数。没有增加 schema 版本、API、持久 comparison、重新执行或自动 release 行为。
+
+## 2026-08-09 Application Evaluation Campaign 消费边界
+
+- [应用评测计划、受控执行与证据归档 v1](../user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) 的 Pair Preview 只以 baseline / candidate Campaign 中已持久的 exact run ref 即时调用既有 Comparison owner。Campaign 不保存 comparison body、classification 或 finding 快照。
+- authority drift、quota 拒绝、interrupted 或未成功 Campaign 不会被 Pair Preview 伪装为可比较 run；Comparison 继续按各 Profile 的 lineage、scope 和 metadata-only 契约失败关闭，不重新执行 provider。

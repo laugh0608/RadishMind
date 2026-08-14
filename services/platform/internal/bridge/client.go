@@ -70,14 +70,15 @@ type ProviderInventory struct {
 }
 
 type GatewayEnvelope struct {
-	SchemaVersion int            `json:"schema_version"`
-	Status        string         `json:"status"`
-	RequestID     string         `json:"request_id"`
-	Project       string         `json:"project"`
-	Task          string         `json:"task"`
-	Response      map[string]any `json:"response"`
-	Error         *GatewayError  `json:"error"`
-	Metadata      map[string]any `json:"metadata"`
+	SchemaVersion          int                     `json:"schema_version"`
+	Status                 string                  `json:"status"`
+	RequestID              string                  `json:"request_id"`
+	Project                string                  `json:"project"`
+	Task                   string                  `json:"task"`
+	Response               map[string]any          `json:"response"`
+	Error                  *GatewayError           `json:"error"`
+	ProviderAttemptFailure *ProviderAttemptFailure `json:"provider_attempt_failure,omitempty"`
+	Metadata               map[string]any          `json:"metadata"`
 }
 
 type GatewayError struct {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { parsePromptApplicationVariables } from "./promptApplicationInvocationConsumer.ts";
+import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   createPromptApplicationSession,
   executePromptApplicationSessionTurn,
@@ -91,7 +92,7 @@ export default function PromptApplicationSessionPanel({
   }
 
   return (
-    <section className="prompt-application-session-panel" aria-label="Prompt Application Session v2">
+    <section className="prompt-application-session-panel" id="prompt-application-session" aria-label="Prompt Application Session v2">
       <div className="section-heading compact-heading">
         <div><p className="eyebrow">Prompt Application Session v2</p><h4>Metadata-only multi-turn owner</h4></div>
         <span className={`status-badge ${result.turn?.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.session?.state ?? result.status}</span>
@@ -143,6 +144,7 @@ export default function PromptApplicationSessionPanel({
           </>
         ) : null}
         {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureSummary}</p> : null}
+        <ControlledUseFailureGuidance owner="prompt_session" failureCode={result.failureCode} />
         <p className="boundary-note">{result.summary}</p>
       </article>
       <p className="boundary-note">

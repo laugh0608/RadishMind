@@ -28,7 +28,7 @@ type openAIResponsesResponse struct {
 	Status     string                      `json:"status"`
 	Output     []openAIResponsesOutputItem `json:"output"`
 	OutputText string                      `json:"output_text"`
-	Usage      openAIResponsesUsage        `json:"usage"`
+	Usage      *openAIResponsesUsage       `json:"usage,omitempty"`
 	Metadata   map[string]any              `json:"metadata,omitempty"`
 }
 
@@ -67,17 +67,24 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	}
 	var responseRequest openAIResponsesRequest
 	if !s.decodeJSONRequestBody(writer, request, trace, &responseRequest, jsonRequestBodyOptions{
-		maxBytes: maxNorthboundJSONRequestBodyBytes,
+		maxBytes: maxNorthboundJSONRequestBodyBytes, rejectDuplicateFields: true,
 	}) {
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(request.Context(), s.config.BridgeTimeout)
 	defer cancel()
+	ctx = withGatewayProviderAttemptMarker(ctx, &trace)
 
-	selection := s.resolveNorthboundSelection(ctx, responseRequest.Model, responseRequest.RadishMind)
+	execution, selection, selectionFailure := s.prepareGatewayProviderAttemptExecution(
+		ctx, &trace, northboundProtocolResponses,
+		responseRequest.Model, responseRequest.RadishMind, responseRequest.Stream,
+	)
 	trace.applySelection(selection)
-	s.checkpointGatewayRequestTrace(&trace, responseRequest.Stream)
+	if selectionFailure != "" {
+		s.writePlatformError(writer, trace, selectionFailure, "")
+		return
+	}
 	promptText, northboundFields, err := buildResponsesPromptText(responseRequest, selection)
 	if err != nil {
 		s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", err.Error())
@@ -98,13 +105,51 @@ func (s *Server) handleResponses(writer http.ResponseWriter, request *http.Reque
 	}
 
 	if responseRequest.Stream {
-		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature), trace); err != nil {
+		s.checkpointGatewayRequestTrace(&trace, true)
+		if err := s.streamOpenAIResponsesResponse(ctx, writer, canonicalRequest, selection, effectiveTemperature(responseRequest.Temperature, s.config.Temperature), &trace); err != nil {
 			s.writePlatformError(writer, trace, bridgeFailureCode(err), err.Error())
 			return
 		}
 		s.finishGatewayRequestTrace(&trace, GatewayRequestStatusSucceeded, http.StatusOK, "", "")
 		return
 	}
+	if validGatewayProviderAttemptPlan(execution.plan) {
+		canonicalRequests := make([][]byte, 0, len(execution.selections))
+		canonicalRequests = append(canonicalRequests, canonicalRequest)
+		for _, targetSelection := range execution.selections[1:] {
+			targetPrompt, targetFields, targetErr := buildResponsesPromptText(responseRequest, targetSelection)
+			if targetErr != nil {
+				s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", targetErr.Error())
+				return
+			}
+			targetRequest, targetErr := buildNorthboundCanonicalRequest(northboundCanonicalRequestOptions{
+				requestID: trace.requestID, route: "/v1/responses", protocol: northboundProtocolResponses,
+				locale: resolveNorthboundLocale(responseRequest.RadishMind), promptText: targetPrompt,
+				northboundFields: targetFields,
+			})
+			if targetErr != nil {
+				s.writePlatformError(writer, trace, "INVALID_RESPONSES_REQUEST", targetErr.Error())
+				return
+			}
+			canonicalRequests = append(canonicalRequests, targetRequest)
+		}
+		result := s.invokeGatewayProviderAttempts(
+			ctx, &trace, execution, canonicalRequests,
+			effectiveTemperature(responseRequest.Temperature, s.config.Temperature),
+		)
+		if result.FailureCode != "" {
+			s.writePlatformError(writer, trace, result.FailureCode, result.FailureDetail)
+			return
+		}
+		responseDocument, err := buildOpenAIResponsesResponse(result.Envelope, result.Selection.model)
+		if err != nil {
+			s.writePlatformError(writer, trace, "PLATFORM_RESPONSE_INVALID", err.Error())
+			return
+		}
+		writeObservedJSON(writer, http.StatusOK, trace, responseDocument)
+		return
+	}
+	s.checkpointGatewayRequestTrace(&trace, false)
 
 	envelope, err := s.bridge.HandleEnvelope(
 		ctx,
@@ -206,11 +251,7 @@ func buildOpenAIResponsesResponseWithID(envelope bridge.GatewayEnvelope, model s
 			},
 		},
 		OutputText: content,
-		Usage: openAIResponsesUsage{
-			InputTokens:  0,
-			OutputTokens: 0,
-			TotalTokens:  0,
-		},
+		Usage:      openAIResponsesUsageFromEnvelope(envelope),
 		Metadata: map[string]any{
 			"route": "/v1/responses",
 		},
@@ -238,7 +279,7 @@ func (s *Server) streamOpenAIResponsesResponse(
 	canonicalRequest []byte,
 	selection northboundSelection,
 	temperature float64,
-	trace requestTrace,
+	trace *requestTrace,
 ) error {
 	responseID := buildNorthboundResponseID("resp-", trace.requestID)
 	createdAt := timeNowUnix()
@@ -252,7 +293,7 @@ func (s *Server) streamOpenAIResponsesResponse(
 			return nil
 		}
 		prepareSSEHeaders(writer)
-		writeTraceHeaders(writer, trace)
+		writeTraceHeaders(writer, *trace)
 		if err := writeSSEEvent(writer, "response.created", openAIResponsesStreamEvent{
 			Type:       "response.created",
 			ResponseID: responseID,
@@ -319,6 +360,7 @@ func (s *Server) streamOpenAIResponsesResponse(
 	if completedEnvelope == nil {
 		return fmt.Errorf("platform bridge stream completed without envelope")
 	}
+	s.applyGatewayEnvelopeToTrace(trace, *completedEnvelope)
 
 	responseDocument, err := buildOpenAIResponsesResponseWithID(*completedEnvelope, selection.model, responseID)
 	if err != nil {
@@ -342,6 +384,18 @@ func (s *Server) streamOpenAIResponsesResponse(
 	if err := writeSSEEvent(writer, "", "[DONE]"); err != nil {
 		return err
 	}
-	logRequestTrace(trace, http.StatusOK, "", "")
+	logRequestTrace(*trace, http.StatusOK, "", "")
 	return nil
+}
+
+func openAIResponsesUsageFromEnvelope(envelope bridge.GatewayEnvelope) *openAIResponsesUsage {
+	usage := gatewayUsageFromEnvelope(envelope)
+	if usage.Availability != GatewayRequestUsageReported {
+		return nil
+	}
+	return &openAIResponsesUsage{
+		InputTokens:  usage.InputTokens,
+		OutputTokens: usage.OutputTokens,
+		TotalTokens:  usage.TotalTokens,
+	}
 }

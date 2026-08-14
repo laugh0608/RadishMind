@@ -27,29 +27,50 @@ const (
 )
 
 var controlPlaneReadPermissionGrants = map[string]string{
-	"radishmind.tenant.read":                    "tenant:read",
-	"radishmind.applications.read":              "applications:read",
-	"radishmind.applications.write":             "applications:write",
-	"radishmind.applications.archive":           "applications:archive",
-	"radishmind.api-keys.read":                  "api_keys:read",
-	"radishmind.api-keys.write":                 "api_keys:write",
-	"radishmind.api-keys.revoke":                "api_keys:revoke",
-	"radishmind.usage.read":                     "usage:read",
-	"radishmind.runs.read":                      "runs:read",
-	"radishmind.audit.read":                     "audit:read",
-	"radishmind.workflow-rag-snapshots.read":    "workflow_rag_snapshots:read",
-	"radishmind.workflow-rag-snapshots.write":   "workflow_rag_snapshots:write",
-	"radishmind.workflow-rag-snapshots.archive": "workflow_rag_snapshots:archive",
-	"radishmind.workflow-rag-promotions.read":   "workflow_rag_promotions:read",
-	"radishmind.workflow-rag-promotions.write":  "workflow_rag_promotions:write",
-	"radishmind.workflow-rag-promotions.review": "workflow_rag_promotions:review",
-	"radishmind.workflow-rag-promotions.bind":   "workflow_rag_promotions:bind",
-	"radishmind.workflow-rag-runtime.read":      "workflow_rag_runtime:read",
-	"radishmind.workflow-rag-runtime.write":     "workflow_rag_runtime:write",
-	"radishmind.workflow-rag.execute":           "workflow_rag:execute",
-	"radishmind.application-sessions.read":      "application_sessions:read",
-	"radishmind.application-sessions.write":     "application_sessions:write",
-	"radishmind.application-sessions.execute":   "application_sessions:execute",
+	"radishmind.tenant.read":                              "tenant:read",
+	"radishmind.applications.read":                        "applications:read",
+	"radishmind.applications.write":                       "applications:write",
+	"radishmind.applications.archive":                     "applications:archive",
+	"radishmind.api-keys.read":                            "api_keys:read",
+	"radishmind.api-keys.write":                           "api_keys:write",
+	"radishmind.api-keys.revoke":                          "api_keys:revoke",
+	"radishmind.usage.read":                               "usage:read",
+	"radishmind.runs.read":                                "runs:read",
+	"radishmind.audit.read":                               "audit:read",
+	"radishmind.workflow-drafts.read":                     "workflow_drafts:read",
+	"radishmind.workflow-drafts.write":                    "workflow_drafts:write",
+	"radishmind.workflow-drafts.archive":                  "workflow_drafts:archive",
+	"radishmind.application-drafts.read":                  "application_drafts:read",
+	"radishmind.application-drafts.write":                 "application_drafts:write",
+	"radishmind.application-publish-candidates.write":     "application_publish_candidates:write",
+	"radishmind.application-publish-candidates.review":    "application_publish_candidates:review",
+	"radishmind.workflow-definitions.write":               "workflow_definitions:write",
+	"radishmind.workflow-definitions.review":              "workflow_definitions:review",
+	"radishmind.workflow-definitions.activate":            "workflow_definitions:activate",
+	"radishmind.workflow-definitions.read":                "workflow_definitions:read",
+	"radishmind.workflow-runs.execute":                    "workflow_runs:execute",
+	"radishmind.workflow-runs.read":                       "workflow_runs:read",
+	"radishmind.workflow-rag-snapshots.read":              "workflow_rag_snapshots:read",
+	"radishmind.workflow-rag-snapshots.write":             "workflow_rag_snapshots:write",
+	"radishmind.workflow-rag-snapshots.archive":           "workflow_rag_snapshots:archive",
+	"radishmind.workflow-rag-promotions.read":             "workflow_rag_promotions:read",
+	"radishmind.workflow-rag-promotions.write":            "workflow_rag_promotions:write",
+	"radishmind.workflow-rag-promotions.review":           "workflow_rag_promotions:review",
+	"radishmind.workflow-rag-promotions.bind":             "workflow_rag_promotions:bind",
+	"radishmind.workflow-rag-evaluation-datasets.read":    "workflow_rag_evaluation_datasets:read",
+	"radishmind.workflow-rag-evaluation-datasets.write":   "workflow_rag_evaluation_datasets:write",
+	"radishmind.workflow-rag-evaluation-datasets.review":  "workflow_rag_evaluation_datasets:review",
+	"radishmind.workflow-rag-evaluation-datasets.archive": "workflow_rag_evaluation_datasets:archive",
+	"radishmind.workflow-rag-runtime.read":                "workflow_rag_runtime:read",
+	"radishmind.workflow-rag-runtime.write":               "workflow_rag_runtime:write",
+	"radishmind.workflow-rag.execute":                     "workflow_rag:execute",
+	"radishmind.workflow-tool-actions.plan":               "workflow_tool_actions:plan",
+	"radishmind.workflow-tool-actions.confirm":            "workflow_tool_actions:confirm",
+	"radishmind.workflow-tool-actions.execute":            "workflow_tool_actions:execute",
+	"radishmind.workflow-evaluations.write":               "workflow_evaluations:write",
+	"radishmind.application-sessions.read":                "application_sessions:read",
+	"radishmind.application-sessions.write":               "application_sessions:write",
+	"radishmind.application-sessions.execute":             "application_sessions:execute",
 }
 
 var promptApplicationTemplatePermissionGrants = map[string]string{
@@ -72,6 +93,13 @@ var agentCopilotPermissionGrants = map[string]string{
 	"radishmind.agent-copilot-runtime.write":        "agent_copilot_runtime:write",
 }
 
+var adminProviderRoutePermissionGrants = map[string]string{
+	"radishmind.admin-provider-routes.read":     "admin_provider_routes:read",
+	"radishmind.admin-provider-routes.draft":    "admin_provider_routes:draft",
+	"radishmind.admin-provider-routes.review":   "admin_provider_routes:review",
+	"radishmind.admin-provider-routes.activate": "admin_provider_routes:activate",
+}
+
 var controlPlaneReadAuthReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$`)
 
 type VerifiedControlPlaneIdentity struct {
@@ -89,30 +117,38 @@ type VerifiedControlPlaneIdentity struct {
 	SessionRef             string
 	KeyIDRef               string
 	Algorithm              string
+	WorkspaceMemberships   []VerifiedWorkspaceMembershipAssertion
 }
 
 type ControlPlaneResourceBinding struct {
-	TenantRef        string
-	TenantVerified   bool
-	PermissionGrants []string
-	SourceRef        string
-	PolicyVersion    string
-	ExpiresAt        time.Time
+	TenantRef                   string
+	TenantVerified              bool
+	PermissionGrants            []string
+	SourceRef                   string
+	PolicyVersion               string
+	ExpiresAt                   time.Time
+	WorkspaceID                 string
+	WorkspaceMembershipVerified bool
+	WorkspacePermissionGrants   []string
+	WorkspaceSourceRef          string
+	WorkspacePolicyVersion      string
+	WorkspaceExpiresAt          time.Time
 }
 
 type controlPlaneReadAuthContext struct {
-	AuthMode         string
-	IdentityContext  string
-	TenantBinding    string
-	SubjectBinding   string
-	ScopeGrants      []string
-	AuditContext     string
-	IssuerRef        string
-	SessionRef       string
-	VerifiedIdentity *VerifiedControlPlaneIdentity
-	ResourceBinding  ControlPlaneResourceBinding
-	FailureCode      string
-	FailureStatus    int
+	AuthMode             string
+	IdentityContext      string
+	TenantBinding        string
+	SubjectBinding       string
+	ScopeGrants          []string
+	AuditContext         string
+	IssuerRef            string
+	SessionRef           string
+	VerifiedIdentity     *VerifiedControlPlaneIdentity
+	ResourceBinding      ControlPlaneResourceBinding
+	WorkspaceMemberships []VerifiedWorkspaceMembershipAssertion
+	FailureCode          string
+	FailureStatus        int
 }
 
 type controlPlaneReadAuthenticator struct {
@@ -130,16 +166,22 @@ type signedTestTokenHeader struct {
 }
 
 type signedTestTokenClaims struct {
-	Issuer      string          `json:"iss"`
-	Subject     string          `json:"sub"`
-	TenantRef   string          `json:"tenant_id"`
-	Audience    json.RawMessage `json:"aud"`
-	Permissions []string        `json:"permissions"`
-	IssuedAt    int64           `json:"iat"`
-	NotBefore   int64           `json:"nbf"`
-	ExpiresAt   int64           `json:"exp"`
-	AuthTime    int64           `json:"auth_time"`
-	SessionRef  string          `json:"sid"`
+	Issuer               string                               `json:"iss"`
+	Subject              string                               `json:"sub"`
+	TenantRef            string                               `json:"tenant_id"`
+	Audience             json.RawMessage                      `json:"aud"`
+	Permissions          []string                             `json:"permissions"`
+	IssuedAt             int64                                `json:"iat"`
+	NotBefore            int64                                `json:"nbf"`
+	ExpiresAt            int64                                `json:"exp"`
+	AuthTime             int64                                `json:"auth_time"`
+	SessionRef           string                               `json:"sid"`
+	WorkspaceMemberships []signedTestWorkspaceMembershipClaim `json:"workspace_memberships,omitempty"`
+}
+
+type signedTestWorkspaceMembershipClaim struct {
+	WorkspaceID string   `json:"workspace_id"`
+	Permissions []string `json:"permissions"`
 }
 
 type signedTestTokenValidator struct {
@@ -213,7 +255,15 @@ func withControlPlaneReadAuthenticator(next http.Handler, authenticator *control
 func sanitizedControlPlaneReadAuthRequest(request *http.Request, auth controlPlaneReadAuthContext) *http.Request {
 	cloned := request.Clone(withControlPlaneReadFakeAuthContext(request.Context(), auth))
 	cloned.Header.Del("Authorization")
-	for _, header := range []string{controlPlaneReadDevIdentityHeader, controlPlaneReadDevTenantHeader, controlPlaneReadDevSubjectHeader, controlPlaneReadDevScopesHeader, controlPlaneReadDevAuditHeader} {
+	for _, header := range []string{
+		controlPlaneReadDevIdentityHeader,
+		controlPlaneReadDevTenantHeader,
+		controlPlaneReadDevSubjectHeader,
+		controlPlaneReadDevScopesHeader,
+		controlPlaneReadDevAuditHeader,
+		controlPlaneReadDevMembershipHeader,
+		controlPlaneReadDevMembershipPermHeader,
+	} {
 		cloned.Header.Del(header)
 	}
 	return cloned
@@ -273,15 +323,16 @@ func controlPlaneReadDevAuthFromHeaders(request *http.Request) (controlPlaneRead
 		SessionRef:    "session:dev-read",
 	}
 	return controlPlaneReadAuthContext{
-		AuthMode:         controlPlaneReadAuthModeDevHeaders,
-		IdentityContext:  identity,
-		TenantBinding:    tenantRef,
-		SubjectBinding:   subjectRef,
-		ScopeGrants:      scopes,
-		AuditContext:     strings.TrimSpace(request.Header.Get(controlPlaneReadDevAuditHeader)),
-		IssuerRef:        identityProjection.IssuerRef,
-		SessionRef:       identityProjection.SessionRef,
-		VerifiedIdentity: identityProjection,
+		AuthMode:             controlPlaneReadAuthModeDevHeaders,
+		IdentityContext:      identity,
+		TenantBinding:        tenantRef,
+		SubjectBinding:       subjectRef,
+		ScopeGrants:          scopes,
+		AuditContext:         strings.TrimSpace(request.Header.Get(controlPlaneReadDevAuditHeader)),
+		IssuerRef:            identityProjection.IssuerRef,
+		SessionRef:           identityProjection.SessionRef,
+		VerifiedIdentity:     identityProjection,
+		WorkspaceMemberships: workspaceMembershipsFromDevHeaders(request, tenantRef, subjectRef),
 		ResourceBinding: ControlPlaneResourceBinding{
 			TenantRef:        tenantRef,
 			TenantVerified:   true,
@@ -328,16 +379,17 @@ func controlPlaneReadSignedTestAuthFromRequest(request *http.Request, validator 
 		ExpiresAt:        identity.ExpiresAt,
 	}
 	return controlPlaneReadAuthContext{
-		AuthMode:         controlPlaneReadAuthModeSignedTestToken,
-		IdentityContext:  "verified:signed-test-token",
-		TenantBinding:    identity.TenantRef,
-		SubjectBinding:   identity.SubjectRef,
-		ScopeGrants:      append([]string{}, identity.ScopeGrants...),
-		AuditContext:     "audit:signed-test-token",
-		IssuerRef:        identity.IssuerRef,
-		SessionRef:       identity.SessionRef,
-		VerifiedIdentity: &identity,
-		ResourceBinding:  binding,
+		AuthMode:             controlPlaneReadAuthModeSignedTestToken,
+		IdentityContext:      "verified:signed-test-token",
+		TenantBinding:        identity.TenantRef,
+		SubjectBinding:       identity.SubjectRef,
+		ScopeGrants:          append([]string{}, identity.ScopeGrants...),
+		AuditContext:         "audit:signed-test-token",
+		IssuerRef:            identity.IssuerRef,
+		SessionRef:           identity.SessionRef,
+		VerifiedIdentity:     &identity,
+		ResourceBinding:      binding,
+		WorkspaceMemberships: append([]VerifiedWorkspaceMembershipAssertion{}, identity.WorkspaceMemberships...),
 	}
 }
 
@@ -371,7 +423,7 @@ func (validator *signedTestTokenValidator) Validate(rawToken string) (VerifiedCo
 		return VerifiedControlPlaneIdentity{}, errors.New("invalid signed test token claims")
 	}
 	audiences, err := signedTestTokenAudiences(claims.Audience)
-	if err != nil || !validControlPlaneReadAuthReference(claims.Subject, false) || !validControlPlaneReadAuthReference(claims.TenantRef, true) || !validControlPlaneReadAuthReference(claims.SessionRef, false) || !validControlPlaneReadPermissions(claims.Permissions) || !validControlPlaneReadAuthReference(header.KeyID, false) || claims.IssuedAt == 0 || claims.NotBefore == 0 || claims.ExpiresAt == 0 || claims.AuthTime == 0 {
+	if err != nil || !validControlPlaneReadAuthReference(claims.Subject, false) || !validControlPlaneReadAuthReference(claims.TenantRef, true) || !validControlPlaneReadAuthReference(claims.SessionRef, false) || !validControlPlaneReadPermissions(claims.Permissions) || !validSignedTestWorkspaceMembershipClaims(claims.WorkspaceMemberships) || !validControlPlaneReadAuthReference(header.KeyID, false) || claims.IssuedAt == 0 || claims.NotBefore == 0 || claims.ExpiresAt == 0 || claims.AuthTime == 0 {
 		return VerifiedControlPlaneIdentity{}, errors.New("missing signed test token claims")
 	}
 	if claims.Issuer != validator.issuer || !containsExactString(audiences, validator.audience) {
@@ -382,7 +434,7 @@ func (validator *signedTestTokenValidator) Validate(rawToken string) (VerifiedCo
 		return VerifiedControlPlaneIdentity{}, errors.New("signed test token time validation failed")
 	}
 	grants := projectControlPlaneReadPermissions(claims.Permissions)
-	return VerifiedControlPlaneIdentity{
+	identity := VerifiedControlPlaneIdentity{
 		AuthSource:             controlPlaneReadAuthModeSignedTestToken,
 		IssuerRef:              "issuer:signed-test",
 		SubjectRef:             strings.TrimSpace(claims.Subject),
@@ -397,7 +449,9 @@ func (validator *signedTestTokenValidator) Validate(rawToken string) (VerifiedCo
 		SessionRef:             strings.TrimSpace(claims.SessionRef),
 		KeyIDRef:               "key:" + strings.TrimSpace(header.KeyID),
 		Algorithm:              header.Algorithm,
-	}, nil
+	}
+	identity.WorkspaceMemberships = workspaceMembershipAssertionsFromSignedTestIdentity(identity, claims.WorkspaceMemberships)
+	return identity, nil
 }
 
 func parseSignedTestRSAPublicKey(rawPEM string) (*rsa.PublicKey, error) {
@@ -445,6 +499,9 @@ func projectControlPlaneReadPermissions(permissions []string) []string {
 		if !ok {
 			grant, ok = agentCopilotPermissionGrants[strings.TrimSpace(permission)]
 		}
+		if !ok {
+			grant, ok = adminProviderRoutePermissionGrants[strings.TrimSpace(permission)]
+		}
 		if ok && !seen[grant] {
 			seen[grant] = true
 			grants = append(grants, grant)
@@ -460,12 +517,46 @@ func controlPlaneReadHasAnyDevHeader(request *http.Request) bool {
 		controlPlaneReadDevSubjectHeader,
 		controlPlaneReadDevScopesHeader,
 		controlPlaneReadDevAuditHeader,
+		controlPlaneReadDevMembershipHeader,
+		controlPlaneReadDevMembershipPermHeader,
 	} {
 		if strings.TrimSpace(request.Header.Get(header)) != "" {
 			return true
 		}
 	}
 	return false
+}
+
+func validSignedTestWorkspaceMembershipClaims(claims []signedTestWorkspaceMembershipClaim) bool {
+	seen := make(map[string]struct{}, len(claims))
+	for _, claim := range claims {
+		workspaceID := strings.TrimSpace(claim.WorkspaceID)
+		if !validControlPlaneReadAuthReference(workspaceID, false) || !validWorkspacePermissionGrants(claim.Permissions) {
+			return false
+		}
+		if _, duplicate := seen[workspaceID]; duplicate {
+			return false
+		}
+		seen[workspaceID] = struct{}{}
+	}
+	return true
+}
+
+func workspaceMembershipAssertionsFromSignedTestIdentity(
+	identity VerifiedControlPlaneIdentity,
+	claims []signedTestWorkspaceMembershipClaim,
+) []VerifiedWorkspaceMembershipAssertion {
+	assertions := make([]VerifiedWorkspaceMembershipAssertion, 0, len(claims))
+	for _, claim := range claims {
+		assertions = append(assertions, VerifiedWorkspaceMembershipAssertion{
+			TenantRef: identity.TenantRef, SubjectRef: identity.SubjectRef,
+			WorkspaceID:      strings.TrimSpace(claim.WorkspaceID),
+			PermissionGrants: append([]string{}, claim.Permissions...),
+			SourceRef:        "membership:signed-test-token", PolicyVersion: workspaceMembershipPolicyVersion,
+			ExpiresAt: identity.ExpiresAt,
+		})
+	}
+	return assertions
 }
 
 func containsExactString(values []string, expected string) bool {

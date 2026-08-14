@@ -41,6 +41,7 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 	if err != nil {
 		return errWorkflowRunStoreContract
 	}
+	inputContractID, inputContractDigest := workflowRunStructuredInputProjection(next)
 	completedAtUnixNano, err := optionalWorkflowRunUnixNano(completedAt)
 	if err != nil {
 		return errWorkflowRunStoreContract
@@ -74,6 +75,8 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 			workflowRunRecordFailureBoundary(next),
 			next.SelectedProvider,
 			next.SelectedModel,
+			inputContractID,
+			inputContractDigest,
 			string(payload),
 		)
 	} else {
@@ -93,6 +96,8 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 			workflowRunRecordFailureBoundary(next),
 			next.SelectedProvider,
 			next.SelectedModel,
+			inputContractID,
+			inputContractDigest,
 			string(payload),
 			runContext.TenantRef,
 			runContext.WorkspaceID,
@@ -230,6 +235,109 @@ func (store *sqliteWorkflowRunStore) ListRuns(
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
 }
 
+func (store *sqliteWorkflowRunStore) ListWorkspaceRuns(
+	runContext WorkflowWorkspaceRunListContext,
+	filter WorkflowWorkspaceRunListFilter,
+) (WorkflowRunListPage, error) {
+	if store == nil || store.database == nil || !validWorkflowWorkspaceRunListContext(runContext) {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	startedFrom, err := optionalWorkflowRunUnixNano(filter.StartedFrom)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	startedTo, err := optionalWorkflowRunUnixNano(filter.StartedTo)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	beforeTime, err := optionalWorkflowRunUnixNano(filter.BeforeTime)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	staleCutoff, err := workflowRunUnixNano(time.Now().UTC().Add(-workflowExecutorDefaultMaxRuntime))
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreContract
+	}
+	var staleRunning any
+	if filter.StaleRunning != nil {
+		if *filter.StaleRunning {
+			staleRunning = 1
+		} else {
+			staleRunning = 0
+		}
+	}
+	limit := workflowRunStoreListLimit(filter.Limit)
+	rows, err := store.database.QueryContext(
+		runContext.RequestContext,
+		sqliteWorkflowWorkspaceRunListSQL,
+		runContext.TenantRef,
+		runContext.WorkspaceID,
+		runContext.OwnerSubjectRef,
+		filter.ApplicationID,
+		filter.ApplicationID,
+		string(filter.Status),
+		string(filter.Status),
+		filter.DraftID,
+		filter.DraftID,
+		filter.ExecutionSourceKind,
+		filter.ExecutionSourceKind,
+		filter.ExecutionSourceID,
+		filter.ExecutionSourceID,
+		filter.ExecutionSourceVersion,
+		filter.ExecutionSourceVersion,
+		string(filter.FailureCode),
+		string(filter.FailureCode),
+		string(filter.FailureBoundary),
+		string(filter.FailureBoundary),
+		filter.Provider,
+		filter.Provider,
+		filter.Model,
+		filter.Model,
+		staleRunning,
+		staleCutoff,
+		staleRunning,
+		startedFrom,
+		startedFrom,
+		startedTo,
+		startedTo,
+		beforeTime,
+		beforeTime,
+		beforeTime,
+		filter.BeforeRunID,
+		filter.BeforeRunID,
+		filter.BeforeApplicationID,
+		limit+1,
+	)
+	if err != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+	}
+	defer rows.Close()
+
+	records := make([]WorkflowRunRecord, 0, limit+1)
+	for rows.Next() {
+		record, scanErr := scanSQLiteWorkflowRunRecord(WorkflowRunContext{
+			RequestContext: runContext.RequestContext,
+			TenantRef:      runContext.TenantRef,
+			WorkspaceID:    runContext.WorkspaceID,
+		}, rows)
+		if scanErr != nil {
+			return WorkflowRunListPage{}, normalizeSQLiteWorkflowRunStoreError(scanErr)
+		}
+		if record.ActorRef != runContext.OwnerSubjectRef {
+			return WorkflowRunListPage{}, errWorkflowRunStoreContract
+		}
+		records = append(records, record)
+	}
+	if rows.Err() != nil {
+		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
+	}
+	hasMore := len(records) > limit
+	if hasMore {
+		records = records[:limit]
+	}
+	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
+}
+
 type sqliteWorkflowRunRow interface {
 	Scan(dest ...any) error
 }
@@ -258,6 +366,8 @@ func scanSQLiteWorkflowRunRecord(
 	var failureBoundary string
 	var selectedProvider string
 	var selectedModel string
+	var inputContractID string
+	var inputContractDigest string
 	var payload []byte
 	if err := row.Scan(
 		&tenantRef,
@@ -280,9 +390,14 @@ func scanSQLiteWorkflowRunRecord(
 		&failureBoundary,
 		&selectedProvider,
 		&selectedModel,
+		&inputContractID,
+		&inputContractDigest,
 		&payload,
 	); err != nil {
 		return WorkflowRunRecord{}, err
+	}
+	if runContext.ApplicationID == "" {
+		runContext.ApplicationID = applicationID
 	}
 	record, err := decodeWorkflowRunStorageRecord(runContext, payload)
 	if err != nil {
@@ -318,6 +433,10 @@ func scanSQLiteWorkflowRunRecord(
 	}
 	if actorRef != record.ActorRef || requestID != record.RequestID || auditRef != record.AuditRef || failureCode != string(record.FailureCode) || failureBoundary != string(workflowRunRecordFailureBoundary(record)) || selectedProvider != record.SelectedProvider || selectedModel != record.SelectedModel {
 		return WorkflowRunRecord{}, fmt.Errorf("%w: metadata projection", errWorkflowRunStoreContract)
+	}
+	decodedInputContractID, decodedInputContractDigest := workflowRunStructuredInputProjection(record)
+	if inputContractID != decodedInputContractID || inputContractDigest != decodedInputContractDigest {
+		return WorkflowRunRecord{}, fmt.Errorf("%w: structured input projection", errWorkflowRunStoreContract)
 	}
 	return record, nil
 }
@@ -356,9 +475,11 @@ const sqliteWorkflowRunColumns = `
     audit_ref,
     failure_code,
     failure_boundary,
-    selected_provider,
-    selected_model,
-    sanitized_run_record`
+	selected_provider,
+	selected_model,
+	input_contract_id,
+	input_contract_digest,
+	sanitized_run_record`
 
 const sqliteWorkflowRunInsertSQL = `
 INSERT INTO workflow_run_records (
@@ -366,8 +487,9 @@ INSERT INTO workflow_run_records (
     execution_source_kind, execution_source_id, execution_source_version,
     record_version, store_schema_version, schema_version, run_status,
     started_at_unix_nano, completed_at_unix_nano, actor_ref, request_id, audit_ref,
-    failure_code, failure_boundary, selected_provider, selected_model, sanitized_run_record
-) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	failure_code, failure_boundary, selected_provider, selected_model,
+	input_contract_id, input_contract_digest, sanitized_run_record
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT (tenant_ref, workspace_id, application_id, run_id) DO NOTHING
 RETURNING ` + sqliteWorkflowRunColumns
 
@@ -376,7 +498,8 @@ UPDATE workflow_run_records
    SET execution_source_kind=?, execution_source_id=?, execution_source_version=?,
        record_version=record_version+1, schema_version=?, run_status=?,
        completed_at_unix_nano=?, actor_ref=?, request_id=?, audit_ref=?, failure_code=?,
-       failure_boundary=?, selected_provider=?, selected_model=?, sanitized_run_record=?
+	   failure_boundary=?, selected_provider=?, selected_model=?,
+	   input_contract_id=?, input_contract_digest=?, sanitized_run_record=?
  WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?
    AND record_version=? AND run_status='running' AND started_at_unix_nano=?
 RETURNING ` + sqliteWorkflowRunColumns
@@ -406,4 +529,27 @@ SELECT ` + sqliteWorkflowRunColumns + `
  ORDER BY started_at_unix_nano DESC, run_id DESC
  LIMIT ?`
 
+const sqliteWorkflowWorkspaceRunListSQL = `
+SELECT ` + sqliteWorkflowRunColumns + `
+  FROM workflow_run_records
+ WHERE tenant_ref=? AND workspace_id=? AND actor_ref=?
+   AND (?='' OR application_id=?)
+   AND (?='' OR run_status=?)
+   AND (?='' OR (execution_source_kind='workflow_draft' AND execution_source_id=?))
+   AND (?='' OR execution_source_kind=?)
+   AND (?='' OR execution_source_id=?)
+   AND (?=0 OR execution_source_version=?)
+   AND (?='' OR failure_code=?)
+   AND (?='' OR failure_boundary=?)
+   AND (?='' OR selected_provider=?)
+   AND (?='' OR selected_model=?)
+   AND (? IS NULL OR CASE WHEN run_status='running' AND started_at_unix_nano < ? THEN 1 ELSE 0 END = ?)
+   AND (? IS NULL OR started_at_unix_nano >= ?)
+   AND (? IS NULL OR started_at_unix_nano <= ?)
+   AND (? IS NULL OR started_at_unix_nano < ? OR
+        (started_at_unix_nano = ? AND (run_id < ? OR (run_id = ? AND application_id < ?))))
+ ORDER BY started_at_unix_nano DESC, run_id DESC, application_id DESC
+ LIMIT ?`
+
 var _ workflowRunStore = (*sqliteWorkflowRunStore)(nil)
+var _ workflowWorkspaceRunProjection = (*sqliteWorkflowRunStore)(nil)

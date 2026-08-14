@@ -1,6 +1,6 @@
 # Workflow RAG 知识基线晋级与应用配置绑定审查 v1 实施任务卡
 
-更新时间：2026-07-18
+更新时间：2026-08-09
 
 状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`
 
@@ -92,6 +92,7 @@
 - PostgreSQL 在同一 runtime pool 上覆盖同样连续链，并继续验证 migration / rollback / reapply、运行角色 DDL 拒绝、append-only、事务整笔回滚、并发 CAS 单一成功、重启恢复、损坏记录拒绝与 no-fallback；专项门禁通过后测试容器已关闭。
 - 真实浏览器验证精确 dataset / review / snapshot / profile / source draft evidence、人工 approve、不可变 binding、显式草案 attach、发布候选重新校验与人工审查。批准后没有自动修改草案或创建发布候选；发布审查后仍保留正式存储库、生产认证、发布 owner 与 promotion runtime 四项 blocker。
 - 浏览器切换到第二个应用后不再显示原应用 candidate、detail 或 binding。promotion create / decision、draft attach 与 publish governance 没有调用 Gateway、创建 workflow run 或触发 retrieval execution；候选审查前置仅复用既有离线 lexical review。
+- 2026-08-09 真实路径跟进把 Promotion → Configuration 的静态 hash 修为现有 workspace 单引用 handoff：只携带 `candidateId`，配置 owner 重读当前列表并精确选择 `approved + eligible` binding，不回退其它候选、不自动恢复草案或 attach。Web `308/308`、production build、`1440×900` / `900×900` / `720×900` / `390×844` 浏览器复验通过；本地来源 `v1` 对当前草案 `v2` 的显式恢复以 `workflow_rag_promotion_draft_changed` 失败关闭且未写入。
 
 专题完成锚点为 `workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`。后续若要让已绑定配置进入新的运行时消费路径，必须先建立独立功能设计并重新评审执行、权限与生产停止线；不得从本任务卡自动打开 baseline、promotion、release、publish 或 production 能力。
 

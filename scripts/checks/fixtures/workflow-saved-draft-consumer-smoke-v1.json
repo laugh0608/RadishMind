@@ -53,6 +53,8 @@
       "draft",
       "failure_code",
       "current_draft_version",
+      "current_lifecycle_version",
+      "current_lifecycle_state",
       "validation_summary",
       "blocked_capabilities",
       "audit_ref"
@@ -77,6 +79,8 @@
     "required_state_fields": [
       "failureCode",
       "currentDraftVersion",
+      "currentLifecycleVersion",
+      "currentLifecycleState",
       "conflictDraftVersion",
       "auditRef",
       "requestId"
@@ -96,20 +100,32 @@
   },
   "app_contract": {
     "file": "apps/radishmind-web/src/app/App.tsx",
-    "required_literals": [
-      "workflow-draft-consumer-grid",
+    "panel_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+    "required_state_action_literals": [
       "version_conflict",
-      "Saved draft conflict review",
-      "Continue local draft",
-      "Restore saved version",
       "savedDraftConflictReviewSummary",
-      "Conflict current version",
       "nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState)",
       "expectedDraftVersion === null",
       "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
-      "interactionDisabled",
       "nextState.status === \"version_conflict\"",
-      "refreshSavedWorkflowDraftList(activeWorkflowDraft.applicationRef)",
+      "activeWorkflowDraft.applicationRef,",
+      "savedDraftConsumerState={savedDraftConsumerState}",
+      "onContinueLocalDraftAfterConflict={handleContinueLocalWorkflowDraftAfterConflict}",
+      "onOpenConflictSavedDraft={handleOpenConflictSavedWorkflowDraft}",
+      "onValidateDraft={handleValidateWorkflowDraft}",
+      "onSaveDraft={handleSaveWorkflowDraft}",
+      "onReadDraft={handleReadWorkflowDraft}"
+    ],
+    "required_panel_display_literals": [
+      "workflow-designer-actions",
+      "Version conflict review",
+      "Continue local draft",
+      "Open saved draft",
+      "Saved draft conflict review actions",
+      "savedDraftConflictReviewSummary",
+      "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
+      "interactionDisabled",
+      "Saved version",
       "Saved version metadata is refreshing"
     ]
   },

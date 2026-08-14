@@ -1,0 +1,9 @@
+{
+  "component": "gateway_model_pricing",
+  "migration_id": "0001_gateway_model_pricing",
+  "store_schema_version": "gateway_model_pricing_store_v1",
+  "up": "0001_gateway_model_pricing.up.sql",
+  "down": "0001_gateway_model_pricing.down.sql",
+  "runtime_role": "SELECT and INSERT on revisions; SELECT, INSERT, UPDATE on current pointer",
+  "scope": "tenant_ref + workspace_id + environment + provider_id + profile_id + model_id"
+}

@@ -437,6 +437,13 @@ function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId
       : operation === "write"
         ? "application_drafts:read,application_drafts:write"
         : "application_drafts:read";
+  const membershipPermissions = operation === "bind"
+    ? "application_drafts:write,workflow_rag_promotions:bind"
+    : operation === "prompt-bind"
+      ? "application_drafts:write,prompt_application_templates:bind"
+      : operation === "agent-bind"
+        ? "application_drafts:write,agent_copilot_profiles:bind"
+        : "application_drafts:write";
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-draft",
@@ -444,6 +451,11 @@ function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
     "X-RadishMind-Dev-Read-Scopes": scopes,
     "X-RadishMind-Dev-Read-Audit": `audit_${requestId}_application_draft`,
+    ...(operation === "read" ? {} : {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": membershipPermissions,
+    }),
     "X-RadishMind-Dev-Application-Draft-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Application-Draft-Application": applicationId,
   };

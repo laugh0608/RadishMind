@@ -103,7 +103,7 @@ export function ModelGatewayUsageAuditEvidencePanel({
         </div>
         <div className="model-gateway-usage-audit-evidence-trace-grid" aria-label="Model gateway trace evidence">
           {evidence.traceAudit.map((trace) => (
-            <TraceAuditCard key={trace.traceId} trace={trace} />
+            <TraceAuditCard key={`${trace.traceId}:${trace.runId}`} trace={trace} />
           ))}
         </div>
       </div>

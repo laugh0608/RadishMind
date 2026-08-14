@@ -62,14 +62,28 @@ func (server *Server) handleCreateWorkflowRAGPromotionCandidate(writer http.Resp
 	if !server.allowWorkflowRAGPromotionDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(
+		request,
+		"workflow_rag_promotions:write",
+		"workflow_rag_evaluation_datasets:read",
+		"workflow_rag_snapshots:read",
+		"application_drafts:read",
+	)
+	ctx := workflowRAGPromotionMutationContext(request, trace, auth, "", "create")
+	if failure != "" {
+		writeWorkflowRAGPromotionResultWithStatus(writer, status, trace, ctx, workflowRAGPromotionFailure(failure))
+		return
+	}
 	var body workflowRAGPromotionCandidateCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGPromotionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "create",
-		"workflow_rag_promotions:write", "workflow_rag_evaluation_datasets:read", "workflow_rag_snapshots:read", "application_drafts:read")
-	if failure != "" {
-		writeWorkflowRAGPromotionResult(writer, trace, ctx, workflowRAGPromotionFailure(failure))
+	ctx = workflowRAGPromotionMutationContext(request, trace, auth, body.ApplicationID, "create")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != ctx.ApplicationID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeWorkflowRAGPromotionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGPromotionFailure("workspace_binding_mismatch"))
 		return
 	}
 	result := server.workflowRAGPromotionService().Create(ctx, WorkflowRAGPromotionCreateInput{
@@ -124,13 +138,22 @@ func (server *Server) handleDecideWorkflowRAGPromotionCandidate(writer http.Resp
 	if !server.allowWorkflowRAGPromotionDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_rag_promotions:review")
+	ctx := workflowRAGPromotionMutationContext(request, trace, auth, "", "decision")
+	if failure != "" {
+		writeWorkflowRAGPromotionResultWithStatus(writer, status, trace, ctx, workflowRAGPromotionFailure(failure))
+		return
+	}
 	var body workflowRAGPromotionDecisionBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGPromotionContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "decision", "workflow_rag_promotions:review")
-	if failure != "" {
-		writeWorkflowRAGPromotionResult(writer, trace, ctx, workflowRAGPromotionFailure(failure))
+	ctx = workflowRAGPromotionMutationContext(request, trace, auth, body.ApplicationID, "decision")
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != ctx.ApplicationID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeWorkflowRAGPromotionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGPromotionFailure("workspace_binding_mismatch"))
 		return
 	}
 	writeWorkflowRAGPromotionResult(writer, trace, ctx, server.workflowRAGPromotionService().Decide(ctx, request.PathValue("candidate_id"), WorkflowRAGPromotionDecisionInput{
@@ -179,7 +202,27 @@ func workflowRAGPromotionContextFromRequest(request *http.Request, trace request
 	return ctx, ""
 }
 
+func workflowRAGPromotionMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	suffix string,
+) WorkflowRAGPromotionContext {
+	return WorkflowRAGPromotionContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), WriteEnabled: true,
+		AuditRef: auditRefForWorkflowRun(trace, "rag-promotion-"+suffix),
+	}
+}
+
 func writeWorkflowRAGPromotionResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRAGPromotionContext, result WorkflowRAGPromotionResult) {
+	writeWorkflowRAGPromotionResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowRAGPromotionResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowRAGPromotionContext, result WorkflowRAGPromotionResult) {
 	if result.Decisions == nil {
 		result.Decisions = []WorkflowRAGKnowledgePromotionDecision{}
 	}
@@ -189,7 +232,7 @@ func writeWorkflowRAGPromotionResult(writer http.ResponseWriter, trace requestTr
 	if strings.TrimSpace(result.Eligibility.Status) == "" {
 		result.Eligibility.Status = "blocked"
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRAGPromotionEnvelope{
+	writeObservedJSON(writer, status, trace, workflowRAGPromotionEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		Candidate: result.Candidate, Decisions: result.Decisions, Binding: result.Binding, Eligibility: result.Eligibility,
 		FailureCode: workflowRAGPromotionFailurePointer(result.FailureCode), CurrentRecordVersion: result.CurrentRecordVersion,

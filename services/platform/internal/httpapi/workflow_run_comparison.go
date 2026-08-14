@@ -48,6 +48,8 @@ type WorkflowRunComparisonRun struct {
 	ExecutionSourceID      string                            `json:"execution_source_id,omitempty"`
 	ExecutionSourceVersion int                               `json:"execution_source_version,omitempty"`
 	ExecutionProfile       string                            `json:"execution_profile,omitempty"`
+	InputContractID        string                            `json:"input_contract_id,omitempty"`
+	InputContractDigest    string                            `json:"input_contract_digest,omitempty"`
 	DefinitionDigest       string                            `json:"definition_digest,omitempty"`
 	AuthorityDigest        string                            `json:"authority_digest,omitempty"`
 	ProfileDigest          string                            `json:"profile_digest,omitempty"`
@@ -155,7 +157,16 @@ func (service workflowExecutorService) CompareRuns(runContext WorkflowRunContext
 	if result.FailureCode != "" {
 		return result
 	}
-	if baseline.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || candidate.SchemaVersion == workflowRunRecordDefinitionSchemaVersion {
+	if workflowDefinitionRunSchema(baseline.SchemaVersion) || workflowDefinitionRunSchema(candidate.SchemaVersion) {
+		if baseline.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion && candidate.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion {
+			if !workflowDefinitionStructuredRunsComparable(baseline, candidate) {
+				return workflowRunComparisonFailure(WorkflowRunFailureDefinitionIncompatible)
+			}
+			comparison := buildWorkflowRunComparison(baseline, candidate, time.Now().UTC())
+			comparison.SchemaVersion = workflowDefinitionStructuredRunComparisonSchemaVersion
+			comparison.RunProfile = workflowDefinitionStructuredEvaluationProfile
+			return WorkflowRunComparisonResult{Comparison: &comparison}
+		}
 		if !workflowDefinitionRunsComparable(baseline, candidate) {
 			return workflowRunComparisonFailure(WorkflowRunFailureDefinitionIncompatible)
 		}
@@ -251,6 +262,20 @@ func workflowDefinitionRunsComparable(baseline, candidate WorkflowRunRecord) boo
 		baseline.ExecutionSource.ID == candidate.ExecutionSource.ID
 }
 
+func workflowDefinitionRunSchema(value string) bool {
+	return value == workflowRunRecordDefinitionSchemaVersion || value == workflowRunRecordDefinitionStructuredSchemaVersion
+}
+
+func workflowDefinitionStructuredRunsComparable(baseline, candidate WorkflowRunRecord) bool {
+	return baseline.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion && candidate.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion &&
+		isTerminalWorkflowRunStatus(baseline.Status) && isTerminalWorkflowRunStatus(candidate.Status) &&
+		baseline.ExecutionProfile == workflowDefinitionStructuredExecutorProfile && candidate.ExecutionProfile == workflowDefinitionStructuredExecutorProfile &&
+		baseline.ExecutionSource != nil && candidate.ExecutionSource != nil &&
+		baseline.ExecutionSource.SourceKind == workflowDefinitionExecutionSourceKind && candidate.ExecutionSource.SourceKind == workflowDefinitionExecutionSourceKind &&
+		baseline.ExecutionSource.ID == candidate.ExecutionSource.ID && baseline.InputContractID == candidate.InputContractID &&
+		workflowRAGDigestPattern.MatchString(baseline.InputContractDigest) && baseline.InputContractDigest == candidate.InputContractDigest
+}
+
 func promptApplicationRunsComparable(baseline, candidate WorkflowRunRecord) bool {
 	return baseline.SchemaVersion == workflowRunRecordPromptSchemaVersion &&
 		candidate.SchemaVersion == workflowRunRecordPromptSchemaVersion &&
@@ -276,7 +301,7 @@ func agentCopilotRunsComparable(baseline, candidate WorkflowRunRecord) bool {
 }
 
 func comparisonRun(summary WorkflowRunSummary) WorkflowRunComparisonRun {
-	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, ExecutionProfile: summary.ExecutionProfile, DefinitionDigest: summary.DefinitionDigest, AuthorityDigest: summary.AuthorityDigest, ProfileDigest: summary.ProfileDigest, PolicyDigest: summary.PolicyDigest, AllowedTasksDigest: summary.AllowedTasksDigest, Project: summary.Project, Task: summary.Task, Locale: summary.Locale, ResponseStatus: summary.ResponseStatus, ResponseDigest: summary.ResponseDigest, ActionCount: summary.ActionCount, RiskLevel: summary.RiskLevel, RequiresConfirmation: summary.RequiresConfirmation, VariableNamesDigest: summary.VariableNamesDigest, RequestedProtocol: summary.RequestedProtocol, SelectedProtocol: summary.SelectedProtocol, UsageState: summary.UsageState, InputTokens: summary.InputTokens, OutputTokens: summary.OutputTokens, TotalTokens: summary.TotalTokens, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
+	return WorkflowRunComparisonRun{RunID: summary.RunID, SchemaVersion: summary.SchemaVersion, DraftID: summary.DraftID, DraftVersion: summary.DraftVersion, ExecutionKind: summary.ExecutionKind, ExecutionSourceKind: summary.ExecutionSourceKind, ExecutionSourceID: summary.ExecutionSourceID, ExecutionSourceVersion: summary.ExecutionSourceVersion, ExecutionProfile: summary.ExecutionProfile, InputContractID: summary.InputContractID, InputContractDigest: summary.InputContractDigest, DefinitionDigest: summary.DefinitionDigest, AuthorityDigest: summary.AuthorityDigest, ProfileDigest: summary.ProfileDigest, PolicyDigest: summary.PolicyDigest, AllowedTasksDigest: summary.AllowedTasksDigest, Project: summary.Project, Task: summary.Task, Locale: summary.Locale, ResponseStatus: summary.ResponseStatus, ResponseDigest: summary.ResponseDigest, ActionCount: summary.ActionCount, RiskLevel: summary.RiskLevel, RequiresConfirmation: summary.RequiresConfirmation, VariableNamesDigest: summary.VariableNamesDigest, RequestedProtocol: summary.RequestedProtocol, SelectedProtocol: summary.SelectedProtocol, UsageState: summary.UsageState, InputTokens: summary.InputTokens, OutputTokens: summary.OutputTokens, TotalTokens: summary.TotalTokens, Status: summary.Status, FailureCode: summary.FailureCode, FailureBoundary: summary.FailureBoundary, GatewayFailureCategory: summary.GatewayFailureCategory, SelectedProvider: summary.SelectedProvider, SelectedProfile: summary.SelectedProfile, SelectedModel: summary.SelectedModel, DurationMS: summary.DurationMS, StaleRunning: summary.StaleRunning, RequestID: summary.RequestID, AuditRef: summary.AuditRef, SideEffects: summary.SideEffects}
 }
 
 func workflowRunRecordUsesRetrievalComparison(record WorkflowRunRecord) bool {

@@ -72,13 +72,21 @@ func (server *Server) handleDecideWorkflowRAGApplicationRuntimeAssignment(writer
 	if !server.allowWorkflowRAGApplicationInvocationDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_rag_runtime:write")
+	ctx := workflowRAGApplicationRuntimeMutationContext(request, trace, auth, request.PathValue("application_id"), "decision")
+	if failure != "" {
+		writeWorkflowRAGApplicationRuntimeResultWithStatus(writer, status, trace, ctx, workflowRAGApplicationRuntimeFailure(failure))
+		return
+	}
 	var body workflowRAGApplicationRuntimeDecisionBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGApplicationRuntimeContextFromRequest(request, trace, body.WorkspaceID, request.PathValue("application_id"), "decision", "workflow_rag_runtime:write")
-	if failure != "" {
-		writeWorkflowRAGApplicationRuntimeResult(writer, trace, ctx, workflowRAGApplicationRuntimeFailure(failure))
+	if body.WorkspaceID != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevWorkspaceHeader)) != auth.ResourceBinding.WorkspaceID ||
+		strings.TrimSpace(request.Header.Get(savedWorkflowDraftDevApplicationHeader)) != ctx.ApplicationID ||
+		!validControlPlaneReadAuthReference(ctx.ApplicationID, false) {
+		writeWorkflowRAGApplicationRuntimeResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowRAGApplicationRuntimeFailure("workspace_binding_mismatch"))
 		return
 	}
 	result := server.workflowRAGApplicationRuntimeService().Decide(ctx, WorkflowRAGApplicationRuntimeDecisionInput{ExpectedRecordVersion: body.ExpectedRecordVersion, Decision: body.Decision, PublishCandidateID: body.PublishCandidateID, Reason: body.Reason})
@@ -100,9 +108,13 @@ func (server *Server) handleWorkflowRAGApplicationInvocation(writer http.Respons
 		return
 	}
 	gatewayContext := authentication.RequestContext
-	ctx := WorkflowRAGApplicationRuntimeContext{RequestContext: request.Context(), RequestID: trace.requestID, TenantRef: gatewayContext.TenantRef, WorkspaceID: gatewayContext.WorkspaceID, ApplicationID: gatewayContext.ApplicationID, ActorRef: gatewayContext.SubjectRef, OwnerSubjectRef: gatewayContext.SubjectRef, AuditRef: "audit_" + trace.requestID + "_application-rag-invocation"}
+	ctx := WorkflowRAGApplicationRuntimeContext{RequestContext: gatewayContext.RequestContext, RequestID: trace.requestID, TenantRef: gatewayContext.TenantRef, WorkspaceID: gatewayContext.WorkspaceID, ApplicationID: gatewayContext.ApplicationID, ActorRef: gatewayContext.SubjectRef, OwnerSubjectRef: gatewayContext.SubjectRef, AuditRef: "audit_" + trace.requestID + "_application-rag-invocation"}
 	result := server.workflowRAGApplicationInvocationService().Invoke(ctx, WorkflowRAGApplicationInvocationInput{Input: body.Input})
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRAGApplicationInvocationEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Run: result.Run, Answer: result.Answer, FailureCode: workflowRAGApplicationFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: ctx.AuditRef})
+	status := http.StatusOK
+	if gatewayRequestQuotaFailureCodeFromValue(result.FailureCode) != "" {
+		status = gatewayRequestQuotaHTTPStatus(result.FailureCode)
+	}
+	writeObservedJSON(writer, status, trace, workflowRAGApplicationInvocationEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Run: result.Run, Answer: result.Answer, FailureCode: workflowRAGApplicationFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary, AuditRef: ctx.AuditRef})
 }
 
 func (server *Server) allowWorkflowRAGApplicationInvocationDev(writer http.ResponseWriter, trace requestTrace) bool {
@@ -140,14 +152,34 @@ func workflowRAGApplicationRuntimeContextFromRequest(request *http.Request, trac
 	return ctx, ""
 }
 
+func workflowRAGApplicationRuntimeMutationContext(
+	request *http.Request,
+	trace requestTrace,
+	auth controlPlaneReadAuthContext,
+	applicationID string,
+	suffix string,
+) WorkflowRAGApplicationRuntimeContext {
+	return WorkflowRAGApplicationRuntimeContext{
+		RequestContext: request.Context(), RequestID: trace.requestID,
+		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		ApplicationID: strings.TrimSpace(applicationID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), WriteEnabled: true,
+		AuditRef: auditRefForWorkflowRun(trace, "rag-runtime-"+suffix),
+	}
+}
+
 func writeWorkflowRAGApplicationRuntimeResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRAGApplicationRuntimeContext, result WorkflowRAGApplicationRuntimeResult) {
+	writeWorkflowRAGApplicationRuntimeResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowRAGApplicationRuntimeResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowRAGApplicationRuntimeContext, result WorkflowRAGApplicationRuntimeResult) {
 	if result.Events == nil {
 		result.Events = []WorkflowRAGApplicationRuntimeEvent{}
 	}
 	if result.Audits == nil {
 		result.Audits = []WorkflowRAGApplicationRuntimeAudit{}
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRAGApplicationRuntimeEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Assignment: result.Assignment, Events: result.Events, Audits: result.Audits, FailureCode: workflowRAGApplicationFailurePointer(result.FailureCode), CurrentRecordVersion: result.CurrentRecordVersion, CurrentState: result.CurrentState, AuditRef: ctx.AuditRef})
+	writeObservedJSON(writer, status, trace, workflowRAGApplicationRuntimeEnvelope{RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, Assignment: result.Assignment, Events: result.Events, Audits: result.Audits, FailureCode: workflowRAGApplicationFailurePointer(result.FailureCode), CurrentRecordVersion: result.CurrentRecordVersion, CurrentState: result.CurrentState, AuditRef: ctx.AuditRef})
 }
 
 func workflowRAGApplicationFailurePointer(code string) *string {

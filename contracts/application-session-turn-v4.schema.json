@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-session-turn-v4.schema.json",
+  "title": "Application Session Turn v4",
+  "description": "Workflow Definition v2 会话 turn 的 metadata-only 记录；不保存原始结构化输入值。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "turn_id", "session_id", "sequence", "client_turn_key", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "execution_profile", "authority", "status", "input_contract_id", "input_contract_digest", "input_fields", "input_digest", "input_bytes", "run_ref", "failure_code", "failure_summary", "started_at", "completed_at", "actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "application_session_turn.v4"},
+    "turn_id": {"type": "string", "pattern": "^appturn_[a-z2-7]{16}$"},
+    "session_id": {"type": "string", "pattern": "^appsess_[a-z2-7]{16}$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "client_turn_key": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "tenant_ref": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "workspace_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "application_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "owner_subject_ref": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "execution_profile": {"const": "workflow_definition_executor_v2"},
+    "authority": {"$ref": "application-runtime-authority-v4.schema.json"},
+    "status": {"enum": ["running", "succeeded", "failed", "canceled", "outcome_unknown"]},
+    "input_contract_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "input_contract_digest": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/digest"},
+    "input_fields": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value_type"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+          "value_type": {"enum": ["string", "integer", "number", "boolean"]}
+        }
+      }
+    },
+    "input_digest": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/digest"},
+    "input_bytes": {"type": "integer", "minimum": 2, "maximum": 8192},
+    "run_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "object", "additionalProperties": false, "required": ["run_id", "schema_version"], "properties": {"run_id": {"type": "string", "pattern": "^run_[a-z0-9]{16,64}$"}, "schema_version": {"const": "workflow_run_record.v8"}}}
+      ]
+    },
+    "failure_code": {"type": "string", "maxLength": 160},
+    "failure_summary": {"type": "string", "maxLength": 256},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "actor_ref": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "request_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "audit_ref": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "running"}}}, "then": {"properties": {"run_ref": {"type": "null"}, "failure_code": {"const": ""}, "failure_summary": {"const": ""}, "completed_at": {"type": "null"}}}},
+    {"if": {"not": {"properties": {"status": {"const": "running"}}}}, "then": {"properties": {"completed_at": {"type": "string", "format": "date-time"}}}},
+    {"if": {"properties": {"status": {"const": "succeeded"}}}, "then": {"properties": {"run_ref": {"type": "object"}, "failure_code": {"const": ""}, "failure_summary": {"const": ""}}}},
+    {"if": {"properties": {"status": {"enum": ["failed", "canceled", "outcome_unknown"]}}}, "then": {"properties": {"failure_code": {"type": "string", "minLength": 1, "maxLength": 160}}}}
+  ]
+}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"strings"
 )
 
@@ -21,9 +20,12 @@ type WorkflowDefinitionRunRequest struct {
 	ExpectedDefinitionVersion int
 	ExpectedDefinitionDigest  string
 	InputText                 string
+	Inputs                    map[string]any
 	ConditionValues           map[string]bool
 	Model                     string
 	Temperature               *float64
+	inputTextProvided         bool
+	inputsProvided            bool
 }
 
 type workflowDefinitionExecutionAuthority struct {
@@ -32,6 +34,8 @@ type workflowDefinitionExecutionAuthority struct {
 	application ApplicationCatalogRecord
 	plan        workflowExecutionPlan
 	draft       SavedWorkflowDraft
+	request     WorkflowRunRequest
+	structured  *workflowStructuredInputNormalization
 }
 
 type workflowDefinitionExecutionService struct {
@@ -67,9 +71,8 @@ func (service workflowDefinitionExecutionService) StartRun(runContext WorkflowRu
 	}
 	executionContext, cancel := context.WithTimeout(requestContext, maxRuntime)
 	defer cancel()
-	selection := resolveWorkflowRunSelection(service.executor, executionContext, normalized.Model)
-	legacyRequest := WorkflowRunRequest{DraftID: authority.draft.DraftID, InputText: normalized.InputText, ConditionValues: normalized.ConditionValues, Model: normalized.Model, Temperature: normalized.Temperature}
-	record := newWorkflowRunRecord(runContext, legacyRequest, authority.draft, authority.plan, selection, runID)
+	selection := resolveWorkflowRunSelection(service.executor, executionContext, authority.request.Model)
+	record := newWorkflowRunRecord(runContext, authority.request, authority.draft, authority.plan, selection, runID)
 	record.SchemaVersion = workflowRunRecordDefinitionSchemaVersion
 	record.DraftID = ""
 	record.DraftVersion = 0
@@ -78,8 +81,17 @@ func (service workflowDefinitionExecutionService) StartRun(runContext WorkflowRu
 	record.ExecutionSourceKind = workflowDefinitionExecutionSourceKind
 	record.ExecutionSourceID = authority.version.DefinitionID
 	record.ExecutionSourceVersion = authority.version.Version
-	record.ExecutionProfile = workflowDefinitionExecutorProfile
-	record.InputDigest = workflowDefinitionInputDigest(normalized.InputText)
+	record.ExecutionProfile = authority.version.Snapshot.ExecutionProfile
+	if authority.structured == nil {
+		record.InputDigest = workflowDefinitionInputDigest(normalized.InputText)
+	} else {
+		record.SchemaVersion = workflowRunRecordDefinitionStructuredSchemaVersion
+		record.InputDigest = authority.structured.InputDigest
+		record.InputBytes = authority.structured.InputBytes
+		record.InputContractID = authority.structured.Contract.ContractID
+		record.InputContractDigest = authority.structured.Contract.ContractDigest
+		record.InputFields = cloneWorkflowStructuredInputMetadataFields(authority.structured.Fields)
+	}
 	record.ExecutionSource = &workflowRunExecutionSource{Kind: workflowDefinitionExecutionKind, SourceKind: workflowDefinitionExecutionSourceKind, ID: authority.version.DefinitionID, Version: authority.version.Version}
 	record.DefinitionAuthority = workflowDefinitionRunAuthority(authority)
 	if err := service.executor.store.UpsertRun(runContext, &record); err != nil {
@@ -87,46 +99,65 @@ func (service workflowDefinitionExecutionService) StartRun(runContext WorkflowRu
 	}
 	checkpointRequest := normalized
 	service.executor.beforeProviderCall = func(context.Context) (WorkflowRunFailureCode, string) {
-		_, checkpointCode, checkpointSummary := service.resolveAuthority(runContext, checkpointRequest)
+		checkpoint, checkpointCode, checkpointSummary := service.resolveAuthority(runContext, checkpointRequest)
+		if checkpointCode == "" && authority.structured != nil && (checkpoint.structured == nil ||
+			checkpoint.structured.Contract.ContractDigest != authority.structured.Contract.ContractDigest ||
+			checkpoint.structured.InputDigest != authority.structured.InputDigest) {
+			return WorkflowRunFailureInputAuthorityDrift, "Workflow structured input authority changed before provider execution."
+		}
 		return checkpointCode, checkpointSummary
 	}
-	return service.executor.executePlan(executionContext, runContext, legacyRequest, authority.draft, authority.plan, selection, record)
+	return service.executor.executePlan(executionContext, runContext, authority.request, authority.draft, authority.plan, selection, record)
 }
 
 func (service workflowDefinitionExecutionService) resolveAuthority(runContext WorkflowRunContext, request WorkflowDefinitionRunRequest) (workflowDefinitionExecutionAuthority, WorkflowRunFailureCode, string) {
 	ctx := WorkflowDefinitionReleaseContext{RequestContext: runContext.RequestContext, TenantRef: runContext.TenantRef, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID, OwnerSubjectRef: runContext.ActorRef, ActorRef: runContext.ActorRef, RequestID: runContext.RequestID, AuditRef: runContext.AuditRef}
 	activation, err := service.repository.ReadActivation(ctx, request.DefinitionID)
 	if err != nil || activation.State != workflowDefinitionActivationActive || activation.PointerVersion != request.ExpectedPointerVersion || activation.ActiveVersion != request.ExpectedDefinitionVersion || activation.ActiveDefinitionDigest != request.ExpectedDefinitionDigest {
-		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionAuthority, "Active workflow definition authority changed before provider execution."
+		return workflowDefinitionExecutionAuthority{}, workflowDefinitionAuthorityFailureCode(request), "Active workflow definition authority changed before provider execution."
 	}
 	version, err := service.repository.ReadVersion(ctx, request.DefinitionID, request.ExpectedDefinitionVersion)
 	if err != nil || validateStoredWorkflowDefinitionVersion(version) != nil {
-		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionAuthority, "Active workflow definition version is unavailable or invalid."
+		return workflowDefinitionExecutionAuthority{}, workflowDefinitionAuthorityFailureCode(request), "Active workflow definition version is unavailable or invalid."
 	}
 	digest, err := workflowDefinitionSnapshotDigest(version.Snapshot)
 	if err != nil || digest != version.DefinitionDigest || digest != activation.ActiveDefinitionDigest || digest != request.ExpectedDefinitionDigest {
-		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionAuthority, "Active workflow definition digest changed before provider execution."
+		return workflowDefinitionExecutionAuthority{}, workflowDefinitionAuthorityFailureCode(request), "Active workflow definition digest changed before provider execution."
 	}
-	if !version.ActivationEligible || len(version.EligibilityBlockers) != 0 || version.Snapshot.ExecutionProfile != workflowDefinitionExecutorProfile {
-		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionIncompatible, "Active workflow definition is not eligible for workflow_definition_executor_v1."
+	_, _, expectedProfile, supported := workflowDefinitionSchemaIdentityForDraft(version.Snapshot.SchemaVersion)
+	if !supported || !version.ActivationEligible || len(version.EligibilityBlockers) != 0 || version.Snapshot.ExecutionProfile != expectedProfile {
+		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionIncompatible, "Active workflow definition is not eligible for its immutable executor profile."
 	}
 	applicationContext := ApplicationCatalogContext{RequestContext: runContext.RequestContext, RequestID: runContext.RequestID, TenantRef: runContext.TenantRef, WorkspaceID: runContext.WorkspaceID, ActorRef: runContext.ActorRef, OwnerSubjectRef: runContext.ActorRef, AuditRef: runContext.AuditRef}
 	application, err := service.applications.RequireActive(applicationContext, runContext.ApplicationID)
 	if err != nil || application.LifecycleState != applicationCatalogLifecycleActive {
-		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionAuthority, "Application lifecycle changed before provider execution."
+		return workflowDefinitionExecutionAuthority{}, workflowDefinitionAuthorityFailureCode(request), "Application lifecycle changed before provider execution."
 	}
 	draft := workflowDefinitionSnapshotAsDraft(runContext, version)
-	plan, planCode, planSummary := buildWorkflowExecutionPlan(draft, request.ConditionValues)
+	executionRequest, structured, inputCode, inputSummary := workflowDefinitionExecutionRequestForDraft(draft, request)
+	if inputCode != "" {
+		return workflowDefinitionExecutionAuthority{}, inputCode, inputSummary
+	}
+	plan, planCode, planSummary := buildWorkflowDefinitionExecutionPlan(draft, request.ConditionValues)
 	if planCode != "" {
 		return workflowDefinitionExecutionAuthority{}, WorkflowRunFailureDefinitionIncompatible, planSummary
 	}
-	return workflowDefinitionExecutionAuthority{version: version, activation: activation, application: application, plan: plan, draft: draft}, "", ""
+	return workflowDefinitionExecutionAuthority{version: version, activation: activation, application: application, plan: plan, draft: draft, request: executionRequest, structured: structured}, "", ""
 }
 
 func normalizeWorkflowDefinitionRunRequest(request WorkflowDefinitionRunRequest) (WorkflowDefinitionRunRequest, WorkflowRunFailureCode, string) {
 	request.DefinitionID = strings.TrimSpace(request.DefinitionID)
 	request.ExpectedDefinitionDigest = strings.TrimSpace(request.ExpectedDefinitionDigest)
-	legacy, code, summary := normalizeWorkflowRunRequest(WorkflowRunRequest{DraftID: request.DefinitionID, InputText: request.InputText, ConditionValues: request.ConditionValues, Model: request.Model, Temperature: request.Temperature})
+	hasInputText := request.inputTextProvided || request.InputText != ""
+	hasInputs := request.inputsProvided || request.Inputs != nil
+	if hasInputText == hasInputs {
+		return WorkflowDefinitionRunRequest{}, WorkflowRunFailureInputSchemaUnsupported, "Workflow definition run must use exactly one versioned input shape."
+	}
+	validationInput := request.InputText
+	if hasInputs {
+		validationInput = "{}"
+	}
+	legacy, code, summary := normalizeWorkflowRunRequest(WorkflowRunRequest{DraftID: request.DefinitionID, InputText: validationInput, ConditionValues: request.ConditionValues, Model: request.Model, Temperature: request.Temperature})
 	if code != "" || request.ExpectedPointerVersion < 1 || request.ExpectedDefinitionVersion < 1 || !workflowRAGDigestPattern.MatchString(request.ExpectedDefinitionDigest) {
 		if code == WorkflowRunFailureBudgetExceeded {
 			return WorkflowDefinitionRunRequest{}, code, summary
@@ -136,17 +167,50 @@ func normalizeWorkflowDefinitionRunRequest(request WorkflowDefinitionRunRequest)
 	if strings.Contains(legacy.Model, "://") || workflowRAGContainsForbiddenMaterial(legacy.Model) || applicationDraftStringContainsSecret(legacy.Model) {
 		return WorkflowDefinitionRunRequest{}, WorkflowRunFailureInputInvalid, "Workflow definition run model selector is invalid."
 	}
-	request.InputText, request.ConditionValues, request.Model, request.Temperature = legacy.InputText, legacy.ConditionValues, legacy.Model, legacy.Temperature
+	if hasInputText {
+		request.InputText = legacy.InputText
+	} else {
+		request.InputText = ""
+		request.Inputs = cloneWorkflowStructuredInputValues(request.Inputs)
+	}
+	request.inputTextProvided, request.inputsProvided = hasInputText, hasInputs
+	request.ConditionValues, request.Model, request.Temperature = legacy.ConditionValues, legacy.Model, legacy.Temperature
 	return request, "", ""
 }
 
-func workflowDefinitionSnapshotDigest(snapshot WorkflowDefinitionSnapshot) (string, error) {
-	payload, err := json.Marshal(snapshot)
-	if err != nil {
-		return "", err
+func workflowDefinitionExecutionRequestForDraft(draft SavedWorkflowDraft, request WorkflowDefinitionRunRequest) (WorkflowRunRequest, *workflowStructuredInputNormalization, WorkflowRunFailureCode, string) {
+	executionRequest := WorkflowRunRequest{DraftID: draft.DraftID, ConditionValues: request.ConditionValues, Model: request.Model, Temperature: request.Temperature}
+	switch draft.SchemaVersion {
+	case savedWorkflowDraftSchemaVersion:
+		if !request.inputTextProvided || request.inputsProvided {
+			return WorkflowRunRequest{}, nil, WorkflowRunFailureInputSchemaUnsupported, "Workflow definition v1 requires input_text and does not accept inputs."
+		}
+		executionRequest.InputText = request.InputText
+		return executionRequest, nil, "", ""
+	case savedWorkflowDraftStructuredSchemaVersion:
+		if request.inputTextProvided || !request.inputsProvided {
+			return WorkflowRunRequest{}, nil, WorkflowRunFailureInputSchemaUnsupported, "Workflow definition v2 requires inputs and does not accept input_text."
+		}
+		normalized, code, summary := normalizeWorkflowStructuredInputValues(draft.InputContract, request.Inputs)
+		if code != "" {
+			return WorkflowRunRequest{}, nil, code, summary
+		}
+		packet, err := workflowDefinitionStructuredPromptInput(normalized)
+		if err != nil || len([]byte(packet)) > workflowExecutorMaxPacketBytes {
+			return WorkflowRunRequest{}, nil, WorkflowRunFailureInputBudgetExceeded, "Workflow structured input packet exceeded the execution budget."
+		}
+		executionRequest.InputText = packet
+		return executionRequest, &normalized, "", ""
+	default:
+		return WorkflowRunRequest{}, nil, WorkflowRunFailureInputSchemaUnsupported, "Workflow definition input schema is unsupported."
 	}
-	digest := sha256.Sum256(payload)
-	return "sha256:" + hex.EncodeToString(digest[:]), nil
+}
+
+func workflowDefinitionAuthorityFailureCode(request WorkflowDefinitionRunRequest) WorkflowRunFailureCode {
+	if request.inputsProvided {
+		return WorkflowRunFailureInputAuthorityDrift
+	}
+	return WorkflowRunFailureDefinitionAuthority
 }
 
 func workflowDefinitionInputDigest(input string) string {
@@ -163,7 +227,14 @@ func workflowDefinitionSnapshotAsDraft(ctx WorkflowRunContext, version WorkflowD
 	for _, edge := range version.Snapshot.Edges {
 		edges = append(edges, SavedWorkflowDraftEdge{EdgeID: edge.EdgeID, FromNodeID: edge.FromNodeID, ToNodeID: edge.ToNodeID, ConditionSummary: edge.ConditionSummary})
 	}
-	return SavedWorkflowDraft{DraftID: version.SourceDraftID, DraftVersion: version.SourceDraftVersion, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, SchemaVersion: savedWorkflowDraftSchemaVersion, DraftStatus: SavedWorkflowDraftStatusValidForReview, Nodes: nodes, Edges: edges, ProviderRefs: cloneStringSlice(version.Snapshot.ProviderRefs), ToolRefs: cloneStringSlice(version.Snapshot.ToolRefs), RAGRefs: cloneStringSlice(version.Snapshot.RAGRefs), RequestedCapabilities: cloneStringSlice(version.Snapshot.RequestedCapabilities), ValidationSummary: SavedWorkflowDraftValidationSummary{ValidationState: SavedWorkflowDraftStatusValidForReview, ValidForReview: true}}
+	return SavedWorkflowDraft{
+		DraftID: version.SourceDraftID, DraftVersion: version.SourceDraftVersion, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
+		SchemaVersion: version.Snapshot.SchemaVersion, DraftStatus: SavedWorkflowDraftStatusValidForReview, Nodes: nodes, Edges: edges,
+		InputContract: savedWorkflowDraftContractFromDefinition(version.Snapshot.InputContract), OutputContract: savedWorkflowDraftContractFromDefinition(version.Snapshot.OutputContract),
+		ProviderRefs: cloneStringSlice(version.Snapshot.ProviderRefs), ToolRefs: cloneStringSlice(version.Snapshot.ToolRefs), RAGRefs: cloneStringSlice(version.Snapshot.RAGRefs),
+		RequestedCapabilities: cloneStringSlice(version.Snapshot.RequestedCapabilities),
+		ValidationSummary:     SavedWorkflowDraftValidationSummary{ValidationState: SavedWorkflowDraftStatusValidForReview, ValidForReview: true},
+	}
 }
 
 func workflowDefinitionRunAuthority(value workflowDefinitionExecutionAuthority) *WorkflowDefinitionRunAuthority {
@@ -209,7 +280,7 @@ func (service workflowDefinitionExecutionService) ReconcileStale(runContext Work
 		return workflowRunFailure(WorkflowRunFailureStoreUnavailable, "Workflow definition stale run reconciliation is unavailable.")
 	}
 	for _, record := range page.Records {
-		if record.SchemaVersion != workflowRunRecordDefinitionSchemaVersion || record.Status != WorkflowRunStatusRunning {
+		if (record.SchemaVersion != workflowRunRecordDefinitionSchemaVersion && record.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion) || record.Status != WorkflowRunStatusRunning {
 			continue
 		}
 		result := service.executor.finishFailedRun(runContext, record, WorkflowRunFailureDefinitionInterrupted, "Workflow definition execution was interrupted before a terminal record was stored.", false)

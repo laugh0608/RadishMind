@@ -64,6 +64,9 @@ test("create sends exact application scope and sanitized fragment input", async 
     assert.equal(captured?.url, "http://platform.test/v1/user-workspace/workflow-retrieval-snapshots");
     assert.equal(captured?.method, "POST");
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_snapshots:write");
+    assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
+    assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_snapshots:write");
     assert.equal(captured?.headers.get("X-RadishMind-Dev-Workflow-Application"), "app_flow_copilot");
     assert.deepEqual(captured?.body, {
       workspace_id: "workspace_demo",
@@ -141,11 +144,13 @@ test("version uses full replacement CAS without snapshot_key and archive uses it
     assert.equal(requests[0]?.body.expected_latest_version, 1);
     assert.equal("snapshot_key" in requests[0]!.body, false);
     assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_snapshots:write");
+    assert.equal(requests[0]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_snapshots:write");
 
     const archived = await archiveWorkflowRAGSnapshot(config, "app_flow_copilot", snapshotId, 2);
     assert.equal(archived.status, "archived");
     assert.deepEqual(requests[1]?.body, { workspace_id: "workspace_demo", application_id: "app_flow_copilot", expected_latest_version: 2 });
     assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "workflow_rag_snapshots:archive");
+    assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_rag_snapshots:archive");
     assert.equal(requests.some((request) => request.url.includes("retrieval-executions")), false);
   } finally {
     globalThis.fetch = originalFetch;

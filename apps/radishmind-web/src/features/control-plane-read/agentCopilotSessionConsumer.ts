@@ -357,6 +357,7 @@ function sessionHeaders(
   requestId: string,
   scope: string,
 ): Record<string, string> {
+  const mutationPermission = scope === "application_sessions:write" || scope === "application_sessions:execute" ? scope : "";
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,
@@ -366,6 +367,11 @@ function sessionHeaders(
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
     "X-RadishMind-Dev-Read-Scopes": scope,
+    ...(mutationPermission ? {
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Read-Membership-Permissions": mutationPermission,
+    } : {}),
   };
 }
 

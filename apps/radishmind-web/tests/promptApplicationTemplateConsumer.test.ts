@@ -83,6 +83,8 @@ test("Prompt Template save sends exact source and CAS scope", async () => {
   assert.equal(result.status, "version_conflict");
   assert.equal(result.currentDraftVersion, 2);
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "prompt_application_templates:write");
+  assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Permissions"), "prompt_application_templates:write");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Prompt-Template-Application"), applicationId);
   assert.equal(captured?.body.expected_draft_version, 1);
   assert.equal(captured?.body.template.schema_version, "prompt_application_template_draft.v1");

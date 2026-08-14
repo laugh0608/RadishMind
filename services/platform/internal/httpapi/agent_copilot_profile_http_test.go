@@ -203,6 +203,7 @@ func newAgentCopilotProfileHTTPFixture(t *testing.T, applicationKind string) age
 		},
 		bridge: bridgeClient, applicationCatalogRepository: catalogRepository,
 		agentCopilotProfileRepository: newMemoryAgentCopilotProfileRepository(),
+		workspaceMembershipProvider:   newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	return agentCopilotProfileHTTPFixture{
 		server: server, bridge: bridgeClient, input: input,
@@ -217,7 +218,14 @@ func (fixture agentCopilotProfileHTTPFixture) request(method, target string, pay
 	request := httptest.NewRequest(method, target, strings.NewReader(string(payload)))
 	auth := fixture.auth
 	auth.ScopeGrants = append([]string{}, scopes...)
+	auth.ResourceBinding = ControlPlaneResourceBinding{TenantRef: "tenant_demo", TenantVerified: true}
+	auth.WorkspaceMemberships = []VerifiedWorkspaceMembershipAssertion{{
+		TenantRef: "tenant_demo", SubjectRef: "subject_owner", WorkspaceID: fixture.input.WorkspaceID,
+		PermissionGrants: append([]string{}, scopes...), SourceRef: "membership:test",
+		PolicyVersion: workspaceMembershipPolicyVersion,
+	}}
 	request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+	request.Header.Set(activeWorkspaceHeader, fixture.input.WorkspaceID)
 	request.Header.Set(agentCopilotProfileDevWorkspaceHeader, fixture.input.WorkspaceID)
 	request.Header.Set(agentCopilotProfileDevApplicationHeader, fixture.input.ApplicationID)
 	return request

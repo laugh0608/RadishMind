@@ -615,7 +615,7 @@ func validPromptApplicationRunDiagnostic(diagnostic PromptApplicationRunDiagnost
 
 func validPromptApplicationGatewayFailureCategory(value string) bool {
 	switch value {
-	case "none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable":
+	case "none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable", "quota":
 		return true
 	default:
 		return false

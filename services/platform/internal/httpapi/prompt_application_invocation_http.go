@@ -43,7 +43,7 @@ func (server *Server) handlePromptApplicationInvocation(writer http.ResponseWrit
 	}
 	gatewayContext := authentication.RequestContext
 	ctx := PromptApplicationRuntimeContext{
-		RequestContext: request.Context(), RequestID: trace.requestID,
+		RequestContext: gatewayContext.RequestContext, RequestID: trace.requestID,
 		TenantRef: gatewayContext.TenantRef, WorkspaceID: gatewayContext.WorkspaceID,
 		ApplicationID: gatewayContext.ApplicationID, ActorRef: gatewayContext.SubjectRef,
 		OwnerSubjectRef: gatewayContext.SubjectRef,
@@ -61,7 +61,11 @@ func (server *Server) handlePromptApplicationInvocation(writer http.ResponseWrit
 			run = &document
 		}
 	}
-	writeObservedJSON(writer, http.StatusOK, trace, promptApplicationInvocationEnvelope{
+	status := http.StatusOK
+	if gatewayRequestQuotaFailureCodeFromValue(result.FailureCode) != "" {
+		status = gatewayRequestQuotaHTTPStatus(result.FailureCode)
+	}
+	writeObservedJSON(writer, status, trace, promptApplicationInvocationEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, Run: run, Output: result.Output,
 		FailureCode:    optionalApplicationDraftFailure(strings.TrimSpace(result.FailureCode)),

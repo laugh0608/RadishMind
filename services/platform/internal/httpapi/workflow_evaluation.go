@@ -342,8 +342,14 @@ func (s workflowEvaluationService) validateDefinition(ctx WorkflowRunContext, ra
 			(baselineRecord.SchemaVersion != candidate.SchemaVersion || !workflowRAGRunsComparable(baselineRecord, candidate)) {
 			return "", "", nil, WorkflowEvaluationFailureRetrievalIncompatible
 		}
-		if (baselineRecord.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || candidate.SchemaVersion == workflowRunRecordDefinitionSchemaVersion) && !workflowDefinitionRunsComparable(baselineRecord, candidate) {
-			return "", "", nil, WorkflowEvaluationFailureDefinitionIncompatible
+		if workflowDefinitionRunSchema(baselineRecord.SchemaVersion) || workflowDefinitionRunSchema(candidate.SchemaVersion) {
+			compatible := workflowDefinitionRunsComparable(baselineRecord, candidate)
+			if baselineRecord.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion || candidate.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion {
+				compatible = workflowDefinitionStructuredRunsComparable(baselineRecord, candidate)
+			}
+			if !compatible {
+				return "", "", nil, WorkflowEvaluationFailureDefinitionIncompatible
+			}
 		}
 		if (baselineRecord.SchemaVersion == workflowRunRecordPromptSchemaVersion || candidate.SchemaVersion == workflowRunRecordPromptSchemaVersion) && !promptApplicationRunsComparable(baselineRecord, candidate) {
 			return "", "", nil, WorkflowEvaluationFailurePromptIncompatible

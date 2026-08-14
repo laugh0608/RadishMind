@@ -67,7 +67,8 @@ func workflowDefinitionUnixNano(value string) (int64, error) {
 func validateStoredWorkflowDefinitionCandidate(value WorkflowDefinitionReleaseCandidate) error {
 	created, createdErr := time.Parse(time.RFC3339Nano, value.CreatedAt)
 	updated, updatedErr := time.Parse(time.RFC3339Nano, value.UpdatedAt)
-	if value.SchemaVersion != workflowDefinitionCandidateSchemaVersion || !applicationDraftIdentifierPattern.MatchString(value.CandidateID) ||
+	if !validStoredWorkflowDefinitionCandidateVersionIdentity(value) ||
+		!applicationDraftIdentifierPattern.MatchString(value.CandidateID) ||
 		!applicationDraftIdentifierPattern.MatchString(value.DefinitionID) || !applicationDraftIdentifierPattern.MatchString(value.SourceDraftID) ||
 		value.SourceDraftVersion < 1 || !workflowRAGDigestPattern.MatchString(value.SourceDraftDigest) || value.DefinitionDigest != value.SourceDraftDigest ||
 		(value.State != workflowDefinitionStatePending && value.State != workflowDefinitionStateApproved && value.State != workflowDefinitionStateRejected) ||
@@ -93,7 +94,8 @@ func validateStoredWorkflowDefinitionCandidate(value WorkflowDefinitionReleaseCa
 }
 
 func validateStoredWorkflowDefinitionVersion(value WorkflowDefinitionVersion) error {
-	if value.SchemaVersion != workflowDefinitionVersionSchemaVersion || !applicationDraftIdentifierPattern.MatchString(value.DefinitionID) || value.Version < 1 ||
+	if !validStoredWorkflowDefinitionVersionIdentity(value) ||
+		!applicationDraftIdentifierPattern.MatchString(value.DefinitionID) || value.Version < 1 ||
 		!workflowRAGDigestPattern.MatchString(value.DefinitionDigest) || !applicationDraftIdentifierPattern.MatchString(value.CandidateID) || value.CandidateReviewVersion < 1 ||
 		!applicationDraftIdentifierPattern.MatchString(value.SourceDraftID) || value.SourceDraftVersion < 1 || !workflowRAGDigestPattern.MatchString(value.SourceDraftDigest) ||
 		value.DefinitionDigest != value.SourceDraftDigest || strings.TrimSpace(value.CreatedByActorRef) == "" || strings.TrimSpace(value.RequestID) == "" || strings.TrimSpace(value.AuditRef) == "" ||
@@ -104,6 +106,33 @@ func validateStoredWorkflowDefinitionVersion(value WorkflowDefinitionVersion) er
 		return errWorkflowDefinitionStore
 	}
 	return nil
+}
+
+func validStoredWorkflowDefinitionCandidateVersionIdentity(value WorkflowDefinitionReleaseCandidate) bool {
+	if value.SchemaVersion == workflowDefinitionCandidateSchemaVersion {
+		return value.Snapshot.SchemaVersion == savedWorkflowDraftSchemaVersion &&
+			value.Snapshot.ExecutionProfile == workflowDefinitionExecutorProfile
+	}
+	return value.SchemaVersion == workflowDefinitionCandidateStructuredSchemaVersion &&
+		workflowDefinitionCandidateSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot.SchemaVersion) &&
+		validWorkflowDefinitionSnapshotVersionIdentity(value.Snapshot) &&
+		workflowDefinitionSnapshotDigestMatches(value.Snapshot, value.DefinitionDigest)
+}
+
+func validStoredWorkflowDefinitionVersionIdentity(value WorkflowDefinitionVersion) bool {
+	if value.SchemaVersion == workflowDefinitionVersionSchemaVersion {
+		return value.Snapshot.SchemaVersion == savedWorkflowDraftSchemaVersion &&
+			value.Snapshot.ExecutionProfile == workflowDefinitionExecutorProfile
+	}
+	return value.SchemaVersion == workflowDefinitionVersionStructuredSchemaVersion &&
+		workflowDefinitionVersionSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot.SchemaVersion) &&
+		validWorkflowDefinitionSnapshotVersionIdentity(value.Snapshot) &&
+		workflowDefinitionSnapshotDigestMatches(value.Snapshot, value.DefinitionDigest)
+}
+
+func workflowDefinitionSnapshotDigestMatches(snapshot WorkflowDefinitionSnapshot, expected string) bool {
+	digest, err := workflowDefinitionSnapshotDigest(snapshot)
+	return err == nil && digest == expected
 }
 
 func validateStoredWorkflowDefinitionActivation(value WorkflowDefinitionActivation) error {

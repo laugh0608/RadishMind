@@ -33,6 +33,7 @@ func (server *Server) prepareGatewayRequest(
 			return false
 		}
 		trace.gatewayRequestContext = result.RequestContext
+		*request = *request.WithContext(result.RequestContext.RequestContext)
 		if !server.config.GatewayRequestHistoryDevEnabled {
 			server.writePlatformError(writer, *trace, string(GatewayRequestHistoryFailureStore), "")
 			return false
@@ -113,8 +114,20 @@ func (server *Server) authenticateGatewayAPIKey(
 			return gatewayAPIKeyAuthenticationResult{FailureCode: APIKeyFailureStoreUnavailable}
 		}
 	}
+	requestContext := request.Context()
+	if server.config.GatewayRequestQuotaEnforcementDevEnabled {
+		requestContext = withGatewayRequestQuotaBinding(requestContext, gatewayRequestQuotaBinding{
+			QuotaContext: GatewayRequestQuotaContext{
+				RequestContext: requestContext, TenantRef: updated.TenantRef, WorkspaceID: updated.WorkspaceID,
+				Environment: strings.TrimSpace(server.config.GatewayRequestQuotaEnvironment), ApplicationID: updated.ApplicationID,
+				ActorRef: updated.OwnerSubjectRef, RequestID: trace.requestID, AuditRef: "audit_" + trace.requestID + "_gateway-quota",
+			},
+			APIKeyID: updated.APIKeyID, RequestID: trace.requestID,
+			Route: strings.TrimSpace(request.Method) + " " + strings.TrimSpace(request.URL.Path),
+		})
+	}
 	return gatewayAPIKeyAuthenticationResult{RequestContext: GatewayRequestContext{
-		RequestContext: request.Context(), TenantRef: updated.TenantRef, WorkspaceID: updated.WorkspaceID,
+		RequestContext: requestContext, TenantRef: updated.TenantRef, WorkspaceID: updated.WorkspaceID,
 		ConsumerRef: "api_key:" + updated.APIKeyID, ApplicationID: updated.ApplicationID,
 		SubjectRef: updated.OwnerSubjectRef, ScopeGrants: append([]string{}, updated.Scopes...),
 		AuditContext: "api-key-dev-test", Source: gatewayAPIKeyAuthenticationSource,

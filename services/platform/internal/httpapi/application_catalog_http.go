@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	applicationCatalogCreateRoute  = "POST /v1/user-workspace/applications"
-	applicationCatalogReadRoute    = "GET /v1/user-workspace/applications/{application_id}"
-	applicationCatalogUpdateRoute  = "PUT /v1/user-workspace/applications/{application_id}"
-	applicationCatalogArchiveRoute = "POST /v1/user-workspace/applications/{application_id}/archive"
+	applicationCatalogCreateRoute    = "POST /v1/user-workspace/applications"
+	applicationCatalogReadRoute      = "GET /v1/user-workspace/applications/{application_id}"
+	applicationCatalogUpdateRoute    = "PUT /v1/user-workspace/applications/{application_id}"
+	applicationCatalogArchiveRoute   = "POST /v1/user-workspace/applications/{application_id}/archive"
+	applicationCatalogUnarchiveRoute = "POST /v1/user-workspace/applications/{application_id}/unarchive"
 )
 
 type applicationCatalogCreateBody struct {
@@ -33,6 +34,12 @@ type applicationCatalogArchiveBody struct {
 	ExpectedVersion int    `json:"expected_version"`
 }
 
+type applicationCatalogUnarchiveBody struct {
+	WorkspaceID                           string `json:"workspace_id"`
+	ExpectedVersion                       int    `json:"expected_version"`
+	AcknowledgeExistingAccessReactivation bool   `json:"acknowledge_existing_access_reactivation"`
+}
+
 type applicationCatalogEnvelope struct {
 	RequestID             string                    `json:"request_id"`
 	TenantRef             string                    `json:"tenant_ref"`
@@ -49,13 +56,17 @@ func (server *Server) handleCreateApplicationCatalogRecord(writer http.ResponseW
 	if !server.allowApplicationCatalogDevHTTP(writer, trace) {
 		return
 	}
+	requestContext, failureCode, status := server.applicationCatalogMutationContextFromRequest(request, trace, "create", "applications:write")
+	if failureCode != "" {
+		writeApplicationCatalogResult(writer, status, trace, requestContext, ApplicationCatalogResult{FailureCode: failureCode})
+		return
+	}
 	var body applicationCatalogCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode, status := server.applicationCatalogContextFromRequest(request, trace, body.WorkspaceID, "applications:write", "create")
-	if failureCode != "" {
-		writeApplicationCatalogResult(writer, status, trace, requestContext, ApplicationCatalogResult{FailureCode: failureCode})
+	if !applicationCatalogMutationWorkspaceMatches(requestContext, body.WorkspaceID) {
+		writeApplicationCatalogResult(writer, http.StatusForbidden, trace, requestContext, ApplicationCatalogResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	requestContext.WriteEnabled = server.config.ApplicationCatalogDevWriteEnabled
@@ -83,13 +94,17 @@ func (server *Server) handleUpdateApplicationCatalogRecord(writer http.ResponseW
 	if !server.allowApplicationCatalogDevHTTP(writer, trace) {
 		return
 	}
+	requestContext, failureCode, status := server.applicationCatalogMutationContextFromRequest(request, trace, "update", "applications:write")
+	if failureCode != "" {
+		writeApplicationCatalogResult(writer, status, trace, requestContext, ApplicationCatalogResult{FailureCode: failureCode})
+		return
+	}
 	var body applicationCatalogUpdateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	requestContext, failureCode, status := server.applicationCatalogContextFromRequest(request, trace, body.WorkspaceID, "applications:write", "update")
-	if failureCode != "" {
-		writeApplicationCatalogResult(writer, status, trace, requestContext, ApplicationCatalogResult{FailureCode: failureCode})
+	if !applicationCatalogMutationWorkspaceMatches(requestContext, body.WorkspaceID) {
+		writeApplicationCatalogResult(writer, http.StatusForbidden, trace, requestContext, ApplicationCatalogResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	requestContext.WriteEnabled = server.config.ApplicationCatalogDevWriteEnabled
@@ -104,17 +119,55 @@ func (server *Server) handleArchiveApplicationCatalogRecord(writer http.Response
 	if !server.allowApplicationCatalogDevHTTP(writer, trace) {
 		return
 	}
-	var body applicationCatalogArchiveBody
-	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
-		return
-	}
-	requestContext, failureCode, status := server.applicationCatalogContextFromRequest(request, trace, body.WorkspaceID, "applications:archive", "archive")
+	requestContext, failureCode, status := server.applicationCatalogMutationContextFromRequest(request, trace, "archive", "applications:archive")
 	if failureCode != "" {
 		writeApplicationCatalogResult(writer, status, trace, requestContext, ApplicationCatalogResult{FailureCode: failureCode})
 		return
 	}
+	var body applicationCatalogArchiveBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+		return
+	}
+	if !applicationCatalogMutationWorkspaceMatches(requestContext, body.WorkspaceID) {
+		writeApplicationCatalogResult(writer, http.StatusForbidden, trace, requestContext, ApplicationCatalogResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
 	requestContext.WriteEnabled = server.config.ApplicationCatalogDevWriteEnabled
 	writeApplicationCatalogResult(writer, http.StatusOK, trace, requestContext, server.applicationCatalogService().Archive(requestContext, request.PathValue("application_id"), body.ExpectedVersion))
+}
+
+func (server *Server) handleUnarchiveApplicationCatalogRecord(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, applicationCatalogUnarchiveRoute)
+	if !server.allowApplicationCatalogDevHTTP(writer, trace) {
+		return
+	}
+	requestContext, failureCode, status := server.applicationCatalogMutationContextFromRequest(
+		request, trace, "unarchive", "applications:archive", "applications:write",
+	)
+	if failureCode != "" {
+		writeApplicationCatalogResult(writer, status, trace, requestContext, ApplicationCatalogResult{FailureCode: failureCode})
+		return
+	}
+	var body applicationCatalogUnarchiveBody
+	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+		return
+	}
+	if !applicationCatalogMutationWorkspaceMatches(requestContext, body.WorkspaceID) {
+		writeApplicationCatalogResult(writer, http.StatusForbidden, trace, requestContext, ApplicationCatalogResult{FailureCode: "workspace_binding_mismatch"})
+		return
+	}
+	if !body.AcknowledgeExistingAccessReactivation {
+		writeApplicationCatalogResult(writer, http.StatusBadRequest, trace, requestContext, ApplicationCatalogResult{FailureCode: ApplicationCatalogFailurePayloadInvalid})
+		return
+	}
+	requestContext.WriteEnabled = server.config.ApplicationCatalogDevWriteEnabled
+	writeApplicationCatalogResult(writer, http.StatusOK, trace, requestContext, server.applicationCatalogService().Unarchive(
+		requestContext,
+		request.PathValue("application_id"),
+		ApplicationCatalogUnarchiveInput{
+			ExpectedVersion: body.ExpectedVersion, AcknowledgeExistingAccessReactivation: body.AcknowledgeExistingAccessReactivation,
+		},
+	))
 }
 
 func (server *Server) handleListApplicationCatalogRecords(writer http.ResponseWriter, request *http.Request) {
@@ -165,6 +218,25 @@ func (server *Server) applicationCatalogContextFromRequest(request *http.Request
 		return requestContext, ApplicationCatalogFailureScopeDenied, http.StatusForbidden
 	}
 	return requestContext, "", http.StatusOK
+}
+
+func (server *Server) applicationCatalogMutationContextFromRequest(
+	request *http.Request,
+	trace requestTrace,
+	auditSuffix string,
+	requiredPermissions ...string,
+) (ApplicationCatalogContext, string, int) {
+	auth, failureCode, status := server.authorizeWorkspaceScopedPermissions(request, requiredPermissions...)
+	requestContext := ApplicationCatalogContext{
+		RequestContext: request.Context(), RequestID: trace.requestID, TenantRef: strings.TrimSpace(auth.TenantBinding),
+		WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID), ActorRef: strings.TrimSpace(auth.SubjectBinding),
+		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), AuditRef: "audit_" + trace.requestID + "_application-catalog-" + auditSuffix,
+	}
+	return requestContext, failureCode, status
+}
+
+func applicationCatalogMutationWorkspaceMatches(requestContext ApplicationCatalogContext, workspaceID string) bool {
+	return workspaceID == requestContext.WorkspaceID
 }
 
 func (server *Server) allowApplicationCatalogDevHTTP(writer http.ResponseWriter, trace requestTrace) bool {

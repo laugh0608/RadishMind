@@ -27,6 +27,7 @@ const (
 type PromptApplicationInvocationInput struct {
 	Variables           map[string]any
 	ClientInvocationKey string
+	RunID               string
 }
 
 type PromptApplicationInvocationResult struct {
@@ -85,6 +86,12 @@ func (service promptApplicationInvocationService) Invoke(ctx PromptApplicationRu
 	}
 	runContext := promptApplicationWorkflowRunContext(ctx)
 	runID := promptApplicationInvocationRunID(ctx, clientKey)
+	if input.RunID != "" {
+		if !workflowRAGRunIDPattern.MatchString(input.RunID) {
+			return promptApplicationInvocationFailure(PromptApplicationInvocationFailureInputInvalid)
+		}
+		runID = input.RunID
+	}
 	existing, found, err := service.runStore.ReadRun(runContext, runID)
 	if err != nil {
 		return promptApplicationInvocationFailure(PromptApplicationRuntimeFailureStoreUnavailable)
@@ -130,6 +137,9 @@ func (service promptApplicationInvocationService) Invoke(ctx PromptApplicationRu
 	executionContext, cancel := context.WithTimeout(ctx.RequestContext, maxRuntime)
 	defer cancel()
 	output, gatewayCategory, gatewayFailure := service.callGateway(executionContext, runID, checkpoint, rendered.Messages)
+	if gatewayRequestQuotaFailureCodeFromValue(gatewayFailure) != "" {
+		return service.complete(runContext, record, WorkflowRunStatusFailed, gatewayFailure, "quota_admission", "provider", "quota")
+	}
 	record.SideEffects.ProviderCalls = 1
 	if gatewayFailure != "" {
 		if gatewayCategory == "canceled" {
@@ -234,6 +244,9 @@ func (service promptApplicationInvocationService) callGateway(
 	}
 	envelope, err := service.bridge.HandleEnvelope(ctx, canonicalRequest, service.gatewayOptions(authority.Selection))
 	if err != nil {
+		if quotaFailure := gatewayRequestQuotaFailureCode(err); quotaFailure != "" {
+			return "", "quota", quotaFailure
+		}
 		if errors.Is(ctx.Err(), context.Canceled) {
 			return "", "canceled", PromptApplicationInvocationFailureCanceled
 		}
@@ -457,6 +470,12 @@ func promptApplicationInvocationFailureSummary(code string) string {
 		return "Prompt application output did not satisfy its contract."
 	case PromptApplicationInvocationFailureOutcomeUnknown:
 		return "Prompt application invocation outcome is unknown and was not replayed."
+	case GatewayRequestQuotaFailureExceeded:
+		return "Prompt application request quota is exhausted for the current UTC period."
+	case GatewayRequestQuotaFailurePolicyNotFound, GatewayRequestQuotaFailureStoreUnavailable:
+		return "Prompt application request quota is unavailable."
+	case GatewayRequestQuotaFailureAttemptConflict:
+		return "Prompt application request quota admission conflicts with an existing attempt."
 	default:
 		return "Prompt application runtime store is unavailable."
 	}
@@ -472,6 +491,9 @@ func promptApplicationInvocationReviewAction(code string) string {
 		return "review_output_contract"
 	case PromptApplicationInvocationFailureCanceled:
 		return "review_cancellation"
+	case GatewayRequestQuotaFailureExceeded, GatewayRequestQuotaFailurePolicyNotFound,
+		GatewayRequestQuotaFailureAttemptConflict, GatewayRequestQuotaFailureStoreUnavailable:
+		return "review_run"
 	default:
 		return "review_run"
 	}

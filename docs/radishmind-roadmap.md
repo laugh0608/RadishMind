@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-07-25
+更新时间：2026-08-13
 
 ## 文档职责
 
@@ -55,10 +55,10 @@
 
 ## 当前执行顺位
 
-1. 产品线：既有 Workflow、Gateway、用户工作区、RAG、Application Session、Prompt / Agent 与回归评测专题均已完成并保持稳定。[图片生成 / 产物返回](features/image-generation-artifact-return.md)批次 A / B / C / D 已实现受控 handoff、本机私有 storage、reference-only profile 与 test-only contract fixture client，批次 E 已完成设计复核。下一顺位实现 fixture binary 的一次性交付与私有持久化协调，确保 store 成功前不释放成功引用；真实 reference resolver、图片生成、上传、公开 URL、HTTP / Gateway、Web 与生产能力继续关闭。
+1. 产品线：[Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)、[Workflow Definition 结构化运行输入](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Provider 价格策略版本与应用成本审查](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)以及 S9 / S10 Visual R3 React 迁移均已关闭。[Gateway Provider Attempt 受控重试与降级执行](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)已完成批次 A 至 D 的领域合同、三存储、Admin 人工激活链与三个 API Key unary API，批次 E 的七个 S7 / S5 Visual R1 代表面也已获得人工批准；当前顺位为 Route、Playground、Request History strict consumer、双数据库和真实浏览器产品连续链，不打开真实 Provider 或 production，也不建立 S11 或同层 gate-only 续批。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
-4. 真实 Radish 联调保持 `real_radish_integration_deferred`；production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 继续为 `not_satisfied`。
+4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
 
 ## 权威入口
@@ -70,7 +70,7 @@
 - 系统边界：[架构](radishmind-architecture.md)
 - 协议边界：[集成契约](radishmind-integration-contracts.md)
 - 能力状态：[能力矩阵](radishmind-capability-matrix.md)
-- 历史完成记录：[2026-W29 周志](devlogs/2026-W29.md)
+- 当前开发记录：[2026-W32 周志](devlogs/2026-W32.md)
 
 ## 停止线
 

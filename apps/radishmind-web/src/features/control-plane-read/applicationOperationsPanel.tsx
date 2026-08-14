@@ -16,19 +16,41 @@ const workflowConfig = readWorkflowExecutorConsumerConfig();
 export default function ApplicationOperationsPanel({
   applicationId,
   applicationName,
+  workspaceId,
+  active,
   onEvidenceChange,
+  onOpenGatewayRequest,
+  onOpenWorkflowRun,
 }: {
   applicationId: string;
   applicationName: string;
+  workspaceId: string;
+  active: boolean;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
+  onOpenGatewayRequest?: (requestId: string, consumerRef: string) => void;
+  onOpenWorkflowRun?: (runId: string) => void;
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [state, setState] = useState<ApplicationOperationsState>(() =>
     initialApplicationOperationsState(applicationId, gatewayConfig, workflowConfig)
   );
+  const workspaceScopeFailureSummary = [
+    gatewayConfig.mode === "dev_gateway_request_history_http" && gatewayConfig.workspaceId !== workspaceId.trim()
+      ? `Gateway source is configured for ${gatewayConfig.workspaceId}`
+      : "",
+    workflowConfig.mode === "dev_workflow_executor_http" && workflowConfig.workspaceId !== workspaceId.trim()
+      ? `Workflow source is configured for ${workflowConfig.workspaceId}`
+      : "",
+  ].filter(Boolean).join(". ");
+  const workspaceScopeMatches = Boolean(workspaceId.trim()) && !workspaceScopeFailureSummary;
+
+  useEffect(() => {
+    setState(initialApplicationOperationsState(applicationId, gatewayConfig, workflowConfig));
+  }, [applicationId, workspaceId]);
 
   useEffect(() => {
     let cancelled = false;
+    if (!active || !workspaceScopeMatches) return () => { cancelled = true; };
     setState(initialApplicationOperationsState(applicationId, gatewayConfig, workflowConfig));
     void loadApplicationOperations(applicationId, gatewayConfig, workflowConfig).then((nextState) => {
       if (!cancelled) setState(nextState);
@@ -36,16 +58,16 @@ export default function ApplicationOperationsPanel({
     return () => {
       cancelled = true;
     };
-  }, [applicationId, refreshKey]);
+  }, [active, applicationId, refreshKey, workspaceScopeMatches]);
 
   const metrics = state.metrics;
-  const refreshDisabled = state.status === "loading" || state.status === "offline" ||
+  const refreshDisabled = !active || !workspaceScopeMatches || state.status === "loading" || state.status === "offline" ||
     state.status === "application_unavailable";
 
   useEffect(() => {
     if (!onEvidenceChange) return;
     const failureCodes = [state.gateway.failureCode, state.workflow.failureCode].filter(Boolean);
-    const blocked = state.status === "failed" || state.status === "application_unavailable";
+    const blocked = !workspaceScopeMatches || state.status === "failed" || state.status === "application_unavailable";
     const partialFailure = state.status === "partial_failure";
     const available = state.status === "ready" && state.loadedWindowComplete;
     const evidenceRefs = [
@@ -57,23 +79,23 @@ export default function ApplicationOperationsPanel({
       status: blocked ? "blocked" : partialFailure ? "partial_failure" : available ? "available" : "incomplete",
       coverage: available ? "complete" : evidenceRefs.length ? "partial" : blocked ? "complete" : "none",
       evidenceRefs,
-      missingEvidence: available ? [] : [state.failureSummary || "Load complete Gateway and Workflow operations windows."],
+      missingEvidence: available ? [] : [workspaceScopeFailureSummary || state.failureSummary || "Load complete Gateway and Workflow operations windows."],
       blockers: blocked || partialFailure ? [{
-        code: failureCodes[0] || (partialFailure ? "application_operations_partial_failure" : "application_operations_unavailable"),
-        summary: state.failureSummary || "Application operations evidence is unavailable.",
+        code: !workspaceScopeMatches ? "application_operations_workspace_scope_mismatch" : failureCodes[0] || (partialFailure ? "application_operations_partial_failure" : "application_operations_unavailable"),
+        summary: workspaceScopeFailureSummary || state.failureSummary || "Application operations evidence is unavailable.",
       }] : [],
-      failureCodes,
+      failureCodes: !workspaceScopeMatches ? ["application_operations_workspace_scope_mismatch"] : failureCodes,
     });
-  }, [onEvidenceChange, state]);
+  }, [onEvidenceChange, state, workspaceScopeFailureSummary, workspaceScopeMatches]);
 
   return (
     <section className="surface-band application-operations" id="application-operations" aria-labelledby="application-operations-title">
       <div className="section-heading">
         <div>
           <p className="eyebrow">User Workspace · Application Operations</p>
-          <h3 id="application-operations-title">运行观测与用量归因</h3>
+          <h3 id="application-operations-title">运行观测、用量与成本证据</h3>
           <p>
-            {applicationName || "No selected application"} · <code>{state.applicationId || "application unavailable"}</code>
+            {applicationName || "No selected application"} · <code>{state.applicationId || "application unavailable"}</code> · current consumer <code>{gatewayConfig.consumerRef}</code>
           </p>
         </div>
         <div className="application-operations-actions">
@@ -83,6 +105,12 @@ export default function ApplicationOperationsPanel({
           </button>
         </div>
       </div>
+
+      {!workspaceScopeMatches ? (
+        <p className="application-operations-failure" role="alert">
+          Workspace boundary: {workspaceScopeFailureSummary}. Current Application Workspace is {workspaceId || "unavailable"}. No observation request is sent.
+        </p>
+      ) : null}
 
       <div className="application-operations-coverage" aria-label="Application operations source coverage">
         <ChannelCoverage
@@ -119,6 +147,16 @@ export default function ApplicationOperationsPanel({
           detail={`${metrics.gatewayUsageNotReported} not reported · ${metrics.gatewayUsageNotApplicable} not applicable`}
         />
         <MetricCard
+          label="Provider-reported tokens"
+          value={`${metrics.gatewayTotalTokens} total`}
+          detail={`${metrics.gatewayInputTokens} input · ${metrics.gatewayOutputTokens} output · loaded window`}
+        />
+        <MetricCard
+          label="Loaded-window estimate"
+          value={formatCostMicros(metrics.gatewayEstimatedCostMicros)}
+          detail={`${metrics.gatewayCostEstimated} estimated · ${state.gateway.hasMore ? "partial window" : "loaded window complete"}`}
+        />
+        <MetricCard
           label="Workflow status"
           value={`${metrics.workflowSucceeded} succeeded`}
           detail={`${metrics.workflowFailed} failed · ${metrics.workflowCanceled} canceled · ${metrics.workflowRunning} running · ${metrics.workflowOutcomeUnknown} unknown`}
@@ -128,6 +166,19 @@ export default function ApplicationOperationsPanel({
           value={`${metrics.workflowProviderCalls} provider · ${metrics.workflowRetrievalCalls} retrieval`}
           detail={`${metrics.workflowToolCalls} tool · ${metrics.workflowConfirmationCalls} confirmation`}
         />
+      </div>
+
+      <div className="application-operations-cost-coverage" aria-label="Gateway cost availability coverage">
+        <p className="eyebrow">Cost availability · current Gateway window</p>
+        <div>
+          <CostCoverage label="Estimated" value={metrics.gatewayCostEstimated} tone="ready" />
+          <CostCoverage label="Usage missing" value={metrics.gatewayCostUsageNotReported} tone="neutral" />
+          <CostCoverage label="Price missing" value={metrics.gatewayCostPriceNotConfigured} tone="attention" />
+          <CostCoverage label="Price unavailable" value={metrics.gatewayCostPriceUnavailable} tone="blocked" />
+          <CostCoverage label="Not applicable" value={metrics.gatewayCostNotApplicable} tone="neutral" />
+          <CostCoverage label="Legacy" value={metrics.gatewayCostLegacyNotCaptured} tone="neutral" />
+        </div>
+        <p>{state.gateway.hasMore ? "has_more: subtotal and coverage exclude earlier pages." : "The loaded Gateway window is complete for this request."}</p>
       </div>
 
       {(metrics.workflowBusinessWrites > 0 || metrics.workflowReplayWrites > 0) && (
@@ -146,7 +197,14 @@ export default function ApplicationOperationsPanel({
 
       {state.timeline.length > 0 ? (
         <ol className="application-operations-timeline">
-          {state.timeline.map((entry) => <TimelineEntry key={`${entry.source}:${entry.recordId}`} entry={entry} />)}
+          {state.timeline.map((entry) => (
+            <TimelineEntry
+              key={`${entry.source}:${entry.recordId}`}
+              entry={entry}
+              onOpenGatewayRequest={onOpenGatewayRequest}
+              onOpenWorkflowRun={onOpenWorkflowRun}
+            />
+          ))}
         </ol>
       ) : (
         <p className="application-operations-empty">
@@ -155,7 +213,7 @@ export default function ApplicationOperationsPanel({
       )}
 
       <p className="boundary-note">
-        两个通道只在应用作用域下并列展示，不建立一对一关联。当前数字只覆盖已加载窗口，不是全量 usage、token、cost、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
+        两个通道只在应用作用域下并列展示，不建立一对一关联。金额只汇总当前已加载 Gateway 窗口中的不可变请求级估算，不与 Workflow 相加，不是全历史、Provider invoice、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
       </p>
     </section>
   );
@@ -195,14 +253,22 @@ function MetricCard({ label, value, detail }: { label: string; value: string; de
   return <article><p>{label}</p><strong>{value}</strong><span>{detail}</span></article>;
 }
 
-function TimelineEntry({ entry }: { entry: ApplicationOperationsTimelineEntry }) {
+function TimelineEntry({
+  entry,
+  onOpenGatewayRequest,
+  onOpenWorkflowRun,
+}: {
+  entry: ApplicationOperationsTimelineEntry;
+  onOpenGatewayRequest?: (requestId: string, consumerRef: string) => void;
+  onOpenWorkflowRun?: (runId: string) => void;
+}) {
   return (
-    <li>
+    <li data-source={entry.source} data-status={entry.status}>
       <div className="application-operations-timeline-marker" aria-hidden="true" />
       <article>
         <div className="card-title-row">
           <div><p className="eyebrow">{entry.source.replace("_", " ")}</p><h4>{entry.operation || "unavailable"}</h4></div>
-          <span>{entry.status}</span>
+          <span className={`application-operations-status ${entry.status}`}>{entry.status}</span>
         </div>
         <p><code>{entry.recordId}</code> · {formatTimestamp(entry.startedAt)} · {entry.durationMs} ms</p>
         <dl>
@@ -211,11 +277,33 @@ function TimelineEntry({ entry }: { entry: ApplicationOperationsTimelineEntry })
           <div><dt>Failure</dt><dd>{entry.failureCode || "none"} · {entry.failureBoundary || "none"}</dd></div>
           <div><dt>Request / audit</dt><dd>{entry.requestId} · {entry.auditRef}</dd></div>
           {entry.source === "gateway_request" ? (
-            <div><dt>Usage</dt><dd>{entry.usageAvailability}</dd></div>
+            <>
+              <div>
+                <dt>Usage</dt>
+                <dd>
+                  {entry.usageAvailability === "reported"
+                    ? `${entry.totalTokens} total · ${entry.inputTokens} input · ${entry.outputTokens} output · ${entry.usageSource}`
+                    : entry.usageAvailability}
+                </dd>
+              </div>
+              <div>
+                <dt>Cost</dt>
+                <dd>{entry.costAvailability === "estimated" ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} · policy v${entry.pricingPolicyVersion}` : `${entry.costAvailability} · ${entry.costReason}`}</dd>
+              </div>
+            </>
           ) : (
             <div><dt>Calls</dt><dd>{entry.providerCalls} provider · {entry.retrievalCalls} retrieval · {entry.toolCalls} tool</dd></div>
           )}
         </dl>
+        {entry.source === "gateway_request" && onOpenGatewayRequest ? (
+          <button type="button" className="secondary-action" onClick={() => onOpenGatewayRequest(entry.recordId, gatewayConfig.consumerRef)}>
+            Open exact request
+          </button>
+        ) : entry.source === "workflow_run" && onOpenWorkflowRun ? (
+          <button type="button" className="secondary-action" onClick={() => onOpenWorkflowRun(entry.recordId)}>
+            Open exact run
+          </button>
+        ) : null}
       </article>
     </li>
   );
@@ -225,6 +313,18 @@ function StatusBadge({ status }: { status: ApplicationOperationsState["status"] 
   const tone = status === "ready" || status === "empty" ? "good" :
     status === "failed" || status === "application_unavailable" ? "bad" : "neutral";
   return <span className={`status-badge ${tone}`}>{status.replaceAll("_", " ")}</span>;
+}
+
+function CostCoverage({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "ready" | "neutral" | "attention" | "blocked";
+}) {
+  return <span data-tone={tone}><strong>{value}</strong>{label}</span>;
 }
 
 function emptyMessage(state: ApplicationOperationsState): string {
@@ -239,4 +339,8 @@ function formatTimestamp(value: string): string {
   if (!value) return "unavailable";
   const timestamp = new Date(value);
   return Number.isNaN(timestamp.valueOf()) ? value : timestamp.toLocaleString();
+}
+
+function formatCostMicros(value: number): string {
+  return `$${(value / 1_000_000).toFixed(6)}`;
 }

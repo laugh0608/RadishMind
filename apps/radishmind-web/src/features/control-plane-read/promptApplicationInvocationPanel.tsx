@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   initialPromptApplicationInvocationResult,
   invokePromptApplication,
@@ -160,6 +161,7 @@ export default function PromptApplicationInvocationPanel({
           <strong>Transient output</strong>
           <pre>{result.output || "(没有可展示的当前响应 output)"}</pre>
           {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureSummary}</p> : null}
+          <ControlledUseFailureGuidance owner="prompt_invocation" failureCode={result.failureCode} />
           <p className="boundary-note">{result.summary}</p>
         </article>
       </div>

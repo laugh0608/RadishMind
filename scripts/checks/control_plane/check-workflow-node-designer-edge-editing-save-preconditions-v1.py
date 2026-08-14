@@ -159,12 +159,18 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     node_designer_text = read(str(contract.get("node_designer_file")))
     consumer_text = read(str(contract.get("consumer_file")))
     app_text = read(str(contract.get("app_file")))
+    panel_text = read(str(contract.get("panel_file")))
     validation_text = read(str(contract.get("validation_file")))
     style_text = read(str(contract.get("style_file")))
 
     assert_literals(node_designer_text, contract.get("required_node_designer_literals") or [], "workflowNodeDesigner.tsx")
     assert_literals(consumer_text, contract.get("required_consumer_literals") or [], "savedWorkflowDraftConsumer.ts")
     assert_literals(app_text, contract.get("required_app_literals") or [], "App.tsx")
+    assert_literals(
+        panel_text,
+        contract.get("required_panel_literals") or [],
+        "workflowDraftDesignerPanel.tsx",
+    )
     assert_literals(validation_text, contract.get("required_validation_literals") or [], "workflowDraftValidationInspector.ts")
     assert_literals(style_text, contract.get("required_style_literals") or [], "styles.css")
     assert_forbidden_literals(

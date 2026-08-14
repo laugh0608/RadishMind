@@ -125,6 +125,52 @@ func TestApplicationConfigurationDraftPromptTemplateBindingHTTPRoute(t *testing.
 	}
 }
 
+func TestApplicationConfigurationDraftAgentProfileBindingHTTPRoute(t *testing.T) {
+	server := NewServer(config.Config{ControlPlaneReadDevAuthEnabled: true, ApplicationDraftDevHTTPEnabled: true, ApplicationDraftDevWriteEnabled: true}, Options{BuildVersion: "test"})
+	draftContext := validApplicationDraftContext()
+	draftContext.ApplicationID = "app_aaaaaaaaaaaaaaaa"
+	draftContext.ActorRef = "subject_demo_user"
+	draftContext.OwnerSubjectRef = "subject_demo_user"
+	payload := validApplicationDraftPayload()
+	payload.ApplicationID = draftContext.ApplicationID
+	payload.DraftID = "app-config-agent-http"
+	payload.ApplicationKind = "agent"
+	if saved := newApplicationConfigurationDraftService(server.applicationDraftRepository).Save(draftContext, payload, 0); saved.Draft == nil {
+		t.Fatalf("seed HTTP binding draft: %#v", saved)
+	}
+	profileContext := agentCopilotProfileTestContext(
+		draftContext.TenantRef, draftContext.WorkspaceID, draftContext.ApplicationID, draftContext.ActorRef,
+	)
+	profileInput := agentCopilotProfileTestInput("acpf_aaaaaaaaaaaaaaaa")
+	profileInput.WorkspaceID = draftContext.WorkspaceID
+	profileInput.ApplicationID = draftContext.ApplicationID
+	profileService := newAgentCopilotProfileService(server.agentCopilotProfileRepository)
+	if saved := profileService.SaveDraft(profileContext, profileInput, 0); saved.Draft == nil {
+		t.Fatalf("seed HTTP binding profile: %#v", saved)
+	}
+	if version := profileService.CreateVersion(profileContext, profileInput.ProfileID, 1); version.Version == nil {
+		t.Fatalf("seed HTTP binding profile version: %#v", version)
+	}
+	body := applicationConfigurationDraftAgentProfileBindingBody{
+		WorkspaceID: draftContext.WorkspaceID, ApplicationID: draftContext.ApplicationID, ExpectedDraftVersion: 1,
+		ProfileID: profileInput.ProfileID, ProfileVersion: 1,
+	}
+	raw, err := json.Marshal(body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-configuration-drafts/"+payload.DraftID+"/agent-copilot-profile-binding", bytes.NewReader(raw))
+	setApplicationDraftHeaders(request, "application_drafts:write,agent_copilot_profiles:bind", draftContext.ApplicationID)
+	recorder := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(recorder, request)
+	var result applicationConfigurationDraftEnvelope
+	if recorder.Code != http.StatusOK || json.Unmarshal(recorder.Body.Bytes(), &result) != nil || result.FailureCode != nil ||
+		result.Draft == nil || result.Draft.SchemaVersion != applicationConfigurationDraftSchemaVersionV4 ||
+		result.Draft.AgentCopilotProfileRef == nil {
+		t.Fatalf("Agent Profile binding route failed: status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+}
+
 func runApplicationConfigurationDraftLifecycleAndIsolation(t *testing.T, repository applicationConfigurationDraftRepository) {
 	t.Helper()
 	service := newApplicationConfigurationDraftService(repository)
@@ -305,6 +351,9 @@ func performApplicationDraftRequest(t *testing.T, server *Server, method, target
 func setApplicationDraftHeaders(request *http.Request, scopes, applicationID string) {
 	setControlPlaneReadDevAuthHeaders(request)
 	request.Header.Set(controlPlaneReadDevScopesHeader, scopes)
+	request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	request.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+	request.Header.Set(controlPlaneReadDevMembershipPermHeader, scopes)
 	request.Header.Set(applicationDraftDevWorkspaceHeader, "workspace_demo")
 	request.Header.Set(applicationDraftDevApplicationHeader, applicationID)
 }

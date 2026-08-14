@@ -48,6 +48,11 @@ func normalizeWorkflowRAGExecutionRequest(request WorkflowRAGExecutionRequest) (
 }
 
 func buildWorkflowRAGExecutionPlan(draft SavedWorkflowDraft, expectedVersion int) (workflowRAGExecutionPlan, string) {
+	activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(draft)
+	if lifecycleFailure != "" {
+		return workflowRAGExecutionPlan{}, WorkflowRAGFailureDraftIneligible
+	}
+	draft = activeDraft
 	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion || draft.DraftVersion != expectedVersion ||
 		draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !draft.ValidationSummary.ValidForReview ||
 		draft.ValidationSummary.ValidationState != SavedWorkflowDraftStatusValidForReview ||

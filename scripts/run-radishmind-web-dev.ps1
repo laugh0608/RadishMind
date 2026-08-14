@@ -427,15 +427,23 @@ function Invoke-ControlPlaneReadRoutesProbe {
         $apiKeyRoute += "?workspace_id=$([Uri]::EscapeDataString($savedDraftWorkspaceId))&limit=1"
     }
     $routes = @(
-        "/v1/control-plane/tenants/$encodedTenant/summary",
-        $applicationRoute,
-        $apiKeyRoute,
-        "/v1/user-workspace/usage/quota-summary",
-        "/v1/user-workspace/workflow-definitions",
-        "/v1/user-workspace/runs",
-        "/v1/control-plane/audit"
+        @{ Route = "/v1/control-plane/tenants/$encodedTenant/summary"; WorkspaceScoped = $false },
+        @{ Route = $applicationRoute; WorkspaceScoped = -not ($ApplicationCatalogPostgresDevTest -or $platformProfile -eq "local-product") },
+        @{ Route = $apiKeyRoute; WorkspaceScoped = -not ($ApplicationCatalogPostgresDevTest -or $platformProfile -eq "local-product") },
+        @{ Route = "/v1/user-workspace/runs"; WorkspaceScoped = $true },
+        @{ Route = "/v1/control-plane/audit"; WorkspaceScoped = $false }
     )
-    $headers = @{
+    if ($workflowDefinitionEnabled) {
+        $routes = @(
+            $routes[0],
+            $routes[1],
+            $routes[2],
+            @{ Route = "/v1/user-workspace/workflow-definitions"; WorkspaceScoped = $true },
+            $routes[3],
+            $routes[4]
+        )
+    }
+    $baseHeaders = @{
         Accept = "application/json"
         "X-Request-Id" = "dev-live-script-probe"
         "X-RadishMind-Dev-Read-Identity" = "dev-live-read-consumer"
@@ -444,8 +452,13 @@ function Invoke-ControlPlaneReadRoutesProbe {
         "X-RadishMind-Dev-Read-Scopes" = "tenant:read,applications:read,api_keys:read,usage:read,runs:read,audit:read"
         "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_script_probe"
     }
+    $workspaceHeaders = $baseHeaders.Clone()
+    $workspaceHeaders["X-RadishMind-Active-Workspace"] = $savedDraftWorkspaceId
+    $workspaceHeaders["X-RadishMind-Dev-Read-Membership-Workspace"] = $savedDraftWorkspaceId
+    $workspaceHeaders["X-RadishMind-Dev-Read-Membership-Permissions"] = "applications:read,api_keys:read,usage:read,runs:read"
     foreach ($route in $routes) {
-        $url = $BaseUrl.TrimEnd("/") + $route
+        $url = $BaseUrl.TrimEnd("/") + $route.Route
+        $headers = if ($route.WorkspaceScoped) { $workspaceHeaders } else { $baseHeaders }
         $response = Invoke-WebRequest -Uri $url -Method Get -Headers $headers -TimeoutSec 5
         if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) {
             throw "Unexpected HTTP status $($response.StatusCode) from $url"
@@ -456,6 +469,61 @@ function Invoke-ControlPlaneReadRoutesProbe {
         }
         if ($null -eq $json.items) {
             throw "Route did not return items[] from $url"
+        }
+    }
+
+    $quotaUrl = $BaseUrl.TrimEnd("/") + "/v1/user-workspace/usage/quota-summary"
+    try {
+        Invoke-WebRequest -Uri $quotaUrl -Method Get -Headers $workspaceHeaders -TimeoutSec 5 | Out-Null
+        throw "Quota route unexpectedly reported an available policy"
+    }
+    catch {
+        $response = $_.Exception.Response
+        if ($null -eq $response -or [int]$response.StatusCode -ne 503) {
+            throw
+        }
+        if ($response.Content -is [System.Net.Http.HttpContent]) {
+            $body = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+        }
+        elseif ($response.PSObject.Methods.Name -contains "GetResponseStream") {
+            $stream = $response.GetResponseStream()
+            $reader = [System.IO.StreamReader]::new($stream)
+            try { $body = $reader.ReadToEnd() } finally { $reader.Dispose(); $stream.Dispose() }
+        }
+        else {
+            throw "Quota fail-closed probe could not read the HTTP failure body"
+        }
+        $document = $body | ConvertFrom-Json
+        if ($document.failure_code -ne "quota_policy_unavailable") {
+            throw "Quota fail-closed probe returned an unexpected failure: $($document.failure_code)"
+        }
+    }
+    if (-not $workflowDefinitionEnabled) {
+        $definitionUrl = $BaseUrl.TrimEnd("/") + "/v1/user-workspace/workflow-definitions"
+        try {
+            Invoke-WebRequest -Uri $definitionUrl -Method Get -Headers $workspaceHeaders -TimeoutSec 5 | Out-Null
+            throw "Disabled Workflow Definition read owner unexpectedly succeeded"
+        }
+        catch {
+            $response = $_.Exception.Response
+            if ($null -eq $response -or [int]$response.StatusCode -ne 503) {
+                throw
+            }
+            if ($response.Content -is [System.Net.Http.HttpContent]) {
+                $body = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+            }
+            elseif ($response.PSObject.Methods.Name -contains "GetResponseStream") {
+                $stream = $response.GetResponseStream()
+                $reader = [System.IO.StreamReader]::new($stream)
+                try { $body = $reader.ReadToEnd() } finally { $reader.Dispose(); $stream.Dispose() }
+            }
+            else {
+                throw "Disabled Workflow Definition read owner probe could not read the HTTP failure body"
+            }
+            $document = $body | ConvertFrom-Json
+            if ($document.failure_code -ne "read_store_unavailable") {
+                throw "Disabled Workflow Definition read owner probe returned an unexpected failure: $($document.failure_code)"
+            }
         }
     }
 }
@@ -510,6 +578,9 @@ function Invoke-SavedWorkflowDraftProbe {
         "X-RadishMind-Dev-Read-Subject" = $Subject
         "X-RadishMind-Dev-Read-Scopes" = "workflow_drafts:read,workflow_drafts:write"
         "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_saved_draft_probe"
+        "X-RadishMind-Active-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Permissions" = "workflow_drafts:read,workflow_drafts:write,workflow_drafts:archive"
         "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
         "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
     }
@@ -544,6 +615,9 @@ function Invoke-WorkflowDefinitionProbe {
         "X-RadishMind-Dev-Read-Subject" = $Subject
         "X-RadishMind-Dev-Read-Scopes" = "workflow_definitions:read"
         "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_workflow_definition_probe"
+        "X-RadishMind-Active-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Permissions" = "workflow_definitions:read"
         "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
         "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
     }
@@ -602,6 +676,9 @@ function Invoke-WorkflowExecutorProbe {
         "X-RadishMind-Dev-Read-Subject" = $Subject
         "X-RadishMind-Dev-Read-Scopes" = "workflow_drafts:read,workflow_runs:execute,workflow_runs:read"
         "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_workflow_executor_probe"
+        "X-RadishMind-Active-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Permissions" = "workflow_drafts:read,workflow_runs:execute,workflow_runs:read"
         "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
         "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
     }
@@ -648,6 +725,9 @@ function Invoke-WorkflowRAGExecutionProbe {
         "X-RadishMind-Dev-Read-Subject" = $Subject
         "X-RadishMind-Dev-Read-Scopes" = "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read"
         "X-RadishMind-Dev-Read-Audit" = "audit_dev_live_workflow_rag_execution_probe"
+        "X-RadishMind-Active-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Workspace" = $WorkspaceId
+        "X-RadishMind-Dev-Read-Membership-Permissions" = "workflow_rag:execute,workflow_runs:execute,workflow_drafts:read,workflow_rag_snapshots:read"
         "X-RadishMind-Dev-Workflow-Workspace" = $WorkspaceId
         "X-RadishMind-Dev-Workflow-Application" = $ApplicationId
     }

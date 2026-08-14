@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type { WorkspaceApiKeysViewModel } from "./workspaceApiKeys.ts";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
@@ -14,21 +14,15 @@ const APIKeyLifecyclePanel = lazy(() =>
 );
 const ApplicationApiIntegrationPanel = lazy(() => import("./applicationApiIntegrationPanel.tsx"));
 const ApplicationConfigurationDraftPanel = lazy(() => import("./applicationConfigurationDraftPanel.tsx"));
+const ApplicationEvaluationCampaignPanel = lazy(() => import("./applicationEvaluationCampaignPanel.tsx"));
 const ApplicationInteractionSessionPanel = lazy(() => import("./applicationInteractionSessionPanel.tsx"));
 const ApplicationPublishCandidatePanel = lazy(() => import("./applicationPublishCandidatePanel.tsx"));
-const PromptApplicationTemplatePanel = lazy(() => import("./promptApplicationTemplatePanel.tsx"));
-const PromptApplicationInvocationPanel = lazy(() => import("./promptApplicationInvocationPanel.tsx"));
-const PromptApplicationSessionPanel = lazy(() => import("./promptApplicationSessionPanel.tsx"));
-const AgentCopilotProfilePanel = lazy(() => import("./agentCopilotProfilePanel.tsx"));
-const AgentCopilotRuntimePanel = lazy(() => import("./agentCopilotRuntimePanel.tsx"));
-const AgentCopilotSessionPanel = lazy(() => import("./agentCopilotSessionPanel.tsx"));
+const PromptAgentTypeWorkspace = lazy(() => import("./promptAgentTypeWorkspace.tsx"));
 const ApplicationRAGInvocationPanel = lazy(() => import("./workflowRAGApplicationRuntimePanel.tsx"));
-const ApplicationOperationsPanel = lazy(() => import("./applicationOperationsPanel.tsx"));
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("./workflowRAGEvaluationDatasetPanel.tsx"));
 const WorkflowDefinitionPromotionPanel = lazy(() => import("./workflowDefinitionPromotionPanel.tsx"));
 const WorkflowRAGPromotionPanel = lazy(() => import("./workflowRAGPromotionPanel.tsx"));
 const WorkflowRAGSnapshotPanel = lazy(() => import("./workflowRAGSnapshotPanel.tsx"));
-const WorkflowRunHistoryPanel = lazy(() => import("./workflowRunHistoryPanel.tsx"));
 
 type Props = {
   context: ApplicationDevelopmentWorkspaceContext;
@@ -37,9 +31,10 @@ type Props = {
   controls: ApplicationDevelopmentWorkspaceControls;
   offlineApiKeys: WorkspaceApiKeysViewModel;
   suggestedDefinitionId: string;
-  runHistoryRefreshKey: number;
   activeWorkflowDraft: WorkflowDraftDesignerDraft;
   savedDraftVersion: number;
+  savedDraftLifecycleVersion: number;
+  savedDraftLifecycleState: "active" | "archived" | "unknown";
   nextDerivedDraftNumber: number;
   onDerivedDraft: (draft: WorkflowDraftDesignerDraft) => void;
   onRunRecorded: () => void;
@@ -52,9 +47,10 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   controls,
   offlineApiKeys,
   suggestedDefinitionId,
-  runHistoryRefreshKey,
   activeWorkflowDraft,
   savedDraftVersion,
+  savedDraftLifecycleVersion,
+  savedDraftLifecycleState,
   nextDerivedDraftNumber,
   onDerivedDraft,
   onRunRecorded,
@@ -96,15 +92,23 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   const consumePromotionHandoff = useCallback((handoffId: string) => {
     controls.consumeHandoff("human_promotion", handoffId);
   }, [controls.consumeHandoff]);
-  const consumeEvidenceHandoff = useCallback((handoffId: string) => {
-    controls.consumeHandoff("evidence_review", handoffId);
+  const openConfigurationAttach = useCallback((candidateId: string) => {
+    controls.issueHandoff({
+      applicationId: context.applicationId,
+      sourceStage: "human_promotion",
+      refKind: "binding",
+      refId: candidateId,
+    });
+  }, [context.applicationId, controls.issueHandoff]);
+  const consumeConfigurationHandoff = useCallback((handoffId: string) => {
+    controls.consumeHandoff("configure_build", handoffId);
   }, [controls.consumeHandoff]);
-  const pendingRunHandoff = controls.pendingHandoff?.targetStage === "evidence_review" &&
-    controls.pendingHandoff.refKind === "run"
-    ? controls.pendingHandoff
-    : null;
   const pendingDraftHandoff = controls.pendingHandoff?.targetStage === "human_promotion" &&
     controls.pendingHandoff.refKind === "draft"
+    ? controls.pendingHandoff
+    : null;
+  const pendingBindingHandoff = controls.pendingHandoff?.targetStage === "configure_build" &&
+    controls.pendingHandoff.refKind === "binding"
     ? controls.pendingHandoff
     : null;
 
@@ -121,36 +125,39 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     );
   }
 
+  if (context.surfaceKind === "prompt_application" || context.surfaceKind === "agent_copilot") {
+    if (activeStage === "release_readiness") {
+      return (
+        <article className="application-development-stage-paused" role="status">
+          <p className="eyebrow">Release readiness boundary</p>
+          <h4>{controls.readiness.status}</h4>
+          <p>{controls.readiness.summary} The source cards below remain the only readiness projection.</p>
+        </article>
+      );
+    }
+    return (
+      <Suspense fallback={<StageFallback label="Prompt / Agent type workspace" />}>
+        <PromptAgentTypeWorkspace
+          context={context}
+          activeStage={activeStage}
+          baseline={baseline}
+          accessSurface={<ApplicationAccessWorkspace context={context} offlineApiKeys={offlineApiKeys} />}
+          handoffDraftId={pendingDraftHandoff?.refId}
+          handoffId={pendingDraftHandoff?.handoffId}
+          onHandoffConsumed={consumePromotionHandoff}
+          onEvidenceChange={reportOwnerEvidence}
+          onOpenPublishReview={openPublishReview}
+          onRunRecorded={handleRunRecorded}
+          onOpenRun={openRunEvidence}
+        />
+      </Suspense>
+    );
+  }
+
   return (
     <div className="application-development-stage-surfaces">
       {activeStage === "configure_build" ? (
         <StageSurface stage="configure_build" title="Configure and build">
-          {context.surfaceKind === "prompt_application" ? (
-            <Suspense fallback={<StageFallback label="Prompt Application template workspace" />}>
-              <PromptApplicationTemplatePanel
-                key={`${context.generationKey}:prompt-template`}
-                applicationId={context.applicationId}
-                applicationName={context.displayName}
-                applicationKind={context.applicationKind}
-                applicationActive={context.applicationActive}
-                onOpenPublishReview={openPublishReview}
-                onEvidenceChange={reportOwnerEvidence}
-              />
-            </Suspense>
-          ) : null}
-          {context.surfaceKind === "agent_copilot" ? (
-            <Suspense fallback={<StageFallback label="Agent Copilot Profile workspace" />}>
-              <AgentCopilotProfilePanel
-                key={`${context.generationKey}:agent-profile`}
-                applicationId={context.applicationId}
-                applicationName={context.displayName}
-                applicationKind={context.applicationKind}
-                applicationActive={context.applicationActive}
-                onOpenPublishReview={openPublishReview}
-                onEvidenceChange={reportOwnerEvidence}
-              />
-            </Suspense>
-          ) : null}
           {context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="application knowledge snapshots" />}>
               <WorkflowRAGSnapshotPanel
@@ -177,6 +184,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 key={`${context.generationKey}:configuration:${context.status}`}
                 readOnly={context.status === "archived"}
                 baseline={baseline}
+                handoffBindingCandidateId={pendingBindingHandoff?.refId}
+                handoffId={pendingBindingHandoff?.handoffId}
+                onHandoffConsumed={consumeConfigurationHandoff}
                 onEvidenceChange={reportOwnerEvidence}
                 onOpenPublishReview={openPublishReview}
               />
@@ -195,6 +205,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 applicationName={context.displayName}
                 applicationActive={context.applicationActive}
                 onEvidenceChange={reportOwnerEvidence}
+                onOpenConfigurationAttach={openConfigurationAttach}
               />
             </Suspense>
           ) : null}
@@ -219,17 +230,6 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           )}
-          {context.applicationActive && context.surfaceKind === "agent_copilot" ? (
-            <Suspense fallback={<StageFallback label="Agent Copilot runtime assignment" />}>
-              <AgentCopilotRuntimePanel
-                key={`${context.generationKey}:agent-runtime`}
-                applicationId={context.applicationId}
-                applicationName={context.displayName}
-                applicationActive={context.applicationActive}
-                onEvidenceChange={reportOwnerEvidence}
-              />
-            </Suspense>
-          ) : null}
           {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow Definition promotion" />}>
               <WorkflowDefinitionPromotionPanel
@@ -237,6 +237,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                 applicationId={context.applicationId}
                 activeDraft={activeWorkflowDraft}
                 savedDraftVersion={savedDraftVersion}
+                savedDraftLifecycleVersion={savedDraftLifecycleVersion}
+                savedDraftLifecycleState={savedDraftLifecycleState}
                 nextDerivedDraftNumber={nextDerivedDraftNumber}
                 onDerivedDraft={onDerivedDraft}
                 onRunRecorded={handleRunRecorded}
@@ -250,93 +252,68 @@ export default function ApplicationDevelopmentWorkspaceSurface({
 
       {activeStage === "controlled_test" ? (
         <StageSurface stage="controlled_test" title="Controlled test">
-          {context.applicationActive ? (
+          {context.status === "unavailable" ? (
+            <ControlledTestBlocked status={context.status} />
+          ) : (
             <>
-              <Suspense fallback={<StageFallback label="Application API Integration" />}>
-                <ApplicationApiIntegrationPanel
-                  key={`${context.generationKey}:api-integration`}
-                  applicationId={context.applicationId}
-                  applicationName={context.displayName}
-                />
-              </Suspense>
-              <Suspense fallback={<StageFallback label="API key lifecycle" />}>
-                <APIKeyLifecyclePanel
-                  key={`${context.generationKey}:api-key`}
-                  applicationId={context.applicationId}
-                  applicationName={context.displayName}
-                  applicationActive={context.applicationActive}
-                  offlineView={offlineApiKeys}
-                />
-              </Suspense>
-              {context.surfaceKind === "prompt_application" ? (
-                <Suspense fallback={<StageFallback label="Prompt Application Session v2" />}>
-                  <PromptApplicationSessionPanel
-                    key={`${context.generationKey}:prompt-session`}
-                    applicationId={context.applicationId}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                  />
-                </Suspense>
-              ) : context.surfaceKind === "workflow_rag" ? (
-                <Suspense fallback={<StageFallback label="Application Interaction" />}>
-                  <ApplicationInteractionSessionPanel
-                    key={`${context.generationKey}:interaction`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    applicationActive={context.applicationActive}
-                    suggestedDefinitionId={suggestedDefinitionId}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
-              ) : null}
-              {context.surfaceKind === "agent_copilot" ? (
-                <Suspense fallback={<StageFallback label="Agent Copilot Session v3" />}>
-                  <AgentCopilotSessionPanel
-                    key={`${context.generationKey}:agent-session`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
-              ) : null}
-              {context.surfaceKind === "prompt_application" ? (
-                <Suspense fallback={<StageFallback label="Prompt Application controlled invocation" />}>
-                  <PromptApplicationInvocationPanel
-                    key={`${context.generationKey}:prompt-invocation`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
-              ) : null}
-              {context.surfaceKind === "workflow_rag" ? (
-                <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
-                  <ApplicationRAGInvocationPanel
-                    key={`${context.generationKey}:rag-invocation`}
-                    applicationId={context.applicationId}
-                    applicationName={context.displayName}
-                    applicationActive={context.applicationActive}
-                    onRunRecorded={handleRunRecorded}
-                    onOpenRun={openRunEvidence}
-                    onEvidenceChange={reportOwnerEvidence}
-                  />
-                </Suspense>
+              <ApplicationAccessWorkspace
+                context={context}
+                offlineApiKeys={offlineApiKeys}
+              />
+              {context.applicationActive ? (
+                <details className="application-access-related-surfaces">
+                  <summary>
+                    <span><strong>Application-specific controlled tests</strong><small>Existing owner surfaces</small></span>
+                    <span aria-hidden="true">⌄</span>
+                  </summary>
+                  <div>
+                    {context.surfaceKind === "workflow_rag" ? (
+                      <Suspense fallback={<StageFallback label="Application Interaction" />}>
+                        <ApplicationInteractionSessionPanel
+                          key={`${context.generationKey}:interaction`}
+                          applicationId={context.applicationId}
+                          applicationName={context.displayName}
+                          applicationActive={context.applicationActive}
+                          suggestedDefinitionId={suggestedDefinitionId}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                          onEvidenceChange={reportOwnerEvidence}
+                        />
+                      </Suspense>
+                    ) : null}
+                    {context.surfaceKind === "workflow_rag" ? (
+                      <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
+                        <ApplicationRAGInvocationPanel
+                          key={`${context.generationKey}:rag-invocation`}
+                          applicationId={context.applicationId}
+                          applicationName={context.displayName}
+                          applicationActive={context.applicationActive}
+                          onRunRecorded={handleRunRecorded}
+                          onOpenRun={openRunEvidence}
+                          onEvidenceChange={reportOwnerEvidence}
+                        />
+                      </Suspense>
+                    ) : null}
+                  </div>
+                </details>
               ) : null}
             </>
-          ) : (
-            <ControlledTestBlocked status={context.status} />
           )}
         </StageSurface>
       ) : null}
 
       {activeStage === "evidence_review" ? (
         <StageSurface stage="evidence_review" title="Run and evaluation review">
+          <Suspense fallback={<StageFallback label="Application Evaluation Campaign" />}>
+            <ApplicationEvaluationCampaignPanel
+              key={`${context.generationKey}:application-evaluation`}
+              applicationId={context.applicationId}
+              applicationName={context.displayName}
+              applicationKind={context.applicationKind}
+              workspaceId={context.workspaceId}
+              applicationActive={context.applicationActive}
+            />
+          </Suspense>
           {context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow RAG evaluation datasets" />}>
               <WorkflowRAGEvaluationDatasetPanel
@@ -348,24 +325,11 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           ) : null}
-          <Suspense fallback={<StageFallback label="application operations" />}>
-            <ApplicationOperationsPanel
-              key={`${context.generationKey}:operations`}
-              applicationId={context.applicationId}
-              applicationName={context.displayName}
-              onEvidenceChange={reportOwnerEvidence}
-            />
-          </Suspense>
-          <Suspense fallback={<StageFallback label="run history" />}>
-            <WorkflowRunHistoryPanel
-              key={`${context.generationKey}:run-history`}
-              applicationId={context.applicationId}
-              refreshKey={runHistoryRefreshKey}
-              handoffRunId={pendingRunHandoff?.refId}
-              handoffId={pendingRunHandoff?.handoffId}
-              onHandoffConsumed={consumeEvidenceHandoff}
-            />
-          </Suspense>
+          <article className="application-development-stage-paused">
+            <p className="eyebrow">Workflow review path</p>
+            <h4>Run and evaluation owners are task-scoped</h4>
+            <p>Use Runs, Compare, Cases, or Release below. Only the selected owner is mounted.</p>
+          </article>
         </StageSurface>
       ) : null}
 
@@ -378,6 +342,121 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       ) : null}
     </div>
   );
+}
+
+type ApplicationAccessSurface = "integration" | "credentials";
+
+function ApplicationAccessWorkspace({
+  context,
+  offlineApiKeys,
+}: {
+  context: ApplicationDevelopmentWorkspaceContext;
+  offlineApiKeys: WorkspaceApiKeysViewModel;
+}) {
+  const [activeSurface, setActiveSurface] = useState<ApplicationAccessSurface>(() => (
+    accessSurfaceForHash(window.location.hash, context.applicationActive)
+  ));
+
+  useEffect(() => {
+    function synchronizeSurface() {
+      const activeHash = window.location.hash.trim();
+      setActiveSurface(accessSurfaceForHash(activeHash, context.applicationActive));
+      if (activeHash === "#application-api-integration" || activeHash === "#workspace-api-keys") {
+        window.requestAnimationFrame(() => {
+          document.querySelector<HTMLElement>(".application-access-workspace")?.scrollIntoView({ block: "start" });
+        });
+      }
+    }
+    synchronizeSurface();
+    window.addEventListener("hashchange", synchronizeSurface);
+    return () => window.removeEventListener("hashchange", synchronizeSurface);
+  }, [context.applicationActive]);
+
+  return (
+    <section
+      className="application-access-workspace"
+      aria-labelledby="application-access-workspace-title"
+      data-active-surface={activeSurface}
+      data-application-active={String(context.applicationActive)}
+    >
+      <header className="application-access-heading">
+        <div>
+          <p className="eyebrow">S4 · Application access</p>
+          <h3 id="application-access-workspace-title">API Integration &amp; Keys</h3>
+          <p>Choose one access task, keep credentials scoped to this application, then validate through an existing controlled surface.</p>
+        </div>
+        <div className="application-access-boundaries" aria-label="Application access boundaries">
+          <span className="status-badge neutral">dev / test</span>
+          <span className={`status-badge ${context.applicationActive ? "good" : "neutral"}`}>
+            {context.applicationActive ? "active application" : "archived · read / revoke"}
+          </span>
+        </div>
+      </header>
+
+      <div className="application-access-workbench">
+        <aside className="application-access-rail" aria-label="Application access tasks">
+          <p>Access path</p>
+          <nav>
+            {context.applicationActive ? (
+              <a href="#application-api-integration" aria-current={activeSurface === "integration" ? "step" : undefined}>
+                <b>01</b><span><strong>Connect API</strong><small>Model, protocol, example</small></span>
+              </a>
+            ) : (
+              <span className="is-disabled"><b>01</b><span><strong>Connect API</strong><small>Blocked for archived application</small></span></span>
+            )}
+            <a href="#workspace-api-keys" aria-current={activeSurface === "credentials" ? "step" : undefined}>
+              <b>02</b><span><strong>Credentials</strong><small>Issue, inspect, revoke</small></span>
+            </a>
+            {context.applicationActive ? (
+              <a href="#model-gateway-playground">
+                <b>03</b><span><strong>Validate</strong><small>Existing Playground</small></span>
+              </a>
+            ) : (
+              <span className="is-disabled"><b>03</b><span><strong>Validate</strong><small>Invocation blocked</small></span></span>
+            )}
+            <span><b>04</b><span><strong>Verify / retire</strong><small>Exact Gateway evidence</small></span></span>
+          </nav>
+          <p className="boundary-note">The path shows task position only. It does not assert production readiness or automatic completion.</p>
+        </aside>
+
+        <main className="application-access-main">
+          {!context.applicationActive ? (
+            <div className="application-access-archived-boundary" role="status">
+              <strong>Archived application boundary</strong>
+              <span>Sanitized Key metadata remains readable and revocable. Issue, rotation, model loading, and invocation stay blocked.</span>
+            </div>
+          ) : null}
+          <div className="application-access-owner" hidden={activeSurface !== "integration"}>
+            <Suspense fallback={<StageFallback label="Application API Integration" />}>
+              <ApplicationApiIntegrationPanel
+                key={`${context.generationKey}:api-integration`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                workspaceId={context.workspaceId}
+              />
+            </Suspense>
+          </div>
+          <div className="application-access-owner" hidden={activeSurface !== "credentials"}>
+            <Suspense fallback={<StageFallback label="API key lifecycle" />}>
+              <APIKeyLifecyclePanel
+                key={`${context.generationKey}:api-key`}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                applicationActive={context.applicationActive}
+                workspaceId={context.workspaceId}
+                offlineView={offlineApiKeys}
+              />
+            </Suspense>
+          </div>
+        </main>
+      </div>
+    </section>
+  );
+}
+
+function accessSurfaceForHash(hash: string, applicationActive: boolean): ApplicationAccessSurface {
+  if (!applicationActive) return "credentials";
+  return hash.trim() === "#workspace-api-keys" ? "credentials" : "integration";
 }
 
 function StageSurface({ stage, title, children }: { stage: string; title: string; children: ReactNode }) {

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-run-comparison-v7.schema.json",
+  "title": "Workflow Run Comparison v7",
+  "description": "Read-only comparison of two terminal WorkflowRunRecordV8 records from the same definition lineage and immutable input contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_profile", "classification", "comparison_state", "baseline", "candidate", "draft_changed", "execution_source_changed", "provider_changed", "model_changed", "status_changed", "failure_changed", "duration_delta_ms", "provider_call_delta", "nodes", "findings", "recommended_review_action"],
+  "properties": {
+    "schema_version": {"const": "workflow_run_comparison.v7"},
+    "run_profile": {"const": "workflow_definition_executor.v2"},
+    "classification": {"enum": ["regression", "improvement", "changed", "unchanged", "inconclusive"]},
+    "comparison_state": {"enum": ["comparable", "legacy_partial"]},
+    "baseline": {"$ref": "#/$defs/run"},
+    "candidate": {"$ref": "#/$defs/run"},
+    "draft_changed": {"type": "boolean"},
+    "execution_source_changed": {"type": "boolean"},
+    "provider_changed": {"type": "boolean"},
+    "model_changed": {"type": "boolean"},
+    "status_changed": {"type": "boolean"},
+    "failure_changed": {"type": "boolean"},
+    "authority_changed": {"type": "boolean"},
+    "variable_contract_changed": {"type": "boolean"},
+    "protocol_changed": {"type": "boolean"},
+    "duration_delta_ms": {"type": "integer"},
+    "provider_call_delta": {"type": "integer", "minimum": -4, "maximum": 4},
+    "nodes": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/node"}},
+    "findings": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/finding"}},
+    "recommended_review_action": {"type": "string", "maxLength": 64}
+  },
+  "$defs": {
+    "ref": {"type": "string", "minLength": 1, "maxLength": 240, "not": {"pattern": "[\\r\\n]"}},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "schema_version", "draft_id", "draft_version", "execution_kind", "execution_source_kind", "execution_source_id", "execution_source_version", "execution_profile", "input_contract_id", "input_contract_digest", "definition_digest", "authority_digest", "status", "failure_code", "failure_boundary", "gateway_failure_category", "selected_provider", "selected_profile", "selected_model", "duration_ms", "stale_running", "request_id", "audit_ref", "side_effects"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/ref"},
+        "schema_version": {"const": "workflow_run_record.v8"},
+        "draft_id": {"const": ""},
+        "draft_version": {"const": 0},
+        "execution_kind": {"const": "workflow_definition_execution"},
+        "execution_source_kind": {"const": "workflow_definition"},
+        "execution_source_id": {"$ref": "#/$defs/ref"},
+        "execution_source_version": {"type": "integer", "minimum": 1},
+        "execution_profile": {"const": "workflow_definition_executor_v2"},
+        "input_contract_id": {"$ref": "#/$defs/ref"},
+        "input_contract_digest": {"$ref": "#/$defs/digest"},
+        "definition_digest": {"$ref": "#/$defs/digest"},
+        "authority_digest": {"$ref": "#/$defs/digest"},
+        "profile_digest": {"$ref": "#/$defs/digest"},
+        "policy_digest": {"$ref": "#/$defs/digest"},
+        "allowed_tasks_digest": {"$ref": "#/$defs/digest"},
+        "project": {"type": "string", "maxLength": 160},
+        "task": {"type": "string", "maxLength": 160},
+        "locale": {"type": "string", "maxLength": 32},
+        "response_status": {"type": "string", "maxLength": 80},
+        "response_digest": {"$ref": "#/$defs/digest"},
+        "action_count": {"type": "integer", "minimum": 0},
+        "risk_level": {"type": "string", "maxLength": 80},
+        "requires_confirmation": {"type": "boolean"},
+        "variable_names_digest": {"$ref": "#/$defs/digest"},
+        "requested_protocol": {"type": "string", "maxLength": 80},
+        "selected_protocol": {"type": "string", "maxLength": 80},
+        "usage_state": {"type": "string", "maxLength": 80},
+        "input_tokens": {"type": "integer", "minimum": 0},
+        "output_tokens": {"type": "integer", "minimum": 0},
+        "total_tokens": {"type": "integer", "minimum": 0},
+        "status": {"enum": ["succeeded", "failed", "canceled"]},
+        "failure_code": {"type": "string", "maxLength": 120},
+        "failure_boundary": {"type": "string", "maxLength": 64},
+        "gateway_failure_category": {"type": "string", "maxLength": 64},
+        "selected_provider": {"type": "string", "maxLength": 256},
+        "selected_profile": {"type": "string", "maxLength": 256},
+        "selected_model": {"type": "string", "maxLength": 256},
+        "duration_ms": {"type": "integer", "minimum": 0},
+        "stale_running": {"const": false},
+        "request_id": {"$ref": "#/$defs/ref"},
+        "audit_ref": {"$ref": "#/$defs/ref"},
+        "side_effects": {"$ref": "#/$defs/effects"}
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_calls", "tool_calls", "confirmation_calls", "business_writes", "replay_writes"],
+      "properties": {
+        "retrieval_calls": {"const": 0},
+        "provider_calls": {"type": "integer", "minimum": 0, "maximum": 4},
+        "tool_calls": {"const": 0},
+        "confirmation_calls": {"const": 0},
+        "business_writes": {"const": 0},
+        "replay_writes": {"const": 0}
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "node_type", "change", "baseline_status", "candidate_status", "baseline_duration_ms", "candidate_duration_ms", "duration_delta_ms"],
+      "properties": {
+        "node_id": {"$ref": "#/$defs/ref"},
+        "node_type": {"enum": ["prompt", "llm", "condition", "output"]},
+        "change": {"enum": ["added", "removed", "changed", "unchanged"]},
+        "baseline_status": {"enum": ["", "pending", "running", "succeeded", "skipped", "failed"]},
+        "candidate_status": {"enum": ["", "pending", "running", "succeeded", "skipped", "failed"]},
+        "baseline_duration_ms": {"type": "integer", "minimum": 0},
+        "candidate_duration_ms": {"type": "integer", "minimum": 0},
+        "duration_delta_ms": {"type": "integer"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1, "maxLength": 120},
+        "severity": {"type": "string", "minLength": 1, "maxLength": 80}
+      }
+    }
+  }
+}

@@ -51,6 +51,8 @@ type WorkflowRunSummary struct {
 	ExecutionSourceID        string                            `json:"execution_source_id,omitempty"`
 	ExecutionSourceVersion   int                               `json:"execution_source_version,omitempty"`
 	ExecutionProfile         string                            `json:"execution_profile,omitempty"`
+	InputContractID          string                            `json:"input_contract_id,omitempty"`
+	InputContractDigest      string                            `json:"input_contract_digest,omitempty"`
 	DefinitionDigest         string                            `json:"definition_digest,omitempty"`
 	ActivationPointerVersion int                               `json:"activation_pointer_version,omitempty"`
 	SourceDraftID            string                            `json:"source_draft_id,omitempty"`
@@ -359,6 +361,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		StartedAt: record.StartedAt, CompletedAt: record.CompletedAt, DurationMS: duration,
 		SelectedProvider: record.SelectedProvider, SelectedProfile: record.SelectedProfile,
 		SelectedModel: record.SelectedModel, RequestID: record.RequestID, AuditRef: record.AuditRef,
+		InputContractID: record.InputContractID, InputContractDigest: record.InputContractDigest,
 		SideEffects:  record.SideEffects,
 		StaleRunning: record.Status == WorkflowRunStatusRunning && now.Sub(startedAt) > workflowExecutorDefaultMaxRuntime,
 	}

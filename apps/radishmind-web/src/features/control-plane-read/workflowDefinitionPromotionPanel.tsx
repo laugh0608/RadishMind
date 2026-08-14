@@ -7,6 +7,7 @@ import {
   decideWorkflowDefinitionActivation,
   decideWorkflowDefinitionCandidate,
   deriveWorkflowDraftFromDefinitionVersion,
+  evaluateWorkflowDefinitionCandidateCompatibility,
   listWorkflowDefinitionCandidates,
   listWorkflowDefinitionVersions,
   readWorkflowDefinitionActivation,
@@ -17,6 +18,13 @@ import {
   type WorkflowDefinitionVersion,
 } from "./workflowDefinitionPromotionConsumer.ts";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import StructuredRuntimeInputEditor from "./StructuredRuntimeInputEditor.tsx";
+import {
+  structuredRuntimeInputAuthorityKey,
+  validateStructuredRuntimeInputDrafts,
+  type StructuredRuntimeInputContract,
+  type StructuredRuntimeInputDrafts,
+} from "./structuredRuntimeInput.ts";
 
 const config = readWorkflowDefinitionPromotionConfig();
 
@@ -24,6 +32,8 @@ type Props = {
   applicationId: string;
   activeDraft: WorkflowDraftDesignerDraft;
   savedDraftVersion: number;
+  savedDraftLifecycleVersion: number;
+  savedDraftLifecycleState: "active" | "archived" | "unknown";
   nextDerivedDraftNumber: number;
   onDerivedDraft: (draft: WorkflowDraftDesignerDraft) => void;
   onRunRecorded: (runId: string) => void;
@@ -31,7 +41,7 @@ type Props = {
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 };
 
-export default function WorkflowDefinitionPromotionPanel({ applicationId, activeDraft, savedDraftVersion, nextDerivedDraftNumber, onDerivedDraft, onRunRecorded, onOpenRun, onEvidenceChange }: Props) {
+export default function WorkflowDefinitionPromotionPanel({ applicationId, activeDraft, savedDraftVersion, savedDraftLifecycleVersion, savedDraftLifecycleState, nextDerivedDraftNumber, onDerivedDraft, onRunRecorded, onOpenRun, onEvidenceChange }: Props) {
   const requestEpoch = useRef(0);
   const [candidates, setCandidates] = useState<WorkflowDefinitionCandidate[]>([]);
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
@@ -45,6 +55,8 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   const [selectedVersion, setSelectedVersion] = useState(1);
   const [reason, setReason] = useState("Reviewed immutable workflow definition evidence.");
   const [inputText, setInputText] = useState("Generate a bounded advisory response from the exact active workflow definition.");
+  const [structuredInputDrafts, setStructuredInputDrafts] = useState<StructuredRuntimeInputDrafts>({});
+  const [structuredInputErrors, setStructuredInputErrors] = useState<Record<string, string>>({});
   const [model, setModel] = useState("");
   const [conditionValues, setConditionValues] = useState<Record<string, boolean>>({});
   const [advisoryOutput, setAdvisoryOutput] = useState("");
@@ -52,11 +64,22 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   const [pending, setPending] = useState("");
   const [notice, setNotice] = useState("");
   const [failure, setFailure] = useState("");
+  const candidateCompatibility = useMemo(
+    () => evaluateWorkflowDefinitionCandidateCompatibility(activeDraft),
+    [activeDraft],
+  );
+  const canCreateCandidate = candidateCompatibility.compatible
+    && savedDraftVersion > 0
+    && savedDraftLifecycleVersion > 0
+    && savedDraftLifecycleState === "active";
 
   const activeVersion = useMemo(
     () => versions.find((version) => activation?.state === "active" && version.version === activation.activeVersion) ?? null,
     [activation, versions],
   );
+  const structuredInputContract = activeVersion?.snapshot.executionProfile === "workflow_definition_executor_v2"
+    ? activeVersion.snapshot.inputContract as StructuredRuntimeInputContract
+    : null;
 
   useEffect(() => {
     if (!onEvidenceChange) return;
@@ -115,6 +138,8 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   useEffect(() => {
     setCandidateId(defaultCandidateId(activeDraft.draftId, savedDraftVersion));
     setDefinitionId(activeDraft.workflowDefinitionId || defaultDefinitionId(activeDraft.draftId));
+    setFailure("");
+    setNotice("");
   }, [activeDraft.draftId, activeDraft.workflowDefinitionId, savedDraftVersion]);
 
   useEffect(() => {
@@ -146,6 +171,13 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
     ));
   }, [activeVersion?.definitionId, activeVersion?.version]);
 
+  useEffect(() => {
+    setStructuredInputDrafts({});
+    setStructuredInputErrors({});
+    setAdvisoryOutput("");
+    setLastRunId("");
+  }, [activeVersion?.definitionId, activeVersion?.version, structuredInputContract ? structuredRuntimeInputAuthorityKey(structuredInputContract) : "legacy"]);
+
   async function refresh(definition = selectedCandidate?.definitionId ?? "") {
     const nextCandidates = await listWorkflowDefinitionCandidates(config, applicationId);
     setCandidates(nextCandidates);
@@ -156,12 +188,16 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
   }
 
   async function createCandidate() {
-    if (savedDraftVersion < 1) {
-      setFailure("必须先保存并校验当前草案，才能创建晋级候选。");
+    if (!candidateCompatibility.compatible) {
+      setFailure(candidateCompatibility.summary);
+      return;
+    }
+    if (savedDraftVersion < 1 || savedDraftLifecycleVersion < 1 || savedDraftLifecycleState !== "active") {
+      setFailure("必须先重新读取活动草案的精确内容版本和生命周期版本，才能创建晋级候选。");
       return;
     }
     await runOperation("create", async () => {
-      const created = await createWorkflowDefinitionCandidate(config, applicationId, { candidateId, definitionId, draftId: activeDraft.draftId, expectedDraftVersion: savedDraftVersion });
+      const created = await createWorkflowDefinitionCandidate(config, applicationId, { candidateId, definitionId, draftId: activeDraft.draftId, expectedDraftVersion: savedDraftVersion, expectedLifecycleVersion: savedDraftLifecycleVersion });
       await refresh(created.definitionId);
       setSelectedCandidateId(created.candidateId);
       setNotice(`候选 ${created.candidateId} 已从精确草案 v${created.sourceDraftVersion} 创建。`);
@@ -188,14 +224,33 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
 
   async function startRun() {
     if (!activeVersion || !activation || activation.state !== "active") return;
+    const structuredValidation = structuredInputContract
+      ? validateStructuredRuntimeInputDrafts(structuredInputContract, structuredInputDrafts)
+      : null;
+    if (structuredValidation && !structuredValidation.ok) {
+      setStructuredInputErrors(structuredValidation.fieldErrors);
+      setFailure(`${structuredValidation.failureCode}：${structuredValidation.summary}`);
+      return;
+    }
+    if (structuredInputContract) {
+      setStructuredInputDrafts({});
+      setStructuredInputErrors({});
+    }
+    setAdvisoryOutput("");
+    setLastRunId("");
     const epoch = requestEpoch.current;
     await runOperation("run", async () => {
-      const result = await startWorkflowDefinitionRun(config, applicationId, { definitionId: activeVersion.definitionId, expectedPointerVersion: activation.pointerVersion, expectedDefinitionVersion: activeVersion.version, expectedDefinitionDigest: activeVersion.definitionDigest, inputText, conditionValues, model });
+      const authority = { definitionId: activeVersion.definitionId, expectedPointerVersion: activation.pointerVersion, expectedDefinitionVersion: activeVersion.version, expectedDefinitionDigest: activeVersion.definitionDigest, conditionValues, model };
+      const result = activeVersion.snapshot.executionProfile === "workflow_definition_executor_v2"
+        ? await startWorkflowDefinitionRun(config, applicationId, { ...authority, executionProfile: "workflow_definition_executor_v2", inputs: structuredValidation!.inputs })
+        : await startWorkflowDefinitionRun(config, applicationId, { ...authority, executionProfile: "workflow_definition_executor_v1", inputText });
       if (requestEpoch.current !== epoch) return;
       setLastRunId(result.record.runId);
       setAdvisoryOutput(result.advisoryOutput);
-      setInputText("");
-      setNotice(`v5 运行 ${result.record.runId} 已完成；输入已从页面状态清除。`);
+      if (activeVersion.snapshot.executionProfile === "workflow_definition_executor_v1") {
+        setInputText("");
+      }
+      setNotice(`${result.record.schemaVersion} 运行 ${result.record.runId} 已完成；输入值已从页面状态清除。`);
       onRunRecorded(result.record.runId);
     });
   }
@@ -223,7 +278,7 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
 
   return <section className="workflow-definition-promotion-panel" id="workflow-definition-promotion" aria-labelledby="workflow-definition-promotion-title">
     <div className="section-heading compact-heading"><div><p className="eyebrow">Workflow Definition · Controlled runtime</p><h4 id="workflow-definition-promotion-title">不可变版本晋级与精确运行</h4></div><span className={`status-badge ${activation?.state === "active" ? "status-good" : "status-neutral"}`}>{activation?.state ?? "inactive"}</span></div>
-    <p className="boundary-note">Saved Draft 保持可编辑；candidate、version、activation 与 v5 run 各自保存精确证据。批准不自动激活，激活不自动执行。</p>
+    <p className="boundary-note">Saved Draft 保持可编辑；candidate、version、activation 与 v5 / v8 run 各自保存精确证据。批准不自动激活，激活不自动执行。</p>
     {failure ? <p className="workflow-definition-failure" role="alert">{failure}</p> : null}
     {notice ? <p className="workflow-definition-notice" aria-live="polite">{notice}</p> : null}
     <div className="workflow-definition-promotion-grid">
@@ -231,8 +286,9 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
         <p className="eyebrow">1 · Candidate</p><h5>从已保存草案创建候选</h5>
         <label>Candidate ID<input value={candidateId} onChange={(event) => setCandidateId(event.currentTarget.value)} /></label>
         <label>Definition ID<input value={definitionId} onChange={(event) => setDefinitionId(event.currentTarget.value)} /></label>
-        <dl><div><dt>Draft</dt><dd>{activeDraft.draftId} · v{savedDraftVersion}</dd></div><div><dt>Provenance</dt><dd>{activeDraft.workflowDefinitionId || "new lineage"} · base v{activeDraft.baseDefinitionVersion ?? 0}</dd></div></dl>
-        <button type="button" disabled={Boolean(pending) || savedDraftVersion < 1} onClick={() => void createCandidate()}>创建晋级候选</button>
+        <dl><div><dt>Draft</dt><dd>{activeDraft.draftId} · v{savedDraftVersion} · lifecycle v{savedDraftLifecycleVersion} · {savedDraftLifecycleState}</dd></div><div><dt>Provenance</dt><dd>{activeDraft.workflowDefinitionId || "new lineage"} · base v{activeDraft.baseDefinitionVersion ?? 0}</dd></div></dl>
+        {!candidateCompatibility.compatible ? <div className="workflow-definition-candidate-handoff"><strong>当前草案不能进入 Definition candidate</strong><p>{candidateCompatibility.summary}</p>{candidateCompatibility.handoffAnchor ? <a href={`#${candidateCompatibility.handoffAnchor}`}>转到 Workflow RAG Promotion</a> : null}</div> : null}
+        <button type="button" disabled={Boolean(pending) || !canCreateCandidate} onClick={() => void createCandidate()}>创建晋级候选</button>
         <div className="workflow-definition-list">{candidates.map((candidate) => <button type="button" className={candidate.candidateId === selectedCandidate?.candidateId ? "selected" : ""} key={candidate.candidateId} onClick={() => setSelectedCandidateId(candidate.candidateId)}><strong>{candidate.candidateId}</strong><span>{candidate.state} · review v{candidate.reviewVersion}</span></button>)}</div>
       </article>
       <article>
@@ -250,15 +306,16 @@ export default function WorkflowDefinitionPromotionPanel({ applicationId, active
         <label>Decision<select value={activationDecision} onChange={(event) => setActivationDecision(event.currentTarget.value as "activate" | "replace" | "deactivate")}><option value="activate">Activate</option><option value="replace">Replace</option><option value="deactivate">Deactivate</option></select></label>
         <button type="button" disabled={Boolean(pending) || !selectedCandidate || versions.length === 0} onClick={() => void decideActivation()}>{activationDecision} · expected pointer v{activation?.pointerVersion ?? 0}</button>
         <p>Current: {activation?.state ?? "inactive"} · active v{activation?.activeVersion ?? 0} · pointer v{activation?.pointerVersion ?? 0}</p>
-        {versions.find((version) => version.version === selectedVersion) ? <button type="button" disabled={Boolean(pending)} onClick={() => onDerivedDraft(deriveWorkflowDraftFromDefinitionVersion(versions.find((version) => version.version === selectedVersion)!, applicationId, nextDerivedDraftNumber))}>从 v{selectedVersion} 派生新草案</button> : null}
+        {versions.find((version) => version.version === selectedVersion)?.snapshot.schemaVersion === "saved_workflow_draft.v1" ? <button type="button" disabled={Boolean(pending)} onClick={() => onDerivedDraft(deriveWorkflowDraftFromDefinitionVersion(versions.find((version) => version.version === selectedVersion)!, applicationId, nextDerivedDraftNumber))}>从 v{selectedVersion} 派生新草案</button> : null}
+        {versions.find((version) => version.version === selectedVersion)?.snapshot.schemaVersion === "saved_workflow_draft.v2" ? <p className="boundary-note">Definition v2 的结构化合同保持不可变；编辑需回到支持 v2 的合同设计入口。</p> : null}
       </article>
       <article>
         <p className="eyebrow">4 · Definition-bound run</p><h5>仅从 exact active version 运行</h5>
-        <dl><div><dt>Profile</dt><dd>workflow_definition_executor_v1</dd></div><div><dt>Authority</dt><dd>{activeVersion ? `${activeVersion.definitionId} · v${activeVersion.version}` : "no active authority"}</dd></div></dl>
-        <label>一次性输入<textarea value={inputText} onChange={(event) => setInputText(event.currentTarget.value)} /></label>
+        <dl><div><dt>Profile</dt><dd>{activeVersion?.snapshot.executionProfile ?? "no active profile"}</dd></div><div><dt>Authority</dt><dd>{activeVersion ? `${activeVersion.definitionId} · v${activeVersion.version}` : "no active authority"}</dd></div></dl>
+        {structuredInputContract ? <StructuredRuntimeInputEditor contract={structuredInputContract} drafts={structuredInputDrafts} fieldErrors={structuredInputErrors} disabled={Boolean(pending)} onChange={(drafts) => { setStructuredInputDrafts(drafts); setStructuredInputErrors({}); }} /> : <label>一次性输入<textarea value={inputText} onChange={(event) => setInputText(event.currentTarget.value)} /></label>}
         {activeVersion?.snapshot.nodes.filter((node) => node.nodeType === "condition").map((node) => <label className="workflow-definition-condition" key={node.nodeId}><input type="checkbox" checked={conditionValues[node.nodeId] ?? false} onChange={(event) => setConditionValues((values) => ({ ...values, [node.nodeId]: event.currentTarget.checked }))} />{node.label} · {node.nodeId}</label>)}
         <label>Model（可留空）<input value={model} onChange={(event) => setModel(event.currentTarget.value)} /></label>
-        <button type="button" disabled={Boolean(pending) || !activeVersion || !inputText.trim()} onClick={() => void startRun()}>启动精确版本运行</button>
+        <button type="button" disabled={Boolean(pending) || !activeVersion || (!structuredInputContract && !inputText.trim())} onClick={() => void startRun()}>启动精确版本运行</button>
         {lastRunId ? <div className="workflow-definition-run-result"><strong>{lastRunId}</strong><p>{advisoryOutput || "运行已完成；无可展示 advisory output。"}</p><button type="button" onClick={() => onOpenRun?.(lastRunId)}>打开 Run History</button><button type="button" onClick={() => { setAdvisoryOutput(""); setLastRunId(""); }}>清除一次性结果</button></div> : null}
       </article>
     </div>

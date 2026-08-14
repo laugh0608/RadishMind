@@ -67,13 +67,19 @@ func (server *Server) handleCreateWorkflowRAGSnapshot(writer http.ResponseWriter
 	if !server.allowWorkflowRAGSnapshotDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_rag_snapshots:write")
+	ctx := workflowRAGSnapshotMutationContext(request, trace, auth, "", "create")
+	if failure != "" {
+		writeWorkflowRAGSnapshotResultWithStatus(writer, status, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: failure})
+		return
+	}
 	var body workflowRAGSnapshotCreateBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: workflowRAGSnapshotMaxBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGSnapshotContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "create", "workflow_rag_snapshots:write")
-	if failure != "" {
-		writeWorkflowRAGSnapshotResult(writer, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: failure})
+	ctx = workflowRAGSnapshotMutationContext(request, trace, auth, body.ApplicationID, "create")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGSnapshotResultWithStatus(writer, http.StatusForbidden, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	result := server.workflowRAGSnapshotService().Create(ctx, WorkflowRAGSnapshotCreateInput{
@@ -147,13 +153,19 @@ func (server *Server) handleVersionWorkflowRAGSnapshot(writer http.ResponseWrite
 	if !server.allowWorkflowRAGSnapshotDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_rag_snapshots:write")
+	ctx := workflowRAGSnapshotMutationContext(request, trace, auth, "", "version")
+	if failure != "" {
+		writeWorkflowRAGSnapshotResultWithStatus(writer, status, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: failure})
+		return
+	}
 	var body workflowRAGSnapshotVersionBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: workflowRAGSnapshotMaxBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGSnapshotContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "version", "workflow_rag_snapshots:write")
-	if failure != "" {
-		writeWorkflowRAGSnapshotResult(writer, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: failure})
+	ctx = workflowRAGSnapshotMutationContext(request, trace, auth, body.ApplicationID, "version")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGSnapshotResultWithStatus(writer, http.StatusForbidden, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	result := server.workflowRAGSnapshotService().Version(ctx, request.PathValue("snapshot_id"), WorkflowRAGSnapshotVersionInput{
@@ -168,13 +180,19 @@ func (server *Server) handleArchiveWorkflowRAGSnapshot(writer http.ResponseWrite
 	if !server.allowWorkflowRAGSnapshotDev(writer, trace) {
 		return
 	}
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, "workflow_rag_snapshots:archive")
+	ctx := workflowRAGSnapshotMutationContext(request, trace, auth, "", "archive")
+	if failure != "" {
+		writeWorkflowRAGSnapshotResultWithStatus(writer, status, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: failure})
+		return
+	}
 	var body workflowRAGSnapshotArchiveBody
 	if !server.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
 		return
 	}
-	ctx, failure := workflowRAGSnapshotContextFromRequest(request, trace, body.WorkspaceID, body.ApplicationID, "archive", "workflow_rag_snapshots:archive")
-	if failure != "" {
-		writeWorkflowRAGSnapshotResult(writer, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: failure})
+	ctx = workflowRAGSnapshotMutationContext(request, trace, auth, body.ApplicationID, "archive")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowRAGSnapshotResultWithStatus(writer, http.StatusForbidden, trace, ctx, WorkflowRAGSnapshotResult{FailureCode: "workspace_binding_mismatch"})
 		return
 	}
 	writeWorkflowRAGSnapshotResult(writer, trace, ctx, server.workflowRAGSnapshotService().Archive(ctx, request.PathValue("snapshot_id"), body.ExpectedLatestVersion))
@@ -191,6 +209,15 @@ func workflowRAGSnapshotContextFromRequest(request *http.Request, trace requestT
 		return ctx, WorkflowRAGFailureScopeDenied
 	}
 	return ctx, ""
+}
+
+func workflowRAGSnapshotMutationContext(request *http.Request, trace requestTrace, auth controlPlaneReadAuthContext, applicationID, auditSuffix string) WorkflowRAGSnapshotContext {
+	runContext := workflowRunMutationContext(request, trace, auth, applicationID, "rag-snapshot-"+auditSuffix)
+	return WorkflowRAGSnapshotContext{
+		RequestContext: runContext.RequestContext, RequestID: runContext.RequestID, TenantRef: runContext.TenantRef,
+		WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID,
+		ActorRef: runContext.ActorRef, AuditRef: runContext.AuditRef,
+	}
 }
 
 func (server *Server) allowWorkflowRAGSnapshotDev(writer http.ResponseWriter, trace requestTrace) bool {
@@ -211,7 +238,11 @@ func (server *Server) workflowRAGSnapshotService() workflowRAGSnapshotService {
 }
 
 func writeWorkflowRAGSnapshotResult(writer http.ResponseWriter, trace requestTrace, ctx WorkflowRAGSnapshotContext, result WorkflowRAGSnapshotResult) {
-	writeObservedJSON(writer, http.StatusOK, trace, workflowRAGSnapshotEnvelope{
+	writeWorkflowRAGSnapshotResultWithStatus(writer, http.StatusOK, trace, ctx, result)
+}
+
+func writeWorkflowRAGSnapshotResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowRAGSnapshotContext, result WorkflowRAGSnapshotResult) {
+	writeObservedJSON(writer, status, trace, workflowRAGSnapshotEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		Record: result.Record, FailureCode: optionalApplicationDraftFailure(result.FailureCode),
 		CurrentLatestVersion: result.CurrentLatestVersion, CurrentLifecycle: result.CurrentLifecycle, AuditRef: ctx.AuditRef,

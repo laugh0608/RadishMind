@@ -51,7 +51,8 @@ func runGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t *testing.T
 	if summary.RequestID != "request_gateway_success" || summary.Route != "/v1/chat/completions" ||
 		summary.Protocol != northboundProtocolChatCompletions || summary.SelectedProvider != "mock" ||
 		summary.SelectedModel != "platform-model" || !summary.ProviderDurationAvailable || summary.ProviderDurationMS != 3 ||
-		summary.UsageAvailability != GatewayRequestUsageNotReported {
+		summary.UsageAvailability != GatewayRequestUsageReported ||
+		summary.Usage.Source != "openai_compatible_usage" || summary.Usage.TotalTokens != 13 {
 		t.Fatalf("unexpected request summary: %#v", summary)
 	}
 	if strings.Contains(listResponse.Body.String(), "private prompt") || strings.Contains(listResponse.Body.String(), "bridge summary") {
@@ -69,7 +70,9 @@ func runGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t *testing.T
 	readEnvelope := decodeGatewayRequestReadEnvelope(t, readResponse)
 	if readEnvelope.FailureCode != nil || readEnvelope.Request == nil ||
 		readEnvelope.Request.Status != GatewayRequestStatusSucceeded || !readEnvelope.Request.GatewayDurationAvailable ||
-		readEnvelope.Request.GatewayDurationMS != 5 {
+		readEnvelope.Request.GatewayDurationMS != 5 ||
+		readEnvelope.Request.Usage.Availability != GatewayRequestUsageReported ||
+		readEnvelope.Request.Usage.TotalTokens != 13 {
 		t.Fatalf("unexpected request detail: %#v", readEnvelope)
 	}
 }
@@ -343,7 +346,13 @@ func TestGatewayRequestHistoryCORSAllowsDedicatedHeaders(t *testing.T) {
 		t.Fatalf("gateway request history preflight failed: %d %s", response.Code, response.Body.String())
 	}
 	allowed := response.Header().Get("Access-Control-Allow-Headers")
-	for _, header := range []string{gatewayRequestDevTenantHeader, gatewayRequestDevWorkspaceHeader, gatewayRequestDevConsumerHeader, gatewayRequestDevScopesHeader} {
+	for _, header := range []string{
+		gatewayRequestDevTenantHeader,
+		gatewayRequestDevWorkspaceHeader,
+		gatewayRequestDevConsumerHeader,
+		gatewayRequestDevScopesHeader,
+		gatewayModelPricingEnvironmentHeader,
+	} {
 		if !strings.Contains(allowed, header) {
 			t.Fatalf("missing CORS header %s: %s", header, allowed)
 		}
@@ -369,6 +378,13 @@ func newGatewayRequestHistoryHTTPTestServer() *Server {
 			Metadata: map[string]any{
 				"duration_ms":          5,
 				"provider_duration_ms": 3,
+				"usage": map[string]any{
+					"availability":  "reported",
+					"source":        "openai_compatible_usage",
+					"input_tokens":  9,
+					"output_tokens": 4,
+					"total_tokens":  13,
+				},
 			},
 		},
 	}

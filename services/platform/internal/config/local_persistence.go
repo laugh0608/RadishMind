@@ -6,6 +6,22 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if cfg.ApplicationEvaluationCampaignDevEnabled {
+		environment := strings.TrimSpace(cfg.ApplicationEvaluationCampaignEnvironment)
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.WorkflowRAGEvaluationDevEnabled ||
+			!cfg.APIKeyLifecycleDevHTTPEnabled || !cfg.GatewayRequestQuotaEnforcementDevEnabled {
+			return errors.New("application evaluation campaign dev requires control plane read dev auth, application catalog dev HTTP, workflow RAG evaluation dev, API key lifecycle, and Gateway quota enforcement")
+		}
+		if environment != "development" && environment != "test" {
+			return errors.New("application evaluation campaign environment must be development or test")
+		}
+		if strings.TrimSpace(cfg.GatewayProviderRouteSource) == "admin_snapshot_dev_test" && environment != strings.TrimSpace(cfg.GatewayProviderRouteEnvironment) {
+			return errors.New("application evaluation campaign environment must match the Gateway provider route environment")
+		}
+		if environment != strings.TrimSpace(cfg.GatewayRequestQuotaEnvironment) {
+			return errors.New("application evaluation campaign environment must match the Gateway quota environment")
+		}
+	}
 	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return errors.New("prompt application template dev HTTP requires control plane read dev auth")
 	}
@@ -62,8 +78,11 @@ func EffectiveLocalPersistenceConfig(cfg Config) Config {
 	cfg.ApplicationPublishStoreMode = "sqlite_dev"
 	cfg.PromptTemplateStoreMode = "sqlite_dev"
 	cfg.AgentCopilotProfileStoreMode = "sqlite_dev"
+	cfg.AdminProviderRouteStoreMode = "sqlite_dev"
 	cfg.APIKeyStoreMode = "sqlite_dev"
 	cfg.GatewayRequestStoreMode = "sqlite_dev"
+	cfg.GatewayRequestQuotaStoreMode = "sqlite_dev"
+	cfg.GatewayModelPricingStoreMode = "sqlite_dev"
 	cfg.WorkflowSavedDraftStoreMode = "sqlite_dev"
 	cfg.WorkflowRunStoreMode = "sqlite_dev"
 	return cfg
@@ -98,8 +117,11 @@ func localPersistenceComponentsConsistent(cfg Config) bool {
 		{name: "application_publish_store", mode: cfg.ApplicationPublishStoreMode},
 		{name: "prompt_application_template_store", mode: cfg.PromptTemplateStoreMode},
 		{name: "agent_copilot_profile_store", mode: cfg.AgentCopilotProfileStoreMode},
+		{name: "admin_provider_route_store", mode: cfg.AdminProviderRouteStoreMode},
 		{name: "api_key_store", mode: cfg.APIKeyStoreMode},
 		{name: "gateway_request_store", mode: cfg.GatewayRequestStoreMode},
+		{name: "gateway_request_quota_store", mode: cfg.GatewayRequestQuotaStoreMode},
+		{name: "gateway_model_pricing_store", mode: cfg.GatewayModelPricingStoreMode},
 		{name: "workflow_saved_draft_store", mode: cfg.WorkflowSavedDraftStoreMode},
 		{name: "workflow_run_store", mode: cfg.WorkflowRunStoreMode},
 	}

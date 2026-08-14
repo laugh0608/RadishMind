@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-07-18
+更新时间：2026-08-12
 
 ## 阅读原则
 
@@ -25,7 +25,11 @@
 ## 当前状态
 
 - 当前成熟度是“内部开发者预览”；整改与当前执行顺序以 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 和 [当前推进焦点](radishmind-current-focus.md) 为准。
-- Workflow Draft Review Loop、Saved Draft PostgreSQL dev/test repository、R4 Gateway stdio worker pool、受控 Workflow Executor v0、durable Run History、Failure Review、Run Comparison、Evaluation Cases / Versioning、Evaluation Suite / Release Review、Gateway Request History、Application API Integration、Configuration Draft、Publish Governance、Application Catalog 与 API 密钥开发测试态认证均已完成；七组件共享 SQLite runtime、默认 `local-product` 启动档、同一应用作用域 HTTP 连续链、真实 PostgreSQL 专项门禁、Web 一次性交接和浏览器重启复验也已关闭。R6 文档与活动门禁收敛已经通过关闭评审；[Workflow 受控 HTTP Tool 与人工确认执行（开发/测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成。[Workflow RAG Retrieval 与应用知识快照（开发/测试态）v1](features/workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成独立 retrieval execution / metadata-only run v3 后端批次 B，下一步进入 Web 与真实浏览器双数据库验收批次 C；旧 Production Secret Backend / Storage Adapter 下一依赖只保留为历史 checker 锚点，不再作为当前开发任务。
+- UI 产品线已进入 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：通用参考基线已对齐 RadishX family-ui `v26.7.3`，RadishMind 主动选择 `Workbench` Profile、上游 token 原样镜像和“灰玉身份、墨蓝操作、玉色正向、雅紫类型、胭脂注意”的项目语义。`S1 R8` 至 `S8 R1` 的设计与 React 已审关闭；S9 / S10 功能实现与 Pencil Visual R3 已人工通过，后续 React 逐项采用仍按独立迁移批次验证。
+- 最近关闭专题是 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)。批次 A 至 E、Definition Run / Session / Campaign、三存储连续链、SQLite 产品浏览器、重启、隐私与 v1 历史均已闭合。
+- 最近关闭专题是 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)：局部 Pencil、单一结构化 fragment owner、SQLite create / version / CAS / 重启、隐私和三视口均已完成。
+- [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 已完成批次 A 至 E：独立价格 owner、不可变请求快照、reported usage 整数估算、Request History v2、Application Operations、双数据库和真实浏览器证据均已闭合。下一顺位回到 Family UI 专题，对照已批准 Visual R3 审计 S9 / S10 React，不扩大 production price 或 billing。
+- R2 至 R6、Workspace-scoped Read Transition、Workspace-scoped Mutation Authorization、Workflow Draft Review Loop、Saved Draft 三种开发测试态 repository、受控 Workflow Executor、版本化 Workflow / RAG / Prompt / Agent 运行路径、持久 Run History 与评测审查、Gateway Request History 均已完成。开发测试态 application request quota 已完成三模式 owner、Admin 管理面和六条 API Key inference route 准入；应用评测 Plan / Campaign 后端已完成三模式持久化、四类 Profile 受控执行和 exact Comparison / Case / Suite handoff。production membership、真实 OIDC、production secret、production quota / billing、业务写回、自动合并和 replay 继续关闭。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。
 - 当前项目的更强正式定义已经固定在 [战略定义](radishmind-strategy.md)：`RadishMind` 是 `AI Tools / Workflow / Model Gateway / Copilot Integration Platform`，核心价值是把 AI 应用构建、工作流运行、模型 API 分发、多模型接入和 Copilot 集成收口成可控产品能力。
@@ -102,7 +106,9 @@
 - [Radish OIDC Token / Membership Readiness v1](integrations/radish-oidc-token-membership-readiness-v1.md)
 - [Radish OIDC Token / Membership Upstream Evidence Refresh v1](integrations/radish-oidc-token-membership-upstream-evidence-refresh-v1.md)
 - [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)
-- [UI 设计规范](radishmind-ui-design-spec.md)
+- [Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)
+- [RadishMind UI 差异附录](ui-addendum.md)
+- [历史 UI 设计规范（迁移源）](radishmind-ui-design-spec.md)
 - [UI 设计参考](radishmind-ui-design-reference.md)
 - [Production Ops Hardening v1 任务卡](task-cards/production-ops-hardening-v1-plan.md)
 - [Production Ops Docker Deployment v1 任务卡](task-cards/production-ops-docker-deployment-v1-plan.md)

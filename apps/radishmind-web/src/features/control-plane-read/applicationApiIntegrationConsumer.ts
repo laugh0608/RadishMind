@@ -43,11 +43,29 @@ type ModelListDocument = {
   }>;
 };
 
+type GatewayFailureDocument = {
+  error: {
+    message: string;
+    code: string;
+    failure_boundary: string;
+  };
+};
+
 const FORBIDDEN_MODEL_FIELDS = new Set([
   "authorization", "api_key", "secret", "credential", "endpoint", "base_url", "headers", "cookie",
   "raw_error", "stderr", "stack_trace", "provider_raw_envelope",
 ]);
 const SUPPORTED_PROTOCOLS = new Set<ApplicationApiProtocol>(["chat_completions", "responses", "messages"]);
+const MODEL_CATALOG_GATEWAY_FAILURE_SUMMARIES: Readonly<Record<string, string>> = {
+  api_key_missing: "The model catalog requires an API key handoff.",
+  api_key_invalid: "The handed-off API key is invalid.",
+  api_key_credential_conflict: "The Gateway received conflicting API key credentials.",
+  api_key_revoked: "The handed-off API key has been revoked.",
+  api_key_expired: "The handed-off API key has expired.",
+  api_key_scope_denied: "The handed-off API key cannot read the model catalog.",
+  api_key_application_unavailable: "The selected application is archived or unavailable for Gateway authentication.",
+  api_key_store_unavailable: "The API key authority is unavailable.",
+};
 const MAX_MODEL_ID_CHARS = 160;
 
 class ModelCatalogResponseInvalidError extends Error {}
@@ -124,7 +142,7 @@ export async function loadApplicationModelCatalog(
     return failedCatalogState(normalizedApplicationId, "gateway_model_catalog_network_error", "The Gateway model catalog could not be loaded.");
   }
   if (!response.ok) {
-    return failedCatalogState(normalizedApplicationId, "gateway_model_catalog_http_failed", `The Gateway model catalog returned HTTP ${response.status}.`);
+    return await modelCatalogFailureState(response, normalizedApplicationId);
   }
   const correlatedRequestId = response.headers.get("X-Request-Id")?.trim();
   if (correlatedRequestId && correlatedRequestId !== requestId) {
@@ -298,6 +316,27 @@ function failedCatalogState(applicationId: string, failureCode: string, summary:
   return { status: "failed", applicationId, models: [], selectedModel: "", failureCode, summary };
 }
 
+async function modelCatalogFailureState(
+  response: Response,
+  applicationId: string,
+): Promise<ApplicationModelCatalogState> {
+  let document: unknown;
+  try {
+    document = await response.json();
+  } catch {
+    document = null;
+  }
+  if (isGatewayFailureDocument(document)) {
+    const summary = MODEL_CATALOG_GATEWAY_FAILURE_SUMMARIES[document.error.code];
+    if (summary) return failedCatalogState(applicationId, document.error.code, summary);
+  }
+  return failedCatalogState(
+    applicationId,
+    "gateway_model_catalog_http_failed",
+    `The Gateway model catalog returned HTTP ${response.status}.`,
+  );
+}
+
 function createModelCatalogRequestId(): string {
   const randomPart = globalThis.crypto?.randomUUID?.().replaceAll("-", "") ?? Math.random().toString(16).slice(2);
   return `models-${Date.now()}-${randomPart.slice(0, 16)}`;
@@ -314,6 +353,13 @@ function isSafeModelId(value: unknown): value is string {
 
 function isAbortError(error: unknown): boolean {
   return isRecord(error) && error.name === "AbortError";
+}
+
+function isGatewayFailureDocument(value: unknown): value is GatewayFailureDocument {
+  return isRecord(value) && isRecord(value.error) &&
+    typeof value.error.message === "string" &&
+    typeof value.error.code === "string" && value.error.code.length > 0 &&
+    typeof value.error.failure_boundary === "string" && value.error.failure_boundary.length > 0;
 }
 
 function isRecord(value: unknown): value is Record<string, any> {

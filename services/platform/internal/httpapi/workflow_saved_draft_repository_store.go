@@ -72,6 +72,37 @@ func (store *repositorySavedWorkflowDraftStore) WriteDraft(
 	draft SavedWorkflowDraft,
 	expectedDraftVersion int,
 ) (int, error) {
+	return store.writeDraftRevision(
+		requestContext,
+		draft,
+		expectedDraftVersion,
+		SavedWorkflowDraftRevisionKindSaved,
+		0,
+	)
+}
+
+func (store *repositorySavedWorkflowDraftStore) WriteRestoredDraft(
+	requestContext SavedWorkflowDraftContext,
+	draft SavedWorkflowDraft,
+	expectedDraftVersion int,
+	restoredFromVersion int,
+) (int, error) {
+	return store.writeDraftRevision(
+		requestContext,
+		draft,
+		expectedDraftVersion,
+		SavedWorkflowDraftRevisionKindRestored,
+		restoredFromVersion,
+	)
+}
+
+func (store *repositorySavedWorkflowDraftStore) writeDraftRevision(
+	requestContext SavedWorkflowDraftContext,
+	draft SavedWorkflowDraft,
+	expectedDraftVersion int,
+	revisionKind SavedWorkflowDraftRevisionKind,
+	restoredFromVersion int,
+) (int, error) {
 	actor, failureCode := repositoryActorFromSavedWorkflowDraftContext(requestContext)
 	if failureCode != "" {
 		return 0, savedWorkflowDraftStoreOperationFailure(failureCode)
@@ -85,6 +116,8 @@ func (store *repositorySavedWorkflowDraftStore) WriteDraft(
 		SaveWorkflowDraftRecordRequest{
 			ExpectedDraftVersion: expectedDraftVersion,
 			Draft:                draft,
+			RevisionKind:         revisionKind,
+			RestoredFromVersion:  restoredFromVersion,
 		},
 	)
 	if result.FailureCode != "" {
@@ -98,6 +131,86 @@ func (store *repositorySavedWorkflowDraftStore) WriteDraft(
 	store.sideEffects.ExternalRepositoryWrites++
 	store.mu.Unlock()
 	return result.CurrentDraftVersion, nil
+}
+
+func (store *repositorySavedWorkflowDraftStore) ReadDraftRevision(
+	requestContext SavedWorkflowDraftContext,
+	draftID string,
+	version int,
+) (SavedWorkflowDraftRevision, bool, error) {
+	actor, failureCode := repositoryActorFromSavedWorkflowDraftContext(requestContext)
+	if failureCode != "" {
+		return SavedWorkflowDraftRevision{}, false, savedWorkflowDraftStoreOperationFailure(failureCode)
+	}
+	if store == nil {
+		return SavedWorkflowDraftRevision{}, false, savedWorkflowDraftStoreOperationFailure(
+			SavedWorkflowDraftFailureStoreUnavailable,
+		)
+	}
+	repository, ok := store.repository.(SavedWorkflowDraftRevisionRepository)
+	if !ok {
+		return SavedWorkflowDraftRevision{}, false, savedWorkflowDraftStoreOperationFailure(
+			SavedWorkflowDraftFailureStoreUnavailable,
+		)
+	}
+	result := repository.ReadWorkflowDraftRevision(
+		requestContext.RequestContext,
+		actor,
+		ReadSavedWorkflowDraftRevisionRecordRequest{
+			DraftID:      draftID,
+			DraftVersion: version,
+		},
+	)
+	if result.FailureCode == SavedWorkflowDraftFailureRevisionNotFound {
+		return SavedWorkflowDraftRevision{}, false, nil
+	}
+	if result.FailureCode != "" {
+		return SavedWorkflowDraftRevision{}, false, savedWorkflowDraftStoreOperationFailure(result.FailureCode)
+	}
+	if result.Revision == nil {
+		return SavedWorkflowDraftRevision{}, false, savedWorkflowDraftStoreOperationFailure(
+			SavedWorkflowDraftFailureStoreContractMismatch,
+		)
+	}
+	return cloneSavedWorkflowDraftRevision(*result.Revision), true, nil
+}
+
+func (store *repositorySavedWorkflowDraftStore) ListDraftRevisions(
+	requestContext SavedWorkflowDraftContext,
+	draftID string,
+	filter savedWorkflowDraftRevisionListFilter,
+) (savedWorkflowDraftRevisionPage, error) {
+	actor, failureCode := repositoryActorFromSavedWorkflowDraftContext(requestContext)
+	if failureCode != "" {
+		return savedWorkflowDraftRevisionPage{}, savedWorkflowDraftStoreOperationFailure(failureCode)
+	}
+	if store == nil {
+		return savedWorkflowDraftRevisionPage{}, savedWorkflowDraftStoreOperationFailure(
+			SavedWorkflowDraftFailureStoreUnavailable,
+		)
+	}
+	repository, ok := store.repository.(SavedWorkflowDraftRevisionRepository)
+	if !ok {
+		return savedWorkflowDraftRevisionPage{}, savedWorkflowDraftStoreOperationFailure(
+			SavedWorkflowDraftFailureStoreUnavailable,
+		)
+	}
+	result := repository.ListWorkflowDraftRevisions(
+		requestContext.RequestContext,
+		actor,
+		ListSavedWorkflowDraftRevisionRecordsRequest{
+			DraftID:       draftID,
+			BeforeVersion: filter.BeforeVersion,
+			Limit:         filter.Limit,
+		},
+	)
+	if result.FailureCode != "" {
+		return savedWorkflowDraftRevisionPage{}, savedWorkflowDraftStoreOperationFailure(result.FailureCode)
+	}
+	return savedWorkflowDraftRevisionPage{
+		Revisions: append([]SavedWorkflowDraftRevisionSummary{}, result.Revisions...),
+		HasMore:   result.HasMore,
+	}, nil
 }
 
 func (store *repositorySavedWorkflowDraftStore) SideEffects() SavedWorkflowDraftSideEffects {

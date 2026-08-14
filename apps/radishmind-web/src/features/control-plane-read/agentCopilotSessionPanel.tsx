@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   createAgentCopilotSession,
   executeAgentCopilotSessionTurn,
@@ -172,6 +173,7 @@ export default function AgentCopilotSessionPanel({
         <article className="prompt-template-review">
           <div className="application-api-card-heading"><div><p className="eyebrow">Current response</p><h5>{result.summary}</h5></div><span className={`status-badge ${result.response ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.response?.status ?? "none"}</span></div>
           {result.failureCode ? <p className="failure-summary">{result.failureCode} · {result.failureSummary}</p> : null}
+          <ControlledUseFailureGuidance owner="agent_session" failureCode={result.failureCode} />
           {result.response ? (
             <>
               <p>{result.response.summary}</p>

@@ -3,6 +3,7 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -180,6 +181,39 @@ func TestAPIKeyServiceRejectsInvalidAndInactiveApplicationBeforeCredentialGenera
 	}
 }
 
+func TestAPIKeyServiceOrdersApplicationOwnershipBeforeCredentialAndRecordWrite(t *testing.T) {
+	events := make([]string, 0, 4)
+	applicationRepository := &orderedApplicationCatalogRepository{
+		applicationCatalogRepository: newMemoryApplicationCatalogRepository(),
+		events:                       &events,
+	}
+	requestContext := apiKeyTestContext("subject_owner")
+	seedAPIKeyTestApplication(t, applicationRepository.applicationCatalogRepository, requestContext, "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
+	apiKeyRepository := &orderedAPIKeyRepository{
+		apiKeyRepository: newMemoryAPIKeyRepository(),
+		events:           &events,
+	}
+	service := newAPIKeyService(apiKeyRepository, applicationRepository)
+	service.newID = func() (string, error) {
+		events = append(events, "identifier_generated")
+		return "key_aaaaaaaaaaaaaaaa", nil
+	}
+	service.newCredential = func(apiKeyID string) (string, [sha256.Size]byte, error) {
+		events = append(events, "credential_generated_and_hashed")
+		return newAPIKeyCredential(apiKeyID)
+	}
+
+	result := service.Create(requestContext, validAPIKeyCreateInput("app_aaaaaaaaaaaaaaaa", 30))
+
+	if result.FailureCode != "" || result.Record == nil || result.CredentialToken == "" {
+		t.Fatalf("ordered issue failed: %#v", result)
+	}
+	want := []string{"application_owner_read", "identifier_generated", "credential_generated_and_hashed", "record_written"}
+	if strings.Join(events, ",") != strings.Join(want, ",") {
+		t.Fatalf("unexpected side-effect order: got=%v want=%v", events, want)
+	}
+}
+
 func TestAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t *testing.T) {
 	runAPIKeyServiceExpiryFilteringPaginationAndOwnerIsolation(t, newMemoryAPIKeyRepository(), newMemoryApplicationCatalogRepository())
 }
@@ -296,12 +330,10 @@ func TestAPIKeyLifecycleHTTPCreateListReadRevokeAndNoLeakage(t *testing.T) {
 		},
 		applicationCatalogRepository: applicationRepository,
 		apiKeyRepository:             newMemoryAPIKeyRepository(),
+		workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
-	auth := controlPlaneReadAuthContext{
-		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "dev:test",
-		TenantBinding: "tenant_demo", SubjectBinding: "subject_owner",
-		ScopeGrants: []string{"api_keys:read", "api_keys:write", "api_keys:revoke"},
-	}
+	auth := apiKeyMutationTestAuth(time.Now().UTC(), "api_keys:write", "api_keys:revoke")
+	auth.ScopeGrants = append(auth.ScopeGrants, "api_keys:read")
 
 	createRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys", strings.NewReader(`{
   "workspace_id":"workspace_demo",
@@ -310,6 +342,7 @@ func TestAPIKeyLifecycleHTTPCreateListReadRevokeAndNoLeakage(t *testing.T) {
   "scopes":["models:read","responses:invoke"],
   "expires_in_days":30
 }`))
+	createRequest.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	createRequest = createRequest.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), auth))
 	createRecorder := httptest.NewRecorder()
 	server.handleCreateAPIKey(createRecorder, createRequest)
@@ -344,6 +377,7 @@ func TestAPIKeyLifecycleHTTPCreateListReadRevokeAndNoLeakage(t *testing.T) {
 
 	revokeRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/"+issued.Record.APIKeyID+"/revoke", strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1}`))
 	revokeRequest.SetPathValue("api_key_id", issued.Record.APIKeyID)
+	revokeRequest.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	revokeRequest = revokeRequest.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), auth))
 	revokeRecorder := httptest.NewRecorder()
 	server.handleRevokeAPIKey(revokeRecorder, revokeRequest)
@@ -364,30 +398,32 @@ func TestAPIKeyLifecycleHTTPPermissionsUnknownFieldsAndOIDCZeroQuery(t *testing.
 		},
 		applicationCatalogRepository: applicationRepository,
 		apiKeyRepository:             counting,
+		workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	readOnlyAuth := controlPlaneReadAuthContext{
 		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "dev:test",
 		TenantBinding: "tenant_demo", SubjectBinding: "subject_owner", ScopeGrants: []string{"api_keys:read"},
 	}
 	denied := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys", strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_aaaaaaaaaaaaaaaa","display_name":"SDK key","scopes":["models:read"],"expires_in_days":30}`))
+	denied.Header.Set(activeWorkspaceHeader, "workspace_demo")
 	denied = denied.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), readOnlyAuth))
 	deniedRecorder := httptest.NewRecorder()
 	server.handleCreateAPIKey(deniedRecorder, denied)
-	if deniedRecorder.Code != http.StatusForbidden || !strings.Contains(deniedRecorder.Body.String(), APIKeyFailureScopeDenied) ||
+	if deniedRecorder.Code != http.StatusForbidden || !strings.Contains(deniedRecorder.Body.String(), "scope_denied") ||
 		strings.Contains(deniedRecorder.Body.String(), "credential") || counting.createCalls.Load() != 0 {
 		t.Fatalf("write scope must be independent and query-free: %d body=%s calls=%d", deniedRecorder.Code, deniedRecorder.Body.String(), counting.createCalls.Load())
 	}
 
+	writeAuth := apiKeyMutationTestAuth(time.Now().UTC(), "api_keys:write")
 	unknown := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys", strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_aaaaaaaaaaaaaaaa","display_name":"SDK key","scopes":["models:read"],"expires_in_days":30,"token":"forbidden"}`))
-	unknown = unknown.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), readOnlyAuth))
+	unknown.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	unknown = unknown.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), writeAuth))
 	unknownRecorder := httptest.NewRecorder()
 	server.handleCreateAPIKey(unknownRecorder, unknown)
 	if unknownRecorder.Code != http.StatusBadRequest || !strings.Contains(unknownRecorder.Body.String(), "INVALID_JSON") || counting.createCalls.Load() != 0 {
 		t.Fatalf("unknown sensitive field must be rejected before repository: %d body=%s", unknownRecorder.Code, unknownRecorder.Body.String())
 	}
 
-	writeAuth := readOnlyAuth
-	writeAuth.ScopeGrants = []string{"api_keys:write"}
 	apiKeyCredential := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys", strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_aaaaaaaaaaaaaaaa","display_name":"SDK key","scopes":["models:read"],"expires_in_days":30}`))
 	apiKeyCredential.Header.Set("Authorization", "Bearer rmd_dev_key_aaaaaaaaaaaaaaaa.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	apiKeyCredential = apiKeyCredential.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), writeAuth))
@@ -416,6 +452,162 @@ func TestAPIKeyLifecycleHTTPPermissionsUnknownFieldsAndOIDCZeroQuery(t *testing.
 	}
 }
 
+func TestAPIKeyMutationAuthorizationDenialsHaveZeroBusinessSideEffects(t *testing.T) {
+	now := time.Now().UTC()
+	type operation struct {
+		name       string
+		permission string
+		target     string
+		body       string
+		handle     func(*Server, http.ResponseWriter, *http.Request)
+	}
+	operations := []operation{
+		{
+			name: "issue", permission: "api_keys:write", target: "/v1/user-workspace/api-keys",
+			body: `{"workspace_id":"workspace_demo","application_id":"app_aaaaaaaaaaaaaaaa","display_name":"SDK key","scopes":["models:read"],"expires_in_days":30}`,
+			handle: func(server *Server, writer http.ResponseWriter, request *http.Request) {
+				server.handleCreateAPIKey(writer, request)
+			},
+		},
+		{
+			name: "revoke", permission: "api_keys:revoke", target: "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke",
+			body: `{"workspace_id":"workspace_demo","expected_version":1}`,
+			handle: func(server *Server, writer http.ResponseWriter, request *http.Request) {
+				request.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
+				server.handleRevokeAPIKey(writer, request)
+			},
+		},
+	}
+	tests := []struct {
+		name          string
+		body          string
+		active        []string
+		mutate        func(*controlPlaneReadAuthContext)
+		omitAuth      bool
+		expectedCode  int
+		expectedError string
+	}{
+		{
+			name: "identity missing", active: []string{"workspace_demo"}, omitAuth: true,
+			expectedCode: http.StatusUnauthorized, expectedError: "identity_context_missing",
+		},
+		{
+			name: "identity invalid", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.FailureCode = "auth_context_contract_mismatch"
+				auth.FailureStatus = http.StatusUnauthorized
+			}, expectedCode: http.StatusUnauthorized, expectedError: "auth_context_contract_mismatch",
+		},
+		{
+			name: "identity permission denied", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.ScopeGrants = []string{"api_keys:read"}
+			}, expectedCode: http.StatusForbidden, expectedError: "scope_denied",
+		},
+		{
+			name: "selection missing before malformed payload", body: `{`,
+			expectedCode: http.StatusBadRequest, expectedError: "workspace_selection_missing",
+		},
+		{
+			name: "selection repeated", active: []string{"workspace_demo", "workspace_demo"},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "selection invalid", active: []string{"workspace demo"},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership missing", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships = nil
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_membership_denied",
+		},
+		{
+			name: "membership expired", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].ExpiresAt = now.Add(-time.Second)
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_membership_expired",
+		},
+		{
+			name: "membership tenant mismatch", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].TenantRef = "tenant_other"
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership subject mismatch", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].SubjectRef = "subject_other"
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership workspace mismatch", active: []string{"workspace_other"},
+			expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "membership permission denied", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.WorkspaceMemberships[0].PermissionGrants = []string{"api_keys:read"}
+			}, expectedCode: http.StatusForbidden, expectedError: "workspace_permission_denied",
+		},
+		{
+			name: "payload workspace mismatch", body: `{"workspace_id":"workspace_other"}`,
+			active: []string{"workspace_demo"}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "payload workspace is not normalized", body: `{"workspace_id":" workspace_demo"}`,
+			active: []string{"workspace_demo"}, expectedCode: http.StatusForbidden, expectedError: "workspace_binding_mismatch",
+		},
+		{
+			name: "OIDC membership unavailable", active: []string{"workspace_demo"}, mutate: func(auth *controlPlaneReadAuthContext) {
+				auth.AuthMode = controlPlaneReadAuthModeRadishOIDCIntegrationTest
+			}, expectedCode: http.StatusServiceUnavailable, expectedError: "workspace_membership_unavailable",
+		},
+	}
+
+	for _, operation := range operations {
+		t.Run(operation.name, func(t *testing.T) {
+			baseAuth := apiKeyMutationTestAuth(now, operation.permission)
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					applicationRepository := &countingApplicationCatalogRepository{applicationCatalogRepository: newMemoryApplicationCatalogRepository()}
+					apiKeyRepository := &countingAPIKeyRepository{apiKeyRepository: newMemoryAPIKeyRepository()}
+					server := &Server{
+						config: config.Config{
+							ApplicationCatalogDevHTTPEnabled: true, ApplicationCatalogDevWriteEnabled: true,
+							APIKeyLifecycleDevHTTPEnabled: true, APIKeyLifecycleDevWriteEnabled: true,
+						},
+						applicationCatalogRepository: applicationRepository,
+						apiKeyRepository:             apiKeyRepository,
+						workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
+					}
+					body := test.body
+					if body == "" {
+						body = operation.body
+					}
+					request := httptest.NewRequest(http.MethodPost, operation.target, strings.NewReader(body))
+					for _, active := range test.active {
+						request.Header.Add(activeWorkspaceHeader, active)
+					}
+					if !test.omitAuth {
+						auth := cloneAPIKeyMutationTestAuth(baseAuth)
+						if test.mutate != nil {
+							test.mutate(&auth)
+						}
+						request = request.WithContext(withControlPlaneReadFakeAuthContext(request.Context(), auth))
+					}
+					recorder := httptest.NewRecorder()
+
+					operation.handle(server, recorder, request)
+
+					if recorder.Code != test.expectedCode || !strings.Contains(recorder.Body.String(), test.expectedError) {
+						t.Fatalf("unexpected denial: status=%d body=%s", recorder.Code, recorder.Body.String())
+					}
+					if applicationRepository.totalCalls.Load() != 0 || apiKeyRepository.totalCalls.Load() != 0 {
+						t.Fatalf(
+							"authorization denial reached business repositories: application=%d api_key=%d",
+							applicationRepository.totalCalls.Load(), apiKeyRepository.totalCalls.Load(),
+						)
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestAPIKeyLifecycleHTTPRejectsInvalidQueriesAndMissingRecords(t *testing.T) {
 	server := &Server{
 		config: config.Config{
@@ -425,14 +617,16 @@ func TestAPIKeyLifecycleHTTPRejectsInvalidQueriesAndMissingRecords(t *testing.T)
 		},
 		applicationCatalogRepository: newMemoryApplicationCatalogRepository(),
 		apiKeyRepository:             newMemoryAPIKeyRepository(),
+		workspaceMembershipProvider:  newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
-	auth := controlPlaneReadAuthContext{
-		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "dev:test",
-		TenantBinding: "tenant_demo", SubjectBinding: "subject_owner",
-		ScopeGrants: []string{"api_keys:read", "api_keys:revoke"},
-	}
+	auth := apiKeyMutationTestAuth(time.Now().UTC(), "api_keys:revoke")
+	auth.ScopeGrants = append(auth.ScopeGrants, "api_keys:read")
 	withAuth := func(request *http.Request) *http.Request {
 		return request.WithContext(withControlPlaneReadFakeAuthContext(context.Background(), auth))
+	}
+	withMutationAuth := func(request *http.Request) *http.Request {
+		request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+		return withAuth(request)
 	}
 
 	readUnknownQuery := withAuth(httptest.NewRequest(http.MethodGet, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa?workspace_id=workspace_demo&raw_secret=true", nil))
@@ -463,7 +657,7 @@ func TestAPIKeyLifecycleHTTPRejectsInvalidQueriesAndMissingRecords(t *testing.T)
 		}
 	}
 
-	invalidRevoke := withAuth(httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke", strings.NewReader(`{"workspace_id":`)))
+	invalidRevoke := withMutationAuth(httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke", strings.NewReader(`{"workspace_id":`)))
 	invalidRevoke.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
 	invalidRevokeRecorder := httptest.NewRecorder()
 	server.handleRevokeAPIKey(invalidRevokeRecorder, invalidRevoke)
@@ -471,7 +665,7 @@ func TestAPIKeyLifecycleHTTPRejectsInvalidQueriesAndMissingRecords(t *testing.T)
 		t.Fatalf("invalid revoke body must fail before repository: status=%d body=%s", invalidRevokeRecorder.Code, invalidRevokeRecorder.Body.String())
 	}
 
-	missingRevoke := withAuth(httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke", strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1}`)))
+	missingRevoke := withMutationAuth(httptest.NewRequest(http.MethodPost, "/v1/user-workspace/api-keys/key_aaaaaaaaaaaaaaaa/revoke", strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1}`)))
 	missingRevoke.SetPathValue("api_key_id", "key_aaaaaaaaaaaaaaaa")
 	missingRevokeRecorder := httptest.NewRecorder()
 	server.handleRevokeAPIKey(missingRevokeRecorder, missingRevoke)
@@ -499,27 +693,166 @@ func TestAPIKeyLifecycleRoutesAndPermissionProjection(t *testing.T) {
 	request.Header.Set(controlPlaneReadDevTenantHeader, "tenant_demo")
 	request.Header.Set(controlPlaneReadDevSubjectHeader, "subject_owner")
 	request.Header.Set(controlPlaneReadDevScopesHeader, "api_keys:write")
+	request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	request.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+	request.Header.Set(controlPlaneReadDevMembershipPermHeader, "api_keys:write")
 	recorder := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusCreated || !strings.Contains(recorder.Body.String(), `"credential":{"token":"`) {
 		t.Fatalf("registered POST route did not issue a key: %d body=%s", recorder.Code, recorder.Body.String())
 	}
+	var issued apiKeyEnvelope
+	if err := json.Unmarshal(recorder.Body.Bytes(), &issued); err != nil || issued.Record == nil {
+		t.Fatalf("decode registered issue response: err=%v envelope=%#v", err, issued)
+	}
+	revoke := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/api-keys/"+issued.Record.APIKeyID+"/revoke",
+		strings.NewReader(`{"workspace_id":"workspace_demo","expected_version":1}`),
+	)
+	revoke.SetPathValue("api_key_id", issued.Record.APIKeyID)
+	revoke.Header.Set(controlPlaneReadDevIdentityHeader, "dev:test")
+	revoke.Header.Set(controlPlaneReadDevTenantHeader, "tenant_demo")
+	revoke.Header.Set(controlPlaneReadDevSubjectHeader, "subject_owner")
+	revoke.Header.Set(controlPlaneReadDevScopesHeader, "api_keys:revoke")
+	revoke.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	revoke.Header.Set(controlPlaneReadDevMembershipHeader, "workspace_demo")
+	revoke.Header.Set(controlPlaneReadDevMembershipPermHeader, "api_keys:revoke")
+	revokeRecorder := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(revokeRecorder, revoke)
+	if revokeRecorder.Code != http.StatusOK || !strings.Contains(revokeRecorder.Body.String(), `"effective_state":"revoked"`) {
+		t.Fatalf("registered revoke route did not revoke the key: %d body=%s", revokeRecorder.Code, revokeRecorder.Body.String())
+	}
+}
+
+func TestAPIKeyMutationSignedAuthorization(t *testing.T) {
+	privateKey := generateSignedTestPrivateKey(t)
+	server := newSignedTestControlPlaneReadServer(t, privateKey)
+	server.config.ApplicationCatalogDevHTTPEnabled = true
+	server.config.ApplicationCatalogDevWriteEnabled = true
+	server.config.APIKeyLifecycleDevHTTPEnabled = true
+	server.config.APIKeyLifecycleDevWriteEnabled = true
+	applicationRepository := newMemoryApplicationCatalogRepository()
+	seedAPIKeyTestApplication(t, applicationRepository, apiKeyTestContext("subject:test-admin"), "app_aaaaaaaaaaaaaaaa", applicationCatalogLifecycleActive)
+	server.applicationCatalogRepository = applicationRepository
+	apiKeyRepository := &countingAPIKeyRepository{apiKeyRepository: newMemoryAPIKeyRepository()}
+	server.apiKeyRepository = apiKeyRepository
+	claims := validSignedTestClaims()
+	claims["permissions"] = []string{"radishmind.api-keys.write"}
+	claims["workspace_memberships"] = []map[string]any{{
+		"workspace_id": "workspace_demo",
+		"permissions":  []string{"api_keys:write"},
+	}}
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/api-keys",
+		strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_aaaaaaaaaaaaaaaa","display_name":"Signed SDK key","scopes":["models:read"],"expires_in_days":30}`),
+	)
+	request.Header.Set(activeWorkspaceHeader, "workspace_demo")
+	request.Header.Set("Authorization", "Bearer "+signControlPlaneReadTestToken(t, privateKey, "RS256", claims))
+	recorder := httptest.NewRecorder()
+
+	server.httpServer.Handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusCreated || apiKeyRepository.createCalls.Load() != 1 ||
+		!strings.Contains(recorder.Body.String(), `"credential":{"token":"`) {
+		t.Fatalf(
+			"signed API key mutation authorization failed: status=%d create_calls=%d body=%s",
+			recorder.Code, apiKeyRepository.createCalls.Load(), recorder.Body.String(),
+		)
+	}
 }
 
 type countingAPIKeyRepository struct {
 	apiKeyRepository
+	totalCalls  atomic.Int32
 	createCalls atomic.Int32
+	readCalls   atomic.Int32
 	listCalls   atomic.Int32
+	revokeCalls atomic.Int32
+}
+
+type orderedApplicationCatalogRepository struct {
+	applicationCatalogRepository
+	events *[]string
+}
+
+func (repository *orderedApplicationCatalogRepository) RequireActive(requestContext ApplicationCatalogContext, applicationID string) (ApplicationCatalogRecord, error) {
+	*repository.events = append(*repository.events, "application_owner_read")
+	return repository.applicationCatalogRepository.RequireActive(requestContext, applicationID)
+}
+
+type orderedAPIKeyRepository struct {
+	apiKeyRepository
+	events *[]string
+}
+
+func (repository *orderedAPIKeyRepository) Create(requestContext APIKeyContext, record APIKeyRecord) (APIKeyRecord, error) {
+	*repository.events = append(*repository.events, "record_written")
+	return repository.apiKeyRepository.Create(requestContext, record)
 }
 
 func (repository *countingAPIKeyRepository) Create(requestContext APIKeyContext, record APIKeyRecord) (APIKeyRecord, error) {
+	repository.totalCalls.Add(1)
 	repository.createCalls.Add(1)
 	return repository.apiKeyRepository.Create(requestContext, record)
 }
 
+func (repository *countingAPIKeyRepository) Read(requestContext APIKeyContext, apiKeyID string) (APIKeyRecord, error) {
+	repository.totalCalls.Add(1)
+	repository.readCalls.Add(1)
+	return repository.apiKeyRepository.Read(requestContext, apiKeyID)
+}
+
 func (repository *countingAPIKeyRepository) List(requestContext APIKeyContext, query apiKeyListQuery) ([]APIKeyRecord, error) {
+	repository.totalCalls.Add(1)
 	repository.listCalls.Add(1)
 	return repository.apiKeyRepository.List(requestContext, query)
+}
+
+func (repository *countingAPIKeyRepository) FindCredential(requestContext context.Context, apiKeyID string) (APIKeyRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.apiKeyRepository.FindCredential(requestContext, apiKeyID)
+}
+
+func (repository *countingAPIKeyRepository) RecordSuccessfulAuthentication(requestContext context.Context, apiKeyID string, expectedVersion int, usedAt time.Time) (APIKeyRecord, error) {
+	repository.totalCalls.Add(1)
+	return repository.apiKeyRepository.RecordSuccessfulAuthentication(requestContext, apiKeyID, expectedVersion, usedAt)
+}
+
+func (repository *countingAPIKeyRepository) Revoke(requestContext APIKeyContext, apiKeyID string, expectedVersion int, update APIKeyRecord) (APIKeyRecord, error) {
+	repository.totalCalls.Add(1)
+	repository.revokeCalls.Add(1)
+	return repository.apiKeyRepository.Revoke(requestContext, apiKeyID, expectedVersion, update)
+}
+
+func apiKeyMutationTestAuth(now time.Time, permissions ...string) controlPlaneReadAuthContext {
+	return controlPlaneReadAuthContext{
+		AuthMode: controlPlaneReadAuthModeDevHeaders, IdentityContext: "verified:api-key-mutation-test",
+		TenantBinding: "tenant_demo", SubjectBinding: "subject_owner",
+		ScopeGrants: append([]string{}, permissions...),
+		ResourceBinding: ControlPlaneResourceBinding{
+			TenantRef: "tenant_demo", TenantVerified: true,
+		},
+		WorkspaceMemberships: []VerifiedWorkspaceMembershipAssertion{{
+			TenantRef: "tenant_demo", SubjectRef: "subject_owner", WorkspaceID: "workspace_demo",
+			PermissionGrants: append([]string{}, permissions...), SourceRef: "membership:test",
+			PolicyVersion: workspaceMembershipPolicyVersion, ExpiresAt: now.Add(time.Hour),
+		}},
+	}
+}
+
+func cloneAPIKeyMutationTestAuth(auth controlPlaneReadAuthContext) controlPlaneReadAuthContext {
+	cloned := auth
+	cloned.ScopeGrants = append([]string{}, auth.ScopeGrants...)
+	cloned.WorkspaceMemberships = append([]VerifiedWorkspaceMembershipAssertion{}, auth.WorkspaceMemberships...)
+	for index := range cloned.WorkspaceMemberships {
+		cloned.WorkspaceMemberships[index].PermissionGrants = append(
+			[]string{},
+			auth.WorkspaceMemberships[index].PermissionGrants...,
+		)
+	}
+	return cloned
 }
 
 func apiKeyTestContext(owner string) APIKeyContext {
