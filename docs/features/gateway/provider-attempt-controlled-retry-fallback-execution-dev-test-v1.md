@@ -2,7 +2,7 @@
 
 更新时间：2026-08-15
 
-状态：`gateway_provider_attempt_dev_test_v1_batch_e_postgresql_next`
+状态：`gateway_provider_attempt_dev_test_v1_batch_e_viewport_next`
 
 ## 功能定位
 
@@ -305,7 +305,9 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 
 memory / SQLite 产品连续链也已完成。正式 launcher 新增显式 `--provider-attempt-local-product`，只启动 loopback 确定性 fixture，并同时要求 Route、Request History、quota、pricing 与 fallback 开发测试 gate。真实页面完成应用绑定、API Key 一次性交接、Route v1 → v2 人工审查 / 激活、主失败 → 备用成功、双失败、第二次 quota 阻断、Request History v3 lineage、旧 v2 单 attempt 详情和服务重启恢复。浏览器验收中进一步根治 configured inventory 资格误用 active 状态、Route owner 静态 application、CORS 未暴露 attempt 头、详情缺省终态投影、pricing integrity digest 格式、旧记录空 Provider Attempt cost summary、首 attempt quota 拒绝根 usage，以及第二次 quota 阻断文案误称“零 Provider 调用”等一致性问题。
 
-实际内置浏览器视口 `1280×720` 下 document、history 与 detail 均无横向溢出，控制台无 warning / error，离开签发页后 DOM 不含 raw credential。当前桌面环境的浏览器视口覆写没有生效，因此 `1440×900`、关键断点与 `390×844` 不冒充已验证；下一小步进入 PostgreSQL 实例连续链与三个 unary 协议一致性，再补真实视口和最终门禁。
+PostgreSQL 连续链已通过显式 `--provider-attempt-postgres-dev-test` 与真实 PostgreSQL 17 实例关闭。该入口复用同一 loopback fixture 和五项 gate，把 Application Catalog、API Key、Route、Request History、quota 与 pricing 绑定到 `postgres_dev_test`，并把 quota / pricing migration marker 纳入启动预检。联合集成测试在同一 runtime role 下完成 Route v2 激活、Chat Completions / Responses / Messages 主失败 → 备用成功、六次逐 attempt quota admission、逐 target pricing snapshot、v3 checkpoint、连接关闭失败关闭和重连恢复；runtime role 无 DDL，数据库不保存请求正文或 credential。既有 PostgreSQL 定向回归继续覆盖 migration 并发、Route CAS、checkpoint 并发单赢家与 no fallback。
+
+实际内置浏览器视口 `1280×720` 下 document、history 与 detail 均无横向溢出，控制台无 warning / error，离开签发页后 DOM 不含 raw credential。当前桌面环境的浏览器视口覆写没有生效，因此 `1440×900`、关键断点与 `390×844` 不冒充已验证；下一小步只补真实视口、定向 race 和最终门禁。
 
 ## 验收
 
@@ -343,4 +345,4 @@ memory / SQLite 产品连续链也已完成。正式 launcher 新增显式 `--pr
 3. 只覆盖 API Key 认证的三个非流式 northbound API；
 4. Request History v3、逐 attempt quota 与逐 attempt pricing 是实现前置，不以单 selection 字段勉强承载多 attempt。
 
-功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D、七个 Visual R1 代表面、Route / Playground / Request History React strict consumer，以及 memory / SQLite 产品连续链均已关闭。下一顺位是 PostgreSQL 实例、三个 unary 协议一致性、真实浏览器补充视口与最终门禁；专题尚未完成。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。
+功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D、七个 Visual R1 代表面、Route / Playground / Request History React strict consumer、memory / SQLite 产品连续链、PostgreSQL 实例和三个 unary 协议一致性均已关闭。下一顺位只剩真实浏览器补充视口、定向 race 与最终门禁；专题尚未完成。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。
