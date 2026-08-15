@@ -146,7 +146,7 @@ Session 路由族为：
 
 读取、管理和执行分别要求 `application_sessions:read`、`application_sessions:write`、`application_sessions:execute`。Session 只能从 `active` 转为 `closed`；closed session 可以查看 metadata，但不能继续创建 turn。
 
-Web 使用顺序：
+当前 HTTP 使用顺序：
 
 1. 选择 application 和 profile；Workflow Definition profile 同时选择 definition。
 2. 创建 session，确认服务端返回的 authority refs 与 profile。
@@ -156,7 +156,9 @@ Web 使用顺序：
 6. 从 turn metadata 打开对应 v4 / v5 / v8 Run Detail、Comparison 或 Evaluation；v8 只展示合同与字段 metadata，不回显字段值。
 7. 不再继续时显式关闭 session；通过 Active / Closed 过滤器区分可执行会话与历史会话。
 
-切换 workspace、application、profile 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata 和 run refs，不重建 transcript。结果资产批次 A 目前只使用 memory owner：同一服务进程内可精确读取，服务重启后不恢复；不得把它写成 durable 能力。
+当前 React Application Interaction、Prompt Session 与 Agent Session consumer 尚未发送 `save_result`，也未消费 artifact list / read；页面内结果仍只存在于当前组件内存。批次 C 应抽取三类 Session surface 共享的严格 artifact consumer，再分别接入保存选择、metadata 列表和精确读取，不能复制三套 schema 解析、scope guard 或迟到响应状态。
+
+切换 workspace、application、profile、session、identity 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、已读取 artifact content、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata、run refs 和 SQLite / PostgreSQL 中显式保存的 artifact，不重建 transcript。结果资产使用独立 owner：memory 模式只在同一服务进程内可精确读取；SQLite / PostgreSQL 开发测试态可在服务重启后恢复显式保存的 artifact，但不得把该结论扩写为 transcript 恢复或 production durable 能力。
 
 ## 幂等、取消与不确定结果
 
@@ -180,20 +182,20 @@ Application Operations 同时读取当前 application 的 Gateway Request Histor
 
 ## 持久化与隐私边界
 
-memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A 单份正文上限 `64 KiB`，session list 只返回 metadata。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
+memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A / B 固定单份正文上限 `64 KiB`，session list 只返回 metadata，SQLite / PostgreSQL 仅由精确 artifact read 恢复正文。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
 
 - 原始 input、answer 或 transcript
 - prompt、provider raw response 或 fragment 正文
 - Authorization、API key、credential、token、cookie 或 header
 - provider secret、DSN 或异常原文
 
-SQLite 中 Application RAG、Workflow Definition release、definition execution 与 Application Session 基线依次为 `0009`、`0010`、`0011`、`0012`，结构化 Definition、Session 与 Evaluation 扩展为 `0017`、`0018`、`0019`；PostgreSQL 基线对应 `0012`、`0013`、`0014`、`0015`，结构化扩展对应 `0020`、`0021`、`0022`。运行角色只授予必要 DML，migration role 与 runtime role 不得互换；旧 v1 记录不自动迁移到 v2 / v4 / v8。
+SQLite 中 Application RAG、Workflow Definition release、definition execution 与 Application Session 基线依次为 `0009`、`0010`、`0011`、`0012`，结构化 Definition、Session 与 Evaluation 扩展为 `0017`、`0018`、`0019`，Definition HTTP Tool 来源 / 执行与结果资产依次为 `0020`、`0021`、`0022`；PostgreSQL 基线对应 `0012`、`0013`、`0014`、`0015`，结构化扩展对应 `0020`、`0021`、`0022`，Definition HTTP Tool 来源 / 执行与结果资产对应 `0023`、`0024`、`0025`。运行角色只授予必要 DML，migration role 与 runtime role 不得互换；旧 v1 记录不自动迁移到 v2 / v4 / v8。
 
 ## 停止线
 
 - 不自动 review、activation、publish、assignment 或 profile 选择。
 - 不增加 schedule、retry / fallback、replay / resume、agent loop、长期记忆或后台任务。
 - 不从 session transcript 派生持久记忆，不把 answer 写回上层业务真相源。
-- 不允许客户端事后上传 artifact content、digest 或 run ref，不从日志、缓存或 Provider 重建结果；memory artifact 不声明重启恢复。
+- 不允许客户端事后上传 artifact content、digest 或 run ref，不从日志、缓存或 Provider 重建结果；memory artifact 不声明重启恢复，SQLite / PostgreSQL artifact 只声明开发测试态重启恢复。
 - 不把本地 SQLite、PostgreSQL dev/test、mock provider、真实浏览器验收或 launcher 连续链解释为 production ready。
 - 不绕过 HTTP Tool、Workflow RAG、Application RAG 或 Workflow Definition 各自的 authority owner。

@@ -21,7 +21,7 @@
 
 - `Application Builder`：运行应用后，选择保存值得继续审查、比较或交付的结果，并在离开当前页面后重新读取。
 - `Workflow Reviewer`：从 session / turn / run 精确来源确认结果由哪次受控执行产生，而不是读取客户端自行上传的无来源文本。
-- `Platform Maintainer`：维持默认不保存、作用域隔离、内容大小上限、幂等与 no replay 边界，并逐步接入 SQLite / PostgreSQL 开发测试态持久化。
+- `Platform Maintainer`：维持默认不保存、作用域隔离、内容大小上限、幂等、no replay 和 memory / SQLite / PostgreSQL 同构边界，并为后续生命周期与 Web 消费保持内容不可变和 no-fallback。
 
 ## 用户路径
 
@@ -46,7 +46,7 @@
 - 每个 turn 最多一个 artifact 的幂等唯一性；
 - canonical content、content type、bytes 与 `sha256:` digest；
 - metadata-only list 与精确 content read；
-- 后续 archive / purge、SQLite / PostgreSQL repository 和 Web consumer。
+- memory / SQLite / PostgreSQL repository，以及后续 archive / unarchive lifecycle 和 Web consumer。
 
 不负责：
 
@@ -61,7 +61,7 @@
 
 ### 既有 runtime owner
 
-Workflow Definition、Application RAG、Prompt 与 Agent / Copilot runtime 继续拥有各自执行、输出验证和 run record。Result Artifact owner 不复制其算法或重新读取 provider；首批只接入已经由 runtime 校验成功的 canonical response。
+Workflow Definition、Application RAG、Prompt 与 Agent / Copilot runtime 继续拥有各自执行、输出验证和 run record。Result Artifact owner 不复制其算法或重新读取 provider；v1 只接入已经由 runtime 校验成功的 canonical response。
 
 ## 数据合同
 
@@ -78,25 +78,25 @@ Workflow Definition、Application RAG、Prompt 与 Agent / Copilot runtime 继�
 
 列表只返回 `application_result_artifact_summary.v1`，不返回 content。精确 read 才返回 content，并要求与记录一致的 application scope 和 owner。
 
-首批单份 content 上限固定为 `64 KiB`，要求 UTF-8、非空和 canonical serialization。内容被视为用户内容，可能包含业务敏感信息，因此不得进入日志、错误摘要、trace、URL、cursor、committed fixture 或 run record。
+v1 单份 content 上限固定为 `64 KiB`，要求 UTF-8、非空和 canonical serialization。内容被视为用户内容，可能包含业务敏感信息，因此不得进入日志、错误摘要、trace、URL、cursor、committed fixture 或 run record。
 
 ## 状态、并发与失败语义
 
 - capture 只接受 `succeeded` terminal turn 和非空 run ref；running / failed / canceled / outcome unknown 均拒绝。
 - 同一 scope / session / turn 只能创建一份 artifact；相同 run ref、profile、content type 与 digest 重试返回原记录，不同内容返回冲突。
 - artifact 写入发生在 terminal turn 已成功落下之后。artifact store 失败不回滚 run，也不重放 provider；响应同时保留成功 turn 和稳定 artifact failure。
-- 首批不允许客户端事后上传内容。首次未保存的易失结果在幂等重试时保持不可恢复。
+- v1 不允许客户端事后上传内容。首次未保存的易失结果在幂等重试时保持不可恢复。
 - list cursor 绑定 tenant / workspace / application / owner / session 与最后一个排序键；scope 或 filter 漂移失败关闭。
 - store unavailable、contract mismatch、not found、scope denied、payload invalid、content too large、source unavailable 与 conflict 使用稳定 failure code，不透传底层错误正文。
 
 ## 权限边界
 
-首批复用 parent session 的权限：
+当前读写路径复用 parent session 的权限：
 
 - 新 turn 的显式 capture 复用 `application_sessions:execute`；只有执行者能在同一次请求中选择保存。
 - list / read 复用 `application_sessions:read`，并继续要求 verified identity、active workspace membership 和精确 application scope。
 
-Result Artifact 是独立数据 owner，但首批不新增平行的成员资格语义。若后续需要跨 session 分享、导出、删除或委派，必须独立评审权限，不得把 `read` 自动提升为分享或删除权限。
+Result Artifact 是独立数据 owner，但当前不新增平行的成员资格语义。若后续需要跨 session 分享、导出、删除或委派，必须独立评审权限，不得把 `read` 自动提升为分享或删除权限。
 
 ## 实施批次
 
@@ -123,9 +123,12 @@ SQLite 真实文件证据覆盖创建、相同 turn 幂等、冲突、并发单�
 
 ### 批次 C：生命周期与应用工作区消费
 
-- 增加显式 archive / purge policy；默认不自动清理，不做永久删除前的隐式级联。
-- 在 Application Interaction Workspace 增加保存选择、保存结果状态、metadata 列表、精确读取和 session / run handoff。
-- 应用、session、workspace 或身份切换必须清除已读取 content 和迟到响应；不写 localStorage、sessionStorage、IndexedDB 或 URL。
+- 先冻结生命周期合同：不可变 artifact content / provenance 与可变生命周期状态必须分离；archive / unarchive 使用独立 `lifecycle_version`、expected-version CAS 和 append-only event，不修改 artifact payload，也不拆除现有数据库 update / delete 拒绝。
+- list 默认只返回 active artifact；显式 archived filter、排序和 cursor 必须绑定 tenant / workspace / application / owner / session / lifecycle state。archive 不改变来源、digest、created at 或 read 权限，unarchive 只能恢复同一精确 owner 的原 artifact。
+- archive / unarchive 属于写操作，必须在实现前明确复用受审的管理权限或新增独立 artifact lifecycle permission；不得由 `application_sessions:read` 自动获得。永久 purge 执行、自动 retention job、级联删除与批量清理继续关闭，只记录未来启用所需的权限、保留期、显式确认和关联资源规则。
+- 生命周期 API、schema 或 migration 明确后更新具体任务卡，并在 memory、SQLite、PostgreSQL 同时落地 repository、route、CAS、并发、重启、no-fallback 与隐私证据，不能只交付 memory 或 Web 状态。
+- 为现有 Application Interaction、Prompt Session 与 Agent Session 三类 surface 建立共享 strict artifact consumer，再接入保存选择、保存结果状态、active / archived metadata 列表、精确读取、session / run handoff 和 archive / unarchive；不得在三块页面复制 schema 解析、scope guard 或迟到响应状态。先按页面族判断是否需要局部 Pencil，不创建 S11。
+- application、session、workspace、identity、profile 或路由切换必须清除已读取 content、一次性状态和迟到响应；不写 localStorage、sessionStorage、IndexedDB 或 URL。
 
 ### 批次 D：双数据库产品连续链与专题收口
 
@@ -150,4 +153,4 @@ SQLite 真实文件证据覆盖创建、相同 turn 幂等、冲突、并发单�
 - 不允许客户端事后上传结果并绑定 run，不从日志、缓存或 provider 重建结果。
 - 不实现 replay / resume、自动 retry / fallback、background execution、schedule、agent loop、业务写回或自动发布。
 - 不打开真实 Provider、production secret、production auth、public sharing、public URL、跨 workspace 分享、billing 或 production capability。
-- memory owner 不声明 durable 或重启恢复；SQLite / PostgreSQL 的 durable 结论只限开发测试态。批次 C 前不新增 Web consumer、archive / purge route 或生命周期 migration。
+- memory owner 不声明 durable 或重启恢复；SQLite / PostgreSQL 的 durable 结论只限开发测试态。批次 C 必须保留 artifact payload 不可变，永久 purge、自动清理和 production lifecycle 继续关闭。
