@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 正在推进批次 E，状态为 `gateway_provider_attempt_dev_test_v1_batch_e_viewport_next`。批次 A 至 D、七个 Visual R1 代表面、三块 React strict consumer、memory / SQLite 产品连续链，以及 PostgreSQL migration / runtime role / checkpoint / 重连和三个 unary 协议一致性均已闭合；下一步只补真实浏览器目标视口、定向 race 与最终门禁。真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。
+- 最近关闭产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 状态为 `gateway_provider_attempt_dev_test_v1_completed`。批次 A 至 E、七个 Visual R1 代表面、三块 React strict consumer、memory / SQLite / PostgreSQL 产品连续链、三个 unary 协议、真实浏览器 `1440×900` / `720×900` / `390×844` 和最终门禁均已闭合；真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。下一产品顺位回到 [功能设计文档入口](features/README.md) 选择新的长期功能目标，不从本专题派生 S11 或同层 gate-only 切片。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
 - 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。该专题关闭后的入口回流已完成，当前新专题以上方 Provider Attempt 设计为准。
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
@@ -36,13 +36,13 @@
 
 当前最多两条在制主线：
 
-1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 批次 A 至 D、批次 E 七个 S7 / S5 Visual R1 代表面、三块 React strict consumer、memory / SQLite 产品连续链，以及 PostgreSQL 与三个 unary 协议一致性已完成。下一步只补真实浏览器目标视口、定向 race 与最终门禁；不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
+1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核、Gateway Provider Attempt 批次 A 至 E 均已关闭。下一步先从 `docs/features/README.md` 选择新的长期功能设计文档，再拆纵向实现批次；不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-15 后续事项
 
-1. 第一顺位：补真实浏览器 `1440×900`、关键断点与 `390×844` 复核。当前内置浏览器实际 `1280×720` 已确认页面无横向溢出、控制台无 warning / error 且 DOM 无 raw credential，但前次视口覆写未生效，不把目标视口写成已完成。
-2. 第二顺位：运行 Provider Attempt 定向 race、Web / build、隐私和最终全量仓库门禁，判断专题是否可以完成。仍不打开真实 Provider、stream fallback、非 API Key fallback、同 Profile retry、隐式切换或 production enablement。
+1. 第一顺位：从 `docs/features/README.md` 按真实产品任务选择新的长期功能设计文档；没有对应专题时先创建短设计与开发文档，再进入实现，不默认继续新增同层门禁切片。
+2. Provider Attempt 后续只响应真实使用证据或回归问题；仍不打开真实 Provider、stream fallback、非 API Key fallback、同 Profile retry、隐式切换或 production enablement。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 

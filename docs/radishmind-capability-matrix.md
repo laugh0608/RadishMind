@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-08-15 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter 与 Admin Provider Profile / Model Route 专题均已完成并保持稳定。Family UI `S1 R8` 至 `S8 R1` 已审关闭，S9 / S10 功能、Pencil Visual R3、React 迁移与真实浏览器复核也已完成；Workflow Definition 结构化运行输入和 Provider 价格策略版本与应用成本审查均已完成批次 A 至 E、三存储与 SQLite 产品浏览器收口。Gateway Provider Attempt 受控重试与降级执行已完成批次 A 至 D、七个 S7 / S5 Visual R1 代表面、Route / Playground / Request History React strict consumer、双数据库产品连续链和三个 unary 协议一致性；fallback 只在独立开发测试 gate 与请求显式允许时执行，当前只补目标视口与最终门禁，不改变 production 停止线。
+2026-08-15 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter 与 Admin Provider Profile / Model Route 专题均已完成并保持稳定。Family UI `S1 R8` 至 `S8 R1` 已审关闭，S9 / S10 功能、Pencil Visual R3、React 迁移与真实浏览器复核也已完成；Workflow Definition 结构化运行输入和 Provider 价格策略版本与应用成本审查均已完成批次 A 至 E、三存储与 SQLite 产品浏览器收口。Gateway Provider Attempt 受控重试与降级执行已完成批次 A 至 E、七个 S7 / S5 Visual R1 代表面、Route / Playground / Request History React strict consumer、双数据库产品连续链、三个 unary 协议、真实浏览器三视口与最终门禁；fallback 只在独立开发测试 gate 与请求显式允许时执行，不改变 production 停止线。
 
 `RadishFlow` / `Radish` 暂无稳定挂载点不阻塞 RadishMind 平台本体开发，也不等于可以细化假想接线或声明真实集成就绪。
 

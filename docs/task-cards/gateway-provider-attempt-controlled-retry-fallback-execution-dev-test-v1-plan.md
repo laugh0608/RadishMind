@@ -2,7 +2,7 @@
 
 更新时间：2026-08-15
 
-状态：`gateway_provider_attempt_dev_test_v1_batch_e_viewport_next`
+状态：`gateway_provider_attempt_dev_test_v1_completed`
 
 对应功能文档：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](../features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)
 
@@ -115,14 +115,14 @@ active Provider Route v2 snapshot
 
 ## 批次 E：Pencil、React 与产品连续链
 
-状态：进行中；Visual R1、React strict consumer、双数据库产品连续链与三个 unary 协议一致性已完成，补充视口和最终门禁为下一项。
+状态：已完成；Visual R1、React strict consumer、双数据库产品连续链、三个 unary 协议一致性、真实浏览器三视口与最终门禁全部关闭。
 
 - [x] 在既有 S7 Route 与 S5 Playground / Request History 页面族冻结完整 Pencil 代表面。
 - [x] 完成本轮 Visual R1 人工视觉批准；批准前未实现 React。
 - [x] 实现主备 Route、请求级允许和连续 attempt evidence strict consumer。
 - [x] 完成 memory / SQLite 浏览器主失败 → 备用成功、双失败、quota 阻断、旧记录与重启链。
 - [x] 完成 PostgreSQL migration、并发、checkpoint、重连与三协议一致性。
-- [ ] 覆盖 Desktop、关键断点与 `390×844`，并完成隐私、Web、build、race 和仓库门禁。
+- [x] 覆盖 Desktop、关键断点与 `390×844`，并完成隐私、Web、build、race 和仓库门禁。
 
 Pencil 证据：S7 Route Desktop `h41DNz` / Narrow `Q5dMjv`，S5 Playground Desktop `DY5HB` / Narrow `o9Btk`，S5 Request History Desktop `KsXpp` / Narrow `BRzOE`，Decision R17 `GfqT6`。七个根节点按产品审阅顺序横向排放，逐节点边界扫描为零裁切、零越界、零 placeholder；桌面与窄屏截图已复核，并于 2026-08-13 获得人工视觉批准。批准时没有抢跑 React。
 
@@ -130,16 +130,18 @@ React strict consumer 证据：既有 Route consumer / editor 严格区分 v1 �
 
 memory / SQLite 产品证据：正式 launcher 的显式本地产品模式启动 loopback 确定性 fixture 与五项开发测试 gate；页面内完成 Route v1 → v2 人工激活、主失败 → 备用成功、双失败、第二次 quota 阻断、v3 逐 attempt 详情、旧 v2 详情和跨服务重启恢复。验收同时修正 inventory enablement、application handoff、CORS attempt 头、详情终态派生、pricing integrity digest、旧记录零值字段、首 attempt quota usage 与分阶段 quota 文案。Web 全量现为 `353/353` 且 production build 通过；内置浏览器实际 `1280×720` 无横向溢出、无控制台 warning / error、无 raw credential DOM 残留。
 
-PostgreSQL 产品证据：新增对称的显式 `--provider-attempt-postgres-dev-test`，复用 loopback fixture 与五项 gate，并把 Application Catalog、API Key、Route、Request History、quota 和 pricing 绑定到真实 PostgreSQL 17。联合集成测试在同一实例上完成 Route v2、三个 unary 协议主失败 → 备用成功、六次逐 attempt quota、双 pricing snapshot、v3 checkpoint、runtime role 无 DDL、关闭后失败关闭与重连恢复；分项 PostgreSQL 回归继续覆盖 migration 并发、Route CAS、checkpoint 并发单赢家和 no fallback。目标视口覆写在当前环境尚未生效，因此 `1440×900`、关键断点与 `390×844` 仍保留为退出项。
+PostgreSQL 产品证据：新增对称的显式 `--provider-attempt-postgres-dev-test`，复用 loopback fixture 与五项 gate，并把 Application Catalog、API Key、Route、Request History、quota 和 pricing 绑定到真实 PostgreSQL 17。联合集成测试在同一实例上完成 Route v2、三个 unary 协议主失败 → 备用成功、六次逐 attempt quota、双 pricing snapshot、v3 checkpoint、runtime role 无 DDL、关闭后失败关闭与重连恢复；分项 PostgreSQL 回归继续覆盖 migration 并发、Route CAS、checkpoint 并发单赢家和 no fallback。
 
-退出条件：双数据库、三个协议、真实浏览器和人工设计证据全部关闭后，专题才可标记完成。
+浏览器与最终门禁证据：内置浏览器通过同源 iframe 建立精确 `1440×900`、`720×900` 与 `390×844` child viewport，Route、Playground、Request History 九个组合均验证实际 `innerWidth / innerHeight`、媒体查询命中、双列 → 单列、document / owner 零横向溢出、控制台零 warning / error、零可见 alert / Vite overlay 和零 raw credential DOM。临时 harness 已删除；Web 全量 `353/353`、production build 与 Provider Attempt / Route / History 定向 race 通过。
+
+退出条件已满足：双数据库、三个协议、真实浏览器和人工设计证据全部关闭。
 
 ## 2026-08-14 开工顺序
 
 1. 先扩展 `adminProviderRouteConsumer.ts` 与既有 Route editor，使 v1 / v2 形成严格判别联合；v2 只编辑有序、不同 Profile 且协议能力兼容的主 / 备 target，并继续复用既有 candidate、review 与 activation owner。
 2. 再扩展 `modelGatewayPlaygroundConsumer.ts`：只在 API Key 非流式调用显示请求级 `disabled | allow_configured`，stream 或非 API Key 必须锁定 `disabled`；读取两个脱敏 attempt 响应头，不推测 Provider 内部错误。
 3. 最后扩展 `modelGatewayRequestHistoryConsumer.ts` 与 panel：严格消费 v1 / v2 / v3，v3 按 durable checkpoint 展示 attempt lineage、逐 attempt quota / cost coverage 与终态选择；旧记录继续投影为单 attempt，不补造字段。
-4. 三个 strict consumer、memory / SQLite 和 PostgreSQL 三协议连续链已经闭合；继续按任务卡顺序推进真实浏览器补充视口、定向 race 与最终门禁，不在 UI 内复制 Route、quota、pricing 或 history owner。
+4. 三个 strict consumer、memory / SQLite、PostgreSQL 三协议连续链、真实浏览器三视口、定向 race 与最终门禁均已闭合；后续不在 UI 内复制 Route、quota、pricing 或 history owner。
 
 ## 验证顺序
 

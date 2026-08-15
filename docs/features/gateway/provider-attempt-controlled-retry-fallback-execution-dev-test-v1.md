@@ -2,7 +2,7 @@
 
 更新时间：2026-08-15
 
-状态：`gateway_provider_attempt_dev_test_v1_batch_e_viewport_next`
+状态：`gateway_provider_attempt_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -307,7 +307,7 @@ memory / SQLite 产品连续链也已完成。正式 launcher 新增显式 `--pr
 
 PostgreSQL 连续链已通过显式 `--provider-attempt-postgres-dev-test` 与真实 PostgreSQL 17 实例关闭。该入口复用同一 loopback fixture 和五项 gate，把 Application Catalog、API Key、Route、Request History、quota 与 pricing 绑定到 `postgres_dev_test`，并把 quota / pricing migration marker 纳入启动预检。联合集成测试在同一 runtime role 下完成 Route v2 激活、Chat Completions / Responses / Messages 主失败 → 备用成功、六次逐 attempt quota admission、逐 target pricing snapshot、v3 checkpoint、连接关闭失败关闭和重连恢复；runtime role 无 DDL，数据库不保存请求正文或 credential。既有 PostgreSQL 定向回归继续覆盖 migration 并发、Route CAS、checkpoint 并发单赢家与 no fallback。
 
-实际内置浏览器视口 `1280×720` 下 document、history 与 detail 均无横向溢出，控制台无 warning / error，离开签发页后 DOM 不含 raw credential。当前桌面环境的浏览器视口覆写没有生效，因此 `1440×900`、关键断点与 `390×844` 不冒充已验证；下一小步只补真实视口、定向 race 和最终门禁。
+最终浏览器复核在内置浏览器固定外层视口中使用同源 iframe 建立真实嵌套浏览上下文；Route、Playground 与 Request History 的 child window 分别精确报告 `1440×900`、`720×900` 与 `390×844`，对应媒体查询和双列 → 单列布局均实际生效。九个页面 / 视口组合的 document 与 owner 均无横向溢出，控制台 warning / error、可见 alert、Vite error overlay 和 raw credential DOM 命中均为零；临时 viewport harness 与控制台探针已在复核后删除，没有进入产品代码或提交。
 
 ## 验收
 
@@ -345,4 +345,4 @@ PostgreSQL 连续链已通过显式 `--provider-attempt-postgres-dev-test` 与�
 3. 只覆盖 API Key 认证的三个非流式 northbound API；
 4. Request History v3、逐 attempt quota 与逐 attempt pricing 是实现前置，不以单 selection 字段勉强承载多 attempt。
 
-功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D、七个 Visual R1 代表面、Route / Playground / Request History React strict consumer、memory / SQLite 产品连续链、PostgreSQL 实例和三个 unary 协议一致性均已关闭。下一顺位只剩真实浏览器补充视口、定向 race 与最终门禁；专题尚未完成。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。
+功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准。批次 A 至 E、七个 Visual R1 代表面、Route / Playground / Request History React strict consumer、memory / SQLite 产品连续链、PostgreSQL 实例、三个 unary 协议一致性、真实浏览器三视口和最终门禁均已关闭；唯一高风险任务卡同步完成。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开，后续不从本专题派生 S11 或同层 gate-only 切片。

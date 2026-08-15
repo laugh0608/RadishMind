@@ -20,7 +20,7 @@
 - [Admin Provider Profile / Model Route 受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) 批次 A 至 E 已完成并关闭，建立配置领域、三模式 durable repository、人工 review、显式 activation、可恢复 active snapshot、verified Admin API、Admin Web 和只读 Gateway consumer。`static_config` 继续作为默认模式；显式 `admin_snapshot_dev_test` 模式按租户、工作区、环境、配置、protocol 与 model 精确选路，固定请求开始时的 generation / digest，inventory 或 route 漂移在 bridge 前失败且不回退；Request History 页面展示精确快照谱系。
 - 当前已执行开发测试态 application request quota admission，并在独立 gate 下为三个 API Key unary API 提供显式、最多一次不同 Profile 的受控 fallback；仍不执行生产 API 密钥生命周期、production quota、rate limit、billing、cost ledger、隐式 / stream fallback、production gateway 或 load balancing。
 - [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 已完成设计、后端、Visual R1、React strict consumer、双数据库与真实浏览器连续链：价格保持独立版本化 owner，请求只绑定精确 selection 对应的不可变 USD 快照，成本只由合法 reported usage 以整数算法估算并进入 Request History / Application Operations；不改变请求准入、路由或 Provider 调用结果。
-- [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已获批准并完成批次 A 至 D：Route v2、冻结 attempt plan、类型化 Provider failure、Request History v3 三存储、Admin 激活链和三个 API Key unary API 已成立。省略请求级允许时仍保持 `fallback_policy=disabled`；只有独立开发测试 gate 与显式 `allow_configured` 同时成立才执行受控 fallback。批次 E 的七个 S7 / S5 Visual R1 代表面、React strict consumer、双数据库产品连续链和三个 unary 协议一致性也已完成，下一步只补真实浏览器目标视口和最终门禁；真实 Provider、非 API Key、stream 与 production capability 尚未打开。
+- [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已完成批次 A 至 E：Route v2、冻结 attempt plan、类型化 Provider failure、Request History v3 三存储、Admin 激活链、三个 API Key unary API、七个 S7 / S5 Visual R1 代表面、React strict consumer、双数据库产品连续链、三个协议一致性、真实浏览器三视口与最终门禁均已关闭。省略请求级允许时仍保持 `fallback_policy=disabled`；只有独立开发测试 gate 与显式 `allow_configured` 同时成立才执行受控 fallback。真实 Provider、非 API Key、stream 与 production capability 尚未打开。
 
 ## 当前开发目标
 
@@ -32,7 +32,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 
 该功能只增加 Web consumer / lazy panel 与 request-id handoff，复用现有 API、dev/test caller scope 和 history，不新增 schema、repository、provider contract 或生产授权。输入输出只存在于当前组件内存，Request History 继续只保存 sanitized operational metadata。
 
-Provider Attempt 批次 A 至 D 已把 Route v2、Request History v3、既有 Admin 人工激活链和三个 API Key unary API 闭合：SQLite / PostgreSQL 同构持久化、旧版本兼容、重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL，以及 v1 → v2 → rollback v1 的 strict HTTP 连续链均已成立；request-local executor 又固定 Route / inventory / pricing，以逐 attempt quota 与 history checkpoint 串联最多两次 bridge 调用。批次 E 的 S7 / S5 Visual R1、Route v1 / v2 editor、Playground 请求级允许、Request History v1 / v2 / v3 lineage、Application Operations partial cost coverage，以及 memory / SQLite 页面和 PostgreSQL 三协议连续链已经关闭；当前开发目标只剩补充视口、定向 race 与最终门禁。真实 Provider 与 production capability 继续关闭。
+Provider Attempt 批次 A 至 D 已把 Route v2、Request History v3、既有 Admin 人工激活链和三个 API Key unary API 闭合：SQLite / PostgreSQL 同构持久化、旧版本兼容、重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL，以及 v1 → v2 → rollback v1 的 strict HTTP 连续链均已成立；request-local executor 又固定 Route / inventory / pricing，以逐 attempt quota 与 history checkpoint 串联最多两次 bridge 调用。批次 E 的 S7 / S5 Visual R1、Route v1 / v2 editor、Playground 请求级允许、Request History v1 / v2 / v3 lineage、Application Operations partial cost coverage、memory / SQLite 页面、PostgreSQL 三协议连续链、真实浏览器三视口和最终门禁也已关闭。真实 Provider 与 production capability 继续关闭。
 
 ## 设计边界
 
@@ -53,7 +53,7 @@ Provider Attempt 批次 A 至 D 已把 Route v2、Request History v3、既有 Ad
 6. Request History、Playground、Application API Integration、Application Configuration Draft / Review 与 Publish Governance 已完成 application → validated configuration → models / examples → request → response → history → immutable candidate / review 的开发测试路径。
 7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成三模式 owner、Admin API、六条 route provider 前准入、S9 完整 Pencil、React 严格 consumer、CAS 确认与真实浏览器连续链；不提前打开 production distribution、token 估算、价格、production quota 或计费。
 8. 价格与成本专题设计、S9 / S10 Visual R3、S7 Pricing / S5 Cost Review Visual R1、领域、三模式 owner、Admin API、Request History v2、React strict consumer、数据库实例和真实浏览器连续链均已关闭。
-9. Provider Attempt 批次 A 至 D、批次 E Visual R1、React strict consumer、双数据库和三个 unary 协议连续链已关闭；当前按唯一高风险任务卡补真实浏览器目标视口与最终门禁，不从静态 retry / fallback policy 派生同层 checker 链。
+9. Provider Attempt 批次 A 至 E、Visual R1、React strict consumer、双数据库、三个 unary 协议、真实浏览器三视口和最终门禁已关闭；唯一高风险任务卡已完成，不从静态 retry / fallback policy 派生同层 checker 链。
 
 ## 验收方式
 

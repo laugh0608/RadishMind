@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_dev_test_v1_batch_e_viewport_next`。批次 A 至 D、Visual R1、Route / Playground / Request History React strict consumer、双数据库产品连续链和三个 unary 协议一致性已完成；下一步只推进补充视口与最终门禁，真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
+当前没有活跃高风险实现任务卡。[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md) 已以 `gateway_provider_attempt_dev_test_v1_completed` 关闭批次 A 至 E、Visual R1、React strict consumer、双数据库产品连续链、三个 unary 协议、真实浏览器三视口与最终门禁；真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
 
 ## 最近关闭任务
 
