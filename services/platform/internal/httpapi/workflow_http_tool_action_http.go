@@ -193,7 +193,7 @@ func (s *Server) handleExecuteWorkflowHTTPToolActionPlan(writer http.ResponseWri
 	if !s.allowWorkflowHTTPToolExecutionDev(writer, trace) {
 		return
 	}
-	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, workflowHTTPToolExecutionRequiredScopes...)
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, workflowHTTPToolExecutionBaseScopes...)
 	ctx := workflowHTTPToolActionMutationContext(request, trace, auth, "", "execution")
 	if failureCode != "" {
 		writeWorkflowHTTPToolExecutionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode(failureCode), "Workflow HTTP tool execution authorization is denied."))
@@ -207,6 +207,28 @@ func (s *Server) handleExecuteWorkflowHTTPToolActionPlan(writer http.ResponseWri
 	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
 		writeWorkflowHTTPToolExecutionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow HTTP tool execution workspace binding is denied."))
 		return
+	}
+	if s.workflowHTTPToolActionStore != nil {
+		plan, found, readErr := s.workflowHTTPToolActionStore.ReadPlan(ctx, strings.TrimSpace(request.PathValue("plan_id")))
+		if readErr != nil {
+			writeWorkflowHTTPToolExecutionResult(writer, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureToolStore, "Workflow HTTP tool execution state could not be read safely."))
+			return
+		}
+		if found {
+			requiredScopes := workflowHTTPToolExecutionRequiredScopes
+			if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 && plan.SourceKind == workflowHTTPToolSourceDefinition {
+				requiredScopes = workflowDefinitionHTTPToolExecutionRequiredScopes
+			}
+			auth, failureCode, status = s.authorizeWorkspaceScopedPermissions(request, requiredScopes...)
+			ctx = workflowHTTPToolActionMutationContext(request, trace, auth, body.ApplicationID, "execution")
+			if failureCode != "" || !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+				if failureCode == "" {
+					failureCode, status = "workspace_binding_mismatch", http.StatusForbidden
+				}
+				writeWorkflowHTTPToolExecutionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode(failureCode), "Workflow HTTP tool execution source authorization is denied."))
+				return
+			}
+		}
 	}
 	service, err := s.workflowHTTPToolExecutionService()
 	if err != nil {

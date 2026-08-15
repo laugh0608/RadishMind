@@ -218,6 +218,18 @@ func nullableWorkflowRunFailureCode(value WorkflowRunFailureCode) any {
 func validateWorkflowRunToolRecord(runContext WorkflowRunContext, record *WorkflowRunRecord) error {
 	if record == nil || record.SchemaVersion != workflowRunRecordToolSchemaVersion ||
 		record.TenantRef != strings.TrimSpace(runContext.TenantRef) || !workflowHTTPToolReferencePattern.MatchString(record.TenantRef) ||
+		record.ExecutionKind != "" || record.ExecutionSourceKind != "" || record.ExecutionSourceID != "" ||
+		record.ExecutionSourceVersion != 0 || record.ExecutionProfile != "" || record.ExecutionSource != nil ||
+		record.DefinitionAuthority != nil ||
+		validateWorkflowRunToolEvidence(record) != nil ||
+		!validWorkflowRunDiagnostic(record.Diagnostic, isTerminalWorkflowRunStatus(record.Status)) {
+		return errWorkflowRunStoreContract
+	}
+	return nil
+}
+
+func validateWorkflowRunToolEvidence(record *WorkflowRunRecord) error {
+	if record == nil ||
 		!workflowHTTPToolRunIDPattern.MatchString(record.RunID) ||
 		!workflowHTTPToolPlanIDPattern.MatchString(record.PlanID) ||
 		!workflowHTTPToolConfirmationIDPattern.MatchString(record.ConfirmationID) ||

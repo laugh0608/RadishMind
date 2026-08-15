@@ -29,6 +29,7 @@ HTTP_TOOL_SCHEMA_PATHS = {
     "confirmation_decision": REPO_ROOT / "contracts/workflow-http-tool-confirmation-decision.schema.json",
     "execution_audit": REPO_ROOT / "contracts/workflow-http-tool-execution-audit.schema.json",
     "run_record_v2": REPO_ROOT / "contracts/workflow-run-record-v2.schema.json",
+    "run_record_v9": REPO_ROOT / "contracts/workflow-run-record-v9.schema.json",
 }
 EXPECTED_HTTP_TOOL_ID = "workflow.http.reviewed-json-read.v1"
 EXPECTED_ACTION_PLAN_FIELDS = {
@@ -116,6 +117,7 @@ EXPECTED_NEGATIVE_MUTATIONS = {
     "run_zero_confirmation_call",
     "run_business_write",
     "run_endpoint_projection",
+    "run_tool_failure_category_removed",
 }
 
 EXPECTED_RESOURCE_IDS = {
@@ -531,6 +533,8 @@ def mutate_negative_document(document: dict[str, Any], mutation: str) -> dict[st
         candidate["side_effects"]["business_writes"] = 1
     elif mutation == "run_endpoint_projection":
         candidate["tool_attempt"]["output_projection"]["endpoint"] = "https://forbidden.example.invalid"
+    elif mutation == "run_tool_failure_category_removed":
+        del candidate["diagnostic"]["tool_failure_category"]
     else:
         raise SystemExit(f"unknown negative mutation: {mutation}")
     return candidate
@@ -686,7 +690,7 @@ def assert_http_tool_contract_schemas() -> None:
             f"negative case {case_id} unexpectedly passed {schema_key}",
         )
 
-    for schema_key in ("definition", "action_plan", "confirmation_decision", "execution_audit", "run_record_v2"):
+    for schema_key in ("definition", "action_plan", "confirmation_decision", "execution_audit", "run_record_v2", "run_record_v9"):
         serialized = json.dumps(positives[schema_key], ensure_ascii=False).lower()
         for forbidden_literal in ("authorization_header", "raw_query", "raw_request", "raw_response", "secret_value"):
             require(forbidden_literal not in serialized, f"{schema_key} leaked forbidden literal {forbidden_literal}")

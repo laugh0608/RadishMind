@@ -29,6 +29,19 @@ func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
 	firstBridge := &workflowExecutorTestBridge{}
 	firstServer.bridge = firstBridge
 	draft := workflowHTTPToolEligibleDraftForTest()
+	applicationID := "app_aaaaaaaaaaaaaaaa"
+	draft.ApplicationID = applicationID
+	applicationService := firstServer.applicationCatalogService()
+	applicationService.newID = func() (string, error) { return applicationID, nil }
+	applicationContext := ApplicationCatalogContext{
+		RequestContext: context.Background(), RequestID: "request_sqlite_definition_tool_app", TenantRef: "tenant_demo",
+		WorkspaceID: "workspace_demo", OwnerSubjectRef: "subject_demo_user", ActorRef: "subject_demo_user",
+		AuditRef: "audit_sqlite_definition_tool_app", WriteEnabled: true,
+	}
+	if created := applicationService.Create(applicationContext, ApplicationCatalogCreateInput{DisplayName: "SQLite Definition tool app", ApplicationKind: "workflow_copilot"}); created.FailureCode != "" || created.Record == nil {
+		firstServer.Close()
+		t.Fatalf("create SQLite Definition tool application: %#v", created)
+	}
 	draftPayload := savedWorkflowDraftPayloadFromDraft(draft)
 	saveRequest := httptest.NewRequest(
 		http.MethodPost,
@@ -47,6 +60,7 @@ func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
 	}
 
 	actionContext := workflowHTTPToolActionTestContext()
+	actionContext.ApplicationID = applicationID
 	releaseContext := WorkflowDefinitionReleaseContext{
 		RequestContext:  actionContext.RequestContext,
 		TenantRef:       actionContext.TenantRef,
@@ -105,6 +119,7 @@ func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
 		})),
 	)
 	setWorkflowHTTPToolActionDevHeaders(createRequest, "workflow_definitions:read,workflow_tool_actions:plan")
+	createRequest.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
 	createResponse := httptest.NewRecorder()
 	firstServer.httpServer.Handler.ServeHTTP(createResponse, createRequest)
 	created := decodeWorkflowHTTPToolActionEnvelope(t, createResponse, http.StatusOK)
@@ -131,7 +146,9 @@ func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
 		t.Fatalf("restart SQLite Workflow Definition HTTP Tool server: %v", err)
 	}
 	t.Cleanup(restartedServer.Close)
-	restartedBridge := &workflowExecutorTestBridge{}
+	restartedBridge := &workflowExecutorTestBridge{handle: func(_ context.Context, _ []byte, _ bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
+		return successfulWorkflowExecutorEnvelope("reviewable Definition tool answer"), nil
+	}}
 	restartedServer.bridge = restartedBridge
 
 	restoredVersion, err := restartedServer.workflowDefinitionReleaseRepository.ReadVersion(releaseContext, version.DefinitionID, version.Version)
@@ -150,6 +167,7 @@ func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
 		nil,
 	)
 	setWorkflowHTTPToolActionDevHeaders(readPlanRequest, "workflow_tool_actions:read")
+	readPlanRequest.Header.Set(savedWorkflowDraftDevApplicationHeader, applicationID)
 	readPlanResponse := httptest.NewRecorder()
 	restartedServer.httpServer.Handler.ServeHTTP(readPlanResponse, readPlanRequest)
 	restored := decodeWorkflowHTTPToolActionEnvelope(t, readPlanResponse, http.StatusOK)
@@ -164,6 +182,68 @@ func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
 		restored.ActionPlan.DraftID != "" || restored.ActionPlan.DraftVersion != 0 || restartedBridge.callCount() != 0 {
 		t.Fatalf("restore approved SQLite Definition-bound action plan: %#v bridge=%d", restored, restartedBridge.callCount())
 	}
+
+	networkAttempts := 0
+	transport := workflowHTTPToolTestTransport(func(*http.Request) (*http.Response, error) {
+		networkAttempts++
+		return workflowHTTPToolJSONResponse(http.StatusOK, `{"resource_key":"docs/radishflow/overview","title":"RadishFlow","summary":"Reviewed resource","updated_at":"2026-08-15T11:03:00Z"}`), nil
+	})
+	restartedServer.workflowHTTPToolExecutionTransport = &transport
+	rawInput := "private SQLite Definition HTTP Tool input must not persist"
+	executeRequest := workflowHTTPToolSQLiteExecutionRequest(t, *restored.ActionPlan, rawInput)
+	executeResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(executeResponse, executeRequest)
+	executed := decodeWorkflowHTTPToolExecutionEnvelope(t, executeResponse, http.StatusOK)
+	if executed.FailureCode != nil || executed.ActionPlan == nil || executed.Run == nil ||
+		executed.ActionPlan.Status != WorkflowHTTPToolActionStatusConsumed ||
+		executed.Run.SchemaVersion != workflowRunRecordDefinitionToolSchemaVersion ||
+		executed.Run.ExecutionSourceKind != workflowDefinitionExecutionSourceKind ||
+		executed.Run.ExecutionSourceID != version.DefinitionID || executed.Run.ExecutionSourceVersion != version.Version ||
+		executed.Run.DefinitionAuthority == nil || executed.Run.Output != "" || executed.Run.DraftID != "" ||
+		executed.Run.SideEffects.ToolCalls != 1 || executed.Run.SideEffects.ConfirmationCalls != 1 ||
+		networkAttempts != 1 || restartedBridge.callCount() != 1 {
+		t.Fatalf("execute restored SQLite Definition-bound plan exactly once: %#v network=%d bridge=%d", executed, networkAttempts, restartedBridge.callCount())
+	}
+	runID := executed.Run.RunID
+	restartedServer.Close()
+
+	readServer, err := NewServerWithError(cfg, Options{BuildVersion: "sqlite-workflow-definition-http-tool-run-restored"})
+	if err != nil {
+		t.Fatalf("restart SQLite Definition HTTP Tool run server: %v", err)
+	}
+	t.Cleanup(readServer.Close)
+	readBridge := &workflowExecutorTestBridge{}
+	readServer.bridge = readBridge
+	readNetworkAttempts := 0
+	readTransport := workflowHTTPToolTestTransport(func(*http.Request) (*http.Response, error) {
+		readNetworkAttempts++
+		return workflowHTTPToolJSONResponse(http.StatusOK, `{}`), nil
+	})
+	readServer.workflowHTTPToolExecutionTransport = &readTransport
+
+	readRunRequest := httptest.NewRequest(
+		http.MethodGet,
+		"/v1/user-workspace/workflow-runs/"+runID+"?workspace_id="+url.QueryEscape(draft.WorkspaceID)+"&application_id="+url.QueryEscape(applicationID),
+		nil,
+	)
+	setLocalProductWorkflowHeaders(readRunRequest, "workflow_runs:read", applicationID)
+	readRunResponse := httptest.NewRecorder()
+	readServer.httpServer.Handler.ServeHTTP(readRunResponse, readRunRequest)
+	restoredRun := decodeWorkflowRunEnvelope(t, readRunResponse, http.StatusOK)
+	if restoredRun.FailureCode != nil || restoredRun.Run == nil ||
+		restoredRun.Run.SchemaVersion != workflowRunRecordDefinitionToolSchemaVersion || restoredRun.Run.RunID != runID ||
+		restoredRun.Run.DefinitionAuthority == nil || restoredRun.Run.Output != "" {
+		t.Fatalf("restore SQLite Definition HTTP Tool run v9: %#v", restoredRun)
+	}
+	repeatedResponse := httptest.NewRecorder()
+	readServer.httpServer.Handler.ServeHTTP(repeatedResponse, workflowHTTPToolSQLiteExecutionRequest(t, *restored.ActionPlan, "do not repeat"))
+	repeated := decodeWorkflowHTTPToolExecutionEnvelope(t, repeatedResponse, http.StatusOK)
+	if repeated.FailureCode == nil || *repeated.FailureCode != string(WorkflowRunFailureToolConfirmation) ||
+		repeated.Run != nil || readNetworkAttempts != 0 || readBridge.callCount() != 0 {
+		t.Fatalf("restart allowed repeated Definition HTTP Tool execution: %#v network=%d bridge=%d", repeated, readNetworkAttempts, readBridge.callCount())
+	}
+	readServer.Close()
+	assertLocalProductSQLiteFilesExclude(t, databasePath, rawInput, "reviewable Definition tool answer", "Authorization", "raw_response")
 }
 
 func TestSQLiteDevWorkflowHTTPToolExecutionHTTPChainSurvivesRestart(t *testing.T) {
@@ -312,6 +392,11 @@ func workflowHTTPToolSQLiteExecutionRequest(
 			ExpectedRecordVersion: plan.RecordVersion, InputText: inputText, Model: "mock",
 		})),
 	)
-	setWorkflowHTTPToolActionDevHeaders(request, strings.Join(workflowHTTPToolExecutionRequiredScopes, ","))
+	requiredScopes := workflowHTTPToolExecutionRequiredScopes
+	if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 && plan.SourceKind == workflowHTTPToolSourceDefinition {
+		requiredScopes = workflowDefinitionHTTPToolExecutionRequiredScopes
+	}
+	setWorkflowHTTPToolActionDevHeaders(request, strings.Join(requiredScopes, ","))
+	request.Header.Set(savedWorkflowDraftDevApplicationHeader, plan.ApplicationID)
 	return request
 }

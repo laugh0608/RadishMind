@@ -3,7 +3,7 @@
 更新时间：2026-08-15
 
 - 任务 ID：`workflow-definition-http-tool-v1`
-- 状态：`workflow_definition_http_tool_v1_batch_c_execution_next`
+- 状态：`workflow_definition_http_tool_v1_batch_d_react_consumer_next`
 - 功能设计：[Workflow Definition 绑定受控 HTTP Tool 的版本化发布与人工确认执行（开发 / 测试态）v1](../features/workflow/workflow-definition-http-tool-v1.md)
 
 ## 准入结论
@@ -53,16 +53,20 @@
 
 ## 批次 C：执行与只读审查消费者
 
-状态：下一顺位。
+状态：`completed`。
 
-- 在原子 claim 前重读 Definition authority 和 plan digest。
-- 复用 transport、SSRF、预算、output projection、终态提交与 reconciliation。
-- 新 run schema 接入 History / detail / diagnostics；Comparison / Evaluation 采用显式支持或稳定拒绝，不能重新执行。
-- 覆盖取消、终态写入失败、authority drift、并发 claim、重启和隐私扫描。
+- 在原子 claim 前重读 Definition authority、Application lifecycle、confirmation 和 plan digest；claim 后、网络前再次复核 Definition 与 Application authority。
+- 复用 transport、SSRF、预算、output projection、终态提交与 reconciliation；同一 approved plan 并发只有一个 claim 和一次网络执行。
+- 新增 strict `workflow_run_record.v9`，接入 History / detail / diagnostics；Comparison / Evaluation 对有副作用 profile 稳定拒绝且不重新执行。
+- SQLite `0021` 与 PostgreSQL `0024` 复用既有 migration family；覆盖 migration、并发 claim、重启、来源过滤、计划消费恢复、authority drift、no-fallback 和隐私扫描。
 
 完成门禁：Platform 全量、目标 race、`go vet`、双数据库产品链和仓库 full 通过。
 
+完成证据：memory、SQLite 与 PostgreSQL 已贯通 active Definition → v2 plan → approve → v9 execute → History；执行权限按计划来源动态要求 `workflow_drafts:read` 或 `workflow_definitions:read`。claim 后 authority 漂移会写入失败 v9 且网络 / provider 为 0；成功链只保存 input digest / bytes、Definition authority、脱敏工具投影、attempt 和副作用 metadata。PostgreSQL 完整开发测试集成套件、迁移启动检查和重启重复执行拒绝已通过，测试容器已关闭。
+
 ## 批次 D：React 与产品连续链
+
+状态：下一顺位。
 
 - 在 Definition 工作区提供工具型候选、版本、activation、plan、confirm、execute 与 history handoff。
 - application / workspace 切换清空易失输入和迟到响应；offline 零请求，strict consumer 拒绝字段和 scope 漂移。

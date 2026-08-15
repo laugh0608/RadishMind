@@ -9,10 +9,21 @@ import (
 	"time"
 )
 
+var workflowHTTPToolExecutionBaseScopes = []string{
+	"workflow_tool_actions:execute",
+	"workflow_runs:execute",
+}
+
 var workflowHTTPToolExecutionRequiredScopes = []string{
 	"workflow_tool_actions:execute",
 	"workflow_runs:execute",
 	"workflow_drafts:read",
+}
+
+var workflowDefinitionHTTPToolExecutionRequiredScopes = []string{
+	"workflow_tool_actions:execute",
+	"workflow_runs:execute",
+	"workflow_definitions:read",
 }
 
 const workflowHTTPToolReconcilerActorRef = "system:workflow_http_tool_reconciler"
@@ -33,23 +44,25 @@ type WorkflowHTTPToolExecutionResult struct {
 }
 
 type workflowHTTPToolExecutionService struct {
-	actions    workflowHTTPToolActionService
-	store      workflowHTTPToolExecutionStore
-	executor   workflowExecutorService
-	transport  workflowHTTPToolTransport
-	maxRuntime time.Duration
-	now        func() time.Time
-	newID      func(string) (string, error)
-	newRunID   func() (string, error)
+	actions      workflowHTTPToolActionService
+	store        workflowHTTPToolExecutionStore
+	executor     workflowExecutorService
+	applications applicationCatalogRepository
+	transport    workflowHTTPToolTransport
+	maxRuntime   time.Duration
+	now          func() time.Time
+	newID        func(string) (string, error)
+	newRunID     func() (string, error)
 }
 
 func newWorkflowHTTPToolExecutionService(
 	actions workflowHTTPToolActionService,
 	store workflowHTTPToolExecutionStore,
 	executor workflowExecutorService,
+	applications applicationCatalogRepository,
 ) workflowHTTPToolExecutionService {
 	return workflowHTTPToolExecutionService{
-		actions: actions, store: store, executor: executor,
+		actions: actions, store: store, executor: executor, applications: applications,
 		transport: newWorkflowHTTPToolTransport(), maxRuntime: workflowExecutorDefaultMaxRuntime,
 		now: func() time.Time { return time.Now().UTC() }, newID: newWorkflowHTTPToolActionID, newRunID: newWorkflowRunID,
 	}
@@ -74,7 +87,7 @@ func (s *Server) workflowHTTPToolExecutionService() (workflowHTTPToolExecutionSe
 		return s.resolveNorthboundSelection(ctx, requestedModel, nil)
 	}
 	executor.envelopeOptions = s.buildBridgeEnvelopeOptions
-	service := newWorkflowHTTPToolExecutionService(actions, s.workflowHTTPToolExecutionStore, executor)
+	service := newWorkflowHTTPToolExecutionService(actions, s.workflowHTTPToolExecutionStore, executor, s.applicationCatalogRepository)
 	if s.workflowHTTPToolExecutionTransport != nil {
 		service.transport = *s.workflowHTTPToolExecutionTransport
 	}
@@ -90,7 +103,7 @@ func (service workflowHTTPToolExecutionService) Execute(
 	if failureCode != "" {
 		return workflowHTTPToolExecutionFailure(failureCode, failureSummary)
 	}
-	if validateWorkflowHTTPToolActionContext(ctx) != "" || !workflowHTTPToolExecutionScopesAllowed(ctx.ScopeGrants) {
+	if validateWorkflowHTTPToolActionContext(ctx) != "" || !workflowHTTPToolExecutionBaseScopesAllowed(ctx.ScopeGrants) {
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureScopeDenied, "Workflow HTTP tool execution scope is denied.")
 	}
 	if service.store == nil || service.actions.store == nil || service.actions.readDraft == nil ||
@@ -98,6 +111,16 @@ func (service workflowHTTPToolExecutionService) Execute(
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolStore, "Workflow HTTP tool execution service is unavailable.")
 	}
 
+	rawPlan, found, err := service.actions.store.ReadPlan(ctx, normalized.PlanID)
+	if err != nil {
+		return workflowHTTPToolExecutionStoreFailure(err)
+	}
+	if !found {
+		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolConfirmation, "Workflow HTTP tool approval is not eligible for execution.")
+	}
+	if !workflowHTTPToolExecutionSourceScopeAllowed(ctx.ScopeGrants, rawPlan) {
+		return workflowHTTPToolExecutionFailure(WorkflowRunFailureScopeDenied, "Workflow HTTP tool execution source scope is denied.")
+	}
 	planResult := service.actions.ReadPlan(ctx, normalized.PlanID)
 	if planResult.FailureCode != "" {
 		return workflowHTTPToolExecutionFailureForAction(planResult)
@@ -115,18 +138,12 @@ func (service workflowHTTPToolExecutionService) Execute(
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolConfirmation, "Workflow HTTP tool approval could not be matched to the approved plan.")
 	}
 
-	draft, draftResult := service.actions.readExactEligibleDraft(
-		ctx,
-		approvedPlan.PlannedByActorRef,
-		approvedPlan.DraftID,
-		approvedPlan.DraftVersion,
-		approvedPlan.NodeID,
-	)
-	if draftResult.FailureCode != "" {
-		return workflowHTTPToolExecutionFailureForAction(draftResult)
+	source, sourceResult := service.resolveExecutionSource(ctx, approvedPlan)
+	if sourceResult.FailureCode != "" {
+		return sourceResult
 	}
 	executionPlan, failureCode, failureSummary := buildWorkflowHTTPToolExecutionPlan(
-		draft,
+		source,
 		approvedPlan.NodeID,
 		service.actions.registry.definition,
 	)
@@ -162,7 +179,7 @@ func (service workflowHTTPToolExecutionService) Execute(
 	run := newWorkflowHTTPToolRunRecord(
 		ctx,
 		normalized,
-		draft,
+		source,
 		executionPlan,
 		northboundSelection{},
 		runID,
@@ -183,7 +200,7 @@ func (service workflowHTTPToolExecutionService) Execute(
 		executionContext,
 		ctx,
 		normalized,
-		draft,
+		source,
 		executionPlan,
 		approvedPlan,
 		attempt,
@@ -202,7 +219,7 @@ func (service workflowHTTPToolExecutionService) ReconcileStale(
 	if !workflowHTTPToolPlanIDPattern.MatchString(planID) {
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureInputInvalid, "Workflow HTTP tool plan id is invalid.")
 	}
-	if validateWorkflowHTTPToolActionContext(ctx) != "" || !workflowHTTPToolExecutionScopesAllowed(ctx.ScopeGrants) {
+	if validateWorkflowHTTPToolActionContext(ctx) != "" || !workflowHTTPToolExecutionBaseScopesAllowed(ctx.ScopeGrants) {
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureScopeDenied, "Workflow HTTP tool reconciliation scope is denied.")
 	}
 	if service.store == nil || service.now == nil || service.newID == nil {
@@ -214,6 +231,9 @@ func (service workflowHTTPToolExecutionService) ReconcileStale(
 	}
 	if !found {
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolConfirmation, "Workflow HTTP tool plan has no claimed execution requiring reconciliation.")
+	}
+	if !workflowHTTPToolExecutionRunSourceScopeAllowed(ctx.ScopeGrants, run) {
+		return workflowHTTPToolExecutionFailure(WorkflowRunFailureScopeDenied, "Workflow HTTP tool reconciliation source scope is denied.")
 	}
 	claimedAt, err := time.Parse(time.RFC3339Nano, attempt.ClaimedAt)
 	if err != nil {
@@ -260,13 +280,14 @@ func (service workflowHTTPToolExecutionService) executeClaimedPlan(
 	executionContext context.Context,
 	ctx WorkflowHTTPToolActionContext,
 	request WorkflowHTTPToolExecutionRequest,
-	draft SavedWorkflowDraft,
+	source workflowHTTPToolResolvedExecutionSource,
 	plan workflowExecutionPlan,
 	approvedPlan WorkflowHTTPToolActionPlan,
 	attempt WorkflowHTTPToolExecutionAttempt,
 	run WorkflowRunRecord,
 	promptPacket string,
 ) WorkflowHTTPToolExecutionResult {
+	draft := source.draft
 	edgeActive := make(map[string]bool, len(draft.Edges))
 	nodeOutputs := make(map[string]string, len(draft.Nodes))
 	nodeRecordIndex := make(map[string]int, len(run.Nodes))
@@ -300,6 +321,16 @@ func (service workflowHTTPToolExecutionService) executeClaimedPlan(
 		var failureSummary string
 		toolFailureCategory := WorkflowHTTPToolFailureNone
 		if node.NodeType == "http_tool" {
+			if source.definitionBound() {
+				currentSource, sourceResult := service.resolveDefinitionExecutionSource(ctx, approvedPlan)
+				if sourceResult.FailureCode != "" || !workflowHTTPToolDefinitionSourceMatches(source, currentSource) {
+					return service.completeClaimedFailure(
+						ctx, &attempt, &run, WorkflowRunFailureDefinitionAuthority,
+						"Workflow definition execution authority changed after the tool execution claim.",
+						WorkflowHTTPToolFailureNone, nodeID, networkAttempts, false,
+					)
+				}
+			}
 			transportResult := service.transport.Execute(
 				executionContext,
 				approvedPlan,
@@ -371,7 +402,9 @@ func (service workflowHTTPToolExecutionService) executeClaimedPlan(
 		}
 		nodeOutputs[nodeID] = output
 		run.Nodes[recordIndex].Status = WorkflowRunNodeStatusSucceeded
-		run.Nodes[recordIndex].OutputPreview = workflowRunNodeOutputPreview(node.NodeType, output)
+		if !source.definitionBound() {
+			run.Nodes[recordIndex].OutputPreview = workflowRunNodeOutputPreview(node.NodeType, output)
+		}
 		if run.Diagnostic != nil {
 			run.Diagnostic.LastCompletedNodeID = nodeID
 			run.Diagnostic.ObservedAt = workflowRunTimestamp(nodeCompletedAt)
@@ -390,7 +423,9 @@ func (service workflowHTTPToolExecutionService) executeClaimedPlan(
 		)
 	}
 	run.Status = WorkflowRunStatusSucceeded
-	run.Output = output
+	if !source.definitionBound() {
+		run.Output = output
+	}
 	run.CompletedAt = workflowRunTimestamp(service.now().UTC())
 	run.FailureCode = ""
 	run.FailureSummary = ""
@@ -535,15 +570,22 @@ func normalizeWorkflowHTTPToolExecutionRequest(
 }
 
 func buildWorkflowHTTPToolExecutionPlan(
-	draft SavedWorkflowDraft,
+	source workflowHTTPToolResolvedExecutionSource,
 	targetNodeID string,
 	definition WorkflowHTTPToolDefinition,
 ) (workflowExecutionPlan, WorkflowRunFailureCode, string) {
+	draft := source.draft
 	if draft.DraftVersion < 1 {
 		return workflowExecutionPlan{}, WorkflowRunFailureDraftVersionUnavailable, "Workflow draft does not have a persisted executable version."
 	}
-	if err := validateWorkflowHTTPToolDraft(draft, targetNodeID, definition); err != nil {
-		return workflowExecutionPlan{}, WorkflowRunFailureDraftNotEligible, err.Error()
+	var eligibilityError error
+	if source.definitionBound() {
+		eligibilityError = validateWorkflowHTTPToolGraph(draft, targetNodeID, definition)
+	} else {
+		eligibilityError = validateWorkflowHTTPToolDraft(draft, targetNodeID, definition)
+	}
+	if eligibilityError != nil {
+		return workflowExecutionPlan{}, WorkflowRunFailureDraftNotEligible, eligibilityError.Error()
 	}
 	plan := workflowExecutionPlan{
 		nodes:    make(map[string]SavedWorkflowDraftNode, len(draft.Nodes)),
@@ -599,7 +641,7 @@ func newWorkflowHTTPToolExecutionAttempt(
 func newWorkflowHTTPToolRunRecord(
 	ctx WorkflowHTTPToolActionContext,
 	request WorkflowHTTPToolExecutionRequest,
-	draft SavedWorkflowDraft,
+	source workflowHTTPToolResolvedExecutionSource,
 	executionPlan workflowExecutionPlan,
 	selection northboundSelection,
 	runID string,
@@ -608,6 +650,7 @@ func newWorkflowHTTPToolRunRecord(
 	attempt WorkflowHTTPToolExecutionAttempt,
 	claimedAt time.Time,
 ) WorkflowRunRecord {
+	draft := source.draft
 	runContext := workflowRunContextFromToolAction(ctx)
 	runRequest := WorkflowRunRequest{DraftID: draft.DraftID, InputText: request.InputText, Model: request.Model, Temperature: request.Temperature}
 	record := newWorkflowRunRecord(runContext, runRequest, draft, executionPlan, selection, runID)
@@ -620,6 +663,28 @@ func newWorkflowHTTPToolRunRecord(
 	record.SideEffects.ToolCalls = 1
 	record.SideEffects.ConfirmationCalls = 1
 	record.ConditionNodeIDs = nil
+	if source.definitionBound() {
+		record.SchemaVersion = workflowRunRecordDefinitionToolSchemaVersion
+		record.DraftID = ""
+		record.DraftVersion = 0
+		record.DraftDigest = ""
+		record.ExecutionKind = workflowDefinitionHTTPToolExecutionKind
+		record.ExecutionSourceKind = workflowDefinitionExecutionSourceKind
+		record.ExecutionSourceID = source.version.DefinitionID
+		record.ExecutionSourceVersion = source.version.Version
+		record.ExecutionProfile = workflowDefinitionHTTPToolProfile
+		record.ExecutionSource = &workflowRunExecutionSource{
+			Kind: workflowDefinitionHTTPToolExecutionKind, SourceKind: workflowDefinitionExecutionSourceKind,
+			ID: source.version.DefinitionID, Version: source.version.Version,
+		}
+		record.DefinitionAuthority = workflowDefinitionHTTPToolRunAuthority(source)
+		record.InputDigest = workflowDefinitionInputDigest(request.InputText)
+		record.Output = ""
+		record.ConditionNodeIDs = []string{}
+		for index := range record.Nodes {
+			record.Nodes[index].OutputPreview = ""
+		}
+	}
 	if record.Diagnostic != nil {
 		record.Diagnostic.ToolFailureCategory = WorkflowHTTPToolFailureNone
 		record.Diagnostic.ObservedAt = record.StartedAt
@@ -648,10 +713,13 @@ func newWorkflowHTTPToolExecutionStartedAudit(
 ) WorkflowHTTPToolExecutionAudit {
 	attemptID, runID, confirmationID := attempt.AttemptID, run.RunID, confirmation.ConfirmationID
 	return WorkflowHTTPToolExecutionAudit{
-		SchemaVersion: workflowHTTPToolAuditSchema, EventID: eventID, EventKind: "tool_execution_started",
+		SchemaVersion: workflowHTTPToolAuditSchemaForPlan(plan), EventID: eventID, EventKind: "tool_execution_started",
 		OccurredAt: attempt.ClaimedAt, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, DraftID: plan.DraftID, DraftVersion: plan.DraftVersion,
-		NodeID: plan.NodeID, PlanID: plan.PlanID, ConfirmationID: &confirmationID,
+		SourceKind: plan.SourceKind, WorkflowDefinitionID: plan.WorkflowDefinitionID,
+		WorkflowDefinitionVersion: plan.WorkflowDefinitionVersion, WorkflowDefinitionDigest: plan.WorkflowDefinitionDigest,
+		ActivationPointerVersion: plan.ActivationPointerVersion,
+		NodeID:                   plan.NodeID, PlanID: plan.PlanID, ConfirmationID: &confirmationID,
 		ExecutionAttemptID: &attemptID, RunID: &runID, ToolID: plan.ToolID, ToolVersion: plan.ToolVersion,
 		DefinitionDigest: plan.DefinitionDigest, ProfileID: plan.ProfileID, ProfileDigest: plan.ProfileDigest,
 		ToolPlanDigest: plan.ToolPlanDigest, ActorRef: ctx.ActorRef, ActorSource: "human",
@@ -679,6 +747,16 @@ func newWorkflowHTTPToolExecutionCompletionAudit(
 		HTTPStatusClass: workflowHTTPToolOptionalString(attempt.HTTPStatusClass), ResponseBytes: attempt.ResponseBytes,
 		DurationMS:  attempt.DurationMS,
 		SideEffects: WorkflowHTTPToolAuditSideEffects{NetworkAttempts: networkAttempts, ToolCalls: 1},
+	}
+	if run.SchemaVersion == workflowRunRecordDefinitionToolSchemaVersion && run.DefinitionAuthority != nil {
+		audit.SchemaVersion = workflowHTTPToolAuditSchemaV2
+		audit.SourceKind = workflowHTTPToolSourceDefinition
+		audit.DraftID = ""
+		audit.DraftVersion = 0
+		audit.WorkflowDefinitionID = run.DefinitionAuthority.DefinitionID
+		audit.WorkflowDefinitionVersion = run.DefinitionAuthority.DefinitionVersion
+		audit.WorkflowDefinitionDigest = run.DefinitionAuthority.DefinitionDigest
+		audit.ActivationPointerVersion = run.DefinitionAuthority.ActivationPointerVersion
 	}
 	switch attempt.Status {
 	case WorkflowHTTPToolAttemptSucceeded:
@@ -714,7 +792,29 @@ func (service workflowHTTPToolExecutionService) allocateClaimIDs() (string, stri
 }
 
 func workflowHTTPToolExecutionScopesAllowed(scopes []string) bool {
-	for _, required := range workflowHTTPToolExecutionRequiredScopes {
+	return workflowHTTPToolAllScopesAllowed(scopes, workflowHTTPToolExecutionRequiredScopes)
+}
+
+func workflowHTTPToolExecutionBaseScopesAllowed(scopes []string) bool {
+	return workflowHTTPToolAllScopesAllowed(scopes, workflowHTTPToolExecutionBaseScopes)
+}
+
+func workflowHTTPToolExecutionSourceScopeAllowed(scopes []string, plan WorkflowHTTPToolActionPlan) bool {
+	if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 && plan.SourceKind == workflowHTTPToolSourceDefinition {
+		return workflowHTTPToolAllScopesAllowed(scopes, workflowDefinitionHTTPToolExecutionRequiredScopes)
+	}
+	return workflowHTTPToolExecutionScopesAllowed(scopes)
+}
+
+func workflowHTTPToolExecutionRunSourceScopeAllowed(scopes []string, run WorkflowRunRecord) bool {
+	if run.SchemaVersion == workflowRunRecordDefinitionToolSchemaVersion {
+		return workflowHTTPToolAllScopesAllowed(scopes, workflowDefinitionHTTPToolExecutionRequiredScopes)
+	}
+	return workflowHTTPToolExecutionScopesAllowed(scopes)
+}
+
+func workflowHTTPToolAllScopesAllowed(scopes []string, requiredScopes []string) bool {
+	for _, required := range requiredScopes {
 		if !controlPlaneReadHasScope(scopes, required) {
 			return false
 		}
@@ -726,11 +826,11 @@ func workflowHTTPToolApprovalMatchesPlan(
 	confirmation WorkflowHTTPToolConfirmationDecision,
 	plan WorkflowHTTPToolActionPlan,
 ) bool {
-	return confirmation.SchemaVersion == workflowHTTPToolDecisionSchema &&
+	return confirmation.SchemaVersion == workflowHTTPToolDecisionSchemaForPlan(plan) &&
 		confirmation.Outcome == WorkflowHTTPToolConfirmationApprove && confirmation.ActorSource == "human" &&
 		confirmation.PlanID == plan.PlanID && confirmation.TenantRef == plan.TenantRef &&
 		confirmation.WorkspaceID == plan.WorkspaceID && confirmation.ApplicationID == plan.ApplicationID &&
-		confirmation.DraftID == plan.DraftID && confirmation.DraftVersion == plan.DraftVersion &&
+		workflowHTTPToolDecisionSourceMatchesPlan(confirmation, plan) &&
 		confirmation.NodeID == plan.NodeID && confirmation.ToolID == plan.ToolID &&
 		confirmation.ToolVersion == plan.ToolVersion && confirmation.ToolPlanDigest == plan.ToolPlanDigest &&
 		confirmation.ResultingRecordVersion == plan.RecordVersion
@@ -764,6 +864,9 @@ func workflowHTTPToolExecutionFailureForAction(result WorkflowHTTPToolActionResu
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureScopeDenied, "Workflow HTTP tool execution scope is denied.")
 	case WorkflowHTTPToolActionFailureStoreUnavailable, WorkflowHTTPToolActionFailureStoreContract:
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolStore, "Workflow HTTP tool execution state could not be read safely.")
+	case WorkflowHTTPToolActionFailureDefinitionNotFound, WorkflowHTTPToolActionFailureDefinitionInactive,
+		WorkflowHTTPToolActionFailureDefinitionDrift, WorkflowHTTPToolActionFailureDefinitionIneligible:
+		return workflowHTTPToolExecutionFailure(WorkflowRunFailureDefinitionAuthority, "Workflow definition execution authority changed before the tool execution claim.")
 	case WorkflowHTTPToolActionFailureDefinitionMissing, WorkflowHTTPToolActionFailureProfileUnavailable,
 		WorkflowHTTPToolActionFailureDraftIneligible, WorkflowHTTPToolActionFailureDraftVersion:
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolPolicy, "Workflow HTTP tool policy no longer matches the approved plan.")

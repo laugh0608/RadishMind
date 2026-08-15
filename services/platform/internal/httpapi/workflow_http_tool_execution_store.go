@@ -255,10 +255,21 @@ func workflowHTTPToolCompletionAuditMatches(
 	audit WorkflowHTTPToolExecutionAudit,
 ) bool {
 	plan := WorkflowHTTPToolActionPlan{
-		PlanID: run.PlanID, TenantRef: run.TenantRef, WorkspaceID: run.WorkspaceID,
+		SchemaVersion: workflowHTTPToolPlanSchema,
+		PlanID:        run.PlanID, TenantRef: run.TenantRef, WorkspaceID: run.WorkspaceID,
 		ApplicationID: run.ApplicationID, DraftID: run.DraftID, DraftVersion: run.DraftVersion,
 		NodeID: attempt.NodeID, ToolID: attempt.ToolID, DefinitionDigest: attempt.DefinitionDigest,
 		ProfileID: attempt.ProfileID, ProfileDigest: attempt.ProfileDigest, ToolPlanDigest: attempt.ToolPlanDigest,
+	}
+	if run.SchemaVersion == workflowRunRecordDefinitionToolSchemaVersion && run.DefinitionAuthority != nil {
+		plan.SchemaVersion = workflowHTTPToolPlanSchemaV2
+		plan.SourceKind = workflowHTTPToolSourceDefinition
+		plan.DraftID = ""
+		plan.DraftVersion = 0
+		plan.WorkflowDefinitionID = run.DefinitionAuthority.DefinitionID
+		plan.WorkflowDefinitionVersion = run.DefinitionAuthority.DefinitionVersion
+		plan.WorkflowDefinitionDigest = run.DefinitionAuthority.DefinitionDigest
+		plan.ActivationPointerVersion = run.DefinitionAuthority.ActivationPointerVersion
 	}
 	if !workflowHTTPToolExecutionAuditBaseMatches(ctx, plan, attempt, run, audit) ||
 		audit.ConfirmationID == nil || *audit.ConfirmationID != attempt.ConfirmationID ||
@@ -291,9 +302,9 @@ func workflowHTTPToolExecutionAuditBaseMatches(
 	audit WorkflowHTTPToolExecutionAudit,
 ) bool {
 	_, occurredAtErr := time.Parse(time.RFC3339Nano, audit.OccurredAt)
-	return audit.SchemaVersion == workflowHTTPToolAuditSchema && workflowHTTPToolAuditIDPattern.MatchString(audit.EventID) &&
+	return audit.SchemaVersion == workflowHTTPToolAuditSchemaForPlan(plan) && workflowHTTPToolAuditIDPattern.MatchString(audit.EventID) &&
 		audit.TenantRef == ctx.TenantRef && audit.WorkspaceID == ctx.WorkspaceID && audit.ApplicationID == ctx.ApplicationID &&
-		audit.PlanID == plan.PlanID && audit.DraftID == plan.DraftID && audit.DraftVersion == plan.DraftVersion &&
+		audit.PlanID == plan.PlanID && workflowHTTPToolAuditSourceMatchesPlan(audit, plan) &&
 		audit.NodeID == attempt.NodeID && audit.ToolID == attempt.ToolID && audit.ToolVersion == workflowHTTPToolVersion &&
 		audit.DefinitionDigest == attempt.DefinitionDigest && audit.ProfileID == attempt.ProfileID &&
 		audit.ProfileDigest == attempt.ProfileDigest && audit.ToolPlanDigest == attempt.ToolPlanDigest &&
@@ -356,15 +367,26 @@ func encodeWorkflowHTTPToolExecutionAttempt(attempt WorkflowHTTPToolExecutionAtt
 func decodeWorkflowHTTPToolConfirmationDecision(payload []byte) (WorkflowHTTPToolConfirmationDecision, error) {
 	var decision WorkflowHTTPToolConfirmationDecision
 	if err := json.Unmarshal(payload, &decision); err != nil ||
-		decision.SchemaVersion != workflowHTTPToolDecisionSchema ||
+		(decision.SchemaVersion != workflowHTTPToolDecisionSchema && decision.SchemaVersion != workflowHTTPToolDecisionSchemaV2) ||
 		!workflowHTTPToolConfirmationIDPattern.MatchString(decision.ConfirmationID) ||
 		!workflowHTTPToolPlanIDPattern.MatchString(decision.PlanID) ||
 		decision.Outcome != WorkflowHTTPToolConfirmationApprove || decision.ActorSource != "human" ||
 		decision.ExpectedRecordVersion < 1 || decision.ResultingRecordVersion != decision.ExpectedRecordVersion+1 ||
-		!workflowHTTPToolDigestPattern.MatchString(decision.ToolPlanDigest) {
+		!workflowHTTPToolDigestPattern.MatchString(decision.ToolPlanDigest) || !workflowHTTPToolDecisionSourceValid(decision) {
 		return WorkflowHTTPToolConfirmationDecision{}, errWorkflowHTTPToolExecutionContract
 	}
 	return decision, nil
+}
+
+func workflowHTTPToolDecisionSourceValid(decision WorkflowHTTPToolConfirmationDecision) bool {
+	if decision.SchemaVersion == workflowHTTPToolDecisionSchema {
+		return decision.SourceKind == "" && workflowHTTPToolScopedIDPattern.MatchString(decision.DraftID) && decision.DraftVersion > 0 &&
+			decision.WorkflowDefinitionID == "" && decision.WorkflowDefinitionVersion == 0 &&
+			decision.WorkflowDefinitionDigest == "" && decision.ActivationPointerVersion == 0
+	}
+	return decision.SourceKind == workflowHTTPToolSourceDefinition && decision.DraftID == "" && decision.DraftVersion == 0 &&
+		workflowHTTPToolScopedIDPattern.MatchString(decision.WorkflowDefinitionID) && decision.WorkflowDefinitionVersion > 0 &&
+		workflowHTTPToolDigestPattern.MatchString(decision.WorkflowDefinitionDigest) && decision.ActivationPointerVersion > 0
 }
 
 func decodeWorkflowHTTPToolExecutionAttempt(payload []byte) (WorkflowHTTPToolExecutionAttempt, error) {

@@ -69,7 +69,7 @@ func decodeWorkflowRunStorageRecord(
 	if err := rejectTrailingWorkflowRunJSON(decoder); err != nil {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
-	if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || record.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion {
+	if workflowRunUsesImmutableDefinitionSource(record.SchemaVersion) {
 		record.ExecutionSource = &workflowRunExecutionSource{Kind: record.ExecutionKind, SourceKind: record.ExecutionSourceKind, ID: record.ExecutionSourceID, Version: record.ExecutionSourceVersion}
 	}
 	if err := validateWorkflowRunStoreRecord(runContext, &record); err != nil || record.RecordVersion <= 0 {
@@ -138,7 +138,7 @@ func workflowRunStorageExecutionSource(record WorkflowRunRecord) (string, string
 		}
 		return record.ExecutionSource.SourceKind, record.ExecutionSource.ID, record.ExecutionSource.Version, nil
 	}
-	if record.SchemaVersion == workflowRunRecordDefinitionSchemaVersion || record.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion {
+	if workflowRunUsesImmutableDefinitionSource(record.SchemaVersion) {
 		if record.ExecutionSource == nil || record.ExecutionSource.SourceKind != workflowDefinitionExecutionSourceKind || strings.TrimSpace(record.ExecutionSource.ID) == "" || record.ExecutionSource.Version < 1 {
 			return "", "", 0, errWorkflowRunStoreContract
 		}

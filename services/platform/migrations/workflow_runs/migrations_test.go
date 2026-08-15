@@ -96,6 +96,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"workflow_http_tool_execution_audit.v2",
 		"workflow_http_tool_action_plans_source_union_check",
 		"workflow_http_tool_action_plans_definition_idx",
+		"workflow_run_record.v9",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -144,6 +145,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP CONSTRAINT application_interaction_sessions_payload_v4_check",
 		"DROP CONSTRAINT application_evaluation_campaigns_payload_v2_check",
 		"DROP CONSTRAINT workflow_http_tool_action_plans_source_union_check",
+		"DELETE FROM workflow_run_records",
 	} {
 		if !strings.Contains(downSQL, required) {
 			t.Fatalf("workflow run down migration is missing %q", required)
@@ -192,9 +194,10 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v17", migrationID: agentRuntimeMigrationID, requiredFragment: "CREATE TABLE agent_copilot_sessions", forbiddenFragment: "CREATE TABLE agent_copilot_runtime_assignments"},
 		{name: "v18", migrationID: agentInvocationMigrationID, requiredFragment: "CREATE TABLE application_evaluation_plans", forbiddenFragment: "CREATE TABLE agent_copilot_sessions"},
 		{name: "v19", migrationID: applicationEvaluationMigrationID, requiredFragment: "input_contract_id", forbiddenFragment: "CREATE TABLE application_evaluation_plans"},
-		{name: "v20", migrationID: structuredDefinitionMigrationID, requiredFragment: "application_session.v4", forbiddenFragment: "workflow_run_record.v8"},
+		{name: "v20", migrationID: structuredDefinitionMigrationID, requiredFragment: "application_session.v4", forbiddenFragment: "ADD COLUMN input_contract_id"},
 		{name: "v21", migrationID: structuredSessionMigrationID, requiredFragment: "application_evaluation_plan.v2", forbiddenFragment: "application_session.v4"},
 		{name: "v22", migrationID: structuredEvaluationMigrationID, requiredFragment: "workflow_http_tool_action_plan.v2", forbiddenFragment: "application_evaluation_plan.v2"},
+		{name: "v23", migrationID: toolDefinitionSourcesMigrationID, requiredFragment: "workflow_run_record.v9", forbiddenFragment: "workflow_http_tool_action_plan.v2"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {

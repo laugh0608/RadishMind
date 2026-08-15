@@ -15,15 +15,16 @@ import (
 )
 
 const (
-	workflowRunRecordSchemaVersion           = "workflow_run_record.v1"
-	workflowRunRecordLegacySchemaVersion     = "workflow_run_record.v0"
-	workflowRunRecordToolSchemaVersion       = "workflow_run_record.v2"
-	workflowRunRecordRAGSchemaVersion        = "workflow_run_record.v3"
-	workflowRunRecordAppRAGSchemaVersion     = "workflow_run_record.v4"
-	workflowRunRecordDefinitionSchemaVersion = "workflow_run_record.v5"
-	workflowRunRecordPromptSchemaVersion     = "workflow_run_record.v6"
-	workflowExecutorProtocol                 = "workflow-executor-v0"
-	workflowExecutorRoute                    = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
+	workflowRunRecordSchemaVersion               = "workflow_run_record.v1"
+	workflowRunRecordLegacySchemaVersion         = "workflow_run_record.v0"
+	workflowRunRecordToolSchemaVersion           = "workflow_run_record.v2"
+	workflowRunRecordRAGSchemaVersion            = "workflow_run_record.v3"
+	workflowRunRecordAppRAGSchemaVersion         = "workflow_run_record.v4"
+	workflowRunRecordDefinitionSchemaVersion     = "workflow_run_record.v5"
+	workflowRunRecordPromptSchemaVersion         = "workflow_run_record.v6"
+	workflowRunRecordDefinitionToolSchemaVersion = "workflow_run_record.v9"
+	workflowExecutorProtocol                     = "workflow-executor-v0"
+	workflowExecutorRoute                        = "/v1/user-workspace/workflow-drafts/{draft_id}/runs"
 
 	workflowExecutorMaxNodes          = 16
 	workflowExecutorMaxEdges          = 32
@@ -453,7 +454,7 @@ func (service workflowExecutorService) executePlan(
 
 		nodeOutputs[nodeID] = output
 		record.Nodes[recordIndex].Status = WorkflowRunNodeStatusSucceeded
-		if !workflowDefinitionRunSchema(record.SchemaVersion) {
+		if !workflowRunUsesImmutableDefinitionSource(record.SchemaVersion) {
 			record.Nodes[recordIndex].OutputPreview = workflowRunNodeOutputPreview(node.NodeType, output)
 		}
 		if record.Diagnostic != nil {
@@ -477,7 +478,7 @@ func (service workflowExecutorService) executePlan(
 		return service.finishFailedRun(runContext, record, WorkflowRunFailureOutputUnavailable, "No active workflow path produced an output node result.", false)
 	}
 	record.Status = WorkflowRunStatusSucceeded
-	if !workflowDefinitionRunSchema(record.SchemaVersion) {
+	if !workflowRunUsesImmutableDefinitionSource(record.SchemaVersion) {
 		record.Output = finalOutput
 	}
 	record.CompletedAt = workflowRunTimestamp(time.Now())
@@ -495,7 +496,7 @@ func (service workflowExecutorService) executePlan(
 		return WorkflowRunResult{Record: workflowRunRecordPointer(record), FailureCode: WorkflowRunFailureStoreUnavailable, FailureSummary: "Workflow run completed but its terminal record could not be stored."}
 	}
 	result := WorkflowRunResult{Record: workflowRunRecordPointer(record)}
-	if workflowDefinitionRunSchema(record.SchemaVersion) {
+	if workflowRunUsesImmutableDefinitionSource(record.SchemaVersion) {
 		result.AdvisoryOutput = finalOutput
 	}
 	return result
@@ -552,7 +553,7 @@ func (service workflowExecutorService) executeNode(
 			"workflow_draft_id":      draft.DraftID,
 			"workflow_draft_version": draft.DraftVersion,
 		}
-		if workflowDefinitionRunSchema(record.SchemaVersion) && record.DefinitionAuthority != nil {
+		if workflowRunUsesImmutableDefinitionSource(record.SchemaVersion) && record.DefinitionAuthority != nil {
 			sourceFields = map[string]any{
 				"workflow_definition_id":      record.DefinitionAuthority.DefinitionID,
 				"workflow_definition_version": record.DefinitionAuthority.DefinitionVersion,

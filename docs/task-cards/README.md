@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为 [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1-plan.md)，状态 `workflow_definition_http_tool_v1_batch_b_persistence_next`。批次 A 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2 与 active authority；下一步顺序追加 SQLite / PostgreSQL 迁移。任务不建立第二套 confirmation、transport、store、selector 或同层 readiness 卡。
+当前唯一活跃高风险实现任务卡为 [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1-plan.md)，状态 `workflow_definition_http_tool_v1_batch_d_react_consumer_next`。批次 A 至 C 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2、run v9 与 SQLite / PostgreSQL 单次执行和重启证据；下一步进入 React strict consumer 与 SQLite 本地产品连续链。任务不建立第二套 confirmation、transport、store、selector 或同层 readiness 卡。
 
 ## 最近关闭任务
 

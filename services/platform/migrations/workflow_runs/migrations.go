@@ -16,8 +16,8 @@ import (
 
 const (
 	Component                                     = "workflow_runs"
-	MigrationID                                   = "0023_workflow_http_tool_definition_sources"
-	StoreSchemaVersion                            = "workflow_run_store_v23"
+	MigrationID                                   = "0024_workflow_definition_http_tool_execution"
+	StoreSchemaVersion                            = "workflow_run_store_v24"
 	legacyMigrationID                             = "0001_workflow_runs"
 	legacyStoreSchemaVersion                      = "workflow_run_store_v1"
 	diagnosticsMigrationID                        = "0002_workflow_run_diagnostics"
@@ -62,6 +62,8 @@ const (
 	structuredSessionStoreSchemaVersion           = "workflow_run_store_v21"
 	structuredEvaluationMigrationID               = "0022_application_evaluation_structured_inputs"
 	structuredEvaluationStoreSchemaVersion        = "workflow_run_store_v22"
+	toolDefinitionSourcesMigrationID              = "0023_workflow_http_tool_definition_sources"
+	toolDefinitionSourcesStoreSchemaVersion       = "workflow_run_store_v23"
 	MigrationStateApplied                         = "applied"
 	MigrationStatePending                         = "pending"
 	MigrationStateNotApplied                      = "not_applied"
@@ -211,8 +213,14 @@ var upSQLV23 string
 //go:embed 0023_workflow_http_tool_definition_sources.down.sql
 var downSQLV23 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21 + "\n" + upSQLV22 + "\n" + upSQLV23
-var downSQL = downSQLV23 + "\n" + downSQLV22 + "\n" + downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0024_workflow_definition_http_tool_execution.up.sql
+var upSQLV24 string
+
+//go:embed 0024_workflow_definition_http_tool_execution.down.sql
+var downSQLV24 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21 + "\n" + upSQLV22 + "\n" + upSQLV23 + "\n" + upSQLV24
+var downSQL = downSQLV24 + "\n" + downSQLV23 + "\n" + downSQLV22 + "\n" + downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -317,6 +325,10 @@ func structuredSessionChecksum() string {
 
 func structuredEvaluationChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19+"\n"+upSQLV20+"\n"+upSQLV21+"\n"+upSQLV22)))
+}
+
+func toolDefinitionSourcesChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19+"\n"+upSQLV20+"\n"+upSQLV21+"\n"+upSQLV22+"\n"+upSQLV23)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -440,14 +452,17 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 }
 
 func pendingMigrationSQL(appliedMigrationID string) string {
+	if appliedMigrationID == toolDefinitionSourcesMigrationID {
+		return upSQLV24
+	}
 	if appliedMigrationID == structuredEvaluationMigrationID {
-		return upSQLV23
+		return upSQLV23 + "\n" + upSQLV24
 	}
 	pending := pendingMigrationSQLThroughStructuredEvaluation(appliedMigrationID)
 	if pending == "" {
 		return ""
 	}
-	return pending + "\n" + upSQLV23
+	return pending + "\n" + upSQLV23 + "\n" + upSQLV24
 }
 
 func pendingMigrationSQLThroughStructuredEvaluation(appliedMigrationID string) string {
@@ -562,6 +577,8 @@ func rollbackSQLThrough(appliedMigrationID string) string {
 		return downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 	case structuredEvaluationMigrationID:
 		return downSQLV22 + "\n" + downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+	case toolDefinitionSourcesMigrationID:
+		return downSQLV23 + "\n" + rollbackSQLThrough(structuredEvaluationMigrationID)
 	default:
 		return ""
 	}
@@ -630,6 +647,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	} else if state.MigrationID == structuredSessionMigrationID && state.StoreSchemaVersion == structuredSessionStoreSchemaVersion && state.MigrationChecksum == structuredSessionChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == structuredEvaluationMigrationID && state.StoreSchemaVersion == structuredEvaluationStoreSchemaVersion && state.MigrationChecksum == structuredEvaluationChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == toolDefinitionSourcesMigrationID && state.StoreSchemaVersion == toolDefinitionSourcesStoreSchemaVersion && state.MigrationChecksum == toolDefinitionSourcesChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int

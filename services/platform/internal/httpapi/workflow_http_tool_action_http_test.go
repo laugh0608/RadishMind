@@ -295,6 +295,38 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 			t.Fatalf("missing workflow_runs:execute scope was accepted: %#v", missingScope)
 		}
 
+		wrongDraftSourceScopeRequest := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":2,"input_text":"Review.","model":"mock","temperature":0}`),
+		)
+		setWorkflowHTTPToolActionDevHeaders(wrongDraftSourceScopeRequest, "workflow_tool_actions:execute,workflow_runs:execute,workflow_definitions:read")
+		wrongDraftSourceScopeResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(wrongDraftSourceScopeResponse, wrongDraftSourceScopeRequest)
+		wrongDraftSourceScope := decodeWorkflowHTTPToolExecutionEnvelope(t, wrongDraftSourceScopeResponse, http.StatusForbidden)
+		if wrongDraftSourceScope.FailureCode == nil || *wrongDraftSourceScope.FailureCode != "scope_denied" {
+			t.Fatalf("Draft execution accepted Definition read scope in place of Draft read: %#v", wrongDraftSourceScope)
+		}
+
+		definitionContext := workflowHTTPToolActionTestContext()
+		definitionPlan := workflowHTTPToolDefinitionActionPlanForStoreTest(t, definitionContext, "wtap_bbbbbbbbbbbbbbbb")
+		definitionAudit := workflowHTTPToolAuditForStoreTest(definitionPlan, "wtae_bbbbbbbbbbbbbbbb", "confirmation_requested")
+		if err := server.workflowHTTPToolActionStore.CreatePlan(definitionContext, &definitionPlan, definitionAudit); err != nil {
+			t.Fatalf("seed Definition execution scope plan: %v", err)
+		}
+		wrongDefinitionSourceScopeRequest := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-tool-action-plans/"+definitionPlan.PlanID+"/executions",
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":1,"input_text":"Review.","model":"mock","temperature":0}`),
+		)
+		setWorkflowHTTPToolActionDevHeaders(wrongDefinitionSourceScopeRequest, "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read")
+		wrongDefinitionSourceScopeResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(wrongDefinitionSourceScopeResponse, wrongDefinitionSourceScopeRequest)
+		wrongDefinitionSourceScope := decodeWorkflowHTTPToolExecutionEnvelope(t, wrongDefinitionSourceScopeResponse, http.StatusForbidden)
+		if wrongDefinitionSourceScope.FailureCode == nil || *wrongDefinitionSourceScope.FailureCode != "scope_denied" {
+			t.Fatalf("Definition execution accepted Draft read scope in place of Definition read: %#v", wrongDefinitionSourceScope)
+		}
+
 		unknownFieldRequest := httptest.NewRequest(
 			http.MethodPost,
 			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
@@ -350,6 +382,7 @@ func createWorkflowHTTPToolActionPlanOverHTTP(t *testing.T, server *Server, draf
 		})),
 	)
 	setWorkflowHTTPToolActionDevHeaders(request, "workflow_drafts:read,workflow_tool_actions:plan")
+	request.Header.Set(savedWorkflowDraftDevApplicationHeader, draft.ApplicationID)
 	response := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(response, request)
 	envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)
@@ -375,6 +408,7 @@ func approveWorkflowHTTPToolActionPlanOverHTTP(
 		})),
 	)
 	setWorkflowHTTPToolActionDevHeaders(request, "workflow_tool_actions:confirm")
+	request.Header.Set(savedWorkflowDraftDevApplicationHeader, draft.ApplicationID)
 	response := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(response, request)
 	envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)

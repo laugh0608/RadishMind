@@ -253,7 +253,7 @@ func newWorkflowHTTPToolExecutionServiceForTest(
 		return successfulWorkflowExecutorEnvelope("reviewable workflow answer"), nil
 	}}
 	executor := workflowExecutorTestService(draft, testBridge, runStore)
-	service := newWorkflowHTTPToolExecutionService(actionService, executionStore, executor)
+	service := newWorkflowHTTPToolExecutionService(actionService, executionStore, executor, nil)
 	clock := actionClock.Add(2 * time.Minute)
 	service.now = func() time.Time {
 		clock = clock.Add(time.Millisecond)

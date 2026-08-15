@@ -587,6 +587,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/application-session-v4.schema.json",
         REPO_ROOT / "contracts/application-session-turn-v4.schema.json",
         REPO_ROOT / "contracts/workflow-run-record-v7.schema.json",
+        REPO_ROOT / "contracts/workflow-run-record-v9.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
