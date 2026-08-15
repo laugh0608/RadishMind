@@ -48,6 +48,7 @@ type Server struct {
 	providerRouteSnapshotProvider           gatewayProviderRouteSnapshotProvider
 	applicationInteractionSessionRepository applicationInteractionSessionRepository
 	applicationSessionRepository            applicationInteractionSessionRepository
+	applicationResultArtifactRepository     applicationResultArtifactRepository
 	apiKeyRepository                        apiKeyRepository
 	workflowRunStore                        workflowRunStore
 	applicationRunStore                     workflowRunStore
@@ -299,6 +300,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		providerRouteSnapshotProvider:           adminProviderRouteSnapshotProvider{repository: adminProviderRouteRepository},
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
+		applicationResultArtifactRepository:     newMemoryApplicationResultArtifactRepository(),
 		apiKeyRepository:                        apiKeyRepository,
 		workflowRunStore:                        workflowRunStore,
 		applicationRunStore:                     combinedRunStore,
@@ -359,6 +361,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationSessionCloseRoute, server.handleCloseApplicationInteractionSession)
 	mux.HandleFunc(applicationSessionTurnListRoute, server.handleListApplicationInteractionTurns)
 	mux.HandleFunc(applicationSessionTurnRoute, server.handleExecuteApplicationInteractionTurn)
+	mux.HandleFunc(applicationResultArtifactListRoute, server.handleListApplicationResultArtifacts)
+	mux.HandleFunc(applicationResultArtifactReadRoute, server.handleReadApplicationResultArtifact)
 	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
 	mux.HandleFunc(apiKeyCreateRoute, server.handleCreateAPIKey)
 	mux.HandleFunc(apiKeyReadRoute, server.handleReadAPIKey)

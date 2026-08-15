@@ -36,6 +36,7 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"workflow_definitions:read":                {},
 	"workflow_runs:execute":                    {},
 	"workflow_runs:read":                       {},
+	"application_sessions:read":                {},
 	"application_sessions:write":               {},
 	"application_sessions:execute":             {},
 	"prompt_application_templates:read":        {},

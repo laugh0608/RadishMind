@@ -141,6 +141,8 @@ Session 路由族为：
 - `POST /v1/user-workspace/application-sessions/{session_id}/close`
 - `GET /v1/user-workspace/application-sessions/{session_id}/turns`
 - `POST /v1/user-workspace/application-sessions/{session_id}/turns`
+- `GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts`
+- `GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}`
 
 读取、管理和执行分别要求 `application_sessions:read`、`application_sessions:write`、`application_sessions:execute`。Session 只能从 `active` 转为 `closed`；closed session 可以查看 metadata，但不能继续创建 turn。
 
@@ -148,15 +150,18 @@ Web 使用顺序：
 
 1. 选择 application 和 profile；Workflow Definition profile 同时选择 definition。
 2. 创建 session，确认服务端返回的 authority refs 与 profile。
-3. 提交 turn。输入与同步 answer 只存在于当前交互视图内存。
-4. 从 turn metadata 打开对应 v4 / v5 / v8 Run Detail、Comparison 或 Evaluation；v8 只展示合同与字段 metadata，不回显字段值。
-5. 不再继续时显式关闭 session；通过 Active / Closed 过滤器区分可执行会话与历史会话。
+3. 提交 turn。`save_result` 默认 false，输入与同步 answer 只存在于当前交互视图内存；只有显式设为 true，服务端才从本次成功执行的 canonical result 创建独立结果资产。
+4. 保存成功时，turn 响应返回 metadata-only `result_artifact`；保存失败使用独立 `result_artifact_failure_code`，不改变已经成功的 run，也不重放 Provider。
+5. 在同一 application / session 下列出结果资产 summary，再以精确 `artifact_id` 读取正文；列表不返回 content，精确读取响应使用 `Cache-Control: no-store`。
+6. 从 turn metadata 打开对应 v4 / v5 / v8 Run Detail、Comparison 或 Evaluation；v8 只展示合同与字段 metadata，不回显字段值。
+7. 不再继续时显式关闭 session；通过 Active / Closed 过滤器区分可执行会话与历史会话。
 
-切换 workspace、application、profile 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata 和 run refs，不重建 transcript。
+切换 workspace、application、profile 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata 和 run refs，不重建 transcript。结果资产批次 A 目前只使用 memory owner：同一服务进程内可精确读取，服务重启后不恢复；不得把它写成 durable 能力。
 
 ## 幂等、取消与不确定结果
 
 - `client_turn_key` 在 session owner 内提供幂等。相同 key 与相同请求只返回既有 turn；冲突载荷返回 `idempotency_conflict`，不能再次调用 provider。
+- 相同 key 的首次请求若已保存结果，重试只返回既有 artifact summary，不回传首次易失结果、不再次调用 Provider；首次没有保存时，重试不能事后补建已经丢失的内容。
 - 用户取消会沿用既有 v4 / v5 / v8 的取消语义。取消不是 replay 或 resume，也不自动创建替代 turn。
 - provider 已返回但终态持久化不确定时，记录只能进入明确的不确定状态；不得为“补结果”自动重放 provider。
 - stale reconciliation 只把长期非终态记录收敛为 `outcome_unknown` 等 metadata-only 结果，不恢复答案、不重放执行。
@@ -175,7 +180,7 @@ Application Operations 同时读取当前 application 的 Gateway Request Histor
 
 ## 持久化与隐私边界
 
-memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
+memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A 单份正文上限 `64 KiB`，session list 只返回 metadata。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
 
 - 原始 input、answer 或 transcript
 - prompt、provider raw response 或 fragment 正文
@@ -189,5 +194,6 @@ SQLite 中 Application RAG、Workflow Definition release、definition execution 
 - 不自动 review、activation、publish、assignment 或 profile 选择。
 - 不增加 schedule、retry / fallback、replay / resume、agent loop、长期记忆或后台任务。
 - 不从 session transcript 派生持久记忆，不把 answer 写回上层业务真相源。
+- 不允许客户端事后上传 artifact content、digest 或 run ref，不从日志、缓存或 Provider 重建结果；memory artifact 不声明重启恢复。
 - 不把本地 SQLite、PostgreSQL dev/test、mock provider、真实浏览器验收或 launcher 连续链解释为 production ready。
 - 不绕过 HTTP Tool、Workflow RAG、Application RAG 或 Workflow Definition 各自的 authority owner。

@@ -263,23 +263,28 @@ func TestPromptApplicationSessionV2DelegatesUniqueInvocationService(t *testing.T
 	}
 	assertPromptApplicationStrictJSON(t, *created.Session, promptApplicationSessionV2Schema)
 	coordinator := newApplicationInteractionTurnCoordinator(sessions, resolver, nil, nil, fixture.service.Invoke)
+	artifactService := newApplicationResultArtifactService(newMemoryApplicationResultArtifactRepository(), repository)
+	artifactService.newID = applicationResultArtifactStableIDGenerator()
+	coordinator = coordinator.withResultArtifacts(artifactService)
 	coordinator.now = func() time.Time { return time.Date(2026, 7, 22, 8, 7, 0, 0, time.UTC) }
 	result := coordinator.Execute(sessionContext, created.Session.SessionID, ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: 1, ClientTurnKey: "prompt-turn-1",
+		SaveResult:      true,
 		PromptVariables: map[string]any{"question": "Session invocation", "tone": "clear"},
 	})
 	if result.FailureCode != "" || result.Session == nil || result.Turn == nil ||
 		result.Turn.SchemaVersion != promptApplicationSessionTurnV2Schema ||
 		result.Turn.RunRef == nil || result.Turn.RunRef.SchemaVersion != workflowRunRecordPromptSchemaVersion ||
-		result.PromptOutput == "" || fixture.bridge.callCount() != 1 {
+		result.PromptOutput == "" || result.ResultArtifact == nil || result.ResultArtifactFailureCode != "" || fixture.bridge.callCount() != 1 {
 		t.Fatalf("Prompt session did not delegate v6 invocation: %#v calls=%d", result, fixture.bridge.callCount())
 	}
 	assertPromptApplicationStrictJSON(t, *result.Turn, promptApplicationSessionTurnV2Schema)
 	replayed := coordinator.Execute(sessionContext, created.Session.SessionID, ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: 1, ClientTurnKey: "prompt-turn-1",
+		SaveResult:      true,
 		PromptVariables: map[string]any{"question": "Session invocation", "tone": "clear"},
 	})
-	if !replayed.IdempotentReplay || replayed.PromptOutput != "" || fixture.bridge.callCount() != 1 {
+	if !replayed.IdempotentReplay || replayed.PromptOutput != "" || replayed.ResultArtifact == nil || replayed.ResultArtifact.ArtifactID != result.ResultArtifact.ArtifactID || fixture.bridge.callCount() != 1 {
 		t.Fatalf("Prompt session retry replayed provider or output: %#v calls=%d", replayed, fixture.bridge.callCount())
 	}
 }

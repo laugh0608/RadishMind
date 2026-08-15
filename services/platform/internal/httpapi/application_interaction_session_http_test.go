@@ -111,7 +111,8 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 		bridge: bridgeClient, applicationCatalogRepository: definitionService.applications,
 		workflowDefinitionReleaseRepository:     definitionService.repository,
 		applicationInteractionSessionRepository: newMemoryApplicationInteractionSessionRepository(), workflowRunStore: runStore,
-		workspaceMembershipProvider: newDeterministicDevTestWorkspaceMembershipProvider(),
+		applicationResultArtifactRepository: newMemoryApplicationResultArtifactRepository(),
+		workspaceMembershipProvider:         newDeterministicDevTestWorkspaceMembershipProvider(),
 	}
 	auth := applicationInteractionSessionHTTPAuth(runContext, "application_sessions:write", "application_sessions:read", "application_sessions:execute")
 	createBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","execution_profile":"workflow_definition_executor_v1","definition_id":"` + definitionRequest.DefinitionID + `"}`
@@ -126,7 +127,7 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 	}
 
 	input := "private HTTP session turn input"
-	turnBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","expected_session_version":1,"client_turn_key":"turn_http_001","input_text":"` + input + `","condition_values":{},"model":"","temperature":null}`
+	turnBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","expected_session_version":1,"client_turn_key":"turn_http_001","save_result":true,"input_text":"` + input + `","condition_values":{},"model":"","temperature":null}`
 	execute := func(body string, authContext controlPlaneReadAuthContext) *httptest.ResponseRecorder {
 		request := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/turns", strings.NewReader(body))
 		request.SetPathValue("session_id", created.Session.SessionID)
@@ -138,15 +139,50 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 	}
 	response := execute(turnBody, auth)
 	var executed applicationInteractionTurnEnvelope
-	if response.Code != http.StatusOK || json.Unmarshal(response.Body.Bytes(), &executed) != nil || executed.FailureCode != nil || executed.Turn == nil || executed.Turn.Status != string(WorkflowRunStatusSucceeded) || executed.Turn.RunRef == nil || executed.Turn.RunRef.SchemaVersion != workflowRunRecordDefinitionSchemaVersion || executed.AdvisoryOutput == "" || bridgeClient.callCount() != 1 {
+	if response.Code != http.StatusOK || json.Unmarshal(response.Body.Bytes(), &executed) != nil || executed.FailureCode != nil || executed.Turn == nil || executed.Turn.Status != string(WorkflowRunStatusSucceeded) || executed.Turn.RunRef == nil || executed.Turn.RunRef.SchemaVersion != workflowRunRecordDefinitionSchemaVersion || executed.AdvisoryOutput == "" || executed.ResultArtifact == nil || executed.ResultArtifactFailureCode != nil || bridgeClient.callCount() != 1 {
 		t.Fatalf("execute workflow session turn: status=%d body=%s bridge=%d", response.Code, response.Body.String(), bridgeClient.callCount())
 	}
 	if strings.Contains(response.Body.String(), input) {
 		t.Fatalf("turn response echoed private input: %s", response.Body.String())
 	}
 	replay := execute(turnBody, auth)
-	if replay.Code != http.StatusOK || !strings.Contains(replay.Body.String(), `"idempotent_replay":true`) || strings.Contains(replay.Body.String(), executed.AdvisoryOutput) || bridgeClient.callCount() != 1 {
+	if replay.Code != http.StatusOK || !strings.Contains(replay.Body.String(), `"idempotent_replay":true`) || strings.Contains(replay.Body.String(), executed.AdvisoryOutput) || !strings.Contains(replay.Body.String(), executed.ResultArtifact.ArtifactID) || bridgeClient.callCount() != 1 {
 		t.Fatalf("turn HTTP retry repeated provider: status=%d body=%s bridge=%d", replay.Code, replay.Body.String(), bridgeClient.callCount())
+	}
+
+	query := "?workspace_id=" + runContext.WorkspaceID + "&application_id=" + runContext.ApplicationID
+	listRequest := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts"+query, nil)
+	listRequest.SetPathValue("session_id", created.Session.SessionID)
+	listRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	listRequest = listRequest.WithContext(withControlPlaneReadFakeAuthContext(listRequest.Context(), auth))
+	listResponse := httptest.NewRecorder()
+	server.handleListApplicationResultArtifacts(listResponse, listRequest)
+	var listed applicationResultArtifactListEnvelope
+	if listResponse.Code != http.StatusOK || json.Unmarshal(listResponse.Body.Bytes(), &listed) != nil || listed.FailureCode != nil || len(listed.Items) != 1 ||
+		listed.Items[0].ArtifactID != executed.ResultArtifact.ArtifactID || strings.Contains(listResponse.Body.String(), executed.AdvisoryOutput) || listResponse.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("list result artifacts: status=%d body=%s headers=%v", listResponse.Code, listResponse.Body.String(), listResponse.Header())
+	}
+	readRequest := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+query, nil)
+	readRequest.SetPathValue("session_id", created.Session.SessionID)
+	readRequest.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	readRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	readRequest = readRequest.WithContext(withControlPlaneReadFakeAuthContext(readRequest.Context(), auth))
+	readResponse := httptest.NewRecorder()
+	server.handleReadApplicationResultArtifact(readResponse, readRequest)
+	var read applicationResultArtifactEnvelope
+	if readResponse.Code != http.StatusOK || json.Unmarshal(readResponse.Body.Bytes(), &read) != nil || read.FailureCode != nil || read.Artifact == nil ||
+		read.Artifact.Content != executed.AdvisoryOutput || read.Artifact.TurnID != executed.Turn.TurnID || readResponse.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("read result artifact: status=%d body=%s headers=%v", readResponse.Code, readResponse.Body.String(), readResponse.Header())
+	}
+	deniedRead := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+query, nil)
+	deniedRead.SetPathValue("session_id", created.Session.SessionID)
+	deniedRead.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	deniedRead.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	deniedRead = deniedRead.WithContext(withControlPlaneReadFakeAuthContext(deniedRead.Context(), applicationInteractionSessionHTTPAuth(runContext, "application_sessions:execute")))
+	deniedReadResponse := httptest.NewRecorder()
+	server.handleReadApplicationResultArtifact(deniedReadResponse, deniedRead)
+	if deniedReadResponse.Code != http.StatusForbidden || !strings.Contains(deniedReadResponse.Body.String(), "scope_denied") {
+		t.Fatalf("result artifact read scope did not fail closed: status=%d body=%s", deniedReadResponse.Code, deniedReadResponse.Body.String())
 	}
 
 	unknown := execute(strings.TrimSuffix(turnBody, "}")+`,"authority_digest":"sha256:`+strings.Repeat("a", 64)+`"}`, auth)

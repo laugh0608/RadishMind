@@ -1,0 +1,149 @@
+# 应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1
+
+更新时间：2026-08-15
+
+状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_a_completed_batch_b_next`
+
+## 功能定位
+
+本专题为 Application Interaction Session 增加用户显式选择的运行结果保存能力。默认回合继续只返回易失结果；只有用户在提交新 turn 时明确要求保存，服务端才允许从同一次受控执行的 canonical result 捕获内容，创建独立的 `application_result_artifact.v1`，并绑定真实 session、turn 与 terminal run。
+
+结果资产不是 transcript、Run History 扩展或 provider response archive。它是用户主动保留的一份应用结果，服务端拥有来源绑定、内容摘要、读取边界和后续生命周期；既有 `workflow_run_record.*`、`application_session.v*` 与 `application_session_turn.v*` 继续保持 metadata-only。
+
+## 为什么是当前最高优先级
+
+- Application Session 已能执行 Workflow Definition、结构化 Definition、Application RAG、Prompt 与 Agent / Copilot，但刷新或重启后只恢复 turn metadata 和 run ref，首次响应中的结果无法再次读取。
+- 能力矩阵已把 materialized result reader 列为 `Conversation & Session` 的真实缺口；继续扩 HTTP Tool、Provider Attempt、只读 evidence 或 readiness 无法解决用户完成一次运行后保存成果的问题。
+- 生产身份、secret backend、真实 Provider、billing、agent loop、自动执行与外部接入仍有明确前置阻塞，不适合作为当前产品批次。
+- 通过独立 owner 和显式 opt-in，可以在不污染 Run History、不建立 durable transcript、不重放 provider 的前提下先形成开发测试态真实路径。
+
+## 目标用户
+
+- `Application Builder`：运行应用后，选择保存值得继续审查、比较或交付的结果，并在离开当前页面后重新读取。
+- `Workflow Reviewer`：从 session / turn / run 精确来源确认结果由哪次受控执行产生，而不是读取客户端自行上传的无来源文本。
+- `Platform Maintainer`：维持默认不保存、作用域隔离、内容大小上限、幂等与 no replay 边界，并逐步接入 SQLite / PostgreSQL 开发测试态持久化。
+
+## 用户路径
+
+1. 用户在现有 Application Interaction Session 中创建或选择 active session。
+2. 用户提交新 turn；默认 `save_result=false`，结果仍只随首次响应返回。
+3. 用户显式选择保存时，turn route 要求 `save_result=true`，并沿现有 `application_sessions:execute` 身份、成员资格和 application scope 执行。
+4. coordinator 仍先完成 authority 重读、provider 前 reservation、单次既有 runtime 委托和 terminal turn 写入。
+5. 只有 terminal turn 为 `succeeded`、run ref 与 profile 严格匹配且 canonical result 非空时，Result Artifact owner 才捕获内容；客户端不能提交 artifact content、digest、run ref 或 source metadata。
+6. 首次响应返回原结果和 metadata-only artifact summary。保存失败不得伪造成功，也不得重新调用 provider；执行成功与保存失败必须分别表达。
+7. 用户可按同一 application / session 列出 metadata-only artifact summary，并用精确 artifact id 读取内容。
+8. 相同 client turn key 的重试不得重复 provider 调用或创建第二份资产；若首次未选择保存，重试不能从已丢失的易失结果补建资产。
+9. 后续 durable 批次完成后，服务重启仍可恢复 artifact；首批 memory owner 明确不声明重启恢复。
+
+## Owner 与职责边界
+
+### Application Result Artifact owner
+
+负责：
+
+- `application_result_artifact.v1` 当前记录；
+- tenant / workspace / application / owner / session / turn / run 精确绑定；
+- 每个 turn 最多一个 artifact 的幂等唯一性；
+- canonical content、content type、bytes 与 `sha256:` digest；
+- metadata-only list 与精确 content read；
+- 后续 archive / purge、SQLite / PostgreSQL repository 和 Web consumer。
+
+不负责：
+
+- 创建或执行 session turn；
+- 解析 runtime authority、调用 Gateway / Provider、重试或恢复执行；
+- 修改 Run History、Comparison、Evaluation、Application Operations 或业务真相源；
+- 保存用户 input、prompt、provider raw response、header、token、credential、retrieval fragment 正文或完整 transcript。
+
+### Application Interaction Session owner
+
+继续拥有 session / turn 拓扑、状态、幂等键、authority metadata 和 run ref。它只把首次执行产生的 canonical result 与 terminal turn 交给 Result Artifact owner，不保存 artifact content，也不把 artifact 成功作为 run 成功条件。
+
+### 既有 runtime owner
+
+Workflow Definition、Application RAG、Prompt 与 Agent / Copilot runtime 继续拥有各自执行、输出验证和 run record。Result Artifact owner 不复制其算法或重新读取 provider；首批只接入已经由 runtime 校验成功的 canonical response。
+
+## 数据合同
+
+`application_result_artifact.v1` 固定包含：
+
+- `artifact_id`、`record_version`；
+- tenant / workspace / application / owner；
+- session id、turn id、client turn key；
+- execution profile；
+- run id 与 run schema version；
+- `text/markdown` 或 `application/json` content type；
+- canonical content、content bytes 与 `sha256:` digest；
+- created at / actor / request / audit ref。
+
+列表只返回 `application_result_artifact_summary.v1`，不返回 content。精确 read 才返回 content，并要求与记录一致的 application scope 和 owner。
+
+首批单份 content 上限固定为 `64 KiB`，要求 UTF-8、非空和 canonical serialization。内容被视为用户内容，可能包含业务敏感信息，因此不得进入日志、错误摘要、trace、URL、cursor、committed fixture 或 run record。
+
+## 状态、并发与失败语义
+
+- capture 只接受 `succeeded` terminal turn 和非空 run ref；running / failed / canceled / outcome unknown 均拒绝。
+- 同一 scope / session / turn 只能创建一份 artifact；相同 run ref、profile、content type 与 digest 重试返回原记录，不同内容返回冲突。
+- artifact 写入发生在 terminal turn 已成功落下之后。artifact store 失败不回滚 run，也不重放 provider；响应同时保留成功 turn 和稳定 artifact failure。
+- 首批不允许客户端事后上传内容。首次未保存的易失结果在幂等重试时保持不可恢复。
+- list cursor 绑定 tenant / workspace / application / owner / session 与最后一个排序键；scope 或 filter 漂移失败关闭。
+- store unavailable、contract mismatch、not found、scope denied、payload invalid、content too large、source unavailable 与 conflict 使用稳定 failure code，不透传底层错误正文。
+
+## 权限边界
+
+首批复用 parent session 的权限：
+
+- 新 turn 的显式 capture 复用 `application_sessions:execute`；只有执行者能在同一次请求中选择保存。
+- list / read 复用 `application_sessions:read`，并继续要求 verified identity、active workspace membership 和精确 application scope。
+
+Result Artifact 是独立数据 owner，但首批不新增平行的成员资格语义。若后续需要跨 session 分享、导出、删除或委派，必须独立评审权限，不得把 `read` 自动提升为分享或删除权限。
+
+## 实施批次
+
+### 批次 A：strict contract、memory owner 与 HTTP 纵向链（已完成）
+
+- 实现 record / summary、校验、memory repository、每 turn 唯一性和严格 cursor。
+- turn body 增加可选 `save_result`，默认 false；仅从 server-side canonical result capture。
+- 覆盖 Workflow Definition、结构化 Definition、Application RAG、Prompt 与 Agent / Copilot 五类现有 session profile 的 canonical result serialization。
+- 增加 session-scoped artifact list 与精确 read route；列表不返回 content。
+- 响应区分 turn failure 与 artifact failure；幂等 retry 不执行 provider、不补建已丢失结果。
+- 精准测试覆盖 scope、owner、大小、UTF-8、重复 capture、store unavailable、未知字段和内容不进入既有 session / run store。
+
+当前实现已新增 `application_result_artifact.v1` / summary schema、独立 memory repository 和 service；五类 session profile 都只在成功 terminal turn 后从服务端 canonical response 捕获内容。turn body 的 `save_result` 默认 false；响应可分别表达 `result_artifact` 和 `result_artifact_failure_code`。session-scoped list 不返回 content，精确 read 设置 `Cache-Control: no-store`。幂等重试只读取已经存在的 artifact summary，不重新调用 Provider，也不从易失结果补建。
+
+### 批次 B：SQLite / PostgreSQL 开发测试态 durable repository
+
+- 复用现有 local persistence runtime、Workflow PostgreSQL pool、selector 与 migration family，不新增 DSN 或连接池。
+- 增加不可变 artifact 表、scope / session / turn 唯一键、严格 cursor 索引与运行角色权限。
+- 覆盖 migration / rollback / reapply、并发、重启恢复、损坏 payload、no fallback 和敏感内容不进入诊断。
+
+### 批次 C：生命周期与应用工作区消费
+
+- 增加显式 archive / purge policy；默认不自动清理，不做永久删除前的隐式级联。
+- 在 Application Interaction Workspace 增加保存选择、保存结果状态、metadata 列表、精确读取和 session / run handoff。
+- 应用、session、workspace 或身份切换必须清除已读取 content 和迟到响应；不写 localStorage、sessionStorage、IndexedDB 或 URL。
+
+### 批次 D：双数据库产品连续链与专题收口
+
+- memory / SQLite / PostgreSQL 验证同一 profile matrix、幂等、权限、cursor、archive / purge 与 no-fallback。
+- SQLite 本地产品验证保存 → 刷新 → 精确读取 → 服务重启恢复 → archive / purge 边界和桌面 / 窄屏。
+- 同步 current focus、功能索引、能力矩阵、路线图与周志；专题关闭后不派生通用 result store 或 transcript 批次。
+
+## 验收方式
+
+- provenance：客户端不能提交 content、digest、run ref 或 source profile；artifact 必须由同一次成功执行产生。
+- default-off：`save_result` 省略或 false 时不访问 artifact repository，现有 response 和 metadata-only stores 不变。
+- idempotency：同 client turn key 最多一次 provider、一个 terminal turn 和一个 artifact；重试不返回首次 transient result，但可返回已有 artifact summary。
+- privacy：list、turn、run、日志、错误、cursor 和 committed 资产不包含 content；只有精确 read 返回 content。
+- authorization：identity / membership / workspace / application / owner 任一不匹配均在 artifact read 或 capture 前失败关闭。
+- compatibility：既有五类 session profile、Run History、Comparison、Evaluation、Gateway、RAG 与 HTTP Tool 测试不回归。
+- repository：批次 A 通过 Go 单元 / HTTP / race 精准测试、`go vet` 和仓库快速 / 全量门禁；批次 B 起补双数据库专项、重启与 no-fallback 证据。
+
+## 停止线
+
+- 不默认保存，不持久化完整 transcript、用户 input、prompt、provider raw response、retrieval fragment 正文或 HTTP Tool response body。
+- 不修改 `workflow_run_record.*`、`application_session.*` 的 metadata-only 内容策略，不把 artifact content 塞回 run / turn。
+- 不允许客户端事后上传结果并绑定 run，不从日志、缓存或 provider 重建结果。
+- 不实现 replay / resume、自动 retry / fallback、background execution、schedule、agent loop、业务写回或自动发布。
+- 不打开真实 Provider、production secret、production auth、public sharing、public URL、跨 workspace 分享、billing 或 production capability。
+- 批次 A 的 memory owner 不声明 durable 或重启恢复；只有批次 B 的双数据库证据完成后才允许更新该结论。

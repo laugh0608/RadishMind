@@ -343,16 +343,20 @@ func TestAgentCopilotSessionV3DelegatesUniqueInvocationService(t *testing.T) {
 		t.Fatalf("Agent Copilot session is not strict v3: %v payload=%s", err, payload)
 	}
 	coordinator := newApplicationInteractionTurnCoordinator(sessions, resolver, nil, nil).withAgentCopilot(fixture.service.Invoke)
+	artifactService := newApplicationResultArtifactService(newMemoryApplicationResultArtifactRepository(), sessions.repository)
+	artifactService.newID = applicationResultArtifactStableIDGenerator()
+	coordinator = coordinator.withResultArtifacts(artifactService)
 	coordinator.now = func() time.Time { return time.Date(2026, 7, 25, 15, 32, 0, 0, time.UTC) }
 	input := validAgentCopilotInvocationInput()
 	result := coordinator.Execute(sessionContext, created.Session.SessionID, ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: created.Session.RecordVersion, ClientTurnKey: "agent-turn-1",
-		AgentTask: input.Task, AgentLocale: input.Locale, AgentConversationID: input.ConversationID,
+		SaveResult: true,
+		AgentTask:  input.Task, AgentLocale: input.Locale, AgentConversationID: input.ConversationID,
 		AgentArtifacts: input.Artifacts, AgentContext: input.Context,
 	})
 	if result.FailureCode != "" || result.Session == nil || result.Turn == nil || result.AgentResponse == nil ||
 		result.Turn.SchemaVersion != agentCopilotSessionTurnV3Schema ||
-		result.Turn.RunRef == nil || result.Turn.RunRef.SchemaVersion != agentCopilotRunV7Schema ||
+		result.Turn.RunRef == nil || result.Turn.RunRef.SchemaVersion != agentCopilotRunV7Schema || result.ResultArtifact == nil || result.ResultArtifactFailureCode != "" ||
 		fixture.bridge.callCount() != 1 {
 		t.Fatalf("Agent Copilot session did not delegate v7 invocation: %#v calls=%d", result, fixture.bridge.callCount())
 	}
@@ -365,10 +369,11 @@ func TestAgentCopilotSessionV3DelegatesUniqueInvocationService(t *testing.T) {
 	}
 	replayed := coordinator.Execute(sessionContext, created.Session.SessionID, ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: created.Session.RecordVersion, ClientTurnKey: "agent-turn-1",
-		AgentTask: input.Task, AgentLocale: input.Locale, AgentConversationID: input.ConversationID,
+		SaveResult: true,
+		AgentTask:  input.Task, AgentLocale: input.Locale, AgentConversationID: input.ConversationID,
 		AgentArtifacts: input.Artifacts, AgentContext: input.Context,
 	})
-	if !replayed.IdempotentReplay || replayed.AgentResponse != nil || fixture.bridge.callCount() != 1 {
+	if !replayed.IdempotentReplay || replayed.AgentResponse != nil || replayed.ResultArtifact == nil || replayed.ResultArtifact.ArtifactID != result.ResultArtifact.ArtifactID || fixture.bridge.callCount() != 1 {
 		t.Fatalf("Agent Copilot session retry replayed provider or response: %#v calls=%d", replayed, fixture.bridge.callCount())
 	}
 }
