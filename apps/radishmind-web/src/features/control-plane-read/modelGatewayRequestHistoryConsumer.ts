@@ -495,14 +495,9 @@ function mapGatewayRequestCostEstimate(value: GatewayRequestCostEstimateDocument
 }
 
 function mapGatewayRequestDetail(value: GatewayRequestDetailDocument): GatewayRequestHistoryDetail {
+  const summary = gatewayRequestDetailSummaryProjection(value);
   return {
-    ...mapGatewayRequestSummary({
-      ...value,
-      usage_availability: value.usage.availability,
-      attempt_count: value.attempt_count ?? 0,
-      fallback_allowed: value.fallback_allowed ?? false,
-      fallback_used: value.fallback_used ?? false,
-    }),
+    ...mapGatewayRequestSummary(summary),
     tenantRef: value.tenant_ref,
     workspaceId: value.workspace_id,
     consumerRef: value.consumer_ref,
@@ -515,6 +510,43 @@ function mapGatewayRequestDetail(value: GatewayRequestDetailDocument): GatewayRe
     attemptPlan: value.provider_attempt_plan ? mapGatewayProviderAttemptPlan(value.provider_attempt_plan) : null,
     providerAttempts: (value.provider_attempts ?? []).map(mapGatewayProviderAttemptRecord),
   };
+}
+
+function gatewayRequestDetailSummaryProjection(
+  value: GatewayRequestDetailDocument | Record<string, unknown>,
+): GatewayRequestSummaryDocument {
+  const terminalAttempt = value.schema_version === "gateway_request_record.v3" &&
+      typeof value.terminal_attempt_id === "string" && Array.isArray(value.provider_attempts)
+    ? value.provider_attempts.find((attempt) =>
+      isRecord(attempt) && attempt.attempt_id === value.terminal_attempt_id)
+    : undefined;
+  const terminalProvider = value.terminal_provider ??
+    (isRecord(terminalAttempt) && typeof terminalAttempt.provider_id === "string"
+      ? terminalAttempt.provider_id
+      : undefined);
+  const terminalProfile = value.terminal_profile ??
+    (isRecord(terminalAttempt) && typeof terminalAttempt.runtime_profile === "string"
+      ? terminalAttempt.runtime_profile
+      : undefined);
+  return {
+    ...value,
+    usage_availability: isRecord(value.usage) ? value.usage.availability : undefined,
+    attempt_count: value.attempt_count ?? 0,
+    fallback_allowed: value.fallback_allowed ?? false,
+    fallback_used: value.fallback_used ?? false,
+    ...(terminalProvider === undefined ? {} : { terminal_provider: terminalProvider }),
+    ...(terminalProfile === undefined ? {} : { terminal_profile: terminalProfile }),
+  } as GatewayRequestSummaryDocument;
+}
+
+function gatewayRequestDetailTerminalProjectionMatches(value: Record<string, unknown>): boolean {
+  if (value.schema_version !== "gateway_request_record.v3" || typeof value.terminal_attempt_id !== "string" ||
+    !Array.isArray(value.provider_attempts)) return true;
+  const terminalAttempt = value.provider_attempts.find((attempt) =>
+    isRecord(attempt) && attempt.attempt_id === value.terminal_attempt_id);
+  if (!isRecord(terminalAttempt)) return true;
+  return (value.terminal_provider === undefined || value.terminal_provider === terminalAttempt.provider_id) &&
+    (value.terminal_profile === undefined || value.terminal_profile === terminalAttempt.runtime_profile);
 }
 
 function mapGatewayProviderAttemptCostSummary(
@@ -778,7 +810,7 @@ function isGatewayProviderAttemptPricingSnapshotDocument(value: unknown): boolea
     typeof value.pricing_policy_id === "string" && /^gmp_[a-f0-9]{24}$/u.test(value.pricing_policy_id) &&
     isNonNegativeInteger(value.pricing_policy_version) && value.pricing_policy_version > 0 &&
     typeof value.pricing_policy_digest === "string" && /^sha256:[a-f0-9]{64}$/u.test(value.pricing_policy_digest) &&
-    typeof value.integrity_digest === "string" && /^sha256:[a-f0-9]{64}$/u.test(value.integrity_digest);
+    typeof value.integrity_digest === "string" && /^[a-f0-9]{64}$/u.test(value.integrity_digest);
 }
 
 function isGatewayProviderAttemptRecordDocument(
@@ -827,13 +859,8 @@ function isGatewayProviderAttemptFailureDocument(value: unknown): boolean {
 
 function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequestDetailDocument {
   if (!isRecord(value) || !isRecord(value.usage)) return false;
-  return isGatewayRequestSummaryDocument({
-    ...value,
-    usage_availability: value.usage.availability,
-    attempt_count: value.attempt_count ?? 0,
-    fallback_allowed: value.fallback_allowed ?? false,
-    fallback_used: value.fallback_used ?? false,
-  }, true) &&
+  return gatewayRequestDetailTerminalProjectionMatches(value) &&
+    isGatewayRequestSummaryDocument(gatewayRequestDetailSummaryProjection(value), true) &&
     stringFields(value, ["tenant_ref", "workspace_id", "consumer_ref", "subject_ref"]) &&
     (value.application_id === undefined || typeof value.application_id === "string") &&
     isNonNegativeInteger(value.gateway_duration_ms) && typeof value.gateway_duration_available === "boolean" &&

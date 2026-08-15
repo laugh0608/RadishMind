@@ -27,7 +27,7 @@ import {
   type AdminProviderRouteSnapshot,
 } from "./adminProviderRouteConsumer.ts";
 
-const config = readAdminProviderRouteConfig();
+const defaultConfig = readAdminProviderRouteConfig();
 const PROTOCOLS: AdminProviderRouteProtocol[] = ["chat_completions", "responses", "messages"];
 
 type WorkspaceOperation = {
@@ -40,9 +40,15 @@ type WorkspaceOperation = {
 
 export function AdminProviderRouteWorkspacePanel({
   focus = "route",
+  applicationId,
 }: {
   focus?: "provider" | "profile" | "route";
+  applicationId?: string;
 }) {
+  const config = useMemo(() => ({
+    ...defaultConfig,
+    applicationId: applicationId?.trim() || defaultConfig.applicationId,
+  }), [applicationId]);
   const [draftInput, setDraftInput] = useState<AdminProviderRouteDraftInput>(() =>
     createAdminProviderRouteDraftInput(config),
   );
@@ -54,8 +60,8 @@ export function AdminProviderRouteWorkspacePanel({
   const [reviewReason, setReviewReason] = useState("Reviewed runtime inventory, capabilities, and exact model routes.");
   const [activationAction, setActivationAction] = useState<AdminProviderRouteActivationAction>("activate");
   const [activationReason, setActivationReason] = useState("Enable the independently reviewed route configuration.");
-  const [operation, setOperation] = useState<WorkspaceOperation>(() => initialOperation());
-  const findings = useMemo(() => validateAdminProviderRouteDraft(config, draftInput), [draftInput]);
+  const [operation, setOperation] = useState<WorkspaceOperation>(() => initialOperation(config));
+  const findings = useMemo(() => validateAdminProviderRouteDraft(config, draftInput), [config, draftInput]);
   const candidateDiff = useMemo(
     () => candidate ? buildAdminProviderRouteCandidateDiff(candidate, snapshot) : null,
     [candidate, snapshot],
@@ -63,7 +69,7 @@ export function AdminProviderRouteWorkspacePanel({
 
   useEffect(() => {
     if (config.mode === "dev_admin_provider_route_http") void refreshWorkspace();
-  }, []);
+  }, [config]);
 
   async function refreshWorkspace() {
     setOperation(loadingOperation("Loading draft, active snapshot, and activation history."));
@@ -781,7 +787,7 @@ function OperationStatus({ operation }: { operation: WorkspaceOperation }) {
   );
 }
 
-function initialOperation(): WorkspaceOperation {
+function initialOperation(config: ReturnType<typeof readAdminProviderRouteConfig>): WorkspaceOperation {
   return config.mode === "dev_admin_provider_route_http"
     ? { status: "idle", label: "Ready to load the controlled configuration workspace.", failureCode: "", requestId: "", auditRef: "" }
     : { status: "offline", label: "Offline evidence mode sends no management request.", failureCode: "", requestId: "", auditRef: "" };

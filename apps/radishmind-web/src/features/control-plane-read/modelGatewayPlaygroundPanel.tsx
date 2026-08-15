@@ -226,7 +226,11 @@ export default function ModelGatewayPlaygroundPanel({
   const credentialReady = config.authMode === "dev_headers" || Boolean(apiKeyCredential);
   const executionReady = enabled && active && applicationActive && workspaceScopeMatches && credentialReady &&
     catalog.status === "ready" && Boolean(selectedCatalogModel) && supportedProtocols.includes(protocol);
-  const quotaFailureGuidance = modelGatewayQuotaFailureGuidance(result.failureCode, result.failureBoundary);
+  const quotaFailureGuidance = modelGatewayQuotaFailureGuidance(
+    result.failureCode,
+    result.failureBoundary,
+    result.attemptEvidenceAvailable ? result.providerAttemptCount : 0,
+  );
   return (
     <section className="surface-band model-gateway-overview gateway-playground" id="model-gateway-playground" aria-labelledby="model-gateway-playground-title">
       <div className="section-heading">
@@ -304,7 +308,7 @@ export default function ModelGatewayPlaygroundPanel({
               <article className="controlled-use-failure-guidance" aria-label="Gateway quota failure guidance">
                 <div className="application-api-card-heading">
                   <div><p className="eyebrow">Quota admission blocked</p><h5>{quotaFailureGuidance.title}</h5></div>
-                  <span className="status-badge bad">no provider call</span>
+                  <span className="status-badge bad">{quotaFailureGuidance.sideEffectBadge}</span>
                 </div>
                 <p>{quotaFailureGuidance.summary}</p>
                 <p className="boundary-note">{quotaFailureGuidance.sideEffectSummary}</p>

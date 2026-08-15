@@ -75,6 +75,10 @@ func runGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t *testing.T
 		readEnvelope.Request.Usage.TotalTokens != 13 {
 		t.Fatalf("unexpected request detail: %#v", readEnvelope)
 	}
+	if readEnvelope.Request.SchemaVersion == gatewayRequestRecordSchemaVersionV3 ||
+		strings.Contains(readResponse.Body.String(), `"provider_attempt_cost_summary"`) {
+		t.Fatalf("legacy detail fabricated Provider Attempt cost summary: %s", readResponse.Body.String())
+	}
 }
 
 func TestGatewayRequestHistoryRecordsInvalidBodyAndSkipsUnscopedRequest(t *testing.T) {

@@ -46,6 +46,7 @@ export type ModelGatewayQuotaFailureGuidance = {
   summary: string;
   adminAnchor: "admin-gateway-request-quota";
   adminLabel: string;
+  sideEffectBadge: string;
   sideEffectSummary: string;
 };
 
@@ -88,10 +89,12 @@ const QUOTA_FAILURE_GUIDANCE: Readonly<Record<string, Pick<ModelGatewayQuotaFail
 };
 
 const QUOTA_FAILURE_SIDE_EFFECT_SUMMARY = "The server stopped this request at quota_admission before bridge or provider execution. No provider call was made, and this page will not retry or change the limit automatically.";
+const FALLBACK_QUOTA_FAILURE_SIDE_EFFECT_SUMMARY = "The primary Provider reached an eligible failure before the configured backup target was stopped at quota_admission. The backup Provider was not called, and this page will not retry or change the limit automatically.";
 
 export function modelGatewayQuotaFailureGuidance(
   failureCode: string,
   failureBoundary: string,
+  providerAttemptCount: 0 | 1 | 2 = 0,
 ): ModelGatewayQuotaFailureGuidance | null {
   if (failureBoundary !== "quota_admission") return null;
   const guidance = QUOTA_FAILURE_GUIDANCE[failureCode];
@@ -99,7 +102,10 @@ export function modelGatewayQuotaFailureGuidance(
     ...guidance,
     adminAnchor: "admin-gateway-request-quota",
     adminLabel: "Open Admin Quota",
-    sideEffectSummary: QUOTA_FAILURE_SIDE_EFFECT_SUMMARY,
+    sideEffectBadge: providerAttemptCount > 0 ? "no backup call" : "no provider call",
+    sideEffectSummary: providerAttemptCount > 0
+      ? FALLBACK_QUOTA_FAILURE_SIDE_EFFECT_SUMMARY
+      : QUOTA_FAILURE_SIDE_EFFECT_SUMMARY,
   } : null;
 }
 

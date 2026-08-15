@@ -32,7 +32,7 @@ Workflow 产品链、Gateway Request History、[Gateway Playground / Request Rev
 
 该功能只增加 Web consumer / lazy panel 与 request-id handoff，复用现有 API、dev/test caller scope 和 history，不新增 schema、repository、provider contract 或生产授权。输入输出只存在于当前组件内存，Request History 继续只保存 sanitized operational metadata。
 
-Provider Attempt 批次 A 至 D 已把 Route v2、Request History v3、既有 Admin 人工激活链和三个 API Key unary API 闭合：SQLite / PostgreSQL 同构持久化、旧版本兼容、重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL，以及 v1 → v2 → rollback v1 的 strict HTTP 连续链均已成立；request-local executor 又固定 Route / inventory / pricing，以逐 attempt quota 与 history checkpoint 串联最多两次 bridge 调用。批次 E 的 S7 / S5 Visual R1、Route v1 / v2 editor、Playground 请求级允许、Request History v1 / v2 / v3 lineage 和 Application Operations partial cost coverage 已关闭；当前开发目标是完成 memory / SQLite、PostgreSQL 和浏览器产品连续链。真实 Provider 与 production capability 继续关闭。
+Provider Attempt 批次 A 至 D 已把 Route v2、Request History v3、既有 Admin 人工激活链和三个 API Key unary API 闭合：SQLite / PostgreSQL 同构持久化、旧版本兼容、重启恢复、并发单赢家、损坏 payload 失败关闭、runtime role 无 DDL，以及 v1 → v2 → rollback v1 的 strict HTTP 连续链均已成立；request-local executor 又固定 Route / inventory / pricing，以逐 attempt quota 与 history checkpoint 串联最多两次 bridge 调用。批次 E 的 S7 / S5 Visual R1、Route v1 / v2 editor、Playground 请求级允许、Request History v1 / v2 / v3 lineage、Application Operations partial cost coverage，以及 memory / SQLite 页面连续链已经关闭；当前开发目标是完成 PostgreSQL、三协议、补充视口与最终门禁。真实 Provider 与 production capability 继续关闭。
 
 ## 设计边界
 

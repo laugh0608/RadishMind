@@ -396,6 +396,7 @@ func (service gatewayProviderAttemptHistoryService) Finalize(
 	record.HTTPStatusCode = httpStatusCode
 	record.FailureCode = strings.TrimSpace(failureCode)
 	record.FailureBoundary = strings.TrimSpace(failureBoundary)
+	record.Usage = record.ProviderAttempts[0].Usage
 	record.CostEstimate = cloneGatewayRequestCostEstimate(record.ProviderAttempts[0].CostEstimate)
 	if err := service.store.UpdateRequest(requestContext, &record); err != nil {
 		return GatewayRequestRecord{}, err

@@ -122,7 +122,7 @@ type GatewayRequestRecord struct {
 	FallbackUsed                 bool                              `json:"fallback_used,omitempty"`
 	TerminalAttemptID            string                            `json:"terminal_attempt_id,omitempty"`
 	ProviderAttempts             []GatewayProviderAttemptRecord    `json:"provider_attempts,omitempty"`
-	ProviderAttemptCostSummary   GatewayProviderAttemptCostSummary `json:"provider_attempt_cost_summary,omitempty"`
+	ProviderAttemptCostSummary   GatewayProviderAttemptCostSummary `json:"provider_attempt_cost_summary,omitempty,omitzero"`
 }
 
 type GatewayRequestListRequest struct {

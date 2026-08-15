@@ -286,10 +286,20 @@ test("Gateway Playground gives only authoritative quota-owner recovery guidance"
     const guidance = modelGatewayQuotaFailureGuidance(failureCode, "quota_admission");
     assert.equal(guidance?.adminAnchor, "admin-gateway-request-quota");
     assert.equal(guidance?.adminLabel, "Open Admin Quota");
+    assert.equal(guidance?.sideEffectBadge, "no provider call");
     assert.match(guidance?.sideEffectSummary ?? "", /No provider call was made/u);
     assert.equal(JSON.stringify(guidance).includes("remaining"), false);
     assert.equal(JSON.stringify(guidance).includes("Request History as usage truth"), failureCode === "gateway_quota_store_unavailable");
   }
+  const fallbackQuotaGuidance = modelGatewayQuotaFailureGuidance(
+    "gateway_quota_exceeded",
+    "quota_admission",
+    1,
+  );
+  assert.equal(fallbackQuotaGuidance?.sideEffectBadge, "no backup call");
+  assert.match(fallbackQuotaGuidance?.sideEffectSummary ?? "", /primary Provider reached an eligible failure/u);
+  assert.match(fallbackQuotaGuidance?.sideEffectSummary ?? "", /backup Provider was not called/u);
+  assert.equal(fallbackQuotaGuidance?.sideEffectSummary.includes("No provider call was made"), false);
   assert.equal(modelGatewayQuotaFailureGuidance("gateway_quota_exceeded", "provider"), null);
   assert.equal(modelGatewayQuotaFailureGuidance("BRIDGE_WORKER_TIMEOUT", "quota_admission"), null);
 });

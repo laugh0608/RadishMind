@@ -198,11 +198,56 @@ test("Gateway request history strictly maps v3 attempt lineage and partial cost 
     const detail = await readGatewayRequestHistoryDetail(live, "request_gateway_v3");
     assert.equal(detail.attemptPhase, "terminal");
     assert.equal(detail.attemptPlan?.executionMode, "sequential_fallback");
+    assert.equal(detail.attemptPlan?.targets[0]?.pricingAvailability, "configured");
     assert.equal(detail.attemptPlan?.targets[1]?.pricingAvailability, "not_configured");
     assert.equal(detail.providerAttempts[0]?.failure?.fallbackDisposition, "eligible");
     assert.equal(detail.providerAttempts[1]?.status, "succeeded");
     assert.equal(detail.providerAttempts[1]?.totalTokens, 14);
     assert.equal(detail.terminalAttemptId, "request_gateway_v3.pa2");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history derives omitted v3 terminal projection from the terminal attempt", async () => {
+  const originalFetch = globalThis.fetch;
+  const detail = v3DetailDocument();
+  delete detail.terminal_provider;
+  delete detail.terminal_profile;
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_detail_v3_raw",
+    ...historyEnvelopeScope(),
+    request: detail,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_detail_v3_raw",
+  });
+  try {
+    const mapped = await readGatewayRequestHistoryDetail(live, "request_gateway_v3");
+    assert.equal(mapped.terminalProvider, "mock-backup");
+    assert.equal(mapped.terminalProfile, "backup-dev");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history rejects a v3 terminal projection that conflicts with the terminal attempt", async () => {
+  const originalFetch = globalThis.fetch;
+  const detail = v3DetailDocument();
+  detail.terminal_provider = "unexpected-provider";
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_detail_v3_conflict",
+    ...historyEnvelopeScope(),
+    request: detail,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_detail_v3_conflict",
+  });
+  try {
+    await assert.rejects(
+      () => readGatewayRequestHistoryDetail(live, "request_gateway_v3"),
+      /Gateway request detail route failed/u,
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -542,7 +587,17 @@ function attemptPlanTarget(
     selected_model: "mock-model",
     upstream_model: upstreamModel,
     inventory_digest: `sha256:${digestCharacter.repeat(64)}`,
-    pricing_snapshot: { availability: "not_configured", reason: "pricing_policy_not_configured" },
+    pricing_snapshot: ordinal === 1 ? {
+      availability: "configured",
+      currency: "USD",
+      token_unit: 1_000_000,
+      input_price_micros_per_token_unit: 1_000_000,
+      output_price_micros_per_token_unit: 3_000_000,
+      pricing_policy_id: `gmp_${"a".repeat(24)}`,
+      pricing_policy_version: 3,
+      pricing_policy_digest: `sha256:${"c".repeat(64)}`,
+      integrity_digest: "b".repeat(64),
+    } : { availability: "not_configured", reason: "pricing_policy_not_configured" },
   };
 }
 

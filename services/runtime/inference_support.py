@@ -367,8 +367,12 @@ def describe_provider_inventory() -> dict[str, Any]:
                     default_base_url=provider_default_base_url(provider_id),
                 )
             resolved_profile = str(resolved["profile"]).strip() or str(profile or "").strip() or "default"
-            profile_model_id = build_provider_profile_inventory_model_id(provider_id, resolved_profile)
+            resolved_model = str(resolved["model"]).strip()
+            has_base_url = bool(str(resolved["base_url"]).strip())
+            has_api_key = bool(str(resolved["api_key"]).strip())
             provider_capabilities = provider.get("capabilities") or {}
+            credential_state = provider_profile_credential_state(provider_capabilities, has_api_key)
+            profile_model_id = build_provider_profile_inventory_model_id(provider_id, resolved_profile)
             if index == 0:
                 active_profile_chain.append(profile_model_id)
             profiles.append(
@@ -376,18 +380,23 @@ def describe_provider_inventory() -> dict[str, Any]:
                     "profile": resolved_profile,
                     "normalized_profile": resolved["normalized_profile"],
                     "provider_id": provider_id,
-                    "resolved_model": resolved["model"],
+                    "resolved_model": resolved_model,
                     "api_style": resolved["api_style"],
-                    "has_base_url": bool(str(resolved["base_url"]).strip()),
-                    "has_api_key": bool(str(resolved["api_key"]).strip()),
+                    "has_base_url": has_base_url,
+                    "has_api_key": has_api_key,
                     "request_timeout_seconds": resolved["request_timeout_seconds"],
                     "active": index == 0,
                     "fallback": index > 0,
                     "chain_index": index,
+                    "enabled": provider_profile_runtime_enabled(
+                        resolved_model=resolved_model,
+                        has_base_url=has_base_url,
+                        credential_state=credential_state,
+                    ),
                     "capabilities": provider_capabilities,
                     "northbound_protocols": provider_profile_northbound_protocols(provider_capabilities),
                     "northbound_routes": provider_profile_northbound_routes(provider_capabilities),
-                    "credential_state": provider_profile_credential_state(provider_capabilities, bool(str(resolved["api_key"]).strip())),
+                    "credential_state": credential_state,
                     "deployment_mode": provider_capabilities.get("deployment_mode") or "",
                     "auth_mode": provider_capabilities.get("auth_mode") or "",
                     "streaming": bool(provider_capabilities.get("streaming")),
@@ -432,6 +441,14 @@ def provider_profile_credential_state(capabilities: dict[str, Any], has_api_key:
     if auth_mode == "optional":
         return "optional_missing"
     return "missing"
+
+
+def provider_profile_runtime_enabled(*, resolved_model: str, has_base_url: bool, credential_state: str) -> bool:
+    return bool(resolved_model) and has_base_url and credential_state in {
+        "configured",
+        "not_required",
+        "optional_missing",
+    }
 
 
 def validate_request_document(document: Any) -> None:

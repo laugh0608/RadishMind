@@ -54,6 +54,7 @@ type ProviderProfileDescription struct {
 	Active                bool           `json:"active"`
 	Fallback              bool           `json:"fallback"`
 	ChainIndex            int            `json:"chain_index"`
+	Enabled               bool           `json:"enabled"`
 	Capabilities          map[string]any `json:"capabilities"`
 	NorthboundProtocols   []string       `json:"northbound_protocols"`
 	NorthboundRoutes      []string       `json:"northbound_routes"`

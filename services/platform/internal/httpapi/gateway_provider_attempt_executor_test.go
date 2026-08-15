@@ -248,7 +248,9 @@ func TestGatewayProviderAttemptPrimaryQuotaDenialHasNoProviderAttemptHeader(t *t
 	}
 	record := fixture.readHistory(t, "request-primary-quota-denied")
 	if record.ProviderAttemptCount != 1 || record.ProviderAttempts[0].Status != GatewayProviderAttemptStatusQuotaRejected ||
-		record.ProviderAttempts[0].QuotaRejectionCode != GatewayRequestQuotaFailureExceeded || record.FallbackUsed {
+		record.ProviderAttempts[0].QuotaRejectionCode != GatewayRequestQuotaFailureExceeded || record.FallbackUsed ||
+		record.Usage.Availability != GatewayRequestUsageNotApplicable ||
+		record.CostEstimate.Availability != GatewayRequestCostNotApplicable {
 		t.Fatalf("primary quota rejection evidence drifted: %#v", record)
 	}
 }

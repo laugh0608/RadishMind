@@ -628,6 +628,7 @@ func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bo
 	headers.Set("Access-Control-Allow-Origin", origin)
 	headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 	headers.Set("Access-Control-Allow-Headers", strings.Join(localConsoleAllowedHeaders(), ", "))
+	headers.Set("Access-Control-Expose-Headers", strings.Join(localConsoleExposedHeaders(), ", "))
 	headers.Set("Vary", "Origin")
 	return true
 }
@@ -643,6 +644,15 @@ func isAllowedLocalConsoleOrigin(origin string) bool {
 
 func localConsoleAllowedOrigins() []string {
 	return []string{"http://127.0.0.1:4000", "http://localhost:4000", "http://127.0.0.1:4100", "http://localhost:4100"}
+}
+
+func localConsoleExposedHeaders() []string {
+	return []string{
+		"X-Request-Id",
+		"X-RadishMind-Route",
+		"X-RadishMind-Provider-Attempts",
+		"X-RadishMind-Fallback-Used",
+	}
 }
 
 func localConsoleAllowedHeaders() []string {

@@ -87,6 +87,7 @@ func adminProviderRouteInventoryBindingFromProfile(
 		Active                bool           `json:"active"`
 		Fallback              bool           `json:"fallback"`
 		ChainIndex            int            `json:"chain_index"`
+		Enabled               bool           `json:"enabled"`
 		Capabilities          map[string]any `json:"capabilities"`
 		NorthboundProtocols   []string       `json:"northbound_protocols"`
 		NorthboundRoutes      []string       `json:"northbound_routes"`
@@ -106,6 +107,7 @@ func adminProviderRouteInventoryBindingFromProfile(
 		Active:                profile.Active,
 		Fallback:              profile.Fallback,
 		ChainIndex:            profile.ChainIndex,
+		Enabled:               profile.Enabled,
 		Capabilities:          profile.Capabilities,
 		NorthboundProtocols:   northboundProtocols,
 		NorthboundRoutes:      northboundRoutes,
@@ -120,7 +122,7 @@ func adminProviderRouteInventoryBindingFromProfile(
 	return AdminProviderInventoryBinding{
 		ProfileID: profileKey, ProviderID: providerID, RuntimeProfileRef: runtimeProfileRef,
 		Environment: environment, Capabilities: capabilities, InventoryDigest: digest,
-		Enabled: profile.Active,
+		Enabled: profile.Enabled,
 	}, nil
 }
 

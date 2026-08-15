@@ -59,6 +59,19 @@ func TestBridgeAdminProviderInventoryResolverUsesSanitizedDeterministicSnapshot(
 		!strings.HasPrefix(first.InventoryDigest, "sha256:") {
 		t.Fatalf("unexpected inventory binding: %#v", first)
 	}
+	fallbackProfile := adminProviderRouteBridgeProfile()
+	fallbackProfile.Profile = "mock-backup"
+	fallbackProfile.NormalizedProfile = "mock-backup"
+	fallbackProfile.Active = false
+	fallbackProfile.Fallback = true
+	fallbackProfile.ChainIndex = 1
+	testBridge.inventory.Profiles = []bridge.ProviderProfileDescription{fallbackProfile}
+	fallback, err := resolver.ResolveProviderProfile(
+		t.Context(), "test", "mock", "ref:radishmind/test/provider-profiles/mock-backup",
+	)
+	if err != nil || !fallback.Enabled {
+		t.Fatalf("enabled fallback profile was not routable: %#v err=%v", fallback, err)
+	}
 
 	reordered := adminProviderRouteBridgeProfile()
 	reordered.NorthboundProtocols = []string{"responses", "messages", "chat.completions"}
@@ -429,7 +442,7 @@ func adminProviderRouteBridgeProfile() bridge.ProviderProfileDescription {
 	return bridge.ProviderProfileDescription{
 		Profile: "mock-primary", NormalizedProfile: "mock-primary", ProviderID: "mock",
 		ResolvedModel: "mock-model", APIStyle: "openai_compatible",
-		HasBaseURL: true, HasAPIKey: true, RequestTimeoutSeconds: 30, Active: true,
+		HasBaseURL: true, HasAPIKey: true, RequestTimeoutSeconds: 30, Active: true, Enabled: true,
 		Capabilities:        map[string]any{"chat": true, "responses": true, "messages": true},
 		NorthboundProtocols: []string{"chat.completions", "responses", "messages"},
 		NorthboundRoutes:    []string{"/v1/chat/completions", "/v1/responses", "/v1/messages"},
