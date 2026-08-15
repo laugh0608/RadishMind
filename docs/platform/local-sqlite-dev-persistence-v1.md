@@ -44,6 +44,8 @@ Agent / Copilot Profile owner 沿用同一聚合边界成为第九个组件 `age
 
 2026-08-08 Admin Provider / Route 原子配置 owner 成为第十个组件 `admin_provider_routes`；2026-08-09 application request quota 成为第十一个组件 `gateway_request_quotas`。两者各自拥有 migration、repository、作用域、CAS 和 no-fallback 语义；quota 还以原子 admission 维护 UTC 日 usage。聚合 `sqlite_dev` 会应用两组 schema，但 Provider / Route 写入和 quota 管理 / enforcement 仍由各自显式开发测试 gate 控制，不因本地启动档自动开放。
 
+2026-08-15 Application Result Artifact 批次 B 复用第六组件 `workflow_runs` 的 migration family、共享数据库句柄和 selector，顺序追加 `0022_application_result_artifacts`。显式 opt-in 的 canonical result content 只进入独立不可变 artifact owner；它不新增第十二个组件、环境变量、DSN 或连接池，也不改变 Session / Turn / Run 的 metadata-only 合同。
+
 Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.go.dev/modernc.org/sqlite)、[`v1.53.0` 模块声明](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/go.mod)和[许可证原文](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/LICENSE)为准。`github.com/mattn/go-sqlite3` 因明确要求 CGO 与 GCC，且 Windows / 交叉编译需要额外工具链，本阶段不采用；该结论只服务当前本地开发 runtime，不构成永久排除其它 driver 的平台政策。
 
 具体实现统一由[本地 SQLite 开发持久化 v1 实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)承接，不再为 driver、单个 repository 或 migration 派生同层任务卡与检查器。
@@ -63,7 +65,7 @@ Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.
 3. 应用发布候选 `application_publish_candidates`；
 4. 应用目录 `application_catalog_records`；
 5. API 密钥记录 `api_key_records`；
-6. 工作流运行记录 `workflow_runs`；
+6. 工作流运行记录与显式保存的应用结果资产 `workflow_runs`；
 7. Gateway 脱敏请求历史 `gateway_requests`。
 8. Prompt Application 模板草案与不可变版本 `prompt_application_templates`。
 9. Agent / Copilot Profile 草案与不可变版本 `agent_copilot_profiles`。
@@ -77,7 +79,7 @@ Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.
 - Radish 身份、成员关系、租户和上层业务真相；
 - Control Plane Tenant / Audit 的外部只读投影；
 - provider credential、生产 secret、DSN、OIDC token、cookie 或 Authorization；
-- 模型权重、数据集、图片二进制、运行变量、渲染提示词、模型输出或响应正文；Template 与 Agent Profile owner 中受限且通过敏感守卫的结构化源码除外；
+- 模型权重、数据集、图片二进制、运行变量、渲染提示词、Provider raw response 或默认易失的模型输出正文；Template / Agent Profile 中受限且通过敏感守卫的结构化源码，以及用户显式 opt-in 后由 `application_result_artifacts` 独立 owner 保存的 canonical result 除外；
 - 生产审计账本、production quota、计费和成本台账；第十一组件只保存显式开发测试态 application request policy、usage 和脱敏 admission lineage。
 
 Control Plane Read 继续使用 `fake_store_dev` 或显式 `postgres_dev_test`。本专题不新增 SQLite 身份真相，也不把测试投影持久化成正式数据。
@@ -98,7 +100,7 @@ var/sqlite-dev/radishmind.db
 - 设置本地文件权限；
 - 打开连接、启用 foreign keys、WAL 和受控 busy timeout；
 - 顺序应用已评审的本地 schema migration；
-- 向十一个 repository 注入共享数据库句柄；
+- 向十一组组件的 repositories 注入共享数据库句柄；Workflow Run Store 内的 Session、Run 与 Result Artifact owner 共享该句柄但职责独立；
 - 在服务关闭时完成 checkpoint 和连接回收。
 
 聚合启动采用单一所有权：组件 factory 在 `sqlite_dev` 下只验证共享 runtime 和自己的 migration marker，不创建也不关闭私有数据库连接；`Server` 是共享 runtime 的唯一生命周期所有者。启动阶段任一 migration、marker、repository 或 bridge 失败都必须关闭已经打开的资源并返回原始失败，不留下仍持有数据库文件的半启动服务。

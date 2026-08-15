@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-15 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt 与 Workflow Definition HTTP Tool 均已关闭。新的长期产品顺位为[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)；批次 A 已完成显式 opt-in、服务端 canonical capture、独立 memory owner、metadata-only list 与精确 read。下一步评审批次 B 的 SQLite / PostgreSQL 开发测试态持久化，不从 HTTP Tool 派生批次 E，也不提前打开 Web、真实 Provider、production、自动执行或自动发布。
+2026-08-15 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt 与 Workflow Definition HTTP Tool 均已关闭。当前长期产品顺位为[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)；批次 A / B 已完成显式 opt-in、服务端 canonical capture、独立 owner、metadata-only list、精确 read 与 SQLite / PostgreSQL 不可变持久化。下一步进入批次 C 的生命周期与 Application Interaction Workspace 消费设计，不从 HTTP Tool 派生批次 E，也不提前打开真实 Provider、production、自动执行或自动发布。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -61,7 +61,7 @@
 | [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |
 | [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) | 功能 / 可观察性专题 | 已完成 Gateway 请求与 Workflow 运行的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测关联或估算 token / cost / quota / billing |
 | [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) | 功能 / 受控执行专题 | strict contract、三种 repository、v5 / v4 委托、Web 易失交互工作区、双数据库连续链与浏览器重启恢复已完成，专题关闭 |
-| [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) | 功能 / 结果资产专题 | 当前最高优先级长期目标；批次 A 已完成用户显式 opt-in、server-side canonical capture、独立 memory owner、metadata-only list 与精确 read，下一步评审批次 B 双数据库持久化 |
+| [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) | 功能 / 结果资产专题 | 当前最高优先级长期目标；批次 A / B 已完成显式 opt-in、server-side canonical capture、memory / SQLite / PostgreSQL owner、metadata-only list、精确 read 与重启恢复，下一步推进批次 C 生命周期和 Web consumer |
 | [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 批次 A 至 E、双数据库连续链、重启、负向与隐私验收均已完成；专题关闭 |
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |

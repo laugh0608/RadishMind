@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 已完成批次 A，状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_batch_a_completed_batch_b_next`。用户现在可在新 turn 上显式设置 `save_result=true`，由服务端从同一次成功执行的 canonical result 创建独立内存资产，并按 session 列出 metadata-only summary 或精确读取正文；默认不保存，幂等重试不重放 Provider，Run / Session / Turn 继续不保存正文。下一批只评审 SQLite / PostgreSQL 开发测试态持久化，不提前打开 Web、生命周期、真实 Provider 或 production 能力。
+- 当前产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 已完成批次 B，状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_batch_b_completed_batch_c_next`。显式 `save_result=true` 仍只从同一次成功执行的 canonical result 捕获独立资产；memory 保持易失，SQLite / PostgreSQL 已复用 Workflow Run Store 的 runtime、pool、selector 与 migration family，具备不可变表、每 turn 唯一、重启恢复、并发收敛、跨 owner 隔离、损坏载荷失败关闭和 no-fallback 证据。下一批先收束 archive / purge 生命周期与 Application Interaction Workspace 消费设计，再进入 React 和浏览器产品链；不打开真实 Provider、transcript、replay 或 production 能力。
 - 最近关闭产品顺位：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 状态为 `workflow_definition_http_tool_v1_completed`。批次 A 至 D 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2、strict `workflow_run_record.v9`、三种 store、React strict consumer、SQLite 重启恢复与真实浏览器 `1440×900` / `1024×768` / `390×844`。实际开发目标按预期以 transport failure 终结，只产生一个 attempt 和一个 confirmation，零业务写入、零 retry / fallback；刷新和重启均恢复同一 consumed plan 与 v9 run，不重新执行。下一产品顺位回到 [功能设计文档入口](features/README.md)，先选择并更新新的长期功能设计文档，不从本专题派生批次 E、平行 owner 或 gate-only 切片。
 - 最近关闭产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 状态为 `gateway_provider_attempt_dev_test_v1_completed`。批次 A 至 E、七个 Visual R1 代表面、三块 React strict consumer、memory / SQLite / PostgreSQL 产品连续链、三个 unary 协议、真实浏览器 `1440×900` / `720×900` / `390×844` 和最终门禁均已闭合；真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。下一产品顺位回到 [功能设计文档入口](features/README.md) 选择新的长期功能目标，不从本专题派生 S11 或同层 gate-only 切片。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
@@ -38,7 +38,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：应用会话运行结果资产显式保存与恢复 v1 已完成批次 A。下一步评审批次 B 的 SQLite / PostgreSQL durable repository；批次 C 的 Web 与生命周期仍关闭。通用 result store、transcript、replay / resume、真实 Provider 和 production 继续关闭。
+1. 产品线：应用会话运行结果资产显式保存与恢复 v1 已完成批次 A / B，memory、SQLite 与 PostgreSQL 均具备独立不可变 owner、幂等保存、metadata-only list 与精确 read。下一步推进批次 C 的 Web 显式保存与生命周期管理；通用 result store、transcript、replay / resume、真实 Provider 和 production 继续关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-15 后续事项

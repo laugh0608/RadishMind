@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险实现任务卡。[应用会话运行结果资产显式保存与恢复 v1 批次 A](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成 strict contract、五类 session profile 的服务端 canonical capture、独立 memory owner、metadata-only list、精确 read、幂等 no replay 与作用域 / 隐私验证。下一步先评审功能专题中的批次 B，再决定是否建立双数据库实现任务卡；不从已关闭 HTTP Tool 派生批次 E。
+当前没有活跃高风险实现任务卡。[应用会话运行结果资产显式保存与恢复 v1 批次 A / B](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成 strict contract、五类 session profile 的服务端 canonical capture、独立不可变 owner，以及 memory、SQLite、PostgreSQL 的 metadata-only list、精确 read、幂等 no replay、并发、重启与迁移生命周期验证。下一步先在功能专题中明确批次 C 的 Web 与生命周期边界，仅在新增 API、schema 或高风险执行边界成立时建立具体任务卡；不从已关闭 HTTP Tool 派生批次 E。
 
 ## 最近关闭任务
 

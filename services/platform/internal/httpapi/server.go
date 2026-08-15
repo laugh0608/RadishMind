@@ -183,6 +183,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	combinedApplicationSessionRepository := newCombinedApplicationInteractionSessionRepositoryWithAgent(
 		applicationInteractionSessionRepository, promptApplicationSessionRepository, agentCopilotSessionRepository,
 	)
+	applicationResultArtifactRepository, err := newApplicationResultArtifactRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
 	var workflowDefinitionReleaseRepository workflowDefinitionReleaseRepository
 	if runtimeConfig.WorkflowDefinitionReleaseDevEnabled {
 		workflowDefinitionReleaseRepository, err = newWorkflowDefinitionReleaseRepositoryForRunStore(workflowRunStore)
@@ -300,7 +305,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		providerRouteSnapshotProvider:           adminProviderRouteSnapshotProvider{repository: adminProviderRouteRepository},
 		applicationInteractionSessionRepository: applicationInteractionSessionRepository,
 		applicationSessionRepository:            combinedApplicationSessionRepository,
-		applicationResultArtifactRepository:     newMemoryApplicationResultArtifactRepository(),
+		applicationResultArtifactRepository:     applicationResultArtifactRepository,
 		apiKeyRepository:                        apiKeyRepository,
 		workflowRunStore:                        workflowRunStore,
 		applicationRunStore:                     combinedRunStore,

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-15
 
-状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_a_completed_batch_b_next`
+状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_b_completed_batch_c_next`
 
 ## 功能定位
 
@@ -33,7 +33,7 @@
 6. 首次响应返回原结果和 metadata-only artifact summary。保存失败不得伪造成功，也不得重新调用 provider；执行成功与保存失败必须分别表达。
 7. 用户可按同一 application / session 列出 metadata-only artifact summary，并用精确 artifact id 读取内容。
 8. 相同 client turn key 的重试不得重复 provider 调用或创建第二份资产；若首次未选择保存，重试不能从已丢失的易失结果补建资产。
-9. 后续 durable 批次完成后，服务重启仍可恢复 artifact；首批 memory owner 明确不声明重启恢复。
+9. SQLite / PostgreSQL 开发测试态现在可在服务重启后恢复 artifact；memory owner 仍明确不声明重启恢复。
 
 ## Owner 与职责边界
 
@@ -111,11 +111,15 @@ Result Artifact 是独立数据 owner，但首批不新增平行的成员资格�
 
 当前实现已新增 `application_result_artifact.v1` / summary schema、独立 memory repository 和 service；五类 session profile 都只在成功 terminal turn 后从服务端 canonical response 捕获内容。turn body 的 `save_result` 默认 false；响应可分别表达 `result_artifact` 和 `result_artifact_failure_code`。session-scoped list 不返回 content，精确 read 设置 `Cache-Control: no-store`。幂等重试只读取已经存在的 artifact summary，不重新调用 Provider，也不从易失结果补建。
 
-### 批次 B：SQLite / PostgreSQL 开发测试态 durable repository
+### 批次 B：SQLite / PostgreSQL 开发测试态 durable repository（已完成）
 
 - 复用现有 local persistence runtime、Workflow PostgreSQL pool、selector 与 migration family，不新增 DSN 或连接池。
 - 增加不可变 artifact 表、scope / session / turn 唯一键、严格 cursor 索引与运行角色权限。
 - 覆盖 migration / rollback / reapply、并发、重启恢复、损坏 payload、no fallback 和敏感内容不进入诊断。
+
+当前实现已在共享 Workflow Run Store migration family 顺序追加 SQLite `0022_application_result_artifacts` 与 PostgreSQL `0025_application_result_artifacts`，并由现有 run store backend selector 注入对应 repository。物理表使用完整 scope、artifact id 主键、每 session / turn 唯一键、session history cursor 索引、JSON / 关系列一致性约束和数据库级 update / delete 拒绝；没有新增组件、DSN、连接池或 memory fallback。五类 profile 的 session / turn 分属通用、Prompt 与 Agent 三组物理表，因此 artifact 表不伪造指向单表的外键；capture 前仍由 combined session repository 精确读取 terminal turn、profile 与 run ref，数据库只承接已经通过来源校验的不可变记录。
+
+SQLite 真实文件证据覆盖创建、相同 turn 幂等、冲突、并发单创建、重启、跨 owner 隔离、不可变触发器、损坏 payload 和关闭后失败关闭。PostgreSQL 17 证据覆盖运行角色 DML / DDL 边界、并发收敛、重连恢复、不可变触发器、跨 owner 隔离及完整 migration rollback / reapply；`timestamptz` 投影按数据库微秒精度写入，读取仍与 JSON 中的 RFC3339Nano 时间做小于一微秒的严格一致性复验。所有 repository 错误继续只映射稳定 failure code，不包含正文或底层数据库详情。
 
 ### 批次 C：生命周期与应用工作区消费
 
@@ -137,7 +141,7 @@ Result Artifact 是独立数据 owner，但首批不新增平行的成员资格�
 - privacy：list、turn、run、日志、错误、cursor 和 committed 资产不包含 content；只有精确 read 返回 content。
 - authorization：identity / membership / workspace / application / owner 任一不匹配均在 artifact read 或 capture 前失败关闭。
 - compatibility：既有五类 session profile、Run History、Comparison、Evaluation、Gateway、RAG 与 HTTP Tool 测试不回归。
-- repository：批次 A 通过 Go 单元 / HTTP / race 精准测试、`go vet` 和仓库快速 / 全量门禁；批次 B 起补双数据库专项、重启与 no-fallback 证据。
+- repository：批次 A 已通过 Go 单元 / HTTP / race 精准测试、`go vet` 和仓库快速 / 全量门禁；批次 B 已通过 SQLite 真实文件专项、PostgreSQL 17 聚合集成、运行角色、并发、重启、rollback / reapply 与 no-fallback 证据。
 
 ## 停止线
 
@@ -146,4 +150,4 @@ Result Artifact 是独立数据 owner，但首批不新增平行的成员资格�
 - 不允许客户端事后上传结果并绑定 run，不从日志、缓存或 provider 重建结果。
 - 不实现 replay / resume、自动 retry / fallback、background execution、schedule、agent loop、业务写回或自动发布。
 - 不打开真实 Provider、production secret、production auth、public sharing、public URL、跨 workspace 分享、billing 或 production capability。
-- 批次 A 的 memory owner 不声明 durable 或重启恢复；只有批次 B 的双数据库证据完成后才允许更新该结论。
+- memory owner 不声明 durable 或重启恢复；SQLite / PostgreSQL 的 durable 结论只限开发测试态。批次 C 前不新增 Web consumer、archive / purge route 或生命周期 migration。

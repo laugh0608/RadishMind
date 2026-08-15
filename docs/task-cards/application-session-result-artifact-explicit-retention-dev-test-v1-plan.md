@@ -6,11 +6,11 @@
 
 对应功能：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](../features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)
 
-## 批次目标
+## 批次 A 目标
 
 在不改变 Run History 与 Session / Turn metadata-only 契约的前提下，完成批次 A 的可调用内存纵向链：用户在新 turn 上显式选择保存，服务端从同一次成功执行的 canonical result 创建独立 artifact，并提供 metadata-only list 与精确 content read。
 
-## 允许改动
+## 批次 A 允许改动
 
 - 新增 `application_result_artifact.v1` domain、summary、memory repository、service、cursor 与稳定 failure mapping。
 - `ApplicationInteractionTurnExecutionInput` 和 HTTP body 增加默认 false 的 `save_result`。
@@ -19,7 +19,7 @@
 - 增加 Go 单元、HTTP、并发 / 幂等、权限、隐私和兼容测试。
 - 同步当前功能文档、索引、规划入口、能力矩阵和周志。
 
-## 禁止改动
+## 批次 A 禁止改动
 
 - 不新增 SQLite / PostgreSQL migration、repository selector、DSN、连接池或生产 store。
 - 不把 content 写入 run、session、turn、request history、audit ref、日志、URL、cursor 或 committed fixture。
@@ -27,7 +27,7 @@
 - 不改变 provider、runtime authority、Gateway 路由、自动 retry / fallback、HTTP Tool 或 RAG 算法。
 - 不实现 Web 页面、archive / purge、公开分享、replay / resume、自动执行、业务写回或 production enablement。
 
-## 数据与风险门禁
+## 批次 A 数据与风险门禁
 
 - 单份 content 最大 `64 KiB`、必须 UTF-8 且非空。
 - artifact 只能绑定已成功 terminal turn 与严格 run ref；每 turn 唯一。
@@ -48,4 +48,25 @@
 
 ## 提交停止线
 
-本提交只关闭批次 A。SQLite / PostgreSQL、Web、生命周期和真实浏览器属于后续独立批次；没有对应实现与验证前不得把专题标记为完成。
+批次 A 提交只关闭内存纵向链；其历史停止线保持不变。
+
+## 批次 B：双数据库 durable repository（已完成）
+
+本批复用 Workflow Run Store 的共享 SQLite runtime、PostgreSQL pool、selector 和 migration family，增加独立不可变结果资产 repository；没有新增第十二个本地持久化组件、独立 DSN、连接池或 fallback。
+
+允许改动：
+
+- SQLite / PostgreSQL artifact 表、完整 scope 主键、session / turn 唯一键、cursor index、JSON 投影一致性和 update / delete 拒绝；
+- backend selector 与 `Server` repository 注入；
+- SQLite 真实文件、PostgreSQL 17、迁移、并发、重启、损坏 payload、运行角色和 no-fallback 测试；
+- 功能文档、当前焦点、功能索引、路线图、能力矩阵、本地 SQLite 边界和周志。
+
+验收结果：
+
+- [x] SQLite `0022_application_result_artifacts` 与 PostgreSQL `0025_application_result_artifacts` 顺序迁移完成；
+- [x] memory / SQLite / PostgreSQL selector 同构且无 backend fallback；
+- [x] 每 turn 唯一、幂等重试、冲突、scope / owner、不可变、cursor 顺序和严格 payload 投影完成；
+- [x] SQLite 重启 / 并发 / corruption / closed-store 与 PostgreSQL runtime role / 重连 / rollback / reapply 完成；
+- [x] 聚合 PostgreSQL 开发测试链和仓库分层门禁通过。
+
+本提交只关闭批次 B。Web consumer、archive / purge、浏览器产品链和 production capability 属于批次 C / D；批次 B 不创建其 route、migration、页面或声明。
