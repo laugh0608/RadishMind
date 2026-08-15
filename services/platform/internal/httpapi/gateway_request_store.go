@@ -28,6 +28,9 @@ type GatewayRequestListFilter struct {
 	Status            GatewayRequestStatus
 	FailureBoundary   string
 	UsageAvailability GatewayRequestUsageAvailability
+	FallbackUsed      *bool
+	TerminalProvider  string
+	TerminalProfile   string
 	StartedFrom       *time.Time
 	StartedTo         *time.Time
 	BeforeTime        *time.Time
@@ -157,6 +160,7 @@ func (store *memoryGatewayRequestStore) ListRequests(
 }
 
 func gatewayRequestMatchesFilter(record GatewayRequestRecord, filter GatewayRequestListFilter) bool {
+	_, fallbackUsed, terminalProvider, terminalProfile := gatewayRequestAttemptStorageValues(record)
 	if filter.Route != "" && record.Route != filter.Route ||
 		filter.Protocol != "" && record.Protocol != filter.Protocol ||
 		filter.Provider != "" && record.SelectedProvider != filter.Provider ||
@@ -164,7 +168,10 @@ func gatewayRequestMatchesFilter(record GatewayRequestRecord, filter GatewayRequ
 		filter.Model != "" && record.SelectedModel != filter.Model ||
 		filter.Status != "" && record.Status != filter.Status ||
 		filter.FailureBoundary != "" && record.FailureBoundary != filter.FailureBoundary ||
-		filter.UsageAvailability != "" && record.Usage.Availability != filter.UsageAvailability {
+		filter.UsageAvailability != "" && record.Usage.Availability != filter.UsageAvailability ||
+		filter.FallbackUsed != nil && fallbackUsed != *filter.FallbackUsed ||
+		filter.TerminalProvider != "" && terminalProvider != filter.TerminalProvider ||
+		filter.TerminalProfile != "" && terminalProfile != filter.TerminalProfile {
 		return false
 	}
 	startedAt, err := time.Parse(time.RFC3339Nano, record.StartedAt)

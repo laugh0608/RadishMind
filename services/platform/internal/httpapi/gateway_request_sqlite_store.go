@@ -203,6 +203,8 @@ func (store *sqliteGatewayRequestStore) ListRequests(
           AND (?='' OR selected_provider=?) AND (?='' OR selected_profile=?) AND (?='' OR selected_model=?)
           AND (?='' OR request_status=?) AND (?='' OR failure_boundary=?)
           AND (?='' OR usage_availability=?)
+          AND (? IS NULL OR fallback_used=?)
+          AND (?='' OR terminal_provider=?) AND (?='' OR terminal_profile=?)
           AND (? IS NULL OR started_at_unix_nano >= ?) AND (? IS NULL OR started_at_unix_nano <= ?)
           AND (? IS NULL OR started_at_unix_nano < ? OR (started_at_unix_nano = ? AND request_id < ?))
         ORDER BY started_at_unix_nano DESC, request_id DESC LIMIT ?`,
@@ -211,6 +213,8 @@ func (store *sqliteGatewayRequestStore) ListRequests(
 		filter.Provider, filter.Provider, filter.Profile, filter.Profile, filter.Model, filter.Model,
 		string(filter.Status), string(filter.Status), filter.FailureBoundary, filter.FailureBoundary,
 		string(filter.UsageAvailability), string(filter.UsageAvailability),
+		filter.FallbackUsed, filter.FallbackUsed, filter.TerminalProvider, filter.TerminalProvider,
+		filter.TerminalProfile, filter.TerminalProfile,
 		startedFrom, startedFrom, startedTo, startedTo, beforeTime, beforeTime, beforeTime,
 		filter.BeforeRequestID, limit+1,
 	)

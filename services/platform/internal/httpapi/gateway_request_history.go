@@ -136,6 +136,9 @@ type GatewayRequestListRequest struct {
 	Status            GatewayRequestStatus
 	FailureBoundary   string
 	UsageAvailability GatewayRequestUsageAvailability
+	FallbackUsed      *bool
+	TerminalProvider  string
+	TerminalProfile   string
 	StartedFrom       *time.Time
 	StartedTo         *time.Time
 }
@@ -229,6 +232,7 @@ func normalizeGatewayRequestListRequest(
 		return GatewayRequestListFilter{}, GatewayRequestHistoryFailureFilterInvalid
 	}
 	references := []string{request.Route, request.Provider, request.Profile, request.Model}
+	references = append(references, request.TerminalProvider, request.TerminalProfile)
 	for _, reference := range references {
 		if strings.TrimSpace(reference) != "" && !validGatewayRequestReference(reference, 256) {
 			return GatewayRequestListFilter{}, GatewayRequestHistoryFailureFilterInvalid
@@ -248,7 +252,9 @@ func normalizeGatewayRequestListRequest(
 		Provider: strings.TrimSpace(request.Provider), Profile: strings.TrimSpace(request.Profile),
 		Model: strings.TrimSpace(request.Model), Status: request.Status,
 		FailureBoundary: strings.TrimSpace(request.FailureBoundary), UsageAvailability: request.UsageAvailability,
-		StartedFrom: request.StartedFrom, StartedTo: request.StartedTo,
+		FallbackUsed: request.FallbackUsed, TerminalProvider: strings.TrimSpace(request.TerminalProvider),
+		TerminalProfile: strings.TrimSpace(request.TerminalProfile),
+		StartedFrom:     request.StartedFrom, StartedTo: request.StartedTo,
 	}, ""
 }
 
@@ -317,9 +323,17 @@ func gatewayRequestScopeDigest(requestContext GatewayRequestContext) string {
 func gatewayRequestFilterDigest(filter GatewayRequestListFilter) string {
 	return gatewayRequestShortDigest(strings.Join([]string{
 		filter.Route, filter.Protocol, filter.Provider, filter.Profile, filter.Model, string(filter.Status),
-		filter.FailureBoundary, string(filter.UsageAvailability), gatewayRequestFilterTime(filter.StartedFrom),
+		filter.FailureBoundary, string(filter.UsageAvailability), gatewayRequestFilterBool(filter.FallbackUsed),
+		filter.TerminalProvider, filter.TerminalProfile, gatewayRequestFilterTime(filter.StartedFrom),
 		gatewayRequestFilterTime(filter.StartedTo), strconv.Itoa(filter.Limit),
 	}, "\n"))
+}
+
+func gatewayRequestFilterBool(value *bool) string {
+	if value == nil {
+		return ""
+	}
+	return strconv.FormatBool(*value)
 }
 
 func gatewayRequestShortDigest(value string) string {

@@ -13,6 +13,7 @@ export type AdminProviderRouteProtocol = "chat_completions" | "responses" | "mes
 export type AdminProviderRouteCandidateState = "pending_review" | "approved" | "rejected";
 export type AdminProviderRouteDecision = "approve" | "reject";
 export type AdminProviderRouteActivationAction = "activate" | "rollback";
+export type AdminProviderRouteExecutionMode = "single_attempt" | "sequential_fallback";
 
 export type AdminProviderRouteConfig = {
   mode: "offline" | "dev_admin_provider_route_http";
@@ -36,12 +37,29 @@ export type AdminProviderProfileAssignment = {
   capabilities: AdminProviderRouteProtocol[];
 };
 
-export type AdminModelRouteDefinition = {
+type AdminModelRouteBase = {
   routeId: string;
   protocol: AdminProviderRouteProtocol;
   modelId: string;
+};
+
+export type AdminProviderRouteAttemptTarget = {
+  ordinal: 1 | 2;
   providerProfileId: string;
 };
+
+export type AdminModelRouteV1Definition = AdminModelRouteBase & {
+  contractVersion: "v1";
+  providerProfileId: string;
+};
+
+export type AdminModelRouteV2Definition = AdminModelRouteBase & {
+  contractVersion: "v2";
+  executionMode: AdminProviderRouteExecutionMode;
+  attemptTargets: AdminProviderRouteAttemptTarget[];
+};
+
+export type AdminModelRouteDefinition = AdminModelRouteV1Definition | AdminModelRouteV2Definition;
 
 export type AdminProviderRouteConfiguration = {
   displayName: string;
@@ -54,7 +72,7 @@ export type AdminProviderRouteDraftInput = AdminProviderRouteConfiguration & {
 };
 
 export type AdminProviderRouteDraft = AdminProviderRouteConfiguration & {
-  schemaVersion: "admin_provider_route_configuration_draft.v1";
+  schemaVersion: "admin_provider_route_configuration_draft.v1" | "admin_provider_route_configuration_draft.v2";
   tenantRef: string;
   workspaceId: string;
   environment: AdminProviderRouteEnvironment;
@@ -92,7 +110,7 @@ export type AdminProviderRouteReview = {
 };
 
 export type AdminProviderRouteCandidate = {
-  schemaVersion: "admin_provider_route_candidate.v1";
+  schemaVersion: "admin_provider_route_candidate.v1" | "admin_provider_route_candidate.v2";
   tenantRef: string;
   workspaceId: string;
   environment: AdminProviderRouteEnvironment;
@@ -113,7 +131,7 @@ export type AdminProviderRouteCandidate = {
 };
 
 export type AdminProviderRouteSnapshot = {
-  schemaVersion: "admin_provider_route_snapshot.v1";
+  schemaVersion: "admin_provider_route_snapshot.v1" | "admin_provider_route_snapshot.v2";
   tenantRef: string;
   workspaceId: string;
   environment: AdminProviderRouteEnvironment;
@@ -238,6 +256,7 @@ export function createAdminProviderRouteDraftInput(
       capabilities: ["chat_completions"],
     }],
     modelRoutes: [{
+      contractVersion: "v1",
       routeId: "route-chat-primary",
       protocol: "chat_completions",
       modelId,
@@ -448,11 +467,14 @@ function validateModelRoutes(
   const profileIds = new Set(profiles.map((profile) => profile.profileId));
   const routeIds = new Set<string>();
   const bindings = new Set<string>();
+  const contractVersions = new Set(routes.map((route) => route.contractVersion));
+  if (contractVersions.size > 1) {
+    findings.push({ field: "model_routes", summary: "Route v1 and v2 contracts cannot be mixed in one draft." });
+  }
   for (const [index, route] of routes.entries()) {
     const field = `model_routes[${index}]`;
-    if (!IDENTIFIER.test(route.routeId) || !MODEL_IDENTIFIER.test(route.modelId) ||
-      !IDENTIFIER.test(route.providerProfileId) || !isProtocol(route.protocol)) {
-      findings.push({ field, summary: "Route identifier, protocol, model, or profile reference is invalid." });
+    if (!IDENTIFIER.test(route.routeId) || !MODEL_IDENTIFIER.test(route.modelId) || !isProtocol(route.protocol)) {
+      findings.push({ field, summary: "Route identifier, protocol, or model is invalid." });
     }
     if (routeIds.has(route.routeId)) {
       findings.push({ field, summary: `Route ${route.routeId} is duplicated.` });
@@ -463,9 +485,22 @@ function validateModelRoutes(
       findings.push({ field, summary: `Protocol and model binding ${route.protocol} / ${route.modelId} is duplicated.` });
     }
     bindings.add(binding);
-    const profile = profiles.find((item) => item.profileId === route.providerProfileId);
-    if (!profileIds.has(route.providerProfileId) || !profile?.capabilities.includes(route.protocol)) {
-      findings.push({ field, summary: "Route must reference a profile assignment with the same capability." });
+    const targetProfileIds = route.contractVersion === "v1"
+      ? [route.providerProfileId]
+      : route.attemptTargets.map((target) => target.providerProfileId);
+    if (route.contractVersion === "v2") {
+      const expectedTargetCount = route.executionMode === "single_attempt" ? 1 : 2;
+      if (route.attemptTargets.length !== expectedTargetCount ||
+        route.attemptTargets.some((target, targetIndex) => target.ordinal !== targetIndex + 1) ||
+        new Set(targetProfileIds).size !== targetProfileIds.length) {
+        findings.push({ field, summary: "Route v2 requires one or two ordered, distinct Provider Profile targets matching its execution mode." });
+      }
+    }
+    if (targetProfileIds.some((profileId) => {
+      const profile = profiles.find((item) => item.profileId === profileId);
+      return !IDENTIFIER.test(profileId) || !profileIds.has(profileId) || !profile?.capabilities.includes(route.protocol);
+    })) {
+      findings.push({ field, summary: "Every route target must reference a distinct profile assignment with the same protocol capability." });
     }
   }
 }
@@ -532,12 +567,21 @@ function providerProfilePayload(profile: AdminProviderProfileAssignment) {
 }
 
 function modelRoutePayload(route: AdminModelRouteDefinition) {
-  return {
+  const base = {
     route_id: route.routeId.trim(),
     protocol: route.protocol,
     model_id: route.modelId.trim(),
-    provider_profile_id: route.providerProfileId.trim(),
   };
+  return route.contractVersion === "v1"
+    ? { ...base, provider_profile_id: route.providerProfileId.trim() }
+    : {
+      ...base,
+      execution_mode: route.executionMode,
+      attempt_targets: route.attemptTargets.map((target) => ({
+        ordinal: target.ordinal,
+        provider_profile_id: target.providerProfileId.trim(),
+      })),
+    };
 }
 
 function mapEnvelope(value: Document): AdminProviderRouteEnvelope {
@@ -669,11 +713,26 @@ function mapConfiguration(value: Document): AdminProviderRouteConfiguration {
       runtimeProfileRef: String(profile.runtime_profile_ref),
       capabilities: profile.capabilities as AdminProviderRouteProtocol[],
     })),
-    modelRoutes: (value.model_routes as Document[]).map((route) => ({
-      routeId: String(route.route_id),
-      protocol: route.protocol as AdminProviderRouteProtocol,
-      modelId: String(route.model_id),
-      providerProfileId: String(route.provider_profile_id),
+    modelRoutes: (value.model_routes as Document[]).map(mapModelRoute),
+  };
+}
+
+function mapModelRoute(route: Document): AdminModelRouteDefinition {
+  const base = {
+    routeId: String(route.route_id),
+    protocol: route.protocol as AdminProviderRouteProtocol,
+    modelId: String(route.model_id),
+  };
+  if (typeof route.provider_profile_id === "string") {
+    return { ...base, contractVersion: "v1", providerProfileId: route.provider_profile_id };
+  }
+  return {
+    ...base,
+    contractVersion: "v2",
+    executionMode: route.execution_mode as AdminProviderRouteExecutionMode,
+    attemptTargets: (route.attempt_targets as Document[]).map((target) => ({
+      ordinal: Number(target.ordinal) as 1 | 2,
+      providerProfileId: String(target.provider_profile_id),
     })),
   };
 }
@@ -712,8 +771,10 @@ function isEnvelopeDocument(value: unknown, config: AdminProviderRouteConfig): v
 }
 
 function isDraftDocument(value: Document): boolean {
-  return value.schema_version === "admin_provider_route_configuration_draft.v1" &&
+  return (value.schema_version === "admin_provider_route_configuration_draft.v1" ||
+    value.schema_version === "admin_provider_route_configuration_draft.v2") &&
     isScopedResource(value) && isConfigurationDocument(value) &&
+    value.schema_version === `admin_provider_route_configuration_draft.${configurationContractVersion(value)}` &&
     isPositiveInteger(value.draft_revision) && isDigest(value.draft_digest) &&
     stringFields(value, [
       "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref",
@@ -721,10 +782,11 @@ function isDraftDocument(value: Document): boolean {
 }
 
 function isCandidateDocument(value: Document): boolean {
-  return value.schema_version === "admin_provider_route_candidate.v1" &&
+  return (value.schema_version === "admin_provider_route_candidate.v1" || value.schema_version === "admin_provider_route_candidate.v2") &&
     isScopedResource(value) && stringFields(value, ["candidate_id", "created_at", "created_by_actor_ref", "request_id", "audit_ref"]) &&
     isPositiveInteger(value.source_draft_revision) && isDigest(value.source_draft_digest) &&
     isDocument(value.configuration) && isConfigurationDocument(value.configuration) &&
+    value.schema_version === `admin_provider_route_candidate.${configurationContractVersion(value.configuration)}` &&
     Array.isArray(value.inventory_bindings) && value.inventory_bindings.every(isInventoryBindingDocument) &&
     isDigest(value.candidate_digest) &&
     ["pending_review", "approved", "rejected"].includes(String(value.candidate_state)) &&
@@ -733,11 +795,12 @@ function isCandidateDocument(value: Document): boolean {
 }
 
 function isSnapshotDocument(value: Document): boolean {
-  return value.schema_version === "admin_provider_route_snapshot.v1" &&
+  return (value.schema_version === "admin_provider_route_snapshot.v1" || value.schema_version === "admin_provider_route_snapshot.v2") &&
     isScopedResource(value) && isPositiveInteger(value.generation) &&
     stringFields(value, ["candidate_id", "activated_at", "activated_by_actor_ref", "request_id", "audit_ref"]) &&
     isDigest(value.candidate_digest) && isDigest(value.snapshot_digest) &&
     isDocument(value.configuration) && isConfigurationDocument(value.configuration) &&
+    value.schema_version === `admin_provider_route_snapshot.${configurationContractVersion(value.configuration)}` &&
     Array.isArray(value.inventory_bindings) && value.inventory_bindings.every(isInventoryBindingDocument);
 }
 
@@ -755,11 +818,12 @@ function isActivationDocument(value: unknown): value is Document {
 }
 
 function isConfigurationDocument(value: Document): boolean {
-  return typeof value.display_name === "string" &&
+  const valid = typeof value.display_name === "string" &&
     Array.isArray(value.provider_profiles) && value.provider_profiles.length > 0 &&
     value.provider_profiles.every(isProviderProfileDocument) &&
     Array.isArray(value.model_routes) && value.model_routes.length > 0 &&
     value.model_routes.every(isModelRouteDocument);
+  return valid && configurationContractVersion(value) !== "";
 }
 
 function isProviderProfileDocument(value: unknown): boolean {
@@ -770,9 +834,27 @@ function isProviderProfileDocument(value: unknown): boolean {
 }
 
 function isModelRouteDocument(value: unknown): boolean {
-  return isDocument(value) &&
-    stringFields(value, ["route_id", "model_id", "provider_profile_id"]) &&
-    typeof value.protocol === "string" && isProtocol(value.protocol);
+  if (!isDocument(value) || !stringFields(value, ["route_id", "model_id"]) || !isProtocol(value.protocol)) return false;
+  const hasV1Target = typeof value.provider_profile_id === "string";
+  const hasV2Contract = typeof value.execution_mode === "string" || value.attempt_targets !== undefined;
+  if (hasV1Target === hasV2Contract) return false;
+  if (hasV1Target) {
+    return hasOnlyKeys(value, ["route_id", "protocol", "model_id", "provider_profile_id"]);
+  }
+  const expectedTargets = value.execution_mode === "single_attempt" ? 1 : value.execution_mode === "sequential_fallback" ? 2 : 0;
+  return expectedTargets > 0 && hasOnlyKeys(value, ["route_id", "protocol", "model_id", "execution_mode", "attempt_targets"]) &&
+    Array.isArray(value.attempt_targets) && value.attempt_targets.length === expectedTargets &&
+    value.attempt_targets.every((target, index) => isDocument(target) &&
+      hasOnlyKeys(target, ["ordinal", "provider_profile_id"]) && target.ordinal === index + 1 &&
+      typeof target.provider_profile_id === "string") &&
+    new Set(value.attempt_targets.map((target) => (target as Document).provider_profile_id)).size === expectedTargets;
+}
+
+function configurationContractVersion(value: Document): "v1" | "v2" | "" {
+  if (!Array.isArray(value.model_routes) || value.model_routes.length === 0) return "";
+  const versions = new Set(value.model_routes.map((route) =>
+    isDocument(route) && typeof route.provider_profile_id === "string" ? "v1" : "v2"));
+  return versions.size === 1 ? [...versions][0] as "v1" | "v2" : "";
 }
 
 function isInventoryBindingDocument(value: unknown): boolean {
@@ -849,7 +931,10 @@ function providerProfileSummary(profile: AdminProviderProfileAssignment): string
 }
 
 function modelRouteSummary(route: AdminModelRouteDefinition): string {
-  return `${route.protocol} · ${route.modelId} → ${route.providerProfileId}`;
+  const targetSummary = route.contractVersion === "v1"
+    ? route.providerProfileId
+    : `${route.executionMode} · ${route.attemptTargets.map((target) => `${target.ordinal}:${target.providerProfileId}`).join(" → ")}`;
+  return `${route.protocol} · ${route.modelId} → ${targetSummary}`;
 }
 
 function copyProviderProfile(profile: AdminProviderProfileAssignment): AdminProviderProfileAssignment {
@@ -857,7 +942,9 @@ function copyProviderProfile(profile: AdminProviderProfileAssignment): AdminProv
 }
 
 function copyModelRoute(route: AdminModelRouteDefinition): AdminModelRouteDefinition {
-  return { ...route };
+  return route.contractVersion === "v1"
+    ? { ...route }
+    : { ...route, attemptTargets: route.attemptTargets.map((target) => ({ ...target })) };
 }
 
 function containsSensitiveMaterial(value: string): boolean {
@@ -922,6 +1009,11 @@ function isDigest(value: unknown): boolean {
 
 function optionalDigest(value: unknown): boolean {
   return value === undefined || (typeof value === "string" && (value === "" || DIGEST.test(value)));
+}
+
+function hasOnlyKeys(value: Document, allowedKeys: string[]): boolean {
+  const allowed = new Set(allowedKeys);
+  return Object.keys(value).every((key) => allowed.has(key));
 }
 
 function assertNoForbiddenFields(value: unknown, path = "response") {

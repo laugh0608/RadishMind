@@ -4,6 +4,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"radishmind.local/services/platform/internal/bridge"
 )
 
 func TestMemoryGatewayRequestHistoryScopeFilterAndCursor(t *testing.T) {
@@ -87,6 +89,73 @@ func runGatewayRequestHistoryScopeFilterAndCursor(t *testing.T, store gatewayReq
 	}
 	if changed := service.List(requestContext, GatewayRequestListRequest{Limit: 3, Cursor: first.NextCursor}); changed.FailureCode != GatewayRequestHistoryFailureCursorInvalid {
 		t.Fatalf("cursor must bind filter: %#v", changed)
+	}
+	plan := gatewayProviderAttemptTestPlan(t, "request_fallback")
+	root := gatewayRequestTestRecord(requestContext, plan.RootRequestID, base.Add(5*time.Minute))
+	v3, err := newGatewayProviderAttemptHistoryRecord(root, plan)
+	if err != nil || store.CreateRequest(requestContext, &v3) != nil {
+		t.Fatalf("create fallback history: record=%#v err=%v", v3, err)
+	}
+	attempts := newGatewayProviderAttemptHistoryService(store)
+	clock := base.Add(5*time.Minute + time.Second)
+	if _, err = attempts.StartAttempt(requestContext, plan.RootRequestID, plan.Targets[0], "quota_primary", clock); err != nil {
+		t.Fatal(err)
+	}
+	missingUsage := GatewayRequestUsage{Availability: GatewayRequestUsageNotReported}
+	missingCost := gatewayRequestCostUnavailable(GatewayRequestCostUsageNotReported, "provider_usage_not_reported")
+	eligible := gatewayProviderAttemptTestFailure(
+		t, bridge.ProviderFailureTemporarilyUnavailable, bridge.ProviderFallbackEligible, bridge.ProviderAttemptFailed,
+	)
+	if _, err = attempts.CompleteAttempt(
+		requestContext, plan.RootRequestID, plan.Targets[0].AttemptID,
+		missingUsage, missingCost, &eligible, true, clock.Add(time.Second),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = attempts.StartAttempt(requestContext, plan.RootRequestID, plan.Targets[1], "quota_backup", clock.Add(2*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = attempts.CompleteAttempt(
+		requestContext, plan.RootRequestID, plan.Targets[1].AttemptID,
+		missingUsage, missingCost, nil, false, clock.Add(3*time.Second),
+	); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = attempts.Finalize(
+		requestContext, plan.RootRequestID, GatewayRequestStatusSucceeded, 200, "", "", clock.Add(4*time.Second),
+	); err != nil {
+		t.Fatal(err)
+	}
+	trueValue, falseValue := true, false
+	for name, request := range map[string]GatewayRequestListRequest{
+		"fallback used":     {FallbackUsed: &trueValue},
+		"terminal provider": {TerminalProvider: plan.Targets[1].ProviderID},
+		"terminal profile":  {TerminalProfile: plan.Targets[1].RuntimeProfile},
+	} {
+		result := service.List(requestContext, request)
+		if result.FailureCode != "" || len(result.Records) != 1 || result.Records[0].RequestID != plan.RootRequestID {
+			t.Fatalf("%s filter failed: %#v", name, result)
+		}
+	}
+	storedFallback, found, readErr := store.ReadRequest(requestContext, plan.RootRequestID)
+	if readErr != nil || !found {
+		t.Fatalf("read fallback summary source: found=%v err=%v", found, readErr)
+	}
+	summary := gatewayRequestSummaryFromRecord(storedFallback, clock.Add(5*time.Second))
+	if summary.SchemaVersion != gatewayRequestRecordSchemaVersionV3 || summary.ProviderAttemptCount != 2 ||
+		!summary.FallbackAllowed || !summary.FallbackUsed || summary.TerminalProvider != plan.Targets[1].ProviderID ||
+		summary.TerminalProfile != plan.Targets[1].RuntimeProfile || summary.ProviderAttemptCostSummary == nil ||
+		summary.ProviderAttemptCostSummary.Coverage != GatewayProviderAttemptCostCoverageNone {
+		t.Fatalf("v3 summary lost attempt evidence: %#v", summary)
+	}
+	withoutFallback := service.List(requestContext, GatewayRequestListRequest{FallbackUsed: &falseValue})
+	if withoutFallback.FailureCode != "" || len(withoutFallback.Records) != 3 {
+		t.Fatalf("legacy fallback projection drifted: %#v", withoutFallback)
+	}
+	if changed := service.List(requestContext, GatewayRequestListRequest{
+		Limit: 2, Cursor: first.NextCursor, FallbackUsed: &falseValue,
+	}); changed.FailureCode != GatewayRequestHistoryFailureCursorInvalid {
+		t.Fatalf("cursor must bind fallback filter: %#v", changed)
 	}
 	tieTime := base.Add(10 * time.Minute)
 	for _, requestID := range []string{"request_tie_a", "request_tie_b"} {

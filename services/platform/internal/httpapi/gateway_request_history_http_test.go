@@ -334,6 +334,27 @@ func TestGatewayRequestHistoryReadScopeAndDevGateFailClosed(t *testing.T) {
 	}
 }
 
+func TestGatewayRequestHistoryParsesProviderAttemptFiltersStrictly(t *testing.T) {
+	request, failureCode := parseGatewayRequestListRequest(map[string][]string{
+		"fallback_used":     {"true"},
+		"terminal_provider": {"mock"},
+		"terminal_profile":  {"mock-secondary"},
+	})
+	if failureCode != "" || request.FallbackUsed == nil || !*request.FallbackUsed ||
+		request.TerminalProvider != "mock" || request.TerminalProfile != "mock-secondary" {
+		t.Fatalf("provider attempt filters were not parsed: request=%#v failure=%s", request, failureCode)
+	}
+	for name, values := range map[string]map[string][]string{
+		"invalid boolean": {"fallback_used": {"1"}},
+		"duplicate":       {"fallback_used": {"true", "false"}},
+		"unknown":         {"terminal_attempt": {"mock-secondary"}},
+	} {
+		if _, code := parseGatewayRequestListRequest(values); code != GatewayRequestHistoryFailureFilterInvalid {
+			t.Fatalf("%s filter was accepted: %s", name, code)
+		}
+	}
+}
+
 func TestGatewayRequestHistoryCORSAllowsDedicatedHeaders(t *testing.T) {
 	server := newGatewayRequestHistoryHTTPTestServer()
 	request := httptest.NewRequest(http.MethodOptions, "/v1/model-gateway/requests", nil)

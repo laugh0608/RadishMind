@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-13
+更新时间：2026-08-15
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 正在推进批次 E，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`。批次 A 至 D 已闭合 Route v2、三存储 Request History v3、Admin 人工激活链与三个 API Key 非流式 northbound API 的显式 `allow_configured`；本轮又在既有 S7 Route、S5 Playground / Request History 页面族冻结七个 Visual R1 代表面，逐节点边界扫描和实际截图均无裁切、越界或 placeholder，并已获得人工视觉批准。下一工作日先实现 Route、Playground 与 Request History strict consumer，再推进双数据库产品连续链与真实浏览器复核。真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。
+- 当前产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 正在推进批次 E，状态为 `gateway_provider_attempt_dev_test_v1_batch_e_product_continuity_next`。批次 A 至 D、七个 Visual R1 代表面和 Route / Playground / Request History React strict consumer 已闭合；Web 现在严格区分 Route v1 / v2，只在 API Key unary 显式允许 configured fallback，并按 Request History v3 展示 durable attempt、逐 attempt quota / cost、terminal selection 与 partial coverage，旧 v1 / v2 不补造新事实。下一步进入 memory / SQLite 产品连续链，再推进 PostgreSQL、真实浏览器与最终门禁。真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
 - 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。该专题关闭后的入口回流已完成，当前新专题以上方 Provider Attempt 设计为准。
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
@@ -36,15 +36,15 @@
 
 当前最多两条在制主线：
 
-1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 批次 A 至 D 已完成 Route v2、冻结 attempt plan、类型化 Provider failure、Request History v3 三存储、既有 Admin 人工激活链和三个 API Key unary API；批次 E 的七个 S7 / S5 Visual R1 代表面已完成并获得人工视觉批准。下一工作日继续 strict consumer 与双数据库产品连续链；不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
+1. 产品线：S9 / S10 Visual R3 React 纵向迁移与真实浏览器复核均已关闭。Gateway Provider Attempt 批次 A 至 D、批次 E 七个 S7 / S5 Visual R1 代表面和三块 React strict consumer 已完成。下一步进入 memory / SQLite，再按顺序完成 PostgreSQL、三协议与真实浏览器产品连续链；不打开真实 Provider 或 production，不从已关闭页面派生 S11、同层 gate-only 任务卡或无产品目标的样式续批。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
-## 2026-08-14 明日事项
+## 2026-08-15 后续事项
 
-1. 第一顺位：让既有 Admin Route strict consumer / editor 严格支持 Route v1 / v2，继续复用同一 draft、candidate、review 与 activation owner。
-2. 第二顺位：让既有 Playground 只在 API Key 非流式请求中显式提交 `fallback_mode`，stream 与非 API Key 保持 `disabled`；消费端只读取脱敏 attempt 头。
-3. 第三顺位：让既有 Request History 严格消费 v1 / v2 / v3，展示 durable attempt lineage、逐 attempt quota / cost coverage 与终态选择，旧记录只投影为单 attempt。
-4. 完成相邻 Web 测试后再进入 memory / SQLite 产品连续链；PostgreSQL、三协议、三视口和最终全量门禁按证据顺序推进。明日不打开真实 Provider、stream fallback、非 API Key fallback、同 Profile retry、隐式切换或 production enablement。
+1. 第一顺位：启动本地 memory / SQLite 产品连续链，复验 Route v1 → v2 人工激活、API Key unary 主失败 → 备用成功、双失败、第二次 quota 阻断、Request History v3 和旧记录兼容；服务启动前按协作约定告知并在交接前关闭。
+2. 第二顺位：完成 PostgreSQL migration、并发、checkpoint、重连与三个 unary 协议一致性，继续证明 runtime role 无 DDL 和 no fallback。
+3. 第三顺位：使用真实浏览器复核 `1440×900`、关键断点与 `390×844`，覆盖主备 Route、Playground 显式允许、连续 attempt evidence、隐私、console 与横向溢出。
+4. 产品连续链关闭后运行最终全量门禁，再判断专题是否可以完成。仍不打开真实 Provider、stream fallback、非 API Key fallback、同 Profile retry、隐式切换或 production enablement。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 

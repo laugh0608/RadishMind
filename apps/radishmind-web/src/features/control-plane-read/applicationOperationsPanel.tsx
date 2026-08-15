@@ -154,7 +154,7 @@ export default function ApplicationOperationsPanel({
         <MetricCard
           label="Loaded-window estimate"
           value={formatCostMicros(metrics.gatewayEstimatedCostMicros)}
-          detail={`${metrics.gatewayCostEstimated} estimated · ${state.gateway.hasMore ? "partial window" : "loaded window complete"}`}
+          detail={`${metrics.gatewayCostEstimated} terminal estimates · ${metrics.gatewayCostPartial} partial attempt coverage · ${state.gateway.hasMore ? "partial window" : "loaded window complete"}`}
         />
         <MetricCard
           label="Workflow status"
@@ -172,6 +172,7 @@ export default function ApplicationOperationsPanel({
         <p className="eyebrow">Cost availability · current Gateway window</p>
         <div>
           <CostCoverage label="Estimated" value={metrics.gatewayCostEstimated} tone="ready" />
+          <CostCoverage label="Partial attempts" value={metrics.gatewayCostPartial} tone="attention" />
           <CostCoverage label="Usage missing" value={metrics.gatewayCostUsageNotReported} tone="neutral" />
           <CostCoverage label="Price missing" value={metrics.gatewayCostPriceNotConfigured} tone="attention" />
           <CostCoverage label="Price unavailable" value={metrics.gatewayCostPriceUnavailable} tone="blocked" />
@@ -273,7 +274,7 @@ function TimelineEntry({
         <p><code>{entry.recordId}</code> · {formatTimestamp(entry.startedAt)} · {entry.durationMs} ms</p>
         <dl>
           <div><dt>Contract</dt><dd>{entry.contract || "unavailable"}</dd></div>
-          <div><dt>Route</dt><dd>{entry.provider || "unavailable"} / {entry.profile || "default"} / {entry.model || "unavailable"}</dd></div>
+          <div><dt>Route</dt><dd>{entry.provider || "unavailable"} / {entry.profile || "default"} / {entry.model || "unavailable"}{entry.providerAttempts ? ` · ${entry.providerAttempts} attempts${entry.fallbackUsed ? " · fallback used" : ""}` : ""}</dd></div>
           <div><dt>Failure</dt><dd>{entry.failureCode || "none"} · {entry.failureBoundary || "none"}</dd></div>
           <div><dt>Request / audit</dt><dd>{entry.requestId} · {entry.auditRef}</dd></div>
           {entry.source === "gateway_request" ? (
@@ -288,7 +289,11 @@ function TimelineEntry({
               </div>
               <div>
                 <dt>Cost</dt>
-                <dd>{entry.costAvailability === "estimated" ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} · policy v${entry.pricingPolicyVersion}` : `${entry.costAvailability} · ${entry.costReason}`}</dd>
+                <dd>{entry.attemptCostCoverage
+                  ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} known · ${entry.attemptCostCoverage} attempt coverage`
+                  : entry.costAvailability === "estimated"
+                    ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} · policy v${entry.pricingPolicyVersion}`
+                    : `${entry.costAvailability} · ${entry.costReason}`}</dd>
               </div>
             </>
           ) : (

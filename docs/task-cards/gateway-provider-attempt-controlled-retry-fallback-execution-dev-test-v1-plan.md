@@ -1,8 +1,8 @@
 # Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-08-13
+更新时间：2026-08-15
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`
+状态：`gateway_provider_attempt_dev_test_v1_batch_e_product_continuity_next`
 
 对应功能文档：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](../features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)
 
@@ -115,16 +115,18 @@ active Provider Route v2 snapshot
 
 ## 批次 E：Pencil、React 与产品连续链
 
-状态：进行中；Visual R1 已冻结并获得人工视觉批准，React strict consumer 为下一工作日首项。
+状态：进行中；Visual R1 与 React strict consumer 已完成，产品连续链为下一项。
 
 - [x] 在既有 S7 Route 与 S5 Playground / Request History 页面族冻结完整 Pencil 代表面。
 - [x] 完成本轮 Visual R1 人工视觉批准；批准前未实现 React。
-- [ ] 实现主备 Route、请求级允许和连续 attempt evidence strict consumer。
+- [x] 实现主备 Route、请求级允许和连续 attempt evidence strict consumer。
 - [ ] 完成 memory / SQLite 浏览器主失败 → 备用成功、双失败、quota 阻断、旧记录与重启链。
 - [ ] 完成 PostgreSQL migration、并发、checkpoint、重连与三协议一致性。
 - [ ] 覆盖 Desktop、关键断点与 `390×844`，并完成隐私、Web、build、race 和仓库门禁。
 
-Pencil 证据：S7 Route Desktop `h41DNz` / Narrow `Q5dMjv`，S5 Playground Desktop `DY5HB` / Narrow `o9Btk`，S5 Request History Desktop `KsXpp` / Narrow `BRzOE`，Decision R17 `GfqT6`。七个根节点按产品审阅顺序横向排放，逐节点边界扫描为零裁切、零越界、零 placeholder；桌面与窄屏截图已复核，并于 2026-08-13 获得人工视觉批准。当前没有 React 改动。
+Pencil 证据：S7 Route Desktop `h41DNz` / Narrow `Q5dMjv`，S5 Playground Desktop `DY5HB` / Narrow `o9Btk`，S5 Request History Desktop `KsXpp` / Narrow `BRzOE`，Decision R17 `GfqT6`。七个根节点按产品审阅顺序横向排放，逐节点边界扫描为零裁切、零越界、零 placeholder；桌面与窄屏截图已复核，并于 2026-08-13 获得人工视觉批准。批准时没有抢跑 React。
+
+React strict consumer 证据：既有 Route consumer / editor 严格区分 v1 单 Profile 与 v2 有序 attempt plan，拒绝混合版本、重复 target、ordinal / capability 漂移；Playground 只在 API Key unary 请求中发送 `fallback_mode`，stream 与非 API Key 在 fetch 前失败关闭，并成对核对脱敏 attempt 头；Request History list / detail 严格读取 v1 / v2 / v3、terminal filter、durable attempt、quota、failure 与 cost coverage。Application Operations 当前窗口 subtotal 对 v3 使用 known cost 并单列 partial coverage。相邻 Web `36/36`、全量 Web `351/351`、production build、Platform `go test ./...`、`go vet ./...` 与定向 race 已通过；尚未启动产品服务或浏览器，也未补 PostgreSQL 实例连续链。
 
 退出条件：双数据库、三个协议、真实浏览器和人工设计证据全部关闭后，专题才可标记完成。
 

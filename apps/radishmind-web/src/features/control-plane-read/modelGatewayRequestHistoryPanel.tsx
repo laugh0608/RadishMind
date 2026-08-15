@@ -149,8 +149,10 @@ export default function ModelGatewayRequestHistoryPanel({
   const canceledCount = history.requests.filter((request) => request.status === "canceled").length;
   const usageReportedCount = history.requests.filter((request) => request.usageAvailability === "reported").length;
   const estimatedCostCount = history.requests.filter((request) => request.costEstimate.availability === "estimated").length;
+  const fallbackUsedCount = history.requests.filter((request) => request.fallbackUsed).length;
+  const partialCostCount = history.requests.filter((request) => request.attemptCostSummary?.coverage === "partial").length;
   const loadedCostMicros = history.requests.reduce(
-    (total, request) => total + (request.costEstimate.estimatedCostMicros ?? 0),
+    (total, request) => total + (request.attemptCostSummary?.knownCostMicros ?? request.costEstimate.estimatedCostMicros ?? 0),
     0,
   );
   const staleCount = history.requests.filter((request) => request.staleStarted).length;
@@ -192,6 +194,8 @@ export default function ModelGatewayRequestHistoryPanel({
                 <div><dt>Failed / canceled</dt><dd>{failedCount} / {canceledCount}</dd></div>
                 <div><dt>Usage reported</dt><dd>{usageReportedCount}</dd></div>
                 <div><dt>Cost estimated</dt><dd>{estimatedCostCount} · {formatCostMicros(loadedCostMicros)}</dd></div>
+                <div><dt>Fallback used</dt><dd>{fallbackUsedCount}</dd></div>
+                <div><dt>Partial attempt cost</dt><dd>{partialCostCount}</dd></div>
                 <div><dt>Window</dt><dd>{history.hasMore ? "partial · has_more" : "loaded complete"}</dd></div>
                 <div><dt>Stale started</dt><dd>{staleCount}</dd></div>
               </dl>
@@ -214,6 +218,11 @@ export default function ModelGatewayRequestHistoryPanel({
               >
                 <span><strong>{request.route}</strong><small>{request.protocol} · {request.stream ? "stream" : "unary"}</small></span>
                 <span><small>Provider / model</small><strong>{request.selectedProvider || "unavailable"}</strong><small>{request.selectedProfile || "no profile"} · {request.selectedModel || "unavailable"}{request.providerRouteGeneration ? ` · generation ${request.providerRouteGeneration}` : ""}</small></span>
+                <span>
+                  <small>Attempt lineage</small>
+                  <strong>{request.schemaVersion === "gateway_request_record.v3" ? `${request.attemptCount} attempts · fallback ${request.fallbackUsed ? "used" : "not used"}` : "single attempt · legacy projection"}</strong>
+                  <small>{request.terminalProvider ? `terminal ${request.terminalProvider} / ${request.terminalProfile}` : "terminal selection unavailable"}</small>
+                </span>
                 <span><small>Status / failure</small><strong className={`gateway-request-history-status ${request.status}`}>{request.status}{request.staleStarted ? " · stale" : ""}</strong><small>{request.failureBoundary || "no failure"}</small></span>
                 <span>
                   <small>Usage / duration</small>
@@ -222,8 +231,8 @@ export default function ModelGatewayRequestHistoryPanel({
                 </span>
                 <span>
                   <small>Cost snapshot</small>
-                  <strong>{costEstimateLabel(request.costEstimate)}</strong>
-                  <small>{request.costEstimate.availability === "estimated" ? `policy v${request.costEstimate.pricingPolicyVersion} · immutable` : request.costEstimate.reason}</small>
+                  <strong>{request.attemptCostSummary ? `${formatCostMicros(request.attemptCostSummary.knownCostMicros)} · ${request.attemptCostSummary.coverage}` : costEstimateLabel(request.costEstimate)}</strong>
+                  <small>{request.attemptCostSummary ? `${request.attemptCostSummary.estimatedAttemptCount} estimated · ${request.attemptCostSummary.unknownAttemptCount} unknown` : request.costEstimate.availability === "estimated" ? `policy v${request.costEstimate.pricingPolicyVersion} · immutable` : request.costEstimate.reason}</small>
                 </span>
                 <span><small>Started</small><strong>{formatTimestamp(request.startedAt)}</strong></span>
               </button>
@@ -254,7 +263,7 @@ function GatewayRequestHistoryFilters({
 }) {
   return (
     <details className="gateway-request-history-filter-disclosure">
-      <summary>Exact filters <span>route · protocol · status · time</span></summary>
+      <summary>Exact filters <span>route · protocol · fallback · terminal · time</span></summary>
       <div className="gateway-request-history-filters" aria-label="Gateway request history filters">
         <label>Route<input value={filter.route} onChange={(event) => onChange({ ...filter, route: event.target.value })} placeholder="exact route" /></label>
         <label>Protocol<select value={filter.protocol} onChange={(event) => onChange({ ...filter, protocol: event.target.value as GatewayRequestHistoryFilter["protocol"] })}><option value="">All</option><option value="openai-chat-completions">Chat Completions</option><option value="openai-responses">Responses</option><option value="anthropic-messages">Messages</option></select></label>
@@ -264,6 +273,9 @@ function GatewayRequestHistoryFilters({
         <label>Status<select value={filter.status} onChange={(event) => onChange({ ...filter, status: event.target.value as GatewayRequestHistoryFilter["status"] })}><option value="">All</option><option value="started">Started</option><option value="succeeded">Succeeded</option><option value="failed">Failed</option><option value="canceled">Canceled</option></select></label>
         <label>Failure boundary<input value={filter.failureBoundary} onChange={(event) => onChange({ ...filter, failureBoundary: event.target.value })} placeholder="exact boundary" /></label>
         <label>Usage<select value={filter.usageAvailability} onChange={(event) => onChange({ ...filter, usageAvailability: event.target.value as GatewayRequestHistoryFilter["usageAvailability"] })}><option value="">All</option><option value="reported">Reported</option><option value="not_reported">Not reported</option><option value="not_applicable">Not applicable</option></select></label>
+        <label>Fallback used<select value={filter.fallbackUsed} onChange={(event) => onChange({ ...filter, fallbackUsed: event.target.value as GatewayRequestHistoryFilter["fallbackUsed"] })}><option value="">All</option><option value="true">Used</option><option value="false">Not used</option></select></label>
+        <label>Terminal provider<input value={filter.terminalProvider} onChange={(event) => onChange({ ...filter, terminalProvider: event.target.value })} placeholder="exact terminal provider" /></label>
+        <label>Terminal profile<input value={filter.terminalProfile} onChange={(event) => onChange({ ...filter, terminalProfile: event.target.value })} placeholder="exact terminal profile" /></label>
         <label>Started from<input type="datetime-local" value={filter.startedFrom} onChange={(event) => onChange({ ...filter, startedFrom: event.target.value })} /></label>
         <label>Started to<input type="datetime-local" value={filter.startedTo} onChange={(event) => onChange({ ...filter, startedTo: event.target.value })} /></label>
         <button type="button" onClick={onApply} disabled={loading}>Apply filters</button>
@@ -294,6 +306,46 @@ function GatewayRequestDetail({ detail }: { detail: GatewayRequestHistoryDetail 
         <div><dt>Request / audit</dt><dd>{detail.requestId} / {detail.auditRef}</dd></div>
         <div><dt>Record</dt><dd>{detail.schemaVersion} · version {detail.recordVersion} · {detail.storeMode}{detail.staleStarted ? " · stale started" : ""}</dd></div>
       </dl>
+      {detail.schemaVersion === "gateway_request_record.v3" && detail.attemptPlan ? (
+        <section className="gateway-request-attempt-lineage" aria-label="Provider attempt lineage">
+          <div className="model-gateway-overview-row-main">
+            <div><p className="eyebrow">Durable Provider Attempt Lineage</p><h6>{detail.attemptPlan.executionMode}</h6></div>
+            <span className={`status-badge ${detail.fallbackUsed ? "good" : "neutral"}`}>
+              {detail.attemptPhase} · {detail.attemptCount} attempts
+            </span>
+          </div>
+          <p className="boundary-note">
+            Caller mode {detail.attemptPlan.fallbackMode} · fallback {detail.fallbackAllowed ? "allowed" : "disabled"} ·
+            terminal {detail.terminalProvider || "unavailable"} / {detail.terminalProfile || "unavailable"}.
+          </p>
+          <div className="gateway-request-attempt-list">
+            {detail.providerAttempts.map((attempt) => (
+              <article key={attempt.attemptId} data-status={attempt.status}>
+                <div className="model-gateway-overview-row-main">
+                  <div><p className="eyebrow">{attempt.ordinal === 1 ? "Primary" : "Backup"} · attempt {attempt.ordinal}</p><h6>{attempt.providerId} / {attempt.runtimeProfile}</h6></div>
+                  <span className={`status-badge ${attempt.status === "succeeded" ? "good" : attempt.status === "running" ? "neutral" : "bad"}`}>{attempt.status}</span>
+                </div>
+                <dl className="model-gateway-overview-meta">
+                  <div><dt>Attempt ID</dt><dd>{attempt.attemptId}</dd></div>
+                  <div><dt>Configured profile</dt><dd>{attempt.configuredProfileId}</dd></div>
+                  <div><dt>Quota</dt><dd>{attempt.quotaRejectionCode || attempt.quotaAdmissionId || "not admitted"}</dd></div>
+                  <div><dt>Duration</dt><dd>{attempt.durationMs} ms</dd></div>
+                  <div><dt>Usage</dt><dd>{attempt.usageAvailability}{attempt.usageAvailability === "reported" ? ` · ${attempt.totalTokens} tokens` : ""}</dd></div>
+                  <div><dt>Cost</dt><dd>{costEstimateLabel(attempt.costEstimate)}</dd></div>
+                  <div><dt>Failure</dt><dd>{attempt.failure ? `${attempt.failure.failureClass} · ${attempt.failure.fallbackDisposition} · ${attempt.failure.outcome}` : attempt.failureBoundary || "none"}</dd></div>
+                  <div><dt>Completed</dt><dd>{attempt.completedAt ? formatTimestamp(attempt.completedAt) : "running"}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <p className="boundary-note">
+            Known cost {formatCostMicros(detail.attemptCostSummary?.knownCostMicros ?? 0)} · coverage {detail.attemptCostSummary?.coverage ?? "none"} ·
+            {detail.attemptCostSummary?.estimatedAttemptCount ?? 0} estimated / {detail.attemptCostSummary?.unknownAttemptCount ?? 0} unknown attempts.
+          </p>
+        </section>
+      ) : (
+        <p className="boundary-note">This v1/v2 record is projected as one historical attempt. No Provider Attempt v3 fields are fabricated.</p>
+      )}
       <p className="boundary-note">The amount is a request-local development/test estimate, not a Provider invoice or billing write. Historical records are never recalculated. Raw input, output, credentials, endpoints, and provider envelopes are not retained or exposed.</p>
     </article>
   );

@@ -1,8 +1,8 @@
 # Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1
 
-更新时间：2026-08-13
+更新时间：2026-08-15
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`
+状态：`gateway_provider_attempt_dev_test_v1_batch_e_product_continuity_next`
 
 ## 功能定位
 
@@ -260,7 +260,7 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 - S5 Request History：Desktop `KsXpp`、Narrow `BRzOE`；桌面表达主失败 → durable checkpoint → 备用成功，窄屏表达第二次 quota 拒绝且零备用 Provider 调用；
 - Decision R17 `GfqT6`：统一冻结 `single attempt`、fallback success、quota rejected、two failures、history checkpoint failure 与旧 v2 单 attempt 投影六类代表状态。
 
-七个根节点已完成逐节点边界扫描和实际截图复核，结果为零裁切、零越界、零 placeholder；颜色不是状态唯一通道，只有当前审查 target / attempt 使用墨蓝选中轨。Visual R1 已于 2026-08-13 获得人工视觉批准，React strict consumer 留到下一工作日开始。
+七个根节点已完成逐节点边界扫描和实际截图复核，结果为零裁切、零越界、零 placeholder；颜色不是状态唯一通道，只有当前审查 target / attempt 使用墨蓝选中轨。Visual R1 已于 2026-08-13 获得人工视觉批准；React strict consumer 随后于 2026-08-15 完成。
 
 ## 实施批次
 
@@ -301,7 +301,7 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 - PostgreSQL 实例覆盖 migration、并发、checkpoint 与重连；
 - 完成 Web 测试、build、Go race、三视口、隐私扫描和全量仓库门禁。
 
-当前进度：Visual R1 七个代表面已经冻结并于 2026-08-13 获得人工视觉批准。下一小步是扩展既有 Route、Playground 与 Request History view model / strict consumer，不创建第二套 UI owner；本日不再进入 React 实现。
+当前进度：Visual R1 七个代表面已经冻结并于 2026-08-13 获得人工视觉批准。2026-08-15 又在既有 owner 上完成三块 React strict consumer：Route editor 以严格判别联合消费 v1 / v2 并审查有序主备计划；Playground 只允许 API Key unary 显式提交 `allow_configured` 并严格核对两个脱敏响应头；Request History 严格消费 v1 / v2 / v3，展示 durable attempt lineage、逐 attempt quota / cost 与 terminal selection，旧记录不补造 v3 字段。Application Operations 只汇总当前窗口 known cost，并把 partial attempt coverage 单独展示。下一小步进入 memory / SQLite 产品连续链，不创建第二套 UI owner。
 
 ## 验收
 
@@ -339,4 +339,4 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 3. 只覆盖 API Key 认证的三个非流式 northbound API；
 4. Request History v3、逐 attempt quota 与逐 attempt pricing 是实现前置，不以单 selection 字段勉强承载多 attempt。
 
-功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D 已完成领域合同、三存储同构持久化、既有 Admin 人工激活链与三个 API Key unary API 的显式受控 fallback；七个 Visual R1 代表面也已冻结并通过结构 / 实际渲染复核。下一工作日继续 strict consumer 和 memory / SQLite / PostgreSQL 产品连续链。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。
+功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D 已完成领域合同、三存储同构持久化、既有 Admin 人工激活链与三个 API Key unary API 的显式受控 fallback；七个 Visual R1 代表面和 Route / Playground / Request History React strict consumer 也已关闭。下一顺位是 memory / SQLite、PostgreSQL 与真实浏览器产品连续链；专题尚未完成。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。

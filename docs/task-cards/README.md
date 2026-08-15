@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-13
+更新时间：2026-08-15
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`。批次 A 至 D 已完成 Route v2、不可变 attempt plan、类型化 Provider failure、Request History v3 三存储、Admin 人工激活链和三个 API Key unary API，批次 E 的七个 S7 / S5 Visual R1 代表面也已获得人工批准；下一步只推进 Route、Playground、Request History strict consumer 与双数据库产品连续链，真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
+当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_dev_test_v1_batch_e_product_continuity_next`。批次 A 至 D、七个 S7 / S5 Visual R1 代表面和 Route / Playground / Request History React strict consumer 已完成；下一步只推进 memory / SQLite、PostgreSQL 与真实浏览器产品连续链，真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
 
 ## 最近关闭任务
 

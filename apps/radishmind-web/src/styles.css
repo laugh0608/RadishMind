@@ -2488,6 +2488,35 @@ h4 {
   width: auto;
 }
 
+.gateway-playground-fallback {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.gateway-playground-fallback legend {
+  padding: 0 5px;
+  color: #4e5f73;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.gateway-playground-fallback label {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.gateway-playground-fallback input {
+  width: auto;
+}
+
 .gateway-playground-actions {
   display: flex;
   gap: 8px;
@@ -2934,6 +2963,43 @@ h4 {
 
 .gateway-request-history-detail-grid dd {
   overflow-wrap: anywhere;
+}
+
+.gateway-request-attempt-lineage {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.gateway-request-attempt-lineage h6,
+.gateway-request-attempt-lineage p {
+  margin: 0;
+}
+
+.gateway-request-attempt-list {
+  display: grid;
+  gap: 10px;
+}
+
+.gateway-request-attempt-list > article {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.gateway-request-attempt-list > article[data-status="failed"] {
+  border-left: 4px solid #b4534b;
+}
+
+.gateway-request-attempt-list > article[data-status="succeeded"] {
+  border-left: 4px solid #3d7650;
 }
 
 .model-gateway-route-evidence-profile-grid {
@@ -6963,7 +7029,7 @@ dd {
 
 .application-operations-cost-coverage > div {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   border: 1px solid var(--rm-border-soft);
 }
 
@@ -17640,6 +17706,26 @@ textarea {
   justify-self: start;
 }
 
+.admin-provider-route-attempt-plan {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-provider-route-attempt-plan > label {
+  color: #35483b;
+  display: grid;
+  font-size: 0.84rem;
+  font-weight: 700;
+  gap: 0.35rem;
+}
+
+.admin-provider-route-attempt-plan > label:first-child,
+.admin-provider-route-attempt-plan > .boundary-note {
+  grid-column: 1 / -1;
+}
+
 .admin-provider-route-findings {
   background: #f5f7f5;
   border-radius: 0.75rem;
@@ -17662,6 +17748,31 @@ textarea {
   display: grid;
   gap: 0.7rem;
   padding: 0.85rem;
+}
+
+.admin-provider-route-plan-review {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-provider-route-plan-review > article {
+  background: #ffffff;
+  border: 1px solid #d9e3dc;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+.admin-provider-route-plan-review ol,
+.admin-provider-route-target-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.45rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.admin-provider-route-plan-review small {
+  color: #607065;
 }
 
 .admin-provider-route-binding-list {
@@ -17764,7 +17875,14 @@ textarea {
 
   .admin-provider-route-editor,
   .admin-provider-route-scope .model-gateway-overview-meta,
-  .admin-provider-route-snapshot-routes {
+  .admin-provider-route-snapshot-routes,
+  .admin-provider-route-attempt-plan,
+  .admin-provider-route-plan-review {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-provider-route-attempt-plan > label:first-child,
+  .admin-provider-route-attempt-plan > .boundary-note {
+    grid-column: auto;
   }
 }

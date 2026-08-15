@@ -1,4 +1,5 @@
 export type ModelGatewayPlaygroundProtocol = "chat_completions" | "responses" | "messages";
+export type ModelGatewayFallbackMode = "disabled" | "allow_configured";
 
 export type ModelGatewayPlaygroundConfig = {
   mode: "offline" | "dev_gateway_playground_http";
@@ -19,6 +20,7 @@ export type ModelGatewayPlaygroundInput = {
   model: string;
   inputText: string;
   stream: boolean;
+  fallbackMode: ModelGatewayFallbackMode;
   requestId: string;
 };
 
@@ -32,6 +34,9 @@ export type ModelGatewayPlaygroundResult = {
   httpStatus: number;
   failureCode: string;
   failureBoundary: string;
+  providerAttemptCount: 0 | 1 | 2;
+  fallbackUsed: boolean;
+  attemptEvidenceAvailable: boolean;
   summary: string;
   historyReviewAvailable: boolean;
 };
@@ -50,6 +55,12 @@ type GatewayErrorDocument = {
     code: string;
     failure_boundary: string;
   };
+};
+
+type ProviderAttemptObservation = {
+  providerAttemptCount: 0 | 1 | 2;
+  fallbackUsed: boolean;
+  attemptEvidenceAvailable: boolean;
 };
 
 const DEV_SOURCE = "dev-gateway-playground-http";
@@ -131,6 +142,9 @@ export function initialModelGatewayPlaygroundResult(config: ModelGatewayPlaygrou
         ? "gateway_api_key_handoff_required"
         : "",
     failureBoundary: "",
+    providerAttemptCount: 0,
+    fallbackUsed: false,
+    attemptEvidenceAvailable: false,
     summary: config.mode !== "dev_gateway_playground_http"
       ? "Offline mode does not send northbound requests."
       : config.authMode === "api_key_dev_test" && !config.apiKeyToken
@@ -185,7 +199,7 @@ export async function submitModelGatewayPlaygroundRequest(
     const route = protocolRoute(input.protocol);
     return failureResult(input, route, 0, "gateway_api_key_handoff_required", "client_auth", "Issue an API key and hand it to the Playground before sending a request.", false);
   }
-  const validationFailure = validatePlaygroundInput(input);
+  const validationFailure = validatePlaygroundInput(config, input);
   const route = protocolRoute(input.protocol);
   if (validationFailure) {
     return failureResult(input, route, 0, "gateway_playground_input_invalid", "client_input", validationFailure, false);
@@ -195,20 +209,21 @@ export async function submitModelGatewayPlaygroundRequest(
     const response = await fetch(`${config.baseUrl}${route}`, {
       method: "POST",
       headers: playgroundHeaders(config, input.requestId),
-      body: JSON.stringify(buildRequestDocument(input)),
+      body: JSON.stringify(buildRequestDocument(config, input)),
       signal,
     });
+    const attemptObservation = readProviderAttemptObservation(response);
     const correlatedRequestId = response.headers.get("X-Request-Id")?.trim();
     if (correlatedRequestId && correlatedRequestId !== input.requestId) {
-      return failureResult(input, route, response.status, "gateway_playground_response_invalid", "northbound_response", "Gateway response correlation failed.", true);
+      return failureResult(input, route, response.status, "gateway_playground_response_invalid", "northbound_response", "Gateway response correlation failed.", true, attemptObservation);
     }
-    if (!response.ok) return await mapGatewayFailure(response, input, route);
+    if (!response.ok) return await mapGatewayFailure(response, input, route, attemptObservation);
 
     const outputText = input.stream
       ? await readGatewayPlaygroundStream(response, input.protocol, onStreamOutput)
       : extractUnaryOutput(input.protocol, await response.json());
     if (!outputText.trim()) {
-      return failureResult(input, route, response.status, "gateway_playground_response_invalid", "northbound_response", "Gateway response did not contain supported text output.", true);
+      return failureResult(input, route, response.status, "gateway_playground_response_invalid", "northbound_response", "Gateway response did not contain supported text output.", true, attemptObservation);
     }
     return {
       status: "succeeded",
@@ -220,7 +235,10 @@ export async function submitModelGatewayPlaygroundRequest(
       httpStatus: response.status,
       failureCode: "",
       failureBoundary: "",
-      summary: input.stream ? "Gateway stream completed." : "Gateway request completed.",
+      ...attemptObservation,
+      summary: attemptObservation.fallbackUsed
+        ? "Gateway request completed through the configured backup target."
+        : input.stream ? "Gateway stream completed." : "Gateway request completed.",
       historyReviewAvailable: true,
     };
   } catch (error) {
@@ -228,6 +246,7 @@ export async function submitModelGatewayPlaygroundRequest(
       return {
         status: "canceled", requestId: input.requestId, route, protocol: input.protocol, stream: input.stream,
         outputText: "", httpStatus: 0, failureCode: "gateway_playground_request_canceled", failureBoundary: "client",
+        ...emptyProviderAttemptObservation(),
         summary: "Gateway request was canceled by the user.", historyReviewAvailable: true,
       };
     }
@@ -241,21 +260,30 @@ export async function submitModelGatewayPlaygroundRequest(
   }
 }
 
-function validatePlaygroundInput(input: ModelGatewayPlaygroundInput): string {
+function validatePlaygroundInput(config: ModelGatewayPlaygroundConfig, input: ModelGatewayPlaygroundInput): string {
   if (!(["chat_completions", "responses", "messages"] as string[]).includes(input.protocol)) return "Choose a supported Gateway protocol.";
   const model = input.model.trim();
   if (!model || model.length > MAX_MODEL_CHARS || /[\r\n\0]/u.test(model)) return `Model must contain 1-${MAX_MODEL_CHARS} single-line characters.`;
   const inputText = input.inputText.trim();
   if (!inputText || inputText.length > MAX_INPUT_CHARS || inputText.includes("\0")) return `Input must contain 1-${MAX_INPUT_CHARS} characters.`;
   if (!/^[A-Za-z0-9._:-]{8,160}$/u.test(input.requestId)) return "Request id is invalid.";
+  if (input.fallbackMode !== "disabled" && input.fallbackMode !== "allow_configured") return "Fallback mode is invalid.";
+  if (input.fallbackMode === "allow_configured" && (config.authMode !== "api_key_dev_test" || input.stream)) {
+    return "Configured fallback is available only for non-stream API Key requests.";
+  }
   return "";
 }
 
-function buildRequestDocument(input: ModelGatewayPlaygroundInput): Record<string, unknown> {
+function buildRequestDocument(config: ModelGatewayPlaygroundConfig, input: ModelGatewayPlaygroundInput): Record<string, unknown> {
   const model = input.model.trim();
   const text = input.inputText.trim();
-  if (input.protocol === "responses") return { model, input: text, stream: input.stream };
-  const document: Record<string, unknown> = { model, messages: [{ role: "user", content: text }], stream: input.stream };
+  const fallbackExtension = config.authMode === "api_key_dev_test" && !input.stream
+    ? { radishmind: { fallback_mode: input.fallbackMode } }
+    : {};
+  if (input.protocol === "responses") return { model, input: text, stream: input.stream, ...fallbackExtension };
+  const document: Record<string, unknown> = {
+    model, messages: [{ role: "user", content: text }], stream: input.stream, ...fallbackExtension,
+  };
   if (input.protocol === "messages") document.max_tokens = 1_024;
   return document;
 }
@@ -284,6 +312,7 @@ async function mapGatewayFailure(
   response: Response,
   input: ModelGatewayPlaygroundInput,
   route: string,
+  attemptObservation: ProviderAttemptObservation,
 ): Promise<ModelGatewayPlaygroundResult> {
   let document: unknown;
   try {
@@ -292,7 +321,7 @@ async function mapGatewayFailure(
     document = null;
   }
   if (!isGatewayErrorDocument(document)) {
-    return failureResult(input, route, response.status, "gateway_playground_response_invalid", "northbound_response", "Gateway returned an invalid failure document.", true);
+    return failureResult(input, route, response.status, "gateway_playground_response_invalid", "northbound_response", "Gateway returned an invalid failure document.", true, attemptObservation);
   }
   return failureResult(
     input,
@@ -302,7 +331,25 @@ async function mapGatewayFailure(
     document.error.failure_boundary,
     `Gateway request failed with ${document.error.code}.`,
     gatewayFailureHasHistory(document.error.code),
+    attemptObservation,
   );
+}
+
+function readProviderAttemptObservation(response: Response): ProviderAttemptObservation {
+  const rawCount = response.headers.get("X-RadishMind-Provider-Attempts")?.trim() ?? "";
+  const rawFallback = response.headers.get("X-RadishMind-Fallback-Used")?.trim() ?? "";
+  if (!rawCount && !rawFallback) return emptyProviderAttemptObservation();
+  if ((rawCount !== "1" && rawCount !== "2") || (rawFallback !== "true" && rawFallback !== "false")) {
+    throw new PlaygroundResponseInvalidError();
+  }
+  const providerAttemptCount = Number(rawCount) as 1 | 2;
+  const fallbackUsed = rawFallback === "true";
+  if (fallbackUsed && providerAttemptCount !== 2) throw new PlaygroundResponseInvalidError();
+  return { providerAttemptCount, fallbackUsed, attemptEvidenceAvailable: true };
+}
+
+function emptyProviderAttemptObservation(): ProviderAttemptObservation {
+  return { providerAttemptCount: 0, fallbackUsed: false, attemptEvidenceAvailable: false };
 }
 
 function gatewayFailureHasHistory(failureCode: string): boolean {
@@ -393,10 +440,11 @@ function failureResult(
   failureBoundary: string,
   summary: string,
   historyReviewAvailable: boolean,
+  attemptObservation: ProviderAttemptObservation = emptyProviderAttemptObservation(),
 ): ModelGatewayPlaygroundResult {
   return {
     status: "failed", requestId: input.requestId, route, protocol: input.protocol, stream: input.stream,
-    outputText: "", httpStatus, failureCode, failureBoundary, summary, historyReviewAvailable,
+    outputText: "", httpStatus, failureCode, failureBoundary, ...attemptObservation, summary, historyReviewAvailable,
   };
 }
 
