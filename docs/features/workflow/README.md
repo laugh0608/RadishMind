@@ -12,6 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_batch_b_persistence_next` | 批次 A 已完成 profile、v3 Definition、action plan v2 与 active authority；下一步双数据库迁移，不放宽通用 executor |
+| [Workflow Definition 绑定受控 HTTP Tool v1 实施任务卡](../../task-cards/workflow-definition-http-tool-v1-plan.md) | 当前唯一高风险实现批次 | `batch_b_next` | 承接双数据库、受控执行、React 与产品连续链，不派生同层 readiness 卡 |
 | [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) | 功能 / 本地材料暂存与快照构建专题 | `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed` | Desktop / Narrow 局部 Pencil 已人工通过；单一结构化 editor、来源 / fragment 审查、create / version、真实 CAS、SQLite 重启、隐私与三视口均已关闭，不新增后端 owner |
 | [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 批次 A 至 E、三存储连续链、SQLite 产品浏览器、重启、隐私与旧版兼容均已完成；专题关闭 |
 | [Workflow Definition 结构化运行输入 v1 实施任务卡](../../task-cards/workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 唯一实施卡已关闭，不派生平行任务卡或同层 gate-only 批次 |

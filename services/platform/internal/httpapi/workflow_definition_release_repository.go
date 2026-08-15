@@ -113,8 +113,13 @@ func validStoredWorkflowDefinitionCandidateVersionIdentity(value WorkflowDefinit
 		return value.Snapshot.SchemaVersion == savedWorkflowDraftSchemaVersion &&
 			value.Snapshot.ExecutionProfile == workflowDefinitionExecutorProfile
 	}
+	if value.SchemaVersion == workflowDefinitionHTTPToolCandidateSchemaVersion {
+		return workflowDefinitionCandidateSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot) &&
+			validWorkflowDefinitionSnapshotVersionIdentity(value.Snapshot) &&
+			workflowDefinitionSnapshotDigestMatches(value.Snapshot, value.DefinitionDigest)
+	}
 	return value.SchemaVersion == workflowDefinitionCandidateStructuredSchemaVersion &&
-		workflowDefinitionCandidateSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot.SchemaVersion) &&
+		workflowDefinitionCandidateSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot) &&
 		validWorkflowDefinitionSnapshotVersionIdentity(value.Snapshot) &&
 		workflowDefinitionSnapshotDigestMatches(value.Snapshot, value.DefinitionDigest)
 }
@@ -124,8 +129,13 @@ func validStoredWorkflowDefinitionVersionIdentity(value WorkflowDefinitionVersio
 		return value.Snapshot.SchemaVersion == savedWorkflowDraftSchemaVersion &&
 			value.Snapshot.ExecutionProfile == workflowDefinitionExecutorProfile
 	}
+	if value.SchemaVersion == workflowDefinitionHTTPToolVersionSchemaVersion {
+		return workflowDefinitionVersionSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot) &&
+			validWorkflowDefinitionSnapshotVersionIdentity(value.Snapshot) &&
+			workflowDefinitionSnapshotDigestMatches(value.Snapshot, value.DefinitionDigest)
+	}
 	return value.SchemaVersion == workflowDefinitionVersionStructuredSchemaVersion &&
-		workflowDefinitionVersionSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot.SchemaVersion) &&
+		workflowDefinitionVersionSchemaMatchesSnapshot(value.SchemaVersion, value.Snapshot) &&
 		validWorkflowDefinitionSnapshotVersionIdentity(value.Snapshot) &&
 		workflowDefinitionSnapshotDigestMatches(value.Snapshot, value.DefinitionDigest)
 }

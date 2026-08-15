@@ -23,6 +23,7 @@ type workflowDefinitionCandidateCreateBody struct {
 	DraftID                  string `json:"draft_id"`
 	ExpectedDraftVersion     int    `json:"expected_draft_version"`
 	ExpectedLifecycleVersion int    `json:"expected_lifecycle_version"`
+	ExecutionProfile         string `json:"execution_profile,omitempty"`
 }
 
 type workflowDefinitionCandidateDecisionBody struct {
@@ -96,6 +97,7 @@ func (server *Server) handleCreateWorkflowDefinitionCandidate(writer http.Respon
 		DraftID:                  body.DraftID,
 		ExpectedDraftVersion:     body.ExpectedDraftVersion,
 		ExpectedLifecycleVersion: body.ExpectedLifecycleVersion,
+		ExecutionProfile:         body.ExecutionProfile,
 	})
 	writeWorkflowDefinitionResult(writer, trace, ctx, result)
 }

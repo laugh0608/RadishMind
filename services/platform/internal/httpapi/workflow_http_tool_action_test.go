@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -545,6 +546,124 @@ func TestWorkflowHTTPToolActionServicePreRunBoundaries(t *testing.T) {
 	})
 }
 
+func TestWorkflowHTTPToolActionServicePlansFromActiveDefinitionAuthority(t *testing.T) {
+	draft := workflowHTTPToolEligibleDraftForTest()
+	ctx := workflowHTTPToolActionTestContext()
+	releaseContext := WorkflowDefinitionReleaseContext{
+		RequestContext: ctx.RequestContext, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
+		ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.ActorRef, ActorRef: ctx.ActorRef,
+		RequestID: ctx.RequestID, AuditRef: ctx.AuditRef,
+	}
+	definitions := newWorkflowDefinitionReleaseStore()
+	now := time.Date(2026, 8, 15, 9, 0, 0, 0, time.UTC)
+	candidate, err := definitions.CreateCandidate(
+		releaseContext,
+		"candidate-http-tool-definition",
+		"definition-http-tool",
+		workflowDefinitionHTTPToolProfile,
+		draft,
+		now,
+	)
+	if err != nil {
+		t.Fatalf("create HTTP tool definition candidate: %v", err)
+	}
+	_, version, err := definitions.Review(
+		releaseContext,
+		candidate.CandidateID,
+		0,
+		"approve",
+		"reviewed definition tool authority",
+		candidate.SourceDraftDigest,
+		now.Add(time.Minute),
+	)
+	if err != nil || version == nil {
+		t.Fatalf("materialize HTTP tool definition version: version=%#v err=%v", version, err)
+	}
+	activation, err := definitions.DecideActivation(
+		releaseContext,
+		version.DefinitionID,
+		0,
+		"activate",
+		version.Version,
+		"activate reviewed tool definition",
+		now.Add(2*time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("activate HTTP tool definition: %v", err)
+	}
+
+	service, store, runStore, _, clock := newWorkflowHTTPToolActionServiceForTest(t, &draft)
+	service.definitions = definitions
+	*clock = now.Add(3 * time.Minute)
+	created := service.CreatePlan(ctx, WorkflowHTTPToolCreatePlanRequest{
+		DefinitionID: version.DefinitionID,
+		NodeID:       "node_http_tool",
+		PublicArguments: map[string]any{
+			"resource_key": "docs/radishflow/overview",
+			"locale":       "zh-CN",
+		},
+	})
+	if created.FailureCode != "" || created.ActionPlan == nil {
+		t.Fatalf("create plan from active definition: %#v", created)
+	}
+	plan := created.ActionPlan
+	if plan.SchemaVersion != workflowHTTPToolPlanSchemaV2 || plan.SourceKind != workflowHTTPToolSourceDefinition ||
+		plan.DraftID != "" || plan.DraftVersion != 0 || plan.WorkflowDefinitionID != version.DefinitionID ||
+		plan.WorkflowDefinitionVersion != version.Version || plan.WorkflowDefinitionDigest != version.DefinitionDigest ||
+		plan.ActivationPointerVersion != activation.PointerVersion {
+		t.Fatalf("definition source union is incomplete: %#v", plan)
+	}
+	planJSON, err := json.Marshal(plan)
+	if err != nil || bytes.Contains(planJSON, []byte(`"draft_id"`)) || bytes.Contains(planJSON, []byte(`"draft_version"`)) ||
+		!bytes.Contains(planJSON, []byte(`"workflow_definition_id"`)) || !bytes.Contains(planJSON, []byte(`"activation_pointer_version"`)) {
+		t.Fatalf("definition source codec is not a strict union: %s err=%v", planJSON, err)
+	}
+	confirmContext := ctx
+	confirmContext.ActorRef = "subject_definition_reviewer"
+	approved := service.DecidePlan(confirmContext, WorkflowHTTPToolDecisionRequest{
+		PlanID: plan.PlanID, ExpectedRecordVersion: plan.RecordVersion, Decision: WorkflowHTTPToolConfirmationApprove,
+	})
+	if approved.FailureCode != "" || approved.ActionPlan == nil || approved.ConfirmationDecision == nil ||
+		approved.ConfirmationDecision.SchemaVersion != workflowHTTPToolDecisionSchemaV2 ||
+		!workflowHTTPToolDecisionSourceMatchesPlan(*approved.ConfirmationDecision, *approved.ActionPlan) {
+		t.Fatalf("approve definition-bound plan: %#v", approved)
+	}
+	if len(runStore.records) != 0 {
+		t.Fatalf("definition plan and approval created workflow runs: %d", len(runStore.records))
+	}
+
+	if _, err = definitions.DecideActivation(
+		releaseContext,
+		version.DefinitionID,
+		activation.PointerVersion,
+		"deactivate",
+		0,
+		"deactivate before tool execution",
+		now.Add(4*time.Minute),
+	); err != nil {
+		t.Fatalf("deactivate definition authority: %v", err)
+	}
+	*clock = now.Add(5 * time.Minute)
+	invalidated := service.ReadPlan(ctx, plan.PlanID)
+	if invalidated.FailureCode != "" || invalidated.ActionPlan == nil || invalidated.ConfirmationDecision == nil ||
+		invalidated.ActionPlan.Status != WorkflowHTTPToolActionStatusInvalidated ||
+		invalidated.ConfirmationDecision.SchemaVersion != workflowHTTPToolDecisionSchemaV2 ||
+		invalidated.ConfirmationDecision.Outcome != workflowHTTPToolConfirmationInvalidate {
+		t.Fatalf("definition authority drift did not invalidate before execution: %#v", invalidated)
+	}
+	store.ownerLock.RLock()
+	defer store.ownerLock.RUnlock()
+	if len(store.decisions) != 2 || len(store.audits) != 3 {
+		t.Fatalf("definition plan evidence is incomplete: decisions=%d audits=%d", len(store.decisions), len(store.audits))
+	}
+	for _, audit := range store.audits {
+		if audit.SchemaVersion != workflowHTTPToolAuditSchemaV2 || !workflowHTTPToolAuditSourceMatchesPlan(audit, *invalidated.ActionPlan) ||
+			audit.SideEffects != (WorkflowHTTPToolAuditSideEffects{}) {
+			t.Fatalf("definition plan audit drifted or claimed side effects: %#v", audit)
+		}
+	}
+}
+
 func newWorkflowHTTPToolActionServiceForTest(
 	t *testing.T,
 	draft *SavedWorkflowDraft,
@@ -562,6 +681,7 @@ func newWorkflowHTTPToolActionServiceForTest(
 			}
 			return SavedWorkflowDraftResult{Draft: cloneSavedWorkflowDraftPointer(*draft)}
 		},
+		nil,
 		store,
 	)
 	if err != nil {

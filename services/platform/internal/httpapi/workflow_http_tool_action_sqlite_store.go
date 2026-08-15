@@ -15,7 +15,7 @@ func newSQLiteWorkflowHTTPToolActionStore(database *sql.DB) *sqliteWorkflowHTTPT
 }
 
 func (store *sqliteWorkflowHTTPToolActionStore) CreatePlan(ctx WorkflowHTTPToolActionContext, plan *WorkflowHTTPToolActionPlan, audit WorkflowHTTPToolExecutionAudit) error {
-	if store == nil || store.database == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
+	if store == nil || store.database == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || plan.SchemaVersion != workflowHTTPToolPlanSchema || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
 		plan.RecordVersion != 1 || plan.Status != WorkflowHTTPToolActionStatusPending || !workflowHTTPToolCreateAuditMatchesContext(audit, *plan, ctx) {
 		return errWorkflowHTTPToolActionContract
 	}
@@ -77,7 +77,7 @@ func (store *sqliteWorkflowHTTPToolActionStore) ReadPlan(ctx WorkflowHTTPToolAct
 }
 
 func (store *sqliteWorkflowHTTPToolActionStore) DecidePlan(ctx WorkflowHTTPToolActionContext, plan *WorkflowHTTPToolActionPlan, decision WorkflowHTTPToolConfirmationDecision, audit WorkflowHTTPToolExecutionAudit) error {
-	if store == nil || store.database == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
+	if store == nil || store.database == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || plan.SchemaVersion != workflowHTTPToolPlanSchema || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
 		!workflowHTTPToolDecisionMatchesPlan(decision, *plan) || !workflowHTTPToolDecisionAuditMatchesContext(audit, decision, *plan, ctx) ||
 		decision.ExpectedRecordVersion+1 != decision.ResultingRecordVersion {
 		return errWorkflowHTTPToolActionContract

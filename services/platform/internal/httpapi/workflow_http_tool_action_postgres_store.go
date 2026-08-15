@@ -16,7 +16,7 @@ func newPostgresWorkflowHTTPToolActionStore(pool *pgxpool.Pool) *postgresWorkflo
 }
 
 func (store *postgresWorkflowHTTPToolActionStore) CreatePlan(ctx WorkflowHTTPToolActionContext, plan *WorkflowHTTPToolActionPlan, audit WorkflowHTTPToolExecutionAudit) error {
-	if store == nil || store.pool == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
+	if store == nil || store.pool == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || plan.SchemaVersion != workflowHTTPToolPlanSchema || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
 		plan.RecordVersion != 1 || plan.Status != WorkflowHTTPToolActionStatusPending || !workflowHTTPToolCreateAuditMatchesContext(audit, *plan, ctx) {
 		return errWorkflowHTTPToolActionContract
 	}
@@ -77,7 +77,7 @@ func (store *postgresWorkflowHTTPToolActionStore) ReadPlan(ctx WorkflowHTTPToolA
 }
 
 func (store *postgresWorkflowHTTPToolActionStore) DecidePlan(ctx WorkflowHTTPToolActionContext, plan *WorkflowHTTPToolActionPlan, decision WorkflowHTTPToolConfirmationDecision, audit WorkflowHTTPToolExecutionAudit) error {
-	if store == nil || store.pool == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
+	if store == nil || store.pool == nil || validateWorkflowHTTPToolActionContext(ctx) != "" || plan == nil || plan.SchemaVersion != workflowHTTPToolPlanSchema || !workflowHTTPToolPlanMatchesContext(*plan, ctx) ||
 		!workflowHTTPToolDecisionMatchesPlan(decision, *plan) || !workflowHTTPToolDecisionAuditMatchesContext(audit, decision, *plan, ctx) ||
 		decision.ExpectedRecordVersion+1 != decision.ResultingRecordVersion {
 		return errWorkflowHTTPToolActionContract

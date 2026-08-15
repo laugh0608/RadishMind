@@ -60,7 +60,11 @@ func (s *Server) workflowHTTPToolExecutionService() (workflowHTTPToolExecutionSe
 		s.workflowHTTPToolExecutionStore == nil || s.bridge == nil {
 		return workflowHTTPToolExecutionService{}, errWorkflowHTTPToolActionUnavailable
 	}
-	actions, err := newWorkflowHTTPToolActionService(s.savedWorkflowDraftService().ReadDraft, s.workflowHTTPToolActionStore)
+	actions, err := newWorkflowHTTPToolActionService(
+		s.savedWorkflowDraftService().ReadDraft,
+		s.workflowDefinitionReleaseRepository,
+		s.workflowHTTPToolActionStore,
+	)
 	if err != nil {
 		return workflowHTTPToolExecutionService{}, err
 	}

@@ -289,7 +289,7 @@ func TestWorkflowDefinitionExecutionHTTPStrictAuthorityAndScope(t *testing.T) {
 	releaseContext := WorkflowDefinitionReleaseContext{RequestContext: context.Background(), TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", ApplicationID: applicationID, OwnerSubjectRef: actor, ActorRef: actor, RequestID: "request_http_definition", AuditRef: "audit_http_definition"}
 	draft := executableWorkflowDraftForTest()
 	draft.ApplicationID, draft.ToolRefs, draft.RAGRefs, draft.RequestedCapabilities = applicationID, []string{}, []string{}, []string{}
-	candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(releaseContext, "candidate_http", "definition_http", draft, time.Now().UTC())
+	candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(releaseContext, "candidate_http", "definition_http", "", draft, time.Now().UTC())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -346,7 +346,7 @@ func workflowDefinitionExecutionFixture(t *testing.T) (workflowDefinitionExecuti
 	draft.RAGRefs = []string{}
 	draft.RequestedCapabilities = []string{}
 	repository := newWorkflowDefinitionReleaseStore()
-	candidate, err := repository.CreateCandidate(releaseContext, "candidate_definition", "definition_runtime", draft, time.Now().UTC())
+	candidate, err := repository.CreateCandidate(releaseContext, "candidate_definition", "definition_runtime", "", draft, time.Now().UTC())
 	if err != nil {
 		t.Fatalf("create definition candidate fixture: %v", err)
 	}

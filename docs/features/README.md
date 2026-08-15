@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-15 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 也已分别完成 Visual R3 React 迁移和真实浏览器复核；Application Quota 保持单一 quota owner，Evaluation Campaign 保持 selected context、campaign 主 owner、连续 evidence rows 与单一 Handoff rail。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)、[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)和[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)均保持关闭。Provider Attempt 已完成批次 A 至 E、Visual R1、React strict consumer、双数据库、三个 unary 协议、真实浏览器三视口与最终门禁；下一产品顺位回到本入口选择新的长期功能设计文档，不建立 S11 或同层门禁，真实 Provider 调用、production price / quota / billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-15 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格和 Gateway Provider Attempt 均已关闭。新的长期产品目标为 [Workflow Definition 绑定受控 HTTP Tool v1](workflow/workflow-definition-http-tool-v1.md)：只在独立 `workflow_definition_http_tool_v1` profile 下让工具草案进入不可变 Definition、激活、action plan、人工确认与单次执行，继续复用既有 release、confirmation、transport 和 store owner。批次 A 已完成 v3 Definition、Definition 来源 action plan / confirmation / audit v2 与 active authority，下一步是双数据库迁移；真实 Provider、production、自动执行和自动发布仍关闭。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Provider Attempt S5 Playground / Request History strict consumer 与产品连续链已完成；不启动全历史 summary、billing 或收件箱批次 B |
 | [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route、application request quota 与 Pricing owner 均已完成开发测试态受控管理 | Provider Attempt S7 Route strict consumer、draft / candidate / review / activation 与双数据库连续链已完成；不创建第二套路由、quota、pricing 或 history owner |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 E、Visual R1、React、双数据库、三协议和浏览器均已关闭；真实 Provider 与 production 继续关闭 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入与 RAG 本地材料导入、审查和快照构建均已关闭 | 新的 Workflow 能力必须由真实用户阻塞产生独立功能设计，不从已关闭专题派生 S11、持久 staging 或同层门禁 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；当前推进 Definition 绑定受控 HTTP Tool | 先完成 action plan v2 双数据库、受控执行和 React 连续链，不放宽通用 executor |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
@@ -92,6 +92,8 @@
 | [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 已归档高风险实现批次 | A / B / C / D 全部完成，不派生平行任务卡 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | action plan、人工确认、单次 allowlisted GET、SSRF、原子 claim、run v2、三种 store、Web 与浏览器重启链已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | 三批完成，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` |
+| [Workflow Definition 绑定受控 HTTP Tool v1](workflow/workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | 状态为 `workflow_definition_http_tool_v1_batch_b_persistence_next`；批次 A 已完成 profile、v3 Definition、action plan v2 与 active authority，下一步双数据库迁移 |
+| [Workflow Definition 绑定受控 HTTP Tool v1 实施任务卡](../task-cards/workflow-definition-http-tool-v1-plan.md) | 当前唯一高风险实现批次 | 批次 B 下一顺位；不建立平行 confirmation、selector、数据库或 readiness 卡 |
 | [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 三批已完成；精确绑定、独立 execution、citation、metadata-only run v3、Web、三种 store、浏览器重启与 no-fallback 已通过 |
 | [Workflow RAG 评测数据集与知识质量审查 v1](workflow/workflow-rag-evaluation-dataset-knowledge-quality-review-v1.md) | 功能 / 离线质量专题 | strict dataset / report、共享 lexical evaluator、CLI 与 synthetic-public starter report 已完成，六项指标均为 `1` |
 | [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) | 功能 / 持久评测专题 | durable dataset、三种 store、精确 baseline / candidate lexical review、metadata-only Web 管理面和 no-fallback 已完成 |

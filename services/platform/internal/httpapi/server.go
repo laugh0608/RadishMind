@@ -452,6 +452,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc("POST "+promptApplicationInvocationRoute, server.handlePromptApplicationInvocation)
 	mux.HandleFunc("POST "+agentCopilotInvocationRoute, server.handleAgentCopilotInvocation)
 	mux.HandleFunc(workflowHTTPToolPlanCreateRoute, server.handleCreateWorkflowHTTPToolActionPlan)
+	mux.HandleFunc(workflowDefinitionHTTPToolPlanCreateRoute, server.handleCreateWorkflowDefinitionHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolPlanReadRoute, server.handleReadWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolDecisionRoute, server.handleDecideWorkflowHTTPToolActionPlan)
 	mux.HandleFunc(workflowHTTPToolExecutionRoute, server.handleExecuteWorkflowHTTPToolActionPlan)

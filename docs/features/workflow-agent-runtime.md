@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-11 当前结论：Saved Draft durable dev/test repository、版本历史、R4 Gateway、executor、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成 Draft / Definition v2、executor v2、Run v8、Comparison v7、strict contract decoder、Session v4、Evaluation Plan / Campaign v2、三模式 durable chain 与 SQLite 产品浏览器收口，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。当前活跃专题转为 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)：只在既有 snapshot owner 前增加浏览器内材料暂存、确定性切分和结构化审查，不从已关闭专题扩自动 activation、草案自动保存 / 合并 / 同步、分支图、schedule、replay / resume、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-15 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG 与不可变 Definition 受控运行均已有可复验证据；RAG 本地材料导入也已关闭。当前活跃专题为 [Workflow Definition 绑定受控 HTTP Tool v1](workflow/workflow-definition-http-tool-v1.md)：独立 `workflow_definition_http_tool_v1` profile、v3 Definition 与 Definition 来源 action plan v2 已完成，下一步复用现有 store owner 追加双数据库迁移，再推进受控执行与 React 产品链。通用 executor、自动执行、业务写回、agent loop、外部 connector 和 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 

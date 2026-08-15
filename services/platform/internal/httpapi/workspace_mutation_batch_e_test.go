@@ -234,6 +234,9 @@ func batchEMutationAuthorizationOperations() []batchEMutationAuthorizationOperat
 		{name: "HTTP tool plan", route: workflowHTTPToolPlanCreateRoute, permissions: []string{"workflow_drafts:read", "workflow_tool_actions:plan"}, prepare: prepare("draft_id", "draft_demo"), handle: func(s *Server, w http.ResponseWriter, r *http.Request) {
 			s.handleCreateWorkflowHTTPToolActionPlan(w, r)
 		}},
+		{name: "Definition HTTP tool plan", route: workflowDefinitionHTTPToolPlanCreateRoute, permissions: []string{"workflow_definitions:read", "workflow_tool_actions:plan"}, prepare: prepare("definition_id", "wfd_aaaaaaaaaaaaaaaa"), handle: func(s *Server, w http.ResponseWriter, r *http.Request) {
+			s.handleCreateWorkflowDefinitionHTTPToolActionPlan(w, r)
+		}},
 		{name: "HTTP tool decision", route: workflowHTTPToolDecisionRoute, permissions: []string{"workflow_tool_actions:confirm"}, prepare: prepare("plan_id", "wtap_aaaaaaaaaaaaaaaa"), handle: func(s *Server, w http.ResponseWriter, r *http.Request) {
 			s.handleDecideWorkflowHTTPToolActionPlan(w, r)
 		}},

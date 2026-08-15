@@ -50,7 +50,7 @@ type WorkflowDefinitionReleaseContext struct {
 }
 
 type workflowDefinitionReleaseRepository interface {
-	CreateCandidate(WorkflowDefinitionReleaseContext, string, string, SavedWorkflowDraft, time.Time) (WorkflowDefinitionReleaseCandidate, error)
+	CreateCandidate(WorkflowDefinitionReleaseContext, string, string, string, SavedWorkflowDraft, time.Time) (WorkflowDefinitionReleaseCandidate, error)
 	Review(WorkflowDefinitionReleaseContext, string, int, string, string, string, time.Time) (WorkflowDefinitionReleaseCandidate, *WorkflowDefinitionVersion, error)
 	DecideActivation(WorkflowDefinitionReleaseContext, string, int, string, int, string, time.Time) (WorkflowDefinitionActivation, error)
 	ReadCandidate(WorkflowDefinitionReleaseContext, string) (WorkflowDefinitionReleaseCandidate, error)
@@ -225,8 +225,8 @@ func workflowDefinitionScopeKey(ctx WorkflowDefinitionReleaseContext, id string)
 	return strings.Join([]string{ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, id}, "\x00")
 }
 
-func workflowDefinitionSnapshotFromDraft(draft SavedWorkflowDraft) (WorkflowDefinitionSnapshot, string, error) {
-	_, _, executorProfile, supported := workflowDefinitionSchemaIdentityForDraft(draft.SchemaVersion)
+func workflowDefinitionSnapshotFromDraft(draft SavedWorkflowDraft, requestedProfile string) (WorkflowDefinitionSnapshot, string, error) {
+	executorProfile, supported := workflowDefinitionExecutionProfileForDraft(draft, requestedProfile)
 	if !supported {
 		return WorkflowDefinitionSnapshot{}, "", errWorkflowDefinitionPayloadInvalid
 	}
@@ -267,7 +267,7 @@ func workflowDefinitionSnapshotDigest(snapshot WorkflowDefinitionSnapshot) (stri
 	return "sha256:" + hex.EncodeToString(digest[:]), nil
 }
 
-func workflowDefinitionEligibility(draft SavedWorkflowDraft) (bool, []string) {
+func workflowDefinitionDefaultEligibility(draft SavedWorkflowDraft) (bool, []string) {
 	blockers := make([]string, 0, 4)
 	if len(draft.ToolRefs) > 0 {
 		blockers = append(blockers, "tool_refs_unsupported")
@@ -306,7 +306,7 @@ func workflowDefinitionExecutionBlocker(draft SavedWorkflowDraft) string {
 	return ""
 }
 
-func workflowDefinitionDraftMatchesCandidateContract(draft SavedWorkflowDraft) bool {
+func workflowDefinitionDraftMatchesDefaultContract(draft SavedWorkflowDraft) bool {
 	for _, node := range draft.Nodes {
 		switch node.NodeType {
 		case "prompt", "llm", "condition", "output":
@@ -318,25 +318,26 @@ func workflowDefinitionDraftMatchesCandidateContract(draft SavedWorkflowDraft) b
 	return true
 }
 
-func (store *workflowDefinitionReleaseStore) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
+func (store *workflowDefinitionReleaseStore) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID, executionProfile string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
 	if !validWorkflowDefinitionContext(ctx) || !applicationDraftIdentifierPattern.MatchString(candidateID) || !applicationDraftIdentifierPattern.MatchString(definitionID) ||
 		!applicationDraftIdentifierPattern.MatchString(draft.DraftID) || draft.DraftVersion < 1 {
 		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionPayloadInvalid
 	}
-	if draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !draft.ValidationSummary.ValidForReview || len(draft.BlockedCapabilitySummary) > 0 {
+	resolvedProfile, supported := workflowDefinitionExecutionProfileForDraft(draft, executionProfile)
+	if !supported ||
+		(resolvedProfile != workflowDefinitionHTTPToolProfile &&
+			(draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !draft.ValidationSummary.ValidForReview || len(draft.BlockedCapabilitySummary) > 0)) ||
+		!workflowDefinitionDraftMatchesProfile(draft, resolvedProfile) {
 		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionInvalidState
 	}
-	if !workflowDefinitionDraftMatchesCandidateContract(draft) {
-		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionInvalidState
-	}
-	snapshot, digest, err := workflowDefinitionSnapshotFromDraft(draft)
+	snapshot, digest, err := workflowDefinitionSnapshotFromDraft(draft, resolvedProfile)
 	if err != nil {
 		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionStore
 	}
 	if workflowDefinitionSnapshotContainsForbiddenMaterial(snapshot) {
 		return WorkflowDefinitionReleaseCandidate{}, errWorkflowDefinitionPayloadInvalid
 	}
-	eligible, blockers := workflowDefinitionEligibility(draft)
+	eligible, blockers := workflowDefinitionDraftEligibleForProfile(draft, resolvedProfile)
 	store.mu.Lock()
 	defer store.mu.Unlock()
 	if store.unavailable {
@@ -348,7 +349,7 @@ func (store *workflowDefinitionReleaseStore) CreateCandidate(ctx WorkflowDefinit
 	}
 	timestamp := now.UTC().Format(time.RFC3339Nano)
 	candidate := WorkflowDefinitionReleaseCandidate{
-		SchemaVersion:       workflowDefinitionCandidateSchemaForDraft(draft.SchemaVersion),
+		SchemaVersion:       workflowDefinitionCandidateSchemaForDraft(draft.SchemaVersion, resolvedProfile),
 		CandidateID:         candidateID,
 		DefinitionID:        definitionID,
 		SourceDraftID:       draft.DraftID,
@@ -489,7 +490,7 @@ func (store *workflowDefinitionReleaseStore) DecideActivation(ctx WorkflowDefini
 			return WorkflowDefinitionActivation{}, errWorkflowDefinitionInvalidState
 		}
 		executionDraft := workflowDefinitionSnapshotAsDraft(WorkflowRunContext{WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID}, selected)
-		if workflowDefinitionExecutionBlocker(executionDraft) != "" {
+		if workflowDefinitionActivationBlocker(executionDraft, selected.Snapshot.ExecutionProfile) != "" {
 			return WorkflowDefinitionActivation{}, errWorkflowDefinitionInvalidState
 		}
 		activeDigest = selected.DefinitionDigest

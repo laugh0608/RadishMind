@@ -113,11 +113,12 @@ func workflowHTTPToolPlanMatchesContext(plan WorkflowHTTPToolActionPlan, ctx Wor
 		_, lastDecisionAtErr := time.Parse(time.RFC3339Nano, *plan.LastDecisionAt)
 		lastDecisionValid = workflowHTTPToolReferencePattern.MatchString(*plan.LastDecisionByActorRef) && lastDecisionAtErr == nil
 	}
-	return workflowHTTPToolPlanIDPattern.MatchString(plan.PlanID) && plan.SchemaVersion == workflowHTTPToolPlanSchema && plan.RecordVersion > 0 &&
+	return workflowHTTPToolPlanIDPattern.MatchString(plan.PlanID) &&
+		(plan.SchemaVersion == workflowHTTPToolPlanSchema || plan.SchemaVersion == workflowHTTPToolPlanSchemaV2) &&
+		workflowHTTPToolPlanSourceValid(plan) && plan.RecordVersion > 0 &&
 		plan.TenantRef == strings.TrimSpace(ctx.TenantRef) && workflowHTTPToolReferencePattern.MatchString(plan.TenantRef) &&
 		plan.WorkspaceID == strings.TrimSpace(ctx.WorkspaceID) && workflowHTTPToolScopedIDPattern.MatchString(plan.WorkspaceID) &&
 		plan.ApplicationID == strings.TrimSpace(ctx.ApplicationID) && workflowHTTPToolScopedIDPattern.MatchString(plan.ApplicationID) &&
-		workflowHTTPToolScopedIDPattern.MatchString(plan.DraftID) && plan.DraftVersion > 0 &&
 		workflowHTTPToolScopedIDPattern.MatchString(plan.NodeID) && workflowHTTPToolIDPattern.MatchString(plan.ToolID) &&
 		plan.ToolVersion == workflowHTTPToolVersion &&
 		workflowHTTPToolDigestPattern.MatchString(plan.DefinitionDigest) && workflowHTTPToolProfileIDPattern.MatchString(plan.ProfileID) &&
@@ -130,6 +131,33 @@ func workflowHTTPToolPlanMatchesContext(plan WorkflowHTTPToolActionPlan, ctx Wor
 		workflowHTTPToolReferencePattern.MatchString(plan.PlannedByActorRef) && createdErr == nil && expiresErr == nil && expiresAt.After(createdAt) &&
 		workflowHTTPToolReferencePattern.MatchString(plan.AuditRef) && digestErr == nil &&
 		workflowHTTPToolDigestPattern.MatchString(plan.ToolPlanDigest) && plan.ToolPlanDigest == computedDigest && decisionStateValid && lastDecisionValid
+}
+
+func workflowHTTPToolPlanSourceValid(plan WorkflowHTTPToolActionPlan) bool {
+	if plan.SchemaVersion == workflowHTTPToolPlanSchema {
+		return plan.SourceKind == "" && workflowHTTPToolScopedIDPattern.MatchString(plan.DraftID) && plan.DraftVersion > 0 &&
+			plan.WorkflowDefinitionID == "" && plan.WorkflowDefinitionVersion == 0 && plan.WorkflowDefinitionDigest == "" &&
+			plan.ActivationPointerVersion == 0
+	}
+	return plan.SourceKind == workflowHTTPToolSourceDefinition && plan.DraftID == "" && plan.DraftVersion == 0 &&
+		workflowHTTPToolScopedIDPattern.MatchString(plan.WorkflowDefinitionID) && plan.WorkflowDefinitionVersion > 0 &&
+		workflowHTTPToolDigestPattern.MatchString(plan.WorkflowDefinitionDigest) && plan.ActivationPointerVersion > 0
+}
+
+func workflowHTTPToolDecisionSourceMatchesPlan(decision WorkflowHTTPToolConfirmationDecision, plan WorkflowHTTPToolActionPlan) bool {
+	return decision.SourceKind == plan.SourceKind && decision.DraftID == plan.DraftID && decision.DraftVersion == plan.DraftVersion &&
+		decision.WorkflowDefinitionID == plan.WorkflowDefinitionID &&
+		decision.WorkflowDefinitionVersion == plan.WorkflowDefinitionVersion &&
+		decision.WorkflowDefinitionDigest == plan.WorkflowDefinitionDigest &&
+		decision.ActivationPointerVersion == plan.ActivationPointerVersion
+}
+
+func workflowHTTPToolAuditSourceMatchesPlan(audit WorkflowHTTPToolExecutionAudit, plan WorkflowHTTPToolActionPlan) bool {
+	return audit.SourceKind == plan.SourceKind && audit.DraftID == plan.DraftID && audit.DraftVersion == plan.DraftVersion &&
+		audit.WorkflowDefinitionID == plan.WorkflowDefinitionID &&
+		audit.WorkflowDefinitionVersion == plan.WorkflowDefinitionVersion &&
+		audit.WorkflowDefinitionDigest == plan.WorkflowDefinitionDigest &&
+		audit.ActivationPointerVersion == plan.ActivationPointerVersion
 }
 
 func workflowHTTPToolStringSlicesEqual(left, right []string) bool {
@@ -154,10 +182,10 @@ func workflowHTTPToolDecisionMatchesPlan(decision WorkflowHTTPToolConfirmationDe
 	} else if decision.Outcome == workflowHTTPToolConfirmationExpire {
 		decisionTimeValid = decisionTimeValid && !decidedAt.Before(expiresAt)
 	}
-	return decision.SchemaVersion == workflowHTTPToolDecisionSchema && workflowHTTPToolConfirmationIDPattern.MatchString(decision.ConfirmationID) &&
+	return decision.SchemaVersion == workflowHTTPToolDecisionSchemaForPlan(plan) && workflowHTTPToolConfirmationIDPattern.MatchString(decision.ConfirmationID) &&
 		decision.PlanID == plan.PlanID && decision.TenantRef == plan.TenantRef && decision.WorkspaceID == plan.WorkspaceID &&
-		decision.ApplicationID == plan.ApplicationID && decision.DraftID == plan.DraftID &&
-		decision.DraftVersion == plan.DraftVersion && decision.NodeID == plan.NodeID && decision.ToolID == plan.ToolID &&
+		decision.ApplicationID == plan.ApplicationID && workflowHTTPToolDecisionSourceMatchesPlan(decision, plan) &&
+		decision.NodeID == plan.NodeID && decision.ToolID == plan.ToolID &&
 		decision.ToolVersion == plan.ToolVersion &&
 		decision.ToolPlanDigest == plan.ToolPlanDigest && decision.ResultingRecordVersion == plan.RecordVersion &&
 		decision.ExpectedRecordVersion+1 == decision.ResultingRecordVersion && plan.Status == workflowHTTPToolStatusForOutcome(decision.Outcome) &&
@@ -171,9 +199,9 @@ func workflowHTTPToolDecisionMatchesPlan(decision WorkflowHTTPToolConfirmationDe
 
 func workflowHTTPToolAuditMatchesPlan(audit WorkflowHTTPToolExecutionAudit, plan WorkflowHTTPToolActionPlan) bool {
 	_, occurredAtErr := time.Parse(time.RFC3339Nano, audit.OccurredAt)
-	return audit.SchemaVersion == workflowHTTPToolAuditSchema && workflowHTTPToolAuditIDPattern.MatchString(audit.EventID) &&
+	return audit.SchemaVersion == workflowHTTPToolAuditSchemaForPlan(plan) && workflowHTTPToolAuditIDPattern.MatchString(audit.EventID) &&
 		audit.PlanID == plan.PlanID && audit.TenantRef == plan.TenantRef && audit.WorkspaceID == plan.WorkspaceID &&
-		audit.ApplicationID == plan.ApplicationID && audit.DraftID == plan.DraftID && audit.DraftVersion == plan.DraftVersion &&
+		audit.ApplicationID == plan.ApplicationID && workflowHTTPToolAuditSourceMatchesPlan(audit, plan) &&
 		audit.NodeID == plan.NodeID && audit.ToolID == plan.ToolID && audit.ToolVersion == plan.ToolVersion &&
 		audit.DefinitionDigest == plan.DefinitionDigest &&
 		audit.ProfileID == plan.ProfileID && audit.ProfileDigest == plan.ProfileDigest && audit.ToolPlanDigest == plan.ToolPlanDigest &&

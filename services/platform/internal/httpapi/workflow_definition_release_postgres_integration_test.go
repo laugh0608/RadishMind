@@ -58,7 +58,7 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	now := time.Date(2026, 7, 19, 17, 0, 0, 0, time.UTC)
 	draft := executableWorkflowDraftForTest()
 	draft.ApplicationID, draft.ToolRefs, draft.RAGRefs, draft.RequestedCapabilities = releaseCtx.ApplicationID, []string{}, []string{}, []string{}
-	candidate, err := repository.CreateCandidate(releaseCtx, "candidate-postgres", "definition-postgres", draft, now)
+	candidate, err := repository.CreateCandidate(releaseCtx, "candidate-postgres", "definition-postgres", "", draft, now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	}
 
 	structuredDraft := executableWorkflowStructuredDraftForTest(releaseCtx.ApplicationID)
-	structuredCandidate, err := repository.CreateCandidate(releaseCtx, "candidate_structured_postgres", "definition_structured_postgres", structuredDraft, now.Add(4*time.Minute))
+	structuredCandidate, err := repository.CreateCandidate(releaseCtx, "candidate_structured_postgres", "definition_structured_postgres", "", structuredDraft, now.Add(4*time.Minute))
 	if err != nil {
 		t.Fatal(err)
 	}

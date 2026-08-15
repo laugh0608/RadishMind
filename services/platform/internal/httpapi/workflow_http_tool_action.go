@@ -23,6 +23,11 @@ const (
 	workflowHTTPToolPlanSchema         = "workflow_http_tool_action_plan.v1"
 	workflowHTTPToolDecisionSchema     = "workflow_http_tool_confirmation_decision.v1"
 	workflowHTTPToolAuditSchema        = "workflow_http_tool_execution_audit.v1"
+	workflowHTTPToolPlanSchemaV2       = "workflow_http_tool_action_plan.v2"
+	workflowHTTPToolDecisionSchemaV2   = "workflow_http_tool_confirmation_decision.v2"
+	workflowHTTPToolAuditSchemaV2      = "workflow_http_tool_execution_audit.v2"
+	workflowHTTPToolSourceDraft        = "saved_workflow_draft"
+	workflowHTTPToolSourceDefinition   = "workflow_definition"
 	workflowHTTPToolProfileID          = "workflow_http_profile_reviewed_json_read_dev_v1"
 	workflowHTTPToolProfileVersion     = 1
 	workflowHTTPToolTargetPolicyKey    = "reviewed_json_read_dev"
@@ -49,22 +54,26 @@ var workflowHTTPToolScopedIDPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9
 type WorkflowHTTPToolActionFailureCode string
 
 const (
-	WorkflowHTTPToolActionFailureScopeDenied        WorkflowHTTPToolActionFailureCode = "workflow_tool_action_scope_denied"
-	WorkflowHTTPToolActionFailureInputInvalid       WorkflowHTTPToolActionFailureCode = "workflow_tool_arguments_invalid"
-	WorkflowHTTPToolActionFailureDraftNotFound      WorkflowHTTPToolActionFailureCode = "workflow_tool_action_draft_not_found"
-	WorkflowHTTPToolActionFailureDraftVersion       WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_stale"
-	WorkflowHTTPToolActionFailureDraftIneligible    WorkflowHTTPToolActionFailureCode = "workflow_tool_action_draft_ineligible"
-	WorkflowHTTPToolActionFailureDefinitionMissing  WorkflowHTTPToolActionFailureCode = "workflow_tool_not_registered"
-	WorkflowHTTPToolActionFailureProfileUnavailable WorkflowHTTPToolActionFailureCode = "workflow_tool_profile_disabled"
-	WorkflowHTTPToolActionFailureNotFound           WorkflowHTTPToolActionFailureCode = "workflow_tool_action_plan_not_found"
-	WorkflowHTTPToolActionFailureConflict           WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_stale"
-	WorkflowHTTPToolActionFailureRejected           WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_rejected"
-	WorkflowHTTPToolActionFailureExpired            WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_expired"
-	WorkflowHTTPToolActionFailureInvalidated        WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_invalidated"
-	WorkflowHTTPToolActionFailureCanceled           WorkflowHTTPToolActionFailureCode = "workflow_tool_action_canceled"
-	WorkflowHTTPToolActionFailureConsumed           WorkflowHTTPToolActionFailureCode = "workflow_tool_action_consumed"
-	WorkflowHTTPToolActionFailureStoreUnavailable   WorkflowHTTPToolActionFailureCode = "workflow_tool_store_unavailable"
-	WorkflowHTTPToolActionFailureStoreContract      WorkflowHTTPToolActionFailureCode = "workflow_tool_store_contract_mismatch"
+	WorkflowHTTPToolActionFailureScopeDenied          WorkflowHTTPToolActionFailureCode = "workflow_tool_action_scope_denied"
+	WorkflowHTTPToolActionFailureInputInvalid         WorkflowHTTPToolActionFailureCode = "workflow_tool_arguments_invalid"
+	WorkflowHTTPToolActionFailureDraftNotFound        WorkflowHTTPToolActionFailureCode = "workflow_tool_action_draft_not_found"
+	WorkflowHTTPToolActionFailureDraftVersion         WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_stale"
+	WorkflowHTTPToolActionFailureDraftIneligible      WorkflowHTTPToolActionFailureCode = "workflow_tool_action_draft_ineligible"
+	WorkflowHTTPToolActionFailureDefinitionMissing    WorkflowHTTPToolActionFailureCode = "workflow_tool_not_registered"
+	WorkflowHTTPToolActionFailureDefinitionNotFound   WorkflowHTTPToolActionFailureCode = "workflow_tool_action_definition_not_found"
+	WorkflowHTTPToolActionFailureDefinitionInactive   WorkflowHTTPToolActionFailureCode = "workflow_tool_action_definition_inactive"
+	WorkflowHTTPToolActionFailureDefinitionDrift      WorkflowHTTPToolActionFailureCode = "workflow_tool_action_definition_drift"
+	WorkflowHTTPToolActionFailureDefinitionIneligible WorkflowHTTPToolActionFailureCode = "workflow_tool_action_definition_ineligible"
+	WorkflowHTTPToolActionFailureProfileUnavailable   WorkflowHTTPToolActionFailureCode = "workflow_tool_profile_disabled"
+	WorkflowHTTPToolActionFailureNotFound             WorkflowHTTPToolActionFailureCode = "workflow_tool_action_plan_not_found"
+	WorkflowHTTPToolActionFailureConflict             WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_stale"
+	WorkflowHTTPToolActionFailureRejected             WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_rejected"
+	WorkflowHTTPToolActionFailureExpired              WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_expired"
+	WorkflowHTTPToolActionFailureInvalidated          WorkflowHTTPToolActionFailureCode = "workflow_tool_confirmation_invalidated"
+	WorkflowHTTPToolActionFailureCanceled             WorkflowHTTPToolActionFailureCode = "workflow_tool_action_canceled"
+	WorkflowHTTPToolActionFailureConsumed             WorkflowHTTPToolActionFailureCode = "workflow_tool_action_consumed"
+	WorkflowHTTPToolActionFailureStoreUnavailable     WorkflowHTTPToolActionFailureCode = "workflow_tool_store_unavailable"
+	WorkflowHTTPToolActionFailureStoreContract        WorkflowHTTPToolActionFailureCode = "workflow_tool_store_contract_mismatch"
 )
 
 type WorkflowHTTPToolActionStatus string
@@ -200,95 +209,110 @@ type WorkflowHTTPToolPublicArguments struct {
 }
 
 type WorkflowHTTPToolActionPlan struct {
-	SchemaVersion          string                          `json:"schema_version"`
-	PlanID                 string                          `json:"plan_id"`
-	RecordVersion          int                             `json:"record_version"`
-	TenantRef              string                          `json:"tenant_ref"`
-	WorkspaceID            string                          `json:"workspace_id"`
-	ApplicationID          string                          `json:"application_id"`
-	DraftID                string                          `json:"draft_id"`
-	DraftVersion           int                             `json:"draft_version"`
-	NodeID                 string                          `json:"node_id"`
-	ToolID                 string                          `json:"tool_id"`
-	ToolVersion            int                             `json:"tool_version"`
-	DefinitionDigest       string                          `json:"definition_digest"`
-	ProfileID              string                          `json:"profile_id"`
-	ProfileVersion         int                             `json:"profile_version"`
-	ProfileDigest          string                          `json:"profile_digest"`
-	Method                 string                          `json:"method"`
-	TargetPolicyKey        string                          `json:"target_policy_key"`
-	PublicArguments        WorkflowHTTPToolPublicArguments `json:"public_arguments"`
-	OutputFields           []string                        `json:"output_fields"`
-	OutputSchemaDigest     string                          `json:"output_schema_digest"`
-	CredentialPolicy       string                          `json:"credential_policy"`
-	TimeoutMS              int                             `json:"timeout_ms"`
-	MaxResponseBytes       int                             `json:"max_response_bytes"`
-	MaxOutputBytes         int                             `json:"max_output_bytes"`
-	PlannedByActorRef      string                          `json:"planned_by_actor_ref"`
-	CreatedAt              string                          `json:"created_at"`
-	ExpiresAt              string                          `json:"expires_at"`
-	ToolPlanDigest         string                          `json:"tool_plan_digest"`
-	Status                 WorkflowHTTPToolActionStatus    `json:"status"`
-	LastDecisionByActorRef *string                         `json:"last_decision_by_actor_ref"`
-	LastDecisionAt         *string                         `json:"last_decision_at"`
-	AuditRef               string                          `json:"audit_ref"`
+	SchemaVersion             string                          `json:"schema_version"`
+	PlanID                    string                          `json:"plan_id"`
+	RecordVersion             int                             `json:"record_version"`
+	TenantRef                 string                          `json:"tenant_ref"`
+	WorkspaceID               string                          `json:"workspace_id"`
+	ApplicationID             string                          `json:"application_id"`
+	SourceKind                string                          `json:"source_kind,omitempty"`
+	DraftID                   string                          `json:"draft_id,omitempty"`
+	DraftVersion              int                             `json:"draft_version,omitempty"`
+	WorkflowDefinitionID      string                          `json:"workflow_definition_id,omitempty"`
+	WorkflowDefinitionVersion int                             `json:"workflow_definition_version,omitempty"`
+	WorkflowDefinitionDigest  string                          `json:"workflow_definition_digest,omitempty"`
+	ActivationPointerVersion  int                             `json:"activation_pointer_version,omitempty"`
+	NodeID                    string                          `json:"node_id"`
+	ToolID                    string                          `json:"tool_id"`
+	ToolVersion               int                             `json:"tool_version"`
+	DefinitionDigest          string                          `json:"definition_digest"`
+	ProfileID                 string                          `json:"profile_id"`
+	ProfileVersion            int                             `json:"profile_version"`
+	ProfileDigest             string                          `json:"profile_digest"`
+	Method                    string                          `json:"method"`
+	TargetPolicyKey           string                          `json:"target_policy_key"`
+	PublicArguments           WorkflowHTTPToolPublicArguments `json:"public_arguments"`
+	OutputFields              []string                        `json:"output_fields"`
+	OutputSchemaDigest        string                          `json:"output_schema_digest"`
+	CredentialPolicy          string                          `json:"credential_policy"`
+	TimeoutMS                 int                             `json:"timeout_ms"`
+	MaxResponseBytes          int                             `json:"max_response_bytes"`
+	MaxOutputBytes            int                             `json:"max_output_bytes"`
+	PlannedByActorRef         string                          `json:"planned_by_actor_ref"`
+	CreatedAt                 string                          `json:"created_at"`
+	ExpiresAt                 string                          `json:"expires_at"`
+	ToolPlanDigest            string                          `json:"tool_plan_digest"`
+	Status                    WorkflowHTTPToolActionStatus    `json:"status"`
+	LastDecisionByActorRef    *string                         `json:"last_decision_by_actor_ref"`
+	LastDecisionAt            *string                         `json:"last_decision_at"`
+	AuditRef                  string                          `json:"audit_ref"`
 }
 
 type WorkflowHTTPToolConfirmationDecision struct {
-	SchemaVersion          string                              `json:"schema_version"`
-	ConfirmationID         string                              `json:"confirmation_id"`
-	PlanID                 string                              `json:"plan_id"`
-	TenantRef              string                              `json:"tenant_ref"`
-	WorkspaceID            string                              `json:"workspace_id"`
-	ApplicationID          string                              `json:"application_id"`
-	DraftID                string                              `json:"draft_id"`
-	DraftVersion           int                                 `json:"draft_version"`
-	NodeID                 string                              `json:"node_id"`
-	ToolID                 string                              `json:"tool_id"`
-	ToolVersion            int                                 `json:"tool_version"`
-	ToolPlanDigest         string                              `json:"tool_plan_digest"`
-	Outcome                WorkflowHTTPToolConfirmationOutcome `json:"outcome"`
-	DecidedByActorRef      string                              `json:"decided_by_actor_ref"`
-	ActorSource            string                              `json:"actor_source"`
-	DecidedAt              string                              `json:"decided_at"`
-	ReasonCode             string                              `json:"reason_code"`
-	ExpectedRecordVersion  int                                 `json:"expected_record_version"`
-	ResultingRecordVersion int                                 `json:"resulting_record_version"`
-	AuditRef               string                              `json:"audit_ref"`
+	SchemaVersion             string                              `json:"schema_version"`
+	ConfirmationID            string                              `json:"confirmation_id"`
+	PlanID                    string                              `json:"plan_id"`
+	TenantRef                 string                              `json:"tenant_ref"`
+	WorkspaceID               string                              `json:"workspace_id"`
+	ApplicationID             string                              `json:"application_id"`
+	SourceKind                string                              `json:"source_kind,omitempty"`
+	DraftID                   string                              `json:"draft_id,omitempty"`
+	DraftVersion              int                                 `json:"draft_version,omitempty"`
+	WorkflowDefinitionID      string                              `json:"workflow_definition_id,omitempty"`
+	WorkflowDefinitionVersion int                                 `json:"workflow_definition_version,omitempty"`
+	WorkflowDefinitionDigest  string                              `json:"workflow_definition_digest,omitempty"`
+	ActivationPointerVersion  int                                 `json:"activation_pointer_version,omitempty"`
+	NodeID                    string                              `json:"node_id"`
+	ToolID                    string                              `json:"tool_id"`
+	ToolVersion               int                                 `json:"tool_version"`
+	ToolPlanDigest            string                              `json:"tool_plan_digest"`
+	Outcome                   WorkflowHTTPToolConfirmationOutcome `json:"outcome"`
+	DecidedByActorRef         string                              `json:"decided_by_actor_ref"`
+	ActorSource               string                              `json:"actor_source"`
+	DecidedAt                 string                              `json:"decided_at"`
+	ReasonCode                string                              `json:"reason_code"`
+	ExpectedRecordVersion     int                                 `json:"expected_record_version"`
+	ResultingRecordVersion    int                                 `json:"resulting_record_version"`
+	AuditRef                  string                              `json:"audit_ref"`
 }
 
 type WorkflowHTTPToolExecutionAudit struct {
-	SchemaVersion      string                           `json:"schema_version"`
-	EventID            string                           `json:"event_id"`
-	EventKind          string                           `json:"event_kind"`
-	OccurredAt         string                           `json:"occurred_at"`
-	TenantRef          string                           `json:"tenant_ref"`
-	WorkspaceID        string                           `json:"workspace_id"`
-	ApplicationID      string                           `json:"application_id"`
-	DraftID            string                           `json:"draft_id"`
-	DraftVersion       int                              `json:"draft_version"`
-	NodeID             string                           `json:"node_id"`
-	PlanID             string                           `json:"plan_id"`
-	ConfirmationID     *string                          `json:"confirmation_id"`
-	ExecutionAttemptID *string                          `json:"execution_attempt_id"`
-	RunID              *string                          `json:"run_id"`
-	ToolID             string                           `json:"tool_id"`
-	ToolVersion        int                              `json:"tool_version"`
-	DefinitionDigest   string                           `json:"definition_digest"`
-	ProfileID          string                           `json:"profile_id"`
-	ProfileDigest      string                           `json:"profile_digest"`
-	ToolPlanDigest     string                           `json:"tool_plan_digest"`
-	ActorRef           string                           `json:"actor_ref"`
-	ActorSource        string                           `json:"actor_source"`
-	RequestID          string                           `json:"request_id"`
-	AuditRef           string                           `json:"audit_ref"`
-	FailureCode        *string                          `json:"failure_code"`
-	FailureBoundary    *string                          `json:"failure_boundary"`
-	AttemptStatus      string                           `json:"attempt_status"`
-	HTTPStatusClass    *string                          `json:"http_status_class"`
-	ResponseBytes      int                              `json:"response_bytes"`
-	DurationMS         int                              `json:"duration_ms"`
-	SideEffects        WorkflowHTTPToolAuditSideEffects `json:"side_effects"`
+	SchemaVersion             string                           `json:"schema_version"`
+	EventID                   string                           `json:"event_id"`
+	EventKind                 string                           `json:"event_kind"`
+	OccurredAt                string                           `json:"occurred_at"`
+	TenantRef                 string                           `json:"tenant_ref"`
+	WorkspaceID               string                           `json:"workspace_id"`
+	ApplicationID             string                           `json:"application_id"`
+	SourceKind                string                           `json:"source_kind,omitempty"`
+	DraftID                   string                           `json:"draft_id,omitempty"`
+	DraftVersion              int                              `json:"draft_version,omitempty"`
+	WorkflowDefinitionID      string                           `json:"workflow_definition_id,omitempty"`
+	WorkflowDefinitionVersion int                              `json:"workflow_definition_version,omitempty"`
+	WorkflowDefinitionDigest  string                           `json:"workflow_definition_digest,omitempty"`
+	ActivationPointerVersion  int                              `json:"activation_pointer_version,omitempty"`
+	NodeID                    string                           `json:"node_id"`
+	PlanID                    string                           `json:"plan_id"`
+	ConfirmationID            *string                          `json:"confirmation_id"`
+	ExecutionAttemptID        *string                          `json:"execution_attempt_id"`
+	RunID                     *string                          `json:"run_id"`
+	ToolID                    string                           `json:"tool_id"`
+	ToolVersion               int                              `json:"tool_version"`
+	DefinitionDigest          string                           `json:"definition_digest"`
+	ProfileID                 string                           `json:"profile_id"`
+	ProfileDigest             string                           `json:"profile_digest"`
+	ToolPlanDigest            string                           `json:"tool_plan_digest"`
+	ActorRef                  string                           `json:"actor_ref"`
+	ActorSource               string                           `json:"actor_source"`
+	RequestID                 string                           `json:"request_id"`
+	AuditRef                  string                           `json:"audit_ref"`
+	FailureCode               *string                          `json:"failure_code"`
+	FailureBoundary           *string                          `json:"failure_boundary"`
+	AttemptStatus             string                           `json:"attempt_status"`
+	HTTPStatusClass           *string                          `json:"http_status_class"`
+	ResponseBytes             int                              `json:"response_bytes"`
+	DurationMS                int                              `json:"duration_ms"`
+	SideEffects               WorkflowHTTPToolAuditSideEffects `json:"side_effects"`
 }
 
 type WorkflowHTTPToolAuditSideEffects struct {
@@ -302,6 +326,7 @@ type WorkflowHTTPToolAuditSideEffects struct {
 type WorkflowHTTPToolCreatePlanRequest struct {
 	DraftID         string
 	DraftVersion    int
+	DefinitionID    string
 	NodeID          string
 	PublicArguments map[string]any
 }
@@ -412,22 +437,27 @@ func workflowHTTPToolOutputSchemaV1() WorkflowHTTPToolOutputSchema {
 }
 
 type workflowHTTPToolActionService struct {
-	readDraft func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult
-	store     workflowHTTPToolActionStore
-	registry  workflowHTTPToolRegistry
-	now       func() time.Time
-	newID     func(string) (string, error)
+	readDraft   func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult
+	definitions workflowDefinitionReleaseRepository
+	store       workflowHTTPToolActionStore
+	registry    workflowHTTPToolRegistry
+	now         func() time.Time
+	newID       func(string) (string, error)
 }
 
 func newWorkflowHTTPToolActionService(
 	readDraft func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult,
+	definitions workflowDefinitionReleaseRepository,
 	store workflowHTTPToolActionStore,
 ) (workflowHTTPToolActionService, error) {
 	registry, err := newWorkflowHTTPToolRegistry()
 	if err != nil {
 		return workflowHTTPToolActionService{}, err
 	}
-	return workflowHTTPToolActionService{readDraft: readDraft, store: store, registry: registry, now: func() time.Time { return time.Now().UTC() }, newID: newWorkflowHTTPToolActionID}, nil
+	return workflowHTTPToolActionService{
+		readDraft: readDraft, definitions: definitions, store: store, registry: registry,
+		now: func() time.Time { return time.Now().UTC() }, newID: newWorkflowHTTPToolActionID,
+	}, nil
 }
 
 func (service workflowHTTPToolActionService) CreatePlan(ctx WorkflowHTTPToolActionContext, request WorkflowHTTPToolCreatePlanRequest) WorkflowHTTPToolActionResult {
@@ -446,10 +476,23 @@ func (service workflowHTTPToolActionService) CreatePlan(ctx WorkflowHTTPToolActi
 		return workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureProfileUnavailable, "Workflow HTTP tool profile is unavailable.")
 	}
 	arguments, failure := normalizeWorkflowHTTPToolPublicArguments(request.PublicArguments)
-	if failure != "" || strings.TrimSpace(request.DraftID) == "" || request.DraftVersion < 1 || strings.TrimSpace(request.NodeID) == "" {
+	request.DraftID = strings.TrimSpace(request.DraftID)
+	request.DefinitionID = strings.TrimSpace(request.DefinitionID)
+	request.NodeID = strings.TrimSpace(request.NodeID)
+	draftSource := request.DraftID != "" && request.DraftVersion > 0 && request.DefinitionID == ""
+	definitionSource := applicationDraftIdentifierPattern.MatchString(request.DefinitionID) && request.DraftID == "" && request.DraftVersion == 0
+	if failure != "" || (!draftSource && !definitionSource) || !workflowHTTPToolScopedIDPattern.MatchString(request.NodeID) {
 		return workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureInputInvalid, "Workflow HTTP tool plan input is invalid.")
 	}
-	draft, result := service.readExactEligibleDraft(ctx, ctx.ActorRef, request.DraftID, request.DraftVersion, request.NodeID)
+	var draft SavedWorkflowDraft
+	var definitionVersion WorkflowDefinitionVersion
+	var activation WorkflowDefinitionActivation
+	var result WorkflowHTTPToolActionResult
+	if draftSource {
+		draft, result = service.readExactEligibleDraft(ctx, ctx.ActorRef, request.DraftID, request.DraftVersion, request.NodeID)
+	} else {
+		definitionVersion, activation, result = service.readExactEligibleDefinition(ctx, ctx.ActorRef, request.DefinitionID, request.NodeID)
+	}
 	if result.FailureCode != "" {
 		return result
 	}
@@ -461,7 +504,7 @@ func (service workflowHTTPToolActionService) CreatePlan(ctx WorkflowHTTPToolActi
 	plan := WorkflowHTTPToolActionPlan{
 		SchemaVersion: workflowHTTPToolPlanSchema, PlanID: planID, RecordVersion: 1,
 		TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
-		DraftID: draft.DraftID, DraftVersion: draft.DraftVersion, NodeID: strings.TrimSpace(request.NodeID),
+		DraftID: draft.DraftID, DraftVersion: draft.DraftVersion, NodeID: request.NodeID,
 		ToolID: service.registry.definition.ToolID, ToolVersion: service.registry.definition.ToolVersion,
 		DefinitionDigest: service.registry.definitionDigest,
 		ProfileID:        service.registry.profile.ProfileID, ProfileVersion: service.registry.profile.ProfileVersion,
@@ -474,6 +517,14 @@ func (service workflowHTTPToolActionService) CreatePlan(ctx WorkflowHTTPToolActi
 		PlannedByActorRef: ctx.ActorRef, CreatedAt: workflowRunTimestamp(now),
 		ExpiresAt: workflowRunTimestamp(now.Add(workflowHTTPToolDefaultExpiry)), Status: WorkflowHTTPToolActionStatusPending,
 		AuditRef: ctx.AuditRef,
+	}
+	if definitionSource {
+		plan.SchemaVersion = workflowHTTPToolPlanSchemaV2
+		plan.SourceKind = workflowHTTPToolSourceDefinition
+		plan.WorkflowDefinitionID = definitionVersion.DefinitionID
+		plan.WorkflowDefinitionVersion = definitionVersion.Version
+		plan.WorkflowDefinitionDigest = definitionVersion.DefinitionDigest
+		plan.ActivationPointerVersion = activation.PointerVersion
 	}
 	plan.ToolPlanDigest, err = workflowHTTPToolPlanDigest(plan)
 	if err != nil {
@@ -581,9 +632,12 @@ func (service workflowHTTPToolActionService) transition(ctx WorkflowHTTPToolActi
 	plan.LastDecisionByActorRef = &actorRef
 	plan.LastDecisionAt = &decisionTime
 	decision := WorkflowHTTPToolConfirmationDecision{
-		SchemaVersion: workflowHTTPToolDecisionSchema, ConfirmationID: confirmationID, PlanID: plan.PlanID,
+		SchemaVersion: workflowHTTPToolDecisionSchemaForPlan(plan), ConfirmationID: confirmationID, PlanID: plan.PlanID,
 		TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
-		DraftID: plan.DraftID, DraftVersion: plan.DraftVersion, NodeID: plan.NodeID,
+		SourceKind: plan.SourceKind, DraftID: plan.DraftID, DraftVersion: plan.DraftVersion,
+		WorkflowDefinitionID: plan.WorkflowDefinitionID, WorkflowDefinitionVersion: plan.WorkflowDefinitionVersion,
+		WorkflowDefinitionDigest: plan.WorkflowDefinitionDigest, ActivationPointerVersion: plan.ActivationPointerVersion,
+		NodeID: plan.NodeID,
 		ToolID: plan.ToolID, ToolVersion: plan.ToolVersion,
 		ToolPlanDigest: plan.ToolPlanDigest, Outcome: outcome, DecidedByActorRef: actorRef, ActorSource: actorSource,
 		DecidedAt: decisionTime, ReasonCode: workflowHTTPToolConfirmationReason(outcome), ExpectedRecordVersion: previousVersion,
@@ -636,6 +690,20 @@ func (service workflowHTTPToolActionService) planSourcesMatch(
 		service.registry.outputSchemaDigest != plan.OutputSchemaDigest || !service.registry.profile.Enabled {
 		return false, WorkflowHTTPToolActionResult{}
 	}
+	if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 && plan.SourceKind == workflowHTTPToolSourceDefinition {
+		version, activation, result := service.readExactEligibleDefinition(ctx, plan.PlannedByActorRef, plan.WorkflowDefinitionID, plan.NodeID)
+		if result.FailureCode == "" {
+			return version.Version == plan.WorkflowDefinitionVersion && version.DefinitionDigest == plan.WorkflowDefinitionDigest &&
+				activation.PointerVersion == plan.ActivationPointerVersion, WorkflowHTTPToolActionResult{}
+		}
+		switch result.FailureCode {
+		case WorkflowHTTPToolActionFailureDefinitionNotFound, WorkflowHTTPToolActionFailureDefinitionInactive,
+			WorkflowHTTPToolActionFailureDefinitionDrift, WorkflowHTTPToolActionFailureDefinitionIneligible:
+			return false, WorkflowHTTPToolActionResult{}
+		default:
+			return false, result
+		}
+	}
 	_, result := service.readExactEligibleDraft(ctx, plan.PlannedByActorRef, plan.DraftID, plan.DraftVersion, plan.NodeID)
 	if result.FailureCode == "" {
 		return true, WorkflowHTTPToolActionResult{}
@@ -686,10 +754,13 @@ func (service workflowHTTPToolActionService) newAudit(ctx WorkflowHTTPToolAction
 		actorRef = "system:workflow_tool_action_policy"
 	}
 	return WorkflowHTTPToolExecutionAudit{
-		SchemaVersion: workflowHTTPToolAuditSchema, EventID: eventID, EventKind: event,
+		SchemaVersion: workflowHTTPToolAuditSchemaForPlan(plan), EventID: eventID, EventKind: event,
 		OccurredAt: workflowRunTimestamp(occurredAt), TenantRef: ctx.TenantRef,
-		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, DraftID: plan.DraftID,
-		DraftVersion: plan.DraftVersion, NodeID: plan.NodeID, PlanID: plan.PlanID,
+		WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID, SourceKind: plan.SourceKind,
+		DraftID: plan.DraftID, DraftVersion: plan.DraftVersion,
+		WorkflowDefinitionID: plan.WorkflowDefinitionID, WorkflowDefinitionVersion: plan.WorkflowDefinitionVersion,
+		WorkflowDefinitionDigest: plan.WorkflowDefinitionDigest, ActivationPointerVersion: plan.ActivationPointerVersion,
+		NodeID: plan.NodeID, PlanID: plan.PlanID,
 		ConfirmationID: confirmationID, ToolID: plan.ToolID, ToolVersion: plan.ToolVersion,
 		DefinitionDigest: plan.DefinitionDigest,
 		ProfileID:        plan.ProfileID, ProfileDigest: plan.ProfileDigest, ToolPlanDigest: plan.ToolPlanDigest,
@@ -698,12 +769,30 @@ func (service workflowHTTPToolActionService) newAudit(ctx WorkflowHTTPToolAction
 	}, nil
 }
 
+func workflowHTTPToolDecisionSchemaForPlan(plan WorkflowHTTPToolActionPlan) string {
+	if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 {
+		return workflowHTTPToolDecisionSchemaV2
+	}
+	return workflowHTTPToolDecisionSchema
+}
+
+func workflowHTTPToolAuditSchemaForPlan(plan WorkflowHTTPToolActionPlan) string {
+	if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 {
+		return workflowHTTPToolAuditSchemaV2
+	}
+	return workflowHTTPToolAuditSchema
+}
+
 func validateWorkflowHTTPToolDraft(draft SavedWorkflowDraft, targetNodeID string, definition WorkflowHTTPToolDefinition) error {
 	activeDraft, lifecycleFailure := activeSavedWorkflowDraftForConsumption(draft)
 	if lifecycleFailure != "" {
 		return errors.New("Saved workflow draft is not active.")
 	}
 	draft = activeDraft
+	return validateWorkflowHTTPToolGraph(draft, targetNodeID, definition)
+}
+
+func validateWorkflowHTTPToolGraph(draft SavedWorkflowDraft, targetNodeID string, definition WorkflowHTTPToolDefinition) error {
 	if draft.SchemaVersion != savedWorkflowDraftSchemaVersion || !workflowHTTPToolDraftFindingsAreEligible(draft.ValidationSummary) {
 		return errors.New("Saved workflow draft has blocking findings outside the tool action planning boundary.")
 	}
@@ -849,6 +938,9 @@ func normalizeWorkflowHTTPToolPublicArguments(raw map[string]any) (WorkflowHTTPT
 }
 
 func workflowHTTPToolPlanDigest(plan WorkflowHTTPToolActionPlan) (string, error) {
+	if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 {
+		return workflowHTTPToolDefinitionPlanDigest(plan)
+	}
 	payload := struct {
 		SchemaVersion      string                          `json:"schema_version"`
 		TenantRef          string                          `json:"tenant_ref"`

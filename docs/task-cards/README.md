@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险实现任务卡。[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md) 已以 `gateway_provider_attempt_dev_test_v1_completed` 关闭批次 A 至 E、Visual R1、React strict consumer、双数据库产品连续链、三个 unary 协议、真实浏览器三视口与最终门禁；真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
+当前唯一活跃高风险实现任务卡为 [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1-plan.md)，状态 `workflow_definition_http_tool_v1_batch_b_persistence_next`。批次 A 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2 与 active authority；下一步顺序追加 SQLite / PostgreSQL 迁移。任务不建立第二套 confirmation、transport、store、selector 或同层 readiness 卡。
 
 ## 最近关闭任务
 
