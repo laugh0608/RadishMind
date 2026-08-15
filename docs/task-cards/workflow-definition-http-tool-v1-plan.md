@@ -3,7 +3,7 @@
 更新时间：2026-08-15
 
 - 任务 ID：`workflow-definition-http-tool-v1`
-- 状态：`workflow_definition_http_tool_v1_batch_b_persistence_next`
+- 状态：`workflow_definition_http_tool_v1_batch_c_execution_next`
 - 功能设计：[Workflow Definition 绑定受控 HTTP Tool 的版本化发布与人工确认执行（开发 / 测试态）v1](../features/workflow/workflow-definition-http-tool-v1.md)
 
 ## 准入结论
@@ -41,15 +41,19 @@
 
 ## 批次 B：双数据库持久化
 
-状态：下一顺位。
+状态：`completed`。
 
-- 为 action plan / confirmation / audit / run 顺序追加 SQLite 与 PostgreSQL migration。
-- 新写入只使用新 schema；旧 v1 / run v2 继续可读且不可改写。
-- 覆盖 migration / rollback / reapply、marker、并发、restart、corruption、权限和 no-fallback。
+- 为 action plan / confirmation / audit 顺序追加 SQLite v20 与 PostgreSQL v23 migration；Definition-bound run schema 随批次 C 的真实执行行为一起增加。
+- Definition 来源新写入使用 v2；既有与新建 Draft 计划继续使用 v1 payload，并由数据库规范化 `saved_workflow_draft` 来源列。旧 run v2 继续可读且不可改写。
+- 覆盖 migration / rollback / reapply、marker、CAS、restart、corruption、组合权限和 no-fallback。
 
 完成门禁：双数据库专项通过，批次状态写为 `workflow_definition_http_tool_v1_batch_b_completed`。
 
+完成证据：SQLite `0020_workflow_http_tool_definition_sources` 和 PostgreSQL `0023_workflow_http_tool_definition_sources` 已进入既有 migration family；计划、决定和审计的 payload / 规范化来源投影受数据库与 repository 双重约束。SQLite active Definition → plan → approve 已跨服务重启恢复，PostgreSQL 完整开发测试集成套件已通过 migration、runtime role、rollback / reapply、source corruption、重连和 no-fallback；两条路径均未触发网络、provider 或 run。
+
 ## 批次 C：执行与只读审查消费者
+
+状态：下一顺位。
 
 - 在原子 claim 前重读 Definition authority 和 plan digest。
 - 复用 transport、SSRF、预算、output projection、终态提交与 reconciliation。

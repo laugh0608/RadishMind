@@ -9,9 +9,162 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 )
+
+func TestSQLiteDevWorkflowDefinitionHTTPToolPlanSurvivesRestart(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "radishmind.db")
+	cfg := aggregateSQLiteDevServerConfig(databasePath)
+	cfg.WorkflowToolActionDevEnabled = true
+	cfg.WorkflowDefinitionReleaseDevEnabled = true
+	cfg.WorkflowHTTPToolExecutionDevEnabled = true
+	cfg.Model = "mock"
+
+	firstServer, err := NewServerWithError(cfg, Options{BuildVersion: "sqlite-workflow-definition-http-tool-first"})
+	if err != nil {
+		t.Fatalf("start first SQLite Workflow Definition HTTP Tool server: %v", err)
+	}
+	firstBridge := &workflowExecutorTestBridge{}
+	firstServer.bridge = firstBridge
+	draft := workflowHTTPToolEligibleDraftForTest()
+	draftPayload := savedWorkflowDraftPayloadFromDraft(draft)
+	saveRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/workflow-drafts",
+		bytes.NewReader(mustSavedWorkflowDraftJSON(t, savedWorkflowDraftSaveHTTPBody{
+			Draft: savedWorkflowDraftPayloadDocumentFromDraftPayload(draftPayload),
+		})),
+	)
+	setLocalProductWorkflowHeaders(saveRequest, "workflow_drafts:read,workflow_drafts:write", draftPayload.ApplicationID)
+	saveResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(saveResponse, saveRequest)
+	saved := decodeSavedWorkflowDraftEnvelope(t, saveResponse, http.StatusOK)
+	if saved.FailureCode != nil || saved.Draft == nil {
+		firstServer.Close()
+		t.Fatalf("save exact Workflow Definition HTTP Tool draft over HTTP: %#v", saved)
+	}
+
+	actionContext := workflowHTTPToolActionTestContext()
+	releaseContext := WorkflowDefinitionReleaseContext{
+		RequestContext:  actionContext.RequestContext,
+		TenantRef:       actionContext.TenantRef,
+		WorkspaceID:     actionContext.WorkspaceID,
+		ApplicationID:   actionContext.ApplicationID,
+		OwnerSubjectRef: actionContext.ActorRef,
+		ActorRef:        actionContext.ActorRef,
+		RequestID:       actionContext.RequestID,
+		AuditRef:        actionContext.AuditRef,
+	}
+	candidate, err := firstServer.workflowDefinitionReleaseRepository.CreateCandidate(
+		releaseContext,
+		"candidate-sqlite-http-tool-restart",
+		"definition-sqlite-http-tool-restart",
+		workflowDefinitionHTTPToolProfile,
+		draft,
+		time.Date(2026, 8, 15, 11, 0, 0, 0, time.UTC),
+	)
+	if err != nil {
+		firstServer.Close()
+		t.Fatalf("create SQLite Workflow Definition HTTP Tool candidate: %v", err)
+	}
+	_, version, err := firstServer.workflowDefinitionReleaseRepository.Review(
+		releaseContext,
+		candidate.CandidateID,
+		0,
+		"approve",
+		"reviewed SQLite Workflow Definition HTTP Tool",
+		candidate.SourceDraftDigest,
+		time.Date(2026, 8, 15, 11, 1, 0, 0, time.UTC),
+	)
+	if err != nil || version == nil {
+		firstServer.Close()
+		t.Fatalf("materialize SQLite Workflow Definition HTTP Tool version: version=%#v err=%v", version, err)
+	}
+	activation, err := firstServer.workflowDefinitionReleaseRepository.DecideActivation(
+		releaseContext,
+		version.DefinitionID,
+		0,
+		"activate",
+		version.Version,
+		"activate SQLite Workflow Definition HTTP Tool",
+		time.Date(2026, 8, 15, 11, 2, 0, 0, time.UTC),
+	)
+	if err != nil {
+		firstServer.Close()
+		t.Fatalf("activate SQLite Workflow Definition HTTP Tool: %v", err)
+	}
+
+	createRequest := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/user-workspace/workflow-definitions/"+version.DefinitionID+"/tool-action-plans",
+		bytes.NewReader(mustWorkflowHTTPToolActionJSON(t, workflowDefinitionHTTPToolCreatePlanBody{
+			WorkspaceID: saved.Draft.WorkspaceID, ApplicationID: saved.Draft.ApplicationID, NodeID: "node_http_tool",
+			PublicArguments: map[string]any{"resource_key": "docs/radishflow/overview"},
+		})),
+	)
+	setWorkflowHTTPToolActionDevHeaders(createRequest, "workflow_definitions:read,workflow_tool_actions:plan")
+	createResponse := httptest.NewRecorder()
+	firstServer.httpServer.Handler.ServeHTTP(createResponse, createRequest)
+	created := decodeWorkflowHTTPToolActionEnvelope(t, createResponse, http.StatusOK)
+	if created.FailureCode != nil || created.ActionPlan == nil ||
+		created.ActionPlan.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
+		created.ActionPlan.SourceKind != workflowHTTPToolSourceDefinition ||
+		created.ActionPlan.WorkflowDefinitionID != version.DefinitionID ||
+		created.ActionPlan.WorkflowDefinitionVersion != version.Version ||
+		created.ActionPlan.WorkflowDefinitionDigest != version.DefinitionDigest ||
+		created.ActionPlan.ActivationPointerVersion != activation.PointerVersion ||
+		created.ActionPlan.DraftID != "" || created.ActionPlan.DraftVersion != 0 {
+		firstServer.Close()
+		t.Fatalf("create SQLite Definition-bound action plan: %#v", created)
+	}
+	approved := approveWorkflowHTTPToolActionPlanOverHTTP(t, firstServer, draft, *created.ActionPlan)
+	if firstBridge.callCount() != 0 {
+		firstServer.Close()
+		t.Fatalf("pre-run SQLite Definition plan crossed Gateway/provider boundary: %d", firstBridge.callCount())
+	}
+	firstServer.Close()
+
+	restartedServer, err := NewServerWithError(cfg, Options{BuildVersion: "sqlite-workflow-definition-http-tool-restarted"})
+	if err != nil {
+		t.Fatalf("restart SQLite Workflow Definition HTTP Tool server: %v", err)
+	}
+	t.Cleanup(restartedServer.Close)
+	restartedBridge := &workflowExecutorTestBridge{}
+	restartedServer.bridge = restartedBridge
+
+	restoredVersion, err := restartedServer.workflowDefinitionReleaseRepository.ReadVersion(releaseContext, version.DefinitionID, version.Version)
+	if err != nil || restoredVersion.DefinitionDigest != version.DefinitionDigest || restoredVersion.Snapshot.ExecutionProfile != workflowDefinitionHTTPToolProfile {
+		t.Fatalf("restore active SQLite Workflow Definition source: version=%#v err=%v", restoredVersion, err)
+	}
+	restoredActivation, err := restartedServer.workflowDefinitionReleaseRepository.ReadActivation(releaseContext, version.DefinitionID)
+	if err != nil || restoredActivation.PointerVersion != activation.PointerVersion || restoredActivation.ActiveVersion != version.Version {
+		t.Fatalf("restore SQLite Workflow Definition activation: activation=%#v err=%v", restoredActivation, err)
+	}
+
+	readPlanRequest := httptest.NewRequest(
+		http.MethodGet,
+		"/v1/user-workspace/workflow-tool-action-plans/"+approved.PlanID+
+			"?workspace_id="+url.QueryEscape(approved.WorkspaceID)+"&application_id="+url.QueryEscape(approved.ApplicationID),
+		nil,
+	)
+	setWorkflowHTTPToolActionDevHeaders(readPlanRequest, "workflow_tool_actions:read")
+	readPlanResponse := httptest.NewRecorder()
+	restartedServer.httpServer.Handler.ServeHTTP(readPlanResponse, readPlanRequest)
+	restored := decodeWorkflowHTTPToolActionEnvelope(t, readPlanResponse, http.StatusOK)
+	if restored.FailureCode != nil || restored.ActionPlan == nil ||
+		restored.ActionPlan.Status != WorkflowHTTPToolActionStatusApproved || restored.ActionPlan.RecordVersion != 2 ||
+		restored.ActionPlan.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
+		restored.ActionPlan.SourceKind != workflowHTTPToolSourceDefinition ||
+		restored.ActionPlan.WorkflowDefinitionID != version.DefinitionID ||
+		restored.ActionPlan.WorkflowDefinitionVersion != version.Version ||
+		restored.ActionPlan.WorkflowDefinitionDigest != version.DefinitionDigest ||
+		restored.ActionPlan.ActivationPointerVersion != activation.PointerVersion ||
+		restored.ActionPlan.DraftID != "" || restored.ActionPlan.DraftVersion != 0 || restartedBridge.callCount() != 0 {
+		t.Fatalf("restore approved SQLite Definition-bound action plan: %#v bridge=%d", restored, restartedBridge.callCount())
+	}
+}
 
 func TestSQLiteDevWorkflowHTTPToolExecutionHTTPChainSurvivesRestart(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "radishmind.db")

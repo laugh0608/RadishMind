@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationEvaluation(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughHTTPToolDefinitionSources(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 19 {
+	if len(migrations) != 20 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -68,8 +68,24 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughStructuredApplicationEvalua
 	if migrations[17].ID != structuredSessionMigrationID || migrations[17].StoreSchemaVersion != structuredSessionSchemaVersion {
 		t.Fatalf("application structured session migration drifted: %#v", migrations[17])
 	}
-	if migrations[18].ID != MigrationID || migrations[18].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[18].ID != structuredEvaluationMigrationID || migrations[18].StoreSchemaVersion != structuredEvaluationSchemaVersion {
 		t.Fatalf("application structured evaluation migration drifted: %#v", migrations[18])
+	}
+	if migrations[19].ID != MigrationID || migrations[19].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("HTTP tool Definition source migration drifted: %#v", migrations[19])
+	}
+	for _, required := range []string{
+		"workflow_http_tool_action_plan.v2",
+		"workflow_http_tool_confirmation_decision.v2",
+		"workflow_http_tool_execution_audit.v2",
+		"workflow_definition_id",
+		"activation_pointer_version",
+		"workflow_http_tool_action_plans_definition_idx",
+		"workflow_http_tool_execution_attempts_pre_definition_sources",
+	} {
+		if !strings.Contains(upSQLV20, required) {
+			t.Fatalf("SQLite HTTP tool Definition source migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{
 		"workflow_run_record.v8",
@@ -340,7 +356,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 19 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 20 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -537,18 +553,18 @@ const (
 
 	sqliteActionPlanInsertSQL = `INSERT INTO workflow_http_tool_action_plans (
 		tenant_ref, workspace_id, application_id, plan_id, schema_version,
-		status, record_version, draft_id, draft_version, node_id,
+		status, record_version, source_kind, draft_id, draft_version, node_id,
 			tool_id, tool_version, definition_digest, profile_id, profile_version,
 		profile_digest, target_policy_key, tool_plan_digest,
 		method, credential_policy, timeout_ms, max_response_bytes, max_output_bytes,
 		planned_by_actor_ref, audit_ref, created_at_unix_nano,
 		expires_at_unix_nano, sanitized_action_plan
 	) VALUES (?, ?, ?, ?, 'workflow_http_tool_action_plan.v1',
-		'pending', 1, 'draft_demo', 1, 'node_http',
+		'pending', 1, 'saved_workflow_draft', 'draft_demo', 1, 'node_http',
 			'workflow.http.read_demo.v1', 1, '` + validDigest + `', 'profile_demo', 1,
 		'` + validDigest + `', 'target_demo', ?,
 		'GET', 'none', 5000, 65536, 16384, 'actor_planner', 'audit_plan_demo',
-		1, 901, '{}')`
+		1, 901, '{"schema_version":"workflow_http_tool_action_plan.v1","draft_id":"draft_demo","draft_version":1}')`
 )
 
 func insertSQLiteHTTPToolActionRecords(t *testing.T, ctx context.Context, runtime *sqlitedev.Runtime) {
@@ -565,12 +581,12 @@ func insertSQLiteHTTPToolActionRecords(t *testing.T, ctx context.Context, runtim
 	}
 	if _, err = tx.ExecContext(ctx, `INSERT INTO workflow_http_tool_execution_audits (
 		tenant_ref, workspace_id, application_id, plan_id, audit_id,
-			schema_version, event_kind, tool_version, tool_plan_digest,
+			schema_version, event_kind, source_kind, draft_id, draft_version, tool_version, tool_plan_digest,
 		actor_ref, request_id, audit_ref, occurred_at_unix_nano,
 		sanitized_execution_audit
 	) VALUES (?, ?, ?, ?, ?, 'workflow_http_tool_execution_audit.v1',
-			'confirmation_recorded', 1, ?, 'actor_confirmer', 'request_decide_demo',
-		'audit_confirmation_demo', 2, '{}')`,
+			'confirmation_recorded', 'saved_workflow_draft', 'draft_demo', 1, 1, ?, 'actor_confirmer', 'request_decide_demo',
+		'audit_confirmation_demo', 2, '{"schema_version":"workflow_http_tool_execution_audit.v1","draft_id":"draft_demo","draft_version":1}')`,
 		"tenant_demo", "workspace_demo", "application_demo", "plan_demo",
 		"audit_event_confirmation_demo", validDigest,
 	); err != nil {
@@ -578,16 +594,16 @@ func insertSQLiteHTTPToolActionRecords(t *testing.T, ctx context.Context, runtim
 	}
 	if _, err = tx.ExecContext(ctx, `INSERT INTO workflow_http_tool_confirmation_decisions (
 		tenant_ref, workspace_id, application_id, plan_id, confirmation_id,
-		schema_version, outcome, draft_id, draft_version,
+		schema_version, outcome, source_kind, draft_id, draft_version,
 			node_id, tool_id, tool_version, tool_plan_digest,
 		expected_record_version, resulting_record_version,
 		decided_by_actor_ref, actor_source, reason_code,
 		decided_at_unix_nano, audit_ref,
 		sanitized_confirmation_decision
 	) VALUES (?, ?, ?, ?, ?, 'workflow_http_tool_confirmation_decision.v1',
-			'approve', 'draft_demo', 1, 'node_http', 'workflow.http.read_demo.v1', 1, ?,
+			'approve', 'saved_workflow_draft', 'draft_demo', 1, 'node_http', 'workflow.http.read_demo.v1', 1, ?,
 		1, 2, 'actor_confirmer', 'human', 'workflow_tool_confirmation_approved',
-		2, ?, '{}')`,
+		2, ?, '{"schema_version":"workflow_http_tool_confirmation_decision.v1","draft_id":"draft_demo","draft_version":1}')`,
 		"tenant_demo", "workspace_demo", "application_demo", "plan_demo",
 		"confirmation_demo", validDigest, "audit_confirmation_demo",
 	); err != nil {
@@ -617,12 +633,12 @@ func assertSQLiteHTTPToolActionScopeForeignKey(t *testing.T, ctx context.Context
 	defer func() { _ = tx.Rollback() }()
 	if _, err = tx.ExecContext(ctx, `INSERT INTO workflow_http_tool_execution_audits (
 		tenant_ref, workspace_id, application_id, plan_id, audit_id,
-			schema_version, event_kind, tool_version, tool_plan_digest,
+			schema_version, event_kind, source_kind, draft_id, draft_version, tool_version, tool_plan_digest,
 		actor_ref, request_id, audit_ref, occurred_at_unix_nano,
 		sanitized_execution_audit
 	) VALUES (?, ?, ?, ?, ?, 'workflow_http_tool_execution_audit.v1',
-			'confirmation_recorded', 1, ?, 'actor_confirmer', 'request_wrong_scope',
-		'audit_wrong_scope', 3, '{}')`,
+			'confirmation_recorded', 'saved_workflow_draft', 'draft_demo', 1, 1, ?, 'actor_confirmer', 'request_wrong_scope',
+		'audit_wrong_scope', 3, '{"schema_version":"workflow_http_tool_execution_audit.v1","draft_id":"draft_demo","draft_version":1}')`,
 		"tenant_demo", "workspace_other", "application_demo", "plan_demo",
 		"audit_event_wrong_scope", validDigest,
 	); err != nil {
@@ -642,12 +658,12 @@ func assertSQLiteHTTPToolDecisionVersionUnique(t *testing.T, ctx context.Context
 	defer func() { _ = tx.Rollback() }()
 	if _, err = tx.ExecContext(ctx, `INSERT INTO workflow_http_tool_execution_audits (
 		tenant_ref, workspace_id, application_id, plan_id, audit_id,
-			schema_version, event_kind, tool_version, tool_plan_digest,
+			schema_version, event_kind, source_kind, draft_id, draft_version, tool_version, tool_plan_digest,
 		actor_ref, request_id, audit_ref, occurred_at_unix_nano,
 		sanitized_execution_audit
 	) VALUES (?, ?, ?, ?, ?, 'workflow_http_tool_execution_audit.v1',
-			'confirmation_recorded', 1, ?, 'actor_confirmer', 'request_duplicate_version',
-		'audit_duplicate_version', 3, '{}')`,
+			'confirmation_recorded', 'saved_workflow_draft', 'draft_demo', 1, 1, ?, 'actor_confirmer', 'request_duplicate_version',
+		'audit_duplicate_version', 3, '{"schema_version":"workflow_http_tool_execution_audit.v1","draft_id":"draft_demo","draft_version":1}')`,
 		"tenant_demo", "workspace_demo", "application_demo", "plan_demo",
 		"audit_event_duplicate_version", validDigest,
 	); err != nil {
@@ -655,15 +671,15 @@ func assertSQLiteHTTPToolDecisionVersionUnique(t *testing.T, ctx context.Context
 	}
 	if _, err = tx.ExecContext(ctx, `INSERT INTO workflow_http_tool_confirmation_decisions (
 		tenant_ref, workspace_id, application_id, plan_id, confirmation_id,
-		schema_version, outcome, draft_id, draft_version,
+		schema_version, outcome, source_kind, draft_id, draft_version,
 			node_id, tool_id, tool_version, tool_plan_digest,
 		expected_record_version, resulting_record_version,
 		decided_by_actor_ref, actor_source, reason_code,
 		decided_at_unix_nano, audit_ref, sanitized_confirmation_decision
 	) VALUES (?, ?, ?, ?, ?, 'workflow_http_tool_confirmation_decision.v1',
-			'approve', 'draft_demo', 1, 'node_http', 'workflow.http.read_demo.v1', 1, ?,
+			'approve', 'saved_workflow_draft', 'draft_demo', 1, 'node_http', 'workflow.http.read_demo.v1', 1, ?,
 		1, 2, 'actor_confirmer', 'human', 'workflow_tool_confirmation_approved',
-		3, 'audit_duplicate_version', '{}')`,
+		3, 'audit_duplicate_version', '{"schema_version":"workflow_http_tool_confirmation_decision.v1","draft_id":"draft_demo","draft_version":1}')`,
 		"tenant_demo", "workspace_demo", "application_demo", "plan_demo",
 		"confirmation_duplicate_version", validDigest,
 	); err == nil {

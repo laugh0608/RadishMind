@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 状态为 `workflow_definition_http_tool_v1_batch_b_persistence_next`。批次 A 已完成独立 `workflow_definition_http_tool_v1` profile、v3 candidate / version、Definition 来源 action plan / confirmation / audit v2、active authority resolver 与严格 HTTP 路由；pointer 漂移会在 claim 和网络前使计划失效，通用 Definition executor 与 Saved Draft v1 计划保持原边界。下一步顺序追加 SQLite / PostgreSQL 迁移并验证重启、CAS、损坏投影与 no-fallback，不创建第二套 confirmation、transport、store 或 selector。
+- 当前产品顺位：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 状态为 `workflow_definition_http_tool_v1_batch_c_execution_next`。批次 A / B 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2，以及 SQLite v20 / PostgreSQL v23 双数据库持久化；active Definition、activation pointer 与 approved plan 可跨重启恢复，来源 payload / 规范化投影互相漂移会失败关闭。下一步进入 Definition-bound 单次 claim、受控 transport 和 strict run schema，并继续复用既有 confirmation、store、SSRF policy 与 Run History owner。
 - 最近关闭产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 状态为 `gateway_provider_attempt_dev_test_v1_completed`。批次 A 至 E、七个 Visual R1 代表面、三块 React strict consumer、memory / SQLite / PostgreSQL 产品连续链、三个 unary 协议、真实浏览器 `1440×900` / `720×900` / `390×844` 和最终门禁均已闭合；真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。下一产品顺位回到 [功能设计文档入口](features/README.md) 选择新的长期功能目标，不从本专题派生 S11 或同层 gate-only 切片。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
 - 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。该专题关闭后的入口回流已完成，当前新专题以上方 Provider Attempt 设计为准。
@@ -37,12 +37,12 @@
 
 当前最多两条在制主线：
 
-1. 产品线：推进 Workflow Definition 绑定受控 HTTP Tool v1。当前进入 action plan v2 的双数据库持久化，再推进单次执行、React 与真实浏览器；不放宽通用 executor，不打开自动确认、业务写回、真实 Provider 或 production。
+1. 产品线：推进 Workflow Definition 绑定受控 HTTP Tool v1。双数据库执行前持久化已经完成，当前进入 Definition-bound 单次执行、strict run schema 与只读审查兼容，再推进 React 和真实浏览器；不放宽通用 executor，不打开自动确认、业务写回、真实 Provider 或 production。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-15 后续事项
 
-1. 第一顺位：完成 Workflow Definition HTTP Tool 批次 B 的 SQLite / PostgreSQL 顺序迁移，覆盖 v1 历史读取、v2 新写入、严格来源约束、CAS、重启、损坏投影与 no-fallback；迁移稳定后才进入 Definition-bound claim、transport 和 run schema。
+1. 第一顺位：完成 Workflow Definition HTTP Tool 批次 C。执行前重读 active Definition、activation pointer、tool / profile digest、Application lifecycle、plan digest 与 confirmation；原子 claim 后只复用既有受控 transport，并为 Definition 来源物化 strict run schema，覆盖并发、漂移、终态写入失败、重启和隐私边界。
 2. Provider Attempt 后续只响应真实使用证据或回归问题；仍不打开真实 Provider、stream fallback、非 API Key fallback、同 Profile retry、隐式切换或 production enablement。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。

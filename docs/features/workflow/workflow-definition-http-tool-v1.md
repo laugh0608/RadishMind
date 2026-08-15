@@ -2,7 +2,7 @@
 
 更新时间：2026-08-15
 
-状态：`workflow_definition_http_tool_v1_batch_b_persistence_next`
+状态：`workflow_definition_http_tool_v1_batch_c_execution_next`
 
 ## 功能定位
 
@@ -74,11 +74,11 @@ prompt -> one http_tool -> one or more llm -> output
 批次 A 物化以下新版本：
 
 - Definition candidate / version：显式表达 `workflow_definition_http_tool_v1`、精确 tool ref 和 confirmation requirement；tool definition / profile digest 在 action plan 创建时读取当前 registry 后绑定；
-- action plan v2：作为严格 `workflow_definition` 来源成员，增加 `source_kind`、Definition version / digest 与 activation pointer；现有 Draft writer 在批次 B 数据库迁移前继续写 v1；
+- action plan v2：作为严格 `workflow_definition` 来源成员，增加 `source_kind`、Definition version / digest 与 activation pointer；现有 Draft writer 继续写 v1；
 - confirmation / audit v2：绑定同一来源摘要，避免只靠 `draft_id` 解释；
 - Definition-bound HTTP Tool run：独立 strict schema，保留 source、confirmation 和 attempt 证据。
 
-旧 action plan、confirmation、audit 和 run v2 保持不可变兼容。Definition 来源新写入不得降级为旧 schema；批次 B 完成后，Draft 新写入也升级到带显式 `saved_workflow_draft` 来源的 v2，历史 v1 只读。
+旧 action plan、confirmation、audit 和 run v2 保持不可变兼容。Definition 来源新写入不得降级为旧 schema。数据库用规范化 `source_kind=saved_workflow_draft` 投影既有及新写入的 Draft v1 payload，但不为了统一外观改写成熟的 Draft 合同；只有后续真实消费者需要共同版本时，才另行设计新合同。Definition-bound run strict schema 由批次 C 与真实执行行为一起物化，不在只有执行前记录的批次 B 提前占位。
 
 ## Authority 与漂移
 
@@ -132,16 +132,21 @@ detail、decision 和 execution 继续复用既有 plan 资源路由。权限要
 - action plan 增加严格来源 union，完成 Definition authority resolver、memory create / decide 与 claim 前漂移失效行为测试。
 - 计划、批准和激活阶段证明网络、provider 和 run 均为 0。
 
-当前证据：显式 `workflow_definition_http_tool_v1` 已进入 Definition release 领域层；v3 candidate / version strict schema 已物化。旧请求省略 profile 时继续使用原 v1 / v2 executor profile，HTTP Tool 草案不能借默认 profile 晋级。Definition 来源 action plan 使用 v2 strict schema，绑定 active version、Definition digest、activation pointer 以及创建时读取的 tool / profile digest；confirmation 与 audit 同步使用 v2 来源摘要。memory 与 HTTP 路径已覆盖 create、独立人工 approve、active pointer 漂移失效、CAS 和零网络 / provider / run，Saved Draft v1 计划保持兼容。批次 A 已关闭，下一步进入双数据库顺序迁移。
+当前证据：显式 `workflow_definition_http_tool_v1` 已进入 Definition release 领域层；v3 candidate / version strict schema 已物化。旧请求省略 profile 时继续使用原 v1 / v2 executor profile，HTTP Tool 草案不能借默认 profile 晋级。Definition 来源 action plan 使用 v2 strict schema，绑定 active version、Definition digest、activation pointer 以及创建时读取的 tool / profile digest；confirmation 与 audit 同步使用 v2 来源摘要。memory 与 HTTP 路径已覆盖 create、独立人工 approve、active pointer 漂移失效、CAS 和零网络 / provider / run，Saved Draft v1 计划保持兼容。批次 A 已关闭。
 
 ### 批次 B：SQLite / PostgreSQL 持久化与兼容迁移
 
-状态：下一顺位。
+状态：已完成。
 
-- 在既有 workflow run migration family 中顺序追加 schema，不创建 DSN、pool、database file 或 selector。
-- 覆盖 v1 历史读取、v2 新写入、source union 约束、CAS、唯一 claim、rollback / reapply、重启、损坏投影和 no-fallback。
+- 在既有 workflow run migration family 中追加 SQLite `0020_workflow_http_tool_definition_sources` 与 PostgreSQL `0023_workflow_http_tool_definition_sources`，不创建 DSN、pool、database file 或 selector。
+- action plan、confirmation decision 与 execution audit 增加规范化来源列、严格 source union 和 JSON projection 约束；Definition v2 与 Draft v1 共用原 repository，读取时双重重验 payload / projection，不允许来源 fallback。
+- SQLite 已覆盖历史迁移、Definition create / approve、CAS、损坏投影拒绝、数据库重开和服务重启；active Definition、activation pointer 与 approved plan 可共同恢复，且网络、provider 和 run 仍为 0。
+- PostgreSQL 已覆盖 migration / rollback / reapply、runtime role、Definition create / approve、source corruption 拒绝、repository 重连与 no-fallback；完整开发测试集成套件通过后已停止本地容器。
+- 既有与新建 Draft 计划继续使用 v1 payload，数据库以规范化 `saved_workflow_draft` 来源列约束；Definition-bound run schema 没有在执行行为之前提前创建。
 
 ### 批次 C：Definition-bound 受控执行与运行审查
+
+状态：下一顺位。
 
 - 执行前重读 active Definition、tool definition/profile 和 confirmation。
 - 复用既有单次 transport、SSRF policy、预算、output projection 和 reconciliation。

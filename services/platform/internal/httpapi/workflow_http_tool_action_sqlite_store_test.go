@@ -1,8 +1,10 @@
 package httpapi
 
 import (
+	"context"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -178,4 +180,104 @@ func TestSQLiteWorkflowHTTPToolActionStorePersistsCASAndScope(t *testing.T) {
 		t.Fatalf("repeated SQLite defer wrote partial evidence: status=%s version=%d decisions=%d audits=%d",
 			deferredStatus, deferredVersion, deferredDecisionCount, deferredAuditCount)
 	}
+}
+
+func TestSQLiteWorkflowHTTPToolActionStorePersistsDefinitionSourceAndRejectsUnionDrift(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "workflow-http-tool-definition-actions.db")
+	runtime := openWorkflowRunSQLiteRuntimeWithoutCleanup(t, databasePath)
+	ctx := workflowHTTPToolActionTestContext()
+	store := newSQLiteWorkflowHTTPToolActionStore(runtime.DB())
+	plan := workflowHTTPToolDefinitionActionPlanForStoreTest(t, ctx, "wtap_0000000000000300")
+	createdAudit := workflowHTTPToolAuditForStoreTest(plan, "wtae_0000000000000300", "confirmation_requested")
+	if err := store.CreatePlan(ctx, &plan, createdAudit); err != nil {
+		t.Fatalf("create SQLite Definition-source tool action plan: %v", err)
+	}
+	if err := runtime.Close(); err != nil {
+		t.Fatalf("close SQLite Definition-source runtime: %v", err)
+	}
+
+	reopened := openWorkflowRunSQLiteRuntimeWithoutCleanup(t, databasePath)
+	t.Cleanup(func() { _ = reopened.Close() })
+	store = newSQLiteWorkflowHTTPToolActionStore(reopened.DB())
+	restored, found, err := store.ReadPlan(ctx, plan.PlanID)
+	if err != nil || !found || restored.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
+		restored.SourceKind != workflowHTTPToolSourceDefinition || restored.WorkflowDefinitionID != plan.WorkflowDefinitionID ||
+		restored.WorkflowDefinitionVersion != plan.WorkflowDefinitionVersion ||
+		restored.WorkflowDefinitionDigest != plan.WorkflowDefinitionDigest ||
+		restored.ActivationPointerVersion != plan.ActivationPointerVersion || restored.DraftID != "" || restored.DraftVersion != 0 {
+		t.Fatalf("restore SQLite Definition-source action plan: found=%v plan=%#v err=%v", found, restored, err)
+	}
+
+	approved := cloneWorkflowHTTPToolActionPlan(restored)
+	approved.RecordVersion = 2
+	approved.Status = WorkflowHTTPToolActionStatusApproved
+	actor, decidedAt := ctx.ActorRef, "2026-07-16T09:01:00Z"
+	approved.LastDecisionByActorRef, approved.LastDecisionAt = &actor, &decidedAt
+	decision := workflowHTTPToolDecisionForStoreTest(approved, "wtcd_0000000000000300", WorkflowHTTPToolConfirmationApprove, actor)
+	decision.AuditRef = "audit_workflow_http_tool_definition_sqlite_decision"
+	decisionCtx := ctx
+	decisionCtx.AuditRef = decision.AuditRef
+	audit := workflowHTTPToolAuditForStoreTest(approved, "wtae_0000000000000301", "confirmation_recorded", decision.ConfirmationID)
+	audit.AuditRef = decision.AuditRef
+	if err := store.DecidePlan(decisionCtx, &approved, decision, audit); err != nil {
+		t.Fatalf("approve SQLite Definition-source action plan: %v", err)
+	}
+
+	var sourceKind, definitionID, definitionDigest string
+	var definitionVersion, pointerVersion, decisionCount, auditCount int
+	if err := reopened.DB().QueryRowContext(context.Background(), `SELECT source_kind,workflow_definition_id,
+	 workflow_definition_version,workflow_definition_digest,activation_pointer_version
+	 FROM workflow_http_tool_action_plans WHERE plan_id=?`, plan.PlanID).Scan(
+		&sourceKind, &definitionID, &definitionVersion, &definitionDigest, &pointerVersion,
+	); err != nil {
+		t.Fatal(err)
+	}
+	if err := reopened.DB().QueryRowContext(context.Background(), `SELECT count(*) FROM workflow_http_tool_confirmation_decisions
+	 WHERE plan_id=? AND schema_version=? AND source_kind=? AND draft_id IS NULL AND workflow_definition_id=?`,
+		plan.PlanID, workflowHTTPToolDecisionSchemaV2, workflowHTTPToolSourceDefinition, plan.WorkflowDefinitionID,
+	).Scan(&decisionCount); err != nil {
+		t.Fatal(err)
+	}
+	if err := reopened.DB().QueryRowContext(context.Background(), `SELECT count(*) FROM workflow_http_tool_execution_audits
+	 WHERE plan_id=? AND schema_version=? AND source_kind=? AND draft_id IS NULL AND workflow_definition_id=?`,
+		plan.PlanID, workflowHTTPToolAuditSchemaV2, workflowHTTPToolSourceDefinition, plan.WorkflowDefinitionID,
+	).Scan(&auditCount); err != nil {
+		t.Fatal(err)
+	}
+	if sourceKind != workflowHTTPToolSourceDefinition || definitionID != plan.WorkflowDefinitionID ||
+		definitionVersion != plan.WorkflowDefinitionVersion || definitionDigest != plan.WorkflowDefinitionDigest ||
+		pointerVersion != plan.ActivationPointerVersion || decisionCount != 1 || auditCount != 2 {
+		t.Fatalf("SQLite Definition source projection drifted: source=%s definition=%s@%d digest=%s pointer=%d decisions=%d audits=%d",
+			sourceKind, definitionID, definitionVersion, definitionDigest, pointerVersion, decisionCount, auditCount)
+	}
+
+	if _, err := reopened.DB().ExecContext(context.Background(), `UPDATE workflow_http_tool_action_plans
+	 SET source_kind='saved_workflow_draft',draft_id='draft_forbidden',draft_version=1,
+	 workflow_definition_id=NULL,workflow_definition_version=NULL,workflow_definition_digest=NULL,activation_pointer_version=NULL
+	 WHERE plan_id=?`, plan.PlanID); err == nil {
+		t.Fatal("SQLite Definition-source plan accepted a source-union fallback mutation")
+	}
+}
+
+func workflowHTTPToolDefinitionActionPlanForStoreTest(
+	t *testing.T,
+	ctx WorkflowHTTPToolActionContext,
+	planID string,
+) WorkflowHTTPToolActionPlan {
+	t.Helper()
+	plan := workflowHTTPToolActionPlanForStoreTest(t, ctx, planID)
+	plan.SchemaVersion = workflowHTTPToolPlanSchemaV2
+	plan.SourceKind = workflowHTTPToolSourceDefinition
+	plan.DraftID = ""
+	plan.DraftVersion = 0
+	plan.WorkflowDefinitionID = "wfd_definition_http_tool"
+	plan.WorkflowDefinitionVersion = 3
+	plan.WorkflowDefinitionDigest = "sha256:" + strings.Repeat("d", 64)
+	plan.ActivationPointerVersion = 5
+	var err error
+	plan.ToolPlanDigest, err = workflowHTTPToolPlanDigest(plan)
+	if err != nil {
+		t.Fatalf("digest Definition-source test plan: %v", err)
+	}
+	return plan
 }

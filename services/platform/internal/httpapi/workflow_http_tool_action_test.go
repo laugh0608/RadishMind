@@ -798,9 +798,12 @@ func workflowHTTPToolDecisionForStoreTest(
 	actor string,
 ) WorkflowHTTPToolConfirmationDecision {
 	return WorkflowHTTPToolConfirmationDecision{
-		SchemaVersion: workflowHTTPToolDecisionSchema, ConfirmationID: confirmationID, PlanID: plan.PlanID,
+		SchemaVersion: workflowHTTPToolDecisionSchemaForPlan(plan), ConfirmationID: confirmationID, PlanID: plan.PlanID,
 		TenantRef: plan.TenantRef, WorkspaceID: plan.WorkspaceID, ApplicationID: plan.ApplicationID,
-		DraftID: plan.DraftID, DraftVersion: plan.DraftVersion, NodeID: plan.NodeID, ToolID: plan.ToolID, ToolVersion: plan.ToolVersion,
+		SourceKind: plan.SourceKind, DraftID: plan.DraftID, DraftVersion: plan.DraftVersion,
+		WorkflowDefinitionID: plan.WorkflowDefinitionID, WorkflowDefinitionVersion: plan.WorkflowDefinitionVersion,
+		WorkflowDefinitionDigest: plan.WorkflowDefinitionDigest, ActivationPointerVersion: plan.ActivationPointerVersion,
+		NodeID: plan.NodeID, ToolID: plan.ToolID, ToolVersion: plan.ToolVersion,
 		ToolPlanDigest: plan.ToolPlanDigest, Outcome: outcome, DecidedByActorRef: actor, ActorSource: "human",
 		DecidedAt: "2026-07-16T09:01:00Z", ReasonCode: workflowHTTPToolConfirmationReason(outcome),
 		ExpectedRecordVersion: plan.RecordVersion - 1, ResultingRecordVersion: plan.RecordVersion, AuditRef: plan.AuditRef,
@@ -831,9 +834,11 @@ func workflowHTTPToolAuditForStoreTest(plan WorkflowHTTPToolActionPlan, eventID,
 		confirmationID = &value
 	}
 	return WorkflowHTTPToolExecutionAudit{
-		SchemaVersion: workflowHTTPToolAuditSchema, EventID: eventID, EventKind: eventKind,
+		SchemaVersion: workflowHTTPToolAuditSchemaForPlan(plan), EventID: eventID, EventKind: eventKind,
 		OccurredAt: occurredAt, TenantRef: plan.TenantRef, WorkspaceID: plan.WorkspaceID,
-		ApplicationID: plan.ApplicationID, DraftID: plan.DraftID, DraftVersion: plan.DraftVersion,
+		ApplicationID: plan.ApplicationID, SourceKind: plan.SourceKind, DraftID: plan.DraftID, DraftVersion: plan.DraftVersion,
+		WorkflowDefinitionID: plan.WorkflowDefinitionID, WorkflowDefinitionVersion: plan.WorkflowDefinitionVersion,
+		WorkflowDefinitionDigest: plan.WorkflowDefinitionDigest, ActivationPointerVersion: plan.ActivationPointerVersion,
 		NodeID: plan.NodeID, PlanID: plan.PlanID, ToolID: plan.ToolID, ToolVersion: plan.ToolVersion, DefinitionDigest: plan.DefinitionDigest,
 		ProfileID: plan.ProfileID, ProfileDigest: plan.ProfileDigest, ToolPlanDigest: plan.ToolPlanDigest,
 		ConfirmationID: confirmationID, ActorRef: actorRef, ActorSource: actorSource, RequestID: "request_workflow_http_tool_test",

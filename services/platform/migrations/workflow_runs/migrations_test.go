@@ -91,6 +91,11 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"application_evaluation_plan_version.v2",
 		"application_evaluation_campaign.v2",
 		"application_evaluation_campaigns_payload_v2_check",
+		"workflow_http_tool_action_plan.v2",
+		"workflow_http_tool_confirmation_decision.v2",
+		"workflow_http_tool_execution_audit.v2",
+		"workflow_http_tool_action_plans_source_union_check",
+		"workflow_http_tool_action_plans_definition_idx",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -138,6 +143,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP TABLE IF EXISTS workflow_run_records",
 		"DROP CONSTRAINT application_interaction_sessions_payload_v4_check",
 		"DROP CONSTRAINT application_evaluation_campaigns_payload_v2_check",
+		"DROP CONSTRAINT workflow_http_tool_action_plans_source_union_check",
 	} {
 		if !strings.Contains(downSQL, required) {
 			t.Fatalf("workflow run down migration is missing %q", required)
@@ -188,6 +194,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v19", migrationID: applicationEvaluationMigrationID, requiredFragment: "input_contract_id", forbiddenFragment: "CREATE TABLE application_evaluation_plans"},
 		{name: "v20", migrationID: structuredDefinitionMigrationID, requiredFragment: "application_session.v4", forbiddenFragment: "workflow_run_record.v8"},
 		{name: "v21", migrationID: structuredSessionMigrationID, requiredFragment: "application_evaluation_plan.v2", forbiddenFragment: "application_session.v4"},
+		{name: "v22", migrationID: structuredEvaluationMigrationID, requiredFragment: "workflow_http_tool_action_plan.v2", forbiddenFragment: "application_evaluation_plan.v2"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -283,6 +290,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	structuredSessionRollback := rollbackSQLThrough(structuredSessionMigrationID)
 	if !strings.Contains(structuredSessionRollback, "application_interaction_sessions_payload_v4_check") || strings.Contains(structuredSessionRollback, "application_evaluation_campaigns_payload_v2_check") {
 		t.Fatalf("v21 rollback must remove structured sessions without removing unapplied v22: %s", structuredSessionRollback)
+	}
+	structuredEvaluationRollback := rollbackSQLThrough(structuredEvaluationMigrationID)
+	if !strings.Contains(structuredEvaluationRollback, "application_evaluation_campaigns_payload_v2_check") || strings.Contains(structuredEvaluationRollback, "workflow_http_tool_action_plans_source_union_check") {
+		t.Fatalf("v22 rollback must remove structured evaluation without removing unapplied v23: %s", structuredEvaluationRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

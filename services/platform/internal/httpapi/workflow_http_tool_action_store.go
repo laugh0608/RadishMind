@@ -12,6 +12,16 @@ const (
 	workflowHTTPToolPlanV1MaxOutputBytes   = 16 * 1024
 )
 
+type workflowHTTPToolStorageSource struct {
+	SourceKind                string
+	DraftID                   string
+	DraftVersion              int
+	WorkflowDefinitionID      string
+	WorkflowDefinitionVersion int
+	WorkflowDefinitionDigest  string
+	ActivationPointerVersion  int
+}
+
 type memoryWorkflowHTTPToolActionStore struct {
 	ownerLock *sync.RWMutex
 	plans     map[string]WorkflowHTTPToolActionPlan
@@ -95,6 +105,55 @@ func (store *memoryWorkflowHTTPToolActionStore) DecidePlan(
 func workflowHTTPToolActionStoreKey(ctx WorkflowHTTPToolActionContext, planID string) string {
 	return strings.TrimSpace(ctx.TenantRef) + "\x00" + strings.TrimSpace(ctx.WorkspaceID) + "\x00" +
 		strings.TrimSpace(ctx.ApplicationID) + "\x00" + strings.TrimSpace(planID)
+}
+
+func workflowHTTPToolStorageSourceForPlan(plan WorkflowHTTPToolActionPlan) (workflowHTTPToolStorageSource, bool) {
+	if !workflowHTTPToolPlanSourceValid(plan) {
+		return workflowHTTPToolStorageSource{}, false
+	}
+	if plan.SchemaVersion == workflowHTTPToolPlanSchema {
+		return workflowHTTPToolStorageSource{
+			SourceKind:   workflowHTTPToolSourceDraft,
+			DraftID:      plan.DraftID,
+			DraftVersion: plan.DraftVersion,
+		}, true
+	}
+	return workflowHTTPToolStorageSource{
+		SourceKind:                plan.SourceKind,
+		WorkflowDefinitionID:      plan.WorkflowDefinitionID,
+		WorkflowDefinitionVersion: plan.WorkflowDefinitionVersion,
+		WorkflowDefinitionDigest:  plan.WorkflowDefinitionDigest,
+		ActivationPointerVersion:  plan.ActivationPointerVersion,
+	}, true
+}
+
+func workflowHTTPToolStorageSourceMatchesPlan(source workflowHTTPToolStorageSource, plan WorkflowHTTPToolActionPlan) bool {
+	expected, valid := workflowHTTPToolStorageSourceForPlan(plan)
+	return valid && source == expected
+}
+
+func workflowHTTPToolStorageSourceForAudit(audit WorkflowHTTPToolExecutionAudit) (workflowHTTPToolStorageSource, bool) {
+	if audit.SchemaVersion == workflowHTTPToolAuditSchema {
+		if !workflowHTTPToolScopedIDPattern.MatchString(audit.DraftID) || audit.DraftVersion < 1 || audit.SourceKind != "" ||
+			audit.WorkflowDefinitionID != "" || audit.WorkflowDefinitionVersion != 0 || audit.WorkflowDefinitionDigest != "" ||
+			audit.ActivationPointerVersion != 0 {
+			return workflowHTTPToolStorageSource{}, false
+		}
+		return workflowHTTPToolStorageSource{
+			SourceKind: workflowHTTPToolSourceDraft, DraftID: audit.DraftID, DraftVersion: audit.DraftVersion,
+		}, true
+	}
+	if audit.SchemaVersion != workflowHTTPToolAuditSchemaV2 || audit.SourceKind != workflowHTTPToolSourceDefinition ||
+		audit.DraftID != "" || audit.DraftVersion != 0 || !workflowHTTPToolScopedIDPattern.MatchString(audit.WorkflowDefinitionID) ||
+		audit.WorkflowDefinitionVersion < 1 || !workflowHTTPToolDigestPattern.MatchString(audit.WorkflowDefinitionDigest) ||
+		audit.ActivationPointerVersion < 1 {
+		return workflowHTTPToolStorageSource{}, false
+	}
+	return workflowHTTPToolStorageSource{
+		SourceKind: audit.SourceKind, WorkflowDefinitionID: audit.WorkflowDefinitionID,
+		WorkflowDefinitionVersion: audit.WorkflowDefinitionVersion, WorkflowDefinitionDigest: audit.WorkflowDefinitionDigest,
+		ActivationPointerVersion: audit.ActivationPointerVersion,
+	}, true
 }
 
 func workflowHTTPToolPlanMatchesContext(plan WorkflowHTTPToolActionPlan, ctx WorkflowHTTPToolActionContext) bool {

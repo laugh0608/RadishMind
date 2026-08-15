@@ -90,6 +90,31 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if err = actionStore.DecidePlan(actionContext, &actionPlan, invalidateDecision, invalidateAudit); err != nil {
 		t.Fatalf("invalidate PostgreSQL workflow HTTP tool action plan: %v", err)
 	}
+	definitionActionContext := workflowHTTPToolActionTestContext()
+	definitionActionContext.RequestContext = ctx
+	definitionActionContext.AuditRef = "audit_workflow_http_tool_postgres_definition_create"
+	definitionActionPlan := workflowHTTPToolDefinitionActionPlanForStoreTest(t, definitionActionContext, "wtap_0000000000000240")
+	if err = actionStore.CreatePlan(definitionActionContext, &definitionActionPlan, workflowHTTPToolAuditForStoreTest(definitionActionPlan, "wtae_0000000000000240", "confirmation_requested")); err != nil {
+		t.Fatalf("create PostgreSQL Definition-source workflow HTTP tool plan: %v", err)
+	}
+	definitionActionPlan.RecordVersion = 2
+	definitionActionPlan.Status = WorkflowHTTPToolActionStatusApproved
+	definitionActor, definitionDecidedAt := definitionActionContext.ActorRef, "2026-07-16T09:01:00Z"
+	definitionActionPlan.LastDecisionByActorRef, definitionActionPlan.LastDecisionAt = &definitionActor, &definitionDecidedAt
+	definitionDecision := workflowHTTPToolDecisionForStoreTest(definitionActionPlan, "wtcd_0000000000000240", WorkflowHTTPToolConfirmationApprove, definitionActor)
+	definitionDecision.AuditRef = "audit_workflow_http_tool_postgres_definition_decision"
+	definitionActionContext.AuditRef = definitionDecision.AuditRef
+	definitionAudit := workflowHTTPToolAuditForStoreTest(definitionActionPlan, "wtae_0000000000000241", "confirmation_recorded", definitionDecision.ConfirmationID)
+	definitionAudit.AuditRef = definitionDecision.AuditRef
+	if err = actionStore.DecidePlan(definitionActionContext, &definitionActionPlan, definitionDecision, definitionAudit); err != nil {
+		t.Fatalf("approve PostgreSQL Definition-source workflow HTTP tool plan: %v", err)
+	}
+	if _, mutationErr := runtimePool.Exec(ctx, `UPDATE workflow_http_tool_action_plans
+	 SET source_kind='saved_workflow_draft',draft_id='draft_forbidden',draft_version=1,
+	 workflow_definition_id=NULL,workflow_definition_version=NULL,workflow_definition_digest=NULL,activation_pointer_version=NULL
+	 WHERE plan_id=$1`, definitionActionPlan.PlanID); mutationErr == nil {
+		t.Fatal("PostgreSQL Definition-source plan accepted a source-union fallback mutation")
+	}
 	expireContext := workflowHTTPToolActionTestContext()
 	expireContext.RequestContext = ctx
 	expireContext.AuditRef = "audit_workflow_http_tool_postgres_expire_create"
@@ -512,6 +537,15 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 	if recoveredAction, actionFound, actionErr := actionStore.ReadPlan(actionContext, actionPlan.PlanID); actionErr != nil || !actionFound || recoveredAction.Status != WorkflowHTTPToolActionStatusInvalidated || recoveredAction.RecordVersion != 3 {
 		t.Fatalf("restart workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredAction, actionErr)
+	}
+	if recoveredDefinitionAction, actionFound, actionErr := actionStore.ReadPlan(definitionActionContext, definitionActionPlan.PlanID); actionErr != nil || !actionFound ||
+		recoveredDefinitionAction.Status != WorkflowHTTPToolActionStatusApproved || recoveredDefinitionAction.RecordVersion != 2 ||
+		recoveredDefinitionAction.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
+		recoveredDefinitionAction.SourceKind != workflowHTTPToolSourceDefinition ||
+		recoveredDefinitionAction.WorkflowDefinitionID != definitionActionPlan.WorkflowDefinitionID ||
+		recoveredDefinitionAction.WorkflowDefinitionDigest != definitionActionPlan.WorkflowDefinitionDigest ||
+		recoveredDefinitionAction.ActivationPointerVersion != definitionActionPlan.ActivationPointerVersion {
+		t.Fatalf("restart Definition-source workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredDefinitionAction, actionErr)
 	}
 	if recoveredExpired, actionFound, actionErr := actionStore.ReadPlan(expireContext, expiredActionPlan.PlanID); actionErr != nil || !actionFound || recoveredExpired.Status != WorkflowHTTPToolActionStatusExpired || recoveredExpired.RecordVersion != 2 {
 		t.Fatalf("restart expired workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredExpired, actionErr)

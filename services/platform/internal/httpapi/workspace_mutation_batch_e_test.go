@@ -27,6 +27,7 @@ func TestBatchEPermissionProjectionCoversEveryMutationGrant(t *testing.T) {
 		"radishmind.workflow-tool-actions.plan",
 		"radishmind.workflow-tool-actions.confirm",
 		"radishmind.workflow-tool-actions.execute",
+		"radishmind.workflow-definitions.read",
 		"radishmind.workflow-evaluations.write",
 	})
 	for _, expected := range []string{
@@ -44,6 +45,7 @@ func TestBatchEPermissionProjectionCoversEveryMutationGrant(t *testing.T) {
 		"workflow_tool_actions:plan",
 		"workflow_tool_actions:confirm",
 		"workflow_tool_actions:execute",
+		"workflow_definitions:read",
 		"workflow_evaluations:write",
 	} {
 		if !controlPlaneReadHasScope(grants, expected) {
@@ -260,6 +262,7 @@ func newBatchEMutationAuthorizationServer() (*Server, *atomic.Int64, *workflowEx
 	return &Server{
 		config: config.Config{
 			WorkflowExecutorDevEnabled:          true,
+			WorkflowDefinitionReleaseDevEnabled: true,
 			WorkflowRAGExecutionDevEnabled:      true,
 			WorkflowRAGSnapshotDevEnabled:       true,
 			WorkflowRAGEvaluationDevEnabled:     true,
