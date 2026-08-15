@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 是当前长期目标。独立 profile、v3 candidate / version、Definition 来源 action plan v2、active authority 和 SQLite v20 / PostgreSQL v23 已落地；下一顺位为 Definition-bound 受控执行、strict run schema 与只读审查兼容，再进入 React 产品链。通用 executor、自动确认、业务写回、真实 Provider 和 production 继续关闭。
+1. 产品线：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 已以 `workflow_definition_http_tool_v1_completed` 关闭。独立 profile、v3 candidate / version、Definition 来源 action plan / decision v2、active authority、run v9、三种 store、React strict consumer、SQLite 重启与真实浏览器三视口均已有证据。下一顺位回到 [功能设计文档入口](features/README.md) 选择新的长期功能目标并先完成设计文档；不从本专题派生批次 E。通用 executor、自动确认、业务写回、真实 Provider 和 production 继续关闭。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。

@@ -3,7 +3,7 @@
 更新时间：2026-08-15
 
 - 任务 ID：`workflow-definition-http-tool-v1`
-- 状态：`workflow_definition_http_tool_v1_batch_d_react_consumer_next`
+- 状态：`workflow_definition_http_tool_v1_completed`
 - 功能设计：[Workflow Definition 绑定受控 HTTP Tool 的版本化发布与人工确认执行（开发 / 测试态）v1](../features/workflow/workflow-definition-http-tool-v1.md)
 
 ## 准入结论
@@ -66,14 +66,18 @@
 
 ## 批次 D：React 与产品连续链
 
-状态：下一顺位。
+状态：`completed`。
 
 - 在 Definition 工作区提供工具型候选、版本、activation、plan、confirm、execute 与 history handoff。
 - application / workspace 切换清空易失输入和迟到响应；offline 零请求，strict consumer 拒绝字段和 scope 漂移。
 - 完成桌面、中宽、窄屏浏览器复核、重启恢复、Web Storage / URL / console / network 与数据库敏感扫描。
 - 同步专题、入口、当前焦点、路线图、能力矩阵和周志并提交。
 
-完成锚点：`workflow_definition_http_tool_v1_completed`。
+完成证据：既有 Definition 工作区已接通 Candidate → Review → Version → Activation → Plan → Confirm → Execute → History；plan / decision strict v2 与 run strict v9 均按精确 application / workspace / Definition scope 消费。application / workspace 切换会清空易失参数和迟到响应；刷新及 SQLite 服务重启通过 plan / run 短引用重读同一 consumed plan 与 v9 detail，不重新执行。
+
+内置浏览器已覆盖 `1440×900`、`1024×768`、`390×844`，均无横向溢出且最终控制台 warning / error 为零。服务端登记的 `.invalid` 开发目标按预期产生 `workflow_tool_transport_failed`，只记录一个 attempt、一个 confirmation、零业务写入、零 replay 与零 retry / fallback。会话引用的允许字段、run id 形状和未知字段拒绝由 strict consumer 测试覆盖；数据库与运行记录敏感扫描沿用批次 C 并由本批实际 SQLite 记录复核。
+
+完成锚点：`workflow_definition_http_tool_v1_completed`。本卡归档，不派生批次 E、平行 owner、专用数据库或 readiness 卡。
 
 ## 明确不做
 

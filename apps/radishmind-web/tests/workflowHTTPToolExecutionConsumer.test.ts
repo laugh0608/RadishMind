@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   executeWorkflowHTTPToolActionPlan,
   initialWorkflowHTTPToolExecutionState,
+  restoreWorkflowHTTPToolExecutionState,
 } from "../src/features/control-plane-read/workflowHTTPToolExecutionConsumer.ts";
 import type {
   WorkflowHTTPToolActionConsumerConfig,
@@ -30,6 +32,10 @@ const executionConfig: WorkflowHTTPToolActionConsumerConfig = {
     "workflow_tool_actions:execute",
     "workflow_runs:execute",
   ],
+};
+const definitionExecutionConfig: WorkflowHTTPToolActionConsumerConfig = {
+  ...executionConfig,
+  scopeGrants: [...executionConfig.scopeGrants, "workflow_definitions:read"],
 };
 
 test("Workflow HTTP Tool execution stays offline and scope denial performs zero fetches", async (t) => {
@@ -116,6 +122,83 @@ test("unsafe execution evidence is rejected and transport failure is never retri
   assert.equal(attempts, 1);
 });
 
+test("approved Definition plan uses exact source grants and maps strict v9 authority evidence", async (t) => {
+  const requests: Array<{ url: string; init: RequestInit }> = [];
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (input, init = {}) => {
+    requests.push({ url: String(input), init });
+    return jsonResponse(definitionSuccessEnvelope());
+  };
+  const plan = definitionApprovedPlan();
+  const result = await executeWorkflowHTTPToolActionPlan(
+    definitionExecutionConfig,
+    plan,
+    { inputText: "Review the active Definition resource.", model: "model_demo", temperature: 0 },
+  );
+
+  assert.equal(result.status, "succeeded");
+  assert.equal(result.actionPlan?.schemaVersion, "workflow_http_tool_action_plan.v2");
+  assert.equal(result.actionPlan?.status, "consumed");
+  assert.equal(result.run?.schemaVersion, "workflow_run_record.v9");
+  assert.equal(result.run?.definitionAuthority?.definitionDigest, plan.workflowDefinitionDigest);
+  assert.equal(result.run?.definitionAuthority?.activationPointerVersion, plan.activationPointerVersion);
+  assert.equal(result.run?.toolAttempt?.toolPlanDigest, plan.toolPlanDigest);
+  const headers = requests[0]?.init.headers as Record<string, string>;
+  assert.equal(headers["X-RadishMind-Dev-Read-Scopes"], "workflow_tool_actions:execute,workflow_runs:execute,workflow_definitions:read");
+  assert.equal(headers["X-RadishMind-Dev-Read-Membership-Permissions"], "workflow_tool_actions:execute,workflow_runs:execute,workflow_definitions:read");
+});
+
+test("Definition execution rejects v9 privacy leakage without retry", async (t) => {
+  let attempts = 0;
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const unsafe = definitionSuccessEnvelope() as any;
+  unsafe.run.tool_attempt.output_projection.summary = "https://private.invalid/raw";
+  globalThis.fetch = async () => {
+    attempts += 1;
+    return jsonResponse(unsafe);
+  };
+  const result = await executeWorkflowHTTPToolActionPlan(definitionExecutionConfig, definitionApprovedPlan(), boundedInput());
+  assert.equal(result.failureCode, "workflow_tool_store_contract_mismatch");
+  assert.equal(result.run, null);
+  assert.equal(attempts, 1);
+});
+
+test("consumed Definition plan restores its exact v9 detail without another execution request", async (t) => {
+  const requests: Array<{ url: string; init: RequestInit }> = [];
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const envelope = definitionSuccessEnvelope();
+  globalThis.fetch = async (input, init = {}) => {
+    requests.push({ url: String(input), init });
+    return jsonResponse({
+      request_id: "request_restore_v9",
+      workspace_id: envelope.workspace_id,
+      application_id: envelope.application_id,
+      run: envelope.run,
+      failure_code: null,
+      failure_summary: "",
+      audit_ref: "audit_restore_v9",
+      retrieval_fragment_previews: [],
+    });
+  };
+  const consumed = { ...definitionApprovedPlan(), status: "consumed" as const, recordVersion: 3 };
+
+  const restored = await restoreWorkflowHTTPToolExecutionState(
+    definitionExecutionConfig,
+    consumed,
+    envelope.run.run_id,
+  );
+
+  assert.equal(restored.status, "succeeded");
+  assert.equal(restored.run?.schemaVersion, "workflow_run_record.v9");
+  assert.equal(restored.actionPlan?.status, "consumed");
+  assert.equal(requests.length, 1);
+  assert.match(requests[0]!.url, /\/v1\/user-workspace\/workflow-runs\/run_0123456789abcde9\?/u);
+  assert.equal(requests[0]!.init.method, undefined);
+});
+
 function boundedInput() {
   return { inputText: "Review the approved resource.", model: "mock", temperature: 0 };
 }
@@ -130,6 +213,11 @@ function approvedPlan(): WorkflowHTTPToolActionPlan {
     applicationId: "app_flow_copilot",
     draftId: "draft_http_tool_review",
     draftVersion: 4,
+    sourceKind: "saved_workflow_draft",
+    workflowDefinitionId: "",
+    workflowDefinitionVersion: 0,
+    workflowDefinitionDigest: "",
+    activationPointerVersion: 0,
     nodeId: "node_http_tool",
     toolId: "workflow.http.reviewed-json-read.v1",
     toolVersion: 1,
@@ -154,6 +242,24 @@ function approvedPlan(): WorkflowHTTPToolActionPlan {
     lastDecisionByActorRef: "subject_demo_user",
     lastDecisionAt: "2026-07-17T02:05:00Z",
     auditRef: "audit_workflow_tool_plan",
+  };
+}
+
+function definitionApprovedPlan(): WorkflowHTTPToolActionPlan {
+  return {
+    ...approvedPlan(),
+    schemaVersion: "workflow_http_tool_action_plan.v2",
+    applicationId: "application_demo",
+    draftId: "",
+    draftVersion: 0,
+    sourceKind: "workflow_definition",
+    workflowDefinitionId: "definition_demo",
+    workflowDefinitionVersion: 3,
+    workflowDefinitionDigest: digest("b"),
+    activationPointerVersion: 4,
+    definitionDigest: "sha256:a3807ab3eed72b8f712ca4bf1f5cbc442fe961271779ff00ae19230ad3573294",
+    profileDigest: "sha256:ce8517a547848768de11a9fae6ad903134ee8c5cfcc5a4b87436c26129918001",
+    toolPlanDigest: "sha256:68349ea201bdfdc3313d393d32579fe155173301fc7d076de3e3e75aab8a0526",
   };
 }
 
@@ -287,6 +393,94 @@ function successEnvelope() {
     failure_code: null,
     failure_summary: "",
     audit_ref: "audit_workflow_tool_execution",
+  };
+}
+
+function definitionSuccessEnvelope() {
+  const plan = definitionApprovedPlan();
+  const fixture = JSON.parse(readFileSync(
+    new URL("../../../scripts/checks/fixtures/workflow-http-tool-contracts-v1.json", import.meta.url),
+    "utf8",
+  ));
+  const run = structuredClone(fixture.positive.run_record_v9);
+  run.plan_id = plan.planId;
+  run.status = "succeeded";
+  run.completed_at = "2026-08-15T02:06:02Z";
+  run.nodes = run.nodes.map((node: Record<string, unknown>) => ({
+    ...node,
+    status: "succeeded",
+    started_at: node.started_at || "2026-08-15T02:06:00Z",
+    completed_at: "2026-08-15T02:06:02Z",
+  }));
+  run.tool_attempt = {
+    ...run.tool_attempt,
+    status: "succeeded",
+    completed_at: "2026-08-15T02:06:02Z",
+    http_status_class: "2xx",
+    response_bytes: 128,
+    duration_ms: 2000,
+    output_projection: {
+      resource_key: "catalog/review:item-1",
+      title: "Reviewed item",
+      summary: "Safe projected response",
+      updated_at: "2026-08-15T02:00:00Z",
+    },
+  };
+  run.diagnostic = {
+    ...run.diagnostic,
+    last_completed_node_id: "node_output",
+    terminal_write_state: "stored",
+    observed_at: "2026-08-15T02:06:02Z",
+  };
+  return {
+    request_id: "request_workflow_definition_http_execution",
+    workspace_id: plan.workspaceId,
+    application_id: plan.applicationId,
+    action_plan: definitionActionPlanDocument(plan),
+    run,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_workflow_definition_http_execution",
+  };
+}
+
+function definitionActionPlanDocument(plan: WorkflowHTTPToolActionPlan) {
+  return {
+    schema_version: plan.schemaVersion,
+    plan_id: plan.planId,
+    record_version: plan.recordVersion + 1,
+    tenant_ref: plan.tenantRef,
+    workspace_id: plan.workspaceId,
+    application_id: plan.applicationId,
+    source_kind: "workflow_definition",
+    workflow_definition_id: plan.workflowDefinitionId,
+    workflow_definition_version: plan.workflowDefinitionVersion,
+    workflow_definition_digest: plan.workflowDefinitionDigest,
+    activation_pointer_version: plan.activationPointerVersion,
+    node_id: plan.nodeId,
+    tool_id: plan.toolId,
+    tool_version: plan.toolVersion,
+    definition_digest: plan.definitionDigest,
+    profile_id: plan.profileId,
+    profile_version: plan.profileVersion,
+    profile_digest: plan.profileDigest,
+    method: plan.method,
+    target_policy_key: plan.targetPolicyKey,
+    public_arguments: { resource_key: plan.publicArguments.resourceKey, locale: plan.publicArguments.locale },
+    output_fields: plan.outputFields,
+    output_schema_digest: plan.outputSchemaDigest,
+    credential_policy: plan.credentialPolicy,
+    timeout_ms: plan.timeoutMs,
+    max_response_bytes: plan.maxResponseBytes,
+    max_output_bytes: plan.maxOutputBytes,
+    planned_by_actor_ref: plan.plannedByActorRef,
+    created_at: plan.createdAt,
+    expires_at: plan.expiresAt,
+    tool_plan_digest: plan.toolPlanDigest,
+    status: "consumed",
+    last_decision_by_actor_ref: plan.lastDecisionByActorRef,
+    last_decision_at: plan.lastDecisionAt,
+    audit_ref: plan.auditRef,
   };
 }
 

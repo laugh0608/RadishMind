@@ -70,6 +70,7 @@ import { WorkflowHTTPToolActionPanel } from "../features/control-plane-read/work
 import {
   executeWorkflowHTTPToolActionPlan,
   initialWorkflowHTTPToolExecutionState,
+  restoreWorkflowHTTPToolExecutionState,
   type WorkflowHTTPToolExecutionState,
 } from "../features/control-plane-read/workflowHTTPToolExecutionConsumer.ts";
 import { WorkflowHTTPToolExecutionPanel } from "../features/control-plane-read/workflowHTTPToolExecutionPanel.tsx";
@@ -742,7 +743,8 @@ export function App() {
     if (workflowHTTPToolActionConsumerConfig.mode !== "dev_workflow_http_tool_http") return;
     const reference = readWorkflowHTTPToolActionPlanReference();
     if (!reference || reference.workspaceId !== workflowHTTPToolActionConsumerConfig.workspaceId ||
-      reference.applicationId !== selectedWorkflowDraft.applicationRef || reference.draftId !== selectedWorkflowDraft.draftId) return;
+      reference.applicationId !== selectedWorkflowDraft.applicationRef ||
+      reference.sourceKind !== "saved_workflow_draft" || reference.sourceId !== selectedWorkflowDraft.draftId) return;
 
     let canceled = false;
     setWorkflowHTTPToolActionState((state) => ({
@@ -751,8 +753,20 @@ export function App() {
       summary: "Reloading the durable action plan selected before the page refresh.",
       failureCode: "",
     }));
-    readWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, reference).then((state) => {
-      if (!canceled) setWorkflowHTTPToolActionState(state);
+    readWorkflowHTTPToolActionPlan(workflowHTTPToolActionConsumerConfig, reference).then(async (state) => {
+      if (canceled) return;
+      setWorkflowHTTPToolActionState(state);
+      if (state.actionPlan?.status !== "consumed" || !reference.runId) return;
+      setWorkflowHTTPToolExecutionState((current) => ({
+        ...current,
+        summary: "Reloading the exact durable v2 run; no execution request is sent.",
+      }));
+      const restored = await restoreWorkflowHTTPToolExecutionState(
+        workflowHTTPToolActionConsumerConfig,
+        state.actionPlan,
+        reference.runId,
+      );
+      if (!canceled) setWorkflowHTTPToolExecutionState(restored);
     });
     return () => {
       canceled = true;
@@ -1861,7 +1875,7 @@ export function App() {
       model: workflowHTTPToolExecutionModel,
     }).then((state) => {
       if (state.actionPlan) {
-        rememberWorkflowHTTPToolActionPlanReference(state.actionPlan);
+        rememberWorkflowHTTPToolActionPlanReference(state.actionPlan, state.run?.runId ?? "");
         setWorkflowHTTPToolActionState((current) => ({
           ...current,
           status: state.actionPlan?.status === "consumed" ? "ready" : current.status,

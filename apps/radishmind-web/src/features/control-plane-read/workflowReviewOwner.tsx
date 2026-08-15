@@ -520,6 +520,7 @@ function OwnerBoundary({ title, copy }: { title: string; copy: string }) {
 }
 
 function runSource(run: WorkflowRunHistorySummary): string {
+  if (run.schemaVersion === "workflow_run_record.v9") return `Workflow Definition HTTP Tool · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v8") return `Structured Workflow Definition · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v7") return `Agent Copilot · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v6") return `Prompt Application · ${run.executionSourceId}`;

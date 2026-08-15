@@ -163,7 +163,7 @@ export type WorkflowRunHistoryState = {
 };
 
 export function isWorkflowRunComparisonEligible(run: WorkflowRunHistorySummary): boolean {
-  return run.schemaVersion !== "workflow_run_record.v2";
+  return run.schemaVersion !== "workflow_run_record.v2" && run.schemaVersion !== "workflow_run_record.v9";
 }
 
 export function isWorkflowRunComparisonCompatible(
@@ -321,7 +321,7 @@ function normalizeBaseUrl(value: string): string {
 
 function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
   const sideEffects = value.side_effects;
-  const toolRecord = value.schema_version === "workflow_run_record.v2";
+  const toolRecord = value.schema_version === "workflow_run_record.v2" || value.schema_version === "workflow_run_record.v9";
   const retrievalRecord = value.schema_version === "workflow_run_record.v3" || value.schema_version === "workflow_run_record.v4";
   if (sideEffects.business_writes || sideEffects.replay_writes ||
     (toolRecord && (sideEffects.tool_calls !== 1 || sideEffects.confirmation_calls !== 1)) ||
@@ -380,15 +380,22 @@ function isRunSummary(value: unknown): value is RunSummaryDocument {
   const item = value as Partial<RunSummaryDocument>;
   const raw = value as Record<string, unknown>;
   if (containsForbiddenHistoryField(raw)) return false;
-  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7" || item.schema_version === "workflow_run_record.v8";
+  const schemaValid = item.schema_version === "workflow_run_record.v0" || item.schema_version === "workflow_run_record.v1" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" || item.schema_version === "workflow_run_record.v5" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7" || item.schema_version === "workflow_run_record.v8" || item.schema_version === "workflow_run_record.v9";
   const statusValid = ["running", "succeeded", "failed", "canceled", "outcome_unknown"].includes(item.status ?? "") &&
-    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7");
-  const toolMetadataValid = item.schema_version === "workflow_run_record.v2"
+    (item.status !== "outcome_unknown" || item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v6" || item.schema_version === "workflow_run_record.v7" || item.schema_version === "workflow_run_record.v9");
+  const toolMetadataValid = item.schema_version === "workflow_run_record.v2" || item.schema_version === "workflow_run_record.v9"
     ? typeof item.plan_id === "string" && typeof item.confirmation_id === "string" &&
       ["claimed", "succeeded", "failed", "outcome_unknown"].includes(item.tool_attempt_status ?? "")
     : [item.plan_id, item.confirmation_id, item.tool_attempt_status].every((field) => field === undefined || field === "");
   const retrievalMetadataValid = item.schema_version === "workflow_run_record.v3" || item.schema_version === "workflow_run_record.v4" ? isRAGRunSummary(item) : true;
-  const executionMetadataValid = item.schema_version === "workflow_run_record.v8"
+  const executionMetadataValid = item.schema_version === "workflow_run_record.v9"
+    ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_http_tool_execution" &&
+      item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
+      Number.isInteger(item.execution_source_version) && item.execution_profile === "workflow_definition_http_tool_v1" &&
+      DIGEST_PATTERN.test(item.definition_digest ?? "") && Number.isInteger(item.activation_pointer_version) &&
+      typeof item.source_draft_id === "string" && Number.isInteger(item.source_draft_version) &&
+      DIGEST_PATTERN.test(item.source_draft_digest ?? "")
+    : item.schema_version === "workflow_run_record.v8"
     ? item.draft_id === "" && item.draft_version === 0 && item.execution_kind === "workflow_definition_execution" &&
       item.execution_source_kind === "workflow_definition" && typeof item.execution_source_id === "string" &&
       Number.isInteger(item.execution_source_version) && item.execution_profile === "workflow_definition_executor_v2" &&

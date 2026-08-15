@@ -24,6 +24,7 @@ provider_attempt_local_product=0
 provider_attempt_postgres_dev_test=0
 provider_attempt_fixture_url="http://127.0.0.1:7201"
 workflow_http_tool_local_product=0
+workflow_definition_http_tool_local_product=0
 workflow_rag_dev=0
 workflow_rag_promotion_local_product=0
 workflow_rag_application_local_product=0
@@ -86,6 +87,8 @@ Options:
                            Loopback fixture base URL. Default: http://127.0.0.1:7201
   --workflow-http-tool-local-product
                            Enable the SQLite local-product Workflow HTTP Tool chain.
+  --workflow-definition-http-tool-local-product
+                           Enable the SQLite Definition → Plan → Confirm → Execute → History chain.
   --workflow-rag-dev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
   --workflow-rag-promotion-local-product
                            Enable the SQLite evaluation, promotion, draft binding, and publish review chain without retrieval execution.
@@ -207,6 +210,10 @@ while [[ $# -gt 0 ]]; do
       workflow_http_tool_local_product=1
       shift
       ;;
+    --workflow-definition-http-tool-local-product)
+      workflow_definition_http_tool_local_product=1
+      shift
+      ;;
     --workflow-rag-dev)
       workflow_rag_dev=1
       shift
@@ -290,6 +297,10 @@ esac
 
 if [[ "${provider_attempt_local_product}" -eq 1 ]]; then
   admin_provider_route_local_product=1
+fi
+if [[ "${workflow_definition_http_tool_local_product}" -eq 1 ]]; then
+  workflow_http_tool_local_product=1
+  workflow_definition_local_product=1
 fi
 if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
   admin_provider_route_postgres_dev_test=1
@@ -1717,7 +1728,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
           export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE="dev-workflow-http-tool-http"
-          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+          workflow_http_tool_scope_grants="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+          if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
+            workflow_http_tool_scope_grants="${workflow_http_tool_scope_grants},workflow_definitions:read"
+          fi
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="${workflow_http_tool_scope_grants}"
         fi
         if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE="dev-workflow-definition-promotion-http"
@@ -2012,6 +2027,9 @@ if [[ "${mode}" == "dev-live" ]]; then
   fi
   if [[ "${workflow_http_tool_local_product}" -eq 1 ]]; then
     step "Workflow HTTP Tool SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve and execute remain separate actions."
+  fi
+  if [[ "${workflow_definition_http_tool_local_product}" -eq 1 ]]; then
+    step "Workflow Definition HTTP Tool SQLite product chain enabled; candidate, review, activation, plan, confirmation, execution, and v9 history remain explicit actions."
   fi
   if [[ "${workflow_rag_dev}" -eq 1 ]]; then
     step "Workflow RAG Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; execution is synchronous, metadata-only, and dev/test only."

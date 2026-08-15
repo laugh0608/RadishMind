@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
   initialWorkflowRunHistoryState,
+  isWorkflowRunComparisonEligible,
   listWorkflowRunHistory,
   resolveWorkflowRunHistoryConfig,
 } from "../src/features/control-plane-read/workflowRunHistoryConsumer.ts";
@@ -199,6 +201,51 @@ test("workflow run history maps metadata-only structured Definition v8", async (
     assert.equal(run?.inputContractDigest, contractDigest);
     assert.equal(run?.definitionDigest, definitionDigest);
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test("workflow run history and detail recognize v9 as side-effectful Definition evidence", async () => {
+  const originalFetch = globalThis.fetch;
+  const definitionDigest = `sha256:${"b".repeat(64)}`;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    request_id: "request_definition_tool_history", workspace_id: "workspace_demo", application_id: "app_demo",
+    runs: [{ schema_version: "workflow_run_record.v9", record_version: 2, run_id: "run_0123456789abcdef",
+      plan_id: "wtap_abcdefghijklmnop", confirmation_id: "wtcd_abcdefghijklmnop", tool_attempt_status: "succeeded",
+      draft_id: "", draft_version: 0, execution_kind: "workflow_definition_http_tool_execution",
+      execution_source_kind: "workflow_definition", execution_source_id: "definition_demo", execution_source_version: 3,
+      execution_profile: "workflow_definition_http_tool_v1", definition_digest: definitionDigest,
+      activation_pointer_version: 4, source_draft_id: "draft_definition_source", source_draft_version: 3,
+      source_draft_digest: definitionDigest, workspace_id: "workspace_demo", application_id: "app_demo",
+      status: "succeeded", failure_code: "", started_at: "2026-08-15T10:00:00Z",
+      completed_at: "2026-08-15T10:00:02Z", duration_ms: 2000, selected_provider: "mock",
+      selected_profile: "default", selected_model: "mock", request_id: "request_definition_tool_run",
+      audit_ref: "audit_definition_tool_run", stale_running: false, failure_boundary: "",
+      failed_node_id: "", last_completed_node_id: "node_output", gateway_failure_category: "none",
+      tool_failure_category: "none", recommended_review_action: "",
+      side_effects: { provider_calls: 1, tool_calls: 1, confirmation_calls: 1, business_writes: 0, replay_writes: 0 } }],
+    next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_definition_tool_history",
+  }), { status: 200 });
+  try {
+    const result = await listWorkflowRunHistory("app_demo", live, EMPTY_WORKFLOW_RUN_HISTORY_FILTER);
+    const run = result.runs[0]!;
+    assert.equal(run.schemaVersion, "workflow_run_record.v9");
+    assert.equal(run.executionProfile, "workflow_definition_http_tool_v1");
+    assert.equal(run.planId, "wtap_abcdefghijklmnop");
+    assert.equal(run.sideEffects.toolCalls, 1);
+    assert.equal(run.activationPointerVersion, 4);
+    assert.equal(isWorkflowRunComparisonEligible(run), false);
+  } finally { globalThis.fetch = originalFetch; }
+
+  const fixture = JSON.parse(readFileSync(
+    new URL("../../../scripts/checks/fixtures/workflow-http-tool-contracts-v1.json", import.meta.url),
+    "utf8",
+  ));
+  const detail = fixture.positive.run_record_v9;
+  assert.equal(parseWorkflowRunRecordDocument(detail)?.schemaVersion, "workflow_run_record.v9");
+  assert.equal(parseWorkflowRunRecordDocument({ ...detail, raw_output: "private" }), null);
+  assert.equal(parseWorkflowRunRecordDocument({
+    ...detail,
+    tool_attempt: { ...detail.tool_attempt, output_projection: { summary: "https://private.invalid/raw" } },
+  }), null);
 });
 
 test("workflow run history and detail recognize strict metadata-only v6", async () => {

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-15
 
-状态：`workflow_definition_http_tool_v1_batch_d_react_consumer_next`
+状态：`workflow_definition_http_tool_v1_completed`
 
 ## 功能定位
 
@@ -12,12 +12,13 @@
 
 功能只在显式开发 / 测试态门禁下开放，不声明生产工具执行、生产凭据、公开 API 或上层业务写回能力。
 
-## 当前实现与剩余缺口
+## 当前实现与关闭结论
 
 - 通用 `workflow_definition_executor_v1/v2` 只接受 `prompt | llm | condition | output`，并保持 `tool_calls=0`。
 - 既有 HTTP Tool 已具备精确 Saved Draft 来源、action plan、人工确认、单次 claim、受限 HTTPS transport、`workflow_run_record.v2` 和三种开发测试态存储。
 - HTTP Tool action plan 已支持严格的 Saved Draft v1 / Definition v2 来源 union；Definition 来源计划、确认、attempt 和 v9 run 已贯通 memory、SQLite 与 PostgreSQL，并可跨服务重启恢复。
-- 当前剩余产品缺口是 React 仍未把 Definition candidate、activation、一次性计划、人工确认、执行结果和 Run History 组织成连续用户路径。
+- React Definition 工作区已把 candidate、review、version、activation、一次性计划、人工确认、执行结果和 Run History 组织为连续用户路径；刷新和服务重启会按精确 plan / run 引用重读权威记录，不重新提交执行请求。
+- application / workspace 切换会旋转 owner epoch、清空一次性参数与迟到响应；strict consumer 分别锁定 plan / decision v2 和 run v9，未知字段、错误 scope、来源漂移和引用污染均失败关闭。
 - 直接放宽通用 Definition executor 会绕过独立 confirmation、tool profile 和网络策略，因此必须增加显式 execution profile，并继续委托给既有 HTTP Tool owner。
 
 ## 用户路径
@@ -158,10 +159,18 @@ detail、decision 和 execution 继续复用既有 plan 资源路由。权限要
 
 ### 批次 D：React 产品路径与专题关闭
 
+状态：已完成。
+
 - 在既有 Definition 工作区完成 Candidate → Review → Version → Activation → Plan → Confirm → Execute → History；明确区分 Definition approved、plan approved 与 run executed。
 - strict consumer 接入 plan v2、audit / decision v2 和 run v9；application / workspace 切换清空易失输入与迟到响应，offline 保持零请求。
 - 完成 SQLite 本地产品连续链、服务重启、桌面 / 中宽 / 窄屏真实浏览器、console / network / URL / Web Storage 和敏感内容复验；PostgreSQL 后端连续链沿用批次 C 已通过证据。
 - 更新功能入口、当前焦点、路线图、能力矩阵和周志，运行全量仓库门禁后关闭专题。
+
+当前证据：SQLite 本地产品已实际完成 Draft → `workflow_definition_http_tool_v1` candidate → approved version → activation → plan v2 → confirmation v2 → execute → Run History v9，并在同一数据库上完成服务重启恢复。开发 launcher 使用服务端登记的 `https://api.dev.example.invalid` 作为受控目标，因此运行按预期以 `workflow_tool_transport_failed` 终结；证据同时确认只产生一个 tool attempt、一个 confirmation、零业务写入、零 replay 和零 retry / fallback。刷新与重启均恢复同一个 consumed plan 和同一 v9 run，没有再次发送执行请求。
+
+真实内置浏览器已复核 `1440×900`、`1024×768` 与 `390×844`，三种视口均无横向溢出，窄屏保持操作顺序和来源可读性，最终页面控制台 warning / error 为零。URL 只保留本地路由和作用域标识；浏览器会话引用仅保存 workspace / application / Definition / plan / run 短引用及版本指针，这一结构由 strict consumer 测试覆盖，未知字段和不合法 run id 均拒绝。数据库与运行记录继续只保存 digest、字节数、脱敏 attempt / failure 和权威引用，不保存禁止材料。
+
+专题至此关闭；后续产品顺位回到 [功能设计文档入口](../README.md) 选择新的长期功能目标，不从本专题派生批次 E、平行 owner 或同层 gate-only 切片。
 
 ## 验收方式
 
