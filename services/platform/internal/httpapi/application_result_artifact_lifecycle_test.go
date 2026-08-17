@@ -7,6 +7,30 @@ import (
 	"time"
 )
 
+func TestMemoryApplicationResultArtifactSupportsEverySessionProfile(t *testing.T) {
+	repository := newMemoryApplicationResultArtifactRepository()
+	ctx, artifacts := applicationResultArtifactPersistenceProfileFixtures()
+
+	for _, artifact := range artifacts {
+		created, replay, err := repository.Create(ctx, artifact)
+		if err != nil || replay || !applicationResultArtifactsEquivalent(created, artifact) {
+			t.Fatalf("create memory %s result artifact: created=%#v replay=%v err=%v", artifact.ExecutionProfile, created, replay, err)
+		}
+		replayed, replay, err := repository.Create(ctx, artifact)
+		if err != nil || !replay || !applicationResultArtifactsEquivalent(replayed, artifact) {
+			t.Fatalf("replay memory %s result artifact: replayed=%#v replay=%v err=%v", artifact.ExecutionProfile, replayed, replay, err)
+		}
+		restored, err := repository.Read(ctx, artifact.ArtifactID)
+		if err != nil || !applicationResultArtifactsEquivalent(restored, artifact) {
+			t.Fatalf("read memory %s result artifact: restored=%#v err=%v", artifact.ExecutionProfile, restored, err)
+		}
+		lifecycle, err := repository.ReadLifecycle(ctx, artifact.ArtifactID)
+		if err != nil || lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive || lifecycle.LifecycleVersion != 1 {
+			t.Fatalf("read memory %s result artifact lifecycle: lifecycle=%#v err=%v", artifact.ExecutionProfile, lifecycle, err)
+		}
+	}
+}
+
 func TestApplicationResultArtifactLifecycleDefaultsFiltersAndTransitions(t *testing.T) {
 	repository := newMemoryApplicationResultArtifactRepository()
 	ctx, artifact := applicationResultArtifactPersistenceFixture()

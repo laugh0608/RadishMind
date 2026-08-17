@@ -2,7 +2,7 @@
 
 更新时间：2026-08-17
 
-状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_c2_web_consumer_completed_dual_database_product_chain_next`
+状态：`application_session_result_artifact_explicit_retention_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 结果资产不是 transcript、Run History 扩展或 provider response archive。它是用户主动保留的一份应用结果，服务端拥有来源绑定、内容摘要、读取边界和后续生命周期；既有 `workflow_run_record.*`、`application_session.v*` 与 `application_session_turn.v*` 继续保持 metadata-only。
 
-## 为什么是当前最高优先级
+## 为什么曾是当前最高优先级
 
 - Application Session 已能执行 Workflow Definition、结构化 Definition、Application RAG、Prompt 与 Agent / Copilot，但刷新或重启后只恢复 turn metadata 和 run ref，首次响应中的结果无法再次读取。
 - 能力矩阵已把 materialized result reader 列为 `Conversation & Session` 的真实缺口；继续扩 HTTP Tool、Provider Attempt、只读 evidence 或 readiness 无法解决用户完成一次运行后保存成果的问题。
@@ -144,11 +144,15 @@ archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次�
 
 页面设计审查五维评分为 `0 / 0 / 0 / 0 / 2 = 2`，采用 `C / 直接实现`：信息层级、风险表达和响应式模式均复用既有 S3 生命周期库与 S8 Session owner，只有三页共享复用带来新增杠杆，因此未修改 Pencil、未建立 S11。SQLite 本地产品已在真实浏览器完成 Prompt 与结构化 Workflow Application 的显式保存、metadata list、exact read 和 archive / unarchive；Agent 旧 assignment 继续以 `application_session_authority_changed` 在 Provider 调用前失败关闭。`1440×900`、`720×900`、`390×844` 无页面级横向溢出，控制台无 warning / error；Web `371/371` 与 production build 已通过。
 
-### 批次 D：双数据库产品连续链与专题收口
+### 批次 D：双数据库产品连续链与专题收口（已完成）
 
 - memory / SQLite / PostgreSQL 验证同一 profile matrix、幂等、权限、cursor、archive / unarchive、purge route 不存在与 no-fallback。
 - SQLite 本地产品验证保存 → 刷新 → 精确读取 → 服务重启恢复 → archive → unarchive，并复核永久 purge 仍不可调用及桌面 / 窄屏行为。
 - 同步 current focus、功能索引、能力矩阵、路线图与周志；专题关闭后不派生通用 result store 或 transcript 批次。
+
+当前三种 store 已复用同一五 profile fixture 验证创建、幂等重放、精确读取与 active v1 初始生命周期；既有 HTTP 测试继续覆盖 strict cursor、组合权限、archive / unarchive 和 metadata-only list。PostgreSQL 17 聚合集成新增配置化整机产品链：平台通过共享 Workflow Run Store pool 创建 terminal source 与显式 artifact，验证相同 capture 幂等、归档、永久 `DELETE` route 返回 `405`、关闭连接后 store unavailable 且不回退 memory，并在重新构造完整 Server 后恢复原正文、digest 与 archived v2，再解除归档为 active v3。migration / runtime role 分离、并发、rollback / reapply 和五 profile repository 证据继续由既有聚合集成承载。
+
+SQLite 本地产品在服务重新启动后恢复上一轮显式保存的 Prompt artifact `appres_oz5tcssa3ysdvdya`；metadata list 先恢复 active v3，精确读取返回同一正文与 `sha256:8c2a089ddbd14b8729422ffb86a7098785839d26d57c9566760f785f960a70bf`，随后完成 archive v4 → unarchive v5。当前 `1280×720` 页面无横向溢出且页面日志无 warning / error；批次 C2 的 `1440×900`、`720×900`、`390×844` 响应式证据继续成立。批次 D 未新增 API、schema、migration、Pencil、task card 或 checker。
 
 ## 验收方式
 
@@ -159,7 +163,7 @@ archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次�
 - authorization：identity / membership / workspace / application / owner 任一不匹配均在 artifact read 或 capture 前失败关闭。
 - compatibility：既有五类 session profile、Run History、Comparison、Evaluation、Gateway、RAG 与 HTTP Tool 测试不回归。
 - repository：批次 A 已通过 Go 单元 / HTTP / race 精准测试、`go vet` 和仓库快速 / 全量门禁；批次 B 已通过 SQLite 真实文件专项、PostgreSQL 17 聚合集成、运行角色、并发、重启、rollback / reapply 与 no-fallback 证据。
-- lifecycle：批次 C1 已通过 memory / SQLite / PostgreSQL CAS、旧资产 active v1 回填、HTTP 组合权限、metadata-only list、archived exact read、append-only event、配置化 PostgreSQL profile 与仓库门禁；批次 C2 已通过共享 strict consumer、三类 Session 接入、SQLite 真实保存 / exact read / archive / unarchive 和三视口浏览器复核。服务重启后的 Web 恢复与 PostgreSQL 产品连续链留到批次 D。
+- lifecycle：批次 C1 已通过 memory / SQLite / PostgreSQL CAS、旧资产 active v1 回填、HTTP 组合权限、metadata-only list、archived exact read、append-only event、配置化 PostgreSQL profile 与仓库门禁；批次 C2 已通过共享 strict consumer、三类 Session 接入、SQLite 真实保存 / exact read / archive / unarchive 和三视口浏览器复核；批次 D 已通过三存储五 profile matrix、PostgreSQL 配置化 Server 关闭 / 重启产品链、purge route 不存在、no-fallback，以及 SQLite Web 服务重启后的同一 artifact 恢复与 lifecycle 往返。专题证据链已闭合。
 
 ## 停止线
 
@@ -168,4 +172,4 @@ archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次�
 - 不允许客户端事后上传结果并绑定 run，不从日志、缓存或 provider 重建结果。
 - 不实现 replay / resume、自动 retry / fallback、background execution、schedule、agent loop、业务写回或自动发布。
 - 不打开真实 Provider、production secret、production auth、public sharing、public URL、跨 workspace 分享、billing 或 production capability。
-- memory owner 不声明 durable 或重启恢复；SQLite / PostgreSQL 的 durable 结论只限开发测试态。批次 C 必须保留 artifact payload 不可变，永久 purge、自动清理和 production lifecycle 继续关闭。
+- memory owner 不声明 durable 或重启恢复；SQLite / PostgreSQL 的 durable 结论只限开发测试态。所有后续工作必须保留 artifact payload 不可变，永久 purge、自动清理和 production lifecycle 继续关闭。

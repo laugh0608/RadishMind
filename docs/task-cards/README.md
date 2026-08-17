@@ -12,11 +12,11 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险后端任务卡。[应用会话运行结果资产显式保存与恢复 v1 批次 A / B / C1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成 strict contract、五类 session profile canonical capture、三存储不可变 owner、版本化 lifecycle、append-only event、archive / unarchive CAS、独立权限、双数据库升级与 no-fallback；普通 UI 批次 C2 也已在功能专题内完成共享 strict consumer、三类 Session 接入和 SQLite 浏览器链。下一步回到功能专题推进批次 D 双数据库产品链与收口；只有出现新的 API、schema 或高风险执行边界才扩任务卡，不从已关闭 HTTP Tool 派生批次 E。
+当前没有活跃高风险后端任务卡。[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成批次 A 至 D：strict contract、五类 session profile canonical capture、三存储不可变 owner、版本化 lifecycle、共享 strict consumer、SQLite 重启页面恢复、PostgreSQL 配置化产品链与 no-fallback 均已闭合。下一步回到功能设计文档入口选择新的长期目标；只有出现新的 API、schema 或高风险执行边界才扩任务卡，不从已关闭结果资产或 HTTP Tool 专题派生批次 E。
 
 ## 最近关闭任务
 
-最新关闭：[应用会话运行结果资产显式保存与恢复 v1 批次 A / B / C1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)已完成显式 opt-in、服务端 canonical capture、三存储不可变 artifact 与 lifecycle owner、HTTP archive / unarchive、双数据库重启及旧资产升级。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
+最新关闭：[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)已完成批次 A 至 D 的显式 opt-in、服务端 canonical capture、三存储不可变 artifact 与 lifecycle owner、HTTP archive / unarchive、共享 Web consumer、SQLite 重启页面恢复、PostgreSQL 配置化产品链及旧资产升级。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。
