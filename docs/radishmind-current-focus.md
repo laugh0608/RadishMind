@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`。批次 A / B 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace owner 与三视口复核；下一步只用稳定双 Session fixture 完成 SQLite 页面 exact read / export / lifecycle / 重启链和 PostgreSQL 对等 configured Server 链，再收口专题。它不是批次 E，也不创建通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
+- 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，下一顺位回到[功能设计文档入口](features/README.md)依据真实使用证据选择新的长期功能，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
 - 最近关闭产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_completed`。批次 A 至 D 已完成五类 session profile、memory / SQLite / PostgreSQL 不可变 artifact 与独立 lifecycle、共享 strict Web consumer、三类 Session 接入、SQLite 服务重启页面恢复，以及 PostgreSQL 配置化 Server 保存 → 归档 → 关闭 no-fallback → 重启读取 → 解除归档产品链；永久 `DELETE` route 仍不存在。专题保持关闭，不派生批次 E、通用 result store 或 transcript。
 - 最近关闭产品顺位：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 状态为 `workflow_definition_http_tool_v1_completed`。批次 A 至 D 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2、strict `workflow_run_record.v9`、三种 store、React strict consumer、SQLite 重启恢复与真实浏览器 `1440×900` / `1024×768` / `390×844`。实际开发目标按预期以 transport failure 终结，只产生一个 attempt 和一个 confirmation，零业务写入、零 retry / fallback；刷新和重启均恢复同一 consumed plan 与 v9 run，不重新执行。下一产品顺位回到 [功能设计文档入口](features/README.md)，先选择并更新新的长期功能设计文档，不从本专题派生批次 E、平行 owner 或 gate-only 切片。
 - 最近关闭产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 状态为 `gateway_provider_attempt_dev_test_v1_completed`。批次 A 至 E、七个 Visual R1 代表面、三块 React strict consumer、memory / SQLite / PostgreSQL 产品连续链、三个 unary 协议、真实浏览器 `1440×900` / `720×900` / `390×844` 和最终门禁均已闭合；真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。下一产品顺位回到 [功能设计文档入口](features/README.md) 选择新的长期功能目标，不从本专题派生 S11 或同层 gate-only 切片。
@@ -39,7 +39,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：应用结果资产库与受控导出 v1 的批次 A 已完成；下一步复核局部 Pencil 覆盖是否仍有结构性新决策，如现有 Saved Draft Library 与 Session Result Artifact Panel 足以推导则记录 `C / 直接实现`，随后进入 application-scoped strict consumer、filter、exact inspector、Run handoff、lifecycle 与本地 JSON 下载。它只复用既有不可变 artifact / lifecycle owner；transcript、public share、永久 purge、replay / resume、真实 Provider 和 production 继续关闭。
+1. 产品线：应用结果资产库与受控导出 v1 已完成并关闭。下一轮先在[功能设计文档入口](features/README.md)比较真实使用证据、现有 owner 与外部前置，选择并更新一个新的长期功能设计文档；当前不预建 task card、fixture 或 checker，也不把结果资产专题延长为批次 D / E。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-17 今日完成与下一事项
@@ -50,6 +50,8 @@
 4. 已完成批次 D：memory / SQLite / PostgreSQL 复用同一五 profile fixture；PostgreSQL 17 配置化 Server 完成显式保存、幂等、归档、关闭后 no-fallback、重启精确读取与解除归档，永久 `DELETE` route 返回 `405`。SQLite 页面在服务重启后恢复同一 `appres_oz5tcssa3ysdvdya` 正文与 digest，并完成 active v3 → archived v4 → active v5；当前页面无横向溢出且日志无 warning / error。
 5. 已选择新的独立长期专题“应用结果资产库与受控导出 v1”并进入批次 A：只打开 application-scoped discovery 和单 artifact canonical JSON export；public share、批量导出、永久删除、自动清理、transcript、长期记忆、replay / resume、真实 Provider、production secret / auth / store、自动执行和业务写回继续关闭。
 6. 已完成新专题批次 A：summary v2 / export v1 合同、application cursor v3、三存储 application-scoped list、独立 export permission、SQLite `0024` / PostgreSQL `0027` 索引与 HTTP route 已落地。memory 超过 `100` 条同时间戳分页、SQLite 重启、PostgreSQL migration / runtime role / configured Server no-fallback 与重启、完整 `internal/httpapi` 均已通过；测试容器已关闭。
+7. 已完成批次 B / C：S5 单一 Result Workspace、strict Web consumer、筛选、exact inspector、Run handoff、lifecycle CAS 与二阶段校验后下载已经闭合。共享 fixture 覆盖两个 Session、两种 profile、两种 content type 和 active / archived；SQLite 页面完成 archive / unarchive 与重启恢复，PostgreSQL configured Server 完成关闭 no-fallback 与重启恢复。Web `375/375`、production build、三视口和 PostgreSQL 17 聚合集成通过，测试服务与容器已关闭。
+8. 应用结果资产库专题状态推进为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。下一轮先选择新的长期功能设计文档；工作区运营收件箱批次 B、真实 Provider、production auth / secret 和 Radish 接线仍等待各自真实需求或外部前置，不以 gate-only 续批代替产品推进。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 

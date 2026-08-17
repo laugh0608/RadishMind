@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-17 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool 与[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)均已关闭。新的产品顺位为[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)，状态为 `application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`；批次 A / B 已完成 application-scoped 严格列表、canonical export、独立权限、双数据库索引、strict Web consumer、单一 Result Workspace owner 与三视口复核，下一步只执行双数据库真实产品连续链并收口专题，不从已关闭专题派生批次 E，也不打开 transcript、public share、永久 purge、真实 Provider 或 production。
+2026-08-17 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)与[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)均已关闭。后者状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`，批次 A 至 C 已完成 application-scoped 严格列表、canonical export、独立权限、双数据库索引、strict Web consumer、单一 Result Workspace、SQLite 页面重启链与 PostgreSQL configured Server 对等链。下一轮先依据真实使用证据选择并更新新的长期功能设计文档，不从已关闭专题派生批次 D / E，也不打开 transcript、public share、永久 purge、真实 Provider 或 production。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -62,7 +62,7 @@
 | [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) | 功能 / 可观察性专题 | 已完成 Gateway 请求与 Workflow 运行的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测关联或估算 token / cost / quota / billing |
 | [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) | 功能 / 受控执行专题 | strict contract、三种 repository、v5 / v4 委托、Web 易失交互工作区、双数据库连续链与浏览器重启恢复已完成，专题关闭 |
 | [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) | 功能 / 结果资产专题 | 已完成批次 A 至 D：三存储 owner、生命周期、共享 Web consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已闭合；不派生批次 E、通用 result store 或 transcript |
-| [应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) | 功能 / 结果资产工作区专题 | 批次 A / B 已完成 application-scoped 严格列表、过滤 cursor、canonical export、独立 export 权限、双数据库索引、strict Web consumer 和三视口页面；下一步以稳定双 Session fixture 完成双数据库产品连续链并关闭专题 |
+| [应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) | 功能 / 结果资产工作区专题 | 批次 A 至 C 已完成 application-scoped 严格列表、过滤 cursor、canonical export、独立 export 权限、双数据库索引、strict Web consumer、三视口页面、SQLite 重启与 PostgreSQL no-fallback / 重启链；专题关闭 |
 | [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 批次 A 至 E、双数据库连续链、重启、负向与隐私验收均已完成；专题关闭 |
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |

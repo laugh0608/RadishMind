@@ -127,6 +127,78 @@ func TestPostgresConfiguredApplicationResultArtifactProductChainRestartsWithoutF
 	}
 }
 
+func TestPostgresConfiguredApplicationResultArtifactLibraryFixtureRestartsWithoutFallback(t *testing.T) {
+	adminPool, runtimeDatabaseURL, ctx := newConfiguredPostgresTestDatabase(t)
+	for _, gate := range configuredPostgresMigrationGates(adminPool) {
+		state, _, err := gate.apply(ctx)
+		if err != nil || state != "applied" {
+			t.Fatalf("apply %s migration for result artifact library fixture: state=%s err=%v", gate.name, state, err)
+		}
+	}
+
+	cfg := configuredPostgresProductConfig(runtimeDatabaseURL)
+	cfg.ApplicationSessionDevEnabled = true
+	server, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-library-fixture-first"})
+	if err != nil {
+		t.Fatalf("start configured PostgreSQL result artifact library fixture server: %v", err)
+	}
+	fixture, err := seedApplicationResultArtifactLibraryDevFixture(server)
+	if err != nil {
+		server.Close()
+		t.Fatalf("seed configured PostgreSQL result artifact library fixture: %v", err)
+	}
+	assertApplicationResultArtifactLibraryFixture(t, server, fixture)
+
+	archived := server.applicationResultArtifactService().Archive(
+		fixture.ArtifactContext,
+		ApplicationResultArtifactLifecycleTransitionInput{
+			SessionID:                fixture.Artifacts[0].SessionID,
+			ArtifactID:               fixture.Artifacts[0].ArtifactID,
+			ExpectedLifecycleVersion: 1,
+		},
+	)
+	if archived.FailureCode != "" || archived.Lifecycle == nil || archived.Lifecycle.LifecycleVersion != 2 {
+		server.Close()
+		t.Fatalf("archive configured PostgreSQL result artifact library fixture: %#v", archived)
+	}
+	closedRepository := server.applicationResultArtifactRepository
+	server.Close()
+	closedService := newApplicationResultArtifactService(closedRepository)
+	if closed := closedService.ListApplication(fixture.ArtifactContext, ApplicationResultArtifactListInput{}); closed.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("closed configured PostgreSQL application library did not fail closed: %#v", closed)
+	}
+	if closed := closedService.Export(fixture.ArtifactContext, fixture.Artifacts[0].ArtifactID); closed.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("closed configured PostgreSQL application export did not fail closed: %#v", closed)
+	}
+
+	restarted, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-library-fixture-restarted"})
+	if err != nil {
+		t.Fatalf("restart configured PostgreSQL result artifact library fixture server: %v", err)
+	}
+	t.Cleanup(restarted.Close)
+	read := restarted.applicationResultArtifactService().Read(fixture.ArtifactContext, fixture.Artifacts[0].ArtifactID)
+	exported := restarted.applicationResultArtifactService().Export(fixture.ArtifactContext, fixture.Artifacts[0].ArtifactID)
+	if read.FailureCode != "" || read.Artifact == nil || read.Lifecycle == nil ||
+		read.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived || read.Lifecycle.LifecycleVersion != 2 ||
+		exported.FailureCode != "" || exported.Export == nil || exported.Export.Lifecycle.LifecycleVersion != 2 ||
+		exported.Export.ExportDigest != applicationResultArtifactExportDigest(*exported.Export) {
+		t.Fatalf("configured PostgreSQL result artifact library fixture did not survive restart: read=%#v export=%#v", read, exported)
+	}
+	unarchived := restarted.applicationResultArtifactService().Unarchive(
+		fixture.ArtifactContext,
+		ApplicationResultArtifactLifecycleTransitionInput{
+			SessionID:                fixture.Artifacts[0].SessionID,
+			ArtifactID:               fixture.Artifacts[0].ArtifactID,
+			ExpectedLifecycleVersion: 2,
+		},
+	)
+	if unarchived.FailureCode != "" || unarchived.Lifecycle == nil ||
+		unarchived.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive ||
+		unarchived.Lifecycle.LifecycleVersion != 3 {
+		t.Fatalf("unarchive configured PostgreSQL result artifact library fixture after restart: %#v", unarchived)
+	}
+}
+
 func createConfiguredPostgresResultArtifactSource(
 	t *testing.T,
 	requestContext context.Context,

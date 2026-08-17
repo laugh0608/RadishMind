@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -41,8 +44,15 @@ func main() {
 		}
 	}
 
+	applicationResultArtifactFixture, err := readOptionalBooleanEnvironment(
+		"RADISHMIND_APPLICATION_RESULT_ARTIFACT_LIBRARY_DEV_FIXTURE",
+	)
+	if err != nil {
+		log.Fatalf("load application result artifact library fixture option: %v", err)
+	}
 	server, err := httpapi.NewServerWithError(cfg, httpapi.Options{
 		BuildVersion: buildVersion,
+		ApplicationResultArtifactLibraryDevFixture: applicationResultArtifactFixture,
 	})
 	if err != nil {
 		log.Fatalf("initialize platform api: %v", err)
@@ -73,6 +83,18 @@ func main() {
 			log.Printf("shutdown platform api: %v", err)
 		}
 	}
+}
+
+func readOptionalBooleanEnvironment(name string) (bool, error) {
+	value := strings.TrimSpace(os.Getenv(name))
+	if value == "" {
+		return false, nil
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return false, fmt.Errorf("%s must be a boolean", name)
+	}
+	return parsed, nil
 }
 
 func writeConfigSummary(cfg config.Config) {

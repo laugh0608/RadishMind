@@ -12,11 +12,11 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险任务卡为[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)，状态为 `application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`。批次 A / B 的 list / export API、schema、权限、双数据库 migration、strict Web consumer、单一 owner 与三视口复核已完成；下一步只承接双数据库真实产品连续链和专题收口，不复制既有 artifact / lifecycle owner，也不是已关闭结果资产专题的批次 E。
+当前没有活跃高风险任务卡。[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md) 已完成批次 A 至 C 的 list / export API、schema、权限、双数据库 migration、strict Web consumer、单一 owner、三视口与双数据库产品连续链，状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。下一轮先选择新的长期功能设计文档；只有新增 API、执行边界、schema、production 声明或其它高风险边界时再创建任务卡。
 
 ## 最近关闭任务
 
-最新关闭：[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)已完成批次 A 至 D 的显式 opt-in、服务端 canonical capture、三存储不可变 artifact 与 lifecycle owner、HTTP archive / unarchive、共享 Web consumer、SQLite 重启页面恢复、PostgreSQL 配置化产品链及旧资产升级。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
+最新关闭：[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)已完成批次 A 至 C 的 application-scoped list、受控 export、strict Web consumer、SQLite 页面重启链和 PostgreSQL 配置化 no-fallback / 重启链；[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)已完成批次 A 至 D 的显式 opt-in、服务端 canonical capture、三存储不可变 artifact 与 lifecycle owner。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。

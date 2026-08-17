@@ -17,8 +17,9 @@ import (
 const serviceName = "radishmind-platform"
 
 type Options struct {
-	BuildVersion string
-	TestOnly     bool
+	BuildVersion                               string
+	TestOnly                                   bool
+	ApplicationResultArtifactLibraryDevFixture bool
 }
 
 type bridgeClient interface {
@@ -116,6 +117,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		return nil, fmt.Errorf("workflow HTTP tool test loopback is restricted to explicit test servers")
 	}
 	runtimeConfig := config.EffectiveLocalPersistenceConfig(cfg)
+	if options.ApplicationResultArtifactLibraryDevFixture &&
+		(!runtimeConfig.ApplicationSessionDevEnabled || !runtimeConfig.ControlPlaneReadDevAuthEnabled ||
+			!runtimeConfig.ApplicationCatalogDevHTTPEnabled || !runtimeConfig.ApplicationCatalogDevWriteEnabled ||
+			config.EffectiveLocalPersistenceMode(runtimeConfig) != "sqlite_dev") {
+		return nil, fmt.Errorf("application result artifact library fixture requires the explicit SQLite local-product session gates")
+	}
 	authenticator, err := newControlPlaneReadAuthenticator(context.Background(), runtimeConfig)
 	if err != nil {
 		return nil, err
@@ -339,6 +346,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeGatewayModelPricingStore:           closeGatewayModelPricingStore,
 		localPersistenceRuntime:                 localPersistenceRuntime,
 		closeControlPlaneReadRepository:         closeControlPlaneReadRepository,
+	}
+	if options.ApplicationResultArtifactLibraryDevFixture {
+		if _, err = seedApplicationResultArtifactLibraryDevFixture(server); err != nil {
+			server.Close()
+			return nil, fmt.Errorf("seed application result artifact library fixture: %w", err)
+		}
 	}
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)

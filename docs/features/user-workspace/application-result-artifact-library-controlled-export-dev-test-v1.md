@@ -2,7 +2,7 @@
 
 更新时间：2026-08-17
 
-状态：`application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`
+状态：`application_result_artifact_library_controlled_export_dev_test_v1_completed`
 
 ## 功能目标
 
@@ -132,7 +132,7 @@ export query 只允许 `workspace_id`。两个路由均默认关闭，复用 App
 
 ### 批次 B：Result Workspace strict consumer
 
-状态：已完成；下一步进入批次 C 的双数据库产品连续链。
+状态：已完成。
 
 - 增加 application-scoped strict TypeScript consumer 和单一 React owner。
 - 接入 filter、分页、exact read、Run handoff、archive / unarchive 与显式本地 JSON 下载。
@@ -149,10 +149,21 @@ export query 只允许 `workspace_id`。两个路由均默认关闭，复用 App
 
 ### 批次 C：双数据库产品连续链与专题收口
 
+状态：已完成；专题关闭。
+
 - memory / SQLite / PostgreSQL 复用同一 application library fixture。
 - SQLite 页面完成跨至少两个 Session 的 application list、过滤、精确读取、导出、归档往返和服务重启恢复。
 - PostgreSQL configured Server 完成相同 list / export 核心链、关闭连接 no-fallback 与重启恢复。
 - 验证 export 文档不落库、永久 `DELETE` / public share route 不存在，最终同步真相源并关闭专题。
+
+完成证据：
+
+- 显式开发测试 fixture 以同一 application、两个 Session、Workflow / Prompt 两种 profile、Markdown / JSON 两种 content type 和 active / archived 两种初始状态进入 memory、SQLite 与 PostgreSQL；重复启动只补缺失记录，不重置已推进的 lifecycle。fixture 只提供稳定来源引用，不创建第二套 Session / Run owner，也不声明真实 Provider 执行成立。
+- 正式本地产品启动入口增加 `--application-result-artifact-library-local-product`，只在完整 Application Session、目录读写、开发身份与 `sqlite_dev` 前置同时成立时启用 fixture；缺少任一前置都在 Server 构造阶段失败关闭。
+- SQLite 真实页面完成跨 Session 默认列表、profile / content type / lifecycle 组合过滤、精确正文读取、archive / unarchive CAS、服务重启恢复和二阶段本地下载。重启后同一 Markdown artifact 保持 content digest 不变，lifecycle 恢复为 `active v3`；下载文件再次解析后 content / export digest 均匹配。
+- 浏览器 `1440×900`、`720×900`、`390×844` 均无页面级横向溢出，窄屏筛选与 inspector 保持单列顺序，控制台零 warning / error。下载只在严格 consumer 完成 scope、artifact、lifecycle 与 digest 复核后生成一个易失 Blob URL；application、filter、selection、重新准备或卸载都会撤销该 URL。
+- PostgreSQL 17 配置化 Server 复用同一 fixture，完成 filter、exact read、export、archive、关闭后 `store_unavailable` 且不回退 memory、重启恢复 `archived v2` 和 unarchive 至 `active v3`；聚合集成测试通过，容器与网络已关闭。
+- export 没有数据库表、repository 或历史记录；既有永久 `DELETE` 与 public share route 继续不存在。专题没有打开 transcript、批量导出、公开分享、业务写回、真实 Provider 或 production 能力。
 
 ## 验收方式
 

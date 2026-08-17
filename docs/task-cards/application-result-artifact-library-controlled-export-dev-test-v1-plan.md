@@ -2,7 +2,7 @@
 
 更新时间：2026-08-17
 
-状态：`application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`
+状态：`application_result_artifact_library_controlled_export_dev_test_v1_completed`
 
 ## 唯一功能真相源
 
@@ -56,6 +56,8 @@
 
 ## 批次 C
 
+状态：已完成。共享 fixture、SQLite 真实页面连续链、PostgreSQL configured Server 重启 / no-fallback、export 零持久化与专题真相源收口均已通过。
+
 目标：形成双数据库产品连续链并关闭专题。
 
 实现范围：
@@ -65,6 +67,14 @@
 3. PostgreSQL configured Server：list / export、关闭 no-fallback、重启恢复与 runtime role 索引证据。
 4. export 不落库；artifact content / digest / lineage 不变；DELETE / public share route 继续不存在。
 5. 同步功能索引、产品面、current focus、roadmap、capability matrix、integration contracts 与周志。
+
+验收：
+
+- memory / SQLite / PostgreSQL 使用同一定义的双 Session、双 profile、双 content type 与双 lifecycle fixture；重复启动不覆盖已推进的 lifecycle；
+- SQLite 页面完成列表、组合过滤、精确读取、archive / unarchive、重启恢复和校验后下载，三视口无横向溢出且控制台零 warning / error；
+- PostgreSQL 配置化 Server 完成相同核心读取 / export、关闭 no-fallback、重启恢复与 lifecycle 往返；
+- Go 定向回归、Web `375/375`、production build、PostgreSQL 17 聚合集成、仓库 fast 与全量门禁通过；
+- 没有新增 export store、永久 `DELETE`、public share、真实 Provider 或 production enablement。
 
 ## 停止线
 

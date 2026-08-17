@@ -27,6 +27,13 @@ type LibraryFilters = {
   contentType: ApplicationResultArtifactContentType | "";
 };
 
+type PreparedExportDownload = {
+  artifactId: string;
+  lifecycleVersion: number;
+  filename: string;
+  objectURL: string;
+};
+
 const INITIAL_FILTERS: LibraryFilters = {
   lifecycleState: "active",
   executionProfile: "",
@@ -52,7 +59,9 @@ export default function ApplicationResultArtifactLibraryPanel({
   const [readResult, setReadResult] = useState<ApplicationResultArtifactReadResult | null>(null);
   const [pending, setPending] = useState<"" | "list" | "read" | "lifecycle" | "export">("");
   const [operationSummary, setOperationSummary] = useState("");
+  const [preparedExport, setPreparedExport] = useState<PreparedExportDownload | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const preparedExportRef = useRef<PreparedExportDownload | null>(null);
   const generationRef = useRef(0);
   const requestScopeRef = useRef<ApplicationResultArtifactLibraryRequestScope>(emptyScope());
 
@@ -68,11 +77,14 @@ export default function ApplicationResultArtifactLibraryPanel({
     setReadResult(null);
     setPending("");
     setOperationSummary("");
+    discardPreparedExport();
     if (!active || !applicationId || config.mode === "offline") return;
     void loadArtifacts(INITIAL_FILTERS, "", false);
     return () => {
       abortRef.current?.abort();
       generationRef.current += 1;
+      if (preparedExportRef.current) URL.revokeObjectURL(preparedExportRef.current.objectURL);
+      preparedExportRef.current = null;
     };
   }, [active, applicationId]);
 
@@ -89,6 +101,7 @@ export default function ApplicationResultArtifactLibraryPanel({
     const generation = ++generationRef.current;
     const expected = libraryScope(generation, applicationId, filters, cursor);
     requestScopeRef.current = expected;
+    discardPreparedExport();
     setSelected(null);
     setReadResult(null);
     if (!append) setItems([]);
@@ -113,6 +126,7 @@ export default function ApplicationResultArtifactLibraryPanel({
     const generation = ++generationRef.current;
     const expected = libraryScope(generation, applicationId, appliedFilters, "", summary.sessionId, summary.artifactId);
     requestScopeRef.current = expected;
+    discardPreparedExport();
     setSelected(summary);
     setReadResult(null);
     setOperationSummary("");
@@ -142,6 +156,7 @@ export default function ApplicationResultArtifactLibraryPanel({
     const generation = ++generationRef.current;
     const expected = libraryScope(generation, applicationId, appliedFilters, "", artifact.sessionId, artifact.artifactId);
     requestScopeRef.current = expected;
+    discardPreparedExport();
     const controller = beginOperation("lifecycle");
     const result = await transitionApplicationResultArtifactLifecycle(config, {
       applicationId,
@@ -185,19 +200,25 @@ export default function ApplicationResultArtifactLibraryPanel({
       setOperationSummary(result.failureCode ? result.summary : "导出响应与当前精确资产不一致；已拒绝下载。");
       return;
     }
-    const objectURL = URL.createObjectURL(new Blob(
+    const prepared = {
+      artifactId: exported.artifact.artifactId,
+      lifecycleVersion: exported.lifecycle.lifecycleVersion,
+      filename: applicationResultArtifactExportFilename(exported),
+      objectURL: URL.createObjectURL(new Blob(
       [serializeApplicationResultArtifactExport(exported)],
       { type: "application/json;charset=utf-8" },
-    ));
-    const anchor = document.createElement("a");
-    anchor.href = objectURL;
-    anchor.download = applicationResultArtifactExportFilename(exported);
-    anchor.hidden = true;
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(objectURL);
+      )),
+    } satisfies PreparedExportDownload;
+    discardPreparedExport();
+    preparedExportRef.current = prepared;
+    setPreparedExport(prepared);
     setOperationSummary(result.summary);
+  }
+
+  function discardPreparedExport() {
+    if (preparedExportRef.current) URL.revokeObjectURL(preparedExportRef.current.objectURL);
+    preparedExportRef.current = null;
+    setPreparedExport(null);
   }
 
   function applyFilters() {
@@ -314,8 +335,19 @@ export default function ApplicationResultArtifactLibraryPanel({
                   {pending === "lifecycle" ? "Updating…" : readResult.lifecycle.lifecycleState === "active" ? "Archive" : "Unarchive"}
                 </button>
                 <button type="button" className="secondary-action" onClick={() => void downloadExport()} disabled={Boolean(pending)}>
-                  {pending === "export" ? "Verifying export…" : "Export verified JSON"}
+                  {pending === "export" ? "Verifying export…" : "Prepare verified JSON"}
                 </button>
+                {preparedExport?.artifactId === readResult.artifact.artifactId &&
+                preparedExport.lifecycleVersion === readResult.lifecycle.lifecycleVersion ? (
+                  <a
+                    className="application-result-artifact-download"
+                    href={preparedExport.objectURL}
+                    download={preparedExport.filename}
+                    onClick={() => setOperationSummary(`已触发 ${preparedExport.filename} 的本地下载；页面不保留导出记录。`)}
+                  >
+                    Download verified JSON
+                  </a>
+                ) : null}
               </div>
             </>
           ) : null}

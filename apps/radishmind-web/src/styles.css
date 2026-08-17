@@ -6680,6 +6680,23 @@ dd {
   gap: 10px;
 }
 
+.application-result-artifact-download {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--rm-action-primary);
+  border-radius: 10px;
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.application-result-artifact-download:hover {
+  background: color-mix(in srgb, var(--rm-action-primary) 88%, var(--rm-text-primary) 12%);
+}
+
 .application-result-artifact-toolbar label {
   display: grid;
   gap: 6px;

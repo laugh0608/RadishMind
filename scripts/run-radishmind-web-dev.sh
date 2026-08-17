@@ -32,6 +32,8 @@ workflow_definition_local_product=0
 workflow_definition_postgres_dev_test=0
 application_session_local_product=0
 application_session_postgres_dev_test=0
+application_result_artifact_library_local_product=0
+application_result_artifact_library_fixture_application_id="app_rrrrrrrrrrrrrrrr"
 prompt_application_local_product=0
 prompt_application_postgres_dev_test=0
 agent_copilot_local_product=0
@@ -102,6 +104,8 @@ Options:
                            Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
   --application-session-postgres-dev-test
                            Enable the same dual-profile chain with PostgreSQL dev/test repositories.
+  --application-result-artifact-library-local-product
+                           Enable the stable SQLite Result Library development fixture and Web chain.
   --prompt-application-local-product
                            Enable the SQLite Prompt Template → publish → runtime → invocation chain.
   --prompt-application-postgres-dev-test
@@ -242,6 +246,10 @@ while [[ $# -gt 0 ]]; do
       application_session_postgres_dev_test=1
       shift
       ;;
+    --application-result-artifact-library-local-product)
+      application_result_artifact_library_local_product=1
+      shift
+      ;;
     --prompt-application-local-product)
       prompt_application_local_product=1
       shift
@@ -317,6 +325,9 @@ if [[ "${provider_attempt_local_product}" -eq 1 || "${provider_attempt_postgres_
   provider_attempt_enabled=1
 fi
 
+if [[ "${application_result_artifact_library_local_product}" -eq 1 ]]; then
+  application_session_local_product=1
+fi
 if [[ "${application_session_local_product}" -eq 1 ]]; then
   workflow_definition_local_product=1
   workflow_rag_application_local_product=1
@@ -1489,6 +1500,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${application_session_enabled}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_SESSION_DEV="1"
         fi
+        if [[ "${application_result_artifact_library_local_product}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_RESULT_ARTIFACT_LIBRARY_DEV_FIXTURE="1"
+        fi
         if [[ "${prompt_application_enabled}" -eq 1 ]]; then
           export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP="1"
           export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_WRITE="1"
@@ -2055,6 +2069,9 @@ if [[ "${mode}" == "dev-live" ]]; then
       session_store="PostgreSQL dev/test"
     fi
     step "Application Session ${session_store} dual-profile chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; input and answer content remain browser-memory only."
+  fi
+  if [[ "${application_result_artifact_library_local_product}" -eq 1 ]]; then
+    step "Result Library SQLite fixture enabled for ${saved_draft_workspace_id}/${application_result_artifact_library_fixture_application_id}; fixture content is development/test only and lifecycle changes persist across restarts."
   fi
   if [[ "${prompt_application_enabled}" -eq 1 ]]; then
     prompt_store="SQLite"
