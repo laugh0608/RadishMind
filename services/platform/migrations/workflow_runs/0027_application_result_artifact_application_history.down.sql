@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS application_result_artifacts_application_history_idx;

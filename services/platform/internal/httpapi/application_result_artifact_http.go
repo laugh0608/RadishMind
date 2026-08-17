@@ -7,10 +7,12 @@ import (
 )
 
 const (
-	applicationResultArtifactListRoute      = "GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts"
-	applicationResultArtifactReadRoute      = "GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}"
-	applicationResultArtifactArchiveRoute   = "POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/archive"
-	applicationResultArtifactUnarchiveRoute = "POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/unarchive"
+	applicationResultArtifactListRoute            = "GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts"
+	applicationResultArtifactReadRoute            = "GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}"
+	applicationResultArtifactArchiveRoute         = "POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/archive"
+	applicationResultArtifactUnarchiveRoute       = "POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/unarchive"
+	applicationResultArtifactApplicationListRoute = "GET /v1/user-workspace/applications/{application_id}/result-artifacts"
+	applicationResultArtifactExportRoute          = "GET /v1/user-workspace/applications/{application_id}/result-artifacts/{artifact_id}/export"
 )
 
 type applicationResultArtifactLifecycleBody struct {
@@ -55,6 +57,104 @@ type applicationResultArtifactListEnvelope struct {
 	NextCursor    *string                            `json:"next_cursor"`
 	FailureCode   *string                            `json:"failure_code"`
 	AuditRef      string                             `json:"audit_ref"`
+}
+
+type applicationResultArtifactApplicationListEnvelope struct {
+	RequestID     string                             `json:"request_id"`
+	TenantRef     string                             `json:"tenant_ref"`
+	WorkspaceID   string                             `json:"workspace_id"`
+	ApplicationID string                             `json:"application_id"`
+	Items         []ApplicationResultArtifactSummary `json:"items"`
+	NextCursor    *string                            `json:"next_cursor"`
+	FailureCode   *string                            `json:"failure_code"`
+	AuditRef      string                             `json:"audit_ref"`
+}
+
+type applicationResultArtifactExportEnvelope struct {
+	RequestID     string                           `json:"request_id"`
+	TenantRef     string                           `json:"tenant_ref"`
+	WorkspaceID   string                           `json:"workspace_id"`
+	ApplicationID string                           `json:"application_id"`
+	Export        *ApplicationResultArtifactExport `json:"export"`
+	FailureCode   *string                          `json:"failure_code"`
+	AuditRef      string                           `json:"audit_ref"`
+}
+
+func (server *Server) handleListApplicationResultArtifactsByApplication(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, applicationResultArtifactApplicationListRoute)
+	if !server.allowApplicationInteractionSessionDev(writer, trace) {
+		return
+	}
+	writer.Header().Set("Cache-Control", "no-store")
+	values := request.URL.Query()
+	applicationID := strings.TrimSpace(request.PathValue("application_id"))
+	ctx, failure, status := server.applicationResultArtifactReadContext(
+		request, trace, values.Get("workspace_id"), applicationID, "result-artifact-application-list",
+	)
+	if failure != "" {
+		writeApplicationResultArtifactApplicationList(writer, status, trace, ctx, ApplicationResultArtifactListResult{Items: []ApplicationResultArtifactSummary{}, FailureCode: failure})
+		return
+	}
+	if !applicationResultArtifactStrictQueryAllowed(values, "workspace_id", "lifecycle_state", "execution_profile", "content_type", "limit", "cursor") {
+		writeApplicationResultArtifactApplicationList(writer, http.StatusBadRequest, trace, ctx, ApplicationResultArtifactListResult{Items: []ApplicationResultArtifactSummary{}, FailureCode: ApplicationResultArtifactFailurePayloadInvalid})
+		return
+	}
+	limit := 0
+	if raw := strings.TrimSpace(values.Get("limit")); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil {
+			writeApplicationResultArtifactApplicationList(writer, http.StatusBadRequest, trace, ctx, ApplicationResultArtifactListResult{Items: []ApplicationResultArtifactSummary{}, FailureCode: ApplicationResultArtifactFailurePayloadInvalid})
+			return
+		}
+		limit = parsed
+	}
+	result := server.applicationResultArtifactService().ListApplication(ctx, ApplicationResultArtifactListInput{
+		LifecycleState:   ApplicationResultArtifactLifecycleState(strings.TrimSpace(values.Get("lifecycle_state"))),
+		ExecutionProfile: strings.TrimSpace(values.Get("execution_profile")), ContentType: strings.TrimSpace(values.Get("content_type")),
+		Limit: limit, Cursor: values.Get("cursor"),
+	})
+	writeApplicationResultArtifactApplicationList(writer, applicationResultArtifactHTTPStatus(result.FailureCode), trace, ctx, result)
+}
+
+func (server *Server) handleExportApplicationResultArtifact(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, applicationResultArtifactExportRoute)
+	if !server.allowApplicationInteractionSessionDev(writer, trace) {
+		return
+	}
+	writer.Header().Set("Cache-Control", "no-store")
+	auth, failure, status := server.authorizeWorkspaceScopedPermissions(
+		request, "application_sessions:read", "application_result_artifacts:export",
+	)
+	applicationID := strings.TrimSpace(request.PathValue("application_id"))
+	ctx := applicationInteractionMutationContext(request, trace, auth, applicationID, "result-artifact-export")
+	values := request.URL.Query()
+	if failure != "" {
+		writeApplicationResultArtifactExport(writer, status, trace, ctx, applicationResultArtifactExportFailure(failure))
+		return
+	}
+	if !applicationResultArtifactStrictQueryAllowed(values, "workspace_id") {
+		writeApplicationResultArtifactExport(writer, http.StatusBadRequest, trace, ctx, applicationResultArtifactExportFailure(ApplicationResultArtifactFailurePayloadInvalid))
+		return
+	}
+	if strings.TrimSpace(values.Get("workspace_id")) != auth.ResourceBinding.WorkspaceID ||
+		validateApplicationInteractionContext(ctx) != nil {
+		writeApplicationResultArtifactExport(writer, http.StatusForbidden, trace, ctx, applicationResultArtifactExportFailure("workspace_binding_mismatch"))
+		return
+	}
+	result := server.applicationResultArtifactService().Export(ctx, request.PathValue("artifact_id"))
+	writeApplicationResultArtifactExport(writer, applicationResultArtifactHTTPStatus(result.FailureCode), trace, ctx, result)
+}
+
+func applicationResultArtifactStrictQueryAllowed(values map[string][]string, allowed ...string) bool {
+	if !applicationInteractionSessionQueryAllowed(values, allowed...) {
+		return false
+	}
+	for _, entries := range values {
+		if len(entries) != 1 {
+			return false
+		}
+	}
+	return true
 }
 
 func (server *Server) handleListApplicationResultArtifacts(writer http.ResponseWriter, request *http.Request) {
@@ -236,6 +336,37 @@ func writeApplicationResultArtifactList(
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, SessionID: strings.TrimSpace(sessionID), Items: result.Items,
 		NextCursor: result.NextCursor, FailureCode: optionalApplicationDraftFailure(result.FailureCode), AuditRef: ctx.AuditRef,
+	})
+}
+
+func writeApplicationResultArtifactApplicationList(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	ctx ApplicationInteractionContext,
+	result ApplicationResultArtifactListResult,
+) {
+	if result.Items == nil {
+		result.Items = []ApplicationResultArtifactSummary{}
+	}
+	writeObservedJSON(writer, status, trace, applicationResultArtifactApplicationListEnvelope{
+		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
+		ApplicationID: ctx.ApplicationID, Items: result.Items, NextCursor: result.NextCursor,
+		FailureCode: optionalApplicationDraftFailure(result.FailureCode), AuditRef: ctx.AuditRef,
+	})
+}
+
+func writeApplicationResultArtifactExport(
+	writer http.ResponseWriter,
+	status int,
+	trace requestTrace,
+	ctx ApplicationInteractionContext,
+	result ApplicationResultArtifactExportResult,
+) {
+	writeObservedJSON(writer, status, trace, applicationResultArtifactExportEnvelope{
+		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
+		ApplicationID: ctx.ApplicationID, Export: result.Export,
+		FailureCode: optionalApplicationDraftFailure(result.FailureCode), AuditRef: ctx.AuditRef,
 	})
 }
 

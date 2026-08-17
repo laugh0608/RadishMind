@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactLifecycle(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactApplicationHistory(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 23 {
+	if len(migrations) != 24 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -80,8 +80,11 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactLi
 	if migrations[21].ID != resultArtifactMigrationID || migrations[21].StoreSchemaVersion != resultArtifactSchemaVersion {
 		t.Fatalf("application result artifact migration drifted: %#v", migrations[21])
 	}
-	if migrations[22].ID != MigrationID || migrations[22].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[22].ID != resultArtifactLifecycleMigrationID || migrations[22].StoreSchemaVersion != resultArtifactLifecycleVersion {
 		t.Fatalf("application result artifact lifecycle migration drifted: %#v", migrations[22])
+	}
+	if migrations[23].ID != MigrationID || migrations[23].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("application result artifact application history migration drifted: %#v", migrations[23])
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_result_artifacts",
@@ -93,6 +96,9 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactLi
 		if !strings.Contains(upSQLV22, required) {
 			t.Fatalf("SQLite application result artifact migration is missing %q", required)
 		}
+	}
+	if !strings.Contains(upSQLV24, "application_result_artifacts_application_history_idx") {
+		t.Fatal("SQLite application result artifact application history migration is incomplete")
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_result_artifact_lifecycles",
@@ -398,7 +404,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 23 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 24 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}

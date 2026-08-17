@@ -89,6 +89,7 @@ test("opens owner review for exact child anchors without treating stage anchors 
     "#model-gateway-playground",
     "#model-gateway-request-history",
     "#application-operations",
+    "#application-result-artifact-library",
     "#workspace-run-history",
     "#workflow-run-comparison",
     "#workflow-evaluation-cases",
@@ -102,6 +103,7 @@ test("runtime review aliases keep one persistent task surface", () => {
   assert.equal(applicationRuntimeReviewSurfaceForHash("#model-gateway-playground"), "run");
   assert.equal(applicationRuntimeReviewSurfaceForHash("model-gateway-request-history"), "request");
   assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations"), "evidence");
+  assert.equal(applicationRuntimeReviewSurfaceForHash("#application-result-artifact-library"), "results");
   assert.equal(applicationRuntimeReviewSurfaceForHash("#application-api-integration"), null);
   assert.equal(applicationRuntimeReviewSurfaceForHash("#application-operations-preview"), null);
 });
@@ -167,6 +169,7 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-playground"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#workflow-rag-evaluation-panel"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#application-operations"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#application-result-artifact-library"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-request-history"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#workflow-run-comparison"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#workflow-evaluation-cases"), "evidence_review");

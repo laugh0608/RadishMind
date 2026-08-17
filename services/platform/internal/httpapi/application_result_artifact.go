@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"io"
 	"regexp"
 	"sort"
 	"strings"
@@ -17,6 +18,7 @@ import (
 const (
 	applicationResultArtifactSchemaVersion        = "application_result_artifact.v1"
 	applicationResultArtifactSummarySchemaVersion = "application_result_artifact_summary.v2"
+	applicationResultArtifactExportSchemaVersion  = "application_result_artifact_export.v1"
 	applicationResultArtifactMaxContentBytes      = 64 * 1024
 	applicationResultArtifactDefaultListLimit     = 50
 	applicationResultArtifactMaxListLimit         = 100
@@ -104,10 +106,12 @@ type ApplicationResultArtifactResult struct {
 }
 
 type ApplicationResultArtifactListInput struct {
-	SessionID      string
-	LifecycleState ApplicationResultArtifactLifecycleState
-	Limit          int
-	Cursor         string
+	SessionID        string
+	LifecycleState   ApplicationResultArtifactLifecycleState
+	ExecutionProfile string
+	ContentType      string
+	Limit            int
+	Cursor           string
 }
 
 type ApplicationResultArtifactListResult struct {
@@ -117,16 +121,26 @@ type ApplicationResultArtifactListResult struct {
 }
 
 type applicationResultArtifactCursor struct {
-	Version         int                                     `json:"version"`
-	TenantRef       string                                  `json:"tenant_ref"`
-	WorkspaceID     string                                  `json:"workspace_id"`
-	ApplicationID   string                                  `json:"application_id"`
-	OwnerSubjectRef string                                  `json:"owner_subject_ref"`
-	SessionID       string                                  `json:"session_id"`
-	LifecycleState  ApplicationResultArtifactLifecycleState `json:"lifecycle_state"`
-	Limit           int                                     `json:"limit"`
-	CreatedAt       string                                  `json:"created_at"`
-	ArtifactID      string                                  `json:"artifact_id"`
+	Version          int                                     `json:"version"`
+	ScopeKind        string                                  `json:"scope_kind,omitempty"`
+	TenantRef        string                                  `json:"tenant_ref"`
+	WorkspaceID      string                                  `json:"workspace_id"`
+	ApplicationID    string                                  `json:"application_id"`
+	OwnerSubjectRef  string                                  `json:"owner_subject_ref"`
+	SessionID        string                                  `json:"session_id"`
+	LifecycleState   ApplicationResultArtifactLifecycleState `json:"lifecycle_state"`
+	ExecutionProfile string                                  `json:"execution_profile,omitempty"`
+	ContentType      string                                  `json:"content_type,omitempty"`
+	Limit            int                                     `json:"limit"`
+	CreatedAt        string                                  `json:"created_at"`
+	ArtifactID       string                                  `json:"artifact_id"`
+}
+
+type applicationResultArtifactRepositoryListFilter struct {
+	SessionID        string
+	LifecycleState   ApplicationResultArtifactLifecycleState
+	ExecutionProfile string
+	ContentType      string
 }
 
 type applicationResultArtifactRepository interface {
@@ -135,7 +149,7 @@ type applicationResultArtifactRepository interface {
 	ReadByTurn(ApplicationInteractionContext, string, string) (ApplicationResultArtifact, error)
 	List(ApplicationInteractionContext, string) ([]ApplicationResultArtifact, error)
 	ReadLifecycle(ApplicationInteractionContext, string) (ApplicationResultArtifactLifecycle, error)
-	ListByLifecycle(ApplicationInteractionContext, string, ApplicationResultArtifactLifecycleState) ([]applicationResultArtifactStoredRecord, error)
+	ListByLifecycle(ApplicationInteractionContext, applicationResultArtifactRepositoryListFilter) ([]applicationResultArtifactStoredRecord, error)
 	TransitionLifecycle(ApplicationInteractionContext, string, ApplicationResultArtifactLifecycleState, int, time.Time) (ApplicationResultArtifactLifecycle, ApplicationResultArtifactLifecycleEvent, error)
 }
 
@@ -283,13 +297,42 @@ func (service applicationResultArtifactService) List(
 	ctx ApplicationInteractionContext,
 	input ApplicationResultArtifactListInput,
 ) ApplicationResultArtifactListResult {
+	if !applicationSessionIDPattern.MatchString(strings.TrimSpace(input.SessionID)) {
+		return ApplicationResultArtifactListResult{
+			Items: []ApplicationResultArtifactSummary{}, FailureCode: ApplicationResultArtifactFailurePayloadInvalid,
+		}
+	}
+	return service.list(ctx, input, "session")
+}
+
+func (service applicationResultArtifactService) ListApplication(
+	ctx ApplicationInteractionContext,
+	input ApplicationResultArtifactListInput,
+) ApplicationResultArtifactListResult {
+	input.SessionID = ""
+	return service.list(ctx, input, "application")
+}
+
+func (service applicationResultArtifactService) list(
+	ctx ApplicationInteractionContext,
+	input ApplicationResultArtifactListInput,
+	scopeKind string,
+) ApplicationResultArtifactListResult {
 	result := ApplicationResultArtifactListResult{Items: []ApplicationResultArtifactSummary{}}
 	if service.repository == nil {
 		result.FailureCode = ApplicationResultArtifactFailureStoreUnavailable
 		return result
 	}
-	if validateApplicationInteractionContext(ctx) != nil ||
-		!applicationSessionIDPattern.MatchString(strings.TrimSpace(input.SessionID)) {
+	if validateApplicationInteractionContext(ctx) != nil || (scopeKind != "session" && scopeKind != "application") {
+		result.FailureCode = ApplicationResultArtifactFailurePayloadInvalid
+		return result
+	}
+	sessionID := strings.TrimSpace(input.SessionID)
+	executionProfile := strings.TrimSpace(input.ExecutionProfile)
+	contentType := strings.TrimSpace(input.ContentType)
+	if scopeKind == "session" && (executionProfile != "" || contentType != "") ||
+		!validApplicationResultArtifactExecutionProfileFilter(executionProfile) ||
+		!validApplicationResultArtifactContentTypeFilter(contentType) {
 		result.FailureCode = ApplicationResultArtifactFailurePayloadInvalid
 		return result
 	}
@@ -312,10 +355,16 @@ func (service applicationResultArtifactService) List(
 	var cursor *applicationResultArtifactCursor
 	if strings.TrimSpace(input.Cursor) != "" {
 		decoded, err := decodeApplicationResultArtifactCursor(input.Cursor)
-		if err != nil || decoded.Version != 2 || decoded.TenantRef != ctx.TenantRef ||
+		expectedCursorVersion := 2
+		if scopeKind == "application" {
+			expectedCursorVersion = 3
+		}
+		if err != nil || decoded.Version != expectedCursorVersion || decoded.TenantRef != ctx.TenantRef ||
 			decoded.WorkspaceID != ctx.WorkspaceID || decoded.ApplicationID != ctx.ApplicationID ||
-			decoded.OwnerSubjectRef != ctx.OwnerSubjectRef || decoded.SessionID != strings.TrimSpace(input.SessionID) ||
-			decoded.LifecycleState != lifecycleState ||
+			decoded.OwnerSubjectRef != ctx.OwnerSubjectRef || decoded.SessionID != sessionID ||
+			decoded.LifecycleState != lifecycleState || decoded.ExecutionProfile != executionProfile ||
+			decoded.ContentType != contentType || (scopeKind == "application" && decoded.ScopeKind != scopeKind) ||
+			(scopeKind == "session" && decoded.ScopeKind != "") ||
 			decoded.Limit != limit || parseApplicationInteractionTimestamp(decoded.CreatedAt) == nil ||
 			!applicationResultArtifactIDPattern.MatchString(decoded.ArtifactID) {
 			result.FailureCode = ApplicationResultArtifactFailurePayloadInvalid
@@ -323,7 +372,10 @@ func (service applicationResultArtifactService) List(
 		}
 		cursor = &decoded
 	}
-	records, err := service.repository.ListByLifecycle(ctx, strings.TrimSpace(input.SessionID), lifecycleState)
+	records, err := service.repository.ListByLifecycle(ctx, applicationResultArtifactRepositoryListFilter{
+		SessionID: sessionID, LifecycleState: lifecycleState,
+		ExecutionProfile: executionProfile, ContentType: contentType,
+	})
 	if err != nil {
 		result.FailureCode = applicationResultArtifactRepositoryFailure(err).FailureCode
 		return result
@@ -332,7 +384,10 @@ func (service applicationResultArtifactService) List(
 		if validateApplicationResultArtifact(ctx, record.Artifact) != nil ||
 			validateApplicationResultArtifactLifecycle(ctx, record.Lifecycle) != nil ||
 			record.Artifact.ArtifactID != record.Lifecycle.ArtifactID ||
-			record.Artifact.SessionID != strings.TrimSpace(input.SessionID) || record.Lifecycle.LifecycleState != lifecycleState {
+			(scopeKind == "session" && record.Artifact.SessionID != sessionID) ||
+			(executionProfile != "" && record.Artifact.ExecutionProfile != executionProfile) ||
+			(contentType != "" && record.Artifact.ContentType != contentType) ||
+			record.Lifecycle.LifecycleState != lifecycleState {
 			result.FailureCode = ApplicationResultArtifactFailureStoreContract
 			result.Items = []ApplicationResultArtifactSummary{}
 			return result
@@ -369,10 +424,18 @@ func (service applicationResultArtifactService) List(
 	}
 	if len(filtered) > limit {
 		last := filtered[limit-1]
+		cursorVersion := 2
+		cursorScopeKind := ""
+		if scopeKind == "application" {
+			cursorVersion = 3
+			cursorScopeKind = scopeKind
+		}
 		next, err := encodeApplicationResultArtifactCursor(applicationResultArtifactCursor{
-			Version: 2, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
-			OwnerSubjectRef: ctx.OwnerSubjectRef, SessionID: strings.TrimSpace(input.SessionID), Limit: limit,
-			LifecycleState: lifecycleState, CreatedAt: last.Artifact.CreatedAt, ArtifactID: last.Artifact.ArtifactID,
+			Version: cursorVersion, ScopeKind: cursorScopeKind,
+			TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
+			OwnerSubjectRef: ctx.OwnerSubjectRef, SessionID: sessionID, Limit: limit,
+			LifecycleState: lifecycleState, ExecutionProfile: executionProfile, ContentType: contentType,
+			CreatedAt: last.Artifact.CreatedAt, ArtifactID: last.Artifact.ArtifactID,
 		})
 		if err != nil {
 			result.Items = []ApplicationResultArtifactSummary{}
@@ -382,6 +445,21 @@ func (service applicationResultArtifactService) List(
 		result.NextCursor = &next
 	}
 	return result
+}
+
+func validApplicationResultArtifactExecutionProfileFilter(value string) bool {
+	switch strings.TrimSpace(value) {
+	case "", applicationInteractionProfileWorkflow, applicationInteractionProfileWorkflowStructured,
+		applicationInteractionProfileRAG, applicationInteractionProfilePrompt, applicationInteractionProfileAgentCopilot:
+		return true
+	default:
+		return false
+	}
+}
+
+func validApplicationResultArtifactContentTypeFilter(value string) bool {
+	value = strings.TrimSpace(value)
+	return value == "" || value == "text/markdown" || value == "application/json"
 }
 
 func (repository *memoryApplicationResultArtifactRepository) Create(
@@ -557,6 +635,9 @@ func decodeApplicationResultArtifactCursor(value string) (applicationResultArtif
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&cursor); err != nil {
 		return applicationResultArtifactCursor{}, err
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return applicationResultArtifactCursor{}, errApplicationResultArtifactContract
 	}
 	return cursor, nil
 }

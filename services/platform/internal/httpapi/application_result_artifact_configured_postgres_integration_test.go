@@ -61,6 +61,15 @@ func TestPostgresConfiguredApplicationResultArtifactProductChainRestartsWithoutF
 		server.Close()
 		t.Fatalf("list configured PostgreSQL active result artifact: %#v", active)
 	}
+	applicationActive := artifactService.ListApplication(artifactContext, ApplicationResultArtifactListInput{})
+	exported := artifactService.Export(artifactContext, captured.Artifact.ArtifactID)
+	if applicationActive.FailureCode != "" || len(applicationActive.Items) != 1 ||
+		applicationActive.Items[0].ArtifactID != captured.Artifact.ArtifactID ||
+		exported.FailureCode != "" || exported.Export == nil || exported.Export.Artifact.Content != content ||
+		exported.Export.ExportDigest != applicationResultArtifactExportDigest(*exported.Export) {
+		server.Close()
+		t.Fatalf("configured PostgreSQL application library/export drifted: list=%#v export=%#v", applicationActive, exported)
+	}
 	archived := artifactService.Archive(artifactContext, ApplicationResultArtifactLifecycleTransitionInput{
 		SessionID: session.SessionID, ArtifactID: captured.Artifact.ArtifactID, ExpectedLifecycleVersion: 1,
 	})
@@ -76,6 +85,10 @@ func TestPostgresConfiguredApplicationResultArtifactProductChainRestartsWithoutF
 	if _, err = closedRepository.Read(artifactContext, captured.Artifact.ArtifactID); !errors.Is(err, errApplicationResultArtifactStore) {
 		t.Fatalf("closed configured PostgreSQL result artifact store did not fail closed: %v", err)
 	}
+	closedService := newApplicationResultArtifactService(closedRepository)
+	if closedExport := closedService.Export(artifactContext, captured.Artifact.ArtifactID); closedExport.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("closed configured PostgreSQL export did not fail closed: %#v", closedExport)
+	}
 
 	restarted, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-artifact-restarted"})
 	if err != nil {
@@ -85,14 +98,21 @@ func TestPostgresConfiguredApplicationResultArtifactProductChainRestartsWithoutF
 	assertConfiguredPostgresRepositorySelection(t, restarted)
 	restartedService := restarted.applicationResultArtifactService()
 	restored := restartedService.Read(artifactContext, captured.Artifact.ArtifactID)
+	applicationArchived := restartedService.ListApplication(artifactContext, ApplicationResultArtifactListInput{
+		LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
+	restoredExport := restartedService.Export(artifactContext, captured.Artifact.ArtifactID)
 	archivedPage := restartedService.List(artifactContext, ApplicationResultArtifactListInput{
 		SessionID: session.SessionID, LifecycleState: ApplicationResultArtifactLifecycleArchived,
 	})
 	if restored.FailureCode != "" || restored.Artifact == nil || restored.Lifecycle == nil ||
 		restored.Artifact.Content != content || restored.Artifact.ContentDigest != captured.Artifact.ContentDigest ||
 		restored.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived || restored.Lifecycle.LifecycleVersion != 2 ||
-		archivedPage.FailureCode != "" || len(archivedPage.Items) != 1 || archivedPage.Items[0].ArtifactID != captured.Artifact.ArtifactID {
-		t.Fatalf("restore configured PostgreSQL result artifact after restart: restored=%#v archived=%#v", restored, archivedPage)
+		archivedPage.FailureCode != "" || len(archivedPage.Items) != 1 || archivedPage.Items[0].ArtifactID != captured.Artifact.ArtifactID ||
+		applicationArchived.FailureCode != "" || len(applicationArchived.Items) != 1 || applicationArchived.Items[0].ArtifactID != captured.Artifact.ArtifactID ||
+		restoredExport.FailureCode != "" || restoredExport.Export == nil || restoredExport.Export.Lifecycle.LifecycleVersion != 2 ||
+		restoredExport.Export.ExportDigest != applicationResultArtifactExportDigest(*restoredExport.Export) {
+		t.Fatalf("restore configured PostgreSQL result artifact after restart: restored=%#v archived=%#v application_archived=%#v export=%#v", restored, archivedPage, applicationArchived, restoredExport)
 	}
 	unarchived := restartedService.Unarchive(artifactContext, ApplicationResultArtifactLifecycleTransitionInput{
 		SessionID: session.SessionID, ArtifactID: captured.Artifact.ArtifactID, ExpectedLifecycleVersion: 2,

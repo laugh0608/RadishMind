@@ -25,8 +25,7 @@ WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref
 
 func (repository *sqliteApplicationResultArtifactRepository) ListByLifecycle(
 	ctx ApplicationInteractionContext,
-	sessionID string,
-	state ApplicationResultArtifactLifecycleState,
+	filter applicationResultArtifactRepositoryListFilter,
 ) ([]applicationResultArtifactStoredRecord, error) {
 	if repository == nil || repository.database == nil {
 		return nil, errApplicationResultArtifactStore
@@ -41,9 +40,14 @@ JOIN application_result_artifact_lifecycles l
   ON l.tenant_ref=a.tenant_ref AND l.workspace_id=a.workspace_id AND l.application_id=a.application_id
  AND l.owner_subject_ref=a.owner_subject_ref AND l.artifact_id=a.artifact_id
 WHERE a.tenant_ref=? AND a.workspace_id=? AND a.application_id=? AND a.owner_subject_ref=?
-  AND a.session_id=? AND l.lifecycle_state=?
+  AND (?='' OR a.session_id=?)
+  AND l.lifecycle_state=?
+  AND (?='' OR a.execution_profile=?)
+  AND (?='' OR a.content_type=?)
 ORDER BY a.created_at_unix_nano DESC,a.artifact_id DESC`,
-		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, state)
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
+		filter.SessionID, filter.SessionID, filter.LifecycleState,
+		filter.ExecutionProfile, filter.ExecutionProfile, filter.ContentType, filter.ContentType)
 	if err != nil {
 		return nil, errApplicationResultArtifactStore
 	}

@@ -183,8 +183,7 @@ func (repository *memoryApplicationResultArtifactRepository) ReadLifecycle(
 
 func (repository *memoryApplicationResultArtifactRepository) ListByLifecycle(
 	ctx ApplicationInteractionContext,
-	sessionID string,
-	state ApplicationResultArtifactLifecycleState,
+	filter applicationResultArtifactRepositoryListFilter,
 ) ([]applicationResultArtifactStoredRecord, error) {
 	repository.mu.RLock()
 	defer repository.mu.RUnlock()
@@ -193,14 +192,17 @@ func (repository *memoryApplicationResultArtifactRepository) ListByLifecycle(
 	}
 	records := make([]applicationResultArtifactStoredRecord, 0)
 	for _, artifact := range repository.byID {
-		if artifact.SessionID != strings.TrimSpace(sessionID) || !applicationResultArtifactScopeMatches(ctx, artifact) {
+		if !applicationResultArtifactScopeMatches(ctx, artifact) ||
+			(filter.SessionID != "" && artifact.SessionID != filter.SessionID) ||
+			(filter.ExecutionProfile != "" && artifact.ExecutionProfile != filter.ExecutionProfile) ||
+			(filter.ContentType != "" && artifact.ContentType != filter.ContentType) {
 			continue
 		}
 		lifecycle, found := repository.lifecycleByID[artifact.ArtifactID]
 		if !found || validateApplicationResultArtifactLifecycle(ctx, lifecycle) != nil || lifecycle.ArtifactID != artifact.ArtifactID {
 			return nil, errApplicationResultArtifactContract
 		}
-		if lifecycle.LifecycleState == state {
+		if lifecycle.LifecycleState == filter.LifecycleState {
 			records = append(records, applicationResultArtifactStoredRecord{
 				Artifact: cloneApplicationResultArtifact(artifact), Lifecycle: cloneApplicationResultArtifactLifecycle(lifecycle),
 			})

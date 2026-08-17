@@ -370,6 +370,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationResultArtifactReadRoute, server.handleReadApplicationResultArtifact)
 	mux.HandleFunc(applicationResultArtifactArchiveRoute, server.handleArchiveApplicationResultArtifact)
 	mux.HandleFunc(applicationResultArtifactUnarchiveRoute, server.handleUnarchiveApplicationResultArtifact)
+	mux.HandleFunc(applicationResultArtifactApplicationListRoute, server.handleListApplicationResultArtifactsByApplication)
+	mux.HandleFunc(applicationResultArtifactExportRoute, server.handleExportApplicationResultArtifact)
 	mux.HandleFunc(controlPlaneAPIKeySummaryListRoute, server.handleUserWorkspaceAPIKeySummaryList)
 	mux.HandleFunc(apiKeyCreateRoute, server.handleCreateAPIKey)
 	mux.HandleFunc(apiKeyReadRoute, server.handleReadAPIKey)

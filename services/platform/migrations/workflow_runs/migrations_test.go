@@ -99,6 +99,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"workflow_run_record.v9",
 		"CREATE TABLE application_result_artifacts",
 		"application_result_artifacts_session_history_idx",
+		"application_result_artifacts_application_history_idx",
 		"application_result_artifacts_append_only",
 		"CREATE TABLE application_result_artifact_lifecycles",
 		"CREATE TABLE application_result_artifact_lifecycle_events",
@@ -159,6 +160,7 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP TABLE IF EXISTS application_result_artifact_lifecycles",
 		"DROP FUNCTION IF EXISTS validate_application_result_artifact_lifecycle_mutation",
 		"DROP FUNCTION IF EXISTS reject_application_result_artifact_lifecycle_event_mutation",
+		"DROP INDEX IF EXISTS application_result_artifacts_application_history_idx",
 	} {
 		if !strings.Contains(downSQL, required) {
 			t.Fatalf("workflow run down migration is missing %q", required)
@@ -213,6 +215,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v23", migrationID: toolDefinitionSourcesMigrationID, requiredFragment: "workflow_run_record.v9", forbiddenFragment: "workflow_http_tool_action_plan.v2"},
 		{name: "v24", migrationID: definitionHTTPToolExecutionMigrationID, requiredFragment: "CREATE TABLE application_result_artifacts", forbiddenFragment: "workflow_run_record.v9"},
 		{name: "v25", migrationID: resultArtifactMigrationID, requiredFragment: "CREATE TABLE application_result_artifact_lifecycles", forbiddenFragment: "CREATE TABLE application_result_artifacts"},
+		{name: "v26", migrationID: resultArtifactLifecycleMigrationID, requiredFragment: "application_result_artifacts_application_history_idx", forbiddenFragment: "CREATE TABLE application_result_artifact_lifecycles"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -324,6 +327,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	resultArtifactRollback := rollbackSQLThrough(resultArtifactMigrationID)
 	if !strings.Contains(resultArtifactRollback, "application_result_artifacts") || strings.Contains(resultArtifactRollback, "application_result_artifact_lifecycles") {
 		t.Fatalf("v25 rollback must remove result artifacts without removing unapplied v26 lifecycle tables: %s", resultArtifactRollback)
+	}
+	resultArtifactLifecycleRollback := rollbackSQLThrough(resultArtifactLifecycleMigrationID)
+	if !strings.Contains(resultArtifactLifecycleRollback, "application_result_artifact_lifecycles") || strings.Contains(resultArtifactLifecycleRollback, "application_result_artifacts_application_history_idx") {
+		t.Fatalf("v26 rollback must remove lifecycle tables without removing unapplied v27 index: %s", resultArtifactLifecycleRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

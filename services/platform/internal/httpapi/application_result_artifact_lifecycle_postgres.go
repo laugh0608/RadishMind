@@ -27,8 +27,7 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 
 func (repository *postgresApplicationResultArtifactRepository) ListByLifecycle(
 	ctx ApplicationInteractionContext,
-	sessionID string,
-	state ApplicationResultArtifactLifecycleState,
+	filter applicationResultArtifactRepositoryListFilter,
 ) ([]applicationResultArtifactStoredRecord, error) {
 	if repository == nil || repository.pool == nil {
 		return nil, errApplicationResultArtifactStore
@@ -43,9 +42,13 @@ JOIN application_result_artifact_lifecycles l
   ON l.tenant_ref=a.tenant_ref AND l.workspace_id=a.workspace_id AND l.application_id=a.application_id
  AND l.owner_subject_ref=a.owner_subject_ref AND l.artifact_id=a.artifact_id
 WHERE a.tenant_ref=$1 AND a.workspace_id=$2 AND a.application_id=$3 AND a.owner_subject_ref=$4
-  AND a.session_id=$5 AND l.lifecycle_state=$6
+  AND ($5='' OR a.session_id=$5)
+  AND l.lifecycle_state=$6
+  AND ($7='' OR a.execution_profile=$7)
+  AND ($8='' OR a.content_type=$8)
 ORDER BY a.created_at DESC,a.artifact_id DESC`,
-		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, sessionID, state)
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
+		filter.SessionID, filter.LifecycleState, filter.ExecutionProfile, filter.ContentType)
 	if err != nil {
 		return nil, errApplicationResultArtifactStore
 	}

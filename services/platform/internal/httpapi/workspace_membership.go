@@ -40,6 +40,7 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"application_sessions:write":               {},
 	"application_sessions:execute":             {},
 	"application_result_artifacts:archive":     {},
+	"application_result_artifacts:export":      {},
 	"prompt_application_templates:read":        {},
 	"prompt_application_templates:read_source": {},
 	"prompt_application_templates:write":       {},

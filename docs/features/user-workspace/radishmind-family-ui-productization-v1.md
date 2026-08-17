@@ -165,6 +165,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 同日的 Workflow RAG Promotion → Configuration Draft 交接复验同样为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用 S2 已冻结的阶段切换、单 owner 打开和易失单引用交接，配置页复用既有 binding selector、显式恢复与失败关闭表达。`1440×900`、`900×900`、`720×900`、`390×844` 保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error；本批没有新布局、交互模型或响应式策略，因此未操作正被其它项目占用的 Pencil，也没有建立第十个页面族。
 
+2026-08-17 的 Application Result Workspace 五维评分为 `0 / 0 / 1 / 1 / 0 = 2`，采用 `C / 直接实现`：复用 S5 的 Application Context、单 owner task path 与 Run handoff，复用 S3 Saved Draft Library 的筛选列表和 Session Result Artifact Panel 的 exact inspector / lifecycle。显式 JSON 导出只增加可逆的开发测试态 digest 重校验说明，没有形成新页面拓扑、高风险确认或跨页面语义，因此未修改 Pencil、未建立 S11。真实浏览器 `1440×900`、`720×900`、`390×844` 均保持单一选中任务、零横向溢出和控制台零 warning / error。
+
 ### 设计基准面覆盖记录
 
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |

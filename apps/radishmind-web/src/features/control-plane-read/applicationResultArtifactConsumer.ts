@@ -2,6 +2,7 @@ const ARTIFACT_SCHEMA_VERSION = "application_result_artifact.v1";
 const SUMMARY_SCHEMA_VERSION = "application_result_artifact_summary.v2";
 const LIFECYCLE_SCHEMA_VERSION = "application_result_artifact_lifecycle.v1";
 const LIFECYCLE_EVENT_SCHEMA_VERSION = "application_result_artifact_lifecycle_event.v1";
+const EXPORT_SCHEMA_VERSION = "application_result_artifact_export.v1";
 const APPLICATION_ID_PATTERN = /^app_[a-z0-9]{16}$/u;
 const SESSION_ID_PATTERN = /^appsess_[a-z2-7]{16}$/u;
 const ARTIFACT_ID_PATTERN = /^appres_[a-z2-7]{16}$/u;
@@ -21,6 +22,13 @@ export type ApplicationResultArtifactConfig = {
 };
 
 export type ApplicationResultArtifactLifecycleState = "active" | "archived";
+export type ApplicationResultArtifactContentType = "text/markdown" | "application/json";
+export type ApplicationResultArtifactExecutionProfile =
+  | "workflow_definition_executor_v1"
+  | "workflow_definition_executor_v2"
+  | "application_rag_invocation_v1"
+  | "prompt_application_invocation_v1"
+  | "agent_copilot_suggestion_v1";
 
 export type ApplicationResultArtifactRunRef = {
   schemaVersion:
@@ -45,7 +53,7 @@ export type ApplicationResultArtifactSummary = {
   clientTurnKey: string;
   executionProfile: string;
   runRef: ApplicationResultArtifactRunRef;
-  contentType: "text/markdown" | "application/json";
+  contentType: ApplicationResultArtifactContentType;
   contentBytes: number;
   contentDigest: string;
   createdAt: string;
@@ -99,6 +107,17 @@ export type ApplicationResultArtifactLifecycleEvent = {
   auditRef: string;
 };
 
+export type ApplicationResultArtifactExport = {
+  schemaVersion: typeof EXPORT_SCHEMA_VERSION;
+  artifact: ApplicationResultArtifact;
+  lifecycle: ApplicationResultArtifactLifecycle;
+  exportedAt: string;
+  exportedByActorRef: string;
+  requestId: string;
+  auditRef: string;
+  exportDigest: string;
+};
+
 export type ApplicationResultArtifactListResult = {
   status: "offline" | "ready" | "failed";
   items: ApplicationResultArtifactSummary[];
@@ -131,11 +150,31 @@ export type ApplicationResultArtifactTransitionResult = {
   summary: string;
 };
 
+export type ApplicationResultArtifactExportResult = {
+  status: "offline" | "ready" | "failed";
+  exportDocument: ApplicationResultArtifactExport | null;
+  failureCode: string;
+  requestId: string;
+  auditRef: string;
+  summary: string;
+};
+
 export type ApplicationResultArtifactRequestScope = {
   generation: number;
   applicationId: string;
   sessionId: string;
   lifecycleState: ApplicationResultArtifactLifecycleState;
+  artifactId: string;
+};
+
+export type ApplicationResultArtifactLibraryRequestScope = {
+  generation: number;
+  applicationId: string;
+  lifecycleState: ApplicationResultArtifactLifecycleState;
+  executionProfile: ApplicationResultArtifactExecutionProfile | "";
+  contentType: ApplicationResultArtifactContentType | "";
+  cursor: string;
+  sessionId: string;
   artifactId: string;
 };
 
@@ -214,6 +253,73 @@ export async function listApplicationResultArtifacts(
   }
 }
 
+export async function listApplicationResultArtifactsByApplication(
+  config: ApplicationResultArtifactConfig,
+  input: {
+    applicationId: string;
+    lifecycleState?: ApplicationResultArtifactLifecycleState;
+    executionProfile?: ApplicationResultArtifactExecutionProfile | "";
+    contentType?: ApplicationResultArtifactContentType | "";
+    limit?: number;
+    cursor?: string;
+  },
+  signal?: AbortSignal,
+): Promise<ApplicationResultArtifactListResult> {
+  if (config.mode === "offline") return failedList("application_session_http_disabled", "offline");
+  const lifecycleState = input.lifecycleState ?? "active";
+  const executionProfile = input.executionProfile ?? "";
+  const contentType = input.contentType ?? "";
+  const limit = input.limit ?? 50;
+  if (!validApplicationScope(config, input.applicationId) || !validLifecycleState(lifecycleState) ||
+    !validOptionalExecutionProfile(executionProfile) || !validOptionalContentType(contentType) ||
+    !Number.isInteger(limit) || limit < 1 || limit > 100 || (input.cursor?.length ?? 0) > 4096) {
+    return failedList("application_result_artifact_payload_invalid");
+  }
+  const requestId = createRequestId("application-result-artifact-application-list");
+  const query = new URLSearchParams({
+    workspace_id: config.workspaceId,
+    lifecycle_state: lifecycleState,
+    limit: String(limit),
+  });
+  if (executionProfile) query.set("execution_profile", executionProfile);
+  if (contentType) query.set("content_type", contentType);
+  if (input.cursor) query.set("cursor", input.cursor);
+  try {
+    const response = await fetch(
+      `${config.baseUrl}/v1/user-workspace/applications/${encodeURIComponent(input.applicationId)}/result-artifacts?${query}`,
+      { headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
+    );
+    const value: unknown = await response.json();
+    if (!isApplicationListEnvelope(value, config, input.applicationId)) {
+      return failedList("application_result_artifact_store_contract_mismatch", requestId);
+    }
+    const failureCode = nullableString(value.failure_code);
+    if (!response.ok || failureCode) {
+      return failedList(failureCode || "application_result_artifact_store_unavailable", String(value.request_id), String(value.audit_ref));
+    }
+    const items = value.items.map((item) =>
+      parseApplicationResultArtifactSummary(item, config, input.applicationId, "")
+    );
+    if (items.some((item) => item === null) || items.some((item) =>
+      item?.lifecycleState !== lifecycleState || executionProfile && item.executionProfile !== executionProfile ||
+      contentType && item.contentType !== contentType
+    )) {
+      return failedList("application_result_artifact_store_contract_mismatch", String(value.request_id), String(value.audit_ref));
+    }
+    return {
+      status: "ready",
+      items: items as ApplicationResultArtifactSummary[],
+      nextCursor: nullableString(value.next_cursor),
+      failureCode: "",
+      requestId: String(value.request_id),
+      auditRef: String(value.audit_ref),
+      summary: `已读取当前 Application 的 ${items.length} 条 ${lifecycleState} 结果资产元数据；正文仍未读取。`,
+    };
+  } catch (error) {
+    return failedList(isAbort(error) ? "application_result_artifact_request_canceled" : "application_result_artifact_store_unavailable", requestId);
+  }
+}
+
 export async function readApplicationResultArtifact(
   config: ApplicationResultArtifactConfig,
   input: { applicationId: string; sessionId: string; artifactId: string },
@@ -254,6 +360,50 @@ export async function readApplicationResultArtifact(
     };
   } catch (error) {
     return failedRead(isAbort(error) ? "application_result_artifact_request_canceled" : "application_result_artifact_store_unavailable", requestId);
+  }
+}
+
+export async function exportApplicationResultArtifact(
+  config: ApplicationResultArtifactConfig,
+  input: { applicationId: string; artifactId: string },
+  signal?: AbortSignal,
+): Promise<ApplicationResultArtifactExportResult> {
+  if (config.mode === "offline") return failedExport("application_session_http_disabled", "offline");
+  if (!validApplicationScope(config, input.applicationId) || !ARTIFACT_ID_PATTERN.test(input.artifactId)) {
+    return failedExport("application_result_artifact_payload_invalid");
+  }
+  const requestId = createRequestId("application-result-artifact-export");
+  const query = new URLSearchParams({ workspace_id: config.workspaceId });
+  try {
+    const response = await fetch(
+      `${config.baseUrl}/v1/user-workspace/applications/${encodeURIComponent(input.applicationId)}/result-artifacts/${encodeURIComponent(input.artifactId)}/export?${query}`,
+      { headers: artifactExportHeaders(config, input.applicationId, requestId), signal },
+    );
+    const value: unknown = await response.json();
+    if (!isExportEnvelope(value, config, input.applicationId)) {
+      return failedExport("application_result_artifact_store_contract_mismatch", requestId);
+    }
+    const failureCode = nullableString(value.failure_code);
+    if (!response.ok || failureCode) {
+      return failedExport(failureCode || "application_result_artifact_store_unavailable", String(value.request_id), String(value.audit_ref));
+    }
+    const exportDocument = value.export === null
+      ? null
+      : await parseApplicationResultArtifactExport(value.export, config, input.applicationId);
+    if (!exportDocument || exportDocument.artifact.artifactId !== input.artifactId ||
+      exportDocument.requestId !== value.request_id || exportDocument.auditRef !== value.audit_ref) {
+      return failedExport("application_result_artifact_store_contract_mismatch", String(value.request_id), String(value.audit_ref));
+    }
+    return {
+      status: "ready",
+      exportDocument,
+      failureCode: "",
+      requestId: String(value.request_id),
+      auditRef: String(value.audit_ref),
+      summary: `结果资产 ${input.artifactId} 已通过 content 与 export digest 校验，可显式下载。`,
+    };
+  } catch (error) {
+    return failedExport(isAbort(error) ? "application_result_artifact_request_canceled" : "application_result_artifact_store_unavailable", requestId);
   }
 }
 
@@ -336,6 +486,24 @@ export function applicationResultArtifactResponseMatchesScope(
   return expected.generation === observed.generation && expected.applicationId === observed.applicationId &&
     expected.sessionId === observed.sessionId && expected.lifecycleState === observed.lifecycleState &&
     expected.artifactId === observed.artifactId;
+}
+
+export function applicationResultArtifactLibraryResponseMatchesScope(
+  expected: ApplicationResultArtifactLibraryRequestScope,
+  observed: ApplicationResultArtifactLibraryRequestScope,
+): boolean {
+  return expected.generation === observed.generation && expected.applicationId === observed.applicationId &&
+    expected.lifecycleState === observed.lifecycleState && expected.executionProfile === observed.executionProfile &&
+    expected.contentType === observed.contentType && expected.cursor === observed.cursor &&
+    expected.sessionId === observed.sessionId && expected.artifactId === observed.artifactId;
+}
+
+export function applicationResultArtifactExportFilename(exportDocument: ApplicationResultArtifactExport): string {
+  return `radishmind-${exportDocument.artifact.artifactId}-lifecycle-v${exportDocument.lifecycle.lifecycleVersion}.json`;
+}
+
+export function serializeApplicationResultArtifactExport(exportDocument: ApplicationResultArtifactExport): string {
+  return `${JSON.stringify(applicationResultArtifactExportWireDocument(exportDocument), null, 2)}\n`;
 }
 
 export function parseApplicationResultArtifactSummary(
@@ -517,6 +685,18 @@ function isListEnvelope(
     (value.failure_code === null || typeof value.failure_code === "string");
 }
 
+function isApplicationListEnvelope(
+  value: unknown,
+  config: ApplicationResultArtifactConfig,
+  applicationId: string,
+): value is Document & { items: unknown[] } {
+  return isExactDocument(value, [
+    "request_id", "tenant_ref", "workspace_id", "application_id", "items", "next_cursor", "failure_code", "audit_ref",
+  ]) && applicationEnvelopeScopeMatches(value, config, applicationId) && Array.isArray(value.items) &&
+    (value.next_cursor === null || typeof value.next_cursor === "string" && value.next_cursor.length <= 4096) &&
+    (value.failure_code === null || typeof value.failure_code === "string");
+}
+
 function isReadEnvelope(
   value: unknown,
   config: ApplicationResultArtifactConfig,
@@ -545,6 +725,57 @@ function isTransitionEnvelope(
     (value.current_lifecycle_state === "" || validLifecycleState(value.current_lifecycle_state));
 }
 
+function isExportEnvelope(
+  value: unknown,
+  config: ApplicationResultArtifactConfig,
+  applicationId: string,
+): value is Document {
+  return isExactDocument(value, [
+    "request_id", "tenant_ref", "workspace_id", "application_id", "export", "failure_code", "audit_ref",
+  ]) && applicationEnvelopeScopeMatches(value, config, applicationId) &&
+    (value.export === null || isRecord(value.export)) &&
+    (value.failure_code === null || typeof value.failure_code === "string");
+}
+
+async function parseApplicationResultArtifactExport(
+  value: unknown,
+  config: ApplicationResultArtifactConfig,
+  applicationId: string,
+): Promise<ApplicationResultArtifactExport | null> {
+  const keys = [
+    "schema_version", "artifact", "lifecycle", "exported_at", "exported_by_actor_ref", "request_id", "audit_ref",
+    "export_digest",
+  ];
+  if (!isExactDocument(value, keys) || value.schema_version !== EXPORT_SCHEMA_VERSION ||
+    !isRecord(value.artifact) || !isRecord(value.lifecycle) || !isTimestamp(value.exported_at) ||
+    value.exported_by_actor_ref !== config.subjectRef || !REF_PATTERN.test(String(value.request_id)) ||
+    !REF_PATTERN.test(String(value.audit_ref)) || !DIGEST_PATTERN.test(String(value.export_digest))) return null;
+  const artifactSessionId = String(value.artifact.session_id);
+  if (!SESSION_ID_PATTERN.test(artifactSessionId)) return null;
+  const artifact = parseApplicationResultArtifact(value.artifact, config, applicationId, artifactSessionId);
+  const artifactId = artifact?.artifactId ?? "";
+  const lifecycle = parseApplicationResultArtifactLifecycle(value.lifecycle, config, applicationId, artifactId);
+  if (!artifact || !lifecycle || lifecycle.artifactId !== artifact.artifactId) return null;
+  const exportDocument: ApplicationResultArtifactExport = {
+    schemaVersion: EXPORT_SCHEMA_VERSION,
+    artifact,
+    lifecycle,
+    exportedAt: String(value.exported_at),
+    exportedByActorRef: String(value.exported_by_actor_ref),
+    requestId: String(value.request_id),
+    auditRef: String(value.audit_ref),
+    exportDigest: String(value.export_digest),
+  };
+  const contentDigest = await sha256Text(`${artifact.contentType.trim()}\u0000${artifact.content}`);
+  const exportDigest = await sha256Text(JSON.stringify(applicationResultArtifactExportWireDocument({
+    ...exportDocument,
+    exportDigest: "",
+  })));
+  if (!contentDigest || !exportDigest || `sha256:${contentDigest}` !== artifact.contentDigest ||
+    `sha256:${exportDigest}` !== exportDocument.exportDigest) return null;
+  return exportDocument;
+}
+
 function artifactHeaders(
   config: ApplicationResultArtifactConfig,
   applicationId: string,
@@ -569,6 +800,19 @@ function artifactHeaders(
   };
 }
 
+function artifactExportHeaders(
+  config: ApplicationResultArtifactConfig,
+  applicationId: string,
+  requestId: string,
+): Record<string, string> {
+  const permissions = "application_sessions:read,application_result_artifacts:export";
+  return {
+    ...artifactHeaders(config, applicationId, requestId, false),
+    "X-RadishMind-Dev-Read-Scopes": permissions,
+    "X-RadishMind-Dev-Read-Membership-Permissions": permissions,
+  };
+}
+
 function parseRunRef(value: unknown, profile: unknown): ApplicationResultArtifactRunRef | null {
   if (!isExactDocument(value, ["schema_version", "run_id"]) || !RUN_ID_PATTERN.test(String(value.run_id))) return null;
   const expected = new Map<string, ApplicationResultArtifactRunRef["schemaVersion"]>([
@@ -589,7 +833,8 @@ function summaryScopeMatches(
   sessionId: string,
 ): boolean {
   return value.tenant_ref === config.tenantRef && value.workspace_id === config.workspaceId &&
-    value.application_id === applicationId && value.owner_subject_ref === config.subjectRef && value.session_id === sessionId;
+    value.application_id === applicationId && value.owner_subject_ref === config.subjectRef &&
+    SESSION_ID_PATTERN.test(String(value.session_id)) && (!sessionId || value.session_id === sessionId);
 }
 
 function lifecycleScopeMatches(
@@ -613,9 +858,23 @@ function envelopeScopeMatches(
     REF_PATTERN.test(String(value.audit_ref));
 }
 
+function applicationEnvelopeScopeMatches(
+  value: Document,
+  config: ApplicationResultArtifactConfig,
+  applicationId: string,
+): boolean {
+  return REF_PATTERN.test(String(value.request_id)) && value.tenant_ref === config.tenantRef &&
+    value.workspace_id === config.workspaceId && value.application_id === applicationId &&
+    REF_PATTERN.test(String(value.audit_ref));
+}
+
 function validScope(config: ApplicationResultArtifactConfig, applicationId: string, sessionId: string): boolean {
-  return APPLICATION_ID_PATTERN.test(applicationId) && SESSION_ID_PATTERN.test(sessionId) &&
-    REF_PATTERN.test(config.tenantRef) && REF_PATTERN.test(config.workspaceId) && REF_PATTERN.test(config.subjectRef);
+  return validApplicationScope(config, applicationId) && SESSION_ID_PATTERN.test(sessionId);
+}
+
+function validApplicationScope(config: ApplicationResultArtifactConfig, applicationId: string): boolean {
+  return APPLICATION_ID_PATTERN.test(applicationId) && REF_PATTERN.test(config.tenantRef) &&
+    REF_PATTERN.test(config.workspaceId) && REF_PATTERN.test(config.subjectRef);
 }
 
 function validLifecycleState(value: unknown): value is ApplicationResultArtifactLifecycleState {
@@ -626,8 +885,77 @@ function validContentType(value: unknown): value is ApplicationResultArtifactSum
   return value === "text/markdown" || value === "application/json";
 }
 
+function validOptionalContentType(value: unknown): value is ApplicationResultArtifactContentType | "" {
+  return value === "" || validContentType(value);
+}
+
+function validOptionalExecutionProfile(value: unknown): value is ApplicationResultArtifactExecutionProfile | "" {
+  return value === "" || value === "workflow_definition_executor_v1" || value === "workflow_definition_executor_v2" ||
+    value === "application_rag_invocation_v1" || value === "prompt_application_invocation_v1" ||
+    value === "agent_copilot_suggestion_v1";
+}
+
 function validArchivedAt(state: ApplicationResultArtifactLifecycleState, value: unknown): boolean {
   return state === "active" ? value === null : isTimestamp(value);
+}
+
+function applicationResultArtifactExportWireDocument(exportDocument: ApplicationResultArtifactExport): Document {
+  const artifact = exportDocument.artifact;
+  const lifecycle = exportDocument.lifecycle;
+  return {
+    schema_version: exportDocument.schemaVersion,
+    artifact: {
+      schema_version: artifact.schemaVersion,
+      artifact_id: artifact.artifactId,
+      record_version: artifact.recordVersion,
+      tenant_ref: artifact.tenantRef,
+      workspace_id: artifact.workspaceId,
+      application_id: artifact.applicationId,
+      owner_subject_ref: artifact.ownerSubjectRef,
+      session_id: artifact.sessionId,
+      turn_id: artifact.turnId,
+      client_turn_key: artifact.clientTurnKey,
+      execution_profile: artifact.executionProfile,
+      run_ref: {
+        run_id: artifact.runRef.runId,
+        schema_version: artifact.runRef.schemaVersion,
+      },
+      content_type: artifact.contentType,
+      content: artifact.content,
+      content_bytes: artifact.contentBytes,
+      content_digest: artifact.contentDigest,
+      created_at: artifact.createdAt,
+      created_by_actor_ref: artifact.createdByActorRef,
+      request_id: artifact.requestId,
+      audit_ref: artifact.auditRef,
+    },
+    lifecycle: {
+      schema_version: lifecycle.schemaVersion,
+      tenant_ref: lifecycle.tenantRef,
+      workspace_id: lifecycle.workspaceId,
+      application_id: lifecycle.applicationId,
+      owner_subject_ref: lifecycle.ownerSubjectRef,
+      artifact_id: lifecycle.artifactId,
+      lifecycle_state: lifecycle.lifecycleState,
+      lifecycle_version: lifecycle.lifecycleVersion,
+      archived_at: lifecycle.archivedAt,
+      updated_at: lifecycle.updatedAt,
+      updated_by_actor_ref: lifecycle.updatedByActorRef,
+      request_id: lifecycle.requestId,
+      audit_ref: lifecycle.auditRef,
+    },
+    exported_at: exportDocument.exportedAt,
+    exported_by_actor_ref: exportDocument.exportedByActorRef,
+    request_id: exportDocument.requestId,
+    audit_ref: exportDocument.auditRef,
+    export_digest: exportDocument.exportDigest,
+  };
+}
+
+async function sha256Text(value: string): Promise<string | null> {
+  if (!globalThis.crypto?.subtle) return null;
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 function isExactDocument(value: unknown, keys: string[]): value is Document {
@@ -683,6 +1011,21 @@ function failedRead(
     requestId: requestId === "offline" ? "" : requestId,
     auditRef,
     summary: `结果资产读取不可用：${failureCode}。`,
+  };
+}
+
+function failedExport(
+  failureCode: string,
+  requestId = "",
+  auditRef = "",
+): ApplicationResultArtifactExportResult {
+  return {
+    status: requestId === "offline" ? "offline" : "failed",
+    exportDocument: null,
+    failureCode,
+    requestId: requestId === "offline" ? "" : requestId,
+    auditRef,
+    summary: `结果资产导出不可用：${failureCode}。`,
   };
 }
 

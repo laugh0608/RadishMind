@@ -1,10 +1,16 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
+  applicationResultArtifactExportFilename,
+  applicationResultArtifactLibraryResponseMatchesScope,
   applicationResultArtifactResponseMatchesScope,
+  exportApplicationResultArtifact,
+  listApplicationResultArtifactsByApplication,
   listApplicationResultArtifacts,
   readApplicationResultArtifact,
+  serializeApplicationResultArtifactExport,
   transitionApplicationResultArtifactLifecycle,
   type ApplicationResultArtifactConfig,
 } from "../src/features/control-plane-read/applicationResultArtifactConsumer.ts";
@@ -25,11 +31,59 @@ test("result artifact consumer stays offline with zero requests", async () => {
   globalThis.fetch = async () => { requests += 1; throw new Error("offline request"); };
   const offline = { ...config, mode: "offline" as const };
   assert.equal((await listApplicationResultArtifacts(offline, { applicationId, sessionId })).status, "offline");
+  assert.equal((await listApplicationResultArtifactsByApplication(offline, { applicationId })).status, "offline");
   assert.equal((await readApplicationResultArtifact(offline, { applicationId, sessionId, artifactId })).status, "offline");
+  assert.equal((await exportApplicationResultArtifact(offline, { applicationId, artifactId })).status, "offline");
   assert.equal((await transitionApplicationResultArtifactLifecycle(offline, {
     applicationId, sessionId, artifactId, expectedLifecycleVersion: 1, targetState: "archived",
   })).status, "offline");
   assert.equal(requests, 0);
+});
+
+test("application artifact library binds filters and accepts metadata from multiple sessions", async () => {
+  let requestURL = "";
+  globalThis.fetch = async (input) => {
+    requestURL = String(input);
+    return jsonResponse(applicationListEnvelope([
+      summaryDocument(),
+      { ...summaryDocument(), artifact_id: "appres_ponmlkjihgfedcba", session_id: "appsess_ponmlkjihgfedcba" },
+    ]));
+  };
+  const result = await listApplicationResultArtifactsByApplication(config, {
+    applicationId,
+    lifecycleState: "active",
+    executionProfile: "workflow_definition_executor_v1",
+    contentType: "text/markdown",
+    limit: 25,
+    cursor: "cursor-page-2",
+  });
+  assert.equal(result.status, "ready");
+  assert.equal(result.items.length, 2);
+  assert.equal(result.items[1]?.sessionId, "appsess_ponmlkjihgfedcba");
+  const url = new URL(requestURL);
+  assert.equal(url.pathname, `/v1/user-workspace/applications/${applicationId}/result-artifacts`);
+  assert.equal(url.searchParams.get("execution_profile"), "workflow_definition_executor_v1");
+  assert.equal(url.searchParams.get("content_type"), "text/markdown");
+  assert.equal(url.searchParams.get("cursor"), "cursor-page-2");
+  assert.equal(url.searchParams.has("application_id"), false);
+});
+
+test("application artifact library fails closed on filter, session, and envelope drift", async () => {
+  globalThis.fetch = async () => jsonResponse(applicationListEnvelope([
+    { ...summaryDocument(), execution_profile: "application_rag_invocation_v1", run_ref: { schema_version: "workflow_run_record.v4", run_id: "run_abcdefghijklmnop" } },
+  ]));
+  assert.equal((await listApplicationResultArtifactsByApplication(config, {
+    applicationId,
+    executionProfile: "workflow_definition_executor_v1",
+  })).failureCode, "application_result_artifact_store_contract_mismatch");
+
+  globalThis.fetch = async () => jsonResponse(applicationListEnvelope([
+    { ...summaryDocument(), session_id: "unsafe-session" },
+  ]));
+  assert.equal((await listApplicationResultArtifactsByApplication(config, { applicationId })).status, "failed");
+
+  globalThis.fetch = async () => jsonResponse({ ...applicationListEnvelope([]), session_id: sessionId });
+  assert.equal((await listApplicationResultArtifactsByApplication(config, { applicationId })).status, "failed");
 });
 
 test("active artifact list is metadata-only and binds exact read membership scope", async () => {
@@ -96,6 +150,37 @@ test("exact artifact read returns content only with matching lifecycle and prove
   );
 });
 
+test("controlled export verifies both digests, exact scope, permission, and stable filename", async () => {
+  let headers = new Headers();
+  globalThis.fetch = async (_input, init) => {
+    headers = new Headers(init?.headers);
+    return jsonResponse(exportEnvelope());
+  };
+  const result = await exportApplicationResultArtifact(config, { applicationId, artifactId });
+  assert.equal(result.status, "ready");
+  assert.equal(result.exportDocument?.artifact.content, "Saved result");
+  assert.equal(
+    headers.get("X-RadishMind-Dev-Read-Membership-Permissions"),
+    "application_sessions:read,application_result_artifacts:export",
+  );
+  assert.equal(
+    applicationResultArtifactExportFilename(result.exportDocument!),
+    `radishmind-${artifactId}-lifecycle-v1.json`,
+  );
+  assert.match(serializeApplicationResultArtifactExport(result.exportDocument!), /"export_digest": "sha256:/u);
+
+  const corruptedContent = exportEnvelope();
+  corruptedContent.export.artifact.content = "Corrupted result";
+  corruptedContent.export.artifact.content_bytes = new TextEncoder().encode("Corrupted result").length;
+  globalThis.fetch = async () => jsonResponse(corruptedContent);
+  assert.equal((await exportApplicationResultArtifact(config, { applicationId, artifactId })).status, "failed");
+
+  const corruptedExportDigest = exportEnvelope();
+  corruptedExportDigest.export.export_digest = `sha256:${"f".repeat(64)}`;
+  globalThis.fetch = async () => jsonResponse(corruptedExportDigest);
+  assert.equal((await exportApplicationResultArtifact(config, { applicationId, artifactId })).status, "failed");
+});
+
 test("archive uses independent permission, expected lifecycle CAS, and strict event", async () => {
   let body: Record<string, unknown> = {};
   let headers = new Headers();
@@ -157,6 +242,29 @@ test("artifact response scope rejects application, session, filter, artifact, an
   assert.equal(applicationResultArtifactResponseMatchesScope(expected, { ...expected, sessionId: "appsess_ponmlkjihgfedcba" }), false);
   assert.equal(applicationResultArtifactResponseMatchesScope(expected, { ...expected, lifecycleState: "archived" }), false);
   assert.equal(applicationResultArtifactResponseMatchesScope(expected, { ...expected, artifactId: "appres_ponmlkjihgfedcba" }), false);
+});
+
+test("application library response scope binds every filter and exact selection", () => {
+  const expected = {
+    generation: 8,
+    applicationId,
+    lifecycleState: "active" as const,
+    executionProfile: "workflow_definition_executor_v1" as const,
+    contentType: "text/markdown" as const,
+    cursor: "cursor-page-2",
+    sessionId,
+    artifactId,
+  };
+  assert.equal(applicationResultArtifactLibraryResponseMatchesScope(expected, { ...expected }), true);
+  for (const observed of [
+    { ...expected, generation: 9 },
+    { ...expected, lifecycleState: "archived" as const },
+    { ...expected, executionProfile: "" as const },
+    { ...expected, contentType: "application/json" as const },
+    { ...expected, cursor: "" },
+    { ...expected, sessionId: "appsess_ponmlkjihgfedcba" },
+    { ...expected, artifactId: "appres_ponmlkjihgfedcba" },
+  ]) assert.equal(applicationResultArtifactLibraryResponseMatchesScope(expected, observed), false);
 });
 
 function summaryDocument() {
@@ -242,6 +350,45 @@ function listEnvelope(items: unknown[]) {
   };
 }
 
+function applicationListEnvelope(items: unknown[]) {
+  return {
+    request_id: "artifact-application-list-request",
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    items,
+    next_cursor: null,
+    failure_code: null,
+    audit_ref: "audit-artifact-application-list-request",
+  };
+}
+
+function exportEnvelope() {
+  const artifact = artifactDocument();
+  artifact.content_digest = sha256(`${artifact.content_type}\u0000${artifact.content}`);
+  artifact.run_ref = { run_id: artifact.run_ref.run_id, schema_version: artifact.run_ref.schema_version };
+  const exported = {
+    schema_version: "application_result_artifact_export.v1",
+    artifact,
+    lifecycle: lifecycleDocument(),
+    exported_at: "2026-08-17T03:10:00Z",
+    exported_by_actor_ref: "subject_demo_user",
+    request_id: "artifact-export-request",
+    audit_ref: "audit-artifact-export-request",
+    export_digest: "",
+  };
+  exported.export_digest = sha256(JSON.stringify(exported));
+  return {
+    request_id: "artifact-export-request",
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    export: exported,
+    failure_code: null,
+    audit_ref: "audit-artifact-export-request",
+  };
+}
+
 function readEnvelope() {
   return {
     request_id: "artifact-read-request",
@@ -292,4 +439,8 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+function sha256(value: string): string {
+  return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }

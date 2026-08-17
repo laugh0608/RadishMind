@@ -111,6 +111,10 @@ func TestPostgresApplicationResultArtifactRestartConcurrencyRoleAndMigrationLife
 		t.Fatalf("same-turn PostgreSQL result artifact conflict was not rejected: %v", err)
 	}
 	_, profileArtifacts := applicationResultArtifactPersistenceProfileFixtures()
+	profileArtifacts[1].ContentType = "application/json"
+	profileArtifacts[1].Content = `{"result":"structured workflow"}`
+	profileArtifacts[1].ContentBytes = len([]byte(profileArtifacts[1].Content))
+	profileArtifacts[1].ContentDigest = applicationResultArtifactContentDigest(profileArtifacts[1].ContentType, profileArtifacts[1].Content)
 	for _, profileArtifact := range profileArtifacts[1:] {
 		if _, replay, createErr := repository.Create(interactionContext, profileArtifact); createErr != nil || replay {
 			runtimePool.Close()
@@ -176,16 +180,40 @@ func TestPostgresApplicationResultArtifactRestartConcurrencyRoleAndMigrationLife
 		t.Fatal(err)
 	}
 	restartedRepository := newPostgresApplicationResultArtifactRepository(restartedPool)
+	restartedService := newApplicationResultArtifactService(restartedRepository)
+	restartedService.now = func() time.Time { return time.Date(2026, 8, 17, 10, 30, 0, 123456000, time.UTC) }
 	restored, readErr := restartedRepository.Read(interactionContext, artifact.ArtifactID)
 	listed, listErr := restartedRepository.List(interactionContext, artifact.SessionID)
 	restoredLifecycle, lifecycleReadErr := restartedRepository.ReadLifecycle(interactionContext, artifact.ArtifactID)
-	archivedRecords, archivedListErr := restartedRepository.ListByLifecycle(interactionContext, artifact.SessionID, ApplicationResultArtifactLifecycleArchived)
+	archivedRecords, archivedListErr := restartedRepository.ListByLifecycle(interactionContext, applicationResultArtifactRepositoryListFilter{
+		SessionID:      artifact.SessionID,
+		LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
 	if readErr != nil || listErr != nil || !applicationResultArtifactsEquivalent(restored, artifact) ||
 		lifecycleReadErr != nil || archivedListErr != nil || len(listed) != 2 || listed[1].ArtifactID != artifact.ArtifactID ||
 		restoredLifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived || restoredLifecycle.LifecycleVersion != 2 ||
 		len(archivedRecords) != 1 || archivedRecords[0].Artifact.ArtifactID != artifact.ArtifactID {
 		restartedPool.Close()
 		t.Fatalf("restart PostgreSQL result artifact: restored=%#v lifecycle=%#v listed=%#v archived=%#v errors=%v/%v/%v/%v", restored, restoredLifecycle, listed, archivedRecords, readErr, listErr, lifecycleReadErr, archivedListErr)
+	}
+	applicationActive := restartedService.ListApplication(interactionContext, ApplicationResultArtifactListInput{})
+	jsonResults := restartedService.ListApplication(interactionContext, ApplicationResultArtifactListInput{ContentType: "application/json"})
+	applicationArchived := restartedService.ListApplication(interactionContext, ApplicationResultArtifactListInput{
+		LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
+	exported := restartedService.Export(interactionContext, profileArtifacts[1].ArtifactID)
+	if applicationActive.FailureCode != "" || len(applicationActive.Items) != 5 ||
+		jsonResults.FailureCode != "" || len(jsonResults.Items) != 1 || jsonResults.Items[0].ArtifactID != profileArtifacts[1].ArtifactID ||
+		applicationArchived.FailureCode != "" || len(applicationArchived.Items) != 1 || applicationArchived.Items[0].ArtifactID != artifact.ArtifactID ||
+		exported.FailureCode != "" || exported.Export == nil || exported.Export.Artifact.Content != profileArtifacts[1].Content ||
+		exported.Export.ExportDigest != applicationResultArtifactExportDigest(*exported.Export) {
+		restartedPool.Close()
+		t.Fatalf("restart PostgreSQL application library/export: active=%#v json=%#v archived=%#v export=%#v", applicationActive, jsonResults, applicationArchived, exported)
+	}
+	var applicationIndexExists bool
+	if err = restartedPool.QueryRow(ctx, "SELECT to_regclass('public.application_result_artifacts_application_history_idx') IS NOT NULL").Scan(&applicationIndexExists); err != nil || !applicationIndexExists {
+		restartedPool.Close()
+		t.Fatalf("PostgreSQL application result history index is missing: exists=%v err=%v", applicationIndexExists, err)
 	}
 	for _, profileArtifact := range profileArtifacts[1:] {
 		profileRestored, profileReadErr := restartedRepository.Read(interactionContext, profileArtifact.ArtifactID)
@@ -281,6 +309,10 @@ migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())
 	state, err = workflowrunmigrations.Apply(ctx, adminPool)
 	if err != nil || state.MigrationState != workflowrunmigrations.MigrationStateApplied {
 		t.Fatalf("upgrade PostgreSQL artifact lifecycle: state=%#v err=%v", state, err)
+	}
+	var applicationIndexExists bool
+	if err = adminPool.QueryRow(ctx, "SELECT to_regclass('public.application_result_artifacts_application_history_idx') IS NOT NULL").Scan(&applicationIndexExists); err != nil || !applicationIndexExists {
+		t.Fatalf("upgrade PostgreSQL application result history index: exists=%v err=%v", applicationIndexExists, err)
 	}
 	var lifecycleState string
 	var lifecycleVersion int

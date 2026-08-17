@@ -6,6 +6,7 @@
 
 ## 当前专题
 
+- [应用结果资产库与受控导出（开发 / 测试态）v1](application-result-artifact-library-controlled-export-dev-test-v1.md)：当前产品顺位，状态为 `application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`；批次 A / B 的 application-scoped 严格列表、过滤 cursor、canonical export、独立 export 权限、双数据库索引、strict Web consumer 与三视口页面已完成，下一步以稳定双 Session fixture 完成双数据库产品连续链并关闭专题，不复制 artifact / lifecycle owner。
 - [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](application-session-result-artifact-explicit-retention-dev-test-v1.md)：批次 A 至 D 已完成并关闭；默认关闭的显式保存、三存储不可变 artifact、版本化 lifecycle、共享 strict Web consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已成立，不改变 Run History / Session metadata-only 契约，也不派生批次 E、通用 result store 或 transcript。
 - [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到 S1–S8 八个产品面，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
 - [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择和项目语义层已经对齐；`S1 R8` 至 `S8 R1` 已完成设计、React 与真实浏览器验收，S9 / S10 功能、Pencil Visual R3、React 迁移与真实浏览器复核也已完成。

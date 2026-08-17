@@ -6560,6 +6560,86 @@ dd {
   background: color-mix(in srgb, var(--rm-bg-surface) 96%, var(--rm-action-primary) 4%);
 }
 
+.application-result-artifact-library {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  background: var(--rm-bg-canvas);
+}
+
+.application-result-artifact-library .section-heading > div {
+  display: grid;
+  gap: 5px;
+}
+
+.application-result-artifact-library .section-heading p {
+  margin: 0;
+}
+
+.application-result-artifact-library-filters select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  padding: 0 32px 0 10px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.application-result-artifact-library .application-result-artifact-list > header {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-result-artifact-library .application-result-artifact-list > header small {
+  color: var(--rm-text-muted);
+}
+
+.application-result-artifact-library-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-muted);
+}
+
+.application-result-artifact-library-facts > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-result-artifact-library-facts > div:nth-child(odd) {
+  border-right: 1px solid var(--rm-border-soft);
+}
+
+.application-result-artifact-library-facts > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.application-result-artifact-library-facts dt {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.application-result-artifact-library-facts dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--rm-text-secondary);
+}
+
+.application-result-artifact-library-facts code {
+  overflow-wrap: anywhere;
+}
+
 .application-result-artifact-opt-in {
   display: flex;
   align-items: flex-start;
@@ -11837,7 +11917,7 @@ dd {
 
 .application-runtime-review-path {
   display: grid;
-  grid-template-rows: auto repeat(3, auto) minmax(96px, 1fr);
+  grid-template-rows: auto repeat(4, auto) minmax(96px, 1fr);
   align-content: start;
   min-width: 0;
   border-right: 1px solid var(--rm-border-soft);
@@ -11989,7 +12069,8 @@ dd {
 }
 
 .application-runtime-review-owner-panel > .surface-band,
-.application-runtime-review-owner-panel > .gateway-request-history {
+.application-runtime-review-owner-panel > .gateway-request-history,
+.application-runtime-review-owner-panel > .application-result-artifact-library {
   min-width: 0;
   margin: 0;
   border: 0;
@@ -12362,7 +12443,7 @@ dd {
   }
 
   .application-runtime-review-path {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-rows: auto auto;
     border-right: 0;
     border-bottom: 1px solid var(--rm-border-soft);
@@ -12377,7 +12458,7 @@ dd {
     border-right: 1px solid var(--rm-border-soft);
   }
 
-  .application-runtime-review-task:nth-of-type(3) {
+  .application-runtime-review-task:last-of-type {
     border-right: 0;
   }
 
@@ -12474,7 +12555,7 @@ dd {
 
   .application-runtime-review-path {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto repeat(3, auto) auto;
+    grid-template-rows: auto repeat(4, auto) auto;
   }
 
   .application-runtime-review-path > header,
@@ -12497,8 +12578,24 @@ dd {
   }
 
   .application-runtime-review-owner-panel > .surface-band,
-  .application-runtime-review-owner-panel > .gateway-request-history {
+  .application-runtime-review-owner-panel > .gateway-request-history,
+  .application-runtime-review-owner-panel > .application-result-artifact-library {
     padding: 14px 12px;
+  }
+
+  .application-result-artifact-library-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-result-artifact-library-facts > div,
+  .application-result-artifact-library-facts > div:nth-child(odd),
+  .application-result-artifact-library-facts > div:nth-last-child(-n + 2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .application-result-artifact-library-facts > div:last-child {
+    border-bottom: 0;
   }
 
   .application-runtime-review-owner .section-heading,

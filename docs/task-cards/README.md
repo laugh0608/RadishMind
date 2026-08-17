@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险后端任务卡。[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成批次 A 至 D：strict contract、五类 session profile canonical capture、三存储不可变 owner、版本化 lifecycle、共享 strict consumer、SQLite 重启页面恢复、PostgreSQL 配置化产品链与 no-fallback 均已闭合。下一步回到功能设计文档入口选择新的长期目标；只有出现新的 API、schema 或高风险执行边界才扩任务卡，不从已关闭结果资产或 HTTP Tool 专题派生批次 E。
+当前唯一活跃高风险任务卡为[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)，状态为 `application_result_artifact_library_controlled_export_dev_test_v1_batch_b_completed_batch_c_product_validation_next`。批次 A / B 的 list / export API、schema、权限、双数据库 migration、strict Web consumer、单一 owner 与三视口复核已完成；下一步只承接双数据库真实产品连续链和专题收口，不复制既有 artifact / lifecycle owner，也不是已关闭结果资产专题的批次 E。
 
 ## 最近关闭任务
 

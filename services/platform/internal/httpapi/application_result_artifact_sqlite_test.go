@@ -17,7 +17,7 @@ func TestSQLiteApplicationResultArtifactLifecycleMigrationBackfillsExistingArtif
 	databasePath := filepath.Join(t.TempDir(), "application-result-artifact-lifecycle-backfill.db")
 	migrations := sqliteworkflowrunmigrations.Migrations()
 	legacyRuntime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{
-		DatabasePath: databasePath, Migrations: migrations[:len(migrations)-1],
+		DatabasePath: databasePath, Migrations: migrations[:22],
 	})
 	if err != nil {
 		t.Fatalf("open pre-lifecycle SQLite runtime: %v", err)
@@ -121,7 +121,10 @@ func TestSQLiteApplicationResultArtifactPersistsAcrossRestartAndIsImmutable(t *t
 	byTurn, turnErr := restoredRepository.ReadByTurn(ctx, artifact.SessionID, artifact.TurnID)
 	listed, listErr := restoredRepository.List(ctx, artifact.SessionID)
 	restoredLifecycle, lifecycleErr := restoredRepository.ReadLifecycle(ctx, artifact.ArtifactID)
-	archivedRecords, archivedListErr := restoredRepository.ListByLifecycle(ctx, artifact.SessionID, ApplicationResultArtifactLifecycleArchived)
+	archivedRecords, archivedListErr := restoredRepository.ListByLifecycle(ctx, applicationResultArtifactRepositoryListFilter{
+		SessionID:      artifact.SessionID,
+		LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
 	if err != nil || turnErr != nil || listErr != nil || !applicationResultArtifactsEquivalent(restored, artifact) ||
 		lifecycleErr != nil || archivedListErr != nil || byTurn.ArtifactID != artifact.ArtifactID ||
 		len(listed) != 1 || listed[0].ArtifactID != artifact.ArtifactID ||
@@ -133,6 +136,64 @@ func TestSQLiteApplicationResultArtifactPersistsAcrossRestartAndIsImmutable(t *t
 	otherScope.OwnerSubjectRef = "subject_other"
 	if _, err = restoredRepository.Read(otherScope, artifact.ArtifactID); !errors.Is(err, errApplicationResultArtifactNotFound) {
 		t.Fatalf("cross-scope SQLite result artifact read did not fail closed: %v", err)
+	}
+}
+
+func TestSQLiteApplicationResultArtifactApplicationLibraryAndExportPersistAcrossRestart(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "application-result-artifact-library.db")
+	runtime := openApplicationInteractionSQLiteRuntime(t, databasePath)
+	repository := newSQLiteApplicationResultArtifactRepository(runtime.DB())
+	ctx, artifacts := applicationResultArtifactPersistenceProfileFixtures()
+	artifacts[1].ContentType = "application/json"
+	artifacts[1].Content = `{"result":"structured workflow"}`
+	artifacts[1].ContentBytes = len([]byte(artifacts[1].Content))
+	artifacts[1].ContentDigest = applicationResultArtifactContentDigest(artifacts[1].ContentType, artifacts[1].Content)
+	for _, artifact := range artifacts[:3] {
+		if _, replay, err := repository.Create(ctx, artifact); err != nil || replay {
+			t.Fatalf("create SQLite application library fixture: artifact=%s replay=%v err=%v", artifact.ArtifactID, replay, err)
+		}
+	}
+	service := newApplicationResultArtifactService(repository)
+	service.now = func() time.Time { return time.Date(2026, 8, 17, 11, 0, 0, 123456789, time.UTC) }
+	if archived := service.Archive(ctx, ApplicationResultArtifactLifecycleTransitionInput{
+		SessionID: artifacts[2].SessionID, ArtifactID: artifacts[2].ArtifactID, ExpectedLifecycleVersion: 1,
+	}); archived.FailureCode != "" {
+		t.Fatalf("archive SQLite application library fixture: %#v", archived)
+	}
+	if err := runtime.Close(); err != nil {
+		t.Fatalf("close SQLite application library runtime: %v", err)
+	}
+
+	restarted := openApplicationInteractionSQLiteRuntime(t, databasePath)
+	defer restarted.Close()
+	restoredRepository := newSQLiteApplicationResultArtifactRepository(restarted.DB())
+	service = newApplicationResultArtifactService(restoredRepository)
+	service.now = func() time.Time { return time.Date(2026, 8, 17, 11, 15, 0, 987654321, time.UTC) }
+	active := service.ListApplication(ctx, ApplicationResultArtifactListInput{})
+	if active.FailureCode != "" || len(active.Items) != 2 ||
+		active.Items[0].ArtifactID != artifacts[1].ArtifactID || active.Items[1].ArtifactID != artifacts[0].ArtifactID {
+		t.Fatalf("restore SQLite application library active list: %#v", active)
+	}
+	jsonResults := service.ListApplication(ctx, ApplicationResultArtifactListInput{ContentType: "application/json"})
+	if jsonResults.FailureCode != "" || len(jsonResults.Items) != 1 || jsonResults.Items[0].ArtifactID != artifacts[1].ArtifactID {
+		t.Fatalf("restore SQLite application library content filter: %#v", jsonResults)
+	}
+	archivedResults := service.ListApplication(ctx, ApplicationResultArtifactListInput{
+		LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
+	if archivedResults.FailureCode != "" || len(archivedResults.Items) != 1 ||
+		archivedResults.Items[0].ArtifactID != artifacts[2].ArtifactID || archivedResults.Items[0].LifecycleVersion != 2 {
+		t.Fatalf("restore SQLite application library archived list: %#v", archivedResults)
+	}
+	exported := service.Export(ctx, artifacts[1].ArtifactID)
+	if exported.FailureCode != "" || exported.Export == nil || exported.Export.Artifact.Content != artifacts[1].Content ||
+		exported.Export.ExportDigest != applicationResultArtifactExportDigest(*exported.Export) {
+		t.Fatalf("restore SQLite application result export: %#v", exported)
+	}
+	var indexCount int
+	if err := restarted.DB().QueryRowContext(context.Background(), `SELECT count(*) FROM sqlite_master
+WHERE type='index' AND name='application_result_artifacts_application_history_idx'`).Scan(&indexCount); err != nil || indexCount != 1 {
+		t.Fatalf("SQLite application result history index is missing: count=%d err=%v", indexCount, err)
 	}
 }
 
