@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-15
+更新时间：2026-08-17
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 已完成批次 B，状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_batch_b_completed_batch_c_next`。显式 `save_result=true` 仍只从同一次成功执行的 canonical result 捕获独立资产；memory 保持易失，SQLite / PostgreSQL 已复用 Workflow Run Store 的 runtime、pool、selector 与 migration family，具备不可变表、每 turn 唯一、重启恢复、并发收敛、跨 owner 隔离、损坏载荷失败关闭和 no-fallback 证据。下一批先收束 archive / unarchive 生命周期与三类 Session surface 的共享消费设计，再进入 React 和浏览器产品链；永久 purge 继续关闭，也不打开真实 Provider、transcript、replay 或 production 能力。
+- 当前产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 已完成批次 C1 生命周期后端，状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_batch_c1_lifecycle_backend_completed_web_consumer_next`。不可变 `application_result_artifact.v1` 与独立 `application_result_artifact_lifecycle.v1` / append-only event 已在 memory、SQLite `0023`、PostgreSQL `0026` 同构落地；新资产原子初始化 active v1，旧资产顺序迁移回填，默认 active list、archived filter、cursor v2、expected-version CAS、独立 archive 权限、archived exact read、并发、重启和 no-fallback 证据均已通过。下一顺位是三类 Session surface 的共享 strict Web consumer 与浏览器产品链；永久 purge、自动 retention、真实 Provider、transcript、replay 和 production 能力继续关闭。
 - 最近关闭产品顺位：[Workflow Definition 绑定受控 HTTP Tool v1](features/workflow/workflow-definition-http-tool-v1.md) 状态为 `workflow_definition_http_tool_v1_completed`。批次 A 至 D 已完成独立 profile、v3 Definition、Definition 来源 action plan / confirmation / audit v2、strict `workflow_run_record.v9`、三种 store、React strict consumer、SQLite 重启恢复与真实浏览器 `1440×900` / `1024×768` / `390×844`。实际开发目标按预期以 transport failure 终结，只产生一个 attempt 和一个 confirmation，零业务写入、零 retry / fallback；刷新和重启均恢复同一 consumed plan 与 v9 run，不重新执行。下一产品顺位回到 [功能设计文档入口](features/README.md)，先选择并更新新的长期功能设计文档，不从本专题派生批次 E、平行 owner 或 gate-only 切片。
 - 最近关闭产品顺位：[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 状态为 `gateway_provider_attempt_dev_test_v1_completed`。批次 A 至 E、七个 Visual R1 代表面、三块 React strict consumer、memory / SQLite / PostgreSQL 产品连续链、三个 unary 协议、真实浏览器 `1440×900` / `720×900` / `390×844` 和最终门禁均已闭合；真实 Provider、非 API Key、同 Profile retry、stream fallback、隐式切换和 production enablement 全部关闭。下一产品顺位回到 [功能设计文档入口](features/README.md) 选择新的长期功能目标，不从本专题派生 S11 或同层 gate-only 切片。
 - 最近关闭专题：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](features/gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`。批次 A 至 E、memory / SQLite / PostgreSQL、Admin GET / PUT、Request History v2、不可变价格快照、reported usage 整数估算、quota / stream、Visual R1、React strict consumer 和真实浏览器均已关闭。SQLite 完成 v1 → v2、双标签 CAS、重启、API Key / 开发身份、Request History 与 Application Operations；PostgreSQL 完成 migration / runtime role、并发和重连后旧快照不重算。production price、token quota、billing ledger、invoice、全历史成本、自动路由和请求拒绝全部关闭。
@@ -38,15 +38,15 @@
 
 当前最多两条在制主线：
 
-1. 产品线：应用会话运行结果资产显式保存与恢复 v1 已完成批次 A / B，memory、SQLite 与 PostgreSQL 均具备独立不可变 owner、幂等保存、metadata-only list 与精确 read。下一步推进批次 C 的 Web 显式保存与生命周期管理；通用 result store、transcript、replay / resume、真实 Provider 和 production 继续关闭。
+1. 产品线：应用会话运行结果资产显式保存与恢复 v1 已完成批次 A / B / C1；三种 store 均具备不可变 artifact、版本化 lifecycle、append-only event、active / archived list 和 archive / unarchive CAS。下一步只推进 C2 共享 Web consumer 与浏览器产品链；永久 purge、通用 result store、transcript、replay / resume、真实 Provider 和 production 继续关闭。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
-## 2026-08-16 明日事项
+## 2026-08-17 今日完成与下一事项
 
-1. 第一顺位：先更新应用结果资产功能专题并冻结批次 C 的生命周期合同。不可变 content / provenance 记录继续保持数据库级 update / delete 拒绝；archive / unarchive 应由独立的版本化 lifecycle state 与 append-only event 承载，使用 expected lifecycle version 做 CAS，不原地改写 artifact payload。默认列表只显示 active，显式 archived filter 与 cursor 必须绑定同一完整 scope。永久 purge 执行继续关闭，先写清未来启用所需的独立权限、保留期、显式确认和关联资源处理规则。
-2. 生命周期设计通过后，建立或更新具体实现任务卡，并推进第一个实质开发批次：在 memory、SQLite、PostgreSQL 同时增加 lifecycle repository、顺序 migration、archive / unarchive route、权限决策、幂等 / 并发 / 重启 / no-fallback / 隐私测试。不得用只支持 memory 或只改 UI 的实现替代三种 store 的一致 owner，也不得放宽现有结果内容不可变约束。
-3. 后端合同和三存储语义成立后，为现有 Application Interaction、Prompt Session 与 Agent Session 三类 surface 建立共享 strict artifact consumer，再提供显式 `save_result`、保存成功 / 失败状态、active / archived 列表、精确 content read、来源 handoff 与 archive / unarchive 操作；不得复制三套 schema 解析和 scope 状态。先判断该页面族是否需要局部 Pencil，不创建 S11。workspace、application、identity、profile、session 或路由切换必须清除已读取 content、一次性状态和迟到响应，随后使用内置浏览器完成桌面、关键断点和窄屏验证。
-4. 明日停止线：不实现永久删除、自动清理、导出 / 分享、transcript、长期记忆、replay / resume、真实 Provider、production secret / auth / store、自动执行或业务写回；Workflow Definition HTTP Tool 不派生批次 E，Provider Attempt 只响应真实使用证据或回归问题。
+1. 已完成批次 C1：冻结并实现 lifecycle current state、append-only event、summary v2、cursor v2、archive / unarchive route、独立组合权限，以及 memory / SQLite / PostgreSQL 同构 CAS；既有 artifact payload 与数据库不可变触发器未修改。
+2. 已完成旧数据与双数据库证据：SQLite v22 → v23、PostgreSQL v25 → v26 均验证既有资产 active v1 回填；PostgreSQL 17 聚合集成、configured profile、运行角色、并发、重启、rollback / reapply 与临时容器清理通过。
+3. 下一顺位进入批次 C2：先审查三类 Session 页面代码和共享组件边界，建立单一 strict artifact consumer，再接入 `save_result`、保存状态、active / archived metadata 列表、精确 content read、来源 handoff 与 archive / unarchive。先判断真实结构变化是否需要局部 Pencil，不创建 S11，不复制三套 schema parser 或 scope state。
+4. C2 停止线：workspace、application、identity、profile、session 或路由切换必须清除已读取 content、一次性状态和迟到响应；不写浏览器持久存储或 URL，不实现永久删除、自动清理、导出 / 分享、transcript、长期记忆、replay / resume、真实 Provider、production secret / auth / store、自动执行或业务写回。
 
 R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflow/saved-workflow-draft-postgresql-dev-test-repository-v1.md) 已于 2026-07-11 完成。`postgres_dev_test` 已覆盖迁移 / 回滚 / 重新应用、运行角色 DDL 拒绝、服务重启恢复、原子预期版本校验、租户 / 工作区 / 应用 / 所有者作用域、不回退、CI 与真实浏览器双标签冲突审查。该完成不启用生产存储库模式，也不代表 OIDC、生产凭据、审计存储或公开生产 API 已就绪。
 

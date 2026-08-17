@@ -1,8 +1,8 @@
 # 应用会话运行结果资产显式保存与恢复 v1 实施任务卡
 
-更新时间：2026-08-15
+更新时间：2026-08-17
 
-状态：`completed`
+状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_c1_lifecycle_backend_completed`
 
 对应功能：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](../features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)
 
@@ -70,3 +70,35 @@
 - [x] 聚合 PostgreSQL 开发测试链和仓库分层门禁通过。
 
 本提交只关闭批次 B。Web consumer、archive / purge、浏览器产品链和 production capability 属于批次 C / D；批次 B 不创建其 route、migration、页面或声明。
+
+## 批次 C1：生命周期后端纵向切片（已完成）
+
+目标：在不修改 `application_result_artifact.v1` content / provenance 和现有不可变表的前提下，为结果资产建立 memory / SQLite / PostgreSQL 同构的 archive / unarchive owner。
+
+允许改动：
+
+- 新增 `application_result_artifact_lifecycle.v1`、`application_result_artifact_lifecycle_event.v1` 与 `application_result_artifact_summary.v2`；
+- 新增独立 current lifecycle state、append-only event、expected-version CAS、active / archived list filter 与 cursor 绑定；
+- 新增 `application_result_artifacts:archive` workspace permission，以及 archive / unarchive HTTP route；
+- SQLite `0023_application_result_artifact_lifecycle`、PostgreSQL `0026_application_result_artifact_lifecycle` 和既有资产 active v1 回填；
+- memory / SQLite / PostgreSQL 的并发、重启、scope、损坏投影、运行角色、rollback / reapply 与 no-fallback 验证。
+
+禁止改动：
+
+- 不修改或删除既有 artifact payload，不撤销数据库 update / delete 拒绝；
+- 不新增 purge route、永久删除、自动 retention、级联删除或批量生命周期操作；
+- 不以 `application_sessions:read|write|execute` 替代独立 archive 权限；
+- 不在本子批复制三套 React consumer，不打开 transcript、replay / resume、真实 Provider 或 production capability。
+
+退出条件：
+
+- [x] 新资产与 active v1 lifecycle 同事务创建，旧资产由顺序 migration 回填；
+- [x] 默认 list 仅返回 active，archived filter 与 cursor 完整绑定 scope；
+- [x] archive / unarchive 原子完成 CAS 与 event，重复状态、陈旧版本和并发写失败关闭；
+- [x] 精确 read 可读取同 owner archived artifact，跨 owner / application / session 继续不可见；
+- [x] 三种 store、HTTP 组合权限、隐私、迁移和 no-fallback 证据通过；
+- [x] 精准测试、race、`go vet`、仓库快速与全量门禁通过。
+
+验收结果：SQLite marker 已推进到 `0023_application_result_artifact_lifecycle`，PostgreSQL marker 已推进到 `0026_application_result_artifact_lifecycle`；PostgreSQL 17 聚合集成与 configured profile 已复验。生命周期状态与事件不包含 artifact content，既有 artifact update / delete 拒绝保持不变。
+
+批次 C1 关闭后才进入共享 Web strict consumer 与三类 Session surface；不创建 S11，是否需要局部 Pencil 由真实页面结构变化决定。

@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifacts(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactLifecycle(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 22 {
+	if len(migrations) != 23 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -77,8 +77,11 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifacts(
 	if migrations[20].ID != definitionHTTPToolMigrationID || migrations[20].StoreSchemaVersion != definitionHTTPToolSchemaVersion {
 		t.Fatalf("Definition HTTP tool execution migration drifted: %#v", migrations[20])
 	}
-	if migrations[21].ID != MigrationID || migrations[21].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[21].ID != resultArtifactMigrationID || migrations[21].StoreSchemaVersion != resultArtifactSchemaVersion {
 		t.Fatalf("application result artifact migration drifted: %#v", migrations[21])
+	}
+	if migrations[22].ID != MigrationID || migrations[22].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("application result artifact lifecycle migration drifted: %#v", migrations[22])
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_result_artifacts",
@@ -89,6 +92,18 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifacts(
 	} {
 		if !strings.Contains(upSQLV22, required) {
 			t.Fatalf("SQLite application result artifact migration is missing %q", required)
+		}
+	}
+	for _, required := range []string{
+		"CREATE TABLE application_result_artifact_lifecycles",
+		"CREATE TABLE application_result_artifact_lifecycle_events",
+		"application_result_artifact_lifecycle.v1",
+		"application_result_artifact_lifecycle_event.v1",
+		"application_result_artifact_lifecycles_controlled_update",
+		"application_result_artifact_lifecycle_events_no_delete",
+	} {
+		if !strings.Contains(upSQLV23, required) {
+			t.Fatalf("SQLite application result artifact lifecycle migration is missing %q", required)
 		}
 	}
 	for _, required := range []string{
@@ -383,7 +398,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 22 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 23 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}

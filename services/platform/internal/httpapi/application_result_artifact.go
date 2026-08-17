@@ -16,7 +16,7 @@ import (
 
 const (
 	applicationResultArtifactSchemaVersion        = "application_result_artifact.v1"
-	applicationResultArtifactSummarySchemaVersion = "application_result_artifact_summary.v1"
+	applicationResultArtifactSummarySchemaVersion = "application_result_artifact_summary.v2"
 	applicationResultArtifactMaxContentBytes      = 64 * 1024
 	applicationResultArtifactDefaultListLimit     = 50
 	applicationResultArtifactMaxListLimit         = 100
@@ -28,15 +28,19 @@ const (
 	ApplicationResultArtifactFailureConflict          = "application_result_artifact_conflict"
 	ApplicationResultArtifactFailureStoreUnavailable  = "application_result_artifact_store_unavailable"
 	ApplicationResultArtifactFailureStoreContract     = "application_result_artifact_store_contract_mismatch"
+	ApplicationResultArtifactFailureLifecycleVersion  = "application_result_artifact_lifecycle_version_conflict"
+	ApplicationResultArtifactFailureLifecycleState    = "application_result_artifact_lifecycle_state_conflict"
 )
 
 var (
 	applicationResultArtifactIDPattern = regexp.MustCompile(`^appres_[a-z2-7]{16}$`)
 
-	errApplicationResultArtifactNotFound = errors.New(ApplicationResultArtifactFailureNotFound)
-	errApplicationResultArtifactConflict = errors.New(ApplicationResultArtifactFailureConflict)
-	errApplicationResultArtifactStore    = errors.New(ApplicationResultArtifactFailureStoreUnavailable)
-	errApplicationResultArtifactContract = errors.New(ApplicationResultArtifactFailureStoreContract)
+	errApplicationResultArtifactNotFound         = errors.New(ApplicationResultArtifactFailureNotFound)
+	errApplicationResultArtifactConflict         = errors.New(ApplicationResultArtifactFailureConflict)
+	errApplicationResultArtifactStore            = errors.New(ApplicationResultArtifactFailureStoreUnavailable)
+	errApplicationResultArtifactContract         = errors.New(ApplicationResultArtifactFailureStoreContract)
+	errApplicationResultArtifactLifecycleVersion = errors.New(ApplicationResultArtifactFailureLifecycleVersion)
+	errApplicationResultArtifactLifecycleState   = errors.New(ApplicationResultArtifactFailureLifecycleState)
 )
 
 type ApplicationResultArtifact struct {
@@ -63,22 +67,26 @@ type ApplicationResultArtifact struct {
 }
 
 type ApplicationResultArtifactSummary struct {
-	SchemaVersion    string                       `json:"schema_version"`
-	ArtifactID       string                       `json:"artifact_id"`
-	RecordVersion    int                          `json:"record_version"`
-	TenantRef        string                       `json:"tenant_ref"`
-	WorkspaceID      string                       `json:"workspace_id"`
-	ApplicationID    string                       `json:"application_id"`
-	OwnerSubjectRef  string                       `json:"owner_subject_ref"`
-	SessionID        string                       `json:"session_id"`
-	TurnID           string                       `json:"turn_id"`
-	ClientTurnKey    string                       `json:"client_turn_key"`
-	ExecutionProfile string                       `json:"execution_profile"`
-	RunRef           ApplicationInteractionRunRef `json:"run_ref"`
-	ContentType      string                       `json:"content_type"`
-	ContentBytes     int                          `json:"content_bytes"`
-	ContentDigest    string                       `json:"content_digest"`
-	CreatedAt        string                       `json:"created_at"`
+	SchemaVersion      string                                  `json:"schema_version"`
+	ArtifactID         string                                  `json:"artifact_id"`
+	RecordVersion      int                                     `json:"record_version"`
+	TenantRef          string                                  `json:"tenant_ref"`
+	WorkspaceID        string                                  `json:"workspace_id"`
+	ApplicationID      string                                  `json:"application_id"`
+	OwnerSubjectRef    string                                  `json:"owner_subject_ref"`
+	SessionID          string                                  `json:"session_id"`
+	TurnID             string                                  `json:"turn_id"`
+	ClientTurnKey      string                                  `json:"client_turn_key"`
+	ExecutionProfile   string                                  `json:"execution_profile"`
+	RunRef             ApplicationInteractionRunRef            `json:"run_ref"`
+	ContentType        string                                  `json:"content_type"`
+	ContentBytes       int                                     `json:"content_bytes"`
+	ContentDigest      string                                  `json:"content_digest"`
+	CreatedAt          string                                  `json:"created_at"`
+	LifecycleState     ApplicationResultArtifactLifecycleState `json:"lifecycle_state"`
+	LifecycleVersion   int                                     `json:"lifecycle_version"`
+	ArchivedAt         *string                                 `json:"archived_at"`
+	LifecycleUpdatedAt string                                  `json:"lifecycle_updated_at"`
 }
 
 type ApplicationResultArtifactCaptureInput struct {
@@ -90,14 +98,16 @@ type ApplicationResultArtifactCaptureInput struct {
 type ApplicationResultArtifactResult struct {
 	Artifact         *ApplicationResultArtifact
 	Summary          *ApplicationResultArtifactSummary
+	Lifecycle        *ApplicationResultArtifactLifecycle
 	FailureCode      string
 	IdempotentReplay bool
 }
 
 type ApplicationResultArtifactListInput struct {
-	SessionID string
-	Limit     int
-	Cursor    string
+	SessionID      string
+	LifecycleState ApplicationResultArtifactLifecycleState
+	Limit          int
+	Cursor         string
 }
 
 type ApplicationResultArtifactListResult struct {
@@ -107,15 +117,16 @@ type ApplicationResultArtifactListResult struct {
 }
 
 type applicationResultArtifactCursor struct {
-	Version         int    `json:"version"`
-	TenantRef       string `json:"tenant_ref"`
-	WorkspaceID     string `json:"workspace_id"`
-	ApplicationID   string `json:"application_id"`
-	OwnerSubjectRef string `json:"owner_subject_ref"`
-	SessionID       string `json:"session_id"`
-	Limit           int    `json:"limit"`
-	CreatedAt       string `json:"created_at"`
-	ArtifactID      string `json:"artifact_id"`
+	Version         int                                     `json:"version"`
+	TenantRef       string                                  `json:"tenant_ref"`
+	WorkspaceID     string                                  `json:"workspace_id"`
+	ApplicationID   string                                  `json:"application_id"`
+	OwnerSubjectRef string                                  `json:"owner_subject_ref"`
+	SessionID       string                                  `json:"session_id"`
+	LifecycleState  ApplicationResultArtifactLifecycleState `json:"lifecycle_state"`
+	Limit           int                                     `json:"limit"`
+	CreatedAt       string                                  `json:"created_at"`
+	ArtifactID      string                                  `json:"artifact_id"`
 }
 
 type applicationResultArtifactRepository interface {
@@ -123,13 +134,18 @@ type applicationResultArtifactRepository interface {
 	Read(ApplicationInteractionContext, string) (ApplicationResultArtifact, error)
 	ReadByTurn(ApplicationInteractionContext, string, string) (ApplicationResultArtifact, error)
 	List(ApplicationInteractionContext, string) ([]ApplicationResultArtifact, error)
+	ReadLifecycle(ApplicationInteractionContext, string) (ApplicationResultArtifactLifecycle, error)
+	ListByLifecycle(ApplicationInteractionContext, string, ApplicationResultArtifactLifecycleState) ([]applicationResultArtifactStoredRecord, error)
+	TransitionLifecycle(ApplicationInteractionContext, string, ApplicationResultArtifactLifecycleState, int, time.Time) (ApplicationResultArtifactLifecycle, ApplicationResultArtifactLifecycleEvent, error)
 }
 
 type memoryApplicationResultArtifactRepository struct {
-	mu          sync.RWMutex
-	byID        map[string]ApplicationResultArtifact
-	byTurn      map[string]string
-	unavailable bool
+	mu              sync.RWMutex
+	byID            map[string]ApplicationResultArtifact
+	byTurn          map[string]string
+	lifecycleByID   map[string]ApplicationResultArtifactLifecycle
+	lifecycleEvents map[string]map[int]ApplicationResultArtifactLifecycleEvent
+	unavailable     bool
 }
 
 type applicationResultArtifactService struct {
@@ -142,6 +158,8 @@ type applicationResultArtifactService struct {
 func newMemoryApplicationResultArtifactRepository() *memoryApplicationResultArtifactRepository {
 	return &memoryApplicationResultArtifactRepository{
 		byID: make(map[string]ApplicationResultArtifact), byTurn: make(map[string]string),
+		lifecycleByID:   make(map[string]ApplicationResultArtifactLifecycle),
+		lifecycleEvents: make(map[string]map[int]ApplicationResultArtifactLifecycleEvent),
 	}
 }
 
@@ -214,8 +232,7 @@ func (service applicationResultArtifactService) Capture(
 	if validateApplicationResultArtifact(ctx, created) != nil {
 		return applicationResultArtifactFailure(ApplicationResultArtifactFailureStoreContract)
 	}
-	summary := applicationResultArtifactSummary(created)
-	return ApplicationResultArtifactResult{Artifact: &created, Summary: &summary, IdempotentReplay: replay}
+	return service.resultForArtifact(ctx, created, replay)
 }
 
 func (service applicationResultArtifactService) Read(
@@ -236,8 +253,7 @@ func (service applicationResultArtifactService) Read(
 	if validateApplicationResultArtifact(ctx, artifact) != nil {
 		return applicationResultArtifactFailure(ApplicationResultArtifactFailureStoreContract)
 	}
-	summary := applicationResultArtifactSummary(artifact)
-	return ApplicationResultArtifactResult{Artifact: &artifact, Summary: &summary}
+	return service.resultForArtifact(ctx, artifact, false)
 }
 
 func (service applicationResultArtifactService) ReadByTurn(
@@ -260,8 +276,7 @@ func (service applicationResultArtifactService) ReadByTurn(
 	if validateApplicationResultArtifact(ctx, artifact) != nil {
 		return applicationResultArtifactFailure(ApplicationResultArtifactFailureStoreContract)
 	}
-	summary := applicationResultArtifactSummary(artifact)
-	return ApplicationResultArtifactResult{Artifact: &artifact, Summary: &summary}
+	return service.resultForArtifact(ctx, artifact, false)
 }
 
 func (service applicationResultArtifactService) List(
@@ -278,6 +293,14 @@ func (service applicationResultArtifactService) List(
 		result.FailureCode = ApplicationResultArtifactFailurePayloadInvalid
 		return result
 	}
+	lifecycleState := input.LifecycleState
+	if lifecycleState == "" {
+		lifecycleState = ApplicationResultArtifactLifecycleActive
+	}
+	if !validApplicationResultArtifactLifecycleState(lifecycleState) {
+		result.FailureCode = ApplicationResultArtifactFailurePayloadInvalid
+		return result
+	}
 	limit := input.Limit
 	if limit == 0 {
 		limit = applicationResultArtifactDefaultListLimit
@@ -289,9 +312,10 @@ func (service applicationResultArtifactService) List(
 	var cursor *applicationResultArtifactCursor
 	if strings.TrimSpace(input.Cursor) != "" {
 		decoded, err := decodeApplicationResultArtifactCursor(input.Cursor)
-		if err != nil || decoded.Version != 1 || decoded.TenantRef != ctx.TenantRef ||
+		if err != nil || decoded.Version != 2 || decoded.TenantRef != ctx.TenantRef ||
 			decoded.WorkspaceID != ctx.WorkspaceID || decoded.ApplicationID != ctx.ApplicationID ||
 			decoded.OwnerSubjectRef != ctx.OwnerSubjectRef || decoded.SessionID != strings.TrimSpace(input.SessionID) ||
+			decoded.LifecycleState != lifecycleState ||
 			decoded.Limit != limit || parseApplicationInteractionTimestamp(decoded.CreatedAt) == nil ||
 			!applicationResultArtifactIDPattern.MatchString(decoded.ArtifactID) {
 			result.FailureCode = ApplicationResultArtifactFailurePayloadInvalid
@@ -299,53 +323,56 @@ func (service applicationResultArtifactService) List(
 		}
 		cursor = &decoded
 	}
-	artifacts, err := service.repository.List(ctx, strings.TrimSpace(input.SessionID))
+	records, err := service.repository.ListByLifecycle(ctx, strings.TrimSpace(input.SessionID), lifecycleState)
 	if err != nil {
 		result.FailureCode = applicationResultArtifactRepositoryFailure(err).FailureCode
 		return result
 	}
-	for _, artifact := range artifacts {
-		if validateApplicationResultArtifact(ctx, artifact) != nil || artifact.SessionID != strings.TrimSpace(input.SessionID) {
+	for _, record := range records {
+		if validateApplicationResultArtifact(ctx, record.Artifact) != nil ||
+			validateApplicationResultArtifactLifecycle(ctx, record.Lifecycle) != nil ||
+			record.Artifact.ArtifactID != record.Lifecycle.ArtifactID ||
+			record.Artifact.SessionID != strings.TrimSpace(input.SessionID) || record.Lifecycle.LifecycleState != lifecycleState {
 			result.FailureCode = ApplicationResultArtifactFailureStoreContract
 			result.Items = []ApplicationResultArtifactSummary{}
 			return result
 		}
 	}
-	sort.Slice(artifacts, func(left, right int) bool {
-		leftTime := parseApplicationInteractionTimestamp(artifacts[left].CreatedAt)
-		rightTime := parseApplicationInteractionTimestamp(artifacts[right].CreatedAt)
+	sort.Slice(records, func(left, right int) bool {
+		leftTime := parseApplicationInteractionTimestamp(records[left].Artifact.CreatedAt)
+		rightTime := parseApplicationInteractionTimestamp(records[right].Artifact.CreatedAt)
 		if !leftTime.Equal(*rightTime) {
 			return leftTime.After(*rightTime)
 		}
-		return artifacts[left].ArtifactID > artifacts[right].ArtifactID
+		return records[left].Artifact.ArtifactID > records[right].Artifact.ArtifactID
 	})
-	filtered := make([]ApplicationResultArtifact, 0, len(artifacts))
+	filtered := make([]applicationResultArtifactStoredRecord, 0, len(records))
 	var cursorTime *time.Time
 	if cursor != nil {
 		cursorTime = parseApplicationInteractionTimestamp(cursor.CreatedAt)
 	}
-	for _, artifact := range artifacts {
+	for _, record := range records {
 		if cursor != nil {
-			artifactTime := parseApplicationInteractionTimestamp(artifact.CreatedAt)
-			if artifactTime.After(*cursorTime) || (artifactTime.Equal(*cursorTime) && artifact.ArtifactID >= cursor.ArtifactID) {
+			artifactTime := parseApplicationInteractionTimestamp(record.Artifact.CreatedAt)
+			if artifactTime.After(*cursorTime) || (artifactTime.Equal(*cursorTime) && record.Artifact.ArtifactID >= cursor.ArtifactID) {
 				continue
 			}
 		}
-		filtered = append(filtered, artifact)
+		filtered = append(filtered, record)
 	}
 	pageSize := len(filtered)
 	if pageSize > limit {
 		pageSize = limit
 	}
-	for _, artifact := range filtered[:pageSize] {
-		result.Items = append(result.Items, applicationResultArtifactSummary(artifact))
+	for _, record := range filtered[:pageSize] {
+		result.Items = append(result.Items, applicationResultArtifactSummary(record.Artifact, record.Lifecycle))
 	}
 	if len(filtered) > limit {
 		last := filtered[limit-1]
 		next, err := encodeApplicationResultArtifactCursor(applicationResultArtifactCursor{
-			Version: 1, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
+			Version: 2, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 			OwnerSubjectRef: ctx.OwnerSubjectRef, SessionID: strings.TrimSpace(input.SessionID), Limit: limit,
-			CreatedAt: last.CreatedAt, ArtifactID: last.ArtifactID,
+			LifecycleState: lifecycleState, CreatedAt: last.Artifact.CreatedAt, ArtifactID: last.Artifact.ArtifactID,
 		})
 		if err != nil {
 			result.Items = []ApplicationResultArtifactSummary{}
@@ -382,6 +409,7 @@ func (repository *memoryApplicationResultArtifactRepository) Create(
 	}
 	repository.byID[artifact.ArtifactID] = cloneApplicationResultArtifact(artifact)
 	repository.byTurn[turnKey] = artifact.ArtifactID
+	repository.lifecycleByID[artifact.ArtifactID] = initialApplicationResultArtifactLifecycle(artifact)
 	return cloneApplicationResultArtifact(artifact), false, nil
 }
 
@@ -477,7 +505,7 @@ func applicationResultArtifactsEquivalent(left ApplicationResultArtifact, right 
 		left.ContentBytes == right.ContentBytes && left.Content == right.Content
 }
 
-func applicationResultArtifactSummary(artifact ApplicationResultArtifact) ApplicationResultArtifactSummary {
+func applicationResultArtifactSummary(artifact ApplicationResultArtifact, lifecycle ApplicationResultArtifactLifecycle) ApplicationResultArtifactSummary {
 	return ApplicationResultArtifactSummary{
 		SchemaVersion: applicationResultArtifactSummarySchemaVersion, ArtifactID: artifact.ArtifactID,
 		RecordVersion: artifact.RecordVersion, TenantRef: artifact.TenantRef, WorkspaceID: artifact.WorkspaceID,
@@ -485,6 +513,8 @@ func applicationResultArtifactSummary(artifact ApplicationResultArtifact) Applic
 		TurnID: artifact.TurnID, ClientTurnKey: artifact.ClientTurnKey, ExecutionProfile: artifact.ExecutionProfile,
 		RunRef: artifact.RunRef, ContentType: artifact.ContentType, ContentBytes: artifact.ContentBytes,
 		ContentDigest: artifact.ContentDigest, CreatedAt: artifact.CreatedAt,
+		LifecycleState: lifecycle.LifecycleState, LifecycleVersion: lifecycle.LifecycleVersion,
+		ArchivedAt: cloneStringPointer(lifecycle.ArchivedAt), LifecycleUpdatedAt: lifecycle.UpdatedAt,
 	}
 }
 
@@ -500,6 +530,10 @@ func applicationResultArtifactRepositoryFailure(err error) ApplicationResultArti
 		return applicationResultArtifactFailure(ApplicationResultArtifactFailureConflict)
 	case errors.Is(err, errApplicationResultArtifactContract):
 		return applicationResultArtifactFailure(ApplicationResultArtifactFailureStoreContract)
+	case errors.Is(err, errApplicationResultArtifactLifecycleVersion):
+		return applicationResultArtifactFailure(ApplicationResultArtifactFailureLifecycleVersion)
+	case errors.Is(err, errApplicationResultArtifactLifecycleState):
+		return applicationResultArtifactFailure(ApplicationResultArtifactFailureLifecycleState)
 	default:
 		return applicationResultArtifactFailure(ApplicationResultArtifactFailureStoreUnavailable)
 	}
@@ -531,4 +565,22 @@ func cloneApplicationResultArtifact(artifact ApplicationResultArtifact) Applicat
 	copy := artifact
 	copy.RunRef = *cloneApplicationInteractionRunRef(&artifact.RunRef)
 	return copy
+}
+
+func (service applicationResultArtifactService) resultForArtifact(
+	ctx ApplicationInteractionContext,
+	artifact ApplicationResultArtifact,
+	idempotentReplay bool,
+) ApplicationResultArtifactResult {
+	lifecycle, err := service.repository.ReadLifecycle(ctx, artifact.ArtifactID)
+	if err != nil {
+		return applicationResultArtifactRepositoryFailure(err)
+	}
+	if validateApplicationResultArtifactLifecycle(ctx, lifecycle) != nil || lifecycle.ArtifactID != artifact.ArtifactID {
+		return applicationResultArtifactFailure(ApplicationResultArtifactFailureStoreContract)
+	}
+	summary := applicationResultArtifactSummary(artifact, lifecycle)
+	return ApplicationResultArtifactResult{
+		Artifact: &artifact, Summary: &summary, Lifecycle: &lifecycle, IdempotentReplay: idempotentReplay,
+	}
 }

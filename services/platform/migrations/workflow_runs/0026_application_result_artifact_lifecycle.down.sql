@@ -1,0 +1,8 @@
+DROP TRIGGER IF EXISTS application_result_artifact_lifecycle_events_append_only
+    ON application_result_artifact_lifecycle_events;
+DROP FUNCTION IF EXISTS reject_application_result_artifact_lifecycle_event_mutation();
+DROP TRIGGER IF EXISTS application_result_artifact_lifecycles_controlled_mutation
+    ON application_result_artifact_lifecycles;
+DROP FUNCTION IF EXISTS validate_application_result_artifact_lifecycle_mutation();
+DROP TABLE IF EXISTS application_result_artifact_lifecycle_events;
+DROP TABLE IF EXISTS application_result_artifact_lifecycles;

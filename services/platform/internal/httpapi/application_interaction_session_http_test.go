@@ -171,8 +171,94 @@ func TestApplicationInteractionTurnHTTPExecutesStrictWorkflowV5AndDoesNotReplayP
 	server.handleReadApplicationResultArtifact(readResponse, readRequest)
 	var read applicationResultArtifactEnvelope
 	if readResponse.Code != http.StatusOK || json.Unmarshal(readResponse.Body.Bytes(), &read) != nil || read.FailureCode != nil || read.Artifact == nil ||
+		read.Lifecycle == nil || read.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive ||
 		read.Artifact.Content != executed.AdvisoryOutput || read.Artifact.TurnID != executed.Turn.TurnID || readResponse.Header().Get("Cache-Control") != "no-store" {
 		t.Fatalf("read result artifact: status=%d body=%s headers=%v", readResponse.Code, readResponse.Body.String(), readResponse.Header())
+	}
+	lifecycleAuth := applicationInteractionSessionHTTPAuth(
+		runContext,
+		"application_sessions:read",
+		"application_result_artifacts:archive",
+	)
+	lifecycleBody := `{"workspace_id":"` + runContext.WorkspaceID + `","application_id":"` + runContext.ApplicationID + `","expected_lifecycle_version":1}`
+	archiveRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+"/archive", strings.NewReader(lifecycleBody))
+	archiveRequest.SetPathValue("session_id", created.Session.SessionID)
+	archiveRequest.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	archiveRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	archiveRequest = archiveRequest.WithContext(withControlPlaneReadFakeAuthContext(archiveRequest.Context(), lifecycleAuth))
+	archiveResponse := httptest.NewRecorder()
+	server.handleArchiveApplicationResultArtifact(archiveResponse, archiveRequest)
+	var archived applicationResultArtifactLifecycleEnvelope
+	if archiveResponse.Code != http.StatusOK || json.Unmarshal(archiveResponse.Body.Bytes(), &archived) != nil ||
+		archived.FailureCode != nil || archived.Lifecycle == nil || archived.Event == nil ||
+		archived.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived ||
+		archived.Lifecycle.LifecycleVersion != 2 || strings.Contains(archiveResponse.Body.String(), executed.AdvisoryOutput) {
+		t.Fatalf("archive result artifact: status=%d body=%s", archiveResponse.Code, archiveResponse.Body.String())
+	}
+	defaultAfterArchive := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts"+query, nil)
+	defaultAfterArchive.SetPathValue("session_id", created.Session.SessionID)
+	defaultAfterArchive.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	defaultAfterArchive = defaultAfterArchive.WithContext(withControlPlaneReadFakeAuthContext(defaultAfterArchive.Context(), auth))
+	defaultAfterArchiveResponse := httptest.NewRecorder()
+	server.handleListApplicationResultArtifacts(defaultAfterArchiveResponse, defaultAfterArchive)
+	if defaultAfterArchiveResponse.Code != http.StatusOK || !strings.Contains(defaultAfterArchiveResponse.Body.String(), `"items":[]`) {
+		t.Fatalf("default artifact list retained archived item: status=%d body=%s", defaultAfterArchiveResponse.Code, defaultAfterArchiveResponse.Body.String())
+	}
+	archivedQuery := query + "&lifecycle_state=archived"
+	archivedListRequest := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts"+archivedQuery, nil)
+	archivedListRequest.SetPathValue("session_id", created.Session.SessionID)
+	archivedListRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	archivedListRequest = archivedListRequest.WithContext(withControlPlaneReadFakeAuthContext(archivedListRequest.Context(), auth))
+	archivedListResponse := httptest.NewRecorder()
+	server.handleListApplicationResultArtifacts(archivedListResponse, archivedListRequest)
+	if archivedListResponse.Code != http.StatusOK || !strings.Contains(archivedListResponse.Body.String(), executed.ResultArtifact.ArtifactID) ||
+		strings.Contains(archivedListResponse.Body.String(), executed.AdvisoryOutput) {
+		t.Fatalf("archived artifact list drifted: status=%d body=%s", archivedListResponse.Code, archivedListResponse.Body.String())
+	}
+	archivedReadRequest := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+query, nil)
+	archivedReadRequest.SetPathValue("session_id", created.Session.SessionID)
+	archivedReadRequest.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	archivedReadRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	archivedReadRequest = archivedReadRequest.WithContext(withControlPlaneReadFakeAuthContext(archivedReadRequest.Context(), auth))
+	archivedReadResponse := httptest.NewRecorder()
+	server.handleReadApplicationResultArtifact(archivedReadResponse, archivedReadRequest)
+	if archivedReadResponse.Code != http.StatusOK || !strings.Contains(archivedReadResponse.Body.String(), executed.AdvisoryOutput) ||
+		!strings.Contains(archivedReadResponse.Body.String(), `"lifecycle_state":"archived"`) {
+		t.Fatalf("exact archived artifact read drifted: status=%d body=%s", archivedReadResponse.Code, archivedReadResponse.Body.String())
+	}
+	staleUnarchive := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+"/unarchive", strings.NewReader(lifecycleBody))
+	staleUnarchive.SetPathValue("session_id", created.Session.SessionID)
+	staleUnarchive.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	staleUnarchive.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	staleUnarchive = staleUnarchive.WithContext(withControlPlaneReadFakeAuthContext(staleUnarchive.Context(), lifecycleAuth))
+	staleUnarchiveResponse := httptest.NewRecorder()
+	server.handleUnarchiveApplicationResultArtifact(staleUnarchiveResponse, staleUnarchive)
+	if staleUnarchiveResponse.Code != http.StatusConflict ||
+		!strings.Contains(staleUnarchiveResponse.Body.String(), ApplicationResultArtifactFailureLifecycleVersion) ||
+		!strings.Contains(staleUnarchiveResponse.Body.String(), `"current_lifecycle_version":2`) {
+		t.Fatalf("stale artifact lifecycle write did not return conflict: status=%d body=%s", staleUnarchiveResponse.Code, staleUnarchiveResponse.Body.String())
+	}
+	deniedArchive := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+"/archive", strings.NewReader(strings.Replace(lifecycleBody, `:1}`, `:2}`, 1)))
+	deniedArchive.SetPathValue("session_id", created.Session.SessionID)
+	deniedArchive.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	deniedArchive.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	deniedArchive = deniedArchive.WithContext(withControlPlaneReadFakeAuthContext(deniedArchive.Context(), applicationInteractionSessionHTTPAuth(runContext, "application_sessions:read")))
+	deniedArchiveResponse := httptest.NewRecorder()
+	server.handleArchiveApplicationResultArtifact(deniedArchiveResponse, deniedArchive)
+	if deniedArchiveResponse.Code != http.StatusForbidden || !strings.Contains(deniedArchiveResponse.Body.String(), "scope_denied") {
+		t.Fatalf("artifact archive permission did not fail closed: status=%d body=%s", deniedArchiveResponse.Code, deniedArchiveResponse.Body.String())
+	}
+	unarchiveBody := strings.Replace(lifecycleBody, `:1}`, `:2}`, 1)
+	unarchiveRequest := httptest.NewRequest(http.MethodPost, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+"/unarchive", strings.NewReader(unarchiveBody))
+	unarchiveRequest.SetPathValue("session_id", created.Session.SessionID)
+	unarchiveRequest.SetPathValue("artifact_id", executed.ResultArtifact.ArtifactID)
+	unarchiveRequest.Header.Set(activeWorkspaceHeader, runContext.WorkspaceID)
+	unarchiveRequest = unarchiveRequest.WithContext(withControlPlaneReadFakeAuthContext(unarchiveRequest.Context(), lifecycleAuth))
+	unarchiveResponse := httptest.NewRecorder()
+	server.handleUnarchiveApplicationResultArtifact(unarchiveResponse, unarchiveRequest)
+	if unarchiveResponse.Code != http.StatusOK || !strings.Contains(unarchiveResponse.Body.String(), `"lifecycle_state":"active"`) ||
+		!strings.Contains(unarchiveResponse.Body.String(), `"lifecycle_version":3`) {
+		t.Fatalf("unarchive result artifact: status=%d body=%s", unarchiveResponse.Code, unarchiveResponse.Body.String())
 	}
 	deniedRead := httptest.NewRequest(http.MethodGet, "/v1/user-workspace/application-sessions/"+created.Session.SessionID+"/result-artifacts/"+executed.ResultArtifact.ArtifactID+query, nil)
 	deniedRead.SetPathValue("session_id", created.Session.SessionID)

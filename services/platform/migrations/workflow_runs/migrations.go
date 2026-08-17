@@ -16,8 +16,8 @@ import (
 
 const (
 	Component                                           = "workflow_runs"
-	MigrationID                                         = "0025_application_result_artifacts"
-	StoreSchemaVersion                                  = "workflow_run_store_v25"
+	MigrationID                                         = "0026_application_result_artifact_lifecycle"
+	StoreSchemaVersion                                  = "workflow_run_store_v26"
 	legacyMigrationID                                   = "0001_workflow_runs"
 	legacyStoreSchemaVersion                            = "workflow_run_store_v1"
 	diagnosticsMigrationID                              = "0002_workflow_run_diagnostics"
@@ -66,6 +66,8 @@ const (
 	toolDefinitionSourcesStoreSchemaVersion             = "workflow_run_store_v23"
 	definitionHTTPToolExecutionMigrationID              = "0024_workflow_definition_http_tool_execution"
 	definitionHTTPToolExecutionStoreSchemaVersion       = "workflow_run_store_v24"
+	resultArtifactMigrationID                           = "0025_application_result_artifacts"
+	resultArtifactStoreSchemaVersion                    = "workflow_run_store_v25"
 	MigrationStateApplied                               = "applied"
 	MigrationStatePending                               = "pending"
 	MigrationStateNotApplied                            = "not_applied"
@@ -227,8 +229,14 @@ var upSQLV25 string
 //go:embed 0025_application_result_artifacts.down.sql
 var downSQLV25 string
 
-var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21 + "\n" + upSQLV22 + "\n" + upSQLV23 + "\n" + upSQLV24 + "\n" + upSQLV25
-var downSQL = downSQLV25 + "\n" + downSQLV24 + "\n" + downSQLV23 + "\n" + downSQLV22 + "\n" + downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
+//go:embed 0026_application_result_artifact_lifecycle.up.sql
+var upSQLV26 string
+
+//go:embed 0026_application_result_artifact_lifecycle.down.sql
+var downSQLV26 string
+
+var upSQL = upSQLV1 + "\n" + upSQLV2 + "\n" + upSQLV3 + "\n" + upSQLV4 + "\n" + upSQLV5 + "\n" + upSQLV6 + "\n" + upSQLV7 + "\n" + upSQLV8 + "\n" + upSQLV9 + "\n" + upSQLV10 + "\n" + upSQLV11 + "\n" + upSQLV12 + "\n" + upSQLV13 + "\n" + upSQLV14 + "\n" + upSQLV15 + "\n" + upSQLV16 + "\n" + upSQLV17 + "\n" + upSQLV18 + "\n" + upSQLV19 + "\n" + upSQLV20 + "\n" + upSQLV21 + "\n" + upSQLV22 + "\n" + upSQLV23 + "\n" + upSQLV24 + "\n" + upSQLV25 + "\n" + upSQLV26
+var downSQL = downSQLV26 + "\n" + downSQLV25 + "\n" + downSQLV24 + "\n" + downSQLV23 + "\n" + downSQLV22 + "\n" + downSQLV21 + "\n" + downSQLV20 + "\n" + downSQLV19 + "\n" + downSQLV18 + "\n" + downSQLV17 + "\n" + downSQLV16 + "\n" + downSQLV15 + "\n" + downSQLV14 + "\n" + downSQLV13 + "\n" + downSQLV12 + "\n" + downSQLV11 + "\n" + downSQLV10 + "\n" + downSQLV9 + "\n" + downSQLV8 + "\n" + downSQLV7 + "\n" + downSQLV6 + "\n" + downSQLV5 + "\n" + downSQLV4 + "\n" + downSQLV3 + "\n" + downSQLV2 + "\n" + downSQLV1
 
 type State struct {
 	MigrationState, MigrationID, StoreSchemaVersion, MigrationChecksum string
@@ -341,6 +349,10 @@ func toolDefinitionSourcesChecksum() string {
 
 func definitionHTTPToolExecutionChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19+"\n"+upSQLV20+"\n"+upSQLV21+"\n"+upSQLV22+"\n"+upSQLV23+"\n"+upSQLV24)))
+}
+
+func resultArtifactChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(upSQLV1+"\n"+upSQLV2+"\n"+upSQLV3+"\n"+upSQLV4+"\n"+upSQLV5+"\n"+upSQLV6+"\n"+upSQLV7+"\n"+upSQLV8+"\n"+upSQLV9+"\n"+upSQLV10+"\n"+upSQLV11+"\n"+upSQLV12+"\n"+upSQLV13+"\n"+upSQLV14+"\n"+upSQLV15+"\n"+upSQLV16+"\n"+upSQLV17+"\n"+upSQLV18+"\n"+upSQLV19+"\n"+upSQLV20+"\n"+upSQLV21+"\n"+upSQLV22+"\n"+upSQLV23+"\n"+upSQLV24+"\n"+upSQLV25)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -464,20 +476,23 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 }
 
 func pendingMigrationSQL(appliedMigrationID string) string {
+	if appliedMigrationID == resultArtifactMigrationID {
+		return upSQLV26
+	}
 	if appliedMigrationID == definitionHTTPToolExecutionMigrationID {
-		return upSQLV25
+		return upSQLV25 + "\n" + upSQLV26
 	}
 	if appliedMigrationID == toolDefinitionSourcesMigrationID {
-		return upSQLV24 + "\n" + upSQLV25
+		return upSQLV24 + "\n" + upSQLV25 + "\n" + upSQLV26
 	}
 	if appliedMigrationID == structuredEvaluationMigrationID {
-		return upSQLV23 + "\n" + upSQLV24 + "\n" + upSQLV25
+		return upSQLV23 + "\n" + upSQLV24 + "\n" + upSQLV25 + "\n" + upSQLV26
 	}
 	pending := pendingMigrationSQLThroughStructuredEvaluation(appliedMigrationID)
 	if pending == "" {
 		return ""
 	}
-	return pending + "\n" + upSQLV23 + "\n" + upSQLV24 + "\n" + upSQLV25
+	return pending + "\n" + upSQLV23 + "\n" + upSQLV24 + "\n" + upSQLV25 + "\n" + upSQLV26
 }
 
 func pendingMigrationSQLThroughStructuredEvaluation(appliedMigrationID string) string {
@@ -596,6 +611,8 @@ func rollbackSQLThrough(appliedMigrationID string) string {
 		return downSQLV23 + "\n" + rollbackSQLThrough(structuredEvaluationMigrationID)
 	case definitionHTTPToolExecutionMigrationID:
 		return downSQLV24 + "\n" + rollbackSQLThrough(toolDefinitionSourcesMigrationID)
+	case resultArtifactMigrationID:
+		return downSQLV25 + "\n" + rollbackSQLThrough(definitionHTTPToolExecutionMigrationID)
 	default:
 		return ""
 	}
@@ -668,6 +685,8 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 	} else if state.MigrationID == toolDefinitionSourcesMigrationID && state.StoreSchemaVersion == toolDefinitionSourcesStoreSchemaVersion && state.MigrationChecksum == toolDefinitionSourcesChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else if state.MigrationID == definitionHTTPToolExecutionMigrationID && state.StoreSchemaVersion == definitionHTTPToolExecutionStoreSchemaVersion && state.MigrationChecksum == definitionHTTPToolExecutionChecksum() && tableExists {
+		state.MigrationState = MigrationStatePending
+	} else if state.MigrationID == resultArtifactMigrationID && state.StoreSchemaVersion == resultArtifactStoreSchemaVersion && state.MigrationChecksum == resultArtifactChecksum() && tableExists {
 		state.MigrationState = MigrationStatePending
 	} else {
 		var diagnosticColumnCount int
@@ -1015,7 +1034,24 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 			AND trigger.tgname='application_result_artifacts_append_only'`).Scan(&resultArtifactTriggerCount); err != nil {
 			return State{}, safeDatabaseError("inspect application result artifact trigger", err)
 		}
-		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || structuredInputColumnCount != 2 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || toolSourceColumnCount != 17 || toolSourceConstraintCount != 9 || !toolDefinitionIndexExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 || applicationInteractionStructuredConstraintCount != 3 || promptProjectionTableCount != 5 || promptProjectionTriggerCount != 10 || agentAssignmentTableCount != 2 || agentAssignmentTriggerCount != 4 || agentProjectionTableCount != 3 || agentProjectionTriggerCount != 6 || applicationEvaluationTableCount != 3 || applicationEvaluationTriggerCount != 6 || applicationEvaluationStructuredConstraintCount != 3 || !resultArtifactTableExists || !resultArtifactIndexExists || resultArtifactTriggerCount != 1 {
+		var resultArtifactLifecycleTableCount, resultArtifactLifecycleTriggerCount int
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_class relation
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE namespace.nspname='public' AND relation.relkind='r' AND relation.relname IN (
+				'application_result_artifact_lifecycles','application_result_artifact_lifecycle_events'
+			)`).Scan(&resultArtifactLifecycleTableCount); err != nil {
+			return State{}, safeDatabaseError("inspect application result artifact lifecycle tables", err)
+		}
+		if err = query.QueryRow(ctx, `SELECT count(*) FROM pg_trigger trigger
+			JOIN pg_class relation ON relation.oid=trigger.tgrelid
+			JOIN pg_namespace namespace ON namespace.oid=relation.relnamespace
+			WHERE NOT trigger.tgisinternal AND namespace.nspname='public' AND trigger.tgname IN (
+				'application_result_artifact_lifecycles_controlled_mutation',
+				'application_result_artifact_lifecycle_events_append_only'
+			)`).Scan(&resultArtifactLifecycleTriggerCount); err != nil {
+			return State{}, safeDatabaseError("inspect application result artifact lifecycle triggers", err)
+		}
+		if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() || !tableExists || diagnosticColumnCount != 4 || structuredInputColumnCount != 2 || !evaluationTableExists || !revisionTableExists || currentVersionColumnCount != 1 || !suiteTableExists || !decisionTableExists || !actionPlanTableExists || !confirmationDecisionTableExists || !executionAuditTableExists || !executionAttemptTableExists || toolSourceColumnCount != 17 || toolSourceConstraintCount != 9 || !toolDefinitionIndexExists || appendOnlyTriggerCount != 2 || !ragResourceTableExists || !ragVersionTableExists || !ragFragmentTableExists || !ragAuditTableExists || ragAppendOnlyTriggerCount != 3 || ragExecutionEventConstraintCount != 1 || !ragEvaluationResourceTableExists || !ragEvaluationVersionTableExists || !ragCandidateReviewTableExists || !ragEvaluationAuditTableExists || ragEvaluationAppendOnlyTriggerCount != 3 || ragPromotionTableCount != 4 || ragPromotionAppendOnlyTriggerCount != 3 || executionSourceColumnCount != 3 || legacyDraftColumnCount != 0 || applicationRuntimeTableCount != 3 || applicationRuntimeTriggerCount != 2 || definitionReleaseTableCount != 6 || definitionReleaseTriggerCount != 4 || applicationInteractionTableCount != 2 || applicationInteractionTriggerCount != 4 || applicationInteractionStructuredConstraintCount != 3 || promptProjectionTableCount != 5 || promptProjectionTriggerCount != 10 || agentAssignmentTableCount != 2 || agentAssignmentTriggerCount != 4 || agentProjectionTableCount != 3 || agentProjectionTriggerCount != 6 || applicationEvaluationTableCount != 3 || applicationEvaluationTriggerCount != 6 || applicationEvaluationStructuredConstraintCount != 3 || !resultArtifactTableExists || !resultArtifactIndexExists || resultArtifactTriggerCount != 1 || resultArtifactLifecycleTableCount != 2 || resultArtifactLifecycleTriggerCount != 2 {
 			state.MigrationState = MigrationStateMismatch
 		} else {
 			state.MigrationState = MigrationStateApplied

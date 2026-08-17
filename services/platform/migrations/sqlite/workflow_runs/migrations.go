@@ -8,8 +8,8 @@ import (
 
 const (
 	Component                          = "workflow_runs"
-	MigrationID                        = "0022_application_result_artifacts"
-	StoreSchemaVersion                 = "workflow_run_store_sqlite_v22"
+	MigrationID                        = "0023_application_result_artifact_lifecycle"
+	StoreSchemaVersion                 = "workflow_run_store_sqlite_v23"
 	RunRecordStoreSchemaVersion        = "workflow_runs_store_v7"
 	legacyMigrationID                  = "0001_workflow_runs"
 	toolActionsMigrationID             = "0002_workflow_http_tool_actions"
@@ -53,6 +53,8 @@ const (
 	toolDefinitionSourcesSchemaVersion = "workflow_run_store_sqlite_v20"
 	definitionHTTPToolMigrationID      = "0021_workflow_definition_http_tool_execution"
 	definitionHTTPToolSchemaVersion    = "workflow_run_store_sqlite_v21"
+	resultArtifactMigrationID          = "0022_application_result_artifacts"
+	resultArtifactSchemaVersion        = "workflow_run_store_sqlite_v22"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -121,6 +123,9 @@ var upSQLV21 string
 //go:embed 0022_application_result_artifacts.up.sql
 var upSQLV22 string
 
+//go:embed 0023_application_result_artifact_lifecycle.up.sql
+var upSQLV23 string
+
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
 		{
@@ -174,6 +179,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: structuredEvaluationMigrationID, StoreSchemaVersion: structuredEvaluationSchemaVersion, UpSQL: upSQLV19},
 		{Component: Component, ID: toolDefinitionSourcesMigrationID, StoreSchemaVersion: toolDefinitionSourcesSchemaVersion, UpSQL: upSQLV20},
 		{Component: Component, ID: definitionHTTPToolMigrationID, StoreSchemaVersion: definitionHTTPToolSchemaVersion, UpSQL: upSQLV21},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV22},
+		{Component: Component, ID: resultArtifactMigrationID, StoreSchemaVersion: resultArtifactSchemaVersion, UpSQL: upSQLV22},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV23},
 	}
 }

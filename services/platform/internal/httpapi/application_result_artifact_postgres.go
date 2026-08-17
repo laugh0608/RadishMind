@@ -33,7 +33,17 @@ func (repository *postgresApplicationResultArtifactRepository) Create(
 	if createdAt == nil {
 		return ApplicationResultArtifact{}, false, errApplicationResultArtifactContract
 	}
-	command, err := repository.pool.Exec(applicationInteractionRequestContext(ctx), `INSERT INTO application_result_artifacts
+	lifecycle := initialApplicationResultArtifactLifecycle(artifact)
+	lifecyclePayload, err := encodeApplicationResultArtifactLifecycle(ctx, lifecycle)
+	if err != nil {
+		return ApplicationResultArtifact{}, false, err
+	}
+	transaction, err := repository.pool.Begin(applicationInteractionRequestContext(ctx))
+	if err != nil {
+		return ApplicationResultArtifact{}, false, errApplicationResultArtifactStore
+	}
+	defer transaction.Rollback(applicationInteractionRequestContext(ctx))
+	command, err := transaction.Exec(applicationInteractionRequestContext(ctx), `INSERT INTO application_result_artifacts
 (tenant_ref,workspace_id,application_id,owner_subject_ref,artifact_id,session_id,turn_id,client_turn_key,
 execution_profile,run_id,run_schema_version,content_type,content_bytes,content_digest,created_at,artifact_payload)
 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) ON CONFLICT DO NOTHING`,
@@ -45,9 +55,24 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) ON CONFLICT DO N
 		return ApplicationResultArtifact{}, false, errApplicationResultArtifactStore
 	}
 	if command.RowsAffected() == 1 {
+		if _, err = transaction.Exec(applicationInteractionRequestContext(ctx), `INSERT INTO application_result_artifact_lifecycles
+(tenant_ref,workspace_id,application_id,owner_subject_ref,artifact_id,lifecycle_state,lifecycle_version,archived_at,
+updated_at,updated_by_actor_ref,request_id,audit_ref,lifecycle_payload)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, artifact.ArtifactID,
+			lifecycle.LifecycleState, lifecycle.LifecycleVersion, nil, createdAt.Round(time.Microsecond),
+			lifecycle.UpdatedByActorRef, lifecycle.RequestID, lifecycle.AuditRef, lifecyclePayload); err != nil {
+			return ApplicationResultArtifact{}, false, errApplicationResultArtifactStore
+		}
+		if err = transaction.Commit(applicationInteractionRequestContext(ctx)); err != nil {
+			return ApplicationResultArtifact{}, false, errApplicationResultArtifactStore
+		}
 		return cloneApplicationResultArtifact(artifact), false, nil
 	}
 	if command.RowsAffected() != 0 {
+		return ApplicationResultArtifact{}, false, errApplicationResultArtifactStore
+	}
+	if err = transaction.Rollback(applicationInteractionRequestContext(ctx)); err != nil {
 		return ApplicationResultArtifact{}, false, errApplicationResultArtifactStore
 	}
 	existing, err := repository.ReadByTurn(ctx, artifact.SessionID, artifact.TurnID)

@@ -1,8 +1,8 @@
 # 应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1
 
-更新时间：2026-08-15
+更新时间：2026-08-17
 
-状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_b_completed_batch_c_next`
+状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_c1_lifecycle_backend_completed_web_consumer_next`
 
 ## 功能定位
 
@@ -76,7 +76,7 @@ Workflow Definition、Application RAG、Prompt 与 Agent / Copilot runtime 继�
 - canonical content、content bytes 与 `sha256:` digest；
 - created at / actor / request / audit ref。
 
-列表只返回 `application_result_artifact_summary.v1`，不返回 content。精确 read 才返回 content，并要求与记录一致的 application scope 和 owner。
+列表只返回带生命周期投影的 `application_result_artifact_summary.v2`，不返回 content。精确 read 才返回 content，并同时返回 `application_result_artifact_lifecycle.v1`；两者都要求与记录一致的 application scope 和 owner。
 
 v1 单份 content 上限固定为 `64 KiB`，要求 UTF-8、非空和 canonical serialization。内容被视为用户内容，可能包含业务敏感信息，因此不得进入日志、错误摘要、trace、URL、cursor、committed fixture 或 run record。
 
@@ -91,10 +91,11 @@ v1 单份 content 上限固定为 `64 KiB`，要求 UTF-8、非空和 canonical 
 
 ## 权限边界
 
-当前读写路径复用 parent session 的权限：
+当前读取和保存路径复用 parent session 权限，生命周期 mutation 使用独立权限：
 
 - 新 turn 的显式 capture 复用 `application_sessions:execute`；只有执行者能在同一次请求中选择保存。
 - list / read 复用 `application_sessions:read`，并继续要求 verified identity、active workspace membership 和精确 application scope。
+- archive / unarchive 同时要求 `application_sessions:read` 与 `application_result_artifacts:archive`；`application_sessions:read|write|execute` 均不能替代后者。
 
 Result Artifact 是独立数据 owner，但当前不新增平行的成员资格语义。若后续需要跨 session 分享、导出、删除或委派，必须独立评审权限，不得把 `read` 自动提升为分享或删除权限。
 
@@ -121,19 +122,28 @@ Result Artifact 是独立数据 owner，但当前不新增平行的成员资格�
 
 SQLite 真实文件证据覆盖创建、相同 turn 幂等、冲突、并发单创建、重启、跨 owner 隔离、不可变触发器、损坏 payload 和关闭后失败关闭。PostgreSQL 17 证据覆盖运行角色 DML / DDL 边界、并发收敛、重连恢复、不可变触发器、跨 owner 隔离及完整 migration rollback / reapply；`timestamptz` 投影按数据库微秒精度写入，读取仍与 JSON 中的 RFC3339Nano 时间做小于一微秒的严格一致性复验。所有 repository 错误继续只映射稳定 failure code，不包含正文或底层数据库详情。
 
-### 批次 C：生命周期与应用工作区消费
+### 批次 C1：生命周期后端纵向切片（已完成）
 
 - 先冻结生命周期合同：不可变 artifact content / provenance 与可变生命周期状态必须分离；archive / unarchive 使用独立 `lifecycle_version`、expected-version CAS 和 append-only event，不修改 artifact payload，也不拆除现有数据库 update / delete 拒绝。
 - list 默认只返回 active artifact；显式 archived filter、排序和 cursor 必须绑定 tenant / workspace / application / owner / session / lifecycle state。archive 不改变来源、digest、created at 或 read 权限，unarchive 只能恢复同一精确 owner 的原 artifact。
-- archive / unarchive 属于写操作，必须在实现前明确复用受审的管理权限或新增独立 artifact lifecycle permission；不得由 `application_sessions:read` 自动获得。永久 purge 执行、自动 retention job、级联删除与批量清理继续关闭，只记录未来启用所需的权限、保留期、显式确认和关联资源规则。
+- 当前生命周期合同固定为 `application_result_artifact_lifecycle.v1`、`application_result_artifact_lifecycle_event.v1` 与带生命周期投影的 `application_result_artifact_summary.v2`。新资产与 `active v1` current state 必须在同一 repository 原子操作中创建；SQLite / PostgreSQL 迁移需为既有资产回填同一状态，但不得改写 `application_result_artifact.v1` payload。archive / unarchive 分别产生 `archived` / `unarchived` event，成功后生命周期版本加一。
+- archive / unarchive 使用独立 `application_result_artifacts:archive` 权限，并继续要求 verified identity、active workspace membership、精确 application 与 owner scope；`application_sessions:read|write|execute` 均不能替代该权限。永久 purge 执行、自动 retention job、级联删除与批量清理继续关闭，只记录未来启用所需的权限、保留期、显式确认和关联资源规则。
+- 生命周期路由固定为 `POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/archive` 与对应 `/unarchive`；body 只接受 `workspace_id`、`application_id` 和 `expected_lifecycle_version`。精确 read 继续允许读取同 owner 的 archived artifact，并同时返回生命周期投影；不存在 purge route。
 - 生命周期 API、schema 或 migration 明确后更新具体任务卡，并在 memory、SQLite、PostgreSQL 同时落地 repository、route、CAS、并发、重启、no-fallback 与隐私证据，不能只交付 memory 或 Web 状态。
+
+当前实现保持 `application_result_artifacts` 不可变表和 `application_result_artifact.v1` payload 原样，新增独立 current lifecycle 与 append-only event。新资产在同一 repository transaction 中创建 active v1；SQLite `0023_application_result_artifact_lifecycle` 与 PostgreSQL `0026_application_result_artifact_lifecycle` 会为既有资产回填 active v1。默认 list 只返回 active，显式 `lifecycle_state=archived` 才列出归档资产，cursor v2 绑定完整 scope、session、filter 与 limit；精确 read 仍允许同 owner 读取 archived content。
+
+archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次成功写入一条 `archived` / `unarchived` event；重复状态返回 state conflict，陈旧版本和并发失败返回 version conflict，并给出脱敏后的当前 lifecycle version / state。memory、SQLite 与 PostgreSQL 已覆盖原子创建、旧数据升级、并发单胜者、重启、跨 owner、损坏投影、运行角色、rollback / reapply 与 no-fallback。永久 purge route、自动 retention、级联删除和 production capability 均未建立。
+
+### 批次 C2：共享应用工作区消费（下一顺位）
+
 - 为现有 Application Interaction、Prompt Session 与 Agent Session 三类 surface 建立共享 strict artifact consumer，再接入保存选择、保存结果状态、active / archived metadata 列表、精确读取、session / run handoff 和 archive / unarchive；不得在三块页面复制 schema 解析、scope guard 或迟到响应状态。先按页面族判断是否需要局部 Pencil，不创建 S11。
 - application、session、workspace、identity、profile 或路由切换必须清除已读取 content、一次性状态和迟到响应；不写 localStorage、sessionStorage、IndexedDB 或 URL。
 
 ### 批次 D：双数据库产品连续链与专题收口
 
-- memory / SQLite / PostgreSQL 验证同一 profile matrix、幂等、权限、cursor、archive / purge 与 no-fallback。
-- SQLite 本地产品验证保存 → 刷新 → 精确读取 → 服务重启恢复 → archive / purge 边界和桌面 / 窄屏。
+- memory / SQLite / PostgreSQL 验证同一 profile matrix、幂等、权限、cursor、archive / unarchive、purge route 不存在与 no-fallback。
+- SQLite 本地产品验证保存 → 刷新 → 精确读取 → 服务重启恢复 → archive → unarchive，并复核永久 purge 仍不可调用及桌面 / 窄屏行为。
 - 同步 current focus、功能索引、能力矩阵、路线图与周志；专题关闭后不派生通用 result store 或 transcript 批次。
 
 ## 验收方式
@@ -145,6 +155,7 @@ SQLite 真实文件证据覆盖创建、相同 turn 幂等、冲突、并发单�
 - authorization：identity / membership / workspace / application / owner 任一不匹配均在 artifact read 或 capture 前失败关闭。
 - compatibility：既有五类 session profile、Run History、Comparison、Evaluation、Gateway、RAG 与 HTTP Tool 测试不回归。
 - repository：批次 A 已通过 Go 单元 / HTTP / race 精准测试、`go vet` 和仓库快速 / 全量门禁；批次 B 已通过 SQLite 真实文件专项、PostgreSQL 17 聚合集成、运行角色、并发、重启、rollback / reapply 与 no-fallback 证据。
+- lifecycle：批次 C1 已通过 memory / SQLite / PostgreSQL CAS、旧资产 active v1 回填、HTTP 组合权限、metadata-only list、archived exact read、append-only event、配置化 PostgreSQL profile 与仓库门禁；Web 产品链尚未开始。
 
 ## 停止线
 

@@ -8,7 +8,61 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"radishmind.local/services/platform/internal/sqlitedev"
+	sqliteworkflowrunmigrations "radishmind.local/services/platform/migrations/sqlite/workflow_runs"
 )
+
+func TestSQLiteApplicationResultArtifactLifecycleMigrationBackfillsExistingArtifacts(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "application-result-artifact-lifecycle-backfill.db")
+	migrations := sqliteworkflowrunmigrations.Migrations()
+	legacyRuntime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{
+		DatabasePath: databasePath, Migrations: migrations[:len(migrations)-1],
+	})
+	if err != nil {
+		t.Fatalf("open pre-lifecycle SQLite runtime: %v", err)
+	}
+	ctx, artifact := applicationResultArtifactPersistenceFixture()
+	payload, err := encodeApplicationResultArtifact(ctx, artifact)
+	if err != nil {
+		_ = legacyRuntime.Close()
+		t.Fatalf("encode pre-lifecycle SQLite artifact: %v", err)
+	}
+	createdAt := parseApplicationInteractionTimestamp(artifact.CreatedAt)
+	if createdAt == nil {
+		_ = legacyRuntime.Close()
+		t.Fatal("pre-lifecycle SQLite artifact timestamp is invalid")
+	}
+	if _, err = legacyRuntime.DB().ExecContext(context.Background(), `INSERT INTO application_result_artifacts
+(tenant_ref,workspace_id,application_id,owner_subject_ref,artifact_id,session_id,turn_id,client_turn_key,
+execution_profile,run_id,run_schema_version,content_type,content_bytes,content_digest,created_at_unix_nano,artifact_payload)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, artifact.ArtifactID,
+		artifact.SessionID, artifact.TurnID, artifact.ClientTurnKey, artifact.ExecutionProfile,
+		artifact.RunRef.RunID, artifact.RunRef.SchemaVersion, artifact.ContentType, artifact.ContentBytes,
+		artifact.ContentDigest, createdAt.UnixNano(), string(payload)); err != nil {
+		_ = legacyRuntime.Close()
+		t.Fatalf("seed pre-lifecycle SQLite artifact: %v", err)
+	}
+	if err = legacyRuntime.Close(); err != nil {
+		t.Fatalf("close pre-lifecycle SQLite runtime: %v", err)
+	}
+
+	upgradedRuntime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{
+		DatabasePath: databasePath, Migrations: migrations,
+	})
+	if err != nil {
+		t.Fatalf("upgrade SQLite artifact lifecycle: %v", err)
+	}
+	defer upgradedRuntime.Close()
+	repository := newSQLiteApplicationResultArtifactRepository(upgradedRuntime.DB())
+	lifecycle, err := repository.ReadLifecycle(ctx, artifact.ArtifactID)
+	if err != nil || lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive ||
+		lifecycle.LifecycleVersion != 1 || lifecycle.UpdatedAt != artifact.CreatedAt ||
+		lifecycle.UpdatedByActorRef != artifact.CreatedByActorRef {
+		t.Fatalf("SQLite lifecycle backfill drifted: lifecycle=%#v err=%v", lifecycle, err)
+	}
+}
 
 func TestSQLiteApplicationResultArtifactPersistsAcrossRestartAndIsImmutable(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "application-result-artifacts.db")
@@ -38,6 +92,24 @@ func TestSQLiteApplicationResultArtifactPersistsAcrossRestartAndIsImmutable(t *t
 	if _, err = runtime.DB().ExecContext(context.Background(), `DELETE FROM application_result_artifacts WHERE artifact_id=?`, artifact.ArtifactID); err == nil {
 		t.Fatal("SQLite result artifact accepted a delete")
 	}
+	initialLifecycle, err := repository.ReadLifecycle(ctx, artifact.ArtifactID)
+	if err != nil || initialLifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive || initialLifecycle.LifecycleVersion != 1 {
+		t.Fatalf("read initial SQLite result artifact lifecycle: lifecycle=%#v err=%v", initialLifecycle, err)
+	}
+	archived, event, err := repository.TransitionLifecycle(
+		ctx, artifact.ArtifactID, ApplicationResultArtifactLifecycleArchived, 1,
+		time.Date(2026, 8, 17, 9, 0, 0, 123456789, time.UTC),
+	)
+	if err != nil || archived.LifecycleState != ApplicationResultArtifactLifecycleArchived ||
+		archived.LifecycleVersion != 2 || event.TransitionKind != ApplicationResultArtifactLifecycleTransitionArchived {
+		t.Fatalf("archive SQLite result artifact: lifecycle=%#v event=%#v err=%v", archived, event, err)
+	}
+	if _, err = runtime.DB().ExecContext(context.Background(), `UPDATE application_result_artifact_lifecycle_events SET actor_ref=actor_ref WHERE artifact_id=?`, artifact.ArtifactID); err == nil {
+		t.Fatal("SQLite lifecycle event accepted an update")
+	}
+	if _, err = runtime.DB().ExecContext(context.Background(), `DELETE FROM application_result_artifact_lifecycle_events WHERE artifact_id=?`, artifact.ArtifactID); err == nil {
+		t.Fatal("SQLite lifecycle event accepted a delete")
+	}
 	if err = runtime.Close(); err != nil {
 		t.Fatalf("close SQLite result artifact runtime: %v", err)
 	}
@@ -48,14 +120,79 @@ func TestSQLiteApplicationResultArtifactPersistsAcrossRestartAndIsImmutable(t *t
 	restored, err := restoredRepository.Read(ctx, artifact.ArtifactID)
 	byTurn, turnErr := restoredRepository.ReadByTurn(ctx, artifact.SessionID, artifact.TurnID)
 	listed, listErr := restoredRepository.List(ctx, artifact.SessionID)
+	restoredLifecycle, lifecycleErr := restoredRepository.ReadLifecycle(ctx, artifact.ArtifactID)
+	archivedRecords, archivedListErr := restoredRepository.ListByLifecycle(ctx, artifact.SessionID, ApplicationResultArtifactLifecycleArchived)
 	if err != nil || turnErr != nil || listErr != nil || !applicationResultArtifactsEquivalent(restored, artifact) ||
-		byTurn.ArtifactID != artifact.ArtifactID || len(listed) != 1 || listed[0].ArtifactID != artifact.ArtifactID {
-		t.Fatalf("restore SQLite result artifact: restored=%#v by_turn=%#v listed=%#v errors=%v/%v/%v", restored, byTurn, listed, err, turnErr, listErr)
+		lifecycleErr != nil || archivedListErr != nil || byTurn.ArtifactID != artifact.ArtifactID ||
+		len(listed) != 1 || listed[0].ArtifactID != artifact.ArtifactID ||
+		restoredLifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived ||
+		len(archivedRecords) != 1 || archivedRecords[0].Artifact.ArtifactID != artifact.ArtifactID {
+		t.Fatalf("restore SQLite result artifact: restored=%#v lifecycle=%#v by_turn=%#v listed=%#v archived=%#v errors=%v/%v/%v/%v/%v", restored, restoredLifecycle, byTurn, listed, archivedRecords, err, turnErr, listErr, lifecycleErr, archivedListErr)
 	}
 	otherScope := ctx
 	otherScope.OwnerSubjectRef = "subject_other"
 	if _, err = restoredRepository.Read(otherScope, artifact.ArtifactID); !errors.Is(err, errApplicationResultArtifactNotFound) {
 		t.Fatalf("cross-scope SQLite result artifact read did not fail closed: %v", err)
+	}
+}
+
+func TestSQLiteApplicationResultArtifactLifecycleConcurrentCASConverges(t *testing.T) {
+	runtime := openApplicationInteractionSQLiteRuntime(t, filepath.Join(t.TempDir(), "application-result-artifact-lifecycle-concurrent.db"))
+	defer runtime.Close()
+	repository := newSQLiteApplicationResultArtifactRepository(runtime.DB())
+	ctx, artifact := applicationResultArtifactPersistenceFixture()
+	if _, _, err := repository.Create(ctx, artifact); err != nil {
+		t.Fatalf("create SQLite lifecycle concurrency fixture: %v", err)
+	}
+	type outcome struct{ err error }
+	outcomes := make(chan outcome, 8)
+	var wait sync.WaitGroup
+	for range 8 {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			_, _, err := repository.TransitionLifecycle(
+				ctx, artifact.ArtifactID, ApplicationResultArtifactLifecycleArchived, 1,
+				time.Date(2026, 8, 17, 9, 30, 0, 0, time.UTC),
+			)
+			outcomes <- outcome{err: err}
+		}()
+	}
+	wait.Wait()
+	close(outcomes)
+	successes, conflicts := 0, 0
+	for result := range outcomes {
+		switch {
+		case result.err == nil:
+			successes++
+		case errors.Is(result.err, errApplicationResultArtifactLifecycleVersion):
+			conflicts++
+		default:
+			t.Fatalf("unexpected SQLite lifecycle CAS error: %v", result.err)
+		}
+	}
+	if successes != 1 || conflicts != 7 {
+		t.Fatalf("SQLite lifecycle CAS did not converge: successes=%d conflicts=%d", successes, conflicts)
+	}
+}
+
+func TestSQLiteApplicationResultArtifactLifecycleCorruptionFailsClosed(t *testing.T) {
+	runtime := openApplicationInteractionSQLiteRuntime(t, filepath.Join(t.TempDir(), "application-result-artifact-lifecycle-corrupt.db"))
+	defer runtime.Close()
+	repository := newSQLiteApplicationResultArtifactRepository(runtime.DB())
+	ctx, artifact := applicationResultArtifactPersistenceFixture()
+	if _, _, err := repository.Create(ctx, artifact); err != nil {
+		t.Fatalf("create SQLite lifecycle corruption fixture: %v", err)
+	}
+	if _, err := runtime.DB().ExecContext(context.Background(), "DROP TRIGGER application_result_artifact_lifecycles_controlled_update"); err != nil {
+		t.Fatalf("drop test-only SQLite lifecycle trigger: %v", err)
+	}
+	if _, err := runtime.DB().ExecContext(context.Background(), `UPDATE application_result_artifact_lifecycles
+SET lifecycle_payload=json_set(lifecycle_payload,'$.unexpected_projection','corrupt') WHERE artifact_id=?`, artifact.ArtifactID); err != nil {
+		t.Fatalf("corrupt SQLite lifecycle payload: %v", err)
+	}
+	if _, err := repository.ReadLifecycle(ctx, artifact.ArtifactID); !errors.Is(err, errApplicationResultArtifactContract) {
+		t.Fatalf("corrupt SQLite lifecycle did not fail closed: %v", err)
 	}
 }
 

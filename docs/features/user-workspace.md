@@ -1,6 +1,6 @@
 # 用户工作区设计与开发文档
 
-更新时间：2026-08-13
+更新时间：2026-08-17
 
 ## 功能定位
 
@@ -71,7 +71,7 @@
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
-5. 本地 SQLite、应用目录与安全重新启用、API 密钥生命周期与引导式轮换、Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。当前产品顺位是独立的应用结果资产 owner：批次 A / B 已完成默认关闭的显式保存、服务端 canonical capture、memory / SQLite / PostgreSQL owner、metadata-only list、精确 read 与双数据库重启恢复；下一步先冻结 archive / unarchive 生命周期合同，再推进三存储 owner 与 Application Interaction、Prompt Session、Agent Session 共享 consumer。应用运行观测只有在全分页统计或 quota / billing owner 成立时才评审服务端 summary；可信 reported usage 已成立，但当前仍只覆盖已加载窗口。
+5. 本地 SQLite、应用目录与安全重新启用、API 密钥生命周期与引导式轮换、Application Interaction Session 专题均已完成并关闭；不继续扩同层页面、准入文档、检查器或证据链。当前产品顺位是独立的应用结果资产 owner：批次 A / B / C1 已完成默认关闭的显式保存、canonical capture、三存储不可变 artifact、版本化 lifecycle、append-only event、active / archived list、精确 read 与 archive / unarchive CAS；下一步推进 Application Interaction、Prompt Session、Agent Session 的共享 strict consumer 与浏览器产品链。应用运行观测只有在全分页统计或 quota / billing owner 成立时才评审服务端 summary；可信 reported usage 已成立，但当前仍只覆盖已加载窗口。
 6. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
 7. 不把开发测试态应用目录或 API 密钥解释为生产存储库与生产授权；OIDC 模式在成员关系契约未成立时继续失败关闭。后续专题不得隐式打开生产认证、成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或新的 Gateway 请求 / 响应 schema。
 

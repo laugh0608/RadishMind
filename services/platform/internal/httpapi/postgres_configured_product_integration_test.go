@@ -535,6 +535,8 @@ func runConfiguredPostgresMigrationGate(
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
+		application_result_artifact_lifecycle_events,
+		application_result_artifact_lifecycles,
 		application_result_artifacts,
 		application_evaluation_campaigns,
 		application_evaluation_plan_versions,
@@ -633,6 +635,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_result_artifact_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL application result artifact guard: %v", err)
 	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_result_artifact_lifecycle_event_mutation(), validate_application_result_artifact_lifecycle_mutation()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL application result artifact lifecycle guards: %v", err)
+	}
 }
 
 func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
@@ -660,6 +665,10 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"workflow_run_records", "started_at", "timestamp with time zone"},
 		{"application_result_artifacts", "artifact_payload", "jsonb"},
 		{"application_result_artifacts", "created_at", "timestamp with time zone"},
+		{"application_result_artifact_lifecycles", "lifecycle_payload", "jsonb"},
+		{"application_result_artifact_lifecycles", "lifecycle_version", "bigint"},
+		{"application_result_artifact_lifecycle_events", "event_payload", "jsonb"},
+		{"application_result_artifact_lifecycle_events", "occurred_at", "timestamp with time zone"},
 		{"workflow_http_tool_action_plans", "tool_version", "integer"},
 		{"workflow_http_tool_confirmation_decisions", "tool_version", "integer"},
 		{"workflow_http_tool_execution_audits", "tool_version", "integer"},
@@ -706,6 +715,7 @@ func assertConfiguredPostgresSchema(t *testing.T, ctx context.Context, pool *pgx
 		{"saved_workflow_drafts_owner_lifecycle_list_idx", "library_updated_at DESC, draft_id"},
 		{"workflow_run_records_history_idx", "started_at DESC, run_id DESC"},
 		{"application_result_artifacts_session_history_idx", "created_at DESC, artifact_id DESC"},
+		{"application_result_artifact_lifecycles_state_idx", "lifecycle_state, artifact_id"},
 		{"workflow_http_tool_execution_attempts_status_idx", "status, claimed_at, attempt_id"},
 		{"workflow_rag_snapshot_resources_list_idx", "lifecycle_state, snapshot_key"},
 		{"workflow_rag_snapshot_versions_history_idx", "snapshot_version DESC"},

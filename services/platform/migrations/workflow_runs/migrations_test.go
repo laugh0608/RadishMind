@@ -100,6 +100,10 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE application_result_artifacts",
 		"application_result_artifacts_session_history_idx",
 		"application_result_artifacts_append_only",
+		"CREATE TABLE application_result_artifact_lifecycles",
+		"CREATE TABLE application_result_artifact_lifecycle_events",
+		"application_result_artifact_lifecycles_controlled_mutation",
+		"application_result_artifact_lifecycle_events_append_only",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -151,6 +155,10 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DELETE FROM workflow_run_records",
 		"DROP TABLE IF EXISTS application_result_artifacts",
 		"DROP FUNCTION IF EXISTS reject_application_result_artifact_mutation",
+		"DROP TABLE IF EXISTS application_result_artifact_lifecycle_events",
+		"DROP TABLE IF EXISTS application_result_artifact_lifecycles",
+		"DROP FUNCTION IF EXISTS validate_application_result_artifact_lifecycle_mutation",
+		"DROP FUNCTION IF EXISTS reject_application_result_artifact_lifecycle_event_mutation",
 	} {
 		if !strings.Contains(downSQL, required) {
 			t.Fatalf("workflow run down migration is missing %q", required)
@@ -204,6 +212,7 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v22", migrationID: structuredEvaluationMigrationID, requiredFragment: "workflow_http_tool_action_plan.v2", forbiddenFragment: "application_evaluation_plan.v2"},
 		{name: "v23", migrationID: toolDefinitionSourcesMigrationID, requiredFragment: "workflow_run_record.v9", forbiddenFragment: "workflow_http_tool_action_plan.v2"},
 		{name: "v24", migrationID: definitionHTTPToolExecutionMigrationID, requiredFragment: "CREATE TABLE application_result_artifacts", forbiddenFragment: "workflow_run_record.v9"},
+		{name: "v25", migrationID: resultArtifactMigrationID, requiredFragment: "CREATE TABLE application_result_artifact_lifecycles", forbiddenFragment: "CREATE TABLE application_result_artifacts"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -311,6 +320,10 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	definitionHTTPToolRollback := rollbackSQLThrough(definitionHTTPToolExecutionMigrationID)
 	if !strings.Contains(definitionHTTPToolRollback, "workflow_run_record.v9") || strings.Contains(definitionHTTPToolRollback, "application_result_artifacts") {
 		t.Fatalf("v24 rollback must remove Definition tool execution without removing unapplied v25: %s", definitionHTTPToolRollback)
+	}
+	resultArtifactRollback := rollbackSQLThrough(resultArtifactMigrationID)
+	if !strings.Contains(resultArtifactRollback, "application_result_artifacts") || strings.Contains(resultArtifactRollback, "application_result_artifact_lifecycles") {
+		t.Fatalf("v25 rollback must remove result artifacts without removing unapplied v26 lifecycle tables: %s", resultArtifactRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")
