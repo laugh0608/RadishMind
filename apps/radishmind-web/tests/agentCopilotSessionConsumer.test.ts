@@ -52,12 +52,15 @@ test("Agent turn keeps context request-only and maps one transient advisory resp
     conversationId: "",
     artifacts: [],
     context: { selected_unit_ids: ["unit-1"], diagnostics: [{ code: "not_converged" }] },
+    saveResult: true,
     clientTurnKey: "agent-turn-test-001",
   });
   assert.equal(result.status, "succeeded");
   assert.equal(result.turn?.runId, "run_aaaaaaaaaaaaaaaa");
   assert.equal(result.response?.proposedActions[0]?.requiresConfirmation, true);
+  assert.equal(result.resultArtifact?.artifactId, "appres_aaaaaaaaaaaaaaaa");
   assert.match(capturedBody, /selected_unit_ids/u);
+  assert.match(capturedBody, /"save_result":true/u);
   assert.doesNotMatch(JSON.stringify(result), /selected_unit_ids|not_converged/u);
   assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
   assert.equal(headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
@@ -182,10 +185,36 @@ function turnEnvelope(): Record<string, any> {
       risk_level: "medium",
       requires_confirmation: true,
     },
+    result_artifact: artifactSummary(),
     idempotent_replay: false,
     failure_code: null,
     failure_summary: "",
     audit_ref: "audit_agent_session_turn",
+  };
+}
+
+function artifactSummary(): Record<string, any> {
+  return {
+    schema_version: "application_result_artifact_summary.v2",
+    artifact_id: "appres_aaaaaaaaaaaaaaaa",
+    record_version: 1,
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    owner_subject_ref: "subject_demo_user",
+    session_id: "appsess_aaaaaaaaaaaaaaaa",
+    turn_id: "appturn_aaaaaaaaaaaaaaaa",
+    client_turn_key: "agent-turn-test-001",
+    execution_profile: "agent_copilot_suggestion_v1",
+    run_ref: { schema_version: "workflow_run_record.v7", run_id: "run_aaaaaaaaaaaaaaaa" },
+    content_type: "application/json",
+    content_bytes: 128,
+    content_digest: `sha256:${"a".repeat(64)}`,
+    created_at: "2026-07-24T01:02:03Z",
+    lifecycle_state: "active",
+    lifecycle_version: 1,
+    archived_at: null,
+    lifecycle_updated_at: "2026-07-24T01:02:03Z",
   };
 }
 

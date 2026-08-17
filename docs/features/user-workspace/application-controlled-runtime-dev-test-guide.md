@@ -159,7 +159,7 @@ Session 路由族为：
 7. 从 turn metadata 打开对应 v4 / v5 / v8 Run Detail、Comparison 或 Evaluation；v8 只展示合同与字段 metadata，不回显字段值。
 8. 不再继续时显式关闭 session；通过 Active / Closed 过滤器区分可执行会话与历史会话。
 
-当前 React Application Interaction、Prompt Session 与 Agent Session consumer 尚未发送 `save_result`，也未消费 artifact list / read / lifecycle route；页面内结果仍只存在于当前组件内存。批次 C2 应抽取三类 Session surface 共享的严格 artifact consumer，再分别接入保存选择、metadata 列表、精确读取和 archive / unarchive，不能复制三套 schema 解析、scope guard 或迟到响应状态。
+当前 React Application Interaction、Prompt Session 与 Agent Session 已复用单一 strict artifact consumer 和共享结果资产面板。逐 turn 保存选择默认关闭；显式开启后只发送 `save_result=true`，并分别展示执行结果与保存状态。页面可读取 active / archived metadata 列表、精确正文与来源 Run，并以独立 archive 权限和 expected-version CAS 执行 archive / unarchive；列表、URL 与浏览器持久存储均不包含正文。三类 Session 不复制 schema 解析、scope guard 或迟到响应状态。
 
 切换 workspace、application、profile、session、identity 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、已读取 artifact content、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata、run refs 和 SQLite / PostgreSQL 中显式保存的 artifact，不重建 transcript。结果资产使用独立 owner：memory 模式只在同一服务进程内可精确读取；SQLite / PostgreSQL 开发测试态可在服务重启后恢复显式保存的 artifact，但不得把该结论扩写为 transcript 恢复或 production durable 能力。
 
@@ -185,7 +185,7 @@ Application Operations 同时读取当前 application 的 Gateway Request Histor
 
 ## 持久化与隐私边界
 
-memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A / B / C1 固定单份正文上限 `64 KiB`，session list 和 lifecycle event 只返回 metadata，SQLite / PostgreSQL 仅由精确 artifact read 恢复正文。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
+memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A / B / C1 / C2 固定单份正文上限 `64 KiB`，session list 和 lifecycle event 只返回 metadata，共享 Web consumer 也只在精确 read 后把正文保留于当前组件内存，SQLite / PostgreSQL 仅由精确 artifact read 恢复正文。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
 
 - 原始 input、answer 或 transcript
 - prompt、provider raw response 或 fragment 正文

@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 已完成批次 A / B / C1：新 turn 可显式保存五类 session profile 的成功 canonical result；memory / SQLite / PostgreSQL 已具备不可变 artifact、版本化 lifecycle、append-only event、默认 active / 显式 archived list、archive / unarchive CAS、旧资产回填、重启、并发、运行角色和 no-fallback 证据。下一顺位进入 C2 的 Application Interaction、Prompt Session、Agent Session 共享 strict consumer 与浏览器产品链；永久 purge、真实 Provider、production、transcript、replay 与通用 result store 继续关闭。Workflow Definition HTTP Tool 保持四批关闭，不派生批次 E。
+1. 产品线：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 已完成批次 A / B / C1 / C2：五类 session profile 的成功 canonical result 可逐 turn 显式保存；memory / SQLite / PostgreSQL 已具备不可变 artifact 与独立 lifecycle，Application Interaction、Prompt Session、Agent Session 复用共享 strict consumer，SQLite 页面链完成保存、exact read 和 archive / unarchive。下一顺位进入批次 D 的 PostgreSQL / 服务重启产品连续链与专题收口；永久 purge、真实 Provider、production、transcript、replay 与通用 result store 继续关闭。Workflow Definition HTTP Tool 保持四批关闭，不派生批次 E。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。

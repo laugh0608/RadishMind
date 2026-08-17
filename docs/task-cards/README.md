@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险后端任务卡。[应用会话运行结果资产显式保存与恢复 v1 批次 A / B / C1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成 strict contract、五类 session profile canonical capture、三存储不可变 owner、版本化 lifecycle、append-only event、archive / unarchive CAS、独立权限、双数据库升级与 no-fallback。下一步回到功能专题推进 C2 共享 Web consumer；只有出现新的 API、schema 或高风险执行边界才扩任务卡，不从已关闭 HTTP Tool 派生批次 E。
+当前没有活跃高风险后端任务卡。[应用会话运行结果资产显式保存与恢复 v1 批次 A / B / C1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md) 已完成 strict contract、五类 session profile canonical capture、三存储不可变 owner、版本化 lifecycle、append-only event、archive / unarchive CAS、独立权限、双数据库升级与 no-fallback；普通 UI 批次 C2 也已在功能专题内完成共享 strict consumer、三类 Session 接入和 SQLite 浏览器链。下一步回到功能专题推进批次 D 双数据库产品链与收口；只有出现新的 API、schema 或高风险执行边界才扩任务卡，不从已关闭 HTTP Tool 派生批次 E。
 
 ## 最近关闭任务
 

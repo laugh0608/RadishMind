@@ -2,7 +2,7 @@
 
 更新时间：2026-08-17
 
-状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_c1_lifecycle_backend_completed_web_consumer_next`
+状态：`application_session_result_artifact_explicit_retention_dev_test_v1_batch_c2_web_consumer_completed_dual_database_product_chain_next`
 
 ## 功能定位
 
@@ -135,10 +135,14 @@ SQLite 真实文件证据覆盖创建、相同 turn 幂等、冲突、并发单�
 
 archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次成功写入一条 `archived` / `unarchived` event；重复状态返回 state conflict，陈旧版本和并发失败返回 version conflict，并给出脱敏后的当前 lifecycle version / state。memory、SQLite 与 PostgreSQL 已覆盖原子创建、旧数据升级、并发单胜者、重启、跨 owner、损坏投影、运行角色、rollback / reapply 与 no-fallback。永久 purge route、自动 retention、级联删除和 production capability 均未建立。
 
-### 批次 C2：共享应用工作区消费（下一顺位）
+### 批次 C2：共享应用工作区消费（已完成）
 
 - 为现有 Application Interaction、Prompt Session 与 Agent Session 三类 surface 建立共享 strict artifact consumer，再接入保存选择、保存结果状态、active / archived metadata 列表、精确读取、session / run handoff 和 archive / unarchive；不得在三块页面复制 schema 解析、scope guard 或迟到响应状态。先按页面族判断是否需要局部 Pencil，不创建 S11。
 - application、session、workspace、identity、profile 或路由切换必须清除已读取 content、一次性状态和迟到响应；不写 localStorage、sessionStorage、IndexedDB 或 URL。
+
+当前实现以单一 `applicationResultArtifactConsumer.ts` 严格解析 summary v2、artifact v1、lifecycle v1 与 event v1，并以共享 `ApplicationResultArtifactPanel` 承接逐 turn 默认关闭的保存选择、active / archived metadata 列表、cursor、精确正文读取、Run handoff 与 expected-version archive / unarchive。三类 Session consumer 只负责各自 turn contract，并仅在用户明确选择时发送 `save_result=true`；执行成功与 artifact 保存失败继续独立表达。application、session、filter、artifact、generation 或 route scope 漂移会中止请求、清除正文并拒绝迟到响应。
+
+页面设计审查五维评分为 `0 / 0 / 0 / 0 / 2 = 2`，采用 `C / 直接实现`：信息层级、风险表达和响应式模式均复用既有 S3 生命周期库与 S8 Session owner，只有三页共享复用带来新增杠杆，因此未修改 Pencil、未建立 S11。SQLite 本地产品已在真实浏览器完成 Prompt 与结构化 Workflow Application 的显式保存、metadata list、exact read 和 archive / unarchive；Agent 旧 assignment 继续以 `application_session_authority_changed` 在 Provider 调用前失败关闭。`1440×900`、`720×900`、`390×844` 无页面级横向溢出，控制台无 warning / error；Web `371/371` 与 production build 已通过。
 
 ### 批次 D：双数据库产品连续链与专题收口
 
@@ -155,7 +159,7 @@ archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次�
 - authorization：identity / membership / workspace / application / owner 任一不匹配均在 artifact read 或 capture 前失败关闭。
 - compatibility：既有五类 session profile、Run History、Comparison、Evaluation、Gateway、RAG 与 HTTP Tool 测试不回归。
 - repository：批次 A 已通过 Go 单元 / HTTP / race 精准测试、`go vet` 和仓库快速 / 全量门禁；批次 B 已通过 SQLite 真实文件专项、PostgreSQL 17 聚合集成、运行角色、并发、重启、rollback / reapply 与 no-fallback 证据。
-- lifecycle：批次 C1 已通过 memory / SQLite / PostgreSQL CAS、旧资产 active v1 回填、HTTP 组合权限、metadata-only list、archived exact read、append-only event、配置化 PostgreSQL profile 与仓库门禁；Web 产品链尚未开始。
+- lifecycle：批次 C1 已通过 memory / SQLite / PostgreSQL CAS、旧资产 active v1 回填、HTTP 组合权限、metadata-only list、archived exact read、append-only event、配置化 PostgreSQL profile 与仓库门禁；批次 C2 已通过共享 strict consumer、三类 Session 接入、SQLite 真实保存 / exact read / archive / unarchive 和三视口浏览器复核。服务重启后的 Web 恢复与 PostgreSQL 产品连续链留到批次 D。
 
 ## 停止线
 

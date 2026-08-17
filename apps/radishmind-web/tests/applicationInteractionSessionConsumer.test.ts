@@ -100,16 +100,18 @@ test("turn execution keeps input request-only and returns transient v5 output", 
   let captured: { headers: Headers; body: Record<string, unknown> } | undefined;
   globalThis.fetch = async (_input, init) => {
     captured = { headers: new Headers(init?.headers), body: JSON.parse(String(init?.body)) };
-    return jsonResponse(turnEnvelope(workflowSession(2), workflowTurn()));
+    return jsonResponse(turnEnvelope(workflowSession(2), workflowTurn(), { result_artifact: artifactSummary() }));
   };
   const result = await executeApplicationInteractionTurn(config, {
     session: parsedWorkflowSession(),
     clientTurnKey: "web_turn_001",
     inputText: "Produce a bounded advisory recommendation.",
+    saveResult: true,
   });
   assert.equal(result.status, "succeeded");
   assert.equal(result.turn?.runRef?.schemaVersion, "workflow_run_record.v5");
   assert.equal(result.advisoryOutput, "Review this bounded advisory recommendation.");
+  assert.equal(result.resultArtifact?.artifactId, "appres_abcdefghijklmnop");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:execute");
   assert.equal(captured?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
   assert.equal(captured?.headers.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
@@ -123,7 +125,42 @@ test("turn execution keeps input request-only and returns transient v5 output", 
     condition_values: {},
     model: "",
     temperature: null,
+    save_result: true,
   });
+});
+
+test("turn replay recovers an existing artifact without replaying transient output", async () => {
+  globalThis.fetch = async () => jsonResponse(turnEnvelope(workflowSession(2), workflowTurn(), {
+    advisory_output: undefined,
+    idempotent_replay: true,
+    result_artifact: artifactSummary(),
+  }));
+  const result = await executeApplicationInteractionTurn(config, {
+    session: parsedWorkflowSession(),
+    clientTurnKey: "web_turn_001",
+    inputText: "Produce a bounded advisory recommendation.",
+    saveResult: true,
+  });
+  assert.equal(result.status, "succeeded");
+  assert.equal(result.idempotentReplay, true);
+  assert.equal(result.advisoryOutput, "");
+  assert.equal(result.resultArtifact?.artifactId, "appres_abcdefghijklmnop");
+});
+
+test("turn success keeps artifact persistence failure separate from execution", async () => {
+  globalThis.fetch = async () => jsonResponse(turnEnvelope(workflowSession(2), workflowTurn(), {
+    result_artifact_failure_code: "application_result_artifact_store_unavailable",
+  }));
+  const result = await executeApplicationInteractionTurn(config, {
+    session: parsedWorkflowSession(),
+    clientTurnKey: "web_turn_001",
+    inputText: "Produce a bounded advisory recommendation.",
+    saveResult: true,
+  });
+  assert.equal(result.status, "succeeded");
+  assert.equal(result.failureCode, "");
+  assert.equal(result.resultArtifact, null);
+  assert.equal(result.resultArtifactFailureCode, "application_result_artifact_store_unavailable");
 });
 
 test("structured Session v4 sends inputs only and accepts metadata-only v8 turn", async () => {
@@ -473,6 +510,17 @@ function turnEnvelope(session: unknown, turn: unknown, overrides: Record<string,
     request_id: "application-session-turn-0001", tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: applicationId,
     session_id: sessionId, session, turn, advisory_output: "Review this bounded advisory recommendation.", failure_code: null,
     failure_summary: "", idempotent_replay: false, audit_ref: "audit_application-session-turn-0001", ...overrides,
+  };
+}
+
+function artifactSummary() {
+  return {
+    schema_version: "application_result_artifact_summary.v2", artifact_id: "appres_abcdefghijklmnop", record_version: 1,
+    tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: applicationId, owner_subject_ref: "subject_demo_user",
+    session_id: sessionId, turn_id: "appturn_abcdefghijklmnop", client_turn_key: "web_turn_001",
+    execution_profile: "workflow_definition_executor_v1", run_ref: { schema_version: "workflow_run_record.v5", run_id: "run_abcdefghijklmnop" },
+    content_type: "text/markdown", content_bytes: 45, content_digest: digest("a"), created_at: "2026-07-19T10:01:01Z",
+    lifecycle_state: "active", lifecycle_version: 1, archived_at: null, lifecycle_updated_at: "2026-07-19T10:01:01Z",
   };
 }
 

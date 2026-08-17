@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import ApplicationResultArtifactPanel from "./applicationResultArtifactPanel.tsx";
 import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   createAgentCopilotSession,
@@ -35,6 +36,7 @@ export default function AgentCopilotSessionPanel({
   );
   const [clientTurnKey, setClientTurnKey] = useState(() => createClientTurnKey());
   const [inputFailure, setInputFailure] = useState("");
+  const [saveResult, setSaveResult] = useState(false);
   const [pending, setPending] = useState<"" | "create" | "execute">("");
   const generation = useRef(0);
   const controller = useRef<AbortController | null>(null);
@@ -49,6 +51,7 @@ export default function AgentCopilotSessionPanel({
     setContextText('{\n  "selected_unit_ids": ["unit-101"],\n  "diagnostics": [{"code": "not_converged"}]\n}');
     setClientTurnKey(createClientTurnKey());
     setInputFailure("");
+    setSaveResult(false);
     setPending("");
     return () => {
       generation.current += 1;
@@ -75,6 +78,7 @@ export default function AgentCopilotSessionPanel({
     const requestGeneration = generation.current;
     const nextController = replaceController();
     setPending("create");
+    setSaveResult(false);
     const next = await createAgentCopilotSession(config, applicationId, nextController.signal);
     if (requestGeneration !== generation.current || nextController.signal.aborted) return;
     setResult(next);
@@ -97,6 +101,8 @@ export default function AgentCopilotSessionPanel({
     setInputFailure("");
     const requestGeneration = generation.current;
     const nextController = replaceController();
+    const shouldSaveResult = saveResult;
+    setSaveResult(false);
     setPending("execute");
     const next = await executeAgentCopilotSessionTurn(
       config,
@@ -107,6 +113,7 @@ export default function AgentCopilotSessionPanel({
         conversationId: "",
         artifacts: [],
         context: context as Record<string, unknown>,
+        saveResult: shouldSaveResult,
         clientTurnKey,
       },
       nextController.signal,
@@ -122,9 +129,12 @@ export default function AgentCopilotSessionPanel({
     controller.current?.abort();
     controller.current = null;
     setPending("");
+    setSaveResult(false);
     setResult((current) => ({
       ...current,
       response: null,
+      resultArtifact: null,
+      resultArtifactFailureCode: "",
       status: "blocked",
       failureCode: "application_session_request_canceled",
       summary: "当前浏览器请求已取消；迟到响应会被丢弃。",
@@ -147,7 +157,7 @@ export default function AgentCopilotSessionPanel({
       <div className="prompt-template-scope" id="agent-copilot-session">
         <article><span>Application</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
         <article><span>Session</span><strong>{result.session?.sessionId ?? "not created"}</strong><code>{result.session ? `v${result.session.recordVersion}` : config.mode}</code></article>
-        <article><span>Retention</span><strong>metadata only</strong><p>Context、artifact 与完整回答只在当前组件内存。</p></article>
+        <article><span>Retention</span><strong>default off</strong><p>Context 与输入 artifact 始终易失；canonical answer 仅在逐 turn 显式选择时另存。</p></article>
       </div>
       <div className="application-draft-actions">
         <button type="button" onClick={() => void createSession()} disabled={Boolean(pending) || config.mode === "offline"}>{pending === "create" ? "Creating…" : "Create exact-authority Session v3"}</button>
@@ -196,6 +206,17 @@ export default function AgentCopilotSessionPanel({
           <p className="boundary-note">响应不会写入 URL 或 browser storage；离开 stage、应用 revision 变化或取消请求会清除当前输入与回答并拒绝迟到响应。</p>
         </article>
       </div>
+      <ApplicationResultArtifactPanel
+        config={config}
+        applicationId={applicationId}
+        sessionId={result.session?.sessionId ?? ""}
+        saveResult={saveResult}
+        onSaveResultChange={setSaveResult}
+        latestArtifact={result.resultArtifact}
+        latestArtifactFailureCode={result.resultArtifactFailureCode}
+        disabled={!result.session || result.session.state !== "active" || Boolean(pending)}
+        onOpenRun={onOpenRun}
+      />
     </section>
   );
 }
