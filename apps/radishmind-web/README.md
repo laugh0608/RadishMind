@@ -259,6 +259,14 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -ApplicationSessionLoca
 
 PostgreSQL 对应使用 `--workflow-definition-postgres-dev-test` / `-WorkflowDefinitionPostgresDevTest` 或 `--application-session-postgres-dev-test` / `-ApplicationSessionPostgresDevTest`。Session 档会同时启用两种 profile 所需的既有 v5 / v4 owner、Run History / Comparison / Evaluation 与 Application Operations，但不会自动创建 candidate、review、activation、publish、assignment 或 API key。资源准备、scope、恢复和失败语义见[应用受控运行开发测试态指南](../../docs/features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 
+应用结果资产库的稳定 SQLite 产品复验使用 Shell 专用入口：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --application-result-artifact-library-local-product
+```
+
+该入口在完整 Application Session 本地产品档上显式启用幂等的双 Session fixture，用于复验 application-scoped list、组合筛选、exact read、archive / unarchive、重启恢复与校验后单文件下载。它不会创建真实 Session / Run 执行证据，也不会重置已推进的 lifecycle。PowerShell wrapper 当前未暴露该 fixture 参数；常规 Session 产品链仍使用前述双端入口。
+
 Prompt Application 的完整 SQLite 链使用：
 
 ```bash

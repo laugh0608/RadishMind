@@ -1,6 +1,6 @@
 # Workflow / Agent Runtime 设计与开发文档
 
-更新时间：2026-08-11
+更新时间：2026-08-17
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-17 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行与 RAG 本地材料导入均已有可复验证据并关闭。Workflow Definition 绑定受控 HTTP Tool v1 的 React strict consumer、SQLite 本地产品链和 PostgreSQL 重启链也已完成，不再派生批次 E。当前产品顺位已转入用户工作区的[应用结果资产库与受控导出 v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)；Workflow 侧只提供既有 Run lineage handoff，不改通用 executor，不打开自动执行、业务写回、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-17 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行与 RAG 本地材料导入均已有可复验证据并关闭。Workflow Definition 绑定受控 HTTP Tool v1 的 React strict consumer、SQLite 本地产品链和 PostgreSQL 重启链也已完成，不再派生批次 E。用户工作区的[应用结果资产库与受控导出 v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)现也已完成批次 A 至 C 并关闭；Workflow 侧继续只提供既有 Run lineage handoff，不改通用 executor，不打开自动执行、业务写回、agent loop、外部 connector 或 production enablement。下一顺位回到功能设计入口依据真实使用证据选择新的长期功能，以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 

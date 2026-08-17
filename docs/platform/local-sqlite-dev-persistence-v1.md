@@ -44,7 +44,7 @@ Agent / Copilot Profile owner 沿用同一聚合边界成为第九个组件 `age
 
 2026-08-08 Admin Provider / Route 原子配置 owner 成为第十个组件 `admin_provider_routes`；2026-08-09 application request quota 成为第十一个组件 `gateway_request_quotas`。两者各自拥有 migration、repository、作用域、CAS 和 no-fallback 语义；quota 还以原子 admission 维护 UTC 日 usage。聚合 `sqlite_dev` 会应用两组 schema，但 Provider / Route 写入和 quota 管理 / enforcement 仍由各自显式开发测试 gate 控制，不因本地启动档自动开放。
 
-2026-08-17 Application Result Artifact 批次 B / C1 复用第六组件 `workflow_runs` 的 migration family、共享数据库句柄和 selector，顺序追加 `0022_application_result_artifacts` 与 `0023_application_result_artifact_lifecycle`。显式 opt-in 的 canonical result content 只进入独立不可变 artifact owner；current lifecycle 与 append-only event 分表保存，既有资产升级时只回填 active v1。该能力不新增第十二个组件、环境变量、DSN 或连接池，也不改变 Session / Turn / Run 的 metadata-only 合同；永久 purge 与生产持久化声明仍关闭。
+2026-08-17 Application Result Artifact 与独立应用结果资产库复用第六组件 `workflow_runs` 的 migration family、共享数据库句柄和 selector，顺序追加 `0022_application_result_artifacts`、`0023_application_result_artifact_lifecycle` 与只含 application history 读取索引的 `0024_application_result_artifact_application_history`。显式 opt-in 的 canonical result content 只进入独立不可变 artifact owner；current lifecycle 与 append-only event 分表保存，既有资产升级时只回填 active v1。application-scoped list / export 不新增 export 表、repository、第十二个组件、DSN 或连接池，也不改变 Session / Turn / Run 的 metadata-only 合同；永久 purge 与生产持久化声明仍关闭。
 
 Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.go.dev/modernc.org/sqlite)、[`v1.53.0` 模块声明](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/go.mod)和[许可证原文](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/LICENSE)为准。`github.com/mattn/go-sqlite3` 因明确要求 CGO 与 GCC，且 Windows / 交叉编译需要额外工具链，本阶段不采用；该结论只服务当前本地开发 runtime，不构成永久排除其它 driver 的平台政策。
 
