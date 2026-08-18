@@ -18,9 +18,9 @@
 - 禁止 force push
 - 禁止删除分支
 - 仅允许通过 Pull Request 合并
-- 要求 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build` 与 `Platform Go Tests` 检查通过
-- `PR Checks` 当前包含仓库卫生、仓库治理基线、Web 覆盖率与构建、Console 构建、Go 平台分包覆盖率 / race / vet 和 PostgreSQL 集成验证，保留拆分式门禁
-- 默认分支 ruleset required checks 应按 job 名配置为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build` 与 `Platform Go Tests`
+- 单人维护阶段不要求额外审批，但仍要求已解决会话
+- 仅要求聚合检查 `Candidate Quality` 通过；它会汇总 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个组件结果
+- `PR Checks` 保留六个独立组件便于定位失败，并由稳定的 `Candidate Quality` 统一收口；任一组件失败、取消或跳过都会使聚合检查失败
 - PR 页面里可能显示 workflow 前缀或 `(pull_request)` 后缀，但这些不属于 ruleset 中需要配置的 check context
 - `PR Checks` 自动响应 `pull_request -> dev/master`，并保留手动触发；如默认分支切换为 `main`，需先同步调整 workflow 触发分支，再在远端套用该模板
 - tag push 与手动补跑使用独立的 `Release Checks` workflow，并显式使用 `Release Repo Hygiene`、`Release Repository Baseline`、`Release RadishMind Web Build`、`Release RadishMind Console Build` 与 `Release Platform Go Tests` job 名，避免与 PR required checks 混淆
@@ -79,6 +79,8 @@ gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/mast
 
 本目录模板还包含 Conventional Commits 的远端校验规则。当前远端 ruleset 未启用该规则；仅调整 Actions 触发策略、required checks 或合并方式时，应基于远端现状构造精确更新，不直接导入完整模板扩大门禁范围。
 
+导入或更新前，请确认 `master-protection.json` 只要求聚合检查 `Candidate Quality`；六个组件仍由仓库检查脚本校验，不能从聚合依赖中静默移除。
+
 `master-protection.json` 中的 `actor_id: 5` 按“RepositoryRole = Admin”模板生成，表示管理员只能通过 PR 绕过规则。
 
 ## 配套仓库设置
@@ -87,3 +89,4 @@ gh api repos/<owner>/<repo>/rulesets --method POST --input .github/rulesets/mast
 - 仓库 Merge options 中启用 `Merge commits`
 - 关闭 `Squash merging`
 - 如后续增加 `CODEOWNERS`，再决定是否开启 code owner review
+- 如果后续形成稳定的多人评审安排，再提高 `required_approving_review_count`；单人阶段不应把管理员 bypass 当作每次合并的常规路径

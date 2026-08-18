@@ -463,16 +463,19 @@ def check_content_baseline() -> None:
         item.get("context")
         for item in ((required_check_rule.get("parameters") or {}).get("required_status_checks") or [])
     ]
-    required_contexts = {
-        "Repo Hygiene",
-        "Repository Baseline",
-        "RadishMind Web Build",
-        "RadishMind Console Build",
-        "Platform Go Tests",
-    }
-    missing_contexts = sorted(required_contexts - set(contexts))
-    if missing_contexts:
-        raise SystemExit(f"master-protection.json is missing required checks: {missing_contexts}")
+    required_contexts = {"Candidate Quality"}
+    if set(contexts) != required_contexts:
+        raise SystemExit(
+            "master-protection.json required checks mismatch: "
+            f"expected {sorted(required_contexts)}, got {sorted(set(contexts))}"
+        )
+
+    pull_request_rule = next((rule for rule in ruleset.get("rules", []) if rule.get("type") == "pull_request"), None)
+    approving_review_count = ((pull_request_rule or {}).get("parameters") or {}).get(
+        "required_approving_review_count"
+    )
+    if approving_review_count != 0:
+        raise SystemExit("master-protection.json must not require extra approval during single-maintainer stage")
 
     pr_workflow = (REPO_ROOT / ".github/workflows/pr-check.yml").read_text(encoding="utf-8")
     expected_pr_trigger = """on:
@@ -503,6 +506,8 @@ def check_content_baseline() -> None:
         "name: RadishMind Web Build",
         "name: RadishMind Console Build",
         "name: Platform Go Tests",
+        "name: Platform PostgreSQL Integration",
+        "name: Candidate Quality",
         "npm ci",
         "npm run test:coverage",
         "npm run build",
@@ -512,6 +517,17 @@ def check_content_baseline() -> None:
     ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
+
+    candidate_quality_needs = """    needs:
+      - repo-hygiene
+      - repository-baseline
+      - web-build
+      - console-build
+      - platform-go-tests
+      - platform-postgres-integration
+"""
+    if candidate_quality_needs not in pr_workflow:
+        raise SystemExit(".github/workflows/pr-check.yml Candidate Quality dependencies drifted")
 
     release_workflow = (REPO_ROOT / ".github/workflows/release-check.yml").read_text(encoding="utf-8")
     for pattern in (
