@@ -23,6 +23,8 @@ EXPECTED_PRECONDITION_IDS = {
     "failure-taxonomy",
 }
 EXPECTED_FORBIDDEN_CLAIMS = {
+    "local_account_ready",
+    "external_identity_binding_ready",
     "radish_oidc_client_ready",
     "login_flow_ready",
     "logout_flow_ready",
@@ -56,6 +58,7 @@ EXPECTED_FORBIDDEN_OUTPUTS = {
     "jwks_raw_dump",
 }
 EXPECTED_REQUIRED_NEXT_SLICES = {
+    "local-account-radish-oidc-federated-login-v1",
     "gateway-api-key-quota-readiness",
     "workflow-definition-run-record-boundary",
 }
@@ -72,7 +75,7 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "docs/radishmind-architecture.md": [
         "radish-oidc-client-preconditions",
-        "Radish remains identity truth",
+        "RadishMind 本地账户、角色与工作区成员关系是平台内部真相",
     ],
     "docs/radishmind-capability-matrix.md": [
         "radish-oidc-client-preconditions",

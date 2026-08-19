@@ -6,6 +6,8 @@
     "track": "Control Plane / User Workspace / Workflow v1",
     "status": "governance_boundary_satisfied",
     "does_not_claim": [
+      "local_account_ready",
+      "external_identity_binding_ready",
       "radish_oidc_client_ready",
       "login_flow_ready",
       "logout_flow_ready",
@@ -60,7 +62,7 @@
         "roles",
         "permissions"
       ],
-      "boundary": "Radish remains identity truth; RadishMind maps claims into future tenant/user/session metadata only"
+      "boundary": "this legacy claim set serves reviewed resource-server projection only; browser login binds exact issuer and subject to a RadishMind local account, while email, tenant, roles and permissions never auto-merge or directly authorize the local account"
     },
     {
       "id": "tenant-binding",
@@ -72,7 +74,7 @@
         "missing_tenant_policy",
         "cross_tenant_denial"
       ],
-      "boundary": "tenant binding must fail closed when claim, membership or mapping is missing"
+      "boundary": "resource-server tenant binding must fail closed; browser login resolves tenant and workspace only from RadishMind local membership after external identity binding"
     },
     {
       "id": "session-boundary",
@@ -165,6 +167,7 @@
     ]
   },
   "required_next_slices": [
+    "local-account-radish-oidc-federated-login-v1",
     "gateway-api-key-quota-readiness",
     "workflow-definition-run-record-boundary"
   ],
@@ -182,6 +185,7 @@
     "docs/README.md",
     "docs/radishmind-product-scope.md",
     "docs/radishmind-architecture.md",
+    "docs/features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md",
     "docs/contracts/control-plane-read-side.md",
     "docs/radishmind-capability-matrix.md",
     "docs/task-cards/control-plane-user-workspace-workflow-v1-plan.md",

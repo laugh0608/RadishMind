@@ -18,12 +18,12 @@
 - 模型负责理解、推理、归纳、排序和建议生成；runtime、adapter、tooling、rule validation 和 audit 负责上下文打包、工具调用、结构校验、权限边界和可追溯性。
 - `RadishMind-Core` 是基座适配型自研主模型路线，不是从零预训练基础大模型。
 - 图片像素生成不并入主模型职责，默认由 `RadishMind-Image Adapter` 与独立 backend 承接。
-- 部署方式、数据库选型、登录 / 授权边界优先参考 `Radish`；未来由 Radish 注册 RadishMind application/client 与 resource audience，RadishMind 服务端作为 resource server 消费 verified token，不自建第二套 issuer、账号、角色或身份真相源。参考 `Radish` 不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端默认继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
+- RadishMind 拥有服务自身的本地账户、凭证、Web Session、角色、权限和工作区成员关系；同时可以由 Radish 注册为 OIDC application/client，以 `(issuer, subject)` 把 Radish 外部身份绑定到本地 `user_id`。RadishMind 当前不成为第二个 OIDC issuer，也不读取或复制 Radish 身份数据库与业务授权真相。参考 `Radish` 的部署、数据库和运维方式不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
 - `RadishFlow` 和 `Radish` 是优先接入对象与产品参考，但不是 RadishMind 平台本体开发的阻塞条件。上层暂时没有稳定 UI、command 或 API 挂载点时，本仓库应继续推进可离线验证、可复用到后续真实接入的用户端、workflow runtime、control plane 和模型网关功能；不把等待上层接线写成产品停滞理由。
 - 当前首要用户是 Radish 体系内部开发者和团队成员，首要产品任务是创建、校验、保存、恢复和审查 Workflow；Gateway 是第一工程支撑面，Admin 只推进支撑 Workflow / Gateway 所需能力。
-- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；这只证明本仓库 dev header / signed-test assertion 下的授权、资源绑定和零副作用边界，不代表真实 Radish membership adapter、OIDC 登录或生产授权已成立。
+- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；这只证明本仓库 dev header / signed-test assertion 下的授权、资源绑定和零副作用边界，不代表本地账户 / Web Session、本地 durable membership、OIDC 浏览器登录或生产授权已成立。
 - 四个一级产品面保持不变；`Image Generation / Artifact Return` 是横切适配能力，不作为当前第五条一级产品主线。
-- `Radish` 保持身份、成员关系和上层业务真相；RadishMind 可以拥有自身 Workflow draft / version、run record、trace、usage 和 audit 运行数据，不把自身 operational database 与复制 Radish 真相源混为一谈。
+- `Radish` 保持 Radish 自身身份、成员关系和上层业务真相；RadishMind 保持平台本地账户、角色、工作区成员关系，以及 Workflow draft / version、run record、trace、usage 和 audit 运行数据。两套身份通过显式 external identity binding 联合，不以同步数据库、email 自动合并或 claim 隐式授权混为同一真相源。
 
 ## 当前实施状态
 
@@ -95,7 +95,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 
 - 面向平台管理员和运维。
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
-- 认证、授权、数据库、部署和运维习惯优先对齐 `Radish`；未来通过 OIDC 接入 `Radish` Auth。
+- 认证同时支持 RadishMind 本地账户与 Radish OIDC 联合登录；授权始终由 RadishMind 本地角色和工作区成员关系 owner 决定。数据库、部署和运维习惯可参考 `Radish`，但不复制其身份表或后端语言栈。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
 - 当前 Web 提供 `admin-tenant-overview`、`admin-audit-log`、Admin Operations Review，以及 Provider/Profile & Deployment Review 内的开发测试态受控配置工作区；它不是 production admin console。Provider Profile / Model Route 受控启用批次 A 至 E 已建立作用域领域、不可变候选、人工 review、显式 activation、历史 rollback、只读 inventory resolver、三模式 durable owner、verified Admin HTTP、Gateway snapshot consumer、Request History 谱系与双数据库浏览器证据。
 - User Workspace 五条只读 operation 已共享 `WorkspaceMembershipProvider`：Applications、API Keys、Workflow Definitions 与 Runs 复用既有 durable owner，Quota 在缺少可信 policy owner 时失败关闭；active workspace 只在当前 Web 进程内选择，切换会失效旧选择和旧快照。运营收件箱只消费四类已授权首分页快照，不创建 incident、notification 或 remediation owner。
@@ -234,7 +234,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 - 不让模型替代 `RadishFlow` 求解、`Radish` 权限判定或 `RadishCatalyst` 游戏权威。
 - 不把通用 unrestricted tool calling 当成当前默认能力。
 - 不把平台锁死在单一模型、单一 provider、单一上游协议或单一对外接口上。
-- 不自建与 `Radish` 冲突的用户身份、权限和部署真相源；未来 RadishMind 应作为 Radish 注册的 application/client 与 resource server 接入。
+- 不复制、同步或覆盖 `Radish` 的身份数据库、业务权限和部署真相源；RadishMind 只维护服务自身的本地账户与授权 owner，并作为 Radish 注册的 OIDC application/client 和可选 resource server 接入。
 - 不把“参考 Radish”解释成复制 Radish 后端语言栈；除非未来必须直接复用 Radish 后端包或共发布，否则不新增 `.NET` 作为默认后端栈。
 - 不默认继续真实模型产出、3B/4B 长跑、训练 JSONL、蒸馏或权重相关工作；这些内容后续作为独立专题重开。
 - 不默认下载大模型、数据集或权重。

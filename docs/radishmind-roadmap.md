@@ -10,12 +10,12 @@
 
 ## 产品方向
 
-`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。它不替代 `Radish` 的身份、组织成员关系和业务数据真相源；模型输出默认是解释、诊断、结构化建议或候选动作，高风险动作必须经过人工确认或规则复核。
+`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。它拥有平台自身的本地账户、角色与工作区成员关系，但不替代或复制 `Radish` 自身身份、组织成员关系和业务数据真相源；模型输出默认是解释、诊断、结构化建议或候选动作，高风险动作必须经过人工确认或规则复核。
 
 长期产品面保持四个：
 
 1. `User Workspace`：应用、Prompt、Workflow、Agent / Copilot、RAG、API key、调用量、运行记录和成本摘要。
-2. `Admin Control Plane`：租户、用户、角色、权限、provider/profile、模型路由、quota、price、secret backend、审计和部署状态；未来作为 OIDC client 接入 `Radish`。
+2. `Admin Control Plane`：本地注册、用户、会话、角色、权限、租户、provider/profile、模型路由、quota、price、secret backend、审计和部署状态；以本地账户为 owner，并可作为 OIDC client 接入 `Radish`。
 3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API 分发，多 provider / profile / model 路由，以及后续 quota、限流、成本、trace、受控 fallback 和 health。
 4. `Workflow / Agent Runtime`：Prompt、LLM、condition、output，以及后续受控 HTTP tool、RAG retrieval 和 agent loop；高风险动作默认要求确认。
 
@@ -39,7 +39,7 @@
 
 - RadishMind 自有运行数据允许使用明确命名的 SQLite / PostgreSQL 开发测试态 repository。
 - migration、作用域、原子并发、重启恢复、运行角色和 no fallback 必须有可执行证据。
-- verified identity、负向认证和确定性 OIDC integration test 可以独立完成；真实 Radish 联调与 production auth 必须等待上游资源和负责人。
+- 先完成本地账户、session、角色与 workspace membership，再完成确定性 OIDC Relying Party；真实 Radish 联调与 production auth 仍必须等待上游 client registration、secret、部署资源和负责人。
 
 ### 4. 运行时与工程治理收敛
 
@@ -58,7 +58,7 @@
 1. 产品线：[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入已于 2026-08-19 评审为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。没有真实跨页阻塞、统一 snapshot / cursor、时间桶 / 性能预算或正式 billing owner，不启动服务端 summary。真实产品证据审计已贯通应用 Session、Application Operations、结果保存、Result Workspace、exact Run detail 与 Comparison；审计暴露的 exact Run 目标交接、缺失 evidence 说明和 authority drift 恢复引导也已在既有 owner 内完成。下一顺位回到功能设计入口比较四个正式产品面的长期真实任务；不从结果资产专题派生批次 D / E，也不打开 transcript、public share、永久 purge、真实 Provider、production、replay 或通用 result store。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
-4. 真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`；开发测试态 application request admission 不改变这些结论。
+4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)成为当前产品顺位，先进入批次 A 领域契约与开发测试仓储。真实 Radish 联调保持 `real_radish_integration_deferred`；dev header 与 signed-test membership 不能作为 production 授权来源。production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
 
 ## 权威入口
@@ -75,7 +75,7 @@
 ## 停止线
 
 - 不把开发测试态数据库、fake / local adapter、离线 smoke、静态 schema artifact、当前本地 console 或部分覆盖率写成 production ready。
-- 不在缺少真实 issuer、membership source、生产数据库资源、secret backend、部署环境、负责人和发布复核时启用生产能力。
+- 不在缺少本地账户 / session / membership owner、真实 issuer / client registration、生产数据库资源、secret backend、部署环境、负责人和发布复核时启用生产能力。
 - 不把 Control Plane、Gateway 和 Workflow Executor 混成隐式单体，也不因服务拆分引入新的默认语言栈。
 - 不把 task card、fixture、checker、readiness 或周志当成功能设计文档和当前决策入口的替代品。
 - 不继续派生“readiness 之后的 readiness”，不把历史 next dependency 恢复为当前开发顺位。

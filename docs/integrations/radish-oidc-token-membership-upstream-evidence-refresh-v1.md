@@ -6,6 +6,8 @@
 
 `Radish OIDC Token / Membership Upstream Evidence Refresh v1` 承接 [Radish OIDC Token / Membership Implementation Entry Review v1](radish-oidc-token-membership-implementation-entry-review-v1.md)，用于把 future token validation / membership adapter 之前必须补齐的上游证据拆成可检查契约。
 
+2026-08-19 覆盖：本专题只作为 legacy resource-server upstream evidence 保留。浏览器 OIDC、local account binding、Web Session 与本地 membership owner 统一见[本地账户与 Radish OIDC 联合登录 v1](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)；Radish membership source 不再是 RadishMind 浏览器授权的依赖。
+
 本专题只定义 reviewed issuer evidence、JWKS pin / refresh policy、client registration evidence、auth middleware ownership、membership data source ownership、membership cache policy 和 negative auth smoke matrix 的静态证据形状；不创建 OIDC client、token validation schema、token validator、auth middleware、membership adapter、negative auth smoke runtime、login / logout route、session cookie、repository mode runtime、数据库连接、production API consumer、workflow executor、confirmation、writeback 或 replay。
 
 状态：`radish_oidc_token_membership_upstream_evidence_refresh_defined`
@@ -69,7 +71,7 @@ future client registration evidence 必须至少包含：
 - `operator_review_ref`
 - `secret_ref_status`
 
-future membership source ownership 必须至少包含：
+若 legacy resource-server integration 需要记录上游 scope source，evidence 至少包含：
 
 - `source_owner_ref`
 - `tenant_binding_owner_ref`

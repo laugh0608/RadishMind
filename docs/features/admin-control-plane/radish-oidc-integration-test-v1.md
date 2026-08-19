@@ -20,15 +20,15 @@
 - 两条 Admin operation 已接入现有 auth boundary；五条 workspace operation 统一返回 `workspace_membership_unavailable`，鉴权和 membership denial 均为 repository zero-query。
 - Web consumer 支持独立 OIDC integration token provider，token 只存在页面内存，不回退 signed test token 或 dev headers。
 - 当前仍没有 reviewed Radish issuer、discovery document、JWKS URI、signing algorithm、resource audience 或 claim mapping evidence。
-- 当前没有 workspace / application membership data source、cache policy 或 owner；真实 OIDC token 不能替代该缺口。
+- 当前 integration-token 路径没有映射到 RadishMind 本地账户，也没有本地 workspace / application membership repository；真实 OIDC token 不能替代该缺口。
 - 历史 upstream evidence / readiness 文档保留为归档输入，不再派生同层 checker 链；本设计以一个后续高风险任务卡承接实现和联调。
 
 ## 阶段决策与未来接入形态
 
 - deterministic resource-server 基础继续保留，真实 Radish integration 主动退出当前排期，不再作为下一产品任务的阻塞项。
-- 未来由 Radish 注册 RadishMind application/client，并为 RadishMind 分配专用 resource audience；Radish 继续拥有 issuer、登录、用户、tenant、角色和上游权限语义。
-- RadishMind 只实现自己的接入 profile、claim / permission mapping、resource-server validation 与 Admin route authorization，不自建 issuer、账号系统、角色数据库或第二套 OIDC 真相源。
-- 当前两条 Admin API 的服务端路径仍是 resource server；若未来需要交互式浏览器登录，Authorization Code + PKCE 或 BFF 必须作为独立功能设计，不从本任务自动打开。
+- 未来由 Radish 注册 RadishMind application/client，并为 resource-server 联调分配专用 resource audience；Radish 继续拥有其 issuer、Radish 用户、tenant、角色和上游权限语义。
+- RadishMind 同时拥有平台本地账户、角色和 workspace membership；本专题只实现接入 profile、claim / permission mapping、resource-server validation 与两条 Admin route authorization，不创建或修改本地账户，也不成为 OIDC issuer。
+- 当前两条 Admin API 的服务端路径仍是 resource server；交互式浏览器登录已由[本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)独立设计，不能从本任务的 audience、permission projection 或 Web 内存 token 推导。
 - 恢复真实联调的触发条件是 application/client registration、resource audience、reviewed discovery / JWKS / mapping evidence 和短期 token 流程同时就绪；恢复时执行批次 C，不重做已完成的 deterministic 批次 A / B。
 
 ## 用户与运维流程
@@ -63,7 +63,7 @@
 | workflow definitions | membership + application permission | fake repository currently | integration mode fail closed |
 | runs | membership + run permission | fake repository currently | integration mode fail closed |
 
-五条 workspace route 在 `radish_oidc_integration_test` 下不得读取 fake repository。即使 token 携带同名 permission，也必须返回 `workspace_membership_unavailable`，直到独立 Workspace Membership Contract & Adapter 设计完成。
+五条 workspace route 在 `radish_oidc_integration_test` 下不得读取 fake repository。即使 token 携带同名 permission，也必须返回 `workspace_membership_unavailable`，直到 token subject 显式映射本地账户，且 RadishMind 本地 Workspace Membership repository / adapter 完成；上游 permission 不直接成为本地 grant。
 
 ## Upstream Evidence Gate
 
@@ -226,11 +226,11 @@ Radish owner 拥有 upstream claim semantics；RadishMind owner 拥有 mapping v
 - 不启用 production auth mode、production issuer、production client registration 或 production token。
 - 不实现 OAuth login、authorization code、PKCE、BFF、callback、logout、session cookie、refresh token 或长期 browser session。
 - 不读取 Radish数据库，不复制 user / tenant / role / permission 真相表。
-- 不实现 workspace / application membership adapter、cache、API 或五条 workspace route 的真实 OIDC enablement。
+- 不实现本地账户、workspace / application membership repository / adapter、API 或五条 workspace route 的 integration-token enablement。
 - 不新增 northbound API、Gateway schema、repository、provider registry、tenant / audit writer 或管理写入。
 - 不打开 application promotion、production key、quota enforcement、billing、cost ledger、secret runtime、Workflow tool / confirmation / writeback / replay / resume。
 - 不把 controlled issuer、Radish integration environment、PostgreSQL、HTTP 或浏览器成功解释为 production auth ready 或 production SLA。
 
 ## 下一实现入口
 
-[Radish OIDC Integration Test Runtime v1 任务卡](../../task-cards/radish-oidc-integration-test-runtime-v1.md) 已完成 deterministic verifier、auth boundary、operation gate、zero-query 与 Web 内存 token 批次。真实 Radish integration 为 `real_radish_integration_deferred`，不再是当前下一步；未来 Radish 完成 RadishMind application/client registration、resource audience 和 reviewed evidence 后恢复批次 C，不派生同层 readiness 文档链，也不把 loopback 测试解释为真实联调。
+[Radish OIDC Integration Test Runtime v1 任务卡](../../task-cards/radish-oidc-integration-test-runtime-v1.md) 已完成 deterministic verifier、auth boundary、operation gate、zero-query 与 Web 内存 token 批次。真实 resource-server integration 为 `real_radish_integration_deferred`；当前产品顺位转到[本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)，先建立本地 identity / session / membership owner。未来 Radish 完成 resource audience 和 reviewed evidence 后再恢复本任务批次 C，不把 loopback 测试解释为真实联调。

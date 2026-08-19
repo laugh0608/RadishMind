@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险任务卡。[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md) 已完成批次 A 至 C 的 list / export API、schema、权限、双数据库 migration、strict Web consumer、单一 owner、三视口与双数据库产品连续链，状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。下一轮先选择新的长期功能设计文档；只有新增 API、执行边界、schema、production 声明或其它高风险边界时再创建任务卡。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_a_ready`。当前先实施账户、凭证、external identity、Web Session、角色和 workspace membership 的领域契约与三种开发测试仓储；browser OIDC callback、Web 与真实 Radish 联调按后续批次顺序开放。
 
 ## 最近关闭任务
 

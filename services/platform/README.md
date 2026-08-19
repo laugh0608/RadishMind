@@ -10,7 +10,7 @@
 - 为 RadishMind 自有运行数据提供 `memory_dev`、聚合 `sqlite_dev` 与显式 `postgres_dev_test` repository 选择，并保持 migration、作用域和 no-fallback 约束。
 - 输出结构化 diagnostics、request observability、本地 overview 和 local smoke 摘要。
 
-本服务不复制 `Radish` 的身份、组织成员关系或业务数据真相源，不重写模型训练 / 推理 / 评测逻辑，也不绕过 `contracts/` 自定义第二套协议。路由注册不等于能力默认启用；各产品路由仍受显式 dev/test gate、身份、作用域和 store selector 约束。
+本服务可以承载 RadishMind 自有本地账户、外部身份绑定、Web Session、角色和工作区成员关系，但不复制 `Radish` 的身份数据库、组织成员关系或业务数据真相源。它不重写模型训练 / 推理 / 评测逻辑，也不绕过 `contracts/` 自定义第二套协议。路由注册不等于能力默认启用；各产品路由仍受显式 dev/test gate、身份、作用域和 store selector 约束。
 
 ## 路由分类
 

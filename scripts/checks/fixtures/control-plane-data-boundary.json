@@ -38,23 +38,23 @@
     },
     {
       "id": "user",
-      "owner_surface": "Radish Auth via future OIDC client",
-      "source_of_truth": "Radish",
+      "owner_surface": "Admin Control Plane identity domain",
+      "source_of_truth": "RadishMind local account store",
       "read_surfaces": [
         "Admin Control Plane",
         "User Workspace"
       ],
-      "write_boundary": "Radish remains identity truth; RadishMind stores only future client-side mapping",
+      "write_boundary": "future audited local account API; Radish OIDC identities bind by exact issuer and subject without email auto-merge",
       "blocked_until": [
-        "radish-oidc-client-preconditions",
-        "claim mapping defined",
-        "tenant binding defined"
+        "local-account-radish-oidc-federated-login-v1",
+        "local credential and session policy defined",
+        "external identity binding defined"
       ]
     },
     {
       "id": "role",
       "owner_surface": "Admin Control Plane",
-      "source_of_truth": "future Radish-aligned control plane store",
+      "source_of_truth": "future RadishMind authorization store",
       "read_surfaces": [
         "Admin Control Plane",
         "User Workspace",
@@ -63,14 +63,14 @@
       "write_boundary": "future audited admin API only; no local console write path",
       "blocked_until": [
         "permission model defined",
-        "Radish claim mapping defined",
+        "local account and membership model defined",
         "negative authorization gates defined"
       ]
     },
     {
       "id": "permission",
       "owner_surface": "Admin Control Plane",
-      "source_of_truth": "future Radish-aligned control plane store plus Radish claims",
+      "source_of_truth": "future RadishMind authorization store",
       "read_surfaces": [
         "Admin Control Plane",
         "User Workspace",
@@ -196,7 +196,7 @@
     }
   ],
   "shared_policies": {
-    "identity_truth": "Radish remains identity and permission truth; RadishMind is a future OIDC client",
+    "identity_truth": "RadishMind local accounts and permissions are platform truth; Radish OIDC is an external authentication source bound by exact issuer and subject",
     "storage_truth": "database schema and migrations are not created by this slice",
     "write_policy": "all future writes require audited control plane APIs and negative authorization gates",
     "secret_policy": "secret_ref may be stored, secret values may not be committed or exposed",
