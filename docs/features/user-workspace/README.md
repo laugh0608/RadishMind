@@ -1,6 +1,6 @@
 # 用户工作区细专题入口
 
-更新时间：2026-08-17
+更新时间：2026-08-19
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
@@ -30,10 +30,11 @@
 - [应用 API 接入与调用 v1](application-api-integration-invocation-v1.md)：把选中应用、`/v1/models` 模型目录、三协议接入示例、现有 Gateway 调试台调用与脱敏请求历史审查串成连续的内部开发者路径。
 - [应用配置草案与审查 v1](application-configuration-draft-review-v1.md)：为当前应用建立独立配置草案、校验、开发测试态持久化、版本冲突、比较和 API 接入交接。
 - [应用发布治理与晋级审查 v1](application-publish-governance-promotion-v1.md)：已完成不可变候选版本、版本绑定、审查 CAS、漂移识别、阻塞式晋级资格判断，以及既有接入区、调试台和请求历史交接；不直接发布正式应用。
-- [应用运行观测与用量归因 v1](application-operations-observability-usage-attribution-v1.md)：已完成应用作用域 Gateway Request History 与 Workflow Run History 的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测跨来源关联，不估算 token、成本、配额或计费。
+- [应用运行观测与用量归因 v1](application-operations-observability-usage-attribution-v1.md)：已完成应用作用域 Gateway Request History 与 Workflow Run History 的独立来源覆盖、当前窗口归因摘要和合并时间线；2026-08-19 后续准入评审为 `no_entry`，不启动跨页 summary，也不推测跨来源关联或估算 token、成本、配额、计费。
 
 ## 下一步
 
+- 应用运行观测后续准入已评审完成，真实页面也已贯通“受控调用或 Session → Application Operations → 结果保存 → Result Workspace → exact Run detail / Comparison”。下一顺位只修正既有 owner 的 exact Run 目标交接、缺失 evidence 说明和 authority drift 恢复引导；不为该普通 UI / 使用性修正启动服务端投影、新专题、Pencil 或专项门禁。
 - 应用会话运行结果资产显式保存与恢复 v1 已完成批次 A 至 D 并关闭。下一产品顺位回到上级功能设计文档入口选择新的长期目标；不从已关闭 Session / Result Artifact 专题扩永久 purge、transcript、长期记忆、replay / resume 或 agent loop。
 - S9 / S10 功能实现、SQLite 重启复验、Visual R3 人工复核、React 迁移与三视口浏览器证据已完成；旧 R1 与 Visual R2 仍只保留为退回历史。Provider 价格与应用成本专题的 S7 / S5 Visual R1、React strict consumer 和产品连续链也已完成。下一顺位回到功能设计入口选择新的真实产品阻塞，不从已关闭专题派生同层页面、自动执行或生产能力。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
@@ -43,7 +44,7 @@
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层 readiness、refresh 或 gate-only 批次。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。
 - 不继续扩“应用开发工作区与发布准备审查 v1”、Prompt Application 或当前回归评测的同层切片。Prompt / Agent 继续复用现有 Run、Comparison、Evaluation 和发布治理真相源，不另建聚合发布真相源或自治执行器。
-- 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。只有需要跨全部分页窗口的稳定统计、可信 reported usage 或正式 quota / billing owner 时，才评审服务端 summary。
+- 不从已关闭的 Application Interaction Session 派生长期记忆、自动 profile、重试 / fallback、schedule、replay / resume 或 agent loop。服务端 summary 当前保持 `no_entry`；未来只有真实跨页任务、稳定 owner / snapshot / cursor、性能预算与正式 quota / billing owner 同时成立时才重新评审。
 
 ## 目录停止线
 

@@ -1,6 +1,6 @@
 # 用户工作区设计与开发文档
 
-更新时间：2026-08-17
+更新时间：2026-08-19
 
 ## 功能定位
 
@@ -14,7 +14,7 @@
 - [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) 已把有效的已保存草案固定为不可变候选版本，完成服务端重读、摘要计算、审查 CAS、漂移 / 被取代检查、阻塞式晋级资格判断，以及到接入区、调试台和请求历史的交接；`approved` 仍不修改正式应用。
 - [应用目录与生命周期（开发/测试态）v1](user-workspace/application-catalog-lifecycle-dev-test-v1.md) 已完成核心生命周期、memory / SQLite / PostgreSQL 开发测试持久化、Web 管理和真实浏览器纵向验收；[应用解除归档与安全重新启用 v1](user-workspace/application-unarchive-safe-reactivation-dev-test-v1.md)进一步完成 `archived -> active` 单赢家 CAS、组合权限、显式影响确认和下游重新资格判断。目录 owner 不级联改写 API Key、运行时绑定、会话、草案、候选或运行记录。
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md) 已完成并关闭：活跃应用可以签发有期限、有受控作用域、只展示一次且可吊销的开发测试态密钥，五条 northbound 路由可显式启用 API 密钥认证，并记录可信调用上下文、脱敏请求历史与最近使用时间；[API 密钥引导式轮换与验证后退役 v1](user-workspace/api-key-guided-rotation-verified-retirement-dev-test-v1.md)复用这些 owner，完成同 scopes 替代、`last_used_at` 认证门槛、来源精确重读和 revoke CAS，不新增 rotate API、schema 或持久 rotation owner。
-- [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) 批次 A 已完成：当前应用可并列审查 Gateway 请求与 Workflow 运行的首分页窗口，分别查看状态、usage availability、受控调用计数、来源覆盖和合并时间线；两类记录不自动关联，当前窗口不冒充全量 usage、成本、配额或计费。
+- [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) 批次 A 已完成：当前应用可并列审查 Gateway 请求与 Workflow 运行的首分页窗口，分别查看状态、usage availability、受控调用计数、来源覆盖和合并时间线；两类记录不自动关联，当前窗口不冒充全量 usage、成本、配额或计费。2026-08-19 后续准入因缺少真实跨页阻塞、统一 snapshot / cursor、性能预算和正式 billing owner 评审为 `no_entry`，不启动服务端 summary。
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) 已完成并关闭：同一应用可显式选择 Workflow Definition v5 或 Application RAG v4 profile 建立 metadata-only session / turn，完成双数据库持久化、易失 transcript、取消、关闭、重启恢复、Run History 交接、真实浏览器和敏感信息扫描；不会从持久 metadata 恢复正文。
 - [应用开发工作区与发布准备审查 v1](user-workspace/application-development-workspace-release-readiness-review-v1.md) 已完成并关闭：唯一 application context、workspace / route generation、五阶段单 surface、route-scoped evidence、精确 Draft / Run handoff、十三项 owner contribution、九个来源组和四态 readiness 投影均已进入 Web；真实浏览器已验证 Application 切换、稳定 hash、离线零 owner 请求和零页面控制台告警，缺少权威 revision 时保守显示 `incomplete / partial`。
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 已完成并关闭：受限模板、不可变版本、Configuration Draft v3、Publish Candidate v3、Runtime Assignment、API key / Session v2、Run v6 与下游审查链均已接入；SQLite / PostgreSQL 连续链、重启恢复、CAS / authority drift / cancel 负向验收和浏览器隐私复验均已通过。
@@ -71,7 +71,7 @@
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
-5. 本地 SQLite、应用目录与安全重新启用、API 密钥生命周期与引导式轮换、Application Interaction Session 和独立应用结果资产 owner 均已完成并关闭；结果资产批次 A 至 D 已闭合默认关闭的显式保存、canonical capture、三存储不可变 artifact、版本化 lifecycle、共享 strict consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链。[应用结果资产库与受控导出 v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)也已完成批次 A 至 C，在同一 owner 上闭合 application-scoped discovery、受控本地 JSON export、单一 Result Workspace 与双数据库产品连续链；不把它写成旧专题批次 E、通用 result store、transcript、public share 或业务写回。下一顺位先评审[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)是否已有全分页统计、时间桶或一致性游标的真实需求；可信 reported usage、quota 与价格 owner 已成立不等于该需求自动成立，证据不足时不启动服务端 summary。
+5. 本地 SQLite、应用目录与安全重新启用、API 密钥生命周期与引导式轮换、Application Interaction Session 和独立应用结果资产 owner 均已完成并关闭；结果资产批次 A 至 D 已闭合默认关闭的显式保存、canonical capture、三存储不可变 artifact、版本化 lifecycle、共享 strict consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链。[应用结果资产库与受控导出 v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)也已完成批次 A 至 C，在同一 owner 上闭合 application-scoped discovery、受控本地 JSON export、单一 Result Workspace 与双数据库产品连续链；不把它写成旧专题批次 E、通用 result store、transcript、public share 或业务写回。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入已评审为 `no_entry`，真实纵向审计也已通过。下一顺位只在既有 owner 内补齐 exact Run 目标选择、缺失 evidence 说明和 authority drift 恢复引导，不选择新专题。
 6. 一次性令牌继续只保存在当前 Web 组件内存；刷新、路由离开、应用 / 身份切换、组件卸载和服务重启都不得恢复原始令牌。
 7. 不把开发测试态应用目录或 API 密钥解释为生产存储库与生产授权；OIDC 模式在成员关系契约未成立时继续失败关闭。后续专题不得隐式打开生产认证、成员关系适配器、正式晋级、生产 API 密钥、配额、计费、模型服务凭据或新的 Gateway 请求 / 响应 schema。
 

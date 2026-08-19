@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-08-17
+更新时间：2026-08-19
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-17 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)与[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)均已关闭。后者状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`，批次 A 至 C 已完成 application-scoped 严格列表、canonical export、独立权限、双数据库索引、strict Web consumer、单一 Result Workspace、SQLite 页面重启链与 PostgreSQL configured Server 对等链。下一轮先评审[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)是否已有真实跨页统计与一致性需求；评审成立才更新其功能设计和实施拆分，否则回到本入口比较其它长期功能。不从已关闭结果资产专题派生批次 D / E，也不打开 transcript、public share、永久 purge、真实 Provider 或 production。
+2026-08-19 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)与[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)均已关闭。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审也已完成，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`：真实跨页任务、统一 snapshot / cursor、时间桶 / 性能预算和正式 billing owner 均未成立，不启动服务端 summary。随后真实页面已贯通 Session、Operations、结果保存、Result Workspace、Run detail 与 Comparison；下一项只修正既有 owner 的 exact Run 交接和 authority drift 恢复引导，不创建新功能专题，也不打开 transcript、public share、永久 purge、真实 Provider 或 production。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
