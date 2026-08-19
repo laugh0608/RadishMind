@@ -23,6 +23,7 @@ const (
 	controlPlaneReadAuthModeDevHeaders                = "dev_headers"
 	controlPlaneReadAuthModeSignedTestToken           = "signed_test_token"
 	controlPlaneReadAuthModeRadishOIDCIntegrationTest = "radish_oidc_integration_test"
+	controlPlaneReadAuthModeLocalSessionDevTest       = "local_session_dev_test"
 	controlPlaneReadAuthPolicyVersion                 = "control_plane_read_auth_policy_v1"
 )
 
@@ -246,6 +247,7 @@ func withControlPlaneReadAuthenticator(next http.Handler, authenticator *control
 		case controlPlaneReadAuthModeRadishOIDCIntegrationTest:
 			auth := controlPlaneReadOIDCAuthFromRequest(request, authenticator.oidcVerifier)
 			request = sanitizedControlPlaneReadAuthRequest(request, auth)
+		case controlPlaneReadAuthModeLocalSessionDevTest:
 		case controlPlaneReadAuthModeDisabled:
 		}
 		next.ServeHTTP(writer, request)

@@ -205,10 +205,10 @@ func runConcurrentLocalIdentityBindingCreate(t *testing.T, repository localIdent
 	t.Helper()
 	ctx := context.Background()
 	first, firstCredential := localIdentityTestAccount(
-		"usr_cccccccccccccccc", "cred_dddddddddddddddd", "concurrent-binding-one@example.com", localIdentityTestNow,
+		"usr_iiiiiiiiiiiiiiii", "cred_iiiiiiiiiiiiiiii", "concurrent-binding-one@example.com", localIdentityTestNow,
 	)
 	second, secondCredential := localIdentityTestAccount(
-		"usr_dddddddddddddddd", "cred_eeeeeeeeeeeeeeee", "concurrent-binding-two@example.com", localIdentityTestNow,
+		"usr_jjjjjjjjjjjjjjjj", "cred_jjjjjjjjjjjjjjjj", "concurrent-binding-two@example.com", localIdentityTestNow,
 	)
 	if err := repository.CreateAccount(ctx, first, firstCredential); err != nil {
 		t.Fatalf("create first concurrent binding account: %v", err)
@@ -217,8 +217,8 @@ func runConcurrentLocalIdentityBindingCreate(t *testing.T, repository localIdent
 		t.Fatalf("create second concurrent binding account: %v", err)
 	}
 	bindings := []ExternalIdentityBinding{
-		localIdentityTestBinding("xid_dddddddddddddddd", first.UserID, "https://radish.example.com/concurrent", "shared-concurrent-subject"),
-		localIdentityTestBinding("xid_eeeeeeeeeeeeeeee", second.UserID, "https://radish.example.com/concurrent", "shared-concurrent-subject"),
+		localIdentityTestBinding("xid_iiiiiiiiiiiiiiii", first.UserID, "https://radish.example.com/concurrent", "shared-concurrent-subject"),
+		localIdentityTestBinding("xid_jjjjjjjjjjjjjjjj", second.UserID, "https://radish.example.com/concurrent", "shared-concurrent-subject"),
 	}
 	start := make(chan struct{})
 	results := make(chan error, len(bindings))
@@ -305,6 +305,24 @@ func runLocalIdentityRepositoryContract(t *testing.T, repository localIdentityRe
 	)
 	if err := repository.CreateAccount(ctx, second, secondCredential); err != nil {
 		t.Fatalf("create second local account: %v", err)
+	}
+	registered, registeredCredential := localIdentityTestAccount(
+		"usr_cccccccccccccccc", "cred_dddddddddddddddd", "registered@example.com", localIdentityTestNow,
+	)
+	registeredDigest, digestErr := DigestWebSessionCredential("a-distinct-registration-session-credential")
+	if digestErr != nil {
+		t.Fatalf("digest atomic registration session: %v", digestErr)
+	}
+	registeredSession := localIdentityTestSession(t, registered.UserID)
+	registeredSession.SessionID = "ses_cccccccccccccccc"
+	registeredSession.credentialDigest = registeredDigest[:]
+	registeredSession.AuthenticationSourceRef = "credential:" + registeredCredential.CredentialID
+	if err := repository.CreateAccountAndWebSession(ctx, registered, registeredCredential, registeredSession); err != nil {
+		t.Fatalf("create atomic account and session: %v", err)
+	}
+	if resolvedSession, resolvedAccount, err := repository.ResolveWebSession(ctx, registeredDigest, localIdentityTestNow); err != nil ||
+		resolvedSession.SessionID != registeredSession.SessionID || resolvedAccount.UserID != registered.UserID {
+		t.Fatalf("resolve atomic registration: session=%#v account=%#v err=%v", resolvedSession, resolvedAccount, err)
 	}
 
 	replacement := localIdentityTestCredential("cred_cccccccccccccccc", account.UserID, localIdentityTestNow.Add(time.Minute))

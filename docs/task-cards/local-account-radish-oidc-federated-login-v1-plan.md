@@ -119,7 +119,7 @@ npm --prefix apps/radishmind-web run build
 ## 完成条件
 
 - [x] 批次 A：领域契约与三种开发测试仓储完成。
-- [ ] 批次 B：本地注册、登录和 Web Session 完成。
+- [x] 批次 B：本地注册、登录和 Web Session 完成。
 - [ ] 批次 C：确定性 OIDC Relying Party 完成。
 - [ ] 批次 D：Web、浏览器、隐私和响应式验收完成。
 - [ ] 批次 E：真实 Radish integration evidence 完成，或明确保留为外部阻塞且不影响 A 至 D 的开发测试态关闭。

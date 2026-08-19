@@ -2,7 +2,7 @@
 
 更新时间：2026-08-19
 
-状态：`local_account_radish_oidc_federated_login_v1_batch_a_completed`
+状态：`local_account_radish_oidc_federated_login_v1_batch_b_completed`
 
 ## 功能定位
 
@@ -24,9 +24,9 @@
 ## 当前代码事实
 
 - Platform 已有 deterministic OIDC discovery / JWKS / JWT verifier，只服务两条 Admin resource-server operation。
-- 当前 OIDC runtime 不实现 authorization code、PKCE、`state`、`nonce`、callback、logout、session cookie 或 refresh token。
+- 当前 OIDC runtime 不实现 authorization code、PKCE、`state`、`nonce`、callback 或 refresh token；本地密码登录的 RadishMind Web Session HTTP 已独立落地，不能与既有 resource-server Bearer token 混用。
 - Platform 已落地本地账户、密码凭证、外部身份绑定、Web Session、角色分配与 workspace membership 的领域契约，以及 memory / 聚合 SQLite / 显式 PostgreSQL dev/test repository；PostgreSQL 保持 manual migration 和受限 runtime role，三种实现都不 fallback。
-- 当前仍没有注册 / 登录 HTTP route、session cookie 或 browser OIDC callback；新的本地 `WorkspaceMembershipProvider` adapter 已可从 `user:<user_id>` 恢复本地授权，但尚未接入 HTTP auth middleware，dev header / signed-test assertion 仍是现有页面路径。
+- 本地注册、登录、当前 session、logout 与当前 session revoke route 已接入独立 `local_session_dev_test` 模式；middleware 只从 Web Session cookie 恢复 `user:<user_id>`，再由本地 `WorkspaceMembershipProvider` 重读 membership / role。browser OIDC callback 仍不存在；dev header、signed-test token 与本地 session 是互斥模式，不形成失败 fallback。
 - User / Role 页面目前仍是旧 Radish-owned blocked surface，必须在身份后端形成稳定读写契约后再迁移，不能用离线 fixture 冒充本地用户事实。
 
 ## 批次 A 实现状态
@@ -132,9 +132,11 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 ### 批次 B：本地注册、登录与会话
 
-- 实现注册、登录、当前会话、登出和会话撤销 API。
-- 建立安全 cookie、CSRF / origin、账户状态重读、稳定失败分类和脱敏 audit handoff。
-- 将现有 User Workspace / Admin 管理身份从 dev header 接入统一本地 session actor context；开发测试 header 继续只在显式 gate 下存在。
+- 已实现 `POST /v1/auth/local/register`、`POST /v1/auth/local/login`、`GET /v1/auth/session`、`POST /v1/auth/logout` 与 `POST /v1/auth/sessions/{session_id}/revoke`；注册使用 `CreateAccountAndWebSession` 在 memory / SQLite / PostgreSQL 中原子写入账户、首个 credential 与 session，避免半成功。
+- session credential 只进入 `HttpOnly`、`SameSite=Strict` cookie，HTTPS 使用 `Secure + __Host-`；显式 loopback HTTP 开发测试配置使用带 `_dev` 后缀的非 Secure cookie，不能解释为生产策略。CSRF 采用同源 Origin + session 派生双提交 cookie/header；注册和登录使用同源 bootstrap header。
+- return target 只允许本地绝对路径；登录未知账户、错误密码、禁用账户统一返回相同认证失败；响应、错误与 audit ref 不包含登录标识、密码或 session credential。
+- `local_session_dev_test` 与 `dev_headers`、`signed_test_token`、resource-server OIDC Bearer token 互斥。session、account、membership 或 repository 失败均失败关闭；业务 handler 只得到 actor / local binding，不得到 cookie 或 credential。
+- 开发测试启用必须显式配置 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true`、`RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test`、精确 `RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN`、cookie 策略和 session TTL；store 可选择 `memory_dev`、聚合 `sqlite_dev` 或显式 `postgres_dev_test`。当前不声明生产速率限制、MFA、账户恢复或 production session store。
 
 ### 批次 C：确定性 OIDC Relying Party
 
@@ -175,4 +177,4 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 ## 下一实现入口
 
-[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](../../task-cards/local-account-radish-oidc-federated-login-v1-plan.md)承接批次 A 至 E。批次 A 已完成；下一步进入批次 B，把本地注册、登录、当前 session、logout 与 revoke HTTP 接入统一 session actor context。浏览器 OIDC callback 和真实 Radish 联调仍分别等待批次 C 与 E。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](../../task-cards/local-account-radish-oidc-federated-login-v1-plan.md)承接批次 A 至 E。批次 A、B 已完成；下一步进入批次 C，建立确定性 Authorization Code + PKCE、state / nonce、callback 与 external identity resolve / create / link。真实 Radish 联调仍等待批次 E 的外部条件。

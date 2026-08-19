@@ -65,6 +65,64 @@ func (repository *sqliteLocalIdentityRepository) CreateAccount(ctx context.Conte
 	return nil
 }
 
+func (repository *sqliteLocalIdentityRepository) CreateAccountAndWebSession(
+	ctx context.Context,
+	account UserAccount,
+	credential LocalCredential,
+	session WebSession,
+) error {
+	if repository == nil || repository.database == nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	if !validLocalAccountAndSessionRegistration(account, credential, session) {
+		return errLocalIdentityContractMismatch
+	}
+	transaction, err := repository.database.BeginTx(identityContext(ctx), nil)
+	if err != nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback() }()
+	createdAt, _ := localIdentityUnixNano(account.CreatedAt)
+	updatedAt, _ := localIdentityUnixNano(account.UpdatedAt)
+	if _, err := transaction.ExecContext(identityContext(ctx), `INSERT INTO local_user_accounts
+        (user_id, schema_version, login_identifier, normalized_login_identifier, display_name, lifecycle_state,
+         record_version, created_at_unix_nano, updated_at_unix_nano, disabled_at_unix_nano, audit_ref)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)`, account.UserID, account.SchemaVersion, account.LoginIdentifier,
+		account.NormalizedLoginIdentifier, account.DisplayName, account.LifecycleState, account.RecordVersion,
+		createdAt, updatedAt, nil, account.AuditRef); err != nil {
+		return sqliteConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	credentialCreatedAt, _ := localIdentityUnixNano(credential.CreatedAt)
+	credentialUpdatedAt, _ := localIdentityUnixNano(credential.UpdatedAt)
+	if _, err := transaction.ExecContext(identityContext(ctx), `INSERT INTO local_credentials
+        (credential_id, user_id, schema_version, algorithm, policy_version, iterations, key_length, salt,
+         derived_key, lifecycle_state, record_version, created_at_unix_nano, updated_at_unix_nano, audit_ref)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, credential.CredentialID, credential.UserID, credential.SchemaVersion,
+		credential.Algorithm, credential.PolicyVersion, credential.Iterations, credential.KeyLength, credential.salt,
+		credential.derivedKey, credential.LifecycleState, credential.RecordVersion, credentialCreatedAt,
+		credentialUpdatedAt, credential.AuditRef); err != nil {
+		return sqliteConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	sessionCreatedAt, _ := localIdentityUnixNano(session.CreatedAt)
+	sessionUpdatedAt, _ := localIdentityUnixNano(session.UpdatedAt)
+	lastVerifiedAt, _ := localIdentityUnixNano(session.LastVerifiedAt)
+	expiresAt, _ := localIdentityUnixNano(session.ExpiresAt)
+	if _, err := transaction.ExecContext(identityContext(ctx), `INSERT INTO local_web_sessions
+        (session_id, user_id, schema_version, credential_digest, authentication_method, authentication_source_ref,
+         policy_version, lifecycle_state, record_version, created_at_unix_nano, updated_at_unix_nano,
+         last_verified_at_unix_nano, expires_at_unix_nano, revoked_at_unix_nano, audit_ref)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, session.SessionID, session.UserID, session.SchemaVersion,
+		session.credentialDigest, session.AuthenticationMethod, session.AuthenticationSourceRef, session.PolicyVersion,
+		session.LifecycleState, session.RecordVersion, sessionCreatedAt, sessionUpdatedAt, lastVerifiedAt, expiresAt,
+		nil, session.AuditRef); err != nil {
+		return sqliteConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	if err := transaction.Commit(); err != nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	return nil
+}
+
 func (repository *sqliteLocalIdentityRepository) ReadAccount(ctx context.Context, userID string) (UserAccount, error) {
 	if repository == nil || repository.database == nil {
 		return UserAccount{}, errLocalIdentityStoreUnavailable

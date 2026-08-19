@@ -36,12 +36,12 @@
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
-- 新的产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_batch_a_completed`。批次 A 已完成本地账户、凭证、external identity、Web Session、role 与 membership 领域契约，以及 memory / SQLite / PostgreSQL repository；下一步进入批次 B 本地注册、登录和 Web Session HTTP，不直接打开 browser OIDC callback 或真实 Radish 联调。
+- 新的产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_batch_b_completed`。批次 A、B 已完成本地身份领域与三种 repository，以及注册、登录、当前 session、logout / revoke、安全 cookie、CSRF / Origin 和 local session actor → membership 链；下一步进入批次 C 的确定性 Authorization Code + PKCE，不直接开始真实 Radish 联调。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A。当前只推进批次 B 本地注册、登录、当前 session、logout、revoke、安全 cookie 与 CSRF / origin 边界；既有 deterministic OIDC verifier 继续只作为 resource-server 证据，不能冒充浏览器登录。
+1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A、B。当前下一步只推进批次 C 的确定性 browser OIDC client：Authorization Code + PKCE、state / nonce、callback 与 external identity binding；既有 deterministic OIDC verifier 继续只作为 resource-server 基础，不能直接冒充 browser login。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-19 今日评审与下一事项
@@ -50,7 +50,7 @@
 2. SQLite 真实页面已贯通结构化 Session 执行、逐 turn 显式保存、Application Operations 独立窗口、Result Workspace exact read、Run detail 与 compatible Comparison；输入值未持久化，过期 Session 在 Provider 前失败关闭，页面无 console warning / error。
 3. 审计发现的既有 owner 恢复交接缺口已修正：exact Run action 在 `React.StrictMode` 下仍保持一次稳定 owner-scope 初始化，有效目标直接打开精确详情；目标不存在或不在当前 Application scope 时显示稳定说明，不回退其它 Run，也不合成 canonical evidence。三类 Session authority 失败会显示只读 reload、显式选择当前 authority 或审查后新建 Session 的恢复说明，且不会自动切换、创建、重试或调用 Provider。
 4. 身份 owner 已修正为 RadishMind 本地账户、角色与 workspace membership；Radish OIDC 只按 `(issuer, subject)` 绑定本地 `user_id`，不按 email 自动合并，也不直接采用 Radish role / permission claim。
-5. 当前进入联合身份专题批次 A；工作区运营收件箱批次 B、结果资产批次 D / E、S11、真实 Provider、production auth / secret、billing 与同层 gate-only 切片继续关闭。
+5. 联合身份专题批次 A、B 已完成，下一实现入口为批次 C 的确定性 browser OIDC client；工作区运营收件箱批次 B、结果资产批次 D / E、S11、真实 Provider、production auth / secret、billing 与同层 gate-only 切片继续关闭。
 
 ## 2026-08-17 今日完成与明天事项
 

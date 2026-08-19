@@ -71,6 +71,7 @@ func TestSanitizedSummaryDoesNotExposeSecrets(t *testing.T) {
 	}
 	if !reflect.DeepEqual(summary.SecretFields, []string{
 		"RADISHMIND_PLATFORM_API_KEY",
+		"RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
@@ -1130,6 +1131,42 @@ func TestControlPlaneReadAuthModesFailClosed(t *testing.T) {
 	cfg.ControlPlaneReadAuthMode = "production_oidc"
 	if err := validateBridgeRuntimeConfig(cfg); err == nil {
 		t.Fatal("unknown control plane read auth mode was accepted")
+	}
+}
+
+func TestLocalIdentityDevHTTPConfigFailsClosed(t *testing.T) {
+	valid := defaultConfig()
+	valid.ControlPlaneReadDevAuthEnabled = true
+	valid.ControlPlaneReadAuthMode = "local_session_dev_test"
+	valid.LocalIdentityDevHTTPEnabled = true
+	valid.LocalIdentityAllowedOrigin = "http://127.0.0.1:4000"
+	valid.LocalIdentityCookieSecure = false
+	if err := validateBridgeRuntimeConfig(valid); err != nil {
+		t.Fatalf("valid loopback local identity config was rejected: %v", err)
+	}
+	summary := valid.SanitizedSummary()
+	if !summary.LocalIdentityDevHTTPEnabled || summary.LocalIdentityStoreMode != "memory_dev" ||
+		!summary.LocalIdentityAllowedOriginConfigured || summary.LocalIdentityCookieSecure ||
+		summary.LocalIdentitySessionTTL != "12h0m0s" {
+		t.Fatalf("local identity summary drifted: %#v", summary)
+	}
+
+	for name, mutate := range map[string]func(*Config){
+		"auth mode fallback": func(cfg *Config) { cfg.ControlPlaneReadAuthMode = "dev_headers" },
+		"missing origin":     func(cfg *Config) { cfg.LocalIdentityAllowedOrigin = "" },
+		"remote HTTP origin": func(cfg *Config) { cfg.LocalIdentityAllowedOrigin = "http://example.com" },
+		"secure loopback HTTP cookie": func(cfg *Config) {
+			cfg.LocalIdentityCookieSecure = true
+		},
+		"nonpositive TTL": func(cfg *Config) { cfg.LocalIdentitySessionTTL = 0 },
+	} {
+		t.Run(name, func(t *testing.T) {
+			candidate := valid
+			mutate(&candidate)
+			if err := validateBridgeRuntimeConfig(candidate); err == nil {
+				t.Fatal("invalid local identity config was accepted")
+			}
+		})
 	}
 }
 

@@ -6,6 +6,9 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if err := validateLocalIdentityConfig(EffectiveLocalPersistenceConfig(cfg)); err != nil {
+		return err
+	}
 	if cfg.ApplicationEvaluationCampaignDevEnabled {
 		environment := strings.TrimSpace(cfg.ApplicationEvaluationCampaignEnvironment)
 		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled || !cfg.WorkflowRAGEvaluationDevEnabled ||
@@ -85,6 +88,7 @@ func EffectiveLocalPersistenceConfig(cfg Config) Config {
 	cfg.GatewayModelPricingStoreMode = "sqlite_dev"
 	cfg.WorkflowSavedDraftStoreMode = "sqlite_dev"
 	cfg.WorkflowRunStoreMode = "sqlite_dev"
+	cfg.LocalIdentityStoreMode = "sqlite_dev"
 	return cfg
 }
 
@@ -124,6 +128,7 @@ func localPersistenceComponentsConsistent(cfg Config) bool {
 		{name: "gateway_model_pricing_store", mode: cfg.GatewayModelPricingStoreMode},
 		{name: "workflow_saved_draft_store", mode: cfg.WorkflowSavedDraftStoreMode},
 		{name: "workflow_run_store", mode: cfg.WorkflowRunStoreMode},
+		{name: "local_identity_store", mode: cfg.LocalIdentityStoreMode},
 	}
 	if EffectiveLocalPersistenceMode(cfg) == "sqlite_dev" {
 		for _, component := range componentStoreFields {

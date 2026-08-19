@@ -58,6 +58,57 @@ func (repository *postgresLocalIdentityRepository) CreateAccount(ctx context.Con
 	return nil
 }
 
+func (repository *postgresLocalIdentityRepository) CreateAccountAndWebSession(
+	ctx context.Context,
+	account UserAccount,
+	credential LocalCredential,
+	session WebSession,
+) error {
+	if repository == nil || repository.pool == nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	if !validLocalAccountAndSessionRegistration(account, credential, session) {
+		return errLocalIdentityContractMismatch
+	}
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	if _, err := transaction.Exec(identityContext(ctx), `INSERT INTO local_user_accounts
+        (user_id, schema_version, login_identifier, normalized_login_identifier, display_name, lifecycle_state,
+         record_version, created_at, updated_at, disabled_at, audit_ref)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`, account.UserID, account.SchemaVersion,
+		account.LoginIdentifier, account.NormalizedLoginIdentifier, account.DisplayName, account.LifecycleState,
+		account.RecordVersion, account.CreatedAt, account.UpdatedAt, account.DisabledAt, account.AuditRef); err != nil {
+		return postgresIdentityConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	if _, err := transaction.Exec(identityContext(ctx), `INSERT INTO local_credentials
+        (credential_id, user_id, schema_version, algorithm, policy_version, iterations, key_length, salt,
+         derived_key, lifecycle_state, record_version, created_at, updated_at, audit_ref)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`, credential.CredentialID,
+		credential.UserID, credential.SchemaVersion, credential.Algorithm, credential.PolicyVersion,
+		credential.Iterations, credential.KeyLength, credential.salt, credential.derivedKey,
+		credential.LifecycleState, credential.RecordVersion, credential.CreatedAt, credential.UpdatedAt,
+		credential.AuditRef); err != nil {
+		return postgresIdentityConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	if _, err := transaction.Exec(identityContext(ctx), `INSERT INTO local_web_sessions
+        (session_id, user_id, schema_version, credential_digest, authentication_method, authentication_source_ref,
+         policy_version, lifecycle_state, record_version, created_at, updated_at, last_verified_at, expires_at,
+         revoked_at, audit_ref) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+		session.SessionID, session.UserID, session.SchemaVersion, session.credentialDigest,
+		session.AuthenticationMethod, session.AuthenticationSourceRef, session.PolicyVersion, session.LifecycleState,
+		session.RecordVersion, session.CreatedAt, session.UpdatedAt, session.LastVerifiedAt, session.ExpiresAt,
+		session.RevokedAt, session.AuditRef); err != nil {
+		return postgresIdentityConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	return nil
+}
+
 func (repository *postgresLocalIdentityRepository) ReadAccount(ctx context.Context, userID string) (UserAccount, error) {
 	if repository == nil || repository.pool == nil {
 		return UserAccount{}, errLocalIdentityStoreUnavailable

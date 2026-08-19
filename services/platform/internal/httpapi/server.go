@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -70,6 +71,7 @@ type Server struct {
 	gatewayRequestHistoryStoreMode          string
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
 	gatewayModelPricingRepository           GatewayModelPricingRepository
+	localIdentityHTTPService                *localIdentityHTTPService
 	closeSavedWorkflowDraftStore            func()
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
@@ -82,6 +84,7 @@ type Server struct {
 	closeGatewayRequestStore                func()
 	closeGatewayRequestQuotaStore           func()
 	closeGatewayModelPricingStore           func()
+	closeLocalIdentityRepository            func()
 	localPersistenceRuntime                 *sqlitedev.Runtime
 	closeControlPlaneReadRepository         func()
 	closeOnce                               sync.Once
@@ -284,9 +287,17 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore)
 		return nil, err
 	}
-	rawPlatformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	localIdentityRepository, closeLocalIdentityRepository, err := newLocalIdentityRepositoryFromOptions(localIdentityStoreOptions{
+		Mode: runtimeConfig.LocalIdentityStoreMode, SQLiteRuntime: localPersistenceRuntime,
+		PostgresDatabaseURL: runtimeConfig.LocalIdentityDatabaseURL, DatabaseTimeout: runtimeConfig.LocalIdentityDatabaseTimeout,
+	})
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore)
+		return nil, err
+	}
+	rawPlatformBridge, err := newPlatformBridgeClient(runtimeConfig)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
 		return nil, err
 	}
 	var platformBridge bridgeClient = newGatewayProviderAttemptBridgeClient(rawPlatformBridge)
@@ -332,6 +343,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
 		gatewayModelPricingRepository:           gatewayModelPricingRepository,
+		localIdentityHTTPService:                newLocalIdentityHTTPService(runtimeConfig, localIdentityRepository),
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
@@ -344,8 +356,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeGatewayRequestStore:                closeGatewayRequestStore,
 		closeGatewayRequestQuotaStore:           closeGatewayRequestQuotaStore,
 		closeGatewayModelPricingStore:           closeGatewayModelPricingStore,
+		closeLocalIdentityRepository:            closeLocalIdentityRepository,
 		localPersistenceRuntime:                 localPersistenceRuntime,
 		closeControlPlaneReadRepository:         closeControlPlaneReadRepository,
+	}
+	if config.EffectiveControlPlaneReadAuthMode(runtimeConfig) == controlPlaneReadAuthModeLocalSessionDevTest {
+		server.workspaceMembershipProvider = newLocalWorkspaceMembershipProvider(localIdentityRepository)
 	}
 	if options.ApplicationResultArtifactLibraryDevFixture {
 		if _, err = seedApplicationResultArtifactLibraryDevFixture(server); err != nil {
@@ -353,6 +369,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 			return nil, fmt.Errorf("seed application result artifact library fixture: %w", err)
 		}
 	}
+	registerLocalIdentityHTTPRoutes(mux, server)
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
 	mux.HandleFunc("GET /v1/platform/overview", server.handlePlatformOverview)
@@ -515,8 +532,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
 	server.httpServer = &http.Server{
-		Addr:              runtimeConfig.ListenAddr,
-		Handler:           withLocalConsoleCORS(withControlPlaneReadAuthenticator(mux, authenticator)),
+		Addr: runtimeConfig.ListenAddr,
+		Handler: withLocalConsoleCORS(
+			withLocalIdentitySessionAuthentication(withControlPlaneReadAuthenticator(mux, authenticator), server.localIdentityHTTPService),
+			runtimeConfig,
+		),
 		ReadHeaderTimeout: runtimeConfig.ReadHeaderTimeout,
 		WriteTimeout:      runtimeConfig.WriteTimeout,
 	}
@@ -618,6 +638,9 @@ func (s *Server) Close() {
 		if s.closeSavedWorkflowDraftStore != nil {
 			s.closeSavedWorkflowDraftStore()
 		}
+		if s.closeLocalIdentityRepository != nil {
+			s.closeLocalIdentityRepository()
+		}
 		if s.localPersistenceRuntime != nil {
 			_ = s.localPersistenceRuntime.Close()
 		}
@@ -636,9 +659,9 @@ func (s *Server) handleHealthz(writer http.ResponseWriter, request *http.Request
 	})
 }
 
-func withLocalConsoleCORS(next http.Handler) http.Handler {
+func withLocalConsoleCORS(next http.Handler, cfg config.Config) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if applyLocalConsoleCORS(writer, request) && request.Method == http.MethodOptions {
+		if applyLocalConsoleCORS(writer, request, cfg) && request.Method == http.MethodOptions {
 			writer.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -646,13 +669,18 @@ func withLocalConsoleCORS(next http.Handler) http.Handler {
 	})
 }
 
-func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bool {
+func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request, cfg config.Config) bool {
 	origin := strings.TrimSpace(request.Header.Get("Origin"))
-	if !isAllowedLocalConsoleOrigin(origin) {
+	if !isAllowedLocalConsoleOrigin(origin, cfg) {
 		return false
 	}
 	headers := writer.Header()
 	headers.Set("Access-Control-Allow-Origin", origin)
+	if cfg.LocalIdentityDevHTTPEnabled && origin == strings.TrimSpace(cfg.LocalIdentityAllowedOrigin) {
+		headers.Set("Access-Control-Allow-Credentials", "true")
+	} else {
+		headers.Del("Access-Control-Allow-Credentials")
+	}
 	headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 	headers.Set("Access-Control-Allow-Headers", strings.Join(localConsoleAllowedHeaders(), ", "))
 	headers.Set("Access-Control-Expose-Headers", strings.Join(localConsoleExposedHeaders(), ", "))
@@ -660,8 +688,8 @@ func applyLocalConsoleCORS(writer http.ResponseWriter, request *http.Request) bo
 	return true
 }
 
-func isAllowedLocalConsoleOrigin(origin string) bool {
-	for _, allowedOrigin := range localConsoleAllowedOrigins() {
+func isAllowedLocalConsoleOrigin(origin string, cfg config.Config) bool {
+	for _, allowedOrigin := range localConsoleAllowedOrigins(cfg) {
 		if origin == allowedOrigin {
 			return true
 		}
@@ -669,8 +697,15 @@ func isAllowedLocalConsoleOrigin(origin string) bool {
 	return false
 }
 
-func localConsoleAllowedOrigins() []string {
-	return []string{"http://127.0.0.1:4000", "http://localhost:4000", "http://127.0.0.1:4100", "http://localhost:4100"}
+func localConsoleAllowedOrigins(configs ...config.Config) []string {
+	origins := []string{"http://127.0.0.1:4000", "http://localhost:4000", "http://127.0.0.1:4100", "http://localhost:4100"}
+	if len(configs) == 1 && configs[0].LocalIdentityDevHTTPEnabled {
+		origin := strings.TrimSpace(configs[0].LocalIdentityAllowedOrigin)
+		if origin != "" && !slices.Contains(origins, origin) {
+			origins = append(origins, origin)
+		}
+	}
+	return origins
 }
 
 func localConsoleExposedHeaders() []string {
@@ -688,6 +723,8 @@ func localConsoleAllowedHeaders() []string {
 		"Authorization",
 		"Content-Type",
 		"X-Request-Id",
+		localIdentityActiveTenantHeader,
+		localIdentityCSRFHeader,
 		controlPlaneReadDevIdentityHeader,
 		controlPlaneReadDevTenantHeader,
 		controlPlaneReadDevSubjectHeader,

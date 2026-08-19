@@ -12,6 +12,7 @@ import (
 
 type localIdentityRepository interface {
 	CreateAccount(context.Context, UserAccount, LocalCredential) error
+	CreateAccountAndWebSession(context.Context, UserAccount, LocalCredential, WebSession) error
 	ReadAccount(context.Context, string) (UserAccount, error)
 	FindAccountByLoginIdentifier(context.Context, string) (UserAccount, error)
 	DisableAccount(context.Context, string, int, time.Time, string) (UserAccount, error)
@@ -28,6 +29,14 @@ type localIdentityRepository interface {
 	CreateWorkspaceMembership(context.Context, WorkspaceMembership) error
 	RevokeWorkspaceMembership(context.Context, string, int, time.Time, string) (WorkspaceMembership, error)
 	AuthorizeWorkspace(context.Context, string, string, string, []string, time.Time) (LocalWorkspaceAuthorization, error)
+}
+
+func validLocalAccountAndSessionRegistration(account UserAccount, credential LocalCredential, session WebSession) bool {
+	return validUserAccount(account) && validLocalCredential(credential) && validWebSession(session) &&
+		account.LifecycleState == localIdentityStateActive && credential.LifecycleState == localIdentityStateActive &&
+		session.LifecycleState == localIdentityStateActive && account.UserID == credential.UserID &&
+		account.UserID == session.UserID && account.CreatedAt.Equal(credential.CreatedAt) &&
+		account.CreatedAt.Equal(session.CreatedAt)
 }
 
 type memoryLocalIdentityRepository struct {
@@ -77,6 +86,37 @@ func (repository *memoryLocalIdentityRepository) CreateAccount(_ context.Context
 	repository.accountByLoginIdentifier[account.NormalizedLoginIdentifier] = account.UserID
 	repository.credentials[credential.CredentialID] = cloneLocalCredential(credential)
 	repository.activeCredentialByUser[account.UserID] = credential.CredentialID
+	return nil
+}
+
+func (repository *memoryLocalIdentityRepository) CreateAccountAndWebSession(
+	_ context.Context,
+	account UserAccount,
+	credential LocalCredential,
+	session WebSession,
+) error {
+	if repository == nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	if !validLocalAccountAndSessionRegistration(account, credential, session) {
+		return errLocalIdentityContractMismatch
+	}
+	repository.mu.Lock()
+	defer repository.mu.Unlock()
+	digestKey := string(session.credentialDigest)
+	if _, exists := repository.accounts[account.UserID]; exists ||
+		repository.accountByLoginIdentifier[account.NormalizedLoginIdentifier] != "" ||
+		repository.credentials[credential.CredentialID].CredentialID != "" ||
+		repository.activeCredentialByUser[account.UserID] != "" ||
+		repository.sessions[session.SessionID].SessionID != "" || repository.sessionByCredentialDigest[digestKey] != "" {
+		return errLocalIdentityIdentifierConflict
+	}
+	repository.accounts[account.UserID] = cloneUserAccount(account)
+	repository.accountByLoginIdentifier[account.NormalizedLoginIdentifier] = account.UserID
+	repository.credentials[credential.CredentialID] = cloneLocalCredential(credential)
+	repository.activeCredentialByUser[account.UserID] = credential.CredentialID
+	repository.sessions[session.SessionID] = cloneWebSession(session)
+	repository.sessionByCredentialDigest[digestKey] = session.SessionID
 	return nil
 }
 
