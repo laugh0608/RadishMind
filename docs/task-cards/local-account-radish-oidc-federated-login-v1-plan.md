@@ -2,7 +2,7 @@
 
 更新时间：2026-08-19
 
-状态：`local_account_radish_oidc_federated_login_v1_batch_a_ready`
+状态：`local_account_radish_oidc_federated_login_v1_batch_a_completed_batch_b_ready`
 
 对应功能设计：[RadishMind 本地账户与 Radish OIDC 联合登录 v1](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)
 
@@ -118,7 +118,7 @@ npm --prefix apps/radishmind-web run build
 
 ## 完成条件
 
-- [ ] 批次 A：领域契约与三种开发测试仓储完成。
+- [x] 批次 A：领域契约与三种开发测试仓储完成。
 - [ ] 批次 B：本地注册、登录和 Web Session 完成。
 - [ ] 批次 C：确定性 OIDC Relying Party 完成。
 - [ ] 批次 D：Web、浏览器、隐私和响应式验收完成。

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_a_ready`。当前先实施账户、凭证、external identity、Web Session、角色和 workspace membership 的领域契约与三种开发测试仓储；browser OIDC callback、Web 与真实 Radish 联调按后续批次顺序开放。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_a_completed_batch_b_ready`。批次 A 领域契约、三种开发测试仓储、migration 与本地 membership adapter 已完成；下一步只开放批次 B 本地注册、登录和 Web Session HTTP，browser OIDC callback、Web 与真实 Radish 联调按后续批次顺序开放。
 
 ## 最近关闭任务
 

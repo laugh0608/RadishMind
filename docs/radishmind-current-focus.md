@@ -36,12 +36,12 @@
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
-- 新的产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_design_defined`。已确认 RadishMind 拥有本地注册、用户、Web Session、角色与 workspace membership，Radish 只作为可选外部 OIDC issuer；当前先进入批次 A，不直接打开 browser callback 或真实 Radish 联调。
+- 新的产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_batch_a_completed`。批次 A 已完成本地账户、凭证、external identity、Web Session、role 与 membership 领域契约，以及 memory / SQLite / PostgreSQL repository；下一步进入批次 B 本地注册、登录和 Web Session HTTP，不直接打开 browser OIDC callback 或真实 Radish 联调。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已成为当前任务。先完成本地 account / credential / external identity / Web Session / role / membership 领域契约和 memory / SQLite / PostgreSQL dev/test 仓储；既有 deterministic OIDC verifier 继续只作为 resource-server 证据，不能冒充浏览器登录。
+1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A。当前只推进批次 B 本地注册、登录、当前 session、logout、revoke、安全 cookie 与 CSRF / origin 边界；既有 deterministic OIDC verifier 继续只作为 resource-server 证据，不能冒充浏览器登录。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-19 今日评审与下一事项

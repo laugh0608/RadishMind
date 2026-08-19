@@ -2,7 +2,7 @@
 
 更新时间：2026-08-19
 
-状态：`local_account_radish_oidc_federated_login_v1_design_defined`
+状态：`local_account_radish_oidc_federated_login_v1_batch_a_completed`
 
 ## 功能定位
 
@@ -25,9 +25,17 @@
 
 - Platform 已有 deterministic OIDC discovery / JWKS / JWT verifier，只服务两条 Admin resource-server operation。
 - 当前 OIDC runtime 不实现 authorization code、PKCE、`state`、`nonce`、callback、logout、session cookie 或 refresh token。
-- 当前仓库没有本地用户 repository、注册 / 登录 route、密码凭证 owner、外部身份绑定 owner 或 Web Session owner。
-- 当前 `WorkspaceMembershipProvider` 只消费 dev header / signed-test assertion；OIDC integration mode 固定返回 `workspace_membership_unavailable`。
+- Platform 已落地本地账户、密码凭证、外部身份绑定、Web Session、角色分配与 workspace membership 的领域契约，以及 memory / 聚合 SQLite / 显式 PostgreSQL dev/test repository；PostgreSQL 保持 manual migration 和受限 runtime role，三种实现都不 fallback。
+- 当前仍没有注册 / 登录 HTTP route、session cookie 或 browser OIDC callback；新的本地 `WorkspaceMembershipProvider` adapter 已可从 `user:<user_id>` 恢复本地授权，但尚未接入 HTTP auth middleware，dev header / signed-test assertion 仍是现有页面路径。
 - User / Role 页面目前仍是旧 Radish-owned blocked surface，必须在身份后端形成稳定读写契约后再迁移，不能用离线 fixture 冒充本地用户事实。
+
+## 批次 A 实现状态
+
+- `local_identity_domain.go` 固定六类 owner、稳定 ID、状态机、版本、时间、失败分类、受限登录标识与 exact issuer / subject 规范化；`user_id -> user:<user_id>` 是唯一 actor projection。
+- 本地密码派生使用 Go 标准库 `crypto/pbkdf2` 的 PBKDF2-HMAC-SHA-256，策略版本、迭代数、salt 和 key length 显式；salt、派生结果和 session credential digest 均不进入 JSON projection。
+- `CreateAccount` 原子写入账户与首个 credential；credential replacement 使用当前 `credential_id + record_version` 双条件 CAS，账户禁用与全 session revoke、external binding、session、role 和 membership 均采用身份键、版本条件与唯一约束。
+- 聚合 SQLite migration 已进入 shared local persistence runtime；PostgreSQL 提供独立 manual migration、sanitized runner、运行角色、重启和 rollback integration test，不在服务启动时自动迁移。
+- 本地 membership adapter 每次重新读取 active account、membership 与 role grants；account disable、session revoke / expire、membership revoke 和 permission denial 都失败关闭，不读取 OIDC claims 作为本地 grant。
 
 ## Owner 模型
 
@@ -117,10 +125,10 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 ### 批次 A：领域契约与开发测试仓储
 
-- 固定账户、凭证、外部身份、会话、角色与 membership contract。
-- 定义 repository interface、memory / SQLite / PostgreSQL 语义、migration、唯一约束和 no-fallback。
-- 建立本地 `user_id -> actor_ref` 投影及现有 `WorkspaceMembershipProvider` 的本地 owner adapter。
-- 完成密码派生、敏感字段禁入、并发注册 / 绑定、会话撤销和 repository negative tests。
+- 已完成账户、凭证、外部身份、会话、角色与 membership contract。
+- 已完成 repository interface、memory / SQLite / PostgreSQL 语义、migration、唯一约束和 no-fallback。
+- 已完成本地 `user_id -> actor_ref` 投影及 `WorkspaceMembershipProvider` 的本地 owner adapter。
+- 已完成密码派生、敏感字段禁入、并发注册、绑定唯一性、会话撤销和 repository negative tests。
 
 ### 批次 B：本地注册、登录与会话
 
@@ -167,4 +175,4 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 ## 下一实现入口
 
-[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](../../task-cards/local-account-radish-oidc-federated-login-v1-plan.md)承接批次 A 至 E。当前立即进入批次 A，只先实现稳定领域契约与三种开发测试仓储；在账户、外部身份、会话和 membership owner 可复验前，不直接打开浏览器 callback 或真实 Radish 联调。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](../../task-cards/local-account-radish-oidc-federated-login-v1-plan.md)承接批次 A 至 E。批次 A 已完成；下一步进入批次 B，把本地注册、登录、当前 session、logout 与 revoke HTTP 接入统一 session actor context。浏览器 OIDC callback 和真实 Radish 联调仍分别等待批次 C 与 E。
