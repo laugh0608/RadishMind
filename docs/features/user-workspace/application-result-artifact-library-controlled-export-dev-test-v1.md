@@ -146,6 +146,7 @@ export query 只允许 `workspace_id`。两个路由均默认关闭，复用 App
 - S5 Runtime Review 增加第四个 `Saved results` task，任一时刻只挂载一个 owner；列表只含 metadata，正文按 summary 的精确 Session / artifact 读取，Run 继续交接既有 S6 owner，archive / unarchive 继续调用既有 CAS 路由。
 - Web `375/375` 与 production build 通过；应用内浏览器覆盖 `1440×900`、`720×900`、`390×844`，三种宽度均无横向溢出且只有一个选中任务。active / archived 与 content type 筛选切换、清除和 application-scoped route 命中正常，控制台零 warning / error。
 - 当前 Agent 本地产品数据缺少可用 assignment，创建验证数据按既有合同返回 `application_session_authority_changed`，没有绕过 authority 或伪造 artifact；同一页面的 exact read / export / lifecycle / 重启连续链留在批次 C 使用稳定双 Session fixture 验收。
+- 2026-08-19 真实产品审计后的 owner-local 跟进已补齐 `Open Run evidence`：真实 canonical Run 会在进入 Run Review 后直接选中并显示精确详情；fixture `run_ref` 无对应 canonical Run 时显示当前 Application scope 内不可用，且不回退其它 Run、不 replay、不复制或伪造 evidence。修正继续复用既有 S5 / S6 handoff，覆盖级别保持 `C / 直接实现`。
 
 ### 批次 C：双数据库产品连续链与专题收口
 

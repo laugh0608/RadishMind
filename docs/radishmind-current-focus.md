@@ -40,15 +40,16 @@
 
 当前最多两条在制主线：
 
-1. 产品线：应用运行观测后续准入已评审为 `no_entry`，真实开发者路径审计也已完成。结构化 Session → 显式结果保存 → Application Operations → Result Workspace → exact Run detail / compatible Comparison 总体闭环通过，未形成服务端 summary 或新长期专题需求。下一项只在既有 Session、Result Workspace 与 Run Review owner 内修正 exact Run 交接和 authority drift 恢复引导；不新增 API、schema、repository、Pencil、task card、fixture 或 checker。
+1. 产品线：应用运行观测后续准入已评审为 `no_entry`，真实开发者路径审计与审计暴露的 owner-local 恢复交接修正也已完成。结构化 Session → 显式结果保存 → Application Operations → Result Workspace → exact Run detail / compatible Comparison 总体闭环通过；有效 Run 可直接打开精确详情，缺失 canonical evidence 会稳定失败关闭，Session authority 漂移会给出只读刷新与显式重选引导。当前回到[功能设计文档入口](features/README.md)，比较四个正式产品面的下一项真实长期任务，不从本批派生新 API、schema、repository、Pencil、task card、fixture 或 checker。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-19 今日评审与下一事项
 
 1. 应用运行观测后续四项准入条件均未满足：没有真实跨页阻塞、没有统一 snapshot / cursor 语义、没有时间桶与性能预算、没有正式 quota / billing owner。评审结论已写回功能专题，不进入服务端 summary 实现。
 2. SQLite 真实页面已贯通结构化 Session 执行、逐 turn 显式保存、Application Operations 独立窗口、Result Workspace exact read、Run detail 与 compatible Comparison；输入值未持久化，过期 Session 在 Provider 前失败关闭，页面无 console warning / error。
-3. 审计只发现既有 owner 内的恢复交接缺口：exact Run action 进入列表后仍需再次选择，缺失 canonical Run evidence 时没有明确说明；`application_session_authority_changed` 也缺少刷新或选择当前 Session 的引导。下一项按普通 UI / 使用性修正处理，不创建新专题或高风险批次。
+3. 审计发现的既有 owner 恢复交接缺口已修正：exact Run action 在 `React.StrictMode` 下仍保持一次稳定 owner-scope 初始化，有效目标直接打开精确详情；目标不存在或不在当前 Application scope 时显示稳定说明，不回退其它 Run，也不合成 canonical evidence。三类 Session authority 失败会显示只读 reload、显式选择当前 authority 或审查后新建 Session 的恢复说明，且不会自动切换、创建、重试或调用 Provider。
 4. 工作区运营收件箱批次 B、结果资产批次 D / E、S11、真实 Provider、production auth / secret、billing 与同层 gate-only 切片继续关闭。
+5. 下一顺位回到[功能设计文档入口](features/README.md)，基于真实任务比较用户工作区、管理控制面、模型网关 / API 分发、工作流 / Agent 运行时四个产品面；没有新证据前不把本次普通 UI 修正扩成新专题。
 
 ## 2026-08-17 今日完成与明天事项
 

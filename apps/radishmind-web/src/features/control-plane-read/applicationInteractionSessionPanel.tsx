@@ -19,6 +19,7 @@ import {
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 import ApplicationResultArtifactPanel from "./applicationResultArtifactPanel.tsx";
 import type { ApplicationResultArtifactSummary } from "./applicationResultArtifactConsumer.ts";
+import { applicationInteractionSessionFailureGuidance } from "./controlledUseFailureGuidance.ts";
 import StructuredRuntimeInputEditor from "./StructuredRuntimeInputEditor.tsx";
 import {
   structuredRuntimeInputAuthorityKey,
@@ -333,6 +334,7 @@ export default function ApplicationInteractionSessionPanel({
   const workflowProfile = selectedSession?.executionProfile === "workflow_definition_executor_v1" || selectedSession?.executionProfile === "workflow_definition_executor_v2";
   const canCreate = config.mode !== "offline" && applicationActive && !pending && (profile === "application_rag_invocation_v1" || Boolean(definitionId.trim()));
   const canSubmit = config.mode !== "offline" && applicationActive && selectedSession?.state === "active" && Boolean(structuredInputContract || input.trim()) && !pending;
+  const failureGuidance = applicationInteractionSessionFailureGuidance(operationFailure);
 
   return (
     <section className="surface-band application-interaction-session" id="application-interaction-session" aria-labelledby="application-interaction-session-title">
@@ -437,6 +439,18 @@ export default function ApplicationInteractionSessionPanel({
         )}
       </div>
 
+      {failureGuidance ? (
+        <article className="controlled-use-failure-guidance" aria-label="Application Session authority recovery guidance">
+          <div className="application-api-card-heading">
+            <div><p className="eyebrow">Session recovery</p><h5>{failureGuidance.title}</h5></div>
+            <span className="status-badge bad">no provider call</span>
+          </div>
+          <p>{failureGuidance.summary}</p>
+          <p>{failureGuidance.recoverySummary}</p>
+          <p className="boundary-note">{failureGuidance.sideEffectSummary} Reloading only refreshes metadata; it does not switch authority, create a Session, or retry the failed turn.</p>
+          <button type="button" className="secondary-action" onClick={() => void reloadSessions()} disabled={Boolean(pending) || !applicationActive}>Reload current sessions</button>
+        </article>
+      ) : null}
       {operationFailure ? <p className="failure-summary" role="alert">{operationFailure}</p> : <p className="boundary-note">Application changes, session changes, route unmount, and cancellation invalidate pending response generations. Late responses cannot repopulate this workspace.</p>}
     </section>
   );

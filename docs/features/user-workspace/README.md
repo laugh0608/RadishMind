@@ -34,7 +34,7 @@
 
 ## 下一步
 
-- 应用运行观测后续准入已评审完成，真实页面也已贯通“受控调用或 Session → Application Operations → 结果保存 → Result Workspace → exact Run detail / Comparison”。下一顺位只修正既有 owner 的 exact Run 目标交接、缺失 evidence 说明和 authority drift 恢复引导；不为该普通 UI / 使用性修正启动服务端投影、新专题、Pencil 或专项门禁。
+- 应用运行观测后续准入已评审完成，真实页面也已贯通“受控调用或 Session → Application Operations → 结果保存 → Result Workspace → exact Run detail / Comparison”。既有 owner 的 exact Run 目标交接、缺失 evidence 说明和 authority drift 恢复引导已经完成；有效 Run 直接打开详情，缺失 Run 失败关闭，Session reload 不自动切换、创建或重试。下一顺位回到上级功能设计入口，不为该普通 UI / 使用性修正启动服务端投影、新专题、Pencil 或专项门禁。
 - 应用会话运行结果资产显式保存与恢复 v1 已完成批次 A 至 D 并关闭。下一产品顺位回到上级功能设计文档入口选择新的长期目标；不从已关闭 Session / Result Artifact 专题扩永久 purge、transcript、长期记忆、replay / resume 或 agent loop。
 - S9 / S10 功能实现、SQLite 重启复验、Visual R3 人工复核、React 迁移与三视口浏览器证据已完成；旧 R1 与 Visual R2 仍只保留为退回历史。Provider 价格与应用成本专题的 S7 / S5 Visual R1、React strict consumer 和产品连续链也已完成。下一顺位回到功能设计入口选择新的真实产品阻塞，不从已关闭专题派生同层页面、自动执行或生产能力。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。

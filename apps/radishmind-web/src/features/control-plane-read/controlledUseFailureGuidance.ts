@@ -8,6 +8,13 @@ export type ControlledUseFailureGuidance = {
   sideEffectSummary: string;
 };
 
+export type ApplicationInteractionSessionFailureGuidance = {
+  title: string;
+  summary: string;
+  recoverySummary: string;
+  sideEffectSummary: string;
+};
+
 const PROMPT_INVOCATION_FAILURES: Record<string, Pick<ControlledUseFailureGuidance, "title" | "summary">> = {
   prompt_runtime_assignment_not_found: {
     title: "No active Prompt assignment",
@@ -30,7 +37,7 @@ const SESSION_FAILURES: Record<string, { titleSuffix: string; summary: string }>
   },
   application_session_authority_changed: {
     titleSuffix: "authority changed",
-    summary: "The current assignment no longer matches one or more reviewed application, candidate, configuration, or source-version references.",
+    summary: "The Session authority no longer matches one or more current Definition activation, Application assignment, configuration, candidate, or source-version references.",
   },
   application_session_profile_ineligible: {
     titleSuffix: "profile is ineligible",
@@ -39,6 +46,19 @@ const SESSION_FAILURES: Record<string, { titleSuffix: string; summary: string }>
 };
 
 const SIDE_EFFECT_SUMMARY = "The server blocked this attempt before delegated Gateway or provider execution. No provider call was made.";
+
+export function applicationInteractionSessionFailureGuidance(
+  failureCode: string,
+): ApplicationInteractionSessionFailureGuidance | null {
+  const failure = SESSION_FAILURES[failureCode];
+  if (!failure) return null;
+  return {
+    title: `Session ${failure.titleSuffix}`,
+    summary: failure.summary,
+    recoverySummary: "Reload the current Application sessions, then explicitly select a Session bound to the current authority or create a new bound Session after reviewing its Definition or assignment.",
+    sideEffectSummary: SIDE_EFFECT_SUMMARY,
+  };
+}
 
 export function controlledUseFailureGuidance(
   owner: ControlledUseOwner,

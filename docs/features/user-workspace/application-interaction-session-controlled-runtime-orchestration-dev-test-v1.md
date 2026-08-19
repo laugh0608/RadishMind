@@ -145,6 +145,7 @@ turn 不保存 input、answer、prompt、模型原始响应、retrieval context�
 - Web 不写 URL、localStorage、sessionStorage、IndexedDB、日志或持久 repository。
 - 批次 E 已完成 macOS / Windows launcher 双 profile 开关、SQLite / PostgreSQL 连续链、服务重启恢复、真实浏览器与敏感内容扫描；Web 会话列表显式消费服务端 `active | closed` 状态过滤，关闭后的 session / turn / run ref 可在重启后只读恢复，不重建 transcript。
 - 真实浏览器同时验证 Workflow Definition v5 与 Application RAG v4 turn、Run History v5 / v4 detail、session close 和零控制台错误；v4 authority snapshot 现按完整 tenant / workspace / application scope 严格解析，作用域漂移失败关闭。
+- 2026-08-19 owner-local 跟进已为 `application_session_authority_not_found`、`application_session_authority_changed` 与 `application_session_profile_ineligible` 增加统一恢复引导：只允许重新加载 metadata，再由用户显式选择当前 authority 下的 Session，或在审查 authority 后新建 Session；不得自动切换 authority、创建 Session、重试 turn 或调用 Provider。该普通 UI / 使用性修正复用既有失败引导，覆盖级别仍为 `C / 直接实现`，不修改 Pencil，也不增加 API、schema、repository、task card、fixture 或 checker。
 
 ## 实施批次
 

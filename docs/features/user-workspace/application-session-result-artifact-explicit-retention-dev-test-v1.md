@@ -144,6 +144,8 @@ archive / unarchive route 已按 expected lifecycle version 执行 CAS，每次�
 
 页面设计审查五维评分为 `0 / 0 / 0 / 0 / 2 = 2`，采用 `C / 直接实现`：信息层级、风险表达和响应式模式均复用既有 S3 生命周期库与 S8 Session owner，只有三页共享复用带来新增杠杆，因此未修改 Pencil、未建立 S11。SQLite 本地产品已在真实浏览器完成 Prompt 与结构化 Workflow Application 的显式保存、metadata list、exact read 和 archive / unarchive；Agent 旧 assignment 继续以 `application_session_authority_changed` 在 Provider 调用前失败关闭。`1440×900`、`720×900`、`390×844` 无页面级横向溢出，控制台无 warning / error；Web `371/371` 与 production build 已通过。
 
+2026-08-19 owner-local 跟进修正了共享 artifact 面板向 Run Review 的 exact handoff：目标 Run 存在时直接选中并读取 canonical detail；目标不存在或不在当前 Application scope 时显示明确的 unavailable 状态，不回退其它 Run，不 replay，也不为 fixture 合成 Run。根因是 `React.StrictMode` 重放 mount effect 时重复推进请求代际并清空首次有效 handoff；当前按稳定 owner-scope key 只初始化一次，仍保留 application / workspace / refresh / live scope 变化时的正常失效。
+
 ### 批次 D：双数据库产品连续链与专题收口（已完成）
 
 - memory / SQLite / PostgreSQL 验证同一 profile matrix、幂等、权限、cursor、archive / unarchive、purge route 不存在与 no-fallback。
