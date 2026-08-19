@@ -2,7 +2,7 @@
 
 更新时间：2026-08-19
 
-状态：`local_account_radish_oidc_federated_login_v1_batch_a_completed_batch_b_ready`
+状态：`local_account_radish_oidc_federated_login_v1_batch_b_completed_batch_c_ready`
 
 对应功能设计：[RadishMind 本地账户与 Radish OIDC 联合登录 v1](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)
 

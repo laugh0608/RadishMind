@@ -1,6 +1,6 @@
 # Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1
 
-更新时间：2026-07-26
+更新时间：2026-08-19
 
 状态：`workspace_scoped_read_transition_dev_test_v1_batch_b_complete`
 
@@ -196,9 +196,9 @@ production 必须拒绝 dev headers、signed test token、dev membership asserti
 
 Admin Web 已增加进程内 active workspace selector。五条 workspace read route 携带 active workspace；仅 dev headers 模式携带逐路由最小 membership permission，signed-test 与 OIDC 不混入 dev proof。切换会清空旧 application、workflow definition、run 与 draft 选择并重新加载；离线态不发送请求，非法值不切换。
 
-### 条件式批次 C：Reviewed Membership Adapter
+### 历史条件式批次 C：Reviewed Membership Adapter
 
-只有 Radish owner 提供 reviewed membership contract 后，才设计 integration adapter、撤销 / cache / unavailable 和 OIDC HTTP / browser evidence。它不从 deterministic provider 自动晋级。
+本条件只保留 legacy Radish resource-server membership adapter 的历史语义：只有 Radish owner 提供 reviewed membership contract 后，才能设计该 integration adapter、撤销 / cache / unavailable 和对应 OIDC evidence，不得从 deterministic provider 自动晋级。2026-08-19 后，RadishMind 交互式授权改由本地 identity / membership owner 承载，browser OIDC 只做外部认证；因此不从本专题启动该批次 C。
 
 ## 停止线
 
@@ -211,4 +211,4 @@ Admin Web 已增加进程内 active workspace selector。五条 workspace read r
 
 ## 下一实现入口
 
-批次 A、B 已完成，开发 / 测试态 v1 的 workspace authorization、durable read projection、workspace-wide Run history 与非持久化 Web selector 已形成闭环。当前没有可直接启动的批次 C：必须先取得 reviewed Radish membership owner / endpoint、撤销与过期语义及 OIDC mapping，才能更新本专题并设计 adapter。若无该上游证据，下一步回到功能设计入口选择新的真实产品能力；quota policy owner 继续独立等待。
+批次 A、B 已完成，开发 / 测试态 v1 的 workspace authorization、durable read projection、workspace-wide Run history 与非持久化 Web selector 已形成闭环，本专题保持关闭。RadishMind 本地 membership owner 和 Web Session actor 已转由[本地账户与 Radish OIDC 联合登录 v1](../admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 A、B 实现；下一步只在新专题推进确定性 browser OIDC，不恢复本专题的 legacy Radish membership adapter。

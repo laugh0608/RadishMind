@@ -1,6 +1,6 @@
 # Admin Control Plane 设计与开发文档
 
-更新时间：2026-08-09
+更新时间：2026-08-19
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 - `apps/radishmind-web/` 已完成 `S7 R1` Admin Control Plane 连续工作面与 `S9 R1` Admin Quota Admission：以 tenant / workspace / auth source / environment 为上下文，Tenant、User、Role、Audit、Provider、Profile、Route 与 Quota 八类资源只挂载一个当前 owner；旧 Operations / Deployment readiness 降为可折叠 supporting evidence，不再与主任务并列。
 - Tenant / Audit 使用既有 authenticated read consumer；Audit 保持 `recorded_at_desc` 严格 cursor current window，并由当前行驱动 metadata-only detail。User / Role 已有本地 identity / role owner，但当前还没有 list repository / consumer，因此页面仍保持 blocked action；批次 D 前不得用离线 fixture 或 deterministic OIDC test 伪造用户、角色或 membership。
-- Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test；五条 workspace operation 已共享 `WorkspaceMembershipProvider`，Applications、API Keys、Workflow Definitions 与 Runs 复用 durable owner。旧 User Workspace `QuotaSummary` 因没有 application 选择与读权限契约继续明确关闭；独立的开发测试态 Admin quota owner 已完成 policy / usage / provider attempt admission 后端，不偷换旧投影。dev / signed-test membership 已可确定性复验，OIDC integration 仍因缺少 reviewed membership contract 而失败关闭。
+- Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test；五条 workspace operation 已共享 `WorkspaceMembershipProvider`，Applications、API Keys、Workflow Definitions 与 Runs 复用 durable owner。旧 User Workspace `QuotaSummary` 因没有 application 选择与读权限契约继续明确关闭；独立的开发测试态 Admin quota owner 已完成 policy / usage / provider attempt admission 后端，不偷换旧投影。dev / signed-test membership 与 `local_session_dev_test` 本地 membership 已可确定性复验；legacy OIDC integration token 因没有 external identity binding 仍失败关闭，不回退本地 owner。
 - 当前已有本地账户 / Web Session owner 与开发测试态 session HTTP，也有 deterministic Radish OIDC discovery / JWKS / JWT resource-server verifier；Authorization Code + PKCE、reviewed Radish client registration、真实 integration evidence、production token / session、secret resolver、deployment preflight 和 production admin 操作仍未完成。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。

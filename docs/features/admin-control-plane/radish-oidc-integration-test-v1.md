@@ -1,6 +1,6 @@
 # Radish OIDC Integration Test v1
 
-更新时间：2026-07-12
+更新时间：2026-08-19
 
 状态：`radish_oidc_integration_test_runtime_v1_deterministic_complete_real_integration_deferred`
 
@@ -20,7 +20,7 @@
 - 两条 Admin operation 已接入现有 auth boundary；五条 workspace operation 统一返回 `workspace_membership_unavailable`，鉴权和 membership denial 均为 repository zero-query。
 - Web consumer 支持独立 OIDC integration token provider，token 只存在页面内存，不回退 signed test token 或 dev headers。
 - 当前仍没有 reviewed Radish issuer、discovery document、JWKS URI、signing algorithm、resource audience 或 claim mapping evidence。
-- 当前 integration-token 路径没有映射到 RadishMind 本地账户，也没有本地 workspace / application membership repository；真实 OIDC token 不能替代该缺口。
+- 当前 integration-token 路径没有映射到 RadishMind 本地账户，因此不会自动消费批次 A 已建立的本地 workspace membership repository；真实 resource-server token 不能替代 external identity binding 或本地 membership decision。
 - 历史 upstream evidence / readiness 文档保留为归档输入，不再派生同层 checker 链；本设计以一个后续高风险任务卡承接实现和联调。
 
 ## 阶段决策与未来接入形态

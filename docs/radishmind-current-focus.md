@@ -44,13 +44,21 @@
 1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A、B。当前下一步只推进批次 C 的确定性 browser OIDC client：Authorization Code + PKCE、state / nonce、callback 与 external identity binding；既有 deterministic OIDC verifier 继续只作为 resource-server 基础，不能直接冒充 browser login。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
-## 2026-08-19 今日评审与下一事项
+## 2026-08-19 今日评审
 
 1. 应用运行观测后续四项准入条件均未满足：没有真实跨页阻塞、没有统一 snapshot / cursor 语义、没有时间桶与性能预算、没有正式 quota / billing owner。评审结论已写回功能专题，不进入服务端 summary 实现。
 2. SQLite 真实页面已贯通结构化 Session 执行、逐 turn 显式保存、Application Operations 独立窗口、Result Workspace exact read、Run detail 与 compatible Comparison；输入值未持久化，过期 Session 在 Provider 前失败关闭，页面无 console warning / error。
 3. 审计发现的既有 owner 恢复交接缺口已修正：exact Run action 在 `React.StrictMode` 下仍保持一次稳定 owner-scope 初始化，有效目标直接打开精确详情；目标不存在或不在当前 Application scope 时显示稳定说明，不回退其它 Run，也不合成 canonical evidence。三类 Session authority 失败会显示只读 reload、显式选择当前 authority 或审查后新建 Session 的恢复说明，且不会自动切换、创建、重试或调用 Provider。
 4. 身份 owner 已修正为 RadishMind 本地账户、角色与 workspace membership；Radish OIDC 只按 `(issuer, subject)` 绑定本地 `user_id`，不按 email 自动合并，也不直接采用 Radish role / permission claim。
 5. 联合身份专题批次 A、B 已完成，下一实现入口为批次 C 的确定性 browser OIDC client；工作区运营收件箱批次 B、结果资产批次 D / E、S11、真实 Provider、production auth / secret、billing 与同层 gate-only 切片继续关闭。
+
+## 2026-08-20 明日事项
+
+1. 只启动联合身份专题批次 C，先对照功能文档、高风险任务卡和已有 resource-server OIDC primitive 复核职责边界；不进入真实 Radish 联调或 Web 产品面。
+2. 建立受审 provider / client policy 和一次性 authorization transaction owner，固定 exact issuer / client / redirect / scope、受限 return target、state / nonce / PKCE verifier 的期限、单次消费和并发语义。
+3. 实现 login start、Authorization Code callback 和独立 ID token policy；只复用 bounded discovery / JWKS 基础，不复用 Admin resource audience 或 permission projection 充当 browser login。
+4. 完成已绑定身份登录、准入受控的首次创建、已登录用户显式绑定和冲突拒绝；账户、binding 与 session 必须保持原子或零副作用，不按 email 自动合并，不把上游 claim 转为本地 grant。
+5. 用仓库自有 loopback issuer 验证正向、state / nonce / PKCE / code replay、provider unavailable、key rotation、并发、重启、隐私和 memory / SQLite / PostgreSQL no-fallback；批次 C 不提供 UI，不保存 refresh token，不声明 production auth ready。
 
 ## 2026-08-17 今日完成与明天事项
 
