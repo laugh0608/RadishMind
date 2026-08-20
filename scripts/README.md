@@ -1,6 +1,6 @@
 # scripts/ 目录说明
 
-更新时间：2026-07-20
+更新时间：2026-08-20
 
 ## 目录目标
 
@@ -17,6 +17,7 @@
   - `bootstrap-dev.sh` 与 `bootstrap-dev.ps1` 是首次拉取后的开发环境入口：它们创建仓库根 `.venv`，并用 `.venv` 安装 `requirements-dev.txt` 声明的 Python 检查依赖
   - `run-python.sh` 与 `run-python.ps1` 是 Python 脚本包装入口，默认只使用仓库根 `.venv`，用于避免独立脚本隐式落到全局 Python
   - `check-repo.py` 支持 `--fast`，用于日常快速验证；`check-repo.sh --fast`、`check-repo-fast.sh`、`pwsh ./scripts/check-repo.ps1 -Fast` 与 `pwsh ./scripts/check-repo-fast.ps1` 默认使用仓库根 `.venv`，没有 `.venv` 时要求先执行 bootstrap；这些入口会跳过慢速回归和批量元数据重跑，但仍保留核心静态门禁
+  - `scripts/checks/repository_governance.py` 统一发现已跟踪与未跟踪但未忽略的仓库文件，并校验 Markdown 相对链接不会越出仓库或指向不存在的目标；外部 URL、页内锚点、行内代码与代码围栏不做本地存在性判断。对应单元测试位于 `scripts/checks/tests/test_repository_governance.py`，并接入 fast / full 聚合入口
   - 活动功能检查应从各自 schema、fixture、实现、专题、路线图、任务卡、脚本说明和周志读取证据，不要求 `docs/radishmind-current-focus.md` 重复列出功能 slice、fixture 或 checker 名称；当前焦点只保留语言、体量、console 开发边界和生产停止线四类合理检查职责
   - 当前还提供 `check-doc-language-policy-v1.py`，用于固定文档正文中文优先、必要英文标识符保留原文、历史英文工程短语逐批收口、[文档语言治理 v1](../docs/document-language-governance-v1.md) 专题引用和优先入口文档提示；该检查不做全仓机械翻译，也不改写状态锚点、fixture key、路径或机器检查依赖的字面量 literal
   - GitHub Actions 的 PR 检查拆为 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个组件，并由 `Candidate Quality` 聚合收口；release workflow 保留独立命名的对应检查。仓库治理走聚合入口，Web 执行覆盖率预算与构建，Console 执行构建，Go 平台执行核心包覆盖率预算、race 和 vet，PostgreSQL job 使用临时 service 执行全部已评审的 platform migration、产品 repository 与关联 Control Plane read 集成测试并报告独立覆盖率

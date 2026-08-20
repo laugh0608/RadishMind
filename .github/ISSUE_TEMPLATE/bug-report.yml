@@ -1,0 +1,77 @@
+name: 缺陷报告
+description: 报告可复现的功能、协议、文档、模型消费或工具链问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        安全漏洞、真实凭据、个人数据或敏感模型材料不要写入公开 Issue。请阅读 SECURITY.md，并使用仓库 Security 页面中的私密报告入口。
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已确认这不是需要私下报告的安全漏洞。
+          required: true
+        - label: 我已搜索现有 Issue，并阅读当前推进焦点和相关功能专题。
+          required: true
+        - label: 本报告不包含真实凭据、个人数据、未经脱敏的日志、专有输入或无权提供的第三方材料。
+          required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: 主要领域
+      options:
+        - 用户工作区
+        - 管理控制面与身份
+        - 模型网关与 Provider
+        - Workflow 与 Agent 运行时
+        - RadishMind-Core、训练与评测
+        - RadishFlow 或 Radish 适配
+        - 文档、脚本、CI 与仓库治理
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 问题摘要
+      description: 简明说明实际问题、影响和受影响的用户路径。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 最小复现
+      description: 提供最小、可重复且不泄露秘密的步骤、输入、命令或文档路径。
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 说明依据的协议、功能文档、页面状态或测试预期。
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为与证据
+      description: 附上已脱敏的错误、日志、响应、运行记录或截图，并说明证据覆盖范围。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境与版本
+      description: 提供 commit、操作系统、运行模式、存储后端、浏览器或相关依赖版本；不要粘贴秘密。
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: 权限、数据与停止线影响
+      description: 是否涉及 workspace scope、身份、权限、确认、Provider、用户数据、模型输入输出、fallback 或 production 声明？
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: 临时缓解与补充信息
