@@ -432,18 +432,18 @@ def check_content_baseline() -> None:
         if "SECURITY.md" not in issue_form_content or "私密" not in issue_form_content:
             raise SystemExit(f"{issue_form} does not route security reports to the private channel")
 
-    for collaboration_filename in ("AGENTS.md", "CLAUDE.md"):
-        collaboration_content = (REPO_ROOT / collaboration_filename).read_text(encoding="utf-8")
-        for expected_content in (
-            "当前常态开发分支为 `dev`",
-            "`feature/* -> dev -> master -> dev`",
-            "每次 `dev -> master` PR 合并后",
-            "`master -> dev` 是合并后的稳定主线回同步",
-        ):
-            if expected_content not in collaboration_content:
-                raise SystemExit(
-                    f"{collaboration_filename} is missing branch topology governance: {expected_content}"
-                )
+    agents_content = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    claude_content = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    if agents_content != claude_content:
+        raise SystemExit("AGENTS.md and CLAUDE.md must remain byte-for-byte identical")
+    for expected_content in (
+        "只保留启动级长期约束",
+        "[当前推进焦点](docs/radishmind-current-focus.md)",
+        "[Agent 协作与执行规则](docs/agent-collaboration.md)",
+        "两个文件必须逐字一致",
+    ):
+        if expected_content not in agents_content:
+            raise SystemExit(f"Agent root entry is missing governance anchor: {expected_content}")
 
     pr_template_content = (REPO_ROOT / ".github/PULL_REQUEST_TEMPLATE.md").read_text(encoding="utf-8")
     if "默认目标分支为 `dev`" not in pr_template_content:

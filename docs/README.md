@@ -1,26 +1,29 @@
 # RadishMind 文档入口
 
-更新时间：2026-08-19
+更新时间：2026-08-22
 
 ## 阅读原则
 
 `docs/` 是 RadishMind 的正式文档源。关键入口文档只保留项目定位、当前阶段、最近进度、下一步和停止线；历史推演、批次细节、长实验观察和一次性讨论应沉淀到 `docs/devlogs/`、任务卡、manifest 或 run record 中。
 
-文档默认按“短入口 + 专题页 + 证据附件”维护：入口文档保持可快速阅读，契约细节拆到稳定专题，长命令输出、批次流水和实验观察进入周志、任务卡附件、manifest、summary 或 run record。仓库级检查会对 Markdown 篇幅执行预算：入口文档超过 `250` 行失败，普通 Markdown 超过 `500` 行提示、超过 `800` 行失败，周志和任务卡超过 `350` 行提示、超过 `600` 行失败；临时超限必须在文件头写明 `markdown-size-allow:` 及拆分计划。
+`AGENTS.md` 与 `CLAUDE.md` 只保留启动级长期约束，详细任务推进、授权、联调、本地模型和验证规则由 [Agent 协作与执行规则](agent-collaboration.md)承接。阶段状态、临时门禁和“当前不做”只更新当前焦点或对应专题，不复制回根入口。
+
+文档默认按“短入口 + 专题页 + 证据附件”维护：入口文档保持可快速阅读，契约细节拆到稳定专题，长命令输出、批次流水和实验观察进入周志、任务卡附件、manifest、summary 或 run record。仓库级检查会对 Markdown 篇幅执行预算：Agent 根入口超过 `180` 行提示、超过 `250` 行失败；`docs/` 入口文档超过 `250` 行失败；普通 Markdown 超过 `500` 行提示、超过 `800` 行失败；周志和任务卡超过 `350` 行提示、超过 `600` 行失败。临时超限必须在文件头写明 `markdown-size-allow:` 及拆分计划。
 
 文档正文默认中文；没有稳定中文对应的专业名词、代码、命令、路径、配置键、协议字段、状态锚点、fixture / checker ID、外部产品名和必要引用保留原文。历史英文工程短语按入口文档、专题文档、任务卡和周志顺序逐批收口，不做会破坏机器检查 literal 的机械翻译；具体边界见 [文档语言治理 v1](document-language-governance-v1.md)。
 
 新会话优先按以下顺序读取：
 
 1. 本文件
-2. [项目总览与使用指南](radishmind-project-guide.md)
-3. [当前推进焦点](radishmind-current-focus.md)
-4. [产品范围与目标](radishmind-product-scope.md)
-5. [战略定义](radishmind-strategy.md)
-6. [能力矩阵](radishmind-capability-matrix.md)
-7. [阶段路线图](radishmind-roadmap.md)
-8. [功能设计文档入口](features/README.md)
-9. 与当次任务直接相关的细专题、平台专题、集成专题、架构、契约、任务卡、评测或周志
+2. Agent 协作任务按需读取 [Agent 协作与执行规则](agent-collaboration.md)
+3. [项目总览与使用指南](radishmind-project-guide.md)
+4. [当前推进焦点](radishmind-current-focus.md)
+5. [产品范围与目标](radishmind-product-scope.md)
+6. [战略定义](radishmind-strategy.md)
+7. [能力矩阵](radishmind-capability-matrix.md)
+8. [阶段路线图](radishmind-roadmap.md)
+9. [功能设计文档入口](features/README.md)
+10. 与当次任务直接相关的细专题、平台专题、集成专题、架构、契约、任务卡、评测或周志
 
 ## 当前状态
 
@@ -82,6 +85,7 @@
 
 ## 关键文档
 
+- [Agent 协作与执行规则](agent-collaboration.md)
 - [当前推进焦点](radishmind-current-focus.md)
 - [项目总览与使用指南](radishmind-project-guide.md)
 - [产品范围与目标](radishmind-product-scope.md)

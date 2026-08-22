@@ -319,11 +319,7 @@
       "product-surface-readiness-implementation-trigger-recheck-v1",
       "product_surface_readiness_trigger_recheck_defined"
     ],
-    "AGENTS.md": [
-      "真实联调需要启动开发服务器",
-      "必须在任务结束、提交或交接前关闭对应后台进程"
-    ],
-    "CLAUDE.md": [
+    "docs/agent-collaboration.md": [
       "真实联调需要启动开发服务器",
       "必须在任务结束、提交或交接前关闭对应后台进程"
     ]
