@@ -117,7 +117,7 @@ func TestWorkflowDefinitionStructuredHTTPAndRunHistoryMetadataOnly(t *testing.T)
 	}
 	releaseContext := WorkflowDefinitionReleaseContext{RequestContext: context.Background(), TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", ApplicationID: applicationID, OwnerSubjectRef: actor, ActorRef: actor, RequestID: "request_structured_http_release", AuditRef: "audit_structured_http_release"}
 	draft := executableWorkflowStructuredDraftForTest(applicationID)
-	candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(releaseContext, "candidate_structured_http", "definition_structured_http", draft, time.Now().UTC())
+	candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(releaseContext, "candidate_structured_http", "definition_structured_http", "", draft, time.Now().UTC())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +186,7 @@ func workflowDefinitionStructuredExecutionFixture(t *testing.T) (workflowDefinit
 	}
 	releaseContext := WorkflowDefinitionReleaseContext{RequestContext: context.Background(), TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", ApplicationID: applicationID, OwnerSubjectRef: owner, ActorRef: owner, RequestID: "request_structured_release", AuditRef: "audit_structured_release"}
 	repository := newWorkflowDefinitionReleaseStore()
-	candidate, err := repository.CreateCandidate(releaseContext, "candidate_structured_runtime", "definition_structured_runtime", executableWorkflowStructuredDraftForTest(applicationID), time.Now().UTC())
+	candidate, err := repository.CreateCandidate(releaseContext, "candidate_structured_runtime", "definition_structured_runtime", "", executableWorkflowStructuredDraftForTest(applicationID), time.Now().UTC())
 	if err != nil {
 		t.Fatal(err)
 	}

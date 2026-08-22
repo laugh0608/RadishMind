@@ -12,6 +12,7 @@ import { requestGatewayRequestHistoryReview } from "./modelGatewayPlaygroundEven
 const ModelGatewayPlaygroundPanel = lazy(() => import("./modelGatewayPlaygroundPanel.tsx"));
 const ModelGatewayRequestHistoryPanel = lazy(() => import("./modelGatewayRequestHistoryPanel.tsx"));
 const ApplicationOperationsPanel = lazy(() => import("./applicationOperationsPanel.tsx"));
+const ApplicationResultArtifactLibraryPanel = lazy(() => import("./applicationResultArtifactLibraryPanel.tsx"));
 
 const RUNTIME_REVIEW_TASKS: ReadonlyArray<{
   surface: ApplicationRuntimeReviewSurface;
@@ -40,6 +41,13 @@ const RUNTIME_REVIEW_TASKS: ReadonlyArray<{
     label: "Application evidence",
     summary: "Current loaded windows",
     number: "03",
+  },
+  {
+    surface: "results",
+    anchor: "application-result-artifact-library",
+    label: "Saved results",
+    summary: "Cross-Session exact artifacts",
+    number: "04",
   },
 ];
 
@@ -160,7 +168,7 @@ export default function ApplicationRuntimeReviewWorkspace({
           })}
           <p className="application-runtime-review-boundary">
             <span aria-hidden="true">!</span>
-            Request input and output are temporary. History is sanitized. Operations combines independent current windows only.
+            Request input and output are temporary. History is sanitized. Operations combines independent current windows only. Saved results are explicit owner-scoped artifacts.
           </p>
         </nav>
 
@@ -190,6 +198,14 @@ export default function ApplicationRuntimeReviewWorkspace({
                 onEvidenceChange={reportOperationsEvidence}
                 onOpenGatewayRequest={openGatewayRequest}
                 onOpenWorkflowRun={openWorkflowRun}
+              />
+            </div>
+            <div hidden={activeSurface !== "results"} className="application-runtime-review-owner-panel">
+              <ApplicationResultArtifactLibraryPanel
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                active={activeSurface === "results"}
+                onOpenRun={openWorkflowRun}
               />
             </div>
           </Suspense>

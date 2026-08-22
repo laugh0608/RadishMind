@@ -157,12 +157,15 @@ func (store *postgresGatewayRequestStore) ListRequests(requestContext GatewayReq
  AND ($5='' OR request_route=$5) AND ($6='' OR protocol=$6)
  AND ($7='' OR selected_provider=$7) AND ($8='' OR selected_profile=$8) AND ($9='' OR selected_model=$9)
  AND ($10='' OR request_status=$10) AND ($11='' OR failure_boundary=$11) AND ($12='' OR usage_availability=$12)
- AND ($13::timestamptz IS NULL OR started_at >= $13) AND ($14::timestamptz IS NULL OR started_at <= $14)
- AND ($15::timestamptz IS NULL OR (started_at,request_id) < ($15,$16))
- ORDER BY started_at DESC, request_id DESC LIMIT $17`,
+ AND ($13::boolean IS NULL OR fallback_used=$13)
+ AND ($14='' OR terminal_provider=$14) AND ($15='' OR terminal_profile=$15)
+ AND ($16::timestamptz IS NULL OR started_at >= $16) AND ($17::timestamptz IS NULL OR started_at <= $17)
+ AND ($18::timestamptz IS NULL OR (started_at,request_id) < ($18,$19))
+ ORDER BY started_at DESC, request_id DESC LIMIT $20`,
 		requestContext.TenantRef, requestContext.WorkspaceID, requestContext.ConsumerRef, requestContext.ApplicationID,
 		filter.Route, filter.Protocol, filter.Provider, filter.Profile, filter.Model, string(filter.Status),
-		filter.FailureBoundary, string(filter.UsageAvailability), filter.StartedFrom, filter.StartedTo,
+		filter.FailureBoundary, string(filter.UsageAvailability), filter.FallbackUsed,
+		filter.TerminalProvider, filter.TerminalProfile, filter.StartedFrom, filter.StartedTo,
 		filter.BeforeTime, filter.BeforeRequestID, filter.Limit+1,
 	)
 	if err != nil {

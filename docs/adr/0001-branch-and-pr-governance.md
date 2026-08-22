@@ -1,6 +1,6 @@
 # ADR 0001: Branch And PR Governance
 
-更新时间：2026-07-12
+更新时间：2026-08-18
 
 ## 状态
 
@@ -54,7 +54,7 @@ Accepted
 - 当前允许 `merge commit` 与 `rebase merge`，禁用 `squash merge`
 - 常态 `dev -> master` 阶段 PR 优先使用 `merge commit`，降低合并后回同步 `dev` 的拓扑复杂度
 - 管理员仅可通过 PR 方式绕过规则
-- 允许在单人开发阶段保留管理员 PR 直过能力
+- 单人维护阶段不要求额外审批，但仍要求已解决会话
 
 ### `dev` 规则
 
@@ -72,7 +72,7 @@ Accepted
 1. 创建远端 `dev` 分支
 2. 将默认分支切换为 `dev`，或至少把开发 PR 默认目标改为 `dev`
 3. 对 `master` 启用 branch protection / ruleset
-4. 要求 `master` 通过 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build` 与 `Platform Go Tests` 状态检查
+4. 要求 `master` 通过聚合状态检查 `Candidate Quality`
 5. 对 `master` 开启 “Require a pull request before merging”
 6. 配置管理员仅通过 PR 绕过，不开放直接 push
 7. 仓库 Merge options 中启用 `Merge commits` 与 `Rebase merging`，关闭 `Squash merging`
@@ -86,9 +86,9 @@ Accepted
 - PR 模板
 - GitHub Actions PR 检查工作流
   - `PR Checks` 在目标分支为 `dev` 或 `master` 的 Pull Request 上自动运行，并保留手动触发；普通 `dev` push 不触发
-  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个 job
-  - `master` required checks 当前按 job 名配置为 `Repo Hygiene` / `Repository Baseline` / `RadishMind Web Build` / `RadishMind Console Build` / `Platform Go Tests`
-  - PR 页面可能展示 workflow 前缀或 `(pull_request)` 后缀，但它们不属于 ruleset 中需要手动配置的 check context
+  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个组件 job
+  - `Candidate Quality` 使用 `if: always()` 汇总六个组件，任一组件失败、取消或跳过都会失败
+  - `master` ruleset 只绑定稳定的聚合 context `Candidate Quality`，组件名称与依赖关系由仓库基线校验
   - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release RadishMind Console Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
 - 文本编码与文件格式检查脚本
 - 仓库治理基线检查脚本
@@ -101,7 +101,7 @@ Accepted
 - `master` 可以保持稳定
 - `dev` 可以作为当前阶段的真实集成面
 - 文档、规范、脚本和后续代码都能纳入统一 PR 检查
-- 单人开发阶段仍保留必要的管理员 PR 绕过能力
+- 单人开发阶段不再依赖管理员 bypass 完成常规 PR 合并
 
 代价：
 

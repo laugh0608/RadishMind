@@ -9,6 +9,7 @@ import {
   readModelGatewayPlaygroundConfig,
   submitModelGatewayPlaygroundRequest,
   type ModelGatewayPlaygroundConfig,
+  type ModelGatewayFallbackMode,
   type ModelGatewayPlaygroundProtocol,
 } from "./modelGatewayPlaygroundConsumer.ts";
 import {
@@ -43,6 +44,7 @@ export default function ModelGatewayPlaygroundPanel({
   const [model, setModel] = useState(baseConfig.defaultModel);
   const [inputText, setInputText] = useState(DEFAULT_INPUT);
   const [stream, setStream] = useState(false);
+  const [fallbackMode, setFallbackMode] = useState<ModelGatewayFallbackMode>("disabled");
   const [result, setResult] = useState(() => initialModelGatewayPlaygroundResult(baseConfig));
   const [catalog, setCatalog] = useState(() => initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(baseConfig), baseConfig.applicationId));
   const activeController = useRef<AbortController | null>(null);
@@ -76,6 +78,7 @@ export default function ModelGatewayPlaygroundPanel({
       setModel(detail.model);
       setInputText(DEFAULT_INPUT);
       setStream(false);
+      setFallbackMode("disabled");
       setResult(initialModelGatewayPlaygroundResult(nextConfig));
       setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(nextConfig), detail.applicationId));
     }
@@ -96,6 +99,7 @@ export default function ModelGatewayPlaygroundPanel({
     setModel(baseConfig.defaultModel);
     setInputText(DEFAULT_INPUT);
     setStream(false);
+    setFallbackMode("disabled");
     const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, normalizedApplicationId);
     setResult(initialModelGatewayPlaygroundResult(cleared));
     setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), normalizedApplicationId));
@@ -108,6 +112,7 @@ export default function ModelGatewayPlaygroundPanel({
       activeCatalogController.current?.abort();
       activeCatalogController.current = null;
       setAPIKeyCredential(null);
+      setFallbackMode("disabled");
       const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId);
       setResult(initialModelGatewayPlaygroundResult(cleared));
       setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), applicationId));
@@ -120,6 +125,10 @@ export default function ModelGatewayPlaygroundPanel({
   }, [catalog.status, protocol, selectedCatalogModel, supportedProtocols]);
 
   useEffect(() => {
+    if (stream || config.authMode !== "api_key_dev_test") setFallbackMode("disabled");
+  }, [config.authMode, stream]);
+
+  useEffect(() => {
     function clearCredentialAfterRouteLeave() {
       if (window.location.hash === "#model-gateway-playground") return;
       activeController.current?.abort();
@@ -127,6 +136,7 @@ export default function ModelGatewayPlaygroundPanel({
       activeCatalogController.current?.abort();
       activeCatalogController.current = null;
       setAPIKeyCredential(null);
+      setFallbackMode("disabled");
       const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId);
       setResult(initialModelGatewayPlaygroundResult(cleared));
       setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), applicationId));
@@ -170,6 +180,7 @@ export default function ModelGatewayPlaygroundPanel({
     activeCatalogController.current?.abort();
     activeCatalogController.current = null;
     setAPIKeyCredential(null);
+    setFallbackMode("disabled");
     const cleared = modelGatewayPlaygroundConfigForApplication(baseConfig, applicationId);
     setCatalog(initialApplicationModelCatalogState(applicationApiIntegrationConfigFromGateway(cleared), applicationId));
     setResult(initialModelGatewayPlaygroundResult(cleared));
@@ -184,11 +195,12 @@ export default function ModelGatewayPlaygroundPanel({
     setResult({
       status: "submitting", requestId, route: "", protocol, stream, outputText: "", httpStatus: 0,
       failureCode: "", failureBoundary: "", summary: stream ? "Gateway stream is in progress." : "Gateway request is in progress.",
+      providerAttemptCount: 0, fallbackUsed: false, attemptEvidenceAvailable: false,
       historyReviewAvailable: false,
     });
     const next = await submitModelGatewayPlaygroundRequest(
       config,
-      { protocol, model, inputText, stream, requestId },
+      { protocol, model, inputText, stream, fallbackMode, requestId },
       controller.signal,
       (outputText) => setResult((current) => ({ ...current, outputText })),
     );
@@ -214,7 +226,11 @@ export default function ModelGatewayPlaygroundPanel({
   const credentialReady = config.authMode === "dev_headers" || Boolean(apiKeyCredential);
   const executionReady = enabled && active && applicationActive && workspaceScopeMatches && credentialReady &&
     catalog.status === "ready" && Boolean(selectedCatalogModel) && supportedProtocols.includes(protocol);
-  const quotaFailureGuidance = modelGatewayQuotaFailureGuidance(result.failureCode, result.failureBoundary);
+  const quotaFailureGuidance = modelGatewayQuotaFailureGuidance(
+    result.failureCode,
+    result.failureBoundary,
+    result.attemptEvidenceAvailable ? result.providerAttemptCount : 0,
+  );
   return (
     <section className="surface-band model-gateway-overview gateway-playground" id="model-gateway-playground" aria-labelledby="model-gateway-playground-title">
       <div className="section-heading">
@@ -248,6 +264,25 @@ export default function ModelGatewayPlaygroundPanel({
             <label>Model<input value={model} readOnly maxLength={160} disabled={result.status === "submitting" || catalog.status !== "ready"} /></label>
             <label className="gateway-playground-input">Temporary input<textarea value={inputText} onChange={(event) => setInputText(event.target.value)} maxLength={8000} rows={7} disabled={result.status === "submitting"} /></label>
             <label className="gateway-playground-stream"><input type="checkbox" checked={stream} onChange={(event) => setStream(event.target.checked)} disabled={result.status === "submitting"} /> Stream response</label>
+            <fieldset className="gateway-playground-fallback">
+              <legend>Provider fallback for this request</legend>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={fallbackMode === "allow_configured"}
+                  onChange={(event) => setFallbackMode(event.target.checked ? "allow_configured" : "disabled")}
+                  disabled={result.status === "submitting" || stream || config.authMode !== "api_key_dev_test"}
+                />
+                Allow the active configured backup target
+              </label>
+              <p className="boundary-note">
+                {config.authMode !== "api_key_dev_test"
+                  ? "Fallback remains disabled for non-API Key callers."
+                  : stream
+                    ? "Fallback remains disabled while streaming is selected."
+                    : "The server still requires an active Route v2 policy and an eligible typed Provider failure. No target is selected by the client."}
+              </p>
+            </fieldset>
             <div className="gateway-playground-actions">
               <button type="submit" disabled={result.status === "submitting" || !executionReady}>Send request</button>
               <button type="button" onClick={cancel} disabled={result.status !== "submitting"}>Cancel</button>
@@ -266,12 +301,14 @@ export default function ModelGatewayPlaygroundPanel({
               <div><dt>Mode</dt><dd>{result.stream ? "stream" : "unary"}</dd></div>
               <div><dt>HTTP</dt><dd>{result.httpStatus || (result.status === "idle" || result.status === "submitting" ? "pending" : "not observed")}</dd></div>
               <div><dt>Failure</dt><dd>{result.failureCode || "none"}{result.failureBoundary ? ` · ${result.failureBoundary}` : ""}</dd></div>
+              <div><dt>Provider attempts</dt><dd>{result.attemptEvidenceAvailable ? result.providerAttemptCount : "not observed"}</dd></div>
+              <div><dt>Fallback used</dt><dd>{result.attemptEvidenceAvailable ? String(result.fallbackUsed) : "not observed"}</dd></div>
             </dl>
             {quotaFailureGuidance ? (
               <article className="controlled-use-failure-guidance" aria-label="Gateway quota failure guidance">
                 <div className="application-api-card-heading">
                   <div><p className="eyebrow">Quota admission blocked</p><h5>{quotaFailureGuidance.title}</h5></div>
-                  <span className="status-badge bad">no provider call</span>
+                  <span className="status-badge bad">{quotaFailureGuidance.sideEffectBadge}</span>
                 </div>
                 <p>{quotaFailureGuidance.summary}</p>
                 <p className="boundary-note">{quotaFailureGuidance.sideEffectSummary}</p>

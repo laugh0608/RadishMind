@@ -418,7 +418,7 @@ func (repository *countingBatchCApplicationPublishRepository) AppendReview(Appli
 
 type countingBatchCWorkflowDefinitionRepository struct{ calls atomic.Int64 }
 
-func (repository *countingBatchCWorkflowDefinitionRepository) CreateCandidate(WorkflowDefinitionReleaseContext, string, string, SavedWorkflowDraft, time.Time) (WorkflowDefinitionReleaseCandidate, error) {
+func (repository *countingBatchCWorkflowDefinitionRepository) CreateCandidate(WorkflowDefinitionReleaseContext, string, string, string, SavedWorkflowDraft, time.Time) (WorkflowDefinitionReleaseCandidate, error) {
 	repository.calls.Add(1)
 	return WorkflowDefinitionReleaseCandidate{}, errors.New("unexpected owner call")
 }

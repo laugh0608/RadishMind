@@ -347,6 +347,145 @@
         "recommended_review_action": "",
         "observed_at": "2026-07-16T02:06:00Z"
       }
+    },
+    "run_record_v9": {
+      "schema_version": "workflow_run_record.v9",
+      "record_version": 1,
+      "run_id": "run_0123456789abcde9",
+      "plan_id": "wtap_0123456789abcde9",
+      "confirmation_id": "wtcd_0123456789abcde9",
+      "tenant_ref": "tenant_demo",
+      "draft_id": "",
+      "draft_version": 0,
+      "workspace_id": "workspace_demo",
+      "application_id": "application_demo",
+      "execution_kind": "workflow_definition_http_tool_execution",
+      "execution_source_kind": "workflow_definition",
+      "execution_source_id": "definition_demo",
+      "execution_source_version": 3,
+      "execution_profile": "workflow_definition_http_tool_v1",
+      "input_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "definition_authority": {
+        "definition_id": "definition_demo",
+        "definition_version": 3,
+        "definition_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "activation_pointer_version": 4,
+        "candidate_id": "candidate_demo",
+        "candidate_review_version": 1,
+        "source_draft_id": "draft_demo",
+        "source_draft_version": 3,
+        "source_draft_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "application_record_version": 2,
+        "application_lifecycle": "active"
+      },
+      "status": "running",
+      "failure_code": "",
+      "failure_summary": "",
+      "started_at": "2026-08-15T02:06:00Z",
+      "completed_at": "",
+      "input_bytes": 128,
+      "condition_node_ids": [],
+      "requested_model": "model_demo",
+      "selected_provider": "provider_demo",
+      "selected_profile": "profile_demo",
+      "selected_model": "model_demo",
+      "upstream_model": "upstream_demo",
+      "selection_source": "dev_profile",
+      "nodes": [
+        {
+          "node_id": "node_prompt",
+          "node_type": "prompt",
+          "label": "Prompt",
+          "status": "succeeded",
+          "started_at": "2026-08-15T02:06:00Z",
+          "completed_at": "2026-08-15T02:06:00Z",
+          "duration_ms": 0,
+          "predecessor_node_ids": [],
+          "provider_ref": "",
+          "output_preview": "",
+          "failure_code": ""
+        },
+        {
+          "node_id": "node_http_tool",
+          "node_type": "http_tool",
+          "label": "Reviewed JSON Read",
+          "status": "running",
+          "started_at": "2026-08-15T02:06:00Z",
+          "completed_at": "",
+          "duration_ms": 0,
+          "predecessor_node_ids": ["node_prompt"],
+          "provider_ref": "",
+          "output_preview": "",
+          "failure_code": ""
+        },
+        {
+          "node_id": "node_llm",
+          "node_type": "llm",
+          "label": "Summarize",
+          "status": "pending",
+          "started_at": "",
+          "completed_at": "",
+          "duration_ms": 0,
+          "predecessor_node_ids": ["node_http_tool"],
+          "provider_ref": "profile_demo",
+          "output_preview": "",
+          "failure_code": ""
+        },
+        {
+          "node_id": "node_output",
+          "node_type": "output",
+          "label": "Output",
+          "status": "pending",
+          "started_at": "",
+          "completed_at": "",
+          "duration_ms": 0,
+          "predecessor_node_ids": ["node_llm"],
+          "provider_ref": "",
+          "output_preview": "",
+          "failure_code": ""
+        }
+      ],
+      "tool_attempt": {
+        "attempt_id": "wtea_0123456789abcde9",
+        "node_id": "node_http_tool",
+        "tool_id": "workflow.http.reviewed-json-read.v1",
+        "definition_digest": "sha256:a3807ab3eed72b8f712ca4bf1f5cbc442fe961271779ff00ae19230ad3573294",
+        "profile_id": "workflow_http_profile_reviewed_json_read_dev_v1",
+        "profile_digest": "sha256:ce8517a547848768de11a9fae6ad903134ee8c5cfcc5a4b87436c26129918001",
+        "tool_plan_digest": "sha256:68349ea201bdfdc3313d393d32579fe155173301fc7d076de3e3e75aab8a0526",
+        "confirmation_id": "wtcd_0123456789abcde9",
+        "status": "claimed",
+        "claimed_at": "2026-08-15T02:06:00Z",
+        "completed_at": "",
+        "http_status_class": "",
+        "response_bytes": 0,
+        "duration_ms": 0,
+        "output_projection": {},
+        "failure_code": ""
+      },
+      "output": "",
+      "request_id": "request_workflow_definition_http_execute_demo",
+      "audit_ref": "audit_workflow_definition_http_execute_demo",
+      "actor_ref": "subject_executor_demo",
+      "side_effects": {
+        "provider_calls": 0,
+        "tool_calls": 1,
+        "confirmation_calls": 1,
+        "business_writes": 0,
+        "replay_writes": 0
+      },
+      "diagnostic": {
+        "failure_boundary": "",
+        "failure_stage": "",
+        "failed_node_id": "",
+        "last_completed_node_id": "node_prompt",
+        "terminal_write_state": "pending",
+        "gateway_failure_category": "none",
+        "tool_failure_category": "none",
+        "summary": "",
+        "recommended_review_action": "",
+        "observed_at": "2026-08-15T02:06:00Z"
+      }
     }
   },
   "negative_cases": [
@@ -489,6 +628,31 @@
       "id": "run_v2_rejects_endpoint_projection",
       "schema": "run_record_v2",
       "mutation": "run_endpoint_projection"
+    },
+    {
+      "id": "run_v9_requires_one_tool_call",
+      "schema": "run_record_v9",
+      "mutation": "run_zero_tool_call"
+    },
+    {
+      "id": "run_v9_requires_one_consumed_confirmation",
+      "schema": "run_record_v9",
+      "mutation": "run_zero_confirmation_call"
+    },
+    {
+      "id": "run_v9_business_writes_zero",
+      "schema": "run_record_v9",
+      "mutation": "run_business_write"
+    },
+    {
+      "id": "run_v9_rejects_endpoint_projection",
+      "schema": "run_record_v9",
+      "mutation": "run_endpoint_projection"
+    },
+    {
+      "id": "run_v9_requires_tool_failure_category",
+      "schema": "run_record_v9",
+      "mutation": "run_tool_failure_category_removed"
     }
   ]
 }

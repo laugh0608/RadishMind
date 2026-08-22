@@ -1,8 +1,8 @@
 # 应用运行观测与用量归因 v1
 
-更新时间：2026-07-27
+更新时间：2026-08-19
 
-状态：`application_operations_observability_usage_attribution_v1_provider_reported_usage_completed`
+状态：`application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`
 
 ## 功能定位
 
@@ -132,6 +132,25 @@ Application Operations 面板包含：
 - quota / billing 已有独立正式设计、可信价格和 ledger owner。
 
 满足条件前不创建 aggregate table、materialized view、cost ledger、quota counter 或跨 store join。
+
+## 2026-08-19 后续准入评审
+
+本次评审只判断是否重新打开服务端 summary 实现范围，不否定批次 A 与 Provider reported usage 已完成的产品事实。结论为：当前不进入后续实现，不创建新的 API、schema、migration、repository、任务卡或专项 checker。
+
+| 准入条件 | 当前证据 | 评审结论 |
+| --- | --- | --- |
+| 跨全部分页窗口的稳定统计 | 当前产品任务仍以最近请求、最近运行、失败定位和精确详情交接为主；仓库没有记录首分页窗口已经阻塞真实审查任务 | `not_satisfied` |
+| 全分页 Provider reported usage 汇总 | reported usage 与价格快照已经进入 Gateway Request History 和当前窗口审查，但没有账期、对账或完整历史汇总任务；`not_reported` 也不能被补算为零 | `not_satisfied` |
+| 时间桶、游标一致性或性能预算 | Gateway Request 与 Workflow Run 继续使用两个独立 owner 和独立 cursor；当前没有统一 snapshot 边界、时间桶定义、数据规模、延迟目标或查询预算 | `not_satisfied` |
+| quota / billing 正式 owner | 开发测试态 request quota、reported usage 和价格 owner 彼此独立；production quota、billing ledger、invoice 与正式归因口径均未成立 | `not_satisfied` |
+
+owner 边界继续保持如下：
+
+- Gateway Request 与 Workflow Run 分别拥有记录、cursor、失败语义和精确详情，不建立跨 store join，也不按时间、模型或引用推测因果关系；
+- reported usage、价格快照和 request quota 继续由各自 owner 解释，Application Operations 只读取允许公开的当前窗口 metadata，不成为 billing 或 quota 真相源；
+- 如果未来重新评审，必须先提供至少一个被首分页窗口真实阻塞的开发者任务，并同时冻结统计范围、时间语义、snapshot / cursor 一致性、数据规模、性能预算、隐私字段和 owner 失败语义。
+
+后续真实页面已经贯通“应用 Session → Application Operations → 显式保存结果 → Result Workspace → exact Run detail / Comparison”。新 Run 能进入 Workflow 独立窗口，Gateway 空窗口继续独立呈现，未发现服务端 summary、统一 cursor 或跨 store join 的产品阻塞。因此不从本专题派生同层批次；审计发现的 exact Run 目标交接和 authority drift 恢复引导只在既有 Web owner 内处理，不改变本专题 `no_entry` 结论。
 
 ## 验收方式
 

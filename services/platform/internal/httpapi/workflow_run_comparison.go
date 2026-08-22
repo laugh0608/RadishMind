@@ -266,6 +266,10 @@ func workflowDefinitionRunSchema(value string) bool {
 	return value == workflowRunRecordDefinitionSchemaVersion || value == workflowRunRecordDefinitionStructuredSchemaVersion
 }
 
+func workflowRunUsesImmutableDefinitionSource(value string) bool {
+	return workflowDefinitionRunSchema(value) || value == workflowRunRecordDefinitionToolSchemaVersion
+}
+
 func workflowDefinitionStructuredRunsComparable(baseline, candidate WorkflowRunRecord) bool {
 	return baseline.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion && candidate.SchemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion &&
 		isTerminalWorkflowRunStatus(baseline.Status) && isTerminalWorkflowRunStatus(candidate.Status) &&

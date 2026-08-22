@@ -109,11 +109,78 @@ test("Gateway Playground uses only an in-memory Bearer credential in API key mod
       assert.equal(headers.has("X-RadishMind-Dev-Gateway-Tenant"), false);
       assert.equal(headers.has("X-RadishMind-Dev-Gateway-Application"), false);
       assert.equal(headers.has("X-RadishMind-Dev-Gateway-Scopes"), false);
+      assert.deepEqual(JSON.parse(String(init?.body)).radishmind, { fallback_mode: "disabled" });
       return jsonResponse({ output_text: "api key output" }, "playground-test-request");
     };
     const result = await submitModelGatewayPlaygroundRequest(apiKeyLive, input("responses", false));
     assert.equal(result.status, "succeeded");
     assert.equal(JSON.stringify(result).includes(apiKeyToken), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway Playground allows configured fallback only for API Key unary requests and reads sanitized headers", async () => {
+  const originalFetch = globalThis.fetch;
+  const apiKeyLive = modelGatewayPlaygroundConfigForAPIKey(
+    live,
+    "app_aaaaaaaaaaaaaaaa",
+    "key_aaaaaaaaaaaaaaaa",
+    `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`,
+  );
+  let calls = 0;
+  try {
+    globalThis.fetch = async (_url, init) => {
+      calls++;
+      assert.deepEqual(JSON.parse(String(init?.body)).radishmind, { fallback_mode: "allow_configured" });
+      return new Response(JSON.stringify({ output_text: "backup output" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-Id": "playground-test-request",
+          "X-RadishMind-Provider-Attempts": "2",
+          "X-RadishMind-Fallback-Used": "true",
+        },
+      });
+    };
+    const fallback = await submitModelGatewayPlaygroundRequest(apiKeyLive, {
+      ...input("responses", false), fallbackMode: "allow_configured",
+    });
+    assert.equal(fallback.status, "succeeded");
+    assert.equal(fallback.providerAttemptCount, 2);
+    assert.equal(fallback.fallbackUsed, true);
+    assert.equal(fallback.attemptEvidenceAvailable, true);
+    assert.match(fallback.summary, /backup target/u);
+
+    const stream = await submitModelGatewayPlaygroundRequest(apiKeyLive, {
+      ...input("responses", true), fallbackMode: "allow_configured",
+    });
+    assert.equal(stream.failureCode, "gateway_playground_input_invalid");
+    const devHeaders = await submitModelGatewayPlaygroundRequest(live, {
+      ...input("responses", false), fallbackMode: "allow_configured",
+    });
+    assert.equal(devHeaders.failureCode, "gateway_playground_input_invalid");
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway Playground rejects incomplete or inconsistent attempt headers", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => new Response(JSON.stringify({ output_text: "unsafe evidence" }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Request-Id": "playground-test-request",
+        "X-RadishMind-Provider-Attempts": "1",
+        "X-RadishMind-Fallback-Used": "true",
+      },
+    });
+    const result = await submitModelGatewayPlaygroundRequest(live, input("responses", false));
+    assert.equal(result.failureCode, "gateway_playground_response_invalid");
+    assert.equal(result.attemptEvidenceAvailable, false);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -219,10 +286,20 @@ test("Gateway Playground gives only authoritative quota-owner recovery guidance"
     const guidance = modelGatewayQuotaFailureGuidance(failureCode, "quota_admission");
     assert.equal(guidance?.adminAnchor, "admin-gateway-request-quota");
     assert.equal(guidance?.adminLabel, "Open Admin Quota");
+    assert.equal(guidance?.sideEffectBadge, "no provider call");
     assert.match(guidance?.sideEffectSummary ?? "", /No provider call was made/u);
     assert.equal(JSON.stringify(guidance).includes("remaining"), false);
     assert.equal(JSON.stringify(guidance).includes("Request History as usage truth"), failureCode === "gateway_quota_store_unavailable");
   }
+  const fallbackQuotaGuidance = modelGatewayQuotaFailureGuidance(
+    "gateway_quota_exceeded",
+    "quota_admission",
+    1,
+  );
+  assert.equal(fallbackQuotaGuidance?.sideEffectBadge, "no backup call");
+  assert.match(fallbackQuotaGuidance?.sideEffectSummary ?? "", /primary Provider reached an eligible failure/u);
+  assert.match(fallbackQuotaGuidance?.sideEffectSummary ?? "", /backup Provider was not called/u);
+  assert.equal(fallbackQuotaGuidance?.sideEffectSummary.includes("No provider call was made"), false);
   assert.equal(modelGatewayQuotaFailureGuidance("gateway_quota_exceeded", "provider"), null);
   assert.equal(modelGatewayQuotaFailureGuidance("BRIDGE_WORKER_TIMEOUT", "quota_admission"), null);
 });
@@ -278,6 +355,7 @@ function input(protocol: ModelGatewayPlaygroundProtocol, stream: boolean): Model
     model: "radishmind-local-dev",
     inputText: "private playground input",
     stream,
+    fallbackMode: "disabled",
     requestId: "playground-test-request",
   };
 }

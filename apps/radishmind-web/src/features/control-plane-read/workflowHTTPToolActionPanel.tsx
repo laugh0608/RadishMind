@@ -12,6 +12,8 @@ import {
 
 export function WorkflowHTTPToolActionPanel({
   draft,
+  source,
+  sectionId = "workflow-http-tool-action-review",
   consumerState,
   eligibility,
   permissions,
@@ -23,7 +25,16 @@ export function WorkflowHTTPToolActionPanel({
   onReloadPlan,
   onDecision,
 }: {
-  draft: WorkflowDraftDesignerDraft;
+  draft?: WorkflowDraftDesignerDraft;
+  source?: {
+    kind: "saved_workflow_draft" | "workflow_definition";
+    id: string;
+    version: number;
+    nodeId: string;
+    toolId: string;
+    label: string;
+  };
+  sectionId?: string;
   consumerState: WorkflowHTTPToolActionConsumerState;
   eligibility: WorkflowHTTPToolActionEligibility;
   permissions: WorkflowHTTPToolActionPermissions;
@@ -38,8 +49,18 @@ export function WorkflowHTTPToolActionPanel({
   const pending = consumerState.status === "creating" || consumerState.status === "reading" || consumerState.status === "deciding";
   const argumentValidation = validateWorkflowHTTPToolPublicArguments({ resourceKey, locale });
   const plan = consumerState.actionPlan;
+  const sourceView = source ?? {
+    kind: "saved_workflow_draft" as const,
+    id: draft?.draftId ?? "",
+    version: eligibility.draftVersion,
+    nodeId: eligibility.nodeId,
+    toolId: eligibility.toolId,
+    label: "Exact saved draft",
+  };
+  const planPermission = sourceView.kind === "workflow_definition" ? permissions.definitionPlan : permissions.plan;
+  const executePermission = sourceView.kind === "workflow_definition" ? permissions.definitionExecute : permissions.execute;
   const canCreate = consumerState.mode === "dev_workflow_http_tool_http" && eligibility.eligible &&
-    permissions.plan.available && argumentValidation.valid && Boolean(argumentValidation.value) && !pending;
+    planPermission.available && argumentValidation.valid && Boolean(argumentValidation.value) && !pending;
   const decisions = availableDecisions(plan?.status ?? null);
 
   const submitCreate = (event: FormEvent<HTMLFormElement>) => {
@@ -50,27 +71,27 @@ export function WorkflowHTTPToolActionPanel({
   return (
     <section
       className="workflow-executor-v0 workflow-http-tool-action-review"
-      id="workflow-http-tool-action-review"
-      aria-labelledby="workflow-http-tool-action-review-title"
+      id={sectionId}
+      aria-labelledby={`${sectionId}-title`}
     >
       <div className="section-heading compact-heading">
         <div>
           <p className="eyebrow">Workflow HTTP Tool · Confirmed action</p>
-          <h4 id="workflow-http-tool-action-review-title">Durable action plan review</h4>
+          <h4 id={`${sectionId}-title`}>Durable action plan review</h4>
         </div>
         <ActionStatusBadge state={consumerState} eligible={eligibility.eligible} />
       </div>
 
       <div className="workflow-executor-summary-grid">
         <article>
-          <span>Exact saved draft</span>
-          <strong>{draft.draftId}</strong>
-          <p>Version {eligibility.draftVersion || "not saved"}; local edits must be clean.</p>
+          <span>{sourceView.label}</span>
+          <strong>{sourceView.id}</strong>
+          <p>Version {sourceView.version || "not available"}; authority must stay exact.</p>
         </article>
         <article>
           <span>HTTP Tool node</span>
-          <strong>{eligibility.nodeId || "not eligible"}</strong>
-          <p>{eligibility.toolId || "Select one exact versioned HTTP Tool reference."}</p>
+          <strong>{sourceView.nodeId || "not eligible"}</strong>
+          <p>{sourceView.toolId || "Select one exact versioned HTTP Tool reference."}</p>
         </article>
         <article>
           <span>Review lifecycle</span>
@@ -85,10 +106,10 @@ export function WorkflowHTTPToolActionPanel({
       </div>
 
       <div className="workflow-executor-summary-grid" aria-label="Workflow HTTP Tool operation grants">
-        <PermissionCard permission={permissions.plan} label="Create plan" />
+        <PermissionCard permission={planPermission} label="Create plan" />
         <PermissionCard permission={permissions.read} label="Read detail" />
         <PermissionCard permission={permissions.confirm} label="Human decision" />
-        <PermissionCard permission={permissions.execute} label="Execute tool" />
+        <PermissionCard permission={executePermission} label="Execute tool" />
       </div>
 
       <form onSubmit={submitCreate}>
@@ -101,7 +122,7 @@ export function WorkflowHTTPToolActionPanel({
               autoComplete="off"
               value={resourceKey}
               placeholder="reviewed-resource"
-              disabled={pending || !permissions.plan.available}
+              disabled={pending || !planPermission.available}
               onChange={(event) => onResourceKeyChange(event.currentTarget.value)}
             />
             <small>Required public identifier; only the registered schema field is accepted.</small>
@@ -114,7 +135,7 @@ export function WorkflowHTTPToolActionPanel({
               autoComplete="off"
               value={locale}
               placeholder="zh-CN"
-              disabled={pending || !permissions.plan.available}
+              disabled={pending || !planPermission.available}
               onChange={(event) => onLocaleChange(event.currentTarget.value)}
             />
             <small>Optional short language tag; it cannot change the server-owned target policy.</small>
@@ -169,7 +190,7 @@ export function WorkflowHTTPToolActionPanel({
           </div>
           <dl className="workflow-executor-record-meta">
             <div><dt>Record version</dt><dd>{plan.recordVersion}</dd></div>
-            <div><dt>Draft</dt><dd>{plan.draftId} · v{plan.draftVersion}</dd></div>
+            <div><dt>Source</dt><dd>{plan.sourceKind === "workflow_definition" ? `${plan.workflowDefinitionId} · v${plan.workflowDefinitionVersion} · pointer v${plan.activationPointerVersion}` : `${plan.draftId} · v${plan.draftVersion}`}</dd></div>
             <div><dt>Node</dt><dd>{plan.nodeId}</dd></div>
             <div><dt>Tool</dt><dd>{plan.toolId} · version {plan.toolVersion}</dd></div>
             <div><dt>Method</dt><dd>{plan.method}</dd></div>

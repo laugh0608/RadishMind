@@ -8,12 +8,14 @@ import {
   parseWorkflowRunRecordDocument,
   type WorkflowRunRecord,
 } from "./workflowRunRecordConsumer.ts";
+import { readWorkflowRunHistoryDetail } from "./workflowRunHistoryConsumer.ts";
 
 const EXECUTION_ENVELOPE_KEYS = [
   "request_id", "workspace_id", "application_id", "action_plan", "run",
   "failure_code", "failure_summary", "audit_ref",
 ] as const;
 const EXECUTION_SCOPES = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_drafts:read"] as const;
+const DEFINITION_EXECUTION_SCOPES = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_definitions:read"] as const;
 const FORBIDDEN_EXECUTION_FIELDS = new Set([
   "endpoint", "url", "uri", "header", "headers", "authorization", "cookie", "credential", "secret",
   "raw_query", "query_string", "raw_body", "raw_request", "raw_response", "dns", "ip", "ip_address",
@@ -71,8 +73,10 @@ export async function executeWorkflowHTTPToolActionPlan(
   input: { inputText: string; model: string; temperature?: number },
 ): Promise<WorkflowHTTPToolExecutionState> {
   if (config.mode !== "dev_workflow_http_tool_http") return initialWorkflowHTTPToolExecutionState(config);
-  if (!workflowHTTPToolActionPermissions(config).execute.available) {
-    return failureState("workflow_run_scope_denied", "Execution requires all three separately configured Batch C grants.", plan);
+  const permissions = workflowHTTPToolActionPermissions(config);
+  const executionPermission = plan.sourceKind === "workflow_definition" ? permissions.definitionExecute : permissions.execute;
+  if (!executionPermission.available) {
+    return failureState("workflow_run_scope_denied", `Execution requires the source-specific grants: ${executionPermission.requiredGrants.join(", ")}.`, plan);
   }
   if (plan.status !== "approved" || plan.recordVersion < 1 || !input.inputText.trim() ||
     new TextEncoder().encode(input.inputText).byteLength > 8_192 || input.model.length > 256 ||
@@ -86,7 +90,7 @@ export async function executeWorkflowHTTPToolActionPlan(
       `${config.baseUrl}/v1/user-workspace/workflow-tool-action-plans/${encodeURIComponent(plan.planId)}/executions`,
       {
         method: "POST",
-        headers: executionHeaders(config, plan.applicationId, requestId),
+        headers: executionHeaders(config, plan.applicationId, requestId, plan.sourceKind),
         body: JSON.stringify({
           workspace_id: config.workspaceId,
           application_id: plan.applicationId,
@@ -116,30 +120,43 @@ export async function executeWorkflowHTTPToolActionPlan(
         run: null,
       };
     }
-    if (!consumedPlan || !run || consumedPlan.planId !== plan.planId || consumedPlan.status !== "consumed" ||
-      consumedPlan.recordVersion !== plan.recordVersion + 1 || run.schemaVersion !== "workflow_run_record.v2" ||
+    const expectedRunSchema = plan.sourceKind === "workflow_definition" ? "workflow_run_record.v9" : "workflow_run_record.v2";
+    if (!consumedPlan || !run || !consumedPlanMatchesApprovedSource(consumedPlan, plan) || consumedPlan.status !== "consumed" ||
+      consumedPlan.recordVersion !== plan.recordVersion + 1 || run.schemaVersion !== expectedRunSchema ||
       run.planId !== plan.planId || run.workspaceId !== config.workspaceId || run.applicationId !== plan.applicationId ||
       run.sideEffects.toolCalls !== 1 || run.sideEffects.confirmationCalls !== 1 ||
-      run.sideEffects.businessWrites !== 0 || run.sideEffects.replayWrites !== 0) {
+      run.sideEffects.businessWrites !== 0 || run.sideEffects.replayWrites !== 0 || !workflowHTTPToolRunMatchesPlan(run, plan)) {
       return failureState("workflow_tool_store_contract_mismatch", "The execution result did not match the approved durable plan.", plan);
     }
-    const outcomeUnknown = run.status === "outcome_unknown";
-    const failed = Boolean(body.failure_code) || run.status === "failed" || run.status === "canceled";
-    return {
-      status: outcomeUnknown ? "outcome_unknown" : failed ? "failed" : "succeeded",
-      summary: outcomeUnknown
-        ? "The single attempt may have reached the remote service; manual review is required and retry remains disabled."
-        : failed
-          ? body.failure_summary || run.failureSummary || "The claimed execution ended in a stable failure state."
-          : `Workflow run ${run.runId} completed after one confirmed tool attempt.`,
-      failureCode: body.failure_code ?? run.failureCode,
-      requestId: body.request_id,
-      auditRef: body.audit_ref,
-      actionPlan: consumedPlan,
-      run,
-    };
+    return completedState(consumedPlan, run, body.request_id, body.audit_ref, body.failure_code ?? run.failureCode, body.failure_summary);
   } catch {
     return failureState("workflow_tool_store_unavailable", "The execution route is unavailable; no automatic retry was attempted.", plan);
+  }
+}
+
+export async function restoreWorkflowHTTPToolExecutionState(
+  config: WorkflowHTTPToolActionConsumerConfig,
+  plan: WorkflowHTTPToolActionPlan,
+  runId: string,
+): Promise<WorkflowHTTPToolExecutionState> {
+  if (config.mode !== "dev_workflow_http_tool_http" || plan.status !== "consumed" || !/^run_[a-z0-9]{16,64}$/u.test(runId)) {
+    return failureState("workflow_tool_store_contract_mismatch", "The durable execution reference is invalid.", plan);
+  }
+  try {
+    const run = await readWorkflowRunHistoryDetail({ runId }, plan.applicationId, {
+      mode: "dev_workflow_executor_http",
+      baseUrl: config.baseUrl,
+      workspaceId: config.workspaceId,
+      tenantRef: config.tenantRef,
+      subjectRef: config.subjectRef,
+      diagnosticsDevEnabled: false,
+    });
+    if (!run || !workflowHTTPToolRunMatchesPlan(run, plan)) {
+      return failureState("workflow_tool_store_contract_mismatch", "The durable run no longer matches the consumed plan authority.", plan);
+    }
+    return completedState(plan, run, run.requestId, run.auditRef, run.failureCode, run.failureSummary);
+  } catch {
+    return failureState("workflow_tool_store_unavailable", "The durable run could not be restored; no retry was attempted.", plan);
   }
 }
 
@@ -160,7 +177,9 @@ function executionHeaders(
   config: WorkflowHTTPToolActionConsumerConfig,
   applicationId: string,
   requestId: string,
+  sourceKind: WorkflowHTTPToolActionPlan["sourceKind"],
 ): HeadersInit {
+  const scopes = sourceKind === "workflow_definition" ? DEFINITION_EXECUTION_SCOPES : EXECUTION_SCOPES;
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -168,13 +187,74 @@ function executionHeaders(
     "X-RadishMind-Dev-Read-Identity": "dev-workflow-http-tool-execution-consumer",
     "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
     "X-RadishMind-Dev-Read-Subject": config.subjectRef,
-    "X-RadishMind-Dev-Read-Scopes": EXECUTION_SCOPES.join(","),
+    "X-RadishMind-Dev-Read-Scopes": scopes.join(","),
     "X-RadishMind-Dev-Read-Audit": "audit_dev_workflow_http_tool_execution_consumer",
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationId,
     "X-RadishMind-Active-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
-    "X-RadishMind-Dev-Read-Membership-Permissions": EXECUTION_SCOPES.join(","),
+    "X-RadishMind-Dev-Read-Membership-Permissions": scopes.join(","),
+  };
+}
+
+function consumedPlanMatchesApprovedSource(
+  consumed: WorkflowHTTPToolActionPlan,
+  approved: WorkflowHTTPToolActionPlan,
+): boolean {
+  if (consumed.planId !== approved.planId || consumed.schemaVersion !== approved.schemaVersion ||
+    consumed.sourceKind !== approved.sourceKind || consumed.toolPlanDigest !== approved.toolPlanDigest ||
+    consumed.nodeId !== approved.nodeId || consumed.toolId !== approved.toolId) return false;
+  return approved.sourceKind === "workflow_definition"
+    ? consumed.workflowDefinitionId === approved.workflowDefinitionId &&
+      consumed.workflowDefinitionVersion === approved.workflowDefinitionVersion &&
+      consumed.workflowDefinitionDigest === approved.workflowDefinitionDigest &&
+      consumed.activationPointerVersion === approved.activationPointerVersion
+    : consumed.draftId === approved.draftId && consumed.draftVersion === approved.draftVersion;
+}
+
+function workflowHTTPToolRunMatchesPlan(run: WorkflowRunRecord, plan: WorkflowHTTPToolActionPlan): boolean {
+  if (run.planId !== plan.planId || run.workspaceId !== plan.workspaceId || run.applicationId !== plan.applicationId ||
+    run.sideEffects.toolCalls !== 1 || run.sideEffects.confirmationCalls !== 1 ||
+    run.sideEffects.businessWrites !== 0 || run.sideEffects.replayWrites !== 0) return false;
+  if (plan.sourceKind === "saved_workflow_draft") {
+    return run.schemaVersion === "workflow_run_record.v2" && run.draftId === plan.draftId && run.draftVersion === plan.draftVersion;
+  }
+  const authority = run.definitionAuthority;
+  const attempt = run.toolAttempt;
+  return run.schemaVersion === "workflow_run_record.v9" && run.executionKind === "workflow_definition_http_tool_execution" &&
+    run.executionSourceKind === "workflow_definition" && run.executionSourceId === plan.workflowDefinitionId &&
+    run.executionSourceVersion === plan.workflowDefinitionVersion && run.executionProfile === "workflow_definition_http_tool_v1" &&
+    run.output === "" && Boolean(authority) && authority!.definitionId === plan.workflowDefinitionId &&
+    authority!.definitionVersion === plan.workflowDefinitionVersion &&
+    authority!.definitionDigest === plan.workflowDefinitionDigest &&
+    authority!.activationPointerVersion === plan.activationPointerVersion && Boolean(attempt) &&
+    attempt!.nodeId === plan.nodeId && attempt!.toolId === plan.toolId &&
+    attempt!.definitionDigest === plan.definitionDigest && attempt!.profileId === plan.profileId &&
+    attempt!.profileDigest === plan.profileDigest && attempt!.toolPlanDigest === plan.toolPlanDigest;
+}
+
+function completedState(
+  plan: WorkflowHTTPToolActionPlan,
+  run: WorkflowRunRecord,
+  requestId: string,
+  auditRef: string,
+  failureCode: string,
+  failureSummary: string,
+): WorkflowHTTPToolExecutionState {
+  const outcomeUnknown = run.status === "outcome_unknown";
+  const failed = Boolean(failureCode) || run.status === "failed" || run.status === "canceled";
+  return {
+    status: outcomeUnknown ? "outcome_unknown" : failed ? "failed" : "succeeded",
+    summary: outcomeUnknown
+      ? "The single attempt may have reached the remote service; manual review is required and retry remains disabled."
+      : failed
+        ? failureSummary || run.failureSummary || "The claimed execution ended in a stable failure state."
+        : `Workflow run ${run.runId} completed after one confirmed tool attempt.`,
+    failureCode: failureCode || run.failureCode,
+    requestId,
+    auditRef,
+    actionPlan: plan,
+    run,
   };
 }
 

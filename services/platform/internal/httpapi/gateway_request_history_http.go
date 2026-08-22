@@ -13,34 +13,40 @@ const (
 )
 
 type gatewayRequestSummaryDocument struct {
-	SchemaVersion                string                          `json:"schema_version"`
-	RecordVersion                int                             `json:"record_version"`
-	StoreMode                    string                          `json:"store_mode"`
-	RequestID                    string                          `json:"request_id"`
-	AuditRef                     string                          `json:"audit_ref"`
-	Route                        string                          `json:"route"`
-	Protocol                     string                          `json:"protocol"`
-	Stream                       bool                            `json:"stream"`
-	Status                       GatewayRequestStatus            `json:"status"`
-	StartedAt                    string                          `json:"started_at"`
-	CompletedAt                  string                          `json:"completed_at"`
-	DurationMS                   int64                           `json:"duration_ms"`
-	ProviderDurationMS           int64                           `json:"provider_duration_ms"`
-	ProviderDurationAvailable    bool                            `json:"provider_duration_available"`
-	SelectionSource              string                          `json:"selection_source"`
-	SelectedProvider             string                          `json:"selected_provider"`
-	SelectedProfile              string                          `json:"selected_profile"`
-	SelectedModel                string                          `json:"selected_model"`
-	ProviderRouteConfigurationID string                          `json:"provider_route_configuration_id,omitempty"`
-	ProviderRouteGeneration      int                             `json:"provider_route_generation,omitempty"`
-	ProviderRouteSnapshotDigest  string                          `json:"provider_route_snapshot_digest,omitempty"`
-	HTTPStatusCode               int                             `json:"http_status_code"`
-	FailureCode                  string                          `json:"failure_code"`
-	FailureBoundary              string                          `json:"failure_boundary"`
-	UsageAvailability            GatewayRequestUsageAvailability `json:"usage_availability"`
-	Usage                        GatewayRequestUsage             `json:"usage"`
-	CostEstimate                 GatewayRequestCostEstimate      `json:"cost_estimate"`
-	StaleStarted                 bool                            `json:"stale_started"`
+	SchemaVersion                string                             `json:"schema_version"`
+	RecordVersion                int                                `json:"record_version"`
+	StoreMode                    string                             `json:"store_mode"`
+	RequestID                    string                             `json:"request_id"`
+	AuditRef                     string                             `json:"audit_ref"`
+	Route                        string                             `json:"route"`
+	Protocol                     string                             `json:"protocol"`
+	Stream                       bool                               `json:"stream"`
+	Status                       GatewayRequestStatus               `json:"status"`
+	StartedAt                    string                             `json:"started_at"`
+	CompletedAt                  string                             `json:"completed_at"`
+	DurationMS                   int64                              `json:"duration_ms"`
+	ProviderDurationMS           int64                              `json:"provider_duration_ms"`
+	ProviderDurationAvailable    bool                               `json:"provider_duration_available"`
+	SelectionSource              string                             `json:"selection_source"`
+	SelectedProvider             string                             `json:"selected_provider"`
+	SelectedProfile              string                             `json:"selected_profile"`
+	SelectedModel                string                             `json:"selected_model"`
+	ProviderRouteConfigurationID string                             `json:"provider_route_configuration_id,omitempty"`
+	ProviderRouteGeneration      int                                `json:"provider_route_generation,omitempty"`
+	ProviderRouteSnapshotDigest  string                             `json:"provider_route_snapshot_digest,omitempty"`
+	HTTPStatusCode               int                                `json:"http_status_code"`
+	FailureCode                  string                             `json:"failure_code"`
+	FailureBoundary              string                             `json:"failure_boundary"`
+	UsageAvailability            GatewayRequestUsageAvailability    `json:"usage_availability"`
+	Usage                        GatewayRequestUsage                `json:"usage"`
+	CostEstimate                 GatewayRequestCostEstimate         `json:"cost_estimate"`
+	ProviderAttemptCount         int                                `json:"attempt_count"`
+	FallbackAllowed              bool                               `json:"fallback_allowed"`
+	FallbackUsed                 bool                               `json:"fallback_used"`
+	TerminalProvider             string                             `json:"terminal_provider,omitempty"`
+	TerminalProfile              string                             `json:"terminal_profile,omitempty"`
+	ProviderAttemptCostSummary   *GatewayProviderAttemptCostSummary `json:"provider_attempt_cost_summary,omitempty"`
+	StaleStarted                 bool                               `json:"stale_started"`
 }
 
 type gatewayRequestDetailDocument struct {
@@ -155,6 +161,7 @@ func parseGatewayRequestListRequest(
 		"limit": true, "cursor": true, "route": true, "protocol": true,
 		"provider": true, "profile": true, "model": true, "status": true,
 		"failure_boundary": true, "usage_availability": true,
+		"fallback_used": true, "terminal_provider": true, "terminal_profile": true,
 		"started_from": true, "started_to": true,
 	}
 	for key, entries := range values {
@@ -172,6 +179,15 @@ func parseGatewayRequestListRequest(
 		Status:            GatewayRequestStatus(strings.TrimSpace(firstQueryValue(values, "status"))),
 		FailureBoundary:   strings.TrimSpace(firstQueryValue(values, "failure_boundary")),
 		UsageAvailability: GatewayRequestUsageAvailability(strings.TrimSpace(firstQueryValue(values, "usage_availability"))),
+		TerminalProvider:  strings.TrimSpace(firstQueryValue(values, "terminal_provider")),
+		TerminalProfile:   strings.TrimSpace(firstQueryValue(values, "terminal_profile")),
+	}
+	if raw := strings.TrimSpace(firstQueryValue(values, "fallback_used")); raw != "" {
+		if raw != "true" && raw != "false" {
+			return GatewayRequestListRequest{}, GatewayRequestHistoryFailureFilterInvalid
+		}
+		parsed := raw == "true"
+		request.FallbackUsed = &parsed
 	}
 	if raw := strings.TrimSpace(firstQueryValue(values, "limit")); raw != "" {
 		limit, err := strconv.Atoi(raw)
@@ -241,6 +257,12 @@ func writeGatewayRequestReadResult(
 }
 
 func gatewayRequestSummaryFromRecord(record GatewayRequestRecord, now time.Time) gatewayRequestSummaryDocument {
+	attemptCount, fallbackUsed, terminalProvider, terminalProfile := gatewayRequestAttemptStorageValues(record)
+	var attemptCostSummary *GatewayProviderAttemptCostSummary
+	if record.SchemaVersion == gatewayRequestRecordSchemaVersionV3 {
+		value := record.ProviderAttemptCostSummary
+		attemptCostSummary = &value
+	}
 	return gatewayRequestSummaryDocument{
 		SchemaVersion: record.SchemaVersion, RecordVersion: record.RecordVersion,
 		StoreMode: record.StoreMode,
@@ -256,9 +278,12 @@ func gatewayRequestSummaryFromRecord(record GatewayRequestRecord, now time.Time)
 		ProviderRouteSnapshotDigest:  record.ProviderRouteSnapshotDigest,
 		HTTPStatusCode:               record.HTTPStatusCode, FailureCode: record.FailureCode,
 		FailureBoundary: record.FailureBoundary, UsageAvailability: record.Usage.Availability,
-		Usage:        record.Usage,
-		CostEstimate: gatewayRequestRecordCostEstimate(record),
-		StaleStarted: gatewayRequestIsStale(record, now),
+		Usage:                record.Usage,
+		CostEstimate:         gatewayRequestRecordCostEstimate(record),
+		ProviderAttemptCount: attemptCount, FallbackAllowed: record.FallbackAllowed,
+		FallbackUsed: fallbackUsed, TerminalProvider: terminalProvider, TerminalProfile: terminalProfile,
+		ProviderAttemptCostSummary: attemptCostSummary,
+		StaleStarted:               gatewayRequestIsStale(record, now),
 	}
 }
 

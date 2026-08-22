@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { controlledUseFailureGuidance } from "../src/features/control-plane-read/controlledUseFailureGuidance.ts";
+import {
+  applicationInteractionSessionFailureGuidance,
+  controlledUseFailureGuidance,
+} from "../src/features/control-plane-read/controlledUseFailureGuidance.ts";
 
 test("Prompt invocation authority failures hand off only to Prompt Assignment", () => {
   for (const failureCode of [
@@ -44,5 +47,28 @@ test("permission, input, transport, storage, cancellation, and outcome failures 
     assert.equal(controlledUseFailureGuidance("prompt_invocation", failureCode), null);
     assert.equal(controlledUseFailureGuidance("prompt_session", failureCode), null);
     assert.equal(controlledUseFailureGuidance("agent_session", failureCode), null);
+  }
+});
+
+test("Application Interaction authority failures offer metadata-only Session recovery", () => {
+  for (const failureCode of [
+    "application_session_authority_not_found",
+    "application_session_authority_changed",
+    "application_session_profile_ineligible",
+  ]) {
+    const guidance = applicationInteractionSessionFailureGuidance(failureCode);
+    assert.match(guidance?.title ?? "", /^Session /u);
+    assert.match(guidance?.recoverySummary ?? "", /explicitly select a Session/u);
+    assert.match(guidance?.sideEffectSummary ?? "", /No provider call was made/u);
+  }
+});
+
+test("Application Interaction keeps non-authority failures in the original owner", () => {
+  for (const failureCode of [
+    "application_session_store_unavailable",
+    "application_session_request_canceled",
+    "application_session_run_outcome_unknown",
+  ]) {
+    assert.equal(applicationInteractionSessionFailureGuidance(failureCode), null);
   }
 });

@@ -204,7 +204,8 @@ func validateWorkflowHTTPToolExecutionBinding(
 	profileDigest, profileDigestErr := canonicalSHA256(profile)
 	planDigest, planDigestErr := workflowHTTPToolPlanDigest(plan)
 	if strings.TrimSpace(requestID) == "" || !workflowHTTPToolReferencePattern.MatchString(requestID) ||
-		plan.SchemaVersion != workflowHTTPToolPlanSchema || plan.Status != WorkflowHTTPToolActionStatusApproved ||
+		(plan.SchemaVersion != workflowHTTPToolPlanSchema && plan.SchemaVersion != workflowHTTPToolPlanSchemaV2) ||
+		!workflowHTTPToolPlanSourceValid(plan) || plan.Status != WorkflowHTTPToolActionStatusApproved ||
 		plan.ToolID != workflowHTTPToolID || plan.ToolVersion != workflowHTTPToolVersion ||
 		profile.SchemaVersion != workflowHTTPToolProfileSchema || !profile.Enabled ||
 		(profile.TestOnlyLoopback && !allowTestOnlyLoopback) ||

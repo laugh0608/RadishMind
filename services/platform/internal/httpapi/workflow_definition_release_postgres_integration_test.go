@@ -5,6 +5,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -58,7 +59,7 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	now := time.Date(2026, 7, 19, 17, 0, 0, 0, time.UTC)
 	draft := executableWorkflowDraftForTest()
 	draft.ApplicationID, draft.ToolRefs, draft.RAGRefs, draft.RequestedCapabilities = releaseCtx.ApplicationID, []string{}, []string{}, []string{}
-	candidate, err := repository.CreateCandidate(releaseCtx, "candidate-postgres", "definition-postgres", draft, now)
+	candidate, err := repository.CreateCandidate(releaseCtx, "candidate-postgres", "definition-postgres", "", draft, now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +123,7 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	}
 
 	structuredDraft := executableWorkflowStructuredDraftForTest(releaseCtx.ApplicationID)
-	structuredCandidate, err := repository.CreateCandidate(releaseCtx, "candidate_structured_postgres", "definition_structured_postgres", structuredDraft, now.Add(4*time.Minute))
+	structuredCandidate, err := repository.CreateCandidate(releaseCtx, "candidate_structured_postgres", "definition_structured_postgres", "", structuredDraft, now.Add(4*time.Minute))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,6 +219,136 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 		strings.Contains(structuredEvaluationPayload, structuredBaseline.AdvisoryOutput) || strings.Contains(structuredSuitePayload, structuredBaseline.AdvisoryOutput) {
 		t.Fatal("PostgreSQL structured evaluation evidence persisted private runtime values")
 	}
+
+	toolDraft := workflowHTTPToolEligibleDraftForTest()
+	toolDraft.ApplicationID = releaseCtx.ApplicationID
+	toolCandidate, err := repository.CreateCandidate(
+		releaseCtx,
+		"candidate_definition_tool_postgres",
+		"definition_tool_postgres",
+		workflowDefinitionHTTPToolProfile,
+		toolDraft,
+		now.Add(7*time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("create PostgreSQL Definition HTTP tool candidate: %v", err)
+	}
+	_, toolVersion, err := repository.Review(
+		releaseCtx,
+		toolCandidate.CandidateID,
+		0,
+		"approve",
+		"approve PostgreSQL Definition HTTP tool",
+		toolCandidate.SourceDraftDigest,
+		now.Add(8*time.Minute),
+	)
+	if err != nil || toolVersion == nil {
+		t.Fatalf("approve PostgreSQL Definition HTTP tool: version=%#v err=%v", toolVersion, err)
+	}
+	toolActivation, err := repository.DecideActivation(
+		releaseCtx,
+		toolVersion.DefinitionID,
+		0,
+		"activate",
+		toolVersion.Version,
+		"activate PostgreSQL Definition HTTP tool",
+		now.Add(9*time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("activate PostgreSQL Definition HTTP tool: %v", err)
+	}
+	toolActionContext := workflowHTTPToolActionTestContext()
+	toolActionContext.RequestContext = ctx
+	toolActionContext.RequestID = "request_definition_tool_postgres"
+	toolActionContext.TenantRef = releaseCtx.TenantRef
+	toolActionContext.WorkspaceID = releaseCtx.WorkspaceID
+	toolActionContext.ApplicationID = releaseCtx.ApplicationID
+	toolActionContext.ActorRef = releaseCtx.ActorRef
+	toolActionContext.AuditRef = "audit_definition_tool_postgres"
+	toolActionContext.ScopeGrants = append(toolActionContext.ScopeGrants, workflowDefinitionHTTPToolExecutionRequiredScopes...)
+	toolActionStore := newPostgresWorkflowHTTPToolActionStore(runtimePool)
+	toolActions, err := newWorkflowHTTPToolActionService(
+		func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult {
+			return SavedWorkflowDraftResult{FailureCode: SavedWorkflowDraftFailureNotFound}
+		},
+		repository,
+		toolActionStore,
+	)
+	if err != nil {
+		t.Fatalf("create PostgreSQL Definition HTTP tool action service: %v", err)
+	}
+	planned := toolActions.CreatePlan(toolActionContext, WorkflowHTTPToolCreatePlanRequest{
+		DefinitionID: toolVersion.DefinitionID,
+		NodeID:       "node_http_tool",
+		PublicArguments: map[string]any{
+			"resource_key": "docs/radishflow/overview",
+			"locale":       "zh-CN",
+		},
+	})
+	if planned.FailureCode != "" || planned.ActionPlan == nil ||
+		planned.ActionPlan.WorkflowDefinitionVersion != toolVersion.Version ||
+		planned.ActionPlan.ActivationPointerVersion != toolActivation.PointerVersion {
+		t.Fatalf("plan PostgreSQL Definition HTTP tool: %#v", planned)
+	}
+	toolActionContext.AuditRef = "audit_definition_tool_postgres_approval"
+	approved := toolActions.DecidePlan(toolActionContext, WorkflowHTTPToolDecisionRequest{
+		PlanID: planned.ActionPlan.PlanID, ExpectedRecordVersion: planned.ActionPlan.RecordVersion,
+		Decision: WorkflowHTTPToolConfirmationApprove,
+	})
+	if approved.FailureCode != "" || approved.ActionPlan == nil {
+		t.Fatalf("approve PostgreSQL Definition HTTP tool plan: %#v", approved)
+	}
+	toolBridge := &workflowExecutorTestBridge{}
+	toolExecution := newWorkflowHTTPToolExecutionService(
+		toolActions,
+		newPostgresWorkflowHTTPToolExecutionStore(runtimePool),
+		newWorkflowExecutorService(nil, toolBridge, runStore),
+		applicationRepository,
+	)
+	toolExecution.newRunID = func() (string, error) { return "run_definitiontoolpg0001", nil }
+	toolNetworkAttempts := 0
+	toolExecution.transport = workflowHTTPToolTestTransport(func(*http.Request) (*http.Response, error) {
+		toolNetworkAttempts++
+		return workflowHTTPToolJSONResponse(http.StatusOK, `{"resource_key":"docs/radishflow/overview","title":"RadishFlow","summary":"Reviewed resource","updated_at":"2026-08-15T09:00:00Z"}`), nil
+	})
+	privateToolInput := "private PostgreSQL Definition HTTP tool input"
+	toolResult := toolExecution.Execute(toolActionContext, WorkflowHTTPToolExecutionRequest{
+		PlanID: approved.ActionPlan.PlanID, ExpectedRecordVersion: approved.ActionPlan.RecordVersion,
+		InputText: privateToolInput,
+	})
+	if toolResult.FailureCode != "" || toolResult.Record == nil ||
+		toolResult.Record.SchemaVersion != workflowRunRecordDefinitionToolSchemaVersion ||
+		toolResult.Record.Status != WorkflowRunStatusSucceeded || toolResult.Record.Output != "" ||
+		toolResult.Record.DefinitionAuthority == nil || toolNetworkAttempts != 1 || toolBridge.callCount() != 1 {
+		t.Fatalf("execute PostgreSQL Definition HTTP tool: result=%#v network=%d bridge=%d", toolResult, toolNetworkAttempts, toolBridge.callCount())
+	}
+	toolRunContext := workflowRunContextFromToolAction(toolActionContext)
+	toolHistory, err := runStore.ListRuns(toolRunContext, WorkflowRunListFilter{
+		ExecutionSourceKind:    workflowDefinitionExecutionSourceKind,
+		ExecutionSourceID:      toolVersion.DefinitionID,
+		ExecutionSourceVersion: toolVersion.Version,
+		Limit:                  10,
+	})
+	if err != nil || len(toolHistory.Records) != 1 || toolHistory.Records[0].RunID != toolResult.Record.RunID {
+		t.Fatalf("list PostgreSQL Definition HTTP tool history: page=%#v err=%v", toolHistory, err)
+	}
+	toolComparisonBaseline := terminalComparisonTestRun(
+		toolRunContext,
+		"run_toolpgbaseline0001",
+		WorkflowRunStatusSucceeded,
+		now.Add(10*time.Minute),
+	)
+	storeTerminalComparisonTestRun(t, runStore, toolRunContext, &toolComparisonBaseline)
+	if sideEffectComparison := executor.CompareRuns(toolRunContext, toolComparisonBaseline.RunID, toolResult.Record.RunID); sideEffectComparison.FailureCode != WorkflowRunFailureSideEffectUnsupported || sideEffectComparison.Comparison != nil {
+		t.Fatalf("PostgreSQL Definition HTTP tool entered read-only comparison: %#v", sideEffectComparison)
+	}
+	var toolPayload string
+	if err = runtimePool.QueryRow(ctx, `SELECT sanitized_run_record::text FROM workflow_run_records WHERE run_id=$1`, toolResult.Record.RunID).Scan(&toolPayload); err != nil {
+		t.Fatalf("read PostgreSQL Definition HTTP tool evidence: %v", err)
+	}
+	if strings.Contains(toolPayload, privateToolInput) || strings.Contains(toolPayload, "reviewable workflow answer") {
+		t.Fatal("PostgreSQL Definition HTTP tool persisted private input or model output")
+	}
 	if _, err = runtimePool.Exec(ctx, `UPDATE workflow_run_records SET input_contract_digest=$1 WHERE run_id=$2`, "sha256:"+strings.Repeat("f", 64), structuredBaseline.Record.RunID); err == nil {
 		t.Fatal("PostgreSQL accepted a Run v8 projection that disagrees with the sanitized record")
 	}
@@ -264,6 +395,46 @@ func TestPostgresWorkflowDefinitionReleaseLifecycleRestartCASAndCorruption(t *te
 	if err != nil || !found || restoredStructuredRun.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion ||
 		restoredStructuredRun.InputContractDigest != structuredBaseline.Record.InputContractDigest || restoredStructuredRun.Output != "" {
 		t.Fatalf("restart PostgreSQL Run v8: %#v found=%t err=%v", restoredStructuredRun, found, err)
+	}
+	restartedToolRunStore := newPostgresWorkflowRunStore(reopened)
+	restoredToolRun, found, err := restartedToolRunStore.ReadRun(toolRunContext, toolResult.Record.RunID)
+	if err != nil || !found || restoredToolRun.SchemaVersion != workflowRunRecordDefinitionToolSchemaVersion ||
+		restoredToolRun.Status != WorkflowRunStatusSucceeded || restoredToolRun.Output != "" ||
+		restoredToolRun.DefinitionAuthority == nil || restoredToolRun.DefinitionAuthority.DefinitionID != toolVersion.DefinitionID {
+		t.Fatalf("restart PostgreSQL Definition HTTP tool run: %#v found=%t err=%v", restoredToolRun, found, err)
+	}
+	restartedToolActions, err := newWorkflowHTTPToolActionService(
+		func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult {
+			return SavedWorkflowDraftResult{FailureCode: SavedWorkflowDraftFailureNotFound}
+		},
+		restarted,
+		newPostgresWorkflowHTTPToolActionStore(reopened),
+	)
+	if err != nil {
+		t.Fatalf("restart PostgreSQL Definition HTTP tool action service: %v", err)
+	}
+	restartedPlan := restartedToolActions.ReadPlan(toolActionContext, approved.ActionPlan.PlanID)
+	if restartedPlan.FailureCode != "" || restartedPlan.ActionPlan == nil ||
+		restartedPlan.ActionPlan.Status != WorkflowHTTPToolActionStatusConsumed ||
+		restartedPlan.ActionPlan.RecordVersion != approved.ActionPlan.RecordVersion+1 {
+		t.Fatalf("restart PostgreSQL Definition HTTP tool plan: %#v", restartedPlan)
+	}
+	restartedToolExecution := newWorkflowHTTPToolExecutionService(
+		restartedToolActions,
+		newPostgresWorkflowHTTPToolExecutionStore(reopened),
+		newWorkflowExecutorService(nil, toolBridge, restartedToolRunStore),
+		applicationRepository,
+	)
+	restartedToolExecution.transport = workflowHTTPToolTestTransport(func(*http.Request) (*http.Response, error) {
+		toolNetworkAttempts++
+		return workflowHTTPToolJSONResponse(http.StatusOK, `{}`), nil
+	})
+	repeatedToolResult := restartedToolExecution.Execute(toolActionContext, WorkflowHTTPToolExecutionRequest{
+		PlanID: approved.ActionPlan.PlanID, ExpectedRecordVersion: approved.ActionPlan.RecordVersion,
+		InputText: privateToolInput,
+	})
+	if repeatedToolResult.FailureCode != WorkflowRunFailureToolConfirmation || toolNetworkAttempts != 1 || toolBridge.callCount() != 1 {
+		t.Fatalf("restart PostgreSQL Definition HTTP tool re-executed consumed plan: result=%#v network=%d bridge=%d", repeatedToolResult, toolNetworkAttempts, toolBridge.callCount())
 	}
 	restartedStructuredEvaluationService := newWorkflowEvaluationService(newPostgresWorkflowEvaluationStore(reopened), newPostgresWorkflowRunStore(reopened))
 	restoredStructuredEvaluationReview := restartedStructuredEvaluationService.ReviewVersion(runContext, structuredEvaluation.Case.CaseID, structuredEvaluation.Case.Version)

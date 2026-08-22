@@ -155,7 +155,7 @@ func TestWorkflowDefinitionStructuredReleaseUsesExactVersionIdentity(t *testing.
 	draft.OutputContract = SavedWorkflowDraftContract{ContractID: "contract_output", RequiredFields: []string{"answer_summary"}, Summary: "Reviewable advisory output."}
 	store := newWorkflowDefinitionReleaseStore()
 	now := time.Date(2026, 8, 10, 6, 0, 0, 0, time.UTC)
-	candidate, err := store.CreateCandidate(context, "candidate_structured", "definition_structured", draft, now)
+	candidate, err := store.CreateCandidate(context, "candidate_structured", "definition_structured", "", draft, now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +198,7 @@ func TestWorkflowDefinitionStructuredReleaseUsesExactVersionIdentity(t *testing.
 	}
 
 	legacy := workflowDefinitionTestDraft()
-	legacyCandidate, err := store.CreateCandidate(context, "candidate_legacy", "definition_legacy", legacy, now)
+	legacyCandidate, err := store.CreateCandidate(context, "candidate_legacy", "definition_legacy", "", legacy, now)
 	if err != nil {
 		t.Fatal(err)
 	}

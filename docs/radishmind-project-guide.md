@@ -197,7 +197,7 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 ### 3.7 运行产品 UI shell（开发测试态）
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft / Publish Review、Workflow RAG、Application RAG、Workflow Definition、Application Session、Prompt Application、Agent / Copilot 与 Application Operations。API 密钥原文、Gateway / Session / Prompt / Agent invocation 输入输出和 transcript 只在当前 React 内存中短暂存在；列表、详情、历史、比较、评测和观测仍只消费脱敏 metadata。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota 或 production repository ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft / Publish Review、Workflow RAG、Application RAG、Workflow Definition、Application Session、应用结果资产库、Prompt Application、Agent / Copilot 与 Application Operations。API 密钥原文、Gateway / Session / Prompt / Agent invocation 输入输出和 transcript 只在当前 React 内存中短暂存在；列表、详情、历史、比较、评测和观测仍只消费脱敏 metadata，结果资产正文只在用户显式保存后由独立 owner 持久化，并仅在 exact read / 校验后单文件下载中使用。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota 或 production repository ready。
 
 日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
 
@@ -212,7 +212,7 @@ Windows / PowerShell 使用：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合基础组件参数，或直接选择 `--workflow-rag-application-local-product`、`--workflow-definition-local-product`、`--application-session-local-product`、`--prompt-application-local-product`、`--agent-copilot-local-product` 及各自 PostgreSQL 对应档；launcher 会设置对应 HTTP/write gate、strict consumer source 和 migration status preflight。Agent 产品档当前只由 Shell wrapper 提供。完整命令见 [Web README](../apps/radishmind-web/README.md)，受控运行顺序见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)、[Prompt Application 开发测试态使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)与[Agent / Copilot 开发测试态使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。它不是 production supervisor，不启用 production auth、自动 activation、quota enforcement、writeback 或 replay。
+`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合基础组件参数，或直接选择 `--workflow-rag-application-local-product`、`--workflow-definition-local-product`、`--application-session-local-product`、`--prompt-application-local-product`、`--agent-copilot-local-product` 及各自 PostgreSQL 对应档；应用结果资产库的稳定 SQLite 复验由 Shell 的 `--application-result-artifact-library-local-product` 在 Session 产品档上追加幂等 fixture。launcher 会设置对应 HTTP/write gate、strict consumer source 和 migration status preflight。Agent 与结果资产库 fixture 产品档当前只由 Shell wrapper 提供。完整命令见 [Web README](../apps/radishmind-web/README.md)，受控运行顺序见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)、[Prompt Application 开发测试态使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)与[Agent / Copilot 开发测试态使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。它不是 production supervisor，不启用 production auth、自动 activation、quota enforcement、writeback 或 replay。
 
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
 

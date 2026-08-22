@@ -1,3 +1,8 @@
+import {
+  parseApplicationResultArtifactSummary,
+  type ApplicationResultArtifactSummary,
+} from "./applicationResultArtifactConsumer.ts";
+
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 type Document = Record<string, unknown>;
 const FORBIDDEN_SESSION_RESPONSE_KEYS = new Set([
@@ -46,6 +51,8 @@ export type PromptApplicationSessionResult = {
   session: PromptApplicationSession | null;
   turn: PromptApplicationSessionTurn | null;
   output: string;
+  resultArtifact: ApplicationResultArtifactSummary | null;
+  resultArtifactFailureCode: string;
   failureCode: string;
   failureSummary: string;
   idempotentReplay: boolean;
@@ -84,6 +91,8 @@ export function initialPromptApplicationSessionResult(
     session: null,
     turn: null,
     output: "",
+    resultArtifact: null,
+    resultArtifactFailureCode: "",
     failureCode: config.mode === "offline" ? "application_session_http_disabled" : "",
     failureSummary: "",
     idempotentReplay: false,
@@ -147,13 +156,14 @@ export async function listPromptApplicationSessions(
 export async function createPromptApplicationSession(
   config: PromptApplicationSessionConfig,
   applicationId: string,
+  signal?: AbortSignal,
 ): Promise<PromptApplicationSessionResult> {
   if (config.mode === "offline") return initialPromptApplicationSessionResult(config);
   return requestSession(config, applicationId, "/v1/user-workspace/application-sessions", {
     workspace_id: config.workspaceId,
     application_id: applicationId,
     execution_profile: "prompt_application_invocation_v1",
-  }, "application_sessions:write", null);
+  }, "application_sessions:write", null, signal);
 }
 
 export async function executePromptApplicationSessionTurn(
@@ -161,6 +171,8 @@ export async function executePromptApplicationSessionTurn(
   session: PromptApplicationSession,
   variables: Record<string, string | number | boolean | string[]>,
   clientTurnKey: string,
+  saveResult = false,
+  signal?: AbortSignal,
 ): Promise<PromptApplicationSessionResult> {
   if (config.mode === "offline") return initialPromptApplicationSessionResult(config);
   if (session.state !== "active" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{7,159}$/u.test(clientTurnKey)) {
@@ -179,9 +191,11 @@ export async function executePromptApplicationSessionTurn(
       condition_values: {},
       model: "",
       variables,
+      ...(saveResult ? { save_result: true } : {}),
     },
     "application_sessions:execute",
     session.sessionId,
+    signal,
   );
 }
 
@@ -192,6 +206,7 @@ async function requestSession(
   body: unknown,
   scope: string,
   expectedSessionId: string | null,
+  signal?: AbortSignal,
 ): Promise<PromptApplicationSessionResult> {
   const requestId = createRequestId("prompt-session");
   try {
@@ -202,6 +217,7 @@ async function requestSession(
         ...sessionHeaders(config, applicationId, requestId, scope),
       },
       body: JSON.stringify(body),
+      signal,
     });
     const value: unknown = await response.json();
     if (!response.ok || !isSessionEnvelope(value, config, applicationId, expectedSessionId)) {
@@ -212,11 +228,23 @@ async function requestSession(
     const turn = expectedSessionId && value.turn !== null ? mapTurn(value.turn as Document) : null;
     const replay = value.idempotent_replay as boolean;
     const output = replay ? "" : nullableString(value.prompt_output);
+    const resultArtifact = value.result_artifact === undefined || value.result_artifact === null
+      ? null
+      : parseApplicationResultArtifactSummary(value.result_artifact, config, applicationId, expectedSessionId ?? "");
+    const resultArtifactFailureCode = nullableString(value.result_artifact_failure_code);
+    if ((value.result_artifact !== undefined && value.result_artifact !== null && !resultArtifact) ||
+      (resultArtifact && resultArtifactFailureCode) ||
+      (resultArtifactFailureCode && (!turn || turn.status !== "succeeded" || Boolean(failureCode))) ||
+      (resultArtifact && (!turn || resultArtifact.turnId !== turn.turnId || resultArtifact.runRef.runId !== turn.runId))) {
+      return failed("application_session_response_invalid");
+    }
     return {
       status: failureCode ? "blocked" : replay ? "replayed" : turn ? "succeeded" : "ready",
       session,
       turn,
       output,
+      resultArtifact,
+      resultArtifactFailureCode,
       failureCode,
       failureSummary: nullableString(value.failure_summary),
       idempotentReplay: replay,
@@ -226,8 +254,10 @@ async function requestSession(
           ? `Session turn #${turn.sequence} 已记录。`
           : `Prompt Session v2 ${session?.sessionId ?? ""} 已创建。`,
     };
-  } catch {
-    return failed("application_session_store_unavailable");
+  } catch (error) {
+    return failed(error instanceof DOMException && error.name === "AbortError"
+      ? "application_session_request_canceled"
+      : "application_session_store_unavailable");
   }
 }
 
@@ -265,11 +295,14 @@ function isSessionEnvelope(
     (value.session !== null && !isSession(value.session, config, applicationId))) return false;
   if (!expectedSessionId) {
     return Object.hasOwn(value, "current_record_version") && Object.hasOwn(value, "current_state") &&
-      !Object.hasOwn(value, "turn") && !Object.hasOwn(value, "prompt_output");
+      !Object.hasOwn(value, "turn") && !Object.hasOwn(value, "prompt_output") &&
+      !Object.hasOwn(value, "result_artifact") && !Object.hasOwn(value, "result_artifact_failure_code");
   }
   return value.session_id === expectedSessionId && value.session !== null &&
     (value.turn === null || isTurn(value.turn, config, applicationId, expectedSessionId)) &&
     (value.prompt_output === undefined || typeof value.prompt_output === "string") &&
+    (value.result_artifact === undefined || value.result_artifact === null || isRecord(value.result_artifact)) &&
+    (value.result_artifact_failure_code === undefined || typeof value.result_artifact_failure_code === "string" && /^[a-z][a-z0-9_]{2,127}$/u.test(value.result_artifact_failure_code)) &&
     value.advisory_output === undefined && value.answer === undefined &&
     (!value.idempotent_replay || value.prompt_output === undefined || value.prompt_output === "");
 }
@@ -357,6 +390,8 @@ function failed(failureCode: string): PromptApplicationSessionResult {
     session: null,
     turn: null,
     output: "",
+    resultArtifact: null,
+    resultArtifactFailureCode: "",
     failureCode,
     failureSummary: "",
     idempotentReplay: false,

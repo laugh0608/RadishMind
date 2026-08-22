@@ -175,3 +175,56 @@ jobs:
           RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_USER: radishmind_runtime
         run: go test -count=1 -cover -tags=postgres_integration ./internal/httpapi
         working-directory: services/platform
+
+  candidate-quality:
+    name: Candidate Quality
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - repo-hygiene
+      - repository-baseline
+      - web-build
+      - console-build
+      - platform-go-tests
+      - platform-postgres-integration
+    steps:
+      - name: Summarize PR quality gate
+        shell: bash
+        env:
+          REPO_HYGIENE_RESULT: ${{ needs.repo-hygiene.result }}
+          REPOSITORY_BASELINE_RESULT: ${{ needs.repository-baseline.result }}
+          WEB_BUILD_RESULT: ${{ needs.web-build.result }}
+          CONSOLE_BUILD_RESULT: ${{ needs.console-build.result }}
+          PLATFORM_GO_TESTS_RESULT: ${{ needs.platform-go-tests.result }}
+          PLATFORM_POSTGRES_INTEGRATION_RESULT: ${{ needs.platform-postgres-integration.result }}
+        run: |
+          failed=false
+          {
+            echo "## PR Quality Gate"
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          append_result() {
+            local check_name="$1"
+            local check_result="$2"
+            echo "| ${check_name} | ${check_result} |" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "${check_result}" != "success" ]]; then
+              failed=true
+            fi
+          }
+
+          append_result "Repo Hygiene" "${REPO_HYGIENE_RESULT}"
+          append_result "Repository Baseline" "${REPOSITORY_BASELINE_RESULT}"
+          append_result "RadishMind Web Build" "${WEB_BUILD_RESULT}"
+          append_result "RadishMind Console Build" "${CONSOLE_BUILD_RESULT}"
+          append_result "Platform Go Tests" "${PLATFORM_GO_TESTS_RESULT}"
+          append_result "Platform PostgreSQL Integration" "${PLATFORM_POSTGRES_INTEGRATION_RESULT}"
+
+          if [[ "${failed}" == "true" ]]; then
+            echo "One or more PR quality components did not succeed." >&2
+            exit 1
+          fi
+
+          echo "All PR quality components succeeded."

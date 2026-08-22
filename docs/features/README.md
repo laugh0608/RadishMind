@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-08-13
+更新时间：2026-08-19
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-13 当前执行口径：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 也已分别完成 Visual R3 React 迁移和真实浏览器复核；Application Quota 保持单一 quota owner，Evaluation Campaign 保持 selected context、campaign 主 owner、连续 evidence rows 与单一 Handoff rail。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)均保持关闭。[Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) 已完成批次 A 至 D 的领域合同、三存储、Admin 激活链和三个 API Key unary API，批次 E 的七个 S7 / S5 Visual R1 代表面也已获得人工视觉批准；下一步直接实现既有 Route、Playground 与 Request History strict consumer，再推进双数据库产品连续链，不建立 S11 或同层门禁，真实 Provider 调用、production price / quota / billing、正式 membership / OIDC、自动执行和自动发布仍关闭。
+2026-08-19 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)与[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)均已关闭。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审也已完成，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`：真实跨页任务、统一 snapshot / cursor、时间桶 / 性能预算和正式 billing owner 均未成立，不启动服务端 summary。随后真实页面已贯通 Session、Operations、结果保存、Result Workspace、Run detail 与 Comparison，并在既有 owner 内补齐 exact Run 直接交接、缺失 evidence 说明和 Session authority 恢复引导。当前回到本入口比较四个正式产品面的下一项长期任务；不打开 transcript、public share、永久 purge、真实 Provider 或 production。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,10 +40,10 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Provider Attempt Visual R1 已批准；下一步只扩既有 S5 Playground / Request History strict consumer，不启动全历史 summary、billing 或收件箱批次 B |
-| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route、application request quota 与 Pricing owner 均已完成开发测试态受控管理 | Provider Attempt Visual R1 已批准；下一步只扩既有 S7 Route strict consumer，不创建第二套路由、quota、pricing 或 history owner |
-| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 D 与 Visual R1 已关闭；当前推进 React、双数据库与真实浏览器产品连续链，真实 Provider 与 production 继续关闭 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 结构化输入与 RAG 本地材料导入、审查和快照构建均已关闭 | 新的 Workflow 能力必须由真实用户阻塞产生独立功能设计，不从已关闭专题派生 S11、持久 staging 或同层门禁 |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Provider Attempt S5 Playground / Request History strict consumer 与产品连续链已完成；不启动全历史 summary、billing 或收件箱批次 B |
+| [管理控制面](admin-control-plane.md) | Provider Profile assignment / Model Route、application request quota 与 Pricing owner 均已完成开发测试态受控管理 | Provider Attempt S7 Route strict consumer、draft / candidate / review / activation 与双数据库连续链已完成；不创建第二套路由、quota、pricing 或 history owner |
+| [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 E、Visual R1、React、双数据库、三协议和浏览器均已关闭；真实 Provider 与 production 继续关闭 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition 绑定受控 HTTP Tool 的四批产品链已关闭 | 回到功能设计层选择下一长期目标；不放宽通用 executor，不派生 HTTP Tool 同层续批 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
@@ -61,6 +61,8 @@
 | [应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md) | 功能 / 治理专题 | 已完成不可变候选版本、服务端草案重读、审查 CAS、漂移识别、阻塞式晋级资格判断，以及接入区 / 调试台 / 请求历史交接；不执行正式发布 |
 | [应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md) | 功能 / 可观察性专题 | 已完成 Gateway 请求与 Workflow 运行的独立来源覆盖、当前窗口归因摘要和合并时间线；不推测关联或估算 token / cost / quota / billing |
 | [应用交互会话与受控运行编排（开发 / 测试态）v1](user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md) | 功能 / 受控执行专题 | strict contract、三种 repository、v5 / v4 委托、Web 易失交互工作区、双数据库连续链与浏览器重启恢复已完成，专题关闭 |
+| [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) | 功能 / 结果资产专题 | 已完成批次 A 至 D：三存储 owner、生命周期、共享 Web consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已闭合；不派生批次 E、通用 result store 或 transcript |
+| [应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) | 功能 / 结果资产工作区专题 | 批次 A 至 C 已完成 application-scoped 严格列表、过滤 cursor、canonical export、独立 export 权限、双数据库索引、strict Web consumer、三视口页面、SQLite 重启与 PostgreSQL no-fallback / 重启链；专题关闭 |
 | [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) | 功能 / 源码版本与受控执行专题 | 批次 A 至 E、双数据库连续链、重启、负向与隐私验收均已完成；专题关闭 |
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |
@@ -71,7 +73,8 @@
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | verified identity、tenant / audit PostgreSQL dev/test repository 与 deterministic OIDC boundary 均已完成；真实 Radish 联调 deferred |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
 | [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | deterministic discovery / JWKS / JWT verifier、两条 Admin auth boundary、五条 workspace membership fail-closed 与 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来按 application/client registration 恢复 |
-| [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-read-transition-dev-test-v1.md) | 功能 / 授权与读投影专题 | 批次 A、B 已完成：共享 membership provider、五条 route 授权、durable owner 投影、workspace-wide Run cursor、非持久化 Web selector 与 quota fail-closed 已成立；reviewed membership adapter 等待上游契约 |
+| [RadishMind 本地账户与 Radish OIDC 联合登录 v1](admin-control-plane/local-account-radish-oidc-federated-login-v1.md) | 功能 / 高风险身份专题 | 批次 A、B 已完成六类 identity owner、三种 repository、原子注册、登录、Web Session、CSRF / Origin、no-fallback 与本地 membership actor 链；下一步为批次 C 确定性 Authorization Code + PKCE |
+| [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-read-transition-dev-test-v1.md) | 功能 / 授权与读投影专题 | 批次 A、B 已完成并关闭：共享 membership provider、五条 route 授权、durable owner 投影、workspace-wide Run cursor、非持久化 Web selector 与 quota fail-closed 已成立；本地 membership owner 已由联合身份专题承接，不恢复 legacy Radish membership adapter |
 | [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) | 功能 / 写入与执行授权专题 | 批次 A 至 E 共 47 条 mutation 已完成共享授权、原子组合 / 条件权限、稳定 failure mapping、零业务 / 外部副作用和三模式 / 双数据库 / Web 证据；专题关闭 |
 | [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) | 功能 / 跨资源运营审查专题 | 批次 A 已完成四类既有 owner 首分页关注项、coverage、确定性排序、workspace 切换失效和既有详情跳转；不新增运营真相源或自动修复 |
 | [Control Plane Verified Identity Context & Negative Auth Runtime v1](../task-cards/control-plane-verified-identity-negative-auth-runtime-v1-plan.md) | 高风险实现批次 | 已完成 RS256 signed test token、permission projection、13 类负向认证、七条 route authorization 与 Web sanitized denial state；fake store 保持不变 |
@@ -81,7 +84,7 @@
 | [Provider 上报用量规范化与应用用量审查（开发 / 测试态）v1](gateway/provider-reported-usage-normalization-application-review-dev-test-v1.md) | 功能 / Provider contract 专题 | OpenAI-compatible、Gemini、Anthropic、HuggingFace 与 Ollama reported usage 已进入 Gateway、三协议、Request History 和 Application Operations；成本、quota 与 billing 未打开 |
 | [Provider 价格策略版本与应用成本审查（开发 / 测试态）v1](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md) | 功能 / 价格与成本证据专题 | 状态为 `provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`；三模式 owner、Admin API、Request History v2、请求快照、React strict consumer、双数据库与真实浏览器连续链已完成；不实现 billing ledger、invoice 或 production price |
 | [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](gateway/application-api-key-request-quota-admission-dev-test-v1.md) | 功能 / 高风险准入专题 | 批次 A 至 E 已完成 application / workspace / environment UTC 日请求 policy、三模式 repository、Admin GET / PUT、六条 API Key inference route 原子准入和稳定失败，以及 S9 完整 Pencil、React 严格 consumer、CAS 确认和真实浏览器连续链；生产 quota、token / cost 与 billing 关闭 |
-| [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) | 功能 / 高风险执行专题 | 状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`；批次 A 至 D 与七个 S7 / S5 Visual R1 代表面已完成，下一步为既有 Route、Playground、Request History strict consumer 与双数据库产品连续链 |
+| [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md) | 功能 / 高风险执行专题 | 状态为 `gateway_provider_attempt_dev_test_v1_completed`；批次 A 至 E、Visual R1、React、双数据库、三个 unary 协议、真实浏览器三视口与最终门禁均已完成 |
 | [Model Gateway Request History / Usage & Failure Review v1 任务卡](../task-cards/model-gateway-request-history-usage-failure-review-v1-plan.md) | 实现批次 | 状态为 `complete`；保留为实现与验证索引，不继续派生同层 readiness 链 |
 | [Gateway Playground / Request Review Loop v1](gateway/gateway-playground-request-review-loop-v1.md) | 功能专题 | 三协议 unary / stream、取消、稳定失败和精确 history handoff 已完成；不持久化输入输出 |
 | [Workflow 细专题入口](workflow/README.md) | 功能专题目录 | 承接 workflow 具体功能、页面 / 界面和实现专题 |
@@ -92,6 +95,8 @@
 | [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 已归档高风险实现批次 | A / B / C / D 全部完成，不派生平行任务卡 |
 | [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) | 功能 / 高风险执行专题 | action plan、人工确认、单次 allowlisted GET、SSRF、原子 claim、run v2、三种 store、Web 与浏览器重启链已完成 |
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | 三批完成，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` |
+| [Workflow Definition 绑定受控 HTTP Tool v1](workflow/workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_completed`；批次 A 至 D 已完成 profile、v3 Definition、action plan / decision v2、run v9、三种 store、React、SQLite 重启和真实浏览器三视口；专题关闭 |
+| [Workflow Definition 绑定受控 HTTP Tool v1 实施任务卡](../task-cards/workflow-definition-http-tool-v1-plan.md) | 已归档高风险实现批次 | A / B / C / D 全部完成；不建立平行 confirmation、selector、数据库、批次 E 或 readiness 卡 |
 | [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 三批已完成；精确绑定、独立 execution、citation、metadata-only run v3、Web、三种 store、浏览器重启与 no-fallback 已通过 |
 | [Workflow RAG 评测数据集与知识质量审查 v1](workflow/workflow-rag-evaluation-dataset-knowledge-quality-review-v1.md) | 功能 / 离线质量专题 | strict dataset / report、共享 lexical evaluator、CLI 与 synthetic-public starter report 已完成，六项指标均为 `1` |
 | [Workflow RAG 评测数据集应用资源化与候选快照审查 v1](workflow/workflow-rag-evaluation-dataset-application-resource-candidate-snapshot-review-v1.md) | 功能 / 持久评测专题 | durable dataset、三种 store、精确 baseline / candidate lexical review、metadata-only Web 管理面和 no-fallback 已完成 |

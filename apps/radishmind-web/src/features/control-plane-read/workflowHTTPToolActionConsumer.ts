@@ -9,15 +9,19 @@ const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const DEFAULT_WORKSPACE_ID = "workspace_demo";
 const DEFAULT_TENANT_REF = "tenant_demo";
 const DEFAULT_SUBJECT_REF = "subject_demo_user";
-const WORKFLOW_HTTP_TOOL_SCHEMA_VERSION = "workflow_http_tool_action_plan.v1";
-const WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION = "workflow_http_tool_confirmation_decision.v1";
+const WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V1 = "workflow_http_tool_action_plan.v1";
+const WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V2 = "workflow_http_tool_action_plan.v2";
+const WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V1 = "workflow_http_tool_confirmation_decision.v1";
+const WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V2 = "workflow_http_tool_confirmation_decision.v2";
 const WORKFLOW_HTTP_TOOL_ID = "workflow.http.reviewed-json-read.v1";
 const WORKFLOW_HTTP_TOOL_VERSION = 1;
 const ACTION_PLAN_REFERENCE_STORAGE_KEY = "radishmind.workflow-http-tool-action-plan.v1";
 const PLAN_SCOPE_GRANTS = ["workflow_drafts:read", "workflow_tool_actions:plan"] as const;
+const DEFINITION_PLAN_SCOPE_GRANTS = ["workflow_definitions:read", "workflow_tool_actions:plan"] as const;
 const READ_SCOPE_GRANTS = ["workflow_tool_actions:read"] as const;
 const CONFIRM_SCOPE_GRANTS = ["workflow_tool_actions:confirm"] as const;
 const EXECUTE_SCOPE_GRANTS = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_drafts:read"] as const;
+const DEFINITION_EXECUTE_SCOPE_GRANTS = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_definitions:read"] as const;
 const DEFAULT_BATCH_A_SCOPE_GRANTS = [...PLAN_SCOPE_GRANTS, ...READ_SCOPE_GRANTS, ...CONFIRM_SCOPE_GRANTS];
 const ACTION_PLAN_ENVELOPE_KEYS = [
   "request_id", "workspace_id", "application_id", "action_plan", "confirmation_decision",
@@ -31,9 +35,25 @@ const ACTION_PLAN_KEYS = [
   "planned_by_actor_ref", "created_at", "expires_at", "tool_plan_digest", "status",
   "last_decision_by_actor_ref", "last_decision_at", "audit_ref",
 ] as const;
+const DEFINITION_ACTION_PLAN_KEYS = [
+  "schema_version", "plan_id", "record_version", "tenant_ref", "workspace_id", "application_id",
+  "source_kind", "workflow_definition_id", "workflow_definition_version", "workflow_definition_digest",
+  "activation_pointer_version", "node_id", "tool_id", "tool_version", "definition_digest", "profile_id",
+  "profile_version", "profile_digest", "method", "target_policy_key", "public_arguments",
+  "output_fields", "output_schema_digest", "credential_policy", "timeout_ms", "max_response_bytes", "max_output_bytes",
+  "planned_by_actor_ref", "created_at", "expires_at", "tool_plan_digest", "status",
+  "last_decision_by_actor_ref", "last_decision_at", "audit_ref",
+] as const;
 const CONFIRMATION_DECISION_KEYS = [
   "schema_version", "confirmation_id", "plan_id", "tenant_ref", "workspace_id", "application_id",
   "draft_id", "draft_version", "node_id", "tool_id", "tool_version", "tool_plan_digest", "outcome",
+  "decided_by_actor_ref", "actor_source", "decided_at", "reason_code", "expected_record_version",
+  "resulting_record_version", "audit_ref",
+] as const;
+const DEFINITION_CONFIRMATION_DECISION_KEYS = [
+  "schema_version", "confirmation_id", "plan_id", "tenant_ref", "workspace_id", "application_id",
+  "source_kind", "workflow_definition_id", "workflow_definition_version", "workflow_definition_digest",
+  "activation_pointer_version", "node_id", "tool_id", "tool_version", "tool_plan_digest", "outcome",
   "decided_by_actor_ref", "actor_source", "decided_at", "reason_code", "expected_record_version",
   "resulting_record_version", "audit_ref",
 ] as const;
@@ -79,15 +99,17 @@ export type WorkflowHTTPToolPermission = {
   operation: "plan" | "read" | "confirm" | "execute";
   requiredGrants: string[];
   available: boolean;
-  phase: "batch_a" | "batch_c";
+  phase: "batch_a" | "batch_c" | "batch_d";
   summary: string;
 };
 
 export type WorkflowHTTPToolActionPermissions = {
   plan: WorkflowHTTPToolPermission;
+  definitionPlan: WorkflowHTTPToolPermission;
   read: WorkflowHTTPToolPermission;
   confirm: WorkflowHTTPToolPermission;
   execute: WorkflowHTTPToolPermission;
+  definitionExecute: WorkflowHTTPToolPermission;
 };
 
 export type WorkflowHTTPToolPublicArguments = {
@@ -100,7 +122,7 @@ export type WorkflowHTTPToolHumanDecision = typeof HUMAN_DECISIONS[number];
 export type WorkflowHTTPToolDecisionOutcome = typeof DECISION_OUTCOMES[number];
 
 export type WorkflowHTTPToolActionPlan = {
-  schemaVersion: typeof WORKFLOW_HTTP_TOOL_SCHEMA_VERSION;
+  schemaVersion: typeof WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V1 | typeof WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V2;
   planId: string;
   recordVersion: number;
   tenantRef: string;
@@ -108,6 +130,11 @@ export type WorkflowHTTPToolActionPlan = {
   applicationId: string;
   draftId: string;
   draftVersion: number;
+  sourceKind: "saved_workflow_draft" | "workflow_definition";
+  workflowDefinitionId: string;
+  workflowDefinitionVersion: number;
+  workflowDefinitionDigest: string;
+  activationPointerVersion: number;
   nodeId: string;
   toolId: typeof WORKFLOW_HTTP_TOOL_ID;
   toolVersion: typeof WORKFLOW_HTTP_TOOL_VERSION;
@@ -135,7 +162,7 @@ export type WorkflowHTTPToolActionPlan = {
 };
 
 export type WorkflowHTTPToolConfirmationDecision = {
-  schemaVersion: typeof WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION;
+  schemaVersion: typeof WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V1 | typeof WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V2;
   confirmationId: string;
   planId: string;
   tenantRef: string;
@@ -143,6 +170,11 @@ export type WorkflowHTTPToolConfirmationDecision = {
   applicationId: string;
   draftId: string;
   draftVersion: number;
+  sourceKind: "saved_workflow_draft" | "workflow_definition";
+  workflowDefinitionId: string;
+  workflowDefinitionVersion: number;
+  workflowDefinitionDigest: string;
+  activationPointerVersion: number;
   nodeId: string;
   toolId: typeof WORKFLOW_HTTP_TOOL_ID;
   toolVersion: typeof WORKFLOW_HTTP_TOOL_VERSION;
@@ -201,8 +233,10 @@ export type WorkflowHTTPToolPublicArgumentsValidation = {
 export type WorkflowHTTPToolActionPlanReference = {
   workspaceId: string;
   applicationId: string;
-  draftId: string;
+  sourceKind: "saved_workflow_draft" | "workflow_definition";
+  sourceId: string;
   planId: string;
+  runId: string;
 };
 
 type ActionPlanEnvelopeDocument = {
@@ -223,8 +257,13 @@ type ActionPlanDocument = {
   tenant_ref: string;
   workspace_id: string;
   application_id: string;
-  draft_id: string;
-  draft_version: number;
+  draft_id?: string;
+  draft_version?: number;
+  source_kind?: string;
+  workflow_definition_id?: string;
+  workflow_definition_version?: number;
+  workflow_definition_digest?: string;
+  activation_pointer_version?: number;
   node_id: string;
   tool_id: string;
   tool_version: number;
@@ -258,8 +297,13 @@ type ConfirmationDecisionDocument = {
   tenant_ref: string;
   workspace_id: string;
   application_id: string;
-  draft_id: string;
-  draft_version: number;
+  draft_id?: string;
+  draft_version?: number;
+  source_kind?: string;
+  workflow_definition_id?: string;
+  workflow_definition_version?: number;
+  workflow_definition_digest?: string;
+  activation_pointer_version?: number;
   node_id: string;
   tool_id: string;
   tool_version: number;
@@ -318,6 +362,15 @@ export function workflowHTTPToolActionPermissions(
   };
   return {
     plan: permission("plan", PLAN_SCOPE_GRANTS),
+    definitionPlan: {
+      operation: "plan",
+      requiredGrants: [...DEFINITION_PLAN_SCOPE_GRANTS],
+      available: enabled && DEFINITION_PLAN_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant)),
+      phase: "batch_d",
+      summary: enabled && DEFINITION_PLAN_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant))
+        ? "Available for the exact active Workflow Definition source."
+        : "Unavailable until Definition read and tool plan grants are configured together.",
+    },
     read: permission("read", READ_SCOPE_GRANTS),
     confirm: permission("confirm", CONFIRM_SCOPE_GRANTS),
     execute: {
@@ -328,6 +381,15 @@ export function workflowHTTPToolActionPermissions(
       summary: enabled && EXECUTE_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant))
         ? "Available through the separately gated Batch C execution route."
         : "Unavailable until every Batch C execution grant is configured.",
+    },
+    definitionExecute: {
+      operation: "execute",
+      requiredGrants: [...DEFINITION_EXECUTE_SCOPE_GRANTS],
+      available: enabled && DEFINITION_EXECUTE_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant)),
+      phase: "batch_d",
+      summary: enabled && DEFINITION_EXECUTE_SCOPE_GRANTS.every((grant) => config.scopeGrants.includes(grant))
+        ? "Available for one confirmed active Definition attempt."
+        : "Unavailable until Definition read and execution grants are configured together.",
     },
   };
 }
@@ -359,13 +421,15 @@ export function initialWorkflowHTTPToolActionConsumerState(
   };
 }
 
-export function rememberWorkflowHTTPToolActionPlanReference(plan: WorkflowHTTPToolActionPlan): void {
+export function rememberWorkflowHTTPToolActionPlanReference(plan: WorkflowHTTPToolActionPlan, runId = ""): void {
   if (typeof globalThis.sessionStorage === "undefined") return;
   const reference: WorkflowHTTPToolActionPlanReference = {
     workspaceId: plan.workspaceId,
     applicationId: plan.applicationId,
-    draftId: plan.draftId,
+    sourceKind: plan.sourceKind,
+    sourceId: plan.sourceKind === "workflow_definition" ? plan.workflowDefinitionId : plan.draftId,
     planId: plan.planId,
+    runId,
   };
   try {
     globalThis.sessionStorage.setItem(ACTION_PLAN_REFERENCE_STORAGE_KEY, JSON.stringify(reference));
@@ -380,15 +444,43 @@ export function readWorkflowHTTPToolActionPlanReference(): WorkflowHTTPToolActio
     const raw = globalThis.sessionStorage.getItem(ACTION_PLAN_REFERENCE_STORAGE_KEY);
     if (!raw) return null;
     const value: unknown = JSON.parse(raw);
-    if (!isRecord(value) || !hasExactKeys(value, ["workspaceId", "applicationId", "draftId", "planId"]) ||
-      !isScopedId(value.workspaceId) || !isScopedId(value.applicationId) ||
-      !isScopedId(value.draftId) || !isPlanId(value.planId)) return null;
-    return {
-      workspaceId: value.workspaceId,
-      applicationId: value.applicationId,
-      draftId: value.draftId,
-      planId: value.planId,
-    };
+    if (!isRecord(value) || !isScopedId(value.workspaceId) || !isScopedId(value.applicationId) ||
+      !isPlanId(value.planId)) return null;
+    if (hasExactKeys(value, ["workspaceId", "applicationId", "sourceKind", "sourceId", "planId", "runId"]) &&
+      (value.sourceKind === "saved_workflow_draft" || value.sourceKind === "workflow_definition") &&
+      isScopedId(value.sourceId) && (value.runId === "" || /^run_[a-z0-9]{16,64}$/u.test(String(value.runId)))) {
+      return {
+        workspaceId: value.workspaceId,
+        applicationId: value.applicationId,
+        sourceKind: value.sourceKind,
+        sourceId: value.sourceId,
+        planId: value.planId,
+        runId: String(value.runId),
+      };
+    }
+    if (hasExactKeys(value, ["workspaceId", "applicationId", "sourceKind", "sourceId", "planId"]) &&
+      (value.sourceKind === "saved_workflow_draft" || value.sourceKind === "workflow_definition") &&
+      isScopedId(value.sourceId)) {
+      return {
+        workspaceId: value.workspaceId,
+        applicationId: value.applicationId,
+        sourceKind: value.sourceKind,
+        sourceId: value.sourceId,
+        planId: value.planId,
+        runId: "",
+      };
+    }
+    if (hasExactKeys(value, ["workspaceId", "applicationId", "draftId", "planId"]) && isScopedId(value.draftId)) {
+      return {
+        workspaceId: value.workspaceId,
+        applicationId: value.applicationId,
+        sourceKind: "saved_workflow_draft",
+        sourceId: value.draftId,
+        planId: value.planId,
+        runId: "",
+      };
+    }
+    return null;
   } catch {
     return null;
   }
@@ -504,7 +596,7 @@ export async function createWorkflowHTTPToolActionPlan(
     config,
     input.applicationId,
     requestId,
-    "plan",
+    "draft_plan",
     `/v1/user-workspace/workflow-drafts/${encodeURIComponent(input.draftId)}/tool-action-plans`,
     {
       method: "POST",
@@ -520,9 +612,64 @@ export async function createWorkflowHTTPToolActionPlan(
   );
 }
 
+export async function createWorkflowDefinitionHTTPToolActionPlan(
+  config: WorkflowHTTPToolActionConsumerConfig,
+  input: {
+    definitionId: string;
+    applicationId: string;
+    nodeId: string;
+    expectedDefinitionVersion: number;
+    expectedDefinitionDigest: string;
+    expectedPointerVersion: number;
+    publicArguments: WorkflowHTTPToolPublicArguments;
+  },
+): Promise<WorkflowHTTPToolActionConsumerState> {
+  if (config.mode === "disabled") return initialWorkflowHTTPToolActionConsumerState(config);
+  if (!workflowHTTPToolActionPermissions(config).definitionPlan.available) {
+    return failedState(config, "workflow_tool_action_scope_denied", "Definition action-plan creation requires workflow_definitions:read and workflow_tool_actions:plan.");
+  }
+  const validation = validateWorkflowHTTPToolPublicArguments(input.publicArguments);
+  if (!isScopedId(input.definitionId) || !isScopedId(input.applicationId) || !isScopedId(input.nodeId) ||
+    !isPositiveInteger(input.expectedDefinitionVersion) || !isDigest(input.expectedDefinitionDigest) ||
+    !isPositiveInteger(input.expectedPointerVersion) || !validation.valid || !validation.value) {
+    return failedState(config, validation.failureCode || "workflow_tool_arguments_invalid", validation.summary || "Definition action plan input is invalid.");
+  }
+  const requestId = createRequestId("workflow-definition-tool-plan-create");
+  const publicArguments = {
+    resource_key: validation.value.resourceKey,
+    ...(validation.value.locale ? { locale: validation.value.locale } : {}),
+  };
+  const result = await requestActionPlan(
+    config,
+    input.applicationId,
+    requestId,
+    "definition_plan",
+    `/v1/user-workspace/workflow-definitions/${encodeURIComponent(input.definitionId)}/tool-action-plans`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        workspace_id: config.workspaceId,
+        application_id: input.applicationId,
+        node_id: input.nodeId,
+        public_arguments: publicArguments,
+      }),
+    },
+    "create",
+  );
+  const plan = result.actionPlan;
+  if (plan && (plan.sourceKind !== "workflow_definition" || plan.workflowDefinitionId !== input.definitionId ||
+    plan.workflowDefinitionVersion !== input.expectedDefinitionVersion ||
+    plan.workflowDefinitionDigest !== input.expectedDefinitionDigest ||
+    plan.activationPointerVersion !== input.expectedPointerVersion)) {
+    return failedState(config, "workflow_tool_store_contract_mismatch", "The action plan no longer matches the selected active Definition authority.");
+  }
+  return result;
+}
+
 export async function readWorkflowHTTPToolActionPlan(
   config: WorkflowHTTPToolActionConsumerConfig,
-  plan: Pick<WorkflowHTTPToolActionPlan, "planId" | "applicationId"> & Partial<Pick<WorkflowHTTPToolActionPlan, "draftId">>,
+  plan: Pick<WorkflowHTTPToolActionPlan, "planId" | "applicationId"> &
+    Partial<Pick<WorkflowHTTPToolActionPlan, "sourceKind" | "draftId" | "workflowDefinitionId">>,
 ): Promise<WorkflowHTTPToolActionConsumerState> {
   if (config.mode === "disabled") return initialWorkflowHTTPToolActionConsumerState(config);
   if (!workflowHTTPToolActionPermissions(config).read.available) {
@@ -545,8 +692,10 @@ export async function readWorkflowHTTPToolActionPlan(
     { method: "GET" },
     "read",
   );
-  if (plan.draftId && result.actionPlan && result.actionPlan.draftId !== plan.draftId) {
-    return failedState(config, "workflow_tool_store_contract_mismatch", "The durable action plan does not belong to the selected saved draft.");
+  if (result.actionPlan && ((plan.sourceKind && result.actionPlan.sourceKind !== plan.sourceKind) ||
+    (plan.draftId && result.actionPlan.draftId !== plan.draftId) ||
+    (plan.workflowDefinitionId && result.actionPlan.workflowDefinitionId !== plan.workflowDefinitionId))) {
+    return failedState(config, "workflow_tool_store_contract_mismatch", "The durable action plan does not belong to the selected source.");
   }
   return result;
 }
@@ -640,7 +789,7 @@ async function requestActionPlan(
   config: WorkflowHTTPToolActionConsumerConfig,
   applicationId: string,
   requestId: string,
-  scope: "plan" | "read" | "confirm",
+  scope: "draft_plan" | "definition_plan" | "read" | "confirm",
   path: string,
   init: RequestInit,
   operation: "create" | "read" | "decision",
@@ -668,9 +817,11 @@ function workflowHTTPToolActionHeaders(
   config: WorkflowHTTPToolActionConsumerConfig,
   applicationId: string,
   requestId: string,
-  scope: "plan" | "read" | "confirm",
+  scope: "draft_plan" | "definition_plan" | "read" | "confirm",
 ): HeadersInit {
-  const scopes = scope === "plan" ? PLAN_SCOPE_GRANTS : scope === "confirm" ? CONFIRM_SCOPE_GRANTS : READ_SCOPE_GRANTS;
+  const scopes = scope === "draft_plan" ? PLAN_SCOPE_GRANTS
+    : scope === "definition_plan" ? DEFINITION_PLAN_SCOPE_GRANTS
+      : scope === "confirm" ? CONFIRM_SCOPE_GRANTS : READ_SCOPE_GRANTS;
   const headers = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -762,7 +913,16 @@ function confirmationDecisionMatchesPlan(
   };
   return decision.plan_id === plan.plan_id && decision.tenant_ref === plan.tenant_ref &&
     decision.workspace_id === plan.workspace_id && decision.application_id === plan.application_id &&
-    decision.draft_id === plan.draft_id && decision.draft_version === plan.draft_version &&
+    decision.schema_version === (plan.schema_version === WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V2
+      ? WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V2
+      : WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V1) &&
+    (plan.schema_version === WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V1
+      ? decision.draft_id === plan.draft_id && decision.draft_version === plan.draft_version
+      : decision.source_kind === plan.source_kind &&
+        decision.workflow_definition_id === plan.workflow_definition_id &&
+        decision.workflow_definition_version === plan.workflow_definition_version &&
+        decision.workflow_definition_digest === plan.workflow_definition_digest &&
+        decision.activation_pointer_version === plan.activation_pointer_version) &&
     decision.node_id === plan.node_id && decision.tool_id === plan.tool_id && decision.tool_version === plan.tool_version &&
     decision.tool_plan_digest === plan.tool_plan_digest && decision.resulting_record_version === plan.record_version &&
     plan.status === expectedStatus[decision.outcome as WorkflowHTTPToolDecisionOutcome] &&
@@ -774,11 +934,15 @@ function isActionPlanDocument(
   config: WorkflowHTTPToolActionConsumerConfig,
   applicationId: string,
 ): value is ActionPlanDocument {
-  if (!isRecord(value) || !hasExactKeys(value, ACTION_PLAN_KEYS)) return false;
-  if (value.schema_version !== WORKFLOW_HTTP_TOOL_SCHEMA_VERSION || !isPlanId(value.plan_id) ||
+  if (!isRecord(value)) return false;
+  const isDraftPlan = value.schema_version === WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V1 && hasExactKeys(value, ACTION_PLAN_KEYS);
+  const isDefinitionPlan = value.schema_version === WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V2 &&
+    hasExactKeys(value, DEFINITION_ACTION_PLAN_KEYS);
+  if (!isDraftPlan && !isDefinitionPlan) return false;
+  if (!isPlanId(value.plan_id) ||
     !isPositiveInteger(value.record_version) || value.tenant_ref !== config.tenantRef ||
     value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
-    !isScopedId(value.draft_id) || !isPositiveInteger(value.draft_version) || !isScopedId(value.node_id) ||
+    !isScopedId(value.node_id) ||
     value.tool_id !== WORKFLOW_HTTP_TOOL_ID || value.tool_version !== WORKFLOW_HTTP_TOOL_VERSION ||
     !isDigest(value.definition_digest) || !isProfileId(value.profile_id) ||
     !isPositiveInteger(value.profile_version) || !isDigest(value.profile_digest) || value.method !== "GET" ||
@@ -791,6 +955,10 @@ function isActionPlanDocument(
     !isNullableTimestamp(value.last_decision_at) || !isReference(value.audit_ref)) return false;
   if ((value.last_decision_by_actor_ref === null) !== (value.last_decision_at === null) ||
     (value.status === "pending") !== (value.last_decision_by_actor_ref === null)) return false;
+  if (isDraftPlan && (!isScopedId(value.draft_id) || !isPositiveInteger(value.draft_version))) return false;
+  if (isDefinitionPlan && (value.source_kind !== "workflow_definition" ||
+    !isScopedId(value.workflow_definition_id) || !isPositiveInteger(value.workflow_definition_version) ||
+    !isDigest(value.workflow_definition_digest) || !isPositiveInteger(value.activation_pointer_version))) return false;
   return new Date(value.expires_at).getTime() > new Date(value.created_at).getTime();
 }
 
@@ -807,19 +975,27 @@ function isConfirmationDecisionDocument(
   config: WorkflowHTTPToolActionConsumerConfig,
   applicationId: string,
 ): value is ConfirmationDecisionDocument {
-  return isRecord(value) && hasExactKeys(value, CONFIRMATION_DECISION_KEYS) &&
-    value.schema_version === WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION && isConfirmationId(value.confirmation_id) &&
-    isPlanId(value.plan_id) && value.tenant_ref === config.tenantRef && value.workspace_id === config.workspaceId &&
-    value.application_id === applicationId && isScopedId(value.draft_id) && isPositiveInteger(value.draft_version) &&
-    isScopedId(value.node_id) && value.tool_id === WORKFLOW_HTTP_TOOL_ID &&
-    value.tool_version === WORKFLOW_HTTP_TOOL_VERSION && isDigest(value.tool_plan_digest) &&
-    DECISION_OUTCOMES.includes(value.outcome as WorkflowHTTPToolDecisionOutcome) && isReference(value.decided_by_actor_ref) &&
-    (value.actor_source === "human" || value.actor_source === "system") && isTimestamp(value.decided_at) &&
-    typeof value.reason_code === "string" && REASON_CODE_PATTERN.test(value.reason_code) && isPositiveInteger(value.expected_record_version) &&
-    isPositiveInteger(value.resulting_record_version) && value.resulting_record_version === value.expected_record_version + 1 &&
-    isReference(value.audit_ref) &&
-    (value.actor_source === "human" ? HUMAN_DECISIONS.includes(value.outcome as WorkflowHTTPToolHumanDecision) :
-      value.outcome === "expire" || value.outcome === "invalidate");
+  if (!isRecord(value)) return false;
+  const isDraftDecision = value.schema_version === WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V1 &&
+    hasExactKeys(value, CONFIRMATION_DECISION_KEYS);
+  const isDefinitionDecision = value.schema_version === WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V2 &&
+    hasExactKeys(value, DEFINITION_CONFIRMATION_DECISION_KEYS);
+  if (!isDraftDecision && !isDefinitionDecision) return false;
+  if (!isConfirmationId(value.confirmation_id) || !isPlanId(value.plan_id) || value.tenant_ref !== config.tenantRef ||
+    value.workspace_id !== config.workspaceId || value.application_id !== applicationId ||
+    !isScopedId(value.node_id) || value.tool_id !== WORKFLOW_HTTP_TOOL_ID ||
+    value.tool_version !== WORKFLOW_HTTP_TOOL_VERSION || !isDigest(value.tool_plan_digest) ||
+    !DECISION_OUTCOMES.includes(value.outcome as WorkflowHTTPToolDecisionOutcome) || !isReference(value.decided_by_actor_ref) ||
+    (value.actor_source !== "human" && value.actor_source !== "system") || !isTimestamp(value.decided_at) ||
+    typeof value.reason_code !== "string" || !REASON_CODE_PATTERN.test(value.reason_code) || !isPositiveInteger(value.expected_record_version) ||
+    !isPositiveInteger(value.resulting_record_version) || value.resulting_record_version !== value.expected_record_version + 1 ||
+    !isReference(value.audit_ref) ||
+    (value.actor_source === "human" ? !HUMAN_DECISIONS.includes(value.outcome as WorkflowHTTPToolHumanDecision) :
+      value.outcome !== "expire" && value.outcome !== "invalidate")) return false;
+  if (isDraftDecision) return isScopedId(value.draft_id) && isPositiveInteger(value.draft_version);
+  return value.source_kind === "workflow_definition" && isScopedId(value.workflow_definition_id) &&
+    isPositiveInteger(value.workflow_definition_version) && isDigest(value.workflow_definition_digest) &&
+    isPositiveInteger(value.activation_pointer_version);
 }
 
 function isPublicArgumentsDocument(value: unknown): value is ActionPlanDocument["public_arguments"] {
@@ -837,15 +1013,21 @@ function isOutputFields(value: unknown): value is string[] {
 }
 
 function mapActionPlan(document: ActionPlanDocument): WorkflowHTTPToolActionPlan {
+  const definitionSource = document.schema_version === WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V2;
   return {
-    schemaVersion: WORKFLOW_HTTP_TOOL_SCHEMA_VERSION,
+    schemaVersion: definitionSource ? WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V2 : WORKFLOW_HTTP_TOOL_SCHEMA_VERSION_V1,
     planId: document.plan_id,
     recordVersion: document.record_version,
     tenantRef: document.tenant_ref,
     workspaceId: document.workspace_id,
     applicationId: document.application_id,
-    draftId: document.draft_id,
-    draftVersion: document.draft_version,
+    draftId: definitionSource ? "" : document.draft_id!,
+    draftVersion: definitionSource ? 0 : document.draft_version!,
+    sourceKind: definitionSource ? "workflow_definition" : "saved_workflow_draft",
+    workflowDefinitionId: definitionSource ? document.workflow_definition_id! : "",
+    workflowDefinitionVersion: definitionSource ? document.workflow_definition_version! : 0,
+    workflowDefinitionDigest: definitionSource ? document.workflow_definition_digest! : "",
+    activationPointerVersion: definitionSource ? document.activation_pointer_version! : 0,
     nodeId: document.node_id,
     toolId: WORKFLOW_HTTP_TOOL_ID,
     toolVersion: WORKFLOW_HTTP_TOOL_VERSION,
@@ -877,15 +1059,21 @@ function mapActionPlan(document: ActionPlanDocument): WorkflowHTTPToolActionPlan
 }
 
 function mapConfirmationDecision(document: ConfirmationDecisionDocument): WorkflowHTTPToolConfirmationDecision {
+  const definitionSource = document.schema_version === WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V2;
   return {
-    schemaVersion: WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION,
+    schemaVersion: definitionSource ? WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V2 : WORKFLOW_HTTP_TOOL_DECISION_SCHEMA_VERSION_V1,
     confirmationId: document.confirmation_id,
     planId: document.plan_id,
     tenantRef: document.tenant_ref,
     workspaceId: document.workspace_id,
     applicationId: document.application_id,
-    draftId: document.draft_id,
-    draftVersion: document.draft_version,
+    draftId: definitionSource ? "" : document.draft_id!,
+    draftVersion: definitionSource ? 0 : document.draft_version!,
+    sourceKind: definitionSource ? "workflow_definition" : "saved_workflow_draft",
+    workflowDefinitionId: definitionSource ? document.workflow_definition_id! : "",
+    workflowDefinitionVersion: definitionSource ? document.workflow_definition_version! : 0,
+    workflowDefinitionDigest: definitionSource ? document.workflow_definition_digest! : "",
+    activationPointerVersion: definitionSource ? document.activation_pointer_version! : 0,
     nodeId: document.node_id,
     toolId: WORKFLOW_HTTP_TOOL_ID,
     toolVersion: WORKFLOW_HTTP_TOOL_VERSION,

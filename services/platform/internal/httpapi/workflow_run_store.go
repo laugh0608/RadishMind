@@ -291,6 +291,10 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		if err := validateWorkflowDefinitionRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
 		}
+	} else if record.SchemaVersion == workflowRunRecordDefinitionToolSchemaVersion {
+		if err := validateWorkflowDefinitionHTTPToolRunStoreRecord(runContext, record); err != nil {
+			return errWorkflowRunStoreContract
+		}
 	} else if strings.TrimSpace(record.DraftID) == "" || record.DraftVersion <= 0 {
 		return errWorkflowRunStoreContract
 	} else if record.SchemaVersion == workflowRunRecordRAGSchemaVersion {
@@ -340,7 +344,7 @@ func validWorkflowRunRecordSchema(schemaVersion string) bool {
 		schemaVersion == workflowRunRecordToolSchemaVersion || schemaVersion == workflowRunRecordRAGSchemaVersion ||
 		schemaVersion == workflowRunRecordAppRAGSchemaVersion || schemaVersion == workflowRunRecordDefinitionSchemaVersion ||
 		schemaVersion == workflowRunRecordPromptSchemaVersion || schemaVersion == agentCopilotRunV7Schema ||
-		schemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion
+		schemaVersion == workflowRunRecordDefinitionStructuredSchemaVersion || schemaVersion == workflowRunRecordDefinitionToolSchemaVersion
 }
 
 func validWorkflowRunStatus(status WorkflowRunStatus) bool {

@@ -17,6 +17,9 @@ export type GatewayRequestHistoryFilter = {
   status: "" | "started" | "succeeded" | "failed" | "canceled";
   failureBoundary: string;
   usageAvailability: "" | "reported" | "not_reported" | "not_applicable";
+  fallbackUsed: "" | "true" | "false";
+  terminalProvider: string;
+  terminalProfile: string;
   startedFrom: string;
   startedTo: string;
 };
@@ -44,8 +47,63 @@ export type GatewayRequestCostEstimate = {
   roundingMode: "half_up_to_currency_micro" | "";
 };
 
+export type GatewayProviderAttemptCostSummary = {
+  schemaVersion: "gateway_request_attempt_cost_summary.v1";
+  knownCostMicros: number;
+  coverage: "complete" | "partial" | "none";
+  estimatedAttemptCount: number;
+  unknownAttemptCount: number;
+};
+
+export type GatewayProviderAttemptFailure = {
+  failureClass: string;
+  fallbackDisposition: "eligible" | "ineligible";
+  providerResponseStarted: boolean;
+  outcome: "failed" | "unknown";
+  code: string;
+  httpStatusClass: "" | "4xx" | "5xx";
+};
+
+export type GatewayProviderAttemptRecord = {
+  attemptId: string;
+  ordinal: number;
+  status: "running" | "succeeded" | "failed" | "quota_rejected" | "outcome_unknown";
+  configuredProfileId: string;
+  providerId: string;
+  runtimeProfile: string;
+  selectedModel: string;
+  upstreamModel: string;
+  quotaAdmissionId: string;
+  quotaRejectionCode: string;
+  startedAt: string;
+  completedAt: string;
+  durationMs: number;
+  failure: GatewayProviderAttemptFailure | null;
+  failureBoundary: string;
+  usageAvailability: GatewayRequestHistorySummary["usageAvailability"];
+  totalTokens: number;
+  costEstimate: GatewayRequestCostEstimate;
+};
+
+export type GatewayProviderAttemptPlan = {
+  executionMode: "single_attempt" | "sequential_fallback";
+  fallbackMode: "disabled" | "allow_configured";
+  fallbackAllowed: boolean;
+  maxAttempts: number;
+  targets: Array<{
+    attemptId: string;
+    ordinal: number;
+    providerProfileId: string;
+    providerId: string;
+    runtimeProfile: string;
+    selectedModel: string;
+    upstreamModel: string;
+    pricingAvailability: "configured" | "not_configured" | "unavailable";
+  }>;
+};
+
 export type GatewayRequestHistorySummary = {
-  schemaVersion: "gateway_request_record.v1" | "gateway_request_record.v2";
+  schemaVersion: "gateway_request_record.v1" | "gateway_request_record.v2" | "gateway_request_record.v3";
   recordVersion: number;
   storeMode: "memory_dev" | "sqlite_dev" | "postgres_dev_test";
   requestId: string;
@@ -75,6 +133,12 @@ export type GatewayRequestHistorySummary = {
   outputTokens: number;
   totalTokens: number;
   costEstimate: GatewayRequestCostEstimate;
+  attemptCount: number;
+  fallbackAllowed: boolean;
+  fallbackUsed: boolean;
+  terminalProvider: string;
+  terminalProfile: string;
+  attemptCostSummary: GatewayProviderAttemptCostSummary | null;
   staleStarted: boolean;
 };
 
@@ -86,6 +150,10 @@ export type GatewayRequestHistoryDetail = GatewayRequestHistorySummary & {
   subjectRef: string;
   gatewayDurationMs: number;
   gatewayDurationAvailable: boolean;
+  attemptPhase: string;
+  terminalAttemptId: string;
+  attemptPlan: GatewayProviderAttemptPlan | null;
+  providerAttempts: GatewayProviderAttemptRecord[];
 };
 
 export type GatewayRequestHistoryState = {
@@ -100,7 +168,7 @@ export type GatewayRequestHistoryState = {
 };
 
 type GatewayRequestSummaryDocument = {
-  schema_version: "gateway_request_record.v1" | "gateway_request_record.v2";
+  schema_version: "gateway_request_record.v1" | "gateway_request_record.v2" | "gateway_request_record.v3";
   record_version: number;
   store_mode: "memory_dev" | "sqlite_dev" | "postgres_dev_test";
   request_id: string;
@@ -127,6 +195,12 @@ type GatewayRequestSummaryDocument = {
   usage_availability: GatewayRequestHistorySummary["usageAvailability"];
   usage: GatewayRequestUsageDocument;
   cost_estimate: GatewayRequestCostEstimateDocument;
+  attempt_count: number;
+  fallback_allowed: boolean;
+  fallback_used: boolean;
+  terminal_provider?: string;
+  terminal_profile?: string;
+  provider_attempt_cost_summary?: GatewayProviderAttemptCostSummaryDocument;
   stale_started: boolean;
 };
 
@@ -153,7 +227,10 @@ type GatewayRequestCostEstimateDocument = {
   rounding_mode?: "half_up_to_currency_micro";
 };
 
-type GatewayRequestDetailDocument = Omit<GatewayRequestSummaryDocument, "usage_availability"> & {
+type GatewayRequestDetailDocument = Omit<
+  GatewayRequestSummaryDocument,
+  "usage_availability" | "attempt_count" | "fallback_allowed" | "fallback_used"
+> & {
   tenant_ref: string;
   workspace_id: string;
   consumer_ref: string;
@@ -161,7 +238,25 @@ type GatewayRequestDetailDocument = Omit<GatewayRequestSummaryDocument, "usage_a
   subject_ref: string;
   gateway_duration_ms: number;
   gateway_duration_available: boolean;
+  attempt_count?: number;
+  fallback_allowed?: boolean;
+  fallback_used?: boolean;
+  provider_attempt_plan?: GatewayProviderAttemptPlanDocument;
+  provider_attempt_phase?: string;
+  terminal_attempt_id?: string;
+  provider_attempts?: GatewayProviderAttemptRecordDocument[];
 };
+
+type GatewayProviderAttemptCostSummaryDocument = {
+  schema_version: "gateway_request_attempt_cost_summary.v1";
+  known_cost_micros: number;
+  coverage: "complete" | "partial" | "none";
+  estimated_attempt_count: number;
+  unknown_attempt_count: number;
+};
+
+type GatewayProviderAttemptPlanDocument = Record<string, unknown>;
+type GatewayProviderAttemptRecordDocument = Record<string, unknown>;
 
 type GatewayRequestListEnvelope = {
   request_id: string;
@@ -206,6 +301,9 @@ export const EMPTY_GATEWAY_REQUEST_HISTORY_FILTER: GatewayRequestHistoryFilter =
   status: "",
   failureBoundary: "",
   usageAvailability: "",
+  fallbackUsed: "",
+  terminalProvider: "",
+  terminalProfile: "",
   startedFrom: "",
   startedTo: "",
 };
@@ -312,6 +410,8 @@ function appendFilter(query: URLSearchParams, filter: GatewayRequestHistoryFilte
     ["route", filter.route], ["protocol", filter.protocol], ["provider", filter.provider],
     ["profile", filter.profile], ["model", filter.model], ["status", filter.status],
     ["failure_boundary", filter.failureBoundary], ["usage_availability", filter.usageAvailability],
+    ["fallback_used", filter.fallbackUsed], ["terminal_provider", filter.terminalProvider],
+    ["terminal_profile", filter.terminalProfile],
   ];
   for (const [key, value] of exactValues) if (value.trim()) query.set(key, value.trim());
   if (filter.startedFrom) query.set("started_from", new Date(filter.startedFrom).toISOString());
@@ -365,6 +465,14 @@ function mapGatewayRequestSummary(value: GatewayRequestSummaryDocument): Gateway
     outputTokens: value.usage.output_tokens,
     totalTokens: value.usage.total_tokens,
     costEstimate: mapGatewayRequestCostEstimate(value.cost_estimate),
+    attemptCount: value.attempt_count,
+    fallbackAllowed: value.fallback_allowed,
+    fallbackUsed: value.fallback_used,
+    terminalProvider: value.terminal_provider ?? "",
+    terminalProfile: value.terminal_profile ?? "",
+    attemptCostSummary: value.provider_attempt_cost_summary
+      ? mapGatewayProviderAttemptCostSummary(value.provider_attempt_cost_summary)
+      : null,
     staleStarted: value.stale_started,
   };
 }
@@ -387,8 +495,9 @@ function mapGatewayRequestCostEstimate(value: GatewayRequestCostEstimateDocument
 }
 
 function mapGatewayRequestDetail(value: GatewayRequestDetailDocument): GatewayRequestHistoryDetail {
+  const summary = gatewayRequestDetailSummaryProjection(value);
   return {
-    ...mapGatewayRequestSummary({ ...value, usage_availability: value.usage.availability }),
+    ...mapGatewayRequestSummary(summary),
     tenantRef: value.tenant_ref,
     workspaceId: value.workspace_id,
     consumerRef: value.consumer_ref,
@@ -396,6 +505,112 @@ function mapGatewayRequestDetail(value: GatewayRequestDetailDocument): GatewayRe
     subjectRef: value.subject_ref,
     gatewayDurationMs: value.gateway_duration_ms,
     gatewayDurationAvailable: value.gateway_duration_available,
+    attemptPhase: value.provider_attempt_phase ?? "",
+    terminalAttemptId: value.terminal_attempt_id ?? "",
+    attemptPlan: value.provider_attempt_plan ? mapGatewayProviderAttemptPlan(value.provider_attempt_plan) : null,
+    providerAttempts: (value.provider_attempts ?? []).map(mapGatewayProviderAttemptRecord),
+  };
+}
+
+function gatewayRequestDetailSummaryProjection(
+  value: GatewayRequestDetailDocument | Record<string, unknown>,
+): GatewayRequestSummaryDocument {
+  const terminalAttempt = value.schema_version === "gateway_request_record.v3" &&
+      typeof value.terminal_attempt_id === "string" && Array.isArray(value.provider_attempts)
+    ? value.provider_attempts.find((attempt) =>
+      isRecord(attempt) && attempt.attempt_id === value.terminal_attempt_id)
+    : undefined;
+  const terminalProvider = value.terminal_provider ??
+    (isRecord(terminalAttempt) && typeof terminalAttempt.provider_id === "string"
+      ? terminalAttempt.provider_id
+      : undefined);
+  const terminalProfile = value.terminal_profile ??
+    (isRecord(terminalAttempt) && typeof terminalAttempt.runtime_profile === "string"
+      ? terminalAttempt.runtime_profile
+      : undefined);
+  return {
+    ...value,
+    usage_availability: isRecord(value.usage) ? value.usage.availability : undefined,
+    attempt_count: value.attempt_count ?? 0,
+    fallback_allowed: value.fallback_allowed ?? false,
+    fallback_used: value.fallback_used ?? false,
+    ...(terminalProvider === undefined ? {} : { terminal_provider: terminalProvider }),
+    ...(terminalProfile === undefined ? {} : { terminal_profile: terminalProfile }),
+  } as GatewayRequestSummaryDocument;
+}
+
+function gatewayRequestDetailTerminalProjectionMatches(value: Record<string, unknown>): boolean {
+  if (value.schema_version !== "gateway_request_record.v3" || typeof value.terminal_attempt_id !== "string" ||
+    !Array.isArray(value.provider_attempts)) return true;
+  const terminalAttempt = value.provider_attempts.find((attempt) =>
+    isRecord(attempt) && attempt.attempt_id === value.terminal_attempt_id);
+  if (!isRecord(terminalAttempt)) return true;
+  return (value.terminal_provider === undefined || value.terminal_provider === terminalAttempt.provider_id) &&
+    (value.terminal_profile === undefined || value.terminal_profile === terminalAttempt.runtime_profile);
+}
+
+function mapGatewayProviderAttemptCostSummary(
+  value: GatewayProviderAttemptCostSummaryDocument,
+): GatewayProviderAttemptCostSummary {
+  return {
+    schemaVersion: value.schema_version,
+    knownCostMicros: value.known_cost_micros,
+    coverage: value.coverage,
+    estimatedAttemptCount: value.estimated_attempt_count,
+    unknownAttemptCount: value.unknown_attempt_count,
+  };
+}
+
+function mapGatewayProviderAttemptPlan(value: GatewayProviderAttemptPlanDocument): GatewayProviderAttemptPlan {
+  return {
+    executionMode: value.execution_mode as GatewayProviderAttemptPlan["executionMode"],
+    fallbackMode: value.fallback_mode as GatewayProviderAttemptPlan["fallbackMode"],
+    fallbackAllowed: Boolean(value.fallback_allowed),
+    maxAttempts: Number(value.max_attempts),
+    targets: (value.targets as Record<string, unknown>[]).map((target) => ({
+      attemptId: String(target.attempt_id),
+      ordinal: Number(target.ordinal),
+      providerProfileId: String(target.provider_profile_id),
+      providerId: String(target.provider_id),
+      runtimeProfile: String(target.runtime_profile),
+      selectedModel: String(target.selected_model),
+      upstreamModel: String(target.upstream_model),
+      pricingAvailability: (target.pricing_snapshot as Record<string, unknown>).availability as
+        GatewayProviderAttemptPlan["targets"][number]["pricingAvailability"],
+    })),
+  };
+}
+
+function mapGatewayProviderAttemptRecord(value: GatewayProviderAttemptRecordDocument): GatewayProviderAttemptRecord {
+  const usage = value.usage as GatewayRequestUsageDocument;
+  return {
+    attemptId: String(value.attempt_id),
+    ordinal: Number(value.ordinal),
+    status: value.status as GatewayProviderAttemptRecord["status"],
+    configuredProfileId: String(value.configured_profile_id),
+    providerId: String(value.provider_id),
+    runtimeProfile: String(value.runtime_profile),
+    selectedModel: String(value.selected_model),
+    upstreamModel: String(value.upstream_model),
+    quotaAdmissionId: typeof value.quota_admission_id === "string" ? value.quota_admission_id : "",
+    quotaRejectionCode: typeof value.quota_rejection_code === "string" ? value.quota_rejection_code : "",
+    startedAt: String(value.started_at),
+    completedAt: typeof value.completed_at === "string" ? value.completed_at : "",
+    durationMs: Number(value.duration_ms),
+    failure: isRecord(value.failure) ? {
+      failureClass: String(value.failure.failure_class),
+      fallbackDisposition: value.failure.fallback_disposition as GatewayProviderAttemptFailure["fallbackDisposition"],
+      providerResponseStarted: Boolean(value.failure.provider_response_started),
+      outcome: value.failure.outcome as GatewayProviderAttemptFailure["outcome"],
+      code: String(value.failure.code),
+      httpStatusClass: typeof value.failure.http_status_class === "string"
+        ? value.failure.http_status_class as GatewayProviderAttemptFailure["httpStatusClass"]
+        : "",
+    } : null,
+    failureBoundary: typeof value.failure_boundary === "string" ? value.failure_boundary : "",
+    usageAvailability: usage.availability,
+    totalTokens: usage.total_tokens,
+    costEstimate: mapGatewayRequestCostEstimate(value.cost_estimate as GatewayRequestCostEstimateDocument),
   };
 }
 
@@ -442,14 +657,16 @@ function isGatewayRequestSummaryDocument(
     "provider_duration_available", "selection_source", "selected_provider", "selected_profile",
     "selected_model", "provider_route_configuration_id", "provider_route_generation",
     "provider_route_snapshot_digest", "http_status_code", "failure_code", "failure_boundary",
-    "usage_availability", "usage", "cost_estimate", "stale_started",
+    "usage_availability", "usage", "cost_estimate", "attempt_count", "fallback_allowed", "fallback_used",
+    "terminal_provider", "terminal_profile", "provider_attempt_cost_summary", "stale_started",
     ...(detailProjection ? [
       "tenant_ref", "workspace_id", "consumer_ref", "application_id", "subject_ref",
       "gateway_duration_ms", "gateway_duration_available",
+      "provider_attempt_plan", "provider_attempt_phase", "terminal_attempt_id", "provider_attempts",
     ] : []),
   ];
   return hasOnlyKeys(value, allowedKeys) &&
-    ["gateway_request_record.v1", "gateway_request_record.v2"].includes(String(value.schema_version)) &&
+    ["gateway_request_record.v1", "gateway_request_record.v2", "gateway_request_record.v3"].includes(String(value.schema_version)) &&
     (value.schema_version === "gateway_request_record.v1"
       ? value.cost_estimate.availability === "legacy_not_captured"
       : value.cost_estimate.availability !== "legacy_not_captured") &&
@@ -462,7 +679,8 @@ function isGatewayRequestSummaryDocument(
     typeof value.provider_duration_available === "boolean" && isNonNegativeInteger(value.http_status_code) &&
     ["reported", "not_reported", "not_applicable"].includes(String(value.usage_availability)) &&
     value.usage_availability === value.usage.availability &&
-    typeof value.stale_started === "boolean" && isProviderRouteLineageDocument(value);
+    typeof value.stale_started === "boolean" && isProviderRouteLineageDocument(value) &&
+    isGatewayRequestAttemptSummaryDocument(value);
 }
 
 function isGatewayRequestCostEstimateDocument(value: unknown): value is GatewayRequestCostEstimateDocument {
@@ -494,13 +712,159 @@ function isGatewayRequestCostEstimateDocument(value: unknown): value is GatewayR
     value.rounding_mode === "half_up_to_currency_micro";
 }
 
+function isGatewayRequestAttemptSummaryDocument(value: Record<string, unknown>): boolean {
+  if (!isNonNegativeInteger(value.attempt_count) || value.attempt_count > 2 ||
+    typeof value.fallback_allowed !== "boolean" || typeof value.fallback_used !== "boolean" ||
+    (value.terminal_provider !== undefined && typeof value.terminal_provider !== "string") ||
+    (value.terminal_profile !== undefined && typeof value.terminal_profile !== "string") ||
+    (value.terminal_provider === undefined) !== (value.terminal_profile === undefined)) {
+    return false;
+  }
+  if (value.schema_version !== "gateway_request_record.v3") {
+    return value.attempt_count === 0 && value.fallback_allowed === false && value.fallback_used === false &&
+      value.terminal_provider === undefined && value.provider_attempt_cost_summary === undefined;
+  }
+  if (!isGatewayProviderAttemptCostSummaryDocument(value.provider_attempt_cost_summary, value.attempt_count) ||
+    value.fallback_used && (value.attempt_count !== 2 || !value.fallback_allowed)) {
+    return false;
+  }
+  const terminal = value.status === "succeeded" || value.status === "failed" || value.status === "canceled";
+  return !terminal || typeof value.terminal_provider === "string" && value.terminal_provider.length > 0 &&
+    typeof value.terminal_profile === "string" && value.terminal_profile.length > 0;
+}
+
+function isGatewayProviderAttemptCostSummaryDocument(value: unknown, attemptCount: number): value is GatewayProviderAttemptCostSummaryDocument {
+  return isRecord(value) && hasOnlyKeys(value, [
+    "schema_version", "known_cost_micros", "coverage", "estimated_attempt_count", "unknown_attempt_count",
+  ]) && value.schema_version === "gateway_request_attempt_cost_summary.v1" &&
+    isNonNegativeInteger(value.known_cost_micros) && ["complete", "partial", "none"].includes(String(value.coverage)) &&
+    isNonNegativeInteger(value.estimated_attempt_count) && isNonNegativeInteger(value.unknown_attempt_count) &&
+    value.estimated_attempt_count + value.unknown_attempt_count === attemptCount &&
+    (value.coverage !== "complete" || value.unknown_attempt_count === 0) &&
+    (value.coverage !== "none" || value.estimated_attempt_count === 0);
+}
+
+function isGatewayRequestAttemptDetailDocument(value: Record<string, unknown>): boolean {
+  if (value.schema_version !== "gateway_request_record.v3") {
+    return value.provider_attempt_plan === undefined && value.provider_attempt_phase === undefined &&
+      value.terminal_attempt_id === undefined && value.provider_attempts === undefined;
+  }
+  const attemptCount = isNonNegativeInteger(value.attempt_count) ? value.attempt_count : 0;
+  const attempts = Array.isArray(value.provider_attempts) ? value.provider_attempts : [];
+  if (!isGatewayProviderAttemptPlanDocument(value.provider_attempt_plan, value) ||
+    !["not_started", "primary_running", "fallback_pending", "fallback_running", "terminal_pending", "terminal"].includes(String(value.provider_attempt_phase)) ||
+    attempts.length !== attemptCount || !attempts.every((attempt, index) =>
+      isGatewayProviderAttemptRecordDocument(attempt, value, index + 1)) ||
+    !isGatewayProviderAttemptCostSummaryDocument(value.provider_attempt_cost_summary, attemptCount)) {
+    return false;
+  }
+  const terminal = value.status === "succeeded" || value.status === "failed" || value.status === "canceled";
+  return terminal
+    ? value.provider_attempt_phase === "terminal" && typeof value.terminal_attempt_id === "string" &&
+      attempts.length > 0 && value.terminal_attempt_id === attempts.at(-1)?.attempt_id
+    : value.terminal_attempt_id === undefined;
+}
+
+function isGatewayProviderAttemptPlanDocument(value: unknown, root: Record<string, unknown>): value is GatewayProviderAttemptPlanDocument {
+  if (!isRecord(value) || !hasOnlyKeys(value, [
+    "schema_version", "root_request_id", "route", "protocol", "requested_model", "configuration_id",
+    "route_generation", "route_snapshot_digest", "execution_mode", "fallback_mode", "fallback_allowed",
+    "max_attempts", "targets",
+  ]) || value.schema_version !== "gateway_provider_attempt_plan.v1" || value.root_request_id !== root.request_id ||
+    value.route !== root.route || value.protocol !== root.protocol || value.configuration_id !== root.provider_route_configuration_id ||
+    value.route_generation !== root.provider_route_generation || value.route_snapshot_digest !== root.provider_route_snapshot_digest ||
+    typeof value.requested_model !== "string" || value.requested_model !== root.selected_model ||
+    !["single_attempt", "sequential_fallback"].includes(String(value.execution_mode)) ||
+    !["disabled", "allow_configured"].includes(String(value.fallback_mode)) || typeof value.fallback_allowed !== "boolean" ||
+    !isNonNegativeInteger(value.max_attempts) || !Array.isArray(value.targets)) {
+    return false;
+  }
+  const expectedTargets = value.execution_mode === "single_attempt" ? 1 : 2;
+  const expectedFallback = value.execution_mode === "sequential_fallback" && value.fallback_mode === "allow_configured";
+  return value.targets.length === expectedTargets && value.fallback_allowed === expectedFallback &&
+    value.max_attempts === (expectedFallback ? 2 : 1) &&
+    value.targets.every((target, index) => isGatewayProviderAttemptPlanTargetDocument(target, value, index + 1));
+}
+
+function isGatewayProviderAttemptPlanTargetDocument(value: unknown, plan: Record<string, unknown>, ordinal: number): boolean {
+  return isRecord(value) && hasOnlyKeys(value, [
+    "attempt_id", "ordinal", "provider_profile_id", "provider_id", "runtime_profile", "selected_model",
+    "upstream_model", "inventory_digest", "pricing_snapshot",
+  ]) && value.attempt_id === `${plan.root_request_id}.pa${ordinal}` && value.ordinal === ordinal &&
+    stringFields(value, ["provider_profile_id", "provider_id", "runtime_profile", "selected_model", "upstream_model", "inventory_digest"]) &&
+    value.selected_model === plan.requested_model && /^sha256:[a-f0-9]{64}$/u.test(String(value.inventory_digest)) &&
+    isGatewayProviderAttemptPricingSnapshotDocument(value.pricing_snapshot);
+}
+
+function isGatewayProviderAttemptPricingSnapshotDocument(value: unknown): boolean {
+  if (!isRecord(value) || !["configured", "not_configured", "unavailable"].includes(String(value.availability))) return false;
+  if (value.availability !== "configured") {
+    return hasOnlyKeys(value, ["availability", "reason"]) && typeof value.reason === "string" && value.reason.length > 0;
+  }
+  return hasOnlyKeys(value, [
+    "availability", "currency", "token_unit", "input_price_micros_per_token_unit",
+    "output_price_micros_per_token_unit", "pricing_policy_id", "pricing_policy_version",
+    "pricing_policy_digest", "integrity_digest",
+  ]) && value.currency === "USD" && value.token_unit === 1_000_000 &&
+    isNonNegativeInteger(value.input_price_micros_per_token_unit) && isNonNegativeInteger(value.output_price_micros_per_token_unit) &&
+    typeof value.pricing_policy_id === "string" && /^gmp_[a-f0-9]{24}$/u.test(value.pricing_policy_id) &&
+    isNonNegativeInteger(value.pricing_policy_version) && value.pricing_policy_version > 0 &&
+    typeof value.pricing_policy_digest === "string" && /^sha256:[a-f0-9]{64}$/u.test(value.pricing_policy_digest) &&
+    typeof value.integrity_digest === "string" && /^[a-f0-9]{64}$/u.test(value.integrity_digest);
+}
+
+function isGatewayProviderAttemptRecordDocument(
+  value: unknown,
+  root: Record<string, unknown>,
+  ordinal: number,
+): value is GatewayProviderAttemptRecordDocument {
+  if (!isRecord(value) || !hasOnlyKeys(value, [
+    "schema_version", "attempt_id", "ordinal", "status", "configured_profile_id", "provider_id",
+    "runtime_profile", "selected_model", "upstream_model", "route_generation", "route_snapshot_digest",
+    "inventory_digest", "quota_admission_id", "quota_rejection_code", "started_at", "completed_at",
+    "duration_ms", "failure", "failure_boundary", "usage", "cost_estimate",
+  ]) || value.schema_version !== "gateway_provider_attempt_record.v1" || value.attempt_id !== `${root.request_id}.pa${ordinal}` ||
+    value.ordinal !== ordinal || !["running", "succeeded", "failed", "quota_rejected", "outcome_unknown"].includes(String(value.status)) ||
+    !stringFields(value, [
+      "configured_profile_id", "provider_id", "runtime_profile", "selected_model", "upstream_model",
+      "route_snapshot_digest", "inventory_digest", "started_at",
+    ]) || value.route_generation !== root.provider_route_generation || value.route_snapshot_digest !== root.provider_route_snapshot_digest ||
+    !isNonNegativeInteger(value.duration_ms) || !isGatewayRequestUsageDocument(value.usage) ||
+    !isGatewayRequestCostEstimateDocument(value.cost_estimate) ||
+    (value.failure !== undefined && !isGatewayProviderAttemptFailureDocument(value.failure))) {
+    return false;
+  }
+  if (value.status === "running") return value.completed_at === undefined && value.quota_admission_id !== undefined;
+  return typeof value.completed_at === "string" &&
+    (value.status !== "quota_rejected" || typeof value.quota_rejection_code === "string") &&
+    (value.quota_admission_id === undefined || typeof value.quota_admission_id === "string") &&
+    (value.failure_boundary === undefined || typeof value.failure_boundary === "string");
+}
+
+function isGatewayProviderAttemptFailureDocument(value: unknown): boolean {
+  if (!isRecord(value) || !hasOnlyKeys(value, [
+    "schema_version", "failure_class", "fallback_disposition", "provider_response_started",
+    "outcome", "code", "http_status_class",
+  ]) || value.schema_version !== "gateway_provider_attempt_failure.v1" ||
+    typeof value.failure_class !== "string" || !/^[a-z][a-z0-9_]{2,95}$/u.test(value.failure_class) ||
+    !["eligible", "ineligible"].includes(String(value.fallback_disposition)) ||
+    typeof value.provider_response_started !== "boolean" || !["failed", "unknown"].includes(String(value.outcome)) ||
+    typeof value.code !== "string" || !/^[A-Z][A-Z0-9_]{2,95}$/u.test(value.code) ||
+    (value.http_status_class !== undefined && value.http_status_class !== "4xx" && value.http_status_class !== "5xx")) {
+    return false;
+  }
+  return value.fallback_disposition !== "eligible" ||
+    value.outcome === "failed" && value.provider_response_started === false;
+}
+
 function isGatewayRequestDetailDocument(value: unknown): value is GatewayRequestDetailDocument {
   if (!isRecord(value) || !isRecord(value.usage)) return false;
-  return isGatewayRequestSummaryDocument({ ...value, usage_availability: value.usage.availability }, true) &&
+  return gatewayRequestDetailTerminalProjectionMatches(value) &&
+    isGatewayRequestSummaryDocument(gatewayRequestDetailSummaryProjection(value), true) &&
     stringFields(value, ["tenant_ref", "workspace_id", "consumer_ref", "subject_ref"]) &&
     (value.application_id === undefined || typeof value.application_id === "string") &&
     isNonNegativeInteger(value.gateway_duration_ms) && typeof value.gateway_duration_available === "boolean" &&
-    isGatewayRequestUsageDocument(value.usage);
+    isGatewayRequestUsageDocument(value.usage) && isGatewayRequestAttemptDetailDocument(value);
 }
 
 function isGatewayRequestUsageDocument(value: unknown): value is GatewayRequestUsageDocument {

@@ -34,12 +34,15 @@ export type WorkflowDefinitionCandidateCompatibility = {
   compatible: boolean;
   unsupportedNodeTypes: Array<"rag_retrieval" | "http_tool">;
   handoffAnchor: "workflow-rag-promotion-review" | null;
+  executionProfile: "workflow_definition_executor_v1" | "workflow_definition_http_tool_v1";
   summary: string;
 };
 
 export function evaluateWorkflowDefinitionCandidateCompatibility(
   draft: {
-    nodes: Array<Pick<WorkflowDraftDesignerDraft["nodes"][number], "nodeType">>;
+    nodes: Array<Pick<WorkflowDraftDesignerDraft["nodes"][number], "nodeType"> &
+      Partial<Pick<WorkflowDraftDesignerDraft["nodes"][number], "nodeId" | "toolRef" | "requiresConfirmation" | "riskLevel">>>;
+    edges?: Array<Pick<WorkflowDraftDesignerDraft["edges"][number], "fromNodeId" | "toNodeId">>;
     executionProfile?: WorkflowDraftDesignerDraft["executionProfile"];
   },
 ): WorkflowDefinitionCandidateCompatibility {
@@ -48,15 +51,35 @@ export function evaluateWorkflowDefinitionCandidateCompatibility(
       .map((node) => node.nodeType)
       .filter((nodeType): nodeType is "rag_retrieval" | "http_tool" => nodeType === "rag_retrieval" || nodeType === "http_tool"),
   )];
-  if (unsupportedNodeTypes.length === 0) {
-    return { compatible: true, unsupportedNodeTypes, handoffAnchor: null, summary: "Saved Draft 与 Workflow Definition candidate v1 契约兼容。" };
+  const hasHTTPTool = unsupportedNodeTypes.includes("http_tool");
+  const hasRAG = unsupportedNodeTypes.includes("rag_retrieval") || draft.executionProfile === "rag_retrieval_v1";
+  if (hasHTTPTool && !hasRAG) {
+    const compatible = isHTTPToolCandidateGraph(draft);
+    return {
+      compatible,
+      unsupportedNodeTypes: compatible ? [] : ["http_tool"],
+      handoffAnchor: null,
+      executionProfile: "workflow_definition_http_tool_v1",
+      summary: compatible
+        ? "受控 HTTP Tool 草案将以显式 workflow_definition_http_tool_v1 profile 创建候选。"
+        : "HTTP Tool Definition 要求精确的 prompt → HTTP Tool → 一个或多个 LLM → output 单链、版本化 tool ref、medium 风险和强制人工确认。",
+    };
   }
-  const routesToRAGOwner = unsupportedNodeTypes.includes("rag_retrieval") || draft.executionProfile === "rag_retrieval_v1";
+  if (unsupportedNodeTypes.length === 0) {
+    return {
+      compatible: true,
+      unsupportedNodeTypes,
+      handoffAnchor: null,
+      executionProfile: "workflow_definition_executor_v1",
+      summary: "Saved Draft 与 Workflow Definition candidate v1 契约兼容。",
+    };
+  }
   return {
     compatible: false,
     unsupportedNodeTypes,
-    handoffAnchor: routesToRAGOwner ? "workflow-rag-promotion-review" : null,
-    summary: routesToRAGOwner
+    handoffAnchor: hasRAG ? "workflow-rag-promotion-review" : null,
+    executionProfile: "workflow_definition_executor_v1",
+    summary: hasRAG
       ? "该草案包含 RAG retrieval 节点；请先在独立的 Workflow RAG Promotion owner 完成知识证据晋级与绑定审查。"
       : `Workflow Definition candidate v1 不接收 ${unsupportedNodeTypes.join(", ")} 节点。`,
   };
@@ -68,7 +91,7 @@ export type WorkflowDefinitionSnapshot = {
   description: string;
   nodes: Array<{
     nodeId: string;
-    nodeType: "prompt" | "llm" | "condition" | "output";
+    nodeType: "prompt" | "llm" | "condition" | "http_tool" | "output";
     label: string;
     inputSummary: string;
     outputSummary: string;
@@ -90,7 +113,7 @@ export type WorkflowDefinitionSnapshot = {
   toolRefs: string[];
   ragRefs: string[];
   requestedCapabilities: string[];
-  executionProfile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2";
+  executionProfile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2" | "workflow_definition_http_tool_v1";
 };
 
 export type WorkflowDefinitionReview = {
@@ -104,7 +127,7 @@ export type WorkflowDefinitionReview = {
 };
 
 export type WorkflowDefinitionCandidate = {
-  schemaVersion: "workflow_definition_release_candidate.v1" | "workflow_definition_release_candidate.v2";
+  schemaVersion: "workflow_definition_release_candidate.v1" | "workflow_definition_release_candidate.v2" | "workflow_definition_release_candidate.v3";
   candidateId: string;
   definitionId: string;
   sourceDraftId: string;
@@ -124,7 +147,7 @@ export type WorkflowDefinitionCandidate = {
 };
 
 export type WorkflowDefinitionVersion = {
-  schemaVersion: "workflow_definition_version.v1" | "workflow_definition_version.v2";
+  schemaVersion: "workflow_definition_version.v1" | "workflow_definition_version.v2" | "workflow_definition_version.v3";
   definitionId: string;
   version: number;
   definitionDigest: string;
@@ -186,7 +209,7 @@ export class WorkflowDefinitionPromotionConflict extends Error {
 }
 
 type CandidateDocument = {
-  schema_version: "workflow_definition_release_candidate.v1" | "workflow_definition_release_candidate.v2";
+  schema_version: "workflow_definition_release_candidate.v1" | "workflow_definition_release_candidate.v2" | "workflow_definition_release_candidate.v3";
   candidate_id: string;
   definition_id: string;
   source_draft_id: string;
@@ -208,7 +231,7 @@ type CandidateDocument = {
 };
 
 type VersionDocument = {
-  schema_version: "workflow_definition_version.v1" | "workflow_definition_version.v2";
+  schema_version: "workflow_definition_version.v1" | "workflow_definition_version.v2" | "workflow_definition_version.v3";
   definition_id: string;
   version: number;
   definition_digest: string;
@@ -279,7 +302,7 @@ type SnapshotDocument = {
   tool_refs: string[];
   rag_refs: string[];
   requested_capabilities: string[];
-  execution_profile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2";
+  execution_profile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2" | "workflow_definition_http_tool_v1";
 };
 
 type ReleaseEnvelope = {
@@ -315,7 +338,7 @@ export async function listWorkflowDefinitionCandidates(config: WorkflowDefinitio
   return body.candidates.map(mapCandidate);
 }
 
-export async function createWorkflowDefinitionCandidate(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { candidateId: string; definitionId: string; draftId: string; expectedDraftVersion: number; expectedLifecycleVersion: number }): Promise<WorkflowDefinitionCandidate> {
+export async function createWorkflowDefinitionCandidate(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { candidateId: string; definitionId: string; draftId: string; expectedDraftVersion: number; expectedLifecycleVersion: number; executionProfile?: "workflow_definition_executor_v1" | "workflow_definition_http_tool_v1" }): Promise<WorkflowDefinitionCandidate> {
   assertLive(config);
   return requireCandidate(await writeRelease(config, applicationId, "/v1/user-workspace/workflow-definition-candidates", "workflow_definitions:write", {
     candidate_id: input.candidateId,
@@ -323,6 +346,7 @@ export async function createWorkflowDefinitionCandidate(config: WorkflowDefiniti
     draft_id: input.draftId,
     expected_draft_version: input.expectedDraftVersion,
     expected_lifecycle_version: input.expectedLifecycleVersion,
+    ...(input.executionProfile ? { execution_profile: input.executionProfile } : {}),
   }));
 }
 
@@ -426,7 +450,7 @@ export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefini
     nodes: orderedNodes.map((node) => ({
       ...node,
       riskLevel: node.riskLevel === "high" ? "high" : node.riskLevel === "medium" ? "medium" : "low",
-      lane: node.nodeType === "llm" ? "model" : node.nodeType === "condition" ? "policy" : node.nodeType === "output" ? "output" : "context",
+      lane: node.nodeType === "llm" ? "model" : node.nodeType === "condition" ? "policy" : node.nodeType === "http_tool" ? "preview" : node.nodeType === "output" ? "output" : "context",
       readiness: node.requiresConfirmation ? "review_required" : "ready",
       previewOnlyReason: "Derived editable draft; the source definition version remains immutable.",
     })),
@@ -558,7 +582,10 @@ function isCandidateDocument(value: unknown): value is CandidateDocument {
   if (!strictObject(value, keys)) return false;
   const item = value as Record<string, unknown>;
   const matchingVersion = (item.schema_version === "workflow_definition_release_candidate.v1" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v1") ||
-    (item.schema_version === "workflow_definition_release_candidate.v2" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v2");
+    (item.schema_version === "workflow_definition_release_candidate.v2" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v2") ||
+    (item.schema_version === "workflow_definition_release_candidate.v3" &&
+      (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v1" &&
+      (item.snapshot as Record<string, unknown>)?.execution_profile === "workflow_definition_http_tool_v1");
   return matchingVersion && id(item.candidate_id) && id(item.definition_id) && id(item.source_draft_id) && positive(item.source_draft_version) && digest(item.source_draft_digest) && digest(item.definition_digest) && isSnapshotDocument(item.snapshot) && typeof item.activation_eligible === "boolean" && strings(item.eligibility_blockers) && ["pending", "approved", "rejected", "superseded"].includes(String(item.state)) && nonnegative(item.review_version) && Array.isArray(item.reviews) && item.reviews.every(isReviewDocument) && timestamp(item.created_at) && timestamp(item.updated_at) && ref(item.created_by_actor_ref) && ref(item.updated_by_actor_ref) && ref(item.request_id) && ref(item.audit_ref);
 }
 
@@ -567,7 +594,10 @@ function isVersionDocument(value: unknown): value is VersionDocument {
   if (!strictObject(value, keys)) return false;
   const item = value as Record<string, unknown>;
   const matchingVersion = (item.schema_version === "workflow_definition_version.v1" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v1") ||
-    (item.schema_version === "workflow_definition_version.v2" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v2");
+    (item.schema_version === "workflow_definition_version.v2" && (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v2") ||
+    (item.schema_version === "workflow_definition_version.v3" &&
+      (item.snapshot as Record<string, unknown>)?.schema_version === "saved_workflow_draft.v1" &&
+      (item.snapshot as Record<string, unknown>)?.execution_profile === "workflow_definition_http_tool_v1");
   return matchingVersion && id(item.definition_id) && positive(item.version) && digest(item.definition_digest) && id(item.candidate_id) && positive(item.candidate_review_version) && id(item.source_draft_id) && positive(item.source_draft_version) && digest(item.source_draft_digest) && isSnapshotDocument(item.snapshot) && typeof item.activation_eligible === "boolean" && strings(item.eligibility_blockers) && timestamp(item.created_at) && ref(item.created_by_actor_ref) && ref(item.request_id) && ref(item.audit_ref);
 }
 
@@ -595,18 +625,92 @@ function isSnapshotDocument(value: unknown): value is SnapshotDocument {
   const item = value as Record<string, unknown>;
   const inputContractValid = item.schema_version === "saved_workflow_draft.v2"
     ? parseStructuredRuntimeInputContractDocument(item.input_contract) !== null && item.execution_profile === "workflow_definition_executor_v2"
-    : isContract(item.input_contract) && item.execution_profile === "workflow_definition_executor_v1";
+    : isContract(item.input_contract) &&
+      (item.execution_profile === "workflow_definition_executor_v1" || item.execution_profile === "workflow_definition_http_tool_v1");
+  const toolProfileValid = item.execution_profile !== "workflow_definition_http_tool_v1" ||
+    isHTTPToolSnapshot(item);
   return (item.schema_version === "saved_workflow_draft.v1" || item.schema_version === "saved_workflow_draft.v2") && inputContractValid &&
     typeof item.name === "string" && typeof item.description === "string" && Array.isArray(item.nodes) && item.nodes.length > 0 && item.nodes.every(isSnapshotNode) &&
     Array.isArray(item.edges) && item.edges.every(isSnapshotEdge) && isContract(item.output_contract) && strings(item.provider_refs) && strings(item.tool_refs) &&
-    strings(item.rag_refs) && strings(item.requested_capabilities);
+    strings(item.rag_refs) && strings(item.requested_capabilities) && toolProfileValid;
 }
 
 function isSnapshotNode(value: unknown): value is Record<string, unknown> {
   const keys = ["node_id", "node_type", "label", "input_summary", "output_summary", "input_contract_ref", "output_contract_ref", "input_contract_fields", "output_contract_fields", "output_mapping_summary", "provider_ref", "tool_ref", "rag_ref", "risk_level", "requires_confirmation"];
   if (!strictObject(value, keys)) return false;
   const item = value as Record<string, unknown>;
-  return id(item.node_id) && ["prompt", "llm", "condition", "output"].includes(String(item.node_type)) && keys.slice(2, 9).every((key) => key.endsWith("fields") ? strings(item[key]) : typeof item[key] === "string") && typeof item.output_mapping_summary === "string" && typeof item.provider_ref === "string" && typeof item.tool_ref === "string" && typeof item.rag_ref === "string" && typeof item.risk_level === "string" && typeof item.requires_confirmation === "boolean";
+  return id(item.node_id) && ["prompt", "llm", "condition", "http_tool", "output"].includes(String(item.node_type)) && keys.slice(2, 9).every((key) => key.endsWith("fields") ? strings(item[key]) : typeof item[key] === "string") && typeof item.output_mapping_summary === "string" && typeof item.provider_ref === "string" && typeof item.tool_ref === "string" && typeof item.rag_ref === "string" && typeof item.risk_level === "string" && typeof item.requires_confirmation === "boolean";
+}
+
+function isRecordNodeType(value: unknown, nodeType: string): boolean {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) &&
+    (value as Record<string, unknown>).node_type === nodeType;
+}
+
+function isHTTPToolSnapshot(snapshot: Record<string, unknown>): boolean {
+  if (!Array.isArray(snapshot.nodes) || !Array.isArray(snapshot.edges) || !Array.isArray(snapshot.tool_refs) ||
+    snapshot.tool_refs.length !== 1 || snapshot.tool_refs[0] !== "workflow.http.reviewed-json-read.v1" ||
+    !Array.isArray(snapshot.rag_refs) || snapshot.rag_refs.length !== 0 || !snapshot.nodes.every(isSnapshotNode) ||
+    !snapshot.edges.every(isSnapshotEdge)) return false;
+  const toolNodes = snapshot.nodes.filter((node) => isRecordNodeType(node, "http_tool"));
+  if (toolNodes.length !== 1) return false;
+  const tool = toolNodes[0] as Record<string, unknown>;
+  if (tool.tool_ref !== "workflow.http.reviewed-json-read.v1" || tool.risk_level !== "medium" ||
+    tool.requires_confirmation !== true) return false;
+  return isSingleHTTPToolChain(
+    snapshot.nodes.map((node) => ({
+      nodeId: String((node as Record<string, unknown>).node_id ?? ""),
+      nodeType: String((node as Record<string, unknown>).node_type ?? ""),
+    })),
+    snapshot.edges.map((edge) => ({
+      fromNodeId: String((edge as Record<string, unknown>).from_node_id ?? ""),
+      toNodeId: String((edge as Record<string, unknown>).to_node_id ?? ""),
+    })),
+  );
+}
+
+function isHTTPToolCandidateGraph(draft: {
+  nodes: Array<{ nodeType: string; nodeId?: string; toolRef?: string; requiresConfirmation?: boolean; riskLevel?: string }>;
+  edges?: Array<{ fromNodeId: string; toNodeId: string }>;
+}): boolean {
+  const toolNodes = draft.nodes.filter((node) => node.nodeType === "http_tool");
+  const tool = toolNodes[0];
+  return toolNodes.length === 1 && tool?.toolRef === "workflow.http.reviewed-json-read.v1" &&
+    tool.riskLevel === "medium" && tool.requiresConfirmation === true && Array.isArray(draft.edges) &&
+    isSingleHTTPToolChain(
+      draft.nodes.map((node) => ({ nodeId: node.nodeId ?? "", nodeType: node.nodeType })),
+      draft.edges,
+    );
+}
+
+function isSingleHTTPToolChain(
+  nodes: Array<{ nodeId: string; nodeType: string }>,
+  edges: Array<{ fromNodeId: string; toNodeId: string }>,
+): boolean {
+  if (nodes.length < 4 || edges.length !== nodes.length - 1 || nodes.some((node) => !node.nodeId)) return false;
+  const byId = new Map(nodes.map((node) => [node.nodeId, node]));
+  const outgoing = new Map<string, string[]>();
+  const incoming = new Map<string, string[]>();
+  for (const edge of edges) {
+    if (!byId.has(edge.fromNodeId) || !byId.has(edge.toNodeId)) return false;
+    outgoing.set(edge.fromNodeId, [...(outgoing.get(edge.fromNodeId) ?? []), edge.toNodeId]);
+    incoming.set(edge.toNodeId, [...(incoming.get(edge.toNodeId) ?? []), edge.fromNodeId]);
+  }
+  const roots = nodes.filter((node) => (incoming.get(node.nodeId) ?? []).length === 0);
+  if (roots.length !== 1) return false;
+  const ordered: string[] = [];
+  const visited = new Set<string>();
+  let current: { nodeId: string; nodeType: string } | undefined = roots[0];
+  while (current && !visited.has(current.nodeId)) {
+    ordered.push(current.nodeType);
+    visited.add(current.nodeId);
+    const nextNodeIds: string[] = outgoing.get(current.nodeId) ?? [];
+    if (nextNodeIds.length > 1) return false;
+    current = nextNodeIds.length === 1 ? byId.get(nextNodeIds[0]!) : undefined;
+  }
+  return visited.size === nodes.length && ordered[0] === "prompt" && ordered[1] === "http_tool" &&
+    ordered.at(-1) === "output" && ordered.slice(2, -1).length >= 1 &&
+    ordered.slice(2, -1).every((nodeType) => nodeType === "llm");
 }
 
 function isSnapshotEdge(value: unknown): value is Record<string, unknown> {

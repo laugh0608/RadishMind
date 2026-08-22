@@ -200,6 +200,17 @@ func TestLocalConsoleCORS(t *testing.T) {
 		if got := rec.Header().Get("Access-Control-Allow-Methods"); got != "GET, POST, PUT, OPTIONS" {
 			t.Fatalf("unexpected allow methods: %q", got)
 		}
+		exposedHeaders := rec.Header().Get("Access-Control-Expose-Headers")
+		for _, header := range []string{
+			"X-Request-Id",
+			"X-RadishMind-Route",
+			"X-RadishMind-Provider-Attempts",
+			"X-RadishMind-Fallback-Used",
+		} {
+			if !strings.Contains(exposedHeaders, header) {
+				t.Fatalf("local console response is missing exposed header %s: %s", header, exposedHeaders)
+			}
+		}
 	})
 
 	t.Run("handles platform overview preflight", func(t *testing.T) {

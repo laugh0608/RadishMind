@@ -140,7 +140,7 @@ func TestSQLiteWorkflowDefinitionReleaseLifecycleRestartAndAppendOnly(t *testing
 	ctx := workflowDefinitionTestContext()
 	ctx.RequestContext = context.Background()
 	now := time.Date(2026, 7, 19, 15, 0, 0, 0, time.UTC)
-	candidate, err := repository.CreateCandidate(ctx, "candidate-sqlite", "definition-sqlite", workflowDefinitionTestDraft(), now)
+	candidate, err := repository.CreateCandidate(ctx, "candidate-sqlite", "definition-sqlite", "", workflowDefinitionTestDraft(), now)
 	if err != nil {
 		t.Fatalf("create candidate: %v", err)
 	}
@@ -194,7 +194,7 @@ func TestSQLiteWorkflowDefinitionReleaseCreateAdvancesPastOrphanedAppendOnlyAudi
 	ctx.RequestContext = context.Background()
 	now := time.Date(2026, 8, 9, 12, 0, 0, 0, time.UTC)
 
-	first, err := repository.CreateCandidate(ctx, "candidate-orphaned", "definition-orphaned", workflowDefinitionTestDraft(), now)
+	first, err := repository.CreateCandidate(ctx, "candidate-orphaned", "definition-orphaned", "", workflowDefinitionTestDraft(), now)
 	if err != nil {
 		t.Fatalf("create first candidate: %v", err)
 	}
@@ -206,7 +206,7 @@ func TestSQLiteWorkflowDefinitionReleaseCreateAdvancesPastOrphanedAppendOnlyAudi
 		t.Fatalf("unexpected candidate cleanup result: affected=%d err=%v", affected, rowsErr)
 	}
 
-	if _, err = repository.CreateCandidate(ctx, "candidate-after-orphan", "definition-after-orphan", workflowDefinitionTestDraft(), now.Add(time.Minute)); err != nil {
+	if _, err = repository.CreateCandidate(ctx, "candidate-after-orphan", "definition-after-orphan", "", workflowDefinitionTestDraft(), now.Add(time.Minute)); err != nil {
 		t.Fatalf("create after append-only orphan audit: %v", err)
 	}
 	rows, err := runtime.DB().QueryContext(context.Background(), `SELECT audit_id FROM workflow_definition_release_audits WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? ORDER BY occurred_at_unix_nano,audit_id`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef)
@@ -240,7 +240,7 @@ func TestSQLiteWorkflowDefinitionReleaseCASAndCorruptionFailClosed(t *testing.T)
 	ctx := workflowDefinitionTestContext()
 	ctx.RequestContext = context.Background()
 	now := time.Now().UTC()
-	candidate, err := repository.CreateCandidate(ctx, "candidate-sqlite-cas", "definition-sqlite-cas", workflowDefinitionTestDraft(), now)
+	candidate, err := repository.CreateCandidate(ctx, "candidate-sqlite-cas", "definition-sqlite-cas", "", workflowDefinitionTestDraft(), now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,7 +290,7 @@ func TestWorkflowDefinitionReleaseLiveProjectionReplacesOfflineSample(t *testing
 	server := NewServer(config.Config{ControlPlaneReadDevAuthEnabled: true, WorkflowSavedDraftDevHTTPEnabled: true, WorkflowSavedDraftDevWriteEnabled: true, WorkflowDefinitionReleaseDevEnabled: true}, Options{BuildVersion: "test"})
 	defer server.Close()
 	ctx := workflowDefinitionTestContext()
-	candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(ctx, "candidate-live-summary", "definition-live-summary", workflowDefinitionTestDraft(), time.Date(2026, 7, 19, 16, 0, 0, 0, time.UTC))
+	candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(ctx, "candidate-live-summary", "definition-live-summary", "", workflowDefinitionTestDraft(), time.Date(2026, 7, 19, 16, 0, 0, 0, time.UTC))
 	if err != nil {
 		t.Fatal(err)
 	}

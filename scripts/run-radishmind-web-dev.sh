@@ -20,7 +20,11 @@ application_catalog_postgres_dev_test=0
 api_key_local_product=0
 admin_provider_route_local_product=0
 admin_provider_route_postgres_dev_test=0
+provider_attempt_local_product=0
+provider_attempt_postgres_dev_test=0
+provider_attempt_fixture_url="http://127.0.0.1:7201"
 workflow_http_tool_local_product=0
+workflow_definition_http_tool_local_product=0
 workflow_rag_dev=0
 workflow_rag_promotion_local_product=0
 workflow_rag_application_local_product=0
@@ -28,6 +32,8 @@ workflow_definition_local_product=0
 workflow_definition_postgres_dev_test=0
 application_session_local_product=0
 application_session_postgres_dev_test=0
+application_result_artifact_library_local_product=0
+application_result_artifact_library_fixture_application_id="app_rrrrrrrrrrrrrrrr"
 prompt_application_local_product=0
 prompt_application_postgres_dev_test=0
 agent_copilot_local_product=0
@@ -75,8 +81,16 @@ Options:
                            Enable the SQLite Admin Provider route → Gateway → Request History chain.
   --admin-provider-route-postgres-dev-test
                            Enable the same Admin Provider route product chain with PostgreSQL dev/test stores.
+  --provider-attempt-local-product
+                           Enable the SQLite Provider Attempt fallback chain with a loopback-only deterministic fixture.
+  --provider-attempt-postgres-dev-test
+                           Enable the same Provider Attempt fallback chain with PostgreSQL dev/test stores.
+  --provider-attempt-fixture-url URL
+                           Loopback fixture base URL. Default: http://127.0.0.1:7201
   --workflow-http-tool-local-product
                            Enable the SQLite local-product Workflow HTTP Tool chain.
+  --workflow-definition-http-tool-local-product
+                           Enable the SQLite Definition → Plan → Confirm → Execute → History chain.
   --workflow-rag-dev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
   --workflow-rag-promotion-local-product
                            Enable the SQLite evaluation, promotion, draft binding, and publish review chain without retrieval execution.
@@ -90,6 +104,8 @@ Options:
                            Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
   --application-session-postgres-dev-test
                            Enable the same dual-profile chain with PostgreSQL dev/test repositories.
+  --application-result-artifact-library-local-product
+                           Enable the stable SQLite Result Library development fixture and Web chain.
   --prompt-application-local-product
                            Enable the SQLite Prompt Template → publish → runtime → invocation chain.
   --prompt-application-postgres-dev-test
@@ -182,8 +198,24 @@ while [[ $# -gt 0 ]]; do
       admin_provider_route_postgres_dev_test=1
       shift
       ;;
+    --provider-attempt-local-product)
+      provider_attempt_local_product=1
+      shift
+      ;;
+    --provider-attempt-postgres-dev-test)
+      provider_attempt_postgres_dev_test=1
+      shift
+      ;;
+    --provider-attempt-fixture-url)
+      provider_attempt_fixture_url="${2:?missing value for --provider-attempt-fixture-url}"
+      shift 2
+      ;;
     --workflow-http-tool-local-product)
       workflow_http_tool_local_product=1
+      shift
+      ;;
+    --workflow-definition-http-tool-local-product)
+      workflow_definition_http_tool_local_product=1
       shift
       ;;
     --workflow-rag-dev)
@@ -212,6 +244,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --application-session-postgres-dev-test)
       application_session_postgres_dev_test=1
+      shift
+      ;;
+    --application-result-artifact-library-local-product)
+      application_result_artifact_library_local_product=1
       shift
       ;;
     --prompt-application-local-product)
@@ -267,6 +303,16 @@ case "${mode}" in
     ;;
 esac
 
+if [[ "${provider_attempt_local_product}" -eq 1 ]]; then
+  admin_provider_route_local_product=1
+fi
+if [[ "${workflow_definition_http_tool_local_product}" -eq 1 ]]; then
+  workflow_http_tool_local_product=1
+  workflow_definition_local_product=1
+fi
+if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+  admin_provider_route_postgres_dev_test=1
+fi
 if [[ "${admin_provider_route_local_product}" -eq 1 ]]; then
   api_key_local_product=1
 fi
@@ -274,7 +320,14 @@ if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
   application_catalog_postgres_dev_test=1
   gateway_request_postgres_dev_test=1
 fi
+provider_attempt_enabled=0
+if [[ "${provider_attempt_local_product}" -eq 1 || "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+  provider_attempt_enabled=1
+fi
 
+if [[ "${application_result_artifact_library_local_product}" -eq 1 ]]; then
+  application_session_local_product=1
+fi
 if [[ "${application_session_local_product}" -eq 1 ]]; then
   workflow_definition_local_product=1
   workflow_rag_application_local_product=1
@@ -393,6 +446,18 @@ if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 && "${mode}" != "dev-liv
 fi
 if [[ "${admin_provider_route_local_product}" -eq 1 && "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --admin-provider-route-local-product or --admin-provider-route-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${provider_attempt_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--provider-attempt-local-product requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${provider_attempt_postgres_dev_test}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "--provider-attempt-postgres-dev-test requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${provider_attempt_local_product}" -eq 1 && "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --provider-attempt-local-product or --provider-attempt-postgres-dev-test" >&2
   exit 2
 fi
 if [[ "${workflow_http_tool_local_product}" -eq 1 && "${mode}" != "dev-live" ]]; then
@@ -594,6 +659,14 @@ probe_saved_draft_postgres_migration() {
 		export RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE="postgres_dev_test"
 		export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL="${database_url}"
 		export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_MIGRATION_DATABASE_URL="${database_url}"
+		if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+			export RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE="postgres_dev_test"
+			export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL="${database_url}"
+			export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_MIGRATION_DATABASE_URL="${database_url}"
+			export RADISHMIND_GATEWAY_MODEL_PRICING_STORE="postgres_dev_test"
+			export RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL="${database_url}"
+			export RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL="${database_url}"
+		fi
     cd "${platform_dir}"
 		go run ./cmd/radishmind-workflow-draft-migrate status >/dev/null || return
 		go run ./cmd/radishmind-application-draft-migrate status >/dev/null || return
@@ -604,6 +677,10 @@ probe_saved_draft_postgres_migration() {
 		fi
 		if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
 			go run ./cmd/radishmind-admin-provider-route-migrate status >/dev/null || return
+		fi
+		if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+			go run ./cmd/radishmind-gateway-request-quota-migrate status >/dev/null || return
+			go run ./cmd/radishmind-gateway-model-pricing-migrate status >/dev/null || return
 		fi
 		if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
 			go run ./cmd/radishmind-application-publish-migrate status >/dev/null || return
@@ -664,6 +741,29 @@ if port in blocked or 6665 <= port <= 6669:
     print(f"Browsers can fail with ERR_UNSAFE_PORT before reaching {url}.", file=sys.stderr)
     print("Use the local defaults instead: backend http://127.0.0.1:7000 and web http://127.0.0.1:4100.", file=sys.stderr)
     raise SystemExit(1)
+PY
+}
+
+assert_loopback_url() {
+  local url="$1"
+  "${python_bin}" - "$url" <<'PY'
+import ipaddress
+import sys
+from urllib.parse import urlparse
+
+url = sys.argv[1]
+parsed = urlparse(url)
+host = (parsed.hostname or "").strip().lower()
+if parsed.scheme != "http" or parsed.username or parsed.password or parsed.query or parsed.fragment:
+    raise SystemExit(f"Provider Attempt fixture URL must be a plain loopback HTTP origin: {url}")
+if parsed.path not in {"", "/"}:
+    raise SystemExit(f"Provider Attempt fixture URL must not include a path: {url}")
+try:
+    loopback = host == "localhost" or ipaddress.ip_address(host).is_loopback
+except ValueError:
+    loopback = False
+if not loopback:
+    raise SystemExit(f"Provider Attempt fixture URL must use a loopback host: {url}")
 PY
 }
 
@@ -1317,6 +1417,17 @@ frontend_port="$(url_part "${frontend_url}" port)"
 assert_browser_safe_port "${backend_url}" "${backend_port}"
 assert_browser_safe_port "${frontend_url}" "${frontend_port}"
 
+provider_attempt_fixture_host=""
+provider_attempt_fixture_port=""
+provider_attempt_fixture_health_url=""
+if [[ "${provider_attempt_enabled}" -eq 1 ]]; then
+  assert_loopback_url "${provider_attempt_fixture_url}"
+  provider_attempt_fixture_host="$(url_part "${provider_attempt_fixture_url}" host)"
+  provider_attempt_fixture_port="$(url_part "${provider_attempt_fixture_url}" port)"
+  assert_browser_safe_port "${provider_attempt_fixture_url}" "${provider_attempt_fixture_port}"
+  provider_attempt_fixture_health_url="${provider_attempt_fixture_url%/}/healthz"
+fi
+
 healthz_url="${backend_url%/}/healthz"
 tenant_summary_url="${backend_url%/}/v1/control-plane/tenants/${tenant_ref}/summary"
 frontend_origin="${frontend_url%/}"
@@ -1346,6 +1457,21 @@ if [[ "${verify_only}" -eq 0 ]]; then
   mkdir -p "${log_dir}"
 
   if [[ "${mode}" == "dev-live" ]]; then
+    if [[ "${provider_attempt_enabled}" -eq 1 ]]; then
+      if port_is_open "${provider_attempt_fixture_host}" "${provider_attempt_fixture_port}"; then
+        step "Provider Attempt fixture port ${provider_attempt_fixture_port} is already open; reusing it if the probe passes."
+      else
+        step "Starting loopback Provider Attempt fixture. Log: ${log_dir}/provider-attempt-fixture.log"
+        "${python_bin}" "${repo_root}/scripts/eval/provider_attempt_fixture_server.py" \
+          --listen "${provider_attempt_fixture_host}:${provider_attempt_fixture_port}" \
+          >"${log_dir}/provider-attempt-fixture.log" 2>&1 &
+        spawned_pids+=("$!")
+      fi
+      if ! wait_until "Provider Attempt fixture" probe_json "${provider_attempt_fixture_health_url}" ""; then
+        show_failure_help "Provider Attempt fixture probe failed"
+        exit 1
+      fi
+    fi
     if port_is_open "${backend_host}" "${backend_port}"; then
       step "Backend port ${backend_port} is already open; reusing it if probes pass."
       verify_existing_backend
@@ -1373,6 +1499,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         fi
         if [[ "${application_session_enabled}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_SESSION_DEV="1"
+        fi
+        if [[ "${application_result_artifact_library_local_product}" -eq 1 ]]; then
+          export RADISHMIND_APPLICATION_RESULT_ARTIFACT_LIBRARY_DEV_FIXTURE="1"
         fi
         if [[ "${prompt_application_enabled}" -eq 1 ]]; then
           export RADISHMIND_PROMPT_APPLICATION_TEMPLATE_DEV_HTTP="1"
@@ -1421,6 +1550,34 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_GATEWAY_PROVIDER_ROUTE_ENVIRONMENT="test"
           export RADISHMIND_GATEWAY_PROVIDER_ROUTE_CONFIGURATION_ID="gateway-default"
         fi
+        if [[ "${provider_attempt_enabled}" -eq 1 ]]; then
+          export RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV="1"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT="test"
+          export RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP="1"
+          export RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE="1"
+          export RADISHMIND_GATEWAY_MODEL_PRICING_CAPTURE_DEV="1"
+          export RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT="test"
+          export RADISHMIND_GATEWAY_PROVIDER_FALLBACK_DEV="1"
+          export RADISHMIND_MODEL_PROFILE_FALLBACKS="provider-attempt-primary,provider-attempt-backup,provider-attempt-failing-backup"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_PRIMARY_NAME="fixture-model"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_PRIMARY_BASE_URL="${provider_attempt_fixture_url%/}/eligible"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_PRIMARY_API_KEY="fixture-primary"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_PRIMARY_API_STYLE="openai-compatible"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_PRIMARY_REQUEST_TIMEOUT_SECONDS="5"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_BACKUP_NAME="fixture-model"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_BACKUP_BASE_URL="${provider_attempt_fixture_url%/}/success"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_BACKUP_API_KEY="fixture-backup"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_BACKUP_API_STYLE="openai-compatible"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_BACKUP_REQUEST_TIMEOUT_SECONDS="5"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_FAILING_BACKUP_NAME="fixture-model"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_FAILING_BACKUP_BASE_URL="${provider_attempt_fixture_url%/}/eligible"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_FAILING_BACKUP_API_KEY="fixture-failing-backup"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_FAILING_BACKUP_API_STYLE="openai-compatible"
+          export RADISHMIND_MODEL_PROFILE_PROVIDER_ATTEMPT_FAILING_BACKUP_REQUEST_TIMEOUT_SECONDS="5"
+        fi
         if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_ADMIN_PROVIDER_ROUTE_STORE="postgres_dev_test"
           export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
@@ -1428,6 +1585,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_API_KEY_LIFECYCLE_DEV_WRITE="1"
           export RADISHMIND_API_KEY_STORE="postgres_dev_test"
           export RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+        fi
+        if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_STORE="postgres_dev_test"
+          export RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
+          export RADISHMIND_GATEWAY_MODEL_PRICING_STORE="postgres_dev_test"
+          export RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_DATABASE_URL="${saved_draft_database_url}"
         fi
         if [[ "${application_publish_postgres_dev_test}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_DRAFT_DEV_HTTP="1"
@@ -1542,13 +1705,23 @@ if [[ "${verify_only}" -eq 0 ]]; then
         if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 || "${application_evaluation_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_GATEWAY_AUTH_MODE="api_key_dev_test"
         fi
-        if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
-          export VITE_RADISHMIND_APPLICATION_EVALUATION_SOURCE="dev-application-evaluation-http"
-          export VITE_RADISHMIND_APPLICATION_EVALUATION_BASE_URL="${backend_url%/}"
-          export VITE_RADISHMIND_APPLICATION_EVALUATION_ENVIRONMENT="test"
+        if [[ "${application_evaluation_enabled}" -eq 1 || "${provider_attempt_enabled}" -eq 1 ]]; then
+          if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
+            export VITE_RADISHMIND_APPLICATION_EVALUATION_SOURCE="dev-application-evaluation-http"
+            export VITE_RADISHMIND_APPLICATION_EVALUATION_BASE_URL="${backend_url%/}"
+            export VITE_RADISHMIND_APPLICATION_EVALUATION_ENVIRONMENT="test"
+          fi
           export VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_SOURCE="dev-admin-gateway-request-quota-http"
           export VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_ENVIRONMENT="test"
+        fi
+        if [[ "${provider_attempt_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_SOURCE="dev-admin-gateway-model-pricing-http"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_ENVIRONMENT="test"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_PROVIDER_ID="openai-compatible"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_PROFILE_ID="provider-attempt-primary"
+          export VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_MODEL_ID="radishmind-local-dev"
         fi
         if [[ "${prompt_application_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE="dev-prompt-application-http"
@@ -1569,7 +1742,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE="dev-saved-draft-http"
           export VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE="dev-workflow-executor-http"
           export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE="dev-workflow-http-tool-http"
-          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+          workflow_http_tool_scope_grants="workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+          if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
+            workflow_http_tool_scope_grants="${workflow_http_tool_scope_grants},workflow_definitions:read"
+          fi
+          export VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS="${workflow_http_tool_scope_grants}"
         fi
         if [[ "${workflow_definition_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE="dev-workflow-definition-promotion-http"
@@ -1629,6 +1806,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID="${RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID:-}"
           export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE="${RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE:-}"
           export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID="${RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID:-}"
+          if [[ "${provider_attempt_enabled}" -eq 1 ]]; then
+            export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID="openai-compatible"
+            export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE="provider-attempt-primary"
+            export VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID="radishmind-local-dev"
+          fi
         fi
       else
         unset VITE_RADISHMIND_READ_SOURCE
@@ -1683,6 +1865,12 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_SOURCE
         unset VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_BASE_URL
         unset VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_ENVIRONMENT
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_SOURCE
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_BASE_URL
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_ENVIRONMENT
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_PROVIDER_ID
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_PROFILE_ID
+        unset VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_MODEL_ID
         unset VITE_RADISHMIND_GATEWAY_AUTH_MODE
         unset VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE
         unset VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE
@@ -1711,6 +1899,10 @@ if [[ "${verify_only}" -eq 0 ]]; then
 fi
 
 if [[ "${mode}" == "dev-live" ]]; then
+  if [[ "${provider_attempt_enabled}" -eq 1 ]] && ! wait_until "Provider Attempt fixture" probe_json "${provider_attempt_fixture_health_url}" ""; then
+    show_failure_help "Provider Attempt fixture probe failed"
+    exit 1
+  fi
   if ! wait_until "backend healthz" probe_json "${healthz_url}" ""; then
     show_failure_help "backend healthz probe failed"
     exit 1
@@ -1838,11 +2030,20 @@ if [[ "${mode}" == "dev-live" ]]; then
   if [[ "${admin_provider_route_local_product}" -eq 1 ]]; then
     step "Admin Provider route SQLite product chain enabled for ${saved_draft_workspace_id}/test/gateway-default; approval and activation remain separate actions."
   fi
+  if [[ "${provider_attempt_local_product}" -eq 1 ]]; then
+    step "Provider Attempt SQLite product chain enabled with a loopback-only deterministic fixture; fallback remains API-key unary, explicitly allowed, and development/test only."
+  fi
+  if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
+    step "Provider Attempt PostgreSQL dev/test product chain enabled with a loopback-only deterministic fixture; fallback remains API-key unary, explicitly allowed, and development/test only."
+  fi
   if [[ "${admin_provider_route_postgres_dev_test}" -eq 1 ]]; then
     step "Admin Provider route PostgreSQL dev/test product chain enabled for ${saved_draft_workspace_id}/test/gateway-default; approval and activation remain separate actions."
   fi
   if [[ "${workflow_http_tool_local_product}" -eq 1 ]]; then
     step "Workflow HTTP Tool SQLite local-product Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; approve and execute remain separate actions."
+  fi
+  if [[ "${workflow_definition_http_tool_local_product}" -eq 1 ]]; then
+    step "Workflow Definition HTTP Tool SQLite product chain enabled; candidate, review, activation, plan, confirmation, execution, and v9 history remain explicit actions."
   fi
   if [[ "${workflow_rag_dev}" -eq 1 ]]; then
     step "Workflow RAG Web chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; execution is synchronous, metadata-only, and dev/test only."
@@ -1868,6 +2069,9 @@ if [[ "${mode}" == "dev-live" ]]; then
       session_store="PostgreSQL dev/test"
     fi
     step "Application Session ${session_store} dual-profile chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; input and answer content remain browser-memory only."
+  fi
+  if [[ "${application_result_artifact_library_local_product}" -eq 1 ]]; then
+    step "Result Library SQLite fixture enabled for ${saved_draft_workspace_id}/${application_result_artifact_library_fixture_application_id}; fixture content is development/test only and lifecycle changes persist across restarts."
   fi
   if [[ "${prompt_application_enabled}" -eq 1 ]]; then
     prompt_store="SQLite"

@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-13
+更新时间：2026-08-17
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,11 +12,11 @@
 
 ## 当前活跃任务
 
-当前唯一活跃高风险实现任务卡为 [Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1](gateway-provider-attempt-controlled-retry-fallback-execution-dev-test-v1-plan.md)，状态为 `gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`。批次 A 至 D 已完成 Route v2、不可变 attempt plan、类型化 Provider failure、Request History v3 三存储、Admin 人工激活链和三个 API Key unary API，批次 E 的七个 S7 / S5 Visual R1 代表面也已获得人工批准；下一步只推进 Route、Playground、Request History strict consumer 与双数据库产品连续链，真实 Provider 调用和 production capability 均未打开，不派生平行 gate-only 切片。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_b_completed_batch_c_ready`。批次 A、B 的 identity owner、三种仓储与本地 Web Session HTTP 已完成；下一步只开放批次 C 确定性 Authorization Code + PKCE、state / nonce、callback 与 external identity binding，Web 与真实 Radish 联调仍按后续批次顺序开放。
 
 ## 最近关闭任务
 
-最新关闭：[Workflow Definition 结构化运行输入 v1](workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md)已完成 Draft / Definition v2、Run v8、Session v4、Comparison / Evaluation / Campaign v2、三存储连续链与 SQLite 产品浏览器收口；[应用评测计划、受控执行与证据归档 v1](application-evaluation-campaign-controlled-execution-dev-test-v1-plan.md)已完成三模式 Plan / Campaign、五 Profile 受控执行、逐 provider-attempt quota admission、S10 Pencil / React 和 memory / SQLite exact handoff；[API 密钥引导式轮换与验证后退役 v1](api-key-guided-rotation-verified-retirement-dev-test-v1-plan.md)已完成易失会话、同 scopes 替代、认证证据门槛、精确退役 CAS、Web 与真实浏览器连续链；[应用解除归档与安全重新启用 v1](application-unarchive-safe-reactivation-dev-test-v1-plan.md)已完成三种 store CAS、组合权限、Gateway 资格回归、Web 与真实浏览器连续链；[已保存 Workflow 草案库生命周期与组织 v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)已完成批次 A 至 E 的三存储分页 / 筛选、双版本 lifecycle、Web 草案库、真实 PostgreSQL 与浏览器连续链；[Provider 上报用量规范化与应用用量审查 v1](provider-reported-usage-normalization-application-review-dev-test-v1-plan.md)已完成五类 Provider usage、Gateway / northbound / Request History 与应用当前窗口审查；[已保存 Workflow 草案修订历史、版本比较与显式恢复 v1](saved-workflow-draft-revision-history-restore-dev-test-v1-plan.md)已完成三种存储的不可变历史、精确版本、比较和恢复为新版本；[Workspace-scoped Mutation Authorization v1](workspace-scoped-mutation-authorization-dev-test-v1-plan.md)已完成原 47 条 mutation 的共享 authorization。以下为较早关闭任务：
+最新关闭：[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)已完成批次 A 至 C 的 application-scoped list、受控 export、strict Web consumer、SQLite 页面重启链和 PostgreSQL 配置化 no-fallback / 重启链；[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)已完成批次 A 至 D 的显式 opt-in、服务端 canonical capture、三存储不可变 artifact 与 lifecycle owner。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。

@@ -1,8 +1,8 @@
 # Gateway Provider Attempt 受控重试与降级执行（开发 / 测试态）v1
 
-更新时间：2026-08-13
+更新时间：2026-08-15
 
-状态：`gateway_provider_attempt_controlled_retry_fallback_execution_dev_test_v1_batch_e_pencil_visual_r1_approved_react_next`
+状态：`gateway_provider_attempt_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -260,7 +260,7 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 - S5 Request History：Desktop `KsXpp`、Narrow `BRzOE`；桌面表达主失败 → durable checkpoint → 备用成功，窄屏表达第二次 quota 拒绝且零备用 Provider 调用；
 - Decision R17 `GfqT6`：统一冻结 `single attempt`、fallback success、quota rejected、two failures、history checkpoint failure 与旧 v2 单 attempt 投影六类代表状态。
 
-七个根节点已完成逐节点边界扫描和实际截图复核，结果为零裁切、零越界、零 placeholder；颜色不是状态唯一通道，只有当前审查 target / attempt 使用墨蓝选中轨。Visual R1 已于 2026-08-13 获得人工视觉批准，React strict consumer 留到下一工作日开始。
+七个根节点已完成逐节点边界扫描和实际截图复核，结果为零裁切、零越界、零 placeholder；颜色不是状态唯一通道，只有当前审查 target / attempt 使用墨蓝选中轨。Visual R1 已于 2026-08-13 获得人工视觉批准；React strict consumer 随后于 2026-08-15 完成。
 
 ## 实施批次
 
@@ -301,7 +301,13 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 - PostgreSQL 实例覆盖 migration、并发、checkpoint 与重连；
 - 完成 Web 测试、build、Go race、三视口、隐私扫描和全量仓库门禁。
 
-当前进度：Visual R1 七个代表面已经冻结并于 2026-08-13 获得人工视觉批准。下一小步是扩展既有 Route、Playground 与 Request History view model / strict consumer，不创建第二套 UI owner；本日不再进入 React 实现。
+当前进度：Visual R1 七个代表面已经冻结并于 2026-08-13 获得人工视觉批准。2026-08-15 又在既有 owner 上完成三块 React strict consumer：Route editor 以严格判别联合消费 v1 / v2 并审查有序主备计划；Playground 只允许 API Key unary 显式提交 `allow_configured` 并严格核对两个脱敏响应头；Request History 严格消费 v1 / v2 / v3，展示 durable attempt lineage、逐 attempt quota / cost 与 terminal selection，旧记录不补造 v3 字段。Application Operations 只汇总当前窗口 known cost，并把 partial attempt coverage 单独展示。
+
+memory / SQLite 产品连续链也已完成。正式 launcher 新增显式 `--provider-attempt-local-product`，只启动 loopback 确定性 fixture，并同时要求 Route、Request History、quota、pricing 与 fallback 开发测试 gate。真实页面完成应用绑定、API Key 一次性交接、Route v1 → v2 人工审查 / 激活、主失败 → 备用成功、双失败、第二次 quota 阻断、Request History v3 lineage、旧 v2 单 attempt 详情和服务重启恢复。浏览器验收中进一步根治 configured inventory 资格误用 active 状态、Route owner 静态 application、CORS 未暴露 attempt 头、详情缺省终态投影、pricing integrity digest 格式、旧记录空 Provider Attempt cost summary、首 attempt quota 拒绝根 usage，以及第二次 quota 阻断文案误称“零 Provider 调用”等一致性问题。
+
+PostgreSQL 连续链已通过显式 `--provider-attempt-postgres-dev-test` 与真实 PostgreSQL 17 实例关闭。该入口复用同一 loopback fixture 和五项 gate，把 Application Catalog、API Key、Route、Request History、quota 与 pricing 绑定到 `postgres_dev_test`，并把 quota / pricing migration marker 纳入启动预检。联合集成测试在同一 runtime role 下完成 Route v2 激活、Chat Completions / Responses / Messages 主失败 → 备用成功、六次逐 attempt quota admission、逐 target pricing snapshot、v3 checkpoint、连接关闭失败关闭和重连恢复；runtime role 无 DDL，数据库不保存请求正文或 credential。既有 PostgreSQL 定向回归继续覆盖 migration 并发、Route CAS、checkpoint 并发单赢家与 no fallback。
+
+最终浏览器复核在内置浏览器固定外层视口中使用同源 iframe 建立真实嵌套浏览上下文；Route、Playground 与 Request History 的 child window 分别精确报告 `1440×900`、`720×900` 与 `390×844`，对应媒体查询和双列 → 单列布局均实际生效。九个页面 / 视口组合的 document 与 owner 均无横向溢出，控制台 warning / error、可见 alert、Vite error overlay 和 raw credential DOM 命中均为零；临时 viewport harness 与控制台探针已在复核后删除，没有进入产品代码或提交。
 
 ## 验收
 
@@ -339,4 +345,4 @@ Pencil 通过前不实现 React；稳定同族组件可直接复用，只有上�
 3. 只覆盖 API Key 认证的三个非流式 northbound API；
 4. Request History v3、逐 attempt quota 与逐 attempt pricing 是实现前置，不以单 selection 字段勉强承载多 attempt。
 
-功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准，唯一高风险任务卡继续承接实现。批次 A 至 D 已完成领域合同、三存储同构持久化、既有 Admin 人工激活链与三个 API Key unary API 的显式受控 fallback；七个 Visual R1 代表面也已冻结并通过结构 / 实际渲染复核。下一工作日继续 strict consumer 和 memory / SQLite / PostgreSQL 产品连续链。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开。
+功能设计与批次 E Visual R1 均已于 2026-08-13 获得人工批准。批次 A 至 E、七个 Visual R1 代表面、Route / Playground / Request History React strict consumer、memory / SQLite 产品连续链、PostgreSQL 实例、三个 unary 协议一致性、真实浏览器三视口和最终门禁均已关闭；唯一高风险任务卡同步完成。stream、非 API Key、真实 Provider 调用、其它应用运行链与 production capability 仍未打开，后续不从本专题派生 S11 或同层 gate-only 切片。

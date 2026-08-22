@@ -49,7 +49,10 @@ export type ApplicationOperationsTimelineEntry = {
   costAvailability: GatewayRequestCostAvailability | "";
   costReason: string;
   estimatedCostMicros: number | null;
+  attemptCostCoverage: "" | "complete" | "partial" | "none";
   pricingPolicyVersion: number | null;
+  providerAttempts: number;
+  fallbackUsed: boolean;
   providerCalls: number;
   retrievalCalls: number;
   toolCalls: number;
@@ -76,6 +79,7 @@ export type ApplicationOperationsMetrics = {
   gatewayCostPriceUnavailable: number;
   gatewayCostNotApplicable: number;
   gatewayCostLegacyNotCaptured: number;
+  gatewayCostPartial: number;
   gatewayEstimatedCostMicros: number;
   workflowLoaded: number;
   workflowRunning: number;
@@ -254,6 +258,7 @@ function buildMetrics(
     gatewayCostPriceUnavailable: 0,
     gatewayCostNotApplicable: 0,
     gatewayCostLegacyNotCaptured: 0,
+    gatewayCostPartial: 0,
     gatewayEstimatedCostMicros: 0,
     workflowLoaded: runs.length,
     workflowRunning: 0,
@@ -281,15 +286,18 @@ function buildMetrics(
     }
     if (request.usageAvailability === "not_reported") metrics.gatewayUsageNotReported += 1;
     if (request.usageAvailability === "not_applicable") metrics.gatewayUsageNotApplicable += 1;
-    if (request.costEstimate.availability === "estimated") {
-      metrics.gatewayCostEstimated += 1;
-      metrics.gatewayEstimatedCostMicros += request.costEstimate.estimatedCostMicros ?? 0;
-    }
+    if (request.costEstimate.availability === "estimated") metrics.gatewayCostEstimated += 1;
     if (request.costEstimate.availability === "usage_not_reported") metrics.gatewayCostUsageNotReported += 1;
     if (request.costEstimate.availability === "price_not_configured") metrics.gatewayCostPriceNotConfigured += 1;
     if (request.costEstimate.availability === "price_unavailable") metrics.gatewayCostPriceUnavailable += 1;
     if (request.costEstimate.availability === "not_applicable") metrics.gatewayCostNotApplicable += 1;
     if (request.costEstimate.availability === "legacy_not_captured") metrics.gatewayCostLegacyNotCaptured += 1;
+    if (request.attemptCostSummary) {
+      metrics.gatewayEstimatedCostMicros += request.attemptCostSummary.knownCostMicros;
+      if (request.attemptCostSummary.coverage === "partial") metrics.gatewayCostPartial += 1;
+    } else if (request.costEstimate.availability === "estimated") {
+      metrics.gatewayEstimatedCostMicros += request.costEstimate.estimatedCostMicros ?? 0;
+    }
   }
   for (const run of runs) {
     if (run.status === "running") metrics.workflowRunning += 1;
@@ -316,8 +324,8 @@ function gatewayTimelineEntry(request: GatewayRequestHistorySummary): Applicatio
     status: request.status,
     operation: request.route,
     contract: request.protocol,
-    provider: request.selectedProvider,
-    profile: request.selectedProfile,
+    provider: request.terminalProvider || request.selectedProvider,
+    profile: request.terminalProfile || request.selectedProfile,
     model: request.selectedModel,
     durationMs: request.durationMs,
     failureCode: request.failureCode,
@@ -331,8 +339,11 @@ function gatewayTimelineEntry(request: GatewayRequestHistorySummary): Applicatio
     totalTokens: request.totalTokens,
     costAvailability: request.costEstimate.availability,
     costReason: request.costEstimate.reason,
-    estimatedCostMicros: request.costEstimate.estimatedCostMicros,
+    estimatedCostMicros: request.attemptCostSummary?.knownCostMicros ?? request.costEstimate.estimatedCostMicros,
+    attemptCostCoverage: request.attemptCostSummary?.coverage ?? "",
     pricingPolicyVersion: request.costEstimate.pricingPolicyVersion,
+    providerAttempts: request.attemptCount,
+    fallbackUsed: request.fallbackUsed,
     providerCalls: 0,
     retrievalCalls: 0,
     toolCalls: 0,
@@ -367,7 +378,10 @@ function workflowTimelineEntry(run: WorkflowRunHistorySummary): ApplicationOpera
     costAvailability: "",
     costReason: "",
     estimatedCostMicros: null,
+    attemptCostCoverage: "",
     pricingPolicyVersion: null,
+    providerAttempts: 0,
+    fallbackUsed: false,
     providerCalls: run.sideEffects.providerCalls,
     retrievalCalls: run.sideEffects.retrievalCalls,
     toolCalls: run.sideEffects.toolCalls,

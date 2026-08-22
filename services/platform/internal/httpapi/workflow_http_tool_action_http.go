@@ -6,16 +6,24 @@ import (
 )
 
 const (
-	workflowHTTPToolPlanCreateRoute = "POST /v1/user-workspace/workflow-drafts/{draft_id}/tool-action-plans"
-	workflowHTTPToolPlanReadRoute   = "GET /v1/user-workspace/workflow-tool-action-plans/{plan_id}"
-	workflowHTTPToolDecisionRoute   = "POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/decisions"
-	workflowHTTPToolExecutionRoute  = "POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions"
+	workflowHTTPToolPlanCreateRoute           = "POST /v1/user-workspace/workflow-drafts/{draft_id}/tool-action-plans"
+	workflowDefinitionHTTPToolPlanCreateRoute = "POST /v1/user-workspace/workflow-definitions/{definition_id}/tool-action-plans"
+	workflowHTTPToolPlanReadRoute             = "GET /v1/user-workspace/workflow-tool-action-plans/{plan_id}"
+	workflowHTTPToolDecisionRoute             = "POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/decisions"
+	workflowHTTPToolExecutionRoute            = "POST /v1/user-workspace/workflow-tool-action-plans/{plan_id}/executions"
 )
 
 type workflowHTTPToolCreatePlanBody struct {
 	WorkspaceID     string         `json:"workspace_id"`
 	ApplicationID   string         `json:"application_id"`
 	DraftVersion    int            `json:"draft_version"`
+	NodeID          string         `json:"node_id"`
+	PublicArguments map[string]any `json:"public_arguments"`
+}
+
+type workflowDefinitionHTTPToolCreatePlanBody struct {
+	WorkspaceID     string         `json:"workspace_id"`
+	ApplicationID   string         `json:"application_id"`
 	NodeID          string         `json:"node_id"`
 	PublicArguments map[string]any `json:"public_arguments"`
 }
@@ -91,6 +99,39 @@ func (s *Server) handleCreateWorkflowHTTPToolActionPlan(writer http.ResponseWrit
 	writeWorkflowHTTPToolActionResult(writer, trace, ctx, result)
 }
 
+func (s *Server) handleCreateWorkflowDefinitionHTTPToolActionPlan(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, workflowDefinitionHTTPToolPlanCreateRoute)
+	if !s.allowWorkflowHTTPToolActionDev(writer, trace) || !s.allowWorkflowDefinitionReleaseHTTP(writer, request, trace) {
+		return
+	}
+	requiredPermissions := []string{"workflow_definitions:read", "workflow_tool_actions:plan"}
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, requiredPermissions...)
+	ctx := workflowHTTPToolActionMutationContext(request, trace, auth, "", "definition-plan")
+	if failureCode != "" {
+		writeWorkflowHTTPToolActionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureCode(failureCode), "Workflow definition tool plan authorization is denied."))
+		return
+	}
+	var body workflowDefinitionHTTPToolCreatePlanBody
+	if !s.decodeJSONRequestBody(writer, request, trace, &body, jsonRequestBodyOptions{maxBytes: maxControlJSONRequestBodyBytes, rejectUnknownFields: true}) {
+		return
+	}
+	ctx = workflowHTTPToolActionMutationContext(request, trace, auth, body.ApplicationID, "definition-plan")
+	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+		writeWorkflowHTTPToolActionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureCode("workspace_binding_mismatch"), "Workflow definition tool plan workspace binding is denied."))
+		return
+	}
+	service, err := s.workflowHTTPToolActionService()
+	if err != nil {
+		writeWorkflowHTTPToolActionResult(writer, trace, ctx, workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureStoreUnavailable, "Workflow HTTP tool action service is unavailable."))
+		return
+	}
+	result := service.CreatePlan(ctx, WorkflowHTTPToolCreatePlanRequest{
+		DefinitionID: strings.TrimSpace(request.PathValue("definition_id")),
+		NodeID:       body.NodeID, PublicArguments: body.PublicArguments,
+	})
+	writeWorkflowHTTPToolActionResult(writer, trace, ctx, result)
+}
+
 func (s *Server) handleReadWorkflowHTTPToolActionPlan(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, workflowHTTPToolPlanReadRoute)
 	if !s.allowWorkflowHTTPToolActionDev(writer, trace) {
@@ -152,7 +193,7 @@ func (s *Server) handleExecuteWorkflowHTTPToolActionPlan(writer http.ResponseWri
 	if !s.allowWorkflowHTTPToolExecutionDev(writer, trace) {
 		return
 	}
-	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, workflowHTTPToolExecutionRequiredScopes...)
+	auth, failureCode, status := s.authorizeWorkspaceScopedPermissions(request, workflowHTTPToolExecutionBaseScopes...)
 	ctx := workflowHTTPToolActionMutationContext(request, trace, auth, "", "execution")
 	if failureCode != "" {
 		writeWorkflowHTTPToolExecutionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode(failureCode), "Workflow HTTP tool execution authorization is denied."))
@@ -166,6 +207,28 @@ func (s *Server) handleExecuteWorkflowHTTPToolActionPlan(writer http.ResponseWri
 	if !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
 		writeWorkflowHTTPToolExecutionResultWithStatus(writer, http.StatusForbidden, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode("workspace_binding_mismatch"), "Workflow HTTP tool execution workspace binding is denied."))
 		return
+	}
+	if s.workflowHTTPToolActionStore != nil {
+		plan, found, readErr := s.workflowHTTPToolActionStore.ReadPlan(ctx, strings.TrimSpace(request.PathValue("plan_id")))
+		if readErr != nil {
+			writeWorkflowHTTPToolExecutionResult(writer, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureToolStore, "Workflow HTTP tool execution state could not be read safely."))
+			return
+		}
+		if found {
+			requiredScopes := workflowHTTPToolExecutionRequiredScopes
+			if plan.SchemaVersion == workflowHTTPToolPlanSchemaV2 && plan.SourceKind == workflowHTTPToolSourceDefinition {
+				requiredScopes = workflowDefinitionHTTPToolExecutionRequiredScopes
+			}
+			auth, failureCode, status = s.authorizeWorkspaceScopedPermissions(request, requiredScopes...)
+			ctx = workflowHTTPToolActionMutationContext(request, trace, auth, body.ApplicationID, "execution")
+			if failureCode != "" || !workflowMutationBindingMatches(request, auth, body.WorkspaceID, ctx.ApplicationID) {
+				if failureCode == "" {
+					failureCode, status = "workspace_binding_mismatch", http.StatusForbidden
+				}
+				writeWorkflowHTTPToolExecutionResultWithStatus(writer, status, trace, ctx, workflowHTTPToolExecutionFailure(WorkflowRunFailureCode(failureCode), "Workflow HTTP tool execution source authorization is denied."))
+				return
+			}
+		}
 	}
 	service, err := s.workflowHTTPToolExecutionService()
 	if err != nil {
@@ -199,7 +262,11 @@ func (s *Server) workflowHTTPToolActionService() (workflowHTTPToolActionService,
 	if s.workflowHTTPToolActionStore == nil {
 		return workflowHTTPToolActionService{}, errWorkflowHTTPToolActionUnavailable
 	}
-	return newWorkflowHTTPToolActionService(s.savedWorkflowDraftService().ReadDraft, s.workflowHTTPToolActionStore)
+	return newWorkflowHTTPToolActionService(
+		s.savedWorkflowDraftService().ReadDraft,
+		s.workflowDefinitionReleaseRepository,
+		s.workflowHTTPToolActionStore,
+	)
 }
 
 func workflowHTTPToolActionContextFromRequest(

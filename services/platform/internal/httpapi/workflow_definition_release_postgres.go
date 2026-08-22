@@ -24,10 +24,10 @@ type postgresWorkflowDefinitionQueryer interface {
 	Query(context.Context, string, ...any) (pgx.Rows, error)
 }
 
-func (repository *postgresWorkflowDefinitionReleaseRepository) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
+func (repository *postgresWorkflowDefinitionReleaseRepository) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID, executionProfile string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
 	var output WorkflowDefinitionReleaseCandidate
 	err := repository.mutate(ctx, func(tx pgx.Tx, store *workflowDefinitionReleaseStore) error {
-		candidate, err := store.CreateCandidate(ctx, candidateID, definitionID, draft, now)
+		candidate, err := store.CreateCandidate(ctx, candidateID, definitionID, executionProfile, draft, now)
 		if err != nil {
 			return err
 		}

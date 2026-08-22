@@ -1,3 +1,5 @@
+import { parseWorkflowDefinitionHTTPToolRunRecord } from "./workflowDefinitionHTTPToolRunConsumer.ts";
+
 export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v0"
   | "workflow_run_record.v1"
@@ -7,7 +9,8 @@ export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v5"
   | "workflow_run_record.v6"
   | "workflow_run_record.v7"
-  | "workflow_run_record.v8";
+  | "workflow_run_record.v8"
+  | "workflow_run_record.v9";
 
 export type WorkflowRunStatus = "running" | "succeeded" | "failed" | "canceled" | "outcome_unknown";
 
@@ -80,7 +83,8 @@ export type WorkflowRunDiagnostic = {
     | "protocol"
     | "provider_failed"
     | "output_unavailable"
-    | "unavailable";
+    | "unavailable"
+    | "quota";
   toolFailureCategory:
     | "none"
     | "policy"
@@ -386,7 +390,7 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
     schemaVersion !== "workflow_run_record.v2" && schemaVersion !== "workflow_run_record.v3" &&
     schemaVersion !== "workflow_run_record.v4" && schemaVersion !== "workflow_run_record.v5" &&
     schemaVersion !== "workflow_run_record.v6" && schemaVersion !== "workflow_run_record.v7" &&
-    schemaVersion !== "workflow_run_record.v8") return null;
+    schemaVersion !== "workflow_run_record.v8" && schemaVersion !== "workflow_run_record.v9") return null;
 
   if (schemaVersion === "workflow_run_record.v3") return parseRAGRunRecord(value);
   if (schemaVersion === "workflow_run_record.v4") return parseApplicationRAGRunRecord(value);
@@ -394,6 +398,7 @@ export function parseWorkflowRunRecordDocument(value: unknown): WorkflowRunRecor
   if (schemaVersion === "workflow_run_record.v6") return parsePromptApplicationRunRecord(value);
   if (schemaVersion === "workflow_run_record.v7") return parseAgentCopilotRunRecord(value);
   if (schemaVersion === "workflow_run_record.v8") return parseStructuredDefinitionRunRecord(value);
+  if (schemaVersion === "workflow_run_record.v9") return parseWorkflowDefinitionHTTPToolRunRecord(value);
 
   const common = parseCommonRecordFields(value, schemaVersion);
   if (!common) return null;
@@ -1422,7 +1427,7 @@ function isBoundedInteger(value: unknown, minimum: number, maximum: number): val
 }
 
 function isGatewayFailureCategory(value: unknown): value is WorkflowRunDiagnostic["gatewayFailureCategory"] {
-  return ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable"].includes(String(value));
+  return ["none", "queue_full", "timeout", "canceled", "worker_crash", "protocol", "provider_failed", "output_unavailable", "unavailable", "quota"].includes(String(value));
 }
 
 function isToolFailureCategory(value: unknown): value is WorkflowRunDiagnostic["toolFailureCategory"] {

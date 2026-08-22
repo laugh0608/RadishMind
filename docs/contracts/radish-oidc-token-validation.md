@@ -1,6 +1,6 @@
 # Radish OIDC Token Validation 契约
 
-更新时间：2026-07-12
+更新时间：2026-08-19
 
 ## 契约定位
 
@@ -12,7 +12,7 @@
 
 `radish_oidc_integration_test` 已实现受控 discovery、JWKS fetch/cache/rotation 和 JWT validation，但当前只为 Tenant Summary 与 Audit 投影内部 `VerifiedControlPlaneIdentity`。该 identity 只包含 route authorization 所需的脱敏 subject、tenant、permission、issuer / mapping reference 和 request / audit metadata；raw token 和 raw claims 在进入 handler 前被移除。完整运行语义见 [Control Plane 鉴权与只读运行时契约](control-plane-auth-read-runtime.md)。
 
-当前 Admin OIDC runtime 不把 `contracts/radish-oidc-token-validation.schema.json` 当作 HTTP response 或 repository record，也不据此开放 Saved Workflow Draft、Applications、API Keys、Quota、Workflow Definitions 或 Runs。上述 workspace operation 仍缺正式 membership owner，在 OIDC integration 模式下返回 `workspace_membership_unavailable`。
+当前 Admin OIDC runtime 不把 `contracts/radish-oidc-token-validation.schema.json` 当作 HTTP response 或 repository record，也不据此开放 Saved Workflow Draft、Applications、API Keys、Quota、Workflow Definitions 或 Runs。上述 workspace operation 在 OIDC integration 模式下仍返回 `workspace_membership_unavailable`，原因是 resource-server integration token 没有 external identity binding，不得自动映射或回退到已存在的 RadishMind 本地 membership owner。
 
 未来如果 workspace membership adapter 消费本 schema，必须由独立功能设计明确 `workspace_binding_refs`、`application_scope_refs` 和 `scope_grants` 的来源与版本映射；不能把当前 Admin permission projection 自动提升为 workspace membership。
 

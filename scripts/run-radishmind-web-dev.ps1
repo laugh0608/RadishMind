@@ -17,6 +17,7 @@ param(
     [switch]$ApplicationCatalogPostgresDevTest,
     [switch]$APIKeyLocalProduct,
     [switch]$WorkflowHTTPToolLocalProduct,
+    [switch]$WorkflowDefinitionHTTPToolLocalProduct,
     [switch]$WorkflowRAGDev,
     [switch]$WorkflowRAGPromotionLocalProduct,
     [switch]$WorkflowRAGApplicationLocalProduct,
@@ -59,6 +60,8 @@ Options:
   -APIKeyLocalProduct   Enable the SQLite local-product Application/API key/Playground chain.
   -WorkflowHTTPToolLocalProduct
                         Enable the SQLite local-product Workflow HTTP Tool chain.
+  -WorkflowDefinitionHTTPToolLocalProduct
+                        Enable the SQLite Definition → Plan → Confirm → Execute → History chain.
   -WorkflowRAGDev       Enable the Workflow RAG snapshot, exact draft, retrieval execution, and Run History chain.
   -WorkflowRAGPromotionLocalProduct
                         Enable the SQLite evaluation, promotion, draft binding, and publish review chain without retrieval execution.
@@ -82,6 +85,10 @@ Options:
     exit 0
 }
 
+if ($WorkflowDefinitionHTTPToolLocalProduct) {
+    $WorkflowHTTPToolLocalProduct = $true
+    $WorkflowDefinitionLocalProduct = $true
+}
 if ($ApplicationSessionLocalProduct) {
     $WorkflowDefinitionLocalProduct = $true
     $WorkflowRAGApplicationLocalProduct = $true
@@ -1076,7 +1083,11 @@ try {
                     $env:VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE = "dev-saved-draft-http"
                     $env:VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE = "dev-workflow-executor-http"
                     $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE = "dev-workflow-http-tool-http"
-                    $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS = "workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+                    $workflowHTTPToolScopeGrants = "workflow_drafts:read,workflow_tool_actions:plan,workflow_tool_actions:read,workflow_tool_actions:confirm,workflow_tool_actions:execute,workflow_runs:execute"
+                    if ($workflowDefinitionEnabled) {
+                        $workflowHTTPToolScopeGrants += ",workflow_definitions:read"
+                    }
+                    $env:VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS = $workflowHTTPToolScopeGrants
                 }
                 if ($workflowDefinitionEnabled) {
                     $env:VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE = "dev-workflow-definition-promotion-http"
@@ -1275,6 +1286,9 @@ try {
         }
         if ($WorkflowHTTPToolLocalProduct) {
             Write-Step "Workflow HTTP Tool SQLite local-product Web chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; approve and execute remain separate actions."
+        }
+        if ($WorkflowDefinitionHTTPToolLocalProduct) {
+            Write-Step "Workflow Definition HTTP Tool SQLite product chain enabled; candidate, review, activation, plan, confirmation, execution, and v9 history remain explicit actions."
         }
         if ($WorkflowRAGDev) {
             Write-Step "Workflow RAG Web chain enabled for $savedDraftWorkspaceId/$savedDraftApplicationId; execution is synchronous, metadata-only, and dev/test only."

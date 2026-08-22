@@ -165,6 +165,8 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 
 同日的 Workflow RAG Promotion → Configuration Draft 交接复验同样为 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`：复用 S2 已冻结的阶段切换、单 owner 打开和易失单引用交接，配置页复用既有 binding selector、显式恢复与失败关闭表达。`1440×900`、`900×900`、`720×900`、`390×844` 保持 context → task → owner 顺序、零横向溢出和控制台零 warning / error；本批没有新布局、交互模型或响应式策略，因此未操作正被其它项目占用的 Pencil，也没有建立第十个页面族。
 
+2026-08-17 的 Application Result Workspace 五维评分为 `0 / 0 / 1 / 1 / 0 = 2`，采用 `C / 直接实现`：复用 S5 的 Application Context、单 owner task path 与 Run handoff，复用 S3 Saved Draft Library 的筛选列表和 Session Result Artifact Panel 的 exact inspector / lifecycle。显式 JSON 导出只增加可逆的开发测试态 digest 重校验说明，没有形成新页面拓扑、高风险确认或跨页面语义，因此未修改 Pencil、未建立 S11。真实浏览器 `1440×900`、`720×900`、`390×844` 均保持单一选中任务、零横向溢出和控制台零 warning / error。
+
 ### 设计基准面覆盖记录
 
 | `surface_id` | 状态 | Pencil 覆盖 | 代码基线与锚点 | 设计决策与停止线 |
@@ -328,7 +330,7 @@ Pencil 只承载稳定的设计决策，不承载完整功能清单。功能、�
 - Pencil Desktop / Narrow R1 与 Decision R11 已显式保存，整棵设计树无 clipping / placeholder。Web `281/281` 与 production build 通过；S6 chunks 分别为 `workflowReviewWorkspace 4.82 KiB`、`workflowReviewOwner 23.00 KiB`、`workflowEvaluationPanel 8.57 KiB`、`workflowEvaluationSuitePanel 15.47 KiB`、`workflowRunComparisonPanel 27.70 KiB`，主入口 `469.67 KiB` 仍低于 `500 KiB` 预算。
 - 应用内浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`761/760px` 与 `390x844`：精确任务切换、单 owner、Run history 一级导航归属、窄屏 context → task → owner 顺序和深链定位正确，各宽度无横向溢出，控制台零 warning / error。默认 runtime 为 offline，因此浏览器验收如实覆盖失败关闭资格面；Pencil 的 live dev / test 数据只作为已批准代表态，不冒充本机 live owner 结果。
 - S6 没有新增自动评测执行、replay / resume、自动 candidate / assignment / release、全历史聚合、业务写回、API、schema、repository、task card、fixture 或专项 checker。
-- `S7 R1` 已把 Tenant、User、Role、Audit、Provider、Profile 与 Route 编排为“管理上下文 → 七资源定位 → 单一当前 owner”。Tenant / Audit 继续使用既有 `tenant:read` / `audit:read` consumer；Audit Web 补齐现有契约允许的 cursor next / previous current-window 导航和行驱动 metadata-only detail，offline next 保持禁用。User / Role 只呈现 Radish-owned 真相边界和 blocked action；Provider / Profile / Route 继续复用四项独立权限、draft CAS、不可变 candidate、独立 review 与显式 generation activation。
+- `S7 R1` 已把 Tenant、User、Role、Audit、Provider、Profile 与 Route 编排为“管理上下文 → 七资源定位 → 单一当前 owner”。Tenant / Audit 继续使用既有 `tenant:read` / `audit:read` consumer；Audit Web 补齐现有契约允许的 cursor next / previous current-window 导航和行驱动 metadata-only detail，offline next 保持禁用。User / Role 当时按尚无本地 repository 的旧身份口径呈现 blocked action；2026-08-19 已由本地账户与 OIDC 联合登录专题修正 owner，后续实现继续复用该单一任务结构但不得沿用 Radish-owned 文案。Provider / Profile / Route 继续复用四项独立权限、draft CAS、不可变 candidate、独立 review 与显式 generation activation。
 - Pencil Desktop / Narrow R1 与 Decision R12 已完成全树检查，结果为零裁切、零越界、零占位。Web `287/287` 与 production build 通过；`adminControlPlaneWorkspace 34.33 KiB`、`adminProviderRouteWorkspacePanel 22.47 KiB`，主入口降至 `458.43 KiB < 500 KiB`。
 - 应用内浏览器覆盖 `1440x900`、`1281/1280px`、`1101/1100px`、`901/900px`、`761/760px` 与 `390x844`：七任务精确 hash、单 owner、Audit 行选中 / 只读详情、Supporting evidence 折叠、窄屏 context → task → owner 顺序和关键布局切换正确；所有宽度无横向溢出，控制台零 warning / error。默认 offline fixture 没有被改写成 live 管理事实，也没有产生 Provider / Route 管理请求。
 - S7 没有新增 API、schema、repository、permission、task card、fixture、专项 checker、生产 membership、正式 OIDC、secret material、provider onboarding、自动路由或生产启用。

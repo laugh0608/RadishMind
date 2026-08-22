@@ -8,12 +8,71 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
 )
 
 func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
+	t.Run("active definition creates a version-bound plan without reading the saved draft", func(t *testing.T) {
+		server, testBridge, draft := newWorkflowHTTPToolActionHTTPTestServer(t)
+		ctx := workflowHTTPToolActionTestContext()
+		releaseContext := WorkflowDefinitionReleaseContext{
+			RequestContext: ctx.RequestContext, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
+			ApplicationID: ctx.ApplicationID, OwnerSubjectRef: ctx.ActorRef, ActorRef: ctx.ActorRef,
+			RequestID: ctx.RequestID, AuditRef: ctx.AuditRef,
+		}
+		candidate, err := server.workflowDefinitionReleaseRepository.CreateCandidate(
+			releaseContext,
+			"candidate-http-tool-route",
+			"definition-http-tool-route",
+			workflowDefinitionHTTPToolProfile,
+			draft,
+			time.Date(2026, 8, 15, 10, 0, 0, 0, time.UTC),
+		)
+		if err != nil {
+			t.Fatalf("create route definition candidate: %v", err)
+		}
+		_, version, err := server.workflowDefinitionReleaseRepository.Review(
+			releaseContext, candidate.CandidateID, 0, "approve", "reviewed route definition",
+			candidate.SourceDraftDigest, time.Date(2026, 8, 15, 10, 1, 0, 0, time.UTC),
+		)
+		if err != nil || version == nil {
+			t.Fatalf("materialize route definition: version=%#v err=%v", version, err)
+		}
+		activation, err := server.workflowDefinitionReleaseRepository.DecideActivation(
+			releaseContext, version.DefinitionID, 0, "activate", version.Version,
+			"activate route definition", time.Date(2026, 8, 15, 10, 2, 0, 0, time.UTC),
+		)
+		if err != nil {
+			t.Fatalf("activate route definition: %v", err)
+		}
+
+		request := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-definitions/"+version.DefinitionID+"/tool-action-plans",
+			bytes.NewReader(mustWorkflowHTTPToolActionJSON(t, workflowDefinitionHTTPToolCreatePlanBody{
+				WorkspaceID: draft.WorkspaceID, ApplicationID: draft.ApplicationID, NodeID: "node_http_tool",
+				PublicArguments: map[string]any{"resource_key": "docs/radishflow/overview"},
+			})),
+		)
+		setWorkflowHTTPToolActionDevHeaders(request, "workflow_definitions:read,workflow_tool_actions:plan")
+		response := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(response, request)
+		created := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)
+		if created.FailureCode != nil || created.ActionPlan == nil ||
+			created.ActionPlan.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
+			created.ActionPlan.SourceKind != workflowHTTPToolSourceDefinition ||
+			created.ActionPlan.WorkflowDefinitionID != version.DefinitionID ||
+			created.ActionPlan.WorkflowDefinitionDigest != version.DefinitionDigest ||
+			created.ActionPlan.ActivationPointerVersion != activation.PointerVersion ||
+			created.ActionPlan.DraftID != "" || created.ActionPlan.DraftVersion != 0 {
+			t.Fatalf("definition route did not return a strict source union: %#v", created)
+		}
+		assertWorkflowHTTPToolBatchAHasNoExecutionSideEffects(t, server, testBridge)
+	})
+
 	t.Run("create read and approve remain pre-run only", func(t *testing.T) {
 		server, testBridge, draft := newWorkflowHTTPToolActionHTTPTestServer(t)
 		createRequest := httptest.NewRequest(
@@ -236,6 +295,38 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 			t.Fatalf("missing workflow_runs:execute scope was accepted: %#v", missingScope)
 		}
 
+		wrongDraftSourceScopeRequest := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":2,"input_text":"Review.","model":"mock","temperature":0}`),
+		)
+		setWorkflowHTTPToolActionDevHeaders(wrongDraftSourceScopeRequest, "workflow_tool_actions:execute,workflow_runs:execute,workflow_definitions:read")
+		wrongDraftSourceScopeResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(wrongDraftSourceScopeResponse, wrongDraftSourceScopeRequest)
+		wrongDraftSourceScope := decodeWorkflowHTTPToolExecutionEnvelope(t, wrongDraftSourceScopeResponse, http.StatusForbidden)
+		if wrongDraftSourceScope.FailureCode == nil || *wrongDraftSourceScope.FailureCode != "scope_denied" {
+			t.Fatalf("Draft execution accepted Definition read scope in place of Draft read: %#v", wrongDraftSourceScope)
+		}
+
+		definitionContext := workflowHTTPToolActionTestContext()
+		definitionPlan := workflowHTTPToolDefinitionActionPlanForStoreTest(t, definitionContext, "wtap_bbbbbbbbbbbbbbbb")
+		definitionAudit := workflowHTTPToolAuditForStoreTest(definitionPlan, "wtae_bbbbbbbbbbbbbbbb", "confirmation_requested")
+		if err := server.workflowHTTPToolActionStore.CreatePlan(definitionContext, &definitionPlan, definitionAudit); err != nil {
+			t.Fatalf("seed Definition execution scope plan: %v", err)
+		}
+		wrongDefinitionSourceScopeRequest := httptest.NewRequest(
+			http.MethodPost,
+			"/v1/user-workspace/workflow-tool-action-plans/"+definitionPlan.PlanID+"/executions",
+			strings.NewReader(`{"workspace_id":"workspace_demo","application_id":"app_flow_copilot","expected_record_version":1,"input_text":"Review.","model":"mock","temperature":0}`),
+		)
+		setWorkflowHTTPToolActionDevHeaders(wrongDefinitionSourceScopeRequest, "workflow_tool_actions:execute,workflow_runs:execute,workflow_drafts:read")
+		wrongDefinitionSourceScopeResponse := httptest.NewRecorder()
+		server.httpServer.Handler.ServeHTTP(wrongDefinitionSourceScopeResponse, wrongDefinitionSourceScopeRequest)
+		wrongDefinitionSourceScope := decodeWorkflowHTTPToolExecutionEnvelope(t, wrongDefinitionSourceScopeResponse, http.StatusForbidden)
+		if wrongDefinitionSourceScope.FailureCode == nil || *wrongDefinitionSourceScope.FailureCode != "scope_denied" {
+			t.Fatalf("Definition execution accepted Draft read scope in place of Definition read: %#v", wrongDefinitionSourceScope)
+		}
+
 		unknownFieldRequest := httptest.NewRequest(
 			http.MethodPost,
 			"/v1/user-workspace/workflow-tool-action-plans/"+plan.PlanID+"/executions",
@@ -259,6 +350,7 @@ func newWorkflowHTTPToolActionHTTPTestServer(t *testing.T) (*Server, *workflowEx
 		WorkflowSavedDraftDevWriteEnabled:   true,
 		WorkflowExecutorDevEnabled:          true,
 		WorkflowToolActionDevEnabled:        true,
+		WorkflowDefinitionReleaseDevEnabled: true,
 		WorkflowHTTPToolExecutionDevEnabled: true,
 		Provider:                            "mock",
 	}, Options{BuildVersion: "test"})
@@ -290,6 +382,7 @@ func createWorkflowHTTPToolActionPlanOverHTTP(t *testing.T, server *Server, draf
 		})),
 	)
 	setWorkflowHTTPToolActionDevHeaders(request, "workflow_drafts:read,workflow_tool_actions:plan")
+	request.Header.Set(savedWorkflowDraftDevApplicationHeader, draft.ApplicationID)
 	response := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(response, request)
 	envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)
@@ -315,6 +408,7 @@ func approveWorkflowHTTPToolActionPlanOverHTTP(
 		})),
 	)
 	setWorkflowHTTPToolActionDevHeaders(request, "workflow_tool_actions:confirm")
+	request.Header.Set(savedWorkflowDraftDevApplicationHeader, draft.ApplicationID)
 	response := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(response, request)
 	envelope := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)

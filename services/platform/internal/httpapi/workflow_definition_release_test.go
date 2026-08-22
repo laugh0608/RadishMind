@@ -19,7 +19,7 @@ func TestWorkflowDefinitionReleaseReviewMaterializesImmutableVersionWithoutActiv
 	store := newWorkflowDefinitionReleaseStore()
 	ctx := workflowDefinitionTestContext()
 	now := time.Date(2026, 7, 19, 12, 0, 0, 0, time.UTC)
-	candidate, err := store.CreateCandidate(ctx, "candidate-one", "definition-one", workflowDefinitionTestDraft(), now)
+	candidate, err := store.CreateCandidate(ctx, "candidate-one", "definition-one", "", workflowDefinitionTestDraft(), now)
 	if err != nil || candidate.State != workflowDefinitionStatePending {
 		t.Fatalf("create: %#v %v", candidate, err)
 	}
@@ -35,11 +35,76 @@ func TestWorkflowDefinitionReleaseReviewMaterializesImmutableVersionWithoutActiv
 	}
 }
 
+func TestWorkflowDefinitionHTTPToolProfileMaterializesAndActivatesWithoutToolSideEffects(t *testing.T) {
+	store := newWorkflowDefinitionReleaseStore()
+	ctx := workflowDefinitionTestContext()
+	now := time.Date(2026, 8, 15, 14, 0, 0, 0, time.UTC)
+	draft := workflowHTTPToolEligibleDraftForTest()
+
+	if _, err := store.CreateCandidate(ctx, "candidate-tool-default", "definition-tool-default", "", draft, now); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+		t.Fatalf("generic profile must continue rejecting HTTP tool drafts, got %v", err)
+	}
+	candidate, err := store.CreateCandidate(ctx, "candidate-tool-v1", "definition-tool-v1", workflowDefinitionHTTPToolProfile, draft, now)
+	if err != nil {
+		t.Fatalf("create HTTP tool definition candidate: %v", err)
+	}
+	if candidate.SchemaVersion != workflowDefinitionHTTPToolCandidateSchemaVersion ||
+		candidate.Snapshot.ExecutionProfile != workflowDefinitionHTTPToolProfile ||
+		!candidate.ActivationEligible || len(candidate.EligibilityBlockers) != 0 {
+		t.Fatalf("unexpected HTTP tool candidate: %#v", candidate)
+	}
+	if err := validateStoredWorkflowDefinitionCandidate(candidate); err != nil {
+		t.Fatalf("stored HTTP tool candidate contract: %v", err)
+	}
+
+	approved, version, err := store.Review(ctx, candidate.CandidateID, 0, "approve", "reviewed tool definition", candidate.SourceDraftDigest, now.Add(time.Minute))
+	if err != nil || approved.State != workflowDefinitionStateApproved || version == nil {
+		t.Fatalf("approve HTTP tool candidate: %#v %#v %v", approved, version, err)
+	}
+	if version.SchemaVersion != workflowDefinitionHTTPToolVersionSchemaVersion || version.Snapshot.ExecutionProfile != workflowDefinitionHTTPToolProfile {
+		t.Fatalf("unexpected HTTP tool definition version: %#v", version)
+	}
+	if err := validateStoredWorkflowDefinitionVersion(*version); err != nil {
+		t.Fatalf("stored HTTP tool definition version contract: %v", err)
+	}
+	activation, err := store.Activate(ctx, candidate.DefinitionID, 0, version.Version, now.Add(2*time.Minute))
+	if err != nil || activation.State != workflowDefinitionActivationActive || activation.ActiveVersion != version.Version {
+		t.Fatalf("activate HTTP tool definition: %#v %v", activation, err)
+	}
+	if len(store.audits[workflowDefinitionScopeKey(ctx, "candidate")]) != 2 ||
+		len(store.audits[workflowDefinitionScopeKey(ctx, "version")]) != 1 ||
+		len(store.audits[workflowDefinitionScopeKey(ctx, "activation")]) != 1 {
+		t.Fatalf("release must only append release metadata audits: %#v", store.audits)
+	}
+}
+
+func TestWorkflowDefinitionHTTPToolProfileRejectsProfileAndGraphDrift(t *testing.T) {
+	store := newWorkflowDefinitionReleaseStore()
+	ctx := workflowDefinitionTestContext()
+	now := time.Date(2026, 8, 15, 14, 10, 0, 0, time.UTC)
+
+	structured := workflowHTTPToolEligibleDraftForTest()
+	structured.SchemaVersion = savedWorkflowDraftStructuredSchemaVersion
+	structured.InputContract = workflowStructuredInputContractForTest()
+	if _, err := store.CreateCandidate(ctx, "candidate-tool-structured", "definition-tool-structured", workflowDefinitionHTTPToolProfile, structured, now); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+		t.Fatalf("unsupported structured tool profile must fail closed, got %v", err)
+	}
+
+	drifted := workflowHTTPToolEligibleDraftForTest()
+	drifted.Nodes[1].RequiresConfirmation = false
+	if _, err := store.CreateCandidate(ctx, "candidate-tool-drift", "definition-tool-drift", workflowDefinitionHTTPToolProfile, drifted, now); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+		t.Fatalf("confirmation drift must fail before persistence, got %v", err)
+	}
+	if len(store.candidates) != 0 || len(store.audits) != 0 {
+		t.Fatalf("rejected tool candidates left partial state: candidates=%d audits=%d", len(store.candidates), len(store.audits))
+	}
+}
+
 func TestWorkflowDefinitionReleaseCASAllowsOneReviewAndOneActivation(t *testing.T) {
 	store := newWorkflowDefinitionReleaseStore()
 	ctx := workflowDefinitionTestContext()
 	now := time.Now().UTC()
-	candidate, _ := store.CreateCandidate(ctx, "candidate-cas", "definition-cas", workflowDefinitionTestDraft(), now)
+	candidate, _ := store.CreateCandidate(ctx, "candidate-cas", "definition-cas", "", workflowDefinitionTestDraft(), now)
 	var wg sync.WaitGroup
 	successes, conflicts := 0, 0
 	var mu sync.Mutex
@@ -87,11 +152,11 @@ func TestWorkflowDefinitionReleaseRejectsBlockedDraftAndScopeIsolation(t *testin
 	ctx := workflowDefinitionTestContext()
 	draft := workflowDefinitionTestDraft()
 	draft.BlockedCapabilitySummary = []SavedWorkflowDraftBlockedCapability{{CapabilityID: "http_tool"}}
-	if _, err := store.CreateCandidate(ctx, "candidate-blocked", "definition-blocked", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+	if _, err := store.CreateCandidate(ctx, "candidate-blocked", "definition-blocked", "", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
 		t.Fatalf("expected invalid state, got %v", err)
 	}
 	draft = workflowDefinitionTestDraft()
-	candidate, _ := store.CreateCandidate(ctx, "candidate-scope", "definition-scope", draft, time.Now())
+	candidate, _ := store.CreateCandidate(ctx, "candidate-scope", "definition-scope", "", draft, time.Now())
 	other := ctx
 	other.ApplicationID = "app_other"
 	if _, _, err := store.Review(other, candidate.CandidateID, 0, "approve", "wrong scope", candidate.SourceDraftDigest, time.Now()); !errors.Is(err, errWorkflowDefinitionNotFound) {
@@ -105,7 +170,7 @@ func TestWorkflowDefinitionReleaseRejectsUnsupportedNodeBeforePersistence(t *tes
 	draft.Nodes = append(draft.Nodes, SavedWorkflowDraftNode{NodeID: "retrieval", NodeType: "rag_retrieval", RAGRef: "rag:baseline:v1"})
 	draft.RAGRefs = []string{"rag:baseline:v1"}
 
-	if _, err := store.CreateCandidate(workflowDefinitionTestContext(), "candidate-rag", "definition-rag", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
+	if _, err := store.CreateCandidate(workflowDefinitionTestContext(), "candidate-rag", "definition-rag", "", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionInvalidState) {
 		t.Fatalf("unsupported snapshot node type must be rejected, got %v", err)
 	}
 	if len(store.candidates) != 0 || len(store.audits) != 0 {
@@ -119,7 +184,7 @@ func TestWorkflowDefinitionReleaseKeepsIncompatibleGraphReviewableButNotActivata
 	draft := workflowDefinitionTestDraft()
 	draft.Edges = []SavedWorkflowDraftEdge{{EdgeID: "edge-output-prompt", FromNodeID: "output", ToNodeID: "prompt"}, {EdgeID: "edge-prompt-model", FromNodeID: "prompt", ToNodeID: "model"}}
 
-	candidate, err := store.CreateCandidate(ctx, "candidate-invalid-graph", "definition-invalid-graph", draft, time.Now())
+	candidate, err := store.CreateCandidate(ctx, "candidate-invalid-graph", "definition-invalid-graph", "", draft, time.Now())
 	if err != nil {
 		t.Fatalf("graph-incompatible candidate should remain reviewable: %v", err)
 	}
@@ -138,7 +203,7 @@ func TestWorkflowDefinitionReleaseKeepsIncompatibleGraphReviewableButNotActivata
 func TestWorkflowDefinitionReleaseRechecksLegacyEligibleSnapshotBeforeActivation(t *testing.T) {
 	store := newWorkflowDefinitionReleaseStore()
 	ctx := workflowDefinitionTestContext()
-	candidate, err := store.CreateCandidate(ctx, "candidate-legacy-eligible", "definition-legacy-eligible", workflowDefinitionTestDraft(), time.Now())
+	candidate, err := store.CreateCandidate(ctx, "candidate-legacy-eligible", "definition-legacy-eligible", "", workflowDefinitionTestDraft(), time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,7 +225,7 @@ func TestWorkflowDefinitionReleaseRejectsSensitiveSnapshotMaterial(t *testing.T)
 	store := newWorkflowDefinitionReleaseStore()
 	draft := workflowDefinitionTestDraft()
 	draft.Description = "authorization: bearer secret-value"
-	if _, err := store.CreateCandidate(workflowDefinitionTestContext(), "candidate-sensitive", "definition-sensitive", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionPayloadInvalid) {
+	if _, err := store.CreateCandidate(workflowDefinitionTestContext(), "candidate-sensitive", "definition-sensitive", "", draft, time.Now()); !errors.Is(err, errWorkflowDefinitionPayloadInvalid) {
 		t.Fatalf("sensitive snapshot material must be rejected, got %v", err)
 	}
 }
@@ -287,7 +352,7 @@ func TestWorkflowDefinitionReleaseStoreReturnsImmutableCopiesAndAtomicActivation
 	store := newWorkflowDefinitionReleaseStore()
 	ctx := workflowDefinitionTestContext()
 	now := time.Date(2026, 7, 19, 13, 0, 0, 0, time.UTC)
-	candidate, err := store.CreateCandidate(ctx, "candidate-copy", "definition-copy", workflowDefinitionTestDraft(), now)
+	candidate, err := store.CreateCandidate(ctx, "candidate-copy", "definition-copy", "", workflowDefinitionTestDraft(), now)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -316,7 +381,7 @@ func TestWorkflowDefinitionReleaseStoreReturnsImmutableCopiesAndAtomicActivation
 func TestWorkflowDefinitionReleaseCodecUsesStrictCanonicalFieldNames(t *testing.T) {
 	store := newWorkflowDefinitionReleaseStore()
 	ctx := workflowDefinitionTestContext()
-	candidate, err := store.CreateCandidate(ctx, "candidate-codec", "definition-codec", workflowDefinitionTestDraft(), time.Now())
+	candidate, err := store.CreateCandidate(ctx, "candidate-codec", "definition-codec", "", workflowDefinitionTestDraft(), time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -49,7 +49,7 @@
         "radish_access_token",
         "database_connection_string"
       ],
-      "boundary": "tenant summary is a future read model only; Radish remains identity truth and this slice does not create tenant storage"
+      "boundary": "tenant summary is a future read model only; RadishMind local identity remains a separate owner and this slice does not create tenant or account storage"
     },
     {
       "id": "application-summary",

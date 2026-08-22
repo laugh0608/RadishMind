@@ -17,6 +17,9 @@ import {
   type ApplicationInteractionTurn,
 } from "./applicationInteractionSessionConsumer.ts";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import ApplicationResultArtifactPanel from "./applicationResultArtifactPanel.tsx";
+import type { ApplicationResultArtifactSummary } from "./applicationResultArtifactConsumer.ts";
+import { applicationInteractionSessionFailureGuidance } from "./controlledUseFailureGuidance.ts";
 import StructuredRuntimeInputEditor from "./StructuredRuntimeInputEditor.tsx";
 import {
   structuredRuntimeInputAuthorityKey,
@@ -75,6 +78,9 @@ export default function ApplicationInteractionSessionPanel({
   const [model, setModel] = useState("");
   const [temperature, setTemperature] = useState("");
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
+  const [saveResult, setSaveResult] = useState(false);
+  const [latestResultArtifact, setLatestResultArtifact] = useState<ApplicationResultArtifactSummary | null>(null);
+  const [resultArtifactFailureCode, setResultArtifactFailureCode] = useState("");
   const [pending, setPending] = useState<"" | "list" | "create" | "select" | "close" | "turn">("");
   const [operationFailure, setOperationFailure] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -123,6 +129,9 @@ export default function ApplicationInteractionSessionPanel({
     setModel("");
     setTemperature("");
     setTranscript([]);
+    setSaveResult(false);
+    setLatestResultArtifact(null);
+    setResultArtifactFailureCode("");
     setPending("");
     setOperationFailure("");
     if (config.mode === "offline" || !applicationActive || !applicationId) return;
@@ -254,6 +263,10 @@ export default function ApplicationInteractionSessionPanel({
     const currentInput = structuredInputContract
       ? `${Object.keys(structuredValidation!.inputs).sort().join(", ") || "无可选字段"} 已按合同提交；输入值未写入 transcript。`
       : input.trim();
+    const shouldSaveResult = saveResult;
+    setSaveResult(false);
+    setLatestResultArtifact(null);
+    setResultArtifactFailureCode("");
     setInput("");
     setStructuredInputDrafts({});
     setStructuredInputErrors({});
@@ -266,11 +279,14 @@ export default function ApplicationInteractionSessionPanel({
       conditionValues: selectedSession.executionProfile === "application_rag_invocation_v1" ? {} : parsedConditions,
       model: selectedSession.executionProfile === "application_rag_invocation_v1" ? "" : model,
       temperature: selectedSession.executionProfile === "application_rag_invocation_v1" ? null : parsedTemperature,
+      saveResult: shouldSaveResult,
     }, controller.signal);
     if (!applicationInteractionResponseMatchesScope(expectedScope, requestScopeRef.current)) return;
     abortRef.current = null;
     setPending("");
     setOperationFailure(result.failureCode);
+    setLatestResultArtifact(result.resultArtifact);
+    setResultArtifactFailureCode(result.resultArtifactFailureCode);
     setTranscript((current) => current.map((entry) => entry.clientTurnKey === clientTurnKey ? {
       ...entry,
       status: result.status === "succeeded" ? "succeeded" : result.status === "canceled" ? "canceled" : "failed",
@@ -310,11 +326,15 @@ export default function ApplicationInteractionSessionPanel({
     setModel("");
     setTemperature("");
     setTranscript([]);
+    setSaveResult(false);
+    setLatestResultArtifact(null);
+    setResultArtifactFailureCode("");
   }
 
   const workflowProfile = selectedSession?.executionProfile === "workflow_definition_executor_v1" || selectedSession?.executionProfile === "workflow_definition_executor_v2";
   const canCreate = config.mode !== "offline" && applicationActive && !pending && (profile === "application_rag_invocation_v1" || Boolean(definitionId.trim()));
   const canSubmit = config.mode !== "offline" && applicationActive && selectedSession?.state === "active" && Boolean(structuredInputContract || input.trim()) && !pending;
+  const failureGuidance = applicationInteractionSessionFailureGuidance(operationFailure);
 
   return (
     <section className="surface-band application-interaction-session" id="application-interaction-session" aria-labelledby="application-interaction-session-title">
@@ -328,7 +348,7 @@ export default function ApplicationInteractionSessionPanel({
       <div className="application-interaction-scope">
         <article><span>Application</span><strong>{applicationName || "No application selected"}</strong><code>{applicationId || "unbound"}</code></article>
         <article><span>Session owner</span><strong>{selectedSession?.sessionId ?? "No session selected"}</strong><p>{selectedSession ? `${selectedSession.executionProfile} · v${selectedSession.recordVersion}` : "Choose an explicit runtime profile."}</p></article>
-        <article><span>Retention</span><strong>metadata_only</strong><p>Transcript, input, answer, prompt, provider response, and credentials remain outside persistent stores.</p></article>
+        <article><span>Retention</span><strong>default off</strong><p>Session / turn remain metadata-only；只有逐 turn 显式选择时才保存 canonical result。</p></article>
       </div>
 
       <div className="application-interaction-create">
@@ -383,6 +403,17 @@ export default function ApplicationInteractionSessionPanel({
               <button type="button" className="secondary-action" onClick={clearTransientInput} disabled={pending === "turn" || (!input && Object.keys(structuredInputDrafts).length === 0 && transcript.length === 0)}>Clear transient transcript</button>
             </div>
           </div>
+          <ApplicationResultArtifactPanel
+            config={config}
+            applicationId={applicationId}
+            sessionId={selectedSession.sessionId}
+            saveResult={saveResult}
+            onSaveResultChange={setSaveResult}
+            latestArtifact={latestResultArtifact}
+            latestArtifactFailureCode={resultArtifactFailureCode}
+            disabled={selectedSession.state !== "active" || Boolean(pending)}
+            onOpenRun={onOpenRun}
+          />
         </>
       ) : null}
 
@@ -408,6 +439,18 @@ export default function ApplicationInteractionSessionPanel({
         )}
       </div>
 
+      {failureGuidance ? (
+        <article className="controlled-use-failure-guidance" aria-label="Application Session authority recovery guidance">
+          <div className="application-api-card-heading">
+            <div><p className="eyebrow">Session recovery</p><h5>{failureGuidance.title}</h5></div>
+            <span className="status-badge bad">no provider call</span>
+          </div>
+          <p>{failureGuidance.summary}</p>
+          <p>{failureGuidance.recoverySummary}</p>
+          <p className="boundary-note">{failureGuidance.sideEffectSummary} Reloading only refreshes metadata; it does not switch authority, create a Session, or retry the failed turn.</p>
+          <button type="button" className="secondary-action" onClick={() => void reloadSessions()} disabled={Boolean(pending) || !applicationActive}>Reload current sessions</button>
+        </article>
+      ) : null}
       {operationFailure ? <p className="failure-summary" role="alert">{operationFailure}</p> : <p className="boundary-note">Application changes, session changes, route unmount, and cancellation invalidate pending response generations. Late responses cannot repopulate this workspace.</p>}
     </section>
   );

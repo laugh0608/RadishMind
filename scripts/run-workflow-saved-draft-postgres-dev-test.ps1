@@ -147,6 +147,7 @@ function Invoke-Migration {
     $env:RADISHMIND_API_KEY_STORE = "postgres_dev_test"
     $env:RADISHMIND_API_KEY_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
     $env:RADISHMIND_API_KEY_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
+    $env:RADISHMIND_LOCAL_IDENTITY_DEV_TEST_MIGRATION_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $migrationUser -DatabasePassword $migrationPassword
     $env:RADISHMIND_GATEWAY_AUTH_MODE = "api_key_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_STORE = "postgres_dev_test"
     $env:RADISHMIND_WORKFLOW_RUN_DEV_TEST_DATABASE_URL = Get-DatabaseUrl -DatabaseUser $runtimeUser -DatabasePassword $runtimePassword
@@ -195,6 +196,10 @@ function Invoke-Migration {
         & $go run ./cmd/radishmind-api-key-migrate $MigrationAction
         if ($LASTEXITCODE -ne 0) {
             throw "API key migration runner failed with exit code $LASTEXITCODE"
+        }
+        & $go run ./cmd/radishmind-local-identity-migrate $MigrationAction
+        if ($LASTEXITCODE -ne 0) {
+            throw "local identity migration runner failed with exit code $LASTEXITCODE"
         }
         & $go run ./cmd/radishmind-workflow-run-migrate $MigrationAction
         if ($LASTEXITCODE -ne 0) {

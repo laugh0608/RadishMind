@@ -15,6 +15,9 @@ import (
 
 func TestApplicationInteractionStructuredSessionV4DelegatesV8AndKeepsValuesTransient(t *testing.T) {
 	coordinator, ctx, session, bridgeClient, repository := structuredWorkflowApplicationInteractionCoordinatorFixture(t)
+	artifactService := newApplicationResultArtifactService(newMemoryApplicationResultArtifactRepository(), repository)
+	artifactService.newID = applicationResultArtifactStableIDGenerator()
+	coordinator = coordinator.withResultArtifacts(artifactService)
 	if session.SchemaVersion != applicationStructuredSessionSchemaVersion || session.Authority.SchemaVersion != applicationInteractionStructuredAuthoritySchemaVersion ||
 		session.Authority.WorkflowDefinition == nil || session.Authority.WorkflowDefinition.InputContract == nil ||
 		session.Authority.WorkflowDefinition.InputContract.ContractDigest == "" {
@@ -25,12 +28,14 @@ func TestApplicationInteractionStructuredSessionV4DelegatesV8AndKeepsValuesTrans
 	result := coordinator.Execute(ctx, session.SessionID, ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: session.RecordVersion,
 		ClientTurnKey:          "turn_structured_001",
+		SaveResult:             true,
 		Inputs:                 map[string]any{"customer_name": privateValue, "retry_count": 2},
 		ConditionValues:        map[string]bool{},
 	})
 	if result.FailureCode != "" || result.Turn == nil || result.Turn.SchemaVersion != applicationStructuredSessionTurnSchemaVersion ||
 		result.Turn.Status != string(WorkflowRunStatusSucceeded) || result.Turn.RunRef == nil ||
-		result.Turn.RunRef.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion || result.AdvisoryOutput == "" || bridgeClient.callCount() != 1 {
+		result.Turn.RunRef.SchemaVersion != workflowRunRecordDefinitionStructuredSchemaVersion || result.AdvisoryOutput == "" ||
+		result.ResultArtifact == nil || result.ResultArtifactFailureCode != "" || bridgeClient.callCount() != 1 {
 		t.Fatalf("structured session turn failed: result=%#v bridge=%d", result, bridgeClient.callCount())
 	}
 	turn := result.Turn

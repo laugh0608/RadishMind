@@ -110,13 +110,14 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 
 产品组件配置按职责维护：
 
-- 聚合 `sqlite_dev`、共享数据库路径和十一组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
+- 聚合 `sqlite_dev`、共享数据库路径和组件 store 投影见[本地 SQLite 开发持久化 v1](local-sqlite-dev-persistence-v1.md)。
 - 应用目录、API 密钥生命周期和 Gateway Bearer 开发测试态认证见[应用目录与 API 密钥开发测试指南](../features/user-workspace/application-catalog-api-key-dev-test-guide.md)。
 - Application RAG、Workflow Definition、Application Session、v4 / v5 历史与运行观测见[应用受控运行开发测试态指南](../features/user-workspace/application-controlled-runtime-dev-test-guide.md)。
 - Workflow 草案、运行、评测与执行 gate 见 [Workflow 专题](../features/workflow/README.md)。
 - Application Draft / Publish gate 见 [User Workspace 专题](../features/user-workspace/README.md)。
 - Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment 的配置、路由、权限、CAS 和故障处理见 [Prompt Application 开发测试态使用指南](../features/user-workspace/prompt-application-dev-test-usage-guide.md)；长期领域边界见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
+- 本地注册与 Web Session 只在显式 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=true`、`RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 和 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 时启用；还必须配置 exact `RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN`。HTTPS 保持默认 `RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE=true`；loopback HTTP 开发测试必须显式设为 `false`。`RADISHMIND_LOCAL_IDENTITY_SESSION_TTL` 默认 `12h` 且不得超过 `30d`；`RADISHMIND_LOCAL_IDENTITY_STORE` 可选 `memory_dev | sqlite_dev | postgres_dev_test`，PostgreSQL 另需 `RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL` 和可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT`。这些开关只声明开发测试 session，不声明 production auth。
 
 所有未知 selector、保留 production 值和不完整数据库配置都在启动前失败关闭。组件显式 `*_STORE` 与聚合 `RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 不得同时设置；数据库、migration、marker、checksum 或查询失败不得回退 `memory_dev`。
 
@@ -136,6 +137,11 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - `GET /v1/session/recovery/checkpoints/{checkpoint_id}`
 - `GET /v1/tools/metadata`
 - `POST /v1/tools/actions`
+- `POST /v1/auth/local/register`
+- `POST /v1/auth/local/login`
+- `GET /v1/auth/session`
+- `POST /v1/auth/logout`
+- `POST /v1/auth/sessions/{session_id}/revoke`
 
 完整路由按服务 README 的六类入口导航到对应协议或功能专题。路由注册不表示默认启用；User Workspace、Workflow、Application RAG、Gateway history 与 Admin 路由必须满足各自 auth、scope、dev/test gate 和 store selector。Application Session 每轮还会重读所选 profile 的 exact authority，不能用 session 中的旧摘要绕过 v5 / v4 owner。
 

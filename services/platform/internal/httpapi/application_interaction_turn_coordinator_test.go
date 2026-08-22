@@ -45,6 +45,99 @@ func TestApplicationInteractionTurnCoordinatorDelegatesWorkflowV5OnceAndKeepsCon
 	}
 }
 
+func TestApplicationInteractionTurnCoordinatorExplicitlySavesResultArtifactWithoutReplayingProvider(t *testing.T) {
+	coordinator, ctx, session, bridgeClient, sessionRepository := workflowApplicationInteractionCoordinatorFixture(t)
+	artifactRepository := newMemoryApplicationResultArtifactRepository()
+	artifactService := newApplicationResultArtifactService(artifactRepository, sessionRepository)
+	artifactService.newID = applicationResultArtifactStableIDGenerator()
+	artifactService.now = func() time.Time { return time.Date(2026, 8, 15, 9, 0, 0, 0, time.UTC) }
+	coordinator = coordinator.withResultArtifacts(artifactService)
+
+	input := ApplicationInteractionTurnExecutionInput{
+		ExpectedSessionVersion: session.RecordVersion, ClientTurnKey: "turn_result_001",
+		SaveResult: true, InputText: "private result artifact input", ConditionValues: map[string]bool{},
+	}
+	first := coordinator.Execute(ctx, session.SessionID, input)
+	if first.FailureCode != "" || first.ResultArtifactFailureCode != "" || first.ResultArtifact == nil ||
+		first.Turn == nil || first.AdvisoryOutput == "" || bridgeClient.callCount() != 1 {
+		t.Fatalf("explicit result capture failed: result=%#v bridge=%d", first, bridgeClient.callCount())
+	}
+	read := artifactService.Read(ctx, first.ResultArtifact.ArtifactID)
+	if read.FailureCode != "" || read.Artifact == nil || read.Artifact.Content != first.AdvisoryOutput ||
+		read.Artifact.TurnID != first.Turn.TurnID || read.Artifact.RunRef != *first.Turn.RunRef {
+		t.Fatalf("saved result artifact provenance drifted: %#v", read)
+	}
+	replay := coordinator.Execute(ctx, session.SessionID, input)
+	if !replay.IdempotentReplay || replay.ResultArtifactFailureCode != "" || replay.ResultArtifact == nil ||
+		replay.ResultArtifact.ArtifactID != first.ResultArtifact.ArtifactID || replay.AdvisoryOutput != "" || bridgeClient.callCount() != 1 {
+		t.Fatalf("result artifact retry replayed provider or lost artifact: result=%#v bridge=%d", replay, bridgeClient.callCount())
+	}
+
+	secondArtifact := *read.Artifact
+	secondArtifact.ArtifactID = "appres_bbbbbbbbbbbbbbbb"
+	secondArtifact.TurnID = "appturn_bbbbbbbbbbbbbbbb"
+	secondArtifact.ClientTurnKey = "turn_result_002"
+	secondArtifact.RunRef.RunID = "run_bbbbbbbbbbbbbbbb"
+	secondArtifact.Content = "second saved result"
+	secondArtifact.ContentBytes = len(secondArtifact.Content)
+	secondArtifact.ContentDigest = applicationResultArtifactContentDigest(secondArtifact.ContentType, secondArtifact.Content)
+	secondArtifact.CreatedAt = time.Date(2026, 8, 15, 9, 0, 1, 0, time.UTC).Format(time.RFC3339Nano)
+	if _, _, err := artifactRepository.Create(ctx, secondArtifact); err != nil {
+		t.Fatalf("seed second result artifact page: %v", err)
+	}
+	pageOne := artifactService.List(ctx, ApplicationResultArtifactListInput{SessionID: session.SessionID, Limit: 1})
+	if pageOne.FailureCode != "" || len(pageOne.Items) != 1 || pageOne.NextCursor == nil {
+		t.Fatalf("first result artifact page drifted: %#v", pageOne)
+	}
+	pageTwo := artifactService.List(ctx, ApplicationResultArtifactListInput{SessionID: session.SessionID, Limit: 1, Cursor: *pageOne.NextCursor})
+	if pageTwo.FailureCode != "" || len(pageTwo.Items) != 1 || pageTwo.NextCursor != nil || pageTwo.Items[0].ArtifactID == pageOne.Items[0].ArtifactID {
+		t.Fatalf("second result artifact page drifted: %#v", pageTwo)
+	}
+	driftedContext := ctx
+	driftedContext.ApplicationID = "app_other"
+	if drifted := artifactService.List(driftedContext, ApplicationResultArtifactListInput{SessionID: session.SessionID, Limit: 1, Cursor: *pageOne.NextCursor}); drifted.FailureCode != ApplicationResultArtifactFailurePayloadInvalid {
+		t.Fatalf("result artifact cursor accepted scope drift: %#v", drifted)
+	}
+
+	defaultReplay := input
+	defaultReplay.SaveResult = false
+	third := coordinator.Execute(ctx, session.SessionID, defaultReplay)
+	if third.FailureCode != "" || !third.IdempotentReplay || third.ResultArtifact != nil || third.ResultArtifactFailureCode != "" || bridgeClient.callCount() != 1 {
+		t.Fatalf("default result retention was not off: result=%#v bridge=%d", third, bridgeClient.callCount())
+	}
+	artifacts, err := artifactRepository.List(ctx, session.SessionID)
+	turns, turnErr := sessionRepository.ListTurns(ctx, session.SessionID)
+	payload, marshalErr := json.Marshal(turns)
+	if err != nil || len(artifacts) != 2 || turnErr != nil || marshalErr != nil ||
+		strings.Contains(string(payload), first.AdvisoryOutput) {
+		t.Fatalf("result content leaked into Session owner: artifacts=%d turns=%s err=%v turn_err=%v marshal=%v", len(artifacts), payload, err, turnErr, marshalErr)
+	}
+
+	tooLarge := artifactService.Capture(ctx, ApplicationResultArtifactCaptureInput{
+		Turn: *first.Turn, ContentType: "text/markdown", Content: strings.Repeat("x", applicationResultArtifactMaxContentBytes+1),
+	})
+	if tooLarge.FailureCode != ApplicationResultArtifactFailureContentTooLarge {
+		t.Fatalf("oversized result artifact did not fail closed: %#v", tooLarge)
+	}
+	forgedTurn := cloneApplicationInteractionTurn(*first.Turn)
+	forgedTurn.TurnID = "appturn_cccccccccccccccc"
+	forgedTurn.ClientTurnKey = "turn_result_forged"
+	forgedTurn.RunRef.RunID = "run_cccccccccccccccc"
+	forged := artifactService.Capture(ctx, ApplicationResultArtifactCaptureInput{
+		Turn: forgedTurn, ContentType: "text/markdown", Content: "client-forged result",
+	})
+	if forged.FailureCode != ApplicationResultArtifactFailureSourceUnavailable {
+		t.Fatalf("result artifact accepted a non-owner turn source: %#v", forged)
+	}
+	artifactRepository.unavailable = true
+	unavailable := artifactService.Capture(ctx, ApplicationResultArtifactCaptureInput{
+		Turn: *first.Turn, ContentType: "text/markdown", Content: first.AdvisoryOutput,
+	})
+	if unavailable.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("unavailable result artifact store did not remain separate from run outcome: %#v", unavailable)
+	}
+}
+
 func TestApplicationInteractionTurnCoordinatorConcurrentClientKeyCallsDelegateOnce(t *testing.T) {
 	coordinator, ctx, session, _, _ := workflowApplicationInteractionCoordinatorFixture(t)
 	entered := make(chan struct{})
@@ -99,10 +192,13 @@ func TestApplicationInteractionTurnCoordinatorDelegatesApplicationRAGV4Once(t *t
 	invocation.newRunID = func() (string, error) { return "run_appsessionrag0001", nil }
 	invocation.now = func() time.Time { return fixture.now.Add(time.Second) }
 	coordinator := newApplicationInteractionTurnCoordinator(sessions, resolver, nil, invocation.Invoke)
+	artifactService := newApplicationResultArtifactService(newMemoryApplicationResultArtifactRepository(), repository)
+	artifactService.newID = applicationResultArtifactStableIDGenerator()
+	coordinator = coordinator.withResultArtifacts(artifactService)
 	coordinator.now = func() time.Time { return fixture.now.Add(time.Second) }
 	input := "approved promotion authority guidance"
-	result := coordinator.Execute(ctx, created.Session.SessionID, ApplicationInteractionTurnExecutionInput{ExpectedSessionVersion: 1, ClientTurnKey: "turn_rag_001", InputText: input})
-	if result.FailureCode != "" || result.Turn == nil || result.Turn.Status != string(WorkflowRunStatusSucceeded) || result.Turn.RunRef == nil || result.Turn.RunRef.SchemaVersion != workflowRunRecordAppRAGSchemaVersion || result.Answer == nil || result.AdvisoryOutput != "" || fixture.bridge.callCount() != 1 {
+	result := coordinator.Execute(ctx, created.Session.SessionID, ApplicationInteractionTurnExecutionInput{ExpectedSessionVersion: 1, ClientTurnKey: "turn_rag_001", SaveResult: true, InputText: input})
+	if result.FailureCode != "" || result.Turn == nil || result.Turn.Status != string(WorkflowRunStatusSucceeded) || result.Turn.RunRef == nil || result.Turn.RunRef.SchemaVersion != workflowRunRecordAppRAGSchemaVersion || result.Answer == nil || result.ResultArtifact == nil || result.ResultArtifactFailureCode != "" || result.AdvisoryOutput != "" || fixture.bridge.callCount() != 1 {
 		t.Fatalf("application RAG session turn failed: %#v bridge=%d", result, fixture.bridge.callCount())
 	}
 	payload, err := json.Marshal(result.Turn)
@@ -211,5 +307,14 @@ func applicationInteractionStableIDGenerator() func(string) (string, error) {
 			return "appsess_aaaaaaaaaaaaaaaa", nil
 		}
 		return "appturn_aaaaaaaaaaaaaaaa", nil
+	}
+}
+
+func applicationResultArtifactStableIDGenerator() func(string) (string, error) {
+	index := 0
+	return func(prefix string) (string, error) {
+		suffix := strings.Repeat("a", 15) + string(rune('a'+index))
+		index++
+		return prefix + "_" + suffix, nil
 	}
 }

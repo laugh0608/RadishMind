@@ -14,6 +14,9 @@
 - [RadishMind UI 差异附录](docs/ui-addendum.md)
 - [应用目录与 API 密钥开发测试指南](docs/features/user-workspace/application-catalog-api-key-dev-test-guide.md)
 - [代码规范](docs/radishmind-code-standards.md)
+- [参与贡献](CONTRIBUTING.md)
+- [社区行为准则](CODE_OF_CONDUCT.md)
+- [安全策略](SECURITY.md)
 - [本地 Console 说明](apps/radishmind-console/README.md)
 
 ## 本地启动

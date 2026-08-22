@@ -90,6 +90,36 @@ test("Admin Provider route draft sends exact scope, CAS, and sanitized configura
   }
 });
 
+test("Admin Provider route v2 sends and reads one ordered distinct attempt plan", async () => {
+  const originalFetch = globalThis.fetch;
+  let body: any = null;
+  globalThis.fetch = async (_input, init) => {
+    body = init?.body ? JSON.parse(String(init.body)) : null;
+    return jsonResponse(v2DraftEnvelope());
+  };
+  try {
+    const result = await saveAdminProviderRouteDraft(config, validV2DraftInput());
+    assert.equal(result.draft?.schemaVersion, "admin_provider_route_configuration_draft.v2");
+    assert.deepEqual(body.model_routes, [{
+      route_id: "route-chat-primary",
+      protocol: "chat_completions",
+      model_id: "gemini-2.5-pro",
+      execution_mode: "sequential_fallback",
+      attempt_targets: [
+        { ordinal: 1, provider_profile_id: "primary" },
+        { ordinal: 2, provider_profile_id: "backup" },
+      ],
+    }]);
+    const route = result.draft?.modelRoutes[0];
+    assert.equal(route?.contractVersion, "v2");
+    if (route?.contractVersion !== "v2") assert.fail("expected Route v2");
+    assert.equal(route.executionMode, "sequential_fallback");
+    assert.deepEqual(route.attemptTargets.map((target) => target.providerProfileId), ["primary", "backup"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Admin Provider route lifecycle preserves candidate, review, activation, snapshot, and history", async () => {
   const originalFetch = globalThis.fetch;
   const calls: Array<{ path: string; method: string; body: any; scopes: string }> = [];
@@ -175,6 +205,21 @@ test("Admin Provider route validation rejects scope drift, duplicates, and sensi
   assert.equal(fields.includes("provider_profiles[0]"), true);
   assert.equal(fields.includes("provider_profiles[1]"), true);
   assert.equal(fields.includes("model_routes[1]"), true);
+
+  const duplicateTargets = validV2DraftInput();
+  if (duplicateTargets.modelRoutes[0]?.contractVersion !== "v2") assert.fail("expected Route v2");
+  duplicateTargets.modelRoutes[0].attemptTargets[1]!.providerProfileId = "primary";
+  assert.equal(
+    validateAdminProviderRouteDraft(config, duplicateTargets).some((finding) => finding.field === "model_routes[0]"),
+    true,
+  );
+
+  const mixed = validV2DraftInput();
+  mixed.modelRoutes.push({ ...valid.modelRoutes[0]!, routeId: "route-chat-legacy" });
+  assert.equal(
+    validateAdminProviderRouteDraft(config, mixed).some((finding) => finding.field === "model_routes"),
+    true,
+  );
 });
 
 test("Admin Provider route candidate diff reports changed model and baseline generation", async () => {
@@ -212,10 +257,45 @@ function validDraftInput() {
   return createAdminProviderRouteDraftInput(config, "openai-compatible", "anyrouter", "gemini-2.5-pro");
 }
 
+function validV2DraftInput() {
+  const input = validDraftInput();
+  input.providerProfiles.push({
+    profileId: "backup",
+    displayName: "Backup runtime profile",
+    providerId: "openai-compatible",
+    runtimeProfileRef: "ref:radishmind/test/provider-profiles/backup-router",
+    capabilities: ["chat_completions"],
+  });
+  input.modelRoutes = [{
+    contractVersion: "v2",
+    routeId: "route-chat-primary",
+    protocol: "chat_completions",
+    modelId: "gemini-2.5-pro",
+    executionMode: "sequential_fallback",
+    attemptTargets: [
+      { ordinal: 1, providerProfileId: "primary" },
+      { ordinal: 2, providerProfileId: "backup" },
+    ],
+  }];
+  return input;
+}
+
 function draftEnvelope() {
   return {
     ...baseEnvelope(),
     draft: draftDocument(),
+    current_draft_revision: 1,
+  };
+}
+
+function v2DraftEnvelope() {
+  return {
+    ...baseEnvelope(),
+    draft: {
+      ...draftDocument(),
+      schema_version: "admin_provider_route_configuration_draft.v2",
+      ...v2ConfigurationDocument(),
+    },
     current_draft_revision: 1,
   };
 }
@@ -300,6 +380,33 @@ function configurationDocument() {
       protocol: "chat_completions",
       model_id: "gemini-2.5-pro",
       provider_profile_id: "primary",
+    }],
+  };
+}
+
+function v2ConfigurationDocument() {
+  const configuration = configurationDocument();
+  return {
+    ...configuration,
+    provider_profiles: [
+      ...configuration.provider_profiles,
+      {
+        profile_id: "backup",
+        display_name: "Backup runtime profile",
+        provider_id: "openai-compatible",
+        runtime_profile_ref: "ref:radishmind/test/provider-profiles/backup-router",
+        capabilities: ["chat_completions"],
+      },
+    ],
+    model_routes: [{
+      route_id: "route-chat-primary",
+      protocol: "chat_completions",
+      model_id: "gemini-2.5-pro",
+      execution_mode: "sequential_fallback",
+      attempt_targets: [
+        { ordinal: 1, provider_profile_id: "primary" },
+        { ordinal: 2, provider_profile_id: "backup" },
+      ],
     }],
   };
 }

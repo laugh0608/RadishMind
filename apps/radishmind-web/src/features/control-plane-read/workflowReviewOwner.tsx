@@ -57,6 +57,7 @@ export default function WorkflowReviewOwner({
   const [copiedRef, setCopiedRef] = useState("");
   const [retrievalPreviewPending, setRetrievalPreviewPending] = useState(false);
   const requestGenerationRef = useRef(0);
+  const initializedOwnerScopeRef = useRef("");
   const handledHandoffIdRef = useRef("");
   const historyRunsRef = useRef(history.runs);
   historyRunsRef.current = history.runs;
@@ -64,6 +65,7 @@ export default function WorkflowReviewOwner({
   const liveScope = config.mode === "dev_workflow_executor_http" &&
     workspaceId.trim().length > 0 && config.workspaceId === workspaceId.trim();
   const workspaceMismatch = config.mode === "dev_workflow_executor_http" && !liveScope;
+  const ownerScopeKey = `${applicationId}\u0000${workspaceId}\u0000${refreshKey}\u0000${String(liveScope)}`;
 
   const loadHistory = useCallback(async (cursor = "", append = false, expectedGeneration?: number) => {
     if (!liveScope) return;
@@ -91,6 +93,8 @@ export default function WorkflowReviewOwner({
   }, [applicationId, filter, liveScope]);
 
   useEffect(() => {
+    if (initializedOwnerScopeRef.current === ownerScopeKey) return;
+    initializedOwnerScopeRef.current = ownerScopeKey;
     const generation = ++requestGenerationRef.current;
     setHistory(initialWorkflowRunHistoryState(config));
     setDetail(null);
@@ -103,7 +107,7 @@ export default function WorkflowReviewOwner({
     setCopiedRef("");
     setRetrievalPreviewPending(false);
     if (liveScope) void loadHistory("", false, generation);
-  }, [applicationId, workspaceId, refreshKey, liveScope]); // Filters are applied explicitly.
+  }, [applicationId, workspaceId, refreshKey, liveScope, ownerScopeKey]); // Filters are applied explicitly.
 
   async function selectRun(run: WorkflowRunHistorySummary) {
     const generation = requestGenerationRef.current;
@@ -520,6 +524,7 @@ function OwnerBoundary({ title, copy }: { title: string; copy: string }) {
 }
 
 function runSource(run: WorkflowRunHistorySummary): string {
+  if (run.schemaVersion === "workflow_run_record.v9") return `Workflow Definition HTTP Tool · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v8") return `Structured Workflow Definition · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v7") return `Agent Copilot · ${run.executionSourceId}`;
   if (run.schemaVersion === "workflow_run_record.v6") return `Prompt Application · ${run.executionSourceId}`;

@@ -91,7 +91,7 @@
         "production admin console"
       ],
       "stop_lines": [
-        "do not self-host a second identity truth source",
+        "keep one RadishMind local identity owner and do not duplicate Radish identity storage",
         "do not introduce .NET as default backend language",
         "local ops console is not production admin console"
       ]

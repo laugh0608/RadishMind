@@ -6,6 +6,8 @@
 
 `Radish OIDC Token / Membership Readiness v1` 是 RadishMind 接入 `Radish` 身份体系前的跨产品面前置专题。它消费既有 `radish-oidc-client-preconditions`、control plane read production auth readiness、saved workflow draft production auth readiness 和 saved draft production auth runtime bridge，把 future token validation 与 membership adapter 的输入、输出、失败语义和停止线收束为可检查证据。
 
+2026-08-19 覆盖：本专题保留为 legacy resource-server token projection 历史证据，不再定义浏览器登录或 membership owner。当前 owner 以[本地账户与 Radish OIDC 联合登录 v1](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)为准：RadishMind 本地账户与 membership 是平台真相，Radish OIDC 只提供 external authentication；下文 `tenant_id / roles / permissions` 要求只适用于该历史 Bearer token projection，不能直接授权本地 session。
+
 本专题不实现 OIDC client、auth middleware、token validator、membership adapter、login / logout、session cookie、production API consumer、repository mode、数据库连接、workflow executor、confirmation、writeback 或 replay。
 
 状态：`radish_oidc_token_membership_readiness_defined`
@@ -35,7 +37,7 @@ future token validation 必须先消费人工 review 后的 Radish issuer eviden
 
 ## Membership Contract
 
-future membership adapter 的输入只能来自已验证 token context、workspace / application / owner binding request 和 audit context。输出只能是 metadata-only membership decision：
+历史 future membership adapter 的 token context 只能作为外部身份与 resource projection 输入；真正的 workspace decision 必须读取 RadishMind 本地 membership owner。输出仍只能是 metadata-only membership decision：
 
 - `tenant_ref`
 - `workspace_id`

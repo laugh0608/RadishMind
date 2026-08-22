@@ -8,9 +8,9 @@ import (
 
 const (
 	Component                          = "workflow_runs"
-	MigrationID                        = "0019_application_evaluation_structured_inputs"
-	StoreSchemaVersion                 = "workflow_run_store_sqlite_v19"
-	RunRecordStoreSchemaVersion        = "workflow_runs_store_v6"
+	MigrationID                        = "0024_application_result_artifact_application_history"
+	StoreSchemaVersion                 = "workflow_run_store_sqlite_v24"
+	RunRecordStoreSchemaVersion        = "workflow_runs_store_v7"
 	legacyMigrationID                  = "0001_workflow_runs"
 	toolActionsMigrationID             = "0002_workflow_http_tool_actions"
 	toolExecutionMigrationID           = "0003_workflow_http_tool_execution"
@@ -47,6 +47,16 @@ const (
 	structuredDefinitionSchemaVersion  = "workflow_run_store_sqlite_v17"
 	structuredSessionMigrationID       = "0018_application_structured_sessions"
 	structuredSessionSchemaVersion     = "workflow_run_store_sqlite_v18"
+	structuredEvaluationMigrationID    = "0019_application_evaluation_structured_inputs"
+	structuredEvaluationSchemaVersion  = "workflow_run_store_sqlite_v19"
+	toolDefinitionSourcesMigrationID   = "0020_workflow_http_tool_definition_sources"
+	toolDefinitionSourcesSchemaVersion = "workflow_run_store_sqlite_v20"
+	definitionHTTPToolMigrationID      = "0021_workflow_definition_http_tool_execution"
+	definitionHTTPToolSchemaVersion    = "workflow_run_store_sqlite_v21"
+	resultArtifactMigrationID          = "0022_application_result_artifacts"
+	resultArtifactSchemaVersion        = "workflow_run_store_sqlite_v22"
+	resultArtifactLifecycleMigrationID = "0023_application_result_artifact_lifecycle"
+	resultArtifactLifecycleVersion     = "workflow_run_store_sqlite_v23"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -106,6 +116,21 @@ var upSQLV18 string
 //go:embed 0019_application_evaluation_structured_inputs.up.sql
 var upSQLV19 string
 
+//go:embed 0020_workflow_http_tool_definition_sources.up.sql
+var upSQLV20 string
+
+//go:embed 0021_workflow_definition_http_tool_execution.up.sql
+var upSQLV21 string
+
+//go:embed 0022_application_result_artifacts.up.sql
+var upSQLV22 string
+
+//go:embed 0023_application_result_artifact_lifecycle.up.sql
+var upSQLV23 string
+
+//go:embed 0024_application_result_artifact_application_history.up.sql
+var upSQLV24 string
+
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
 		{
@@ -156,6 +181,11 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: applicationEvaluationMigrationID, StoreSchemaVersion: applicationEvaluationSchemaVersion, UpSQL: upSQLV16},
 		{Component: Component, ID: structuredDefinitionMigrationID, StoreSchemaVersion: structuredDefinitionSchemaVersion, UpSQL: upSQLV17},
 		{Component: Component, ID: structuredSessionMigrationID, StoreSchemaVersion: structuredSessionSchemaVersion, UpSQL: upSQLV18},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV19},
+		{Component: Component, ID: structuredEvaluationMigrationID, StoreSchemaVersion: structuredEvaluationSchemaVersion, UpSQL: upSQLV19},
+		{Component: Component, ID: toolDefinitionSourcesMigrationID, StoreSchemaVersion: toolDefinitionSourcesSchemaVersion, UpSQL: upSQLV20},
+		{Component: Component, ID: definitionHTTPToolMigrationID, StoreSchemaVersion: definitionHTTPToolSchemaVersion, UpSQL: upSQLV21},
+		{Component: Component, ID: resultArtifactMigrationID, StoreSchemaVersion: resultArtifactSchemaVersion, UpSQL: upSQLV22},
+		{Component: Component, ID: resultArtifactLifecycleMigrationID, StoreSchemaVersion: resultArtifactLifecycleVersion, UpSQL: upSQLV23},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV24},
 	}
 }

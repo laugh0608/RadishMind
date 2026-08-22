@@ -35,6 +35,7 @@ type applicationInteractionTurnBody struct {
 	ApplicationID          string                 `json:"application_id"`
 	ExpectedSessionVersion int                    `json:"expected_session_version"`
 	ClientTurnKey          string                 `json:"client_turn_key"`
+	SaveResult             bool                   `json:"save_result,omitempty"`
 	InputText              json.RawMessage        `json:"input_text,omitempty"`
 	Inputs                 json.RawMessage        `json:"inputs,omitempty"`
 	ConditionValues        map[string]bool        `json:"condition_values"`
@@ -84,21 +85,23 @@ type applicationInteractionTurnListEnvelope struct {
 }
 
 type applicationInteractionTurnEnvelope struct {
-	RequestID        string                         `json:"request_id"`
-	TenantRef        string                         `json:"tenant_ref"`
-	WorkspaceID      string                         `json:"workspace_id"`
-	ApplicationID    string                         `json:"application_id"`
-	SessionID        string                         `json:"session_id"`
-	Session          *ApplicationInteractionSession `json:"session"`
-	Turn             *ApplicationInteractionTurn    `json:"turn"`
-	AdvisoryOutput   string                         `json:"advisory_output,omitempty"`
-	Answer           *WorkflowRAGApplicationAnswer  `json:"answer,omitempty"`
-	PromptOutput     string                         `json:"prompt_output,omitempty"`
-	AgentResponse    *AgentCopilotResponse          `json:"agent_response,omitempty"`
-	FailureCode      *string                        `json:"failure_code"`
-	FailureSummary   string                         `json:"failure_summary"`
-	IdempotentReplay bool                           `json:"idempotent_replay"`
-	AuditRef         string                         `json:"audit_ref"`
+	RequestID                 string                            `json:"request_id"`
+	TenantRef                 string                            `json:"tenant_ref"`
+	WorkspaceID               string                            `json:"workspace_id"`
+	ApplicationID             string                            `json:"application_id"`
+	SessionID                 string                            `json:"session_id"`
+	Session                   *ApplicationInteractionSession    `json:"session"`
+	Turn                      *ApplicationInteractionTurn       `json:"turn"`
+	ResultArtifact            *ApplicationResultArtifactSummary `json:"result_artifact,omitempty"`
+	ResultArtifactFailureCode *string                           `json:"result_artifact_failure_code,omitempty"`
+	AdvisoryOutput            string                            `json:"advisory_output,omitempty"`
+	Answer                    *WorkflowRAGApplicationAnswer     `json:"answer,omitempty"`
+	PromptOutput              string                            `json:"prompt_output,omitempty"`
+	AgentResponse             *AgentCopilotResponse             `json:"agent_response,omitempty"`
+	FailureCode               *string                           `json:"failure_code"`
+	FailureSummary            string                            `json:"failure_summary"`
+	IdempotentReplay          bool                              `json:"idempotent_replay"`
+	AuditRef                  string                            `json:"audit_ref"`
 }
 
 func (server *Server) handleCreateApplicationInteractionSession(writer http.ResponseWriter, request *http.Request) {
@@ -255,6 +258,7 @@ func (server *Server) handleExecuteApplicationInteractionTurn(writer http.Respon
 	result := server.applicationInteractionTurnCoordinator().Execute(ctx, request.PathValue("session_id"), ApplicationInteractionTurnExecutionInput{
 		ExpectedSessionVersion: body.ExpectedSessionVersion,
 		ClientTurnKey:          body.ClientTurnKey,
+		SaveResult:             body.SaveResult,
 		InputText:              inputText,
 		Inputs:                 inputs,
 		ConditionValues:        body.ConditionValues,
@@ -323,6 +327,7 @@ func (server *Server) applicationInteractionTurnCoordinator() applicationInterac
 		promptDelegate = server.promptApplicationInvocationService().Invoke
 	}
 	coordinator := newApplicationInteractionTurnCoordinator(sessions, resolver, workflowDelegate, ragDelegate, promptDelegate)
+	coordinator = coordinator.withResultArtifacts(server.applicationResultArtifactService())
 	if server.config.AgentCopilotRuntimeDevHTTPEnabled {
 		coordinator = coordinator.withAgentCopilot(server.agentCopilotInvocationService().Invoke)
 	}
@@ -407,6 +412,7 @@ func writeApplicationInteractionTurnResult(writer http.ResponseWriter, status in
 	writeObservedJSON(writer, status, trace, applicationInteractionTurnEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		SessionID: strings.TrimSpace(sessionID), Session: result.Session, Turn: result.Turn,
+		ResultArtifact: result.ResultArtifact, ResultArtifactFailureCode: optionalApplicationDraftFailure(result.ResultArtifactFailureCode),
 		AdvisoryOutput: result.AdvisoryOutput, Answer: result.Answer, PromptOutput: result.PromptOutput,
 		AgentResponse: result.AgentResponse,
 		FailureCode:   optionalApplicationDraftFailure(result.FailureCode), FailureSummary: result.FailureSummary,

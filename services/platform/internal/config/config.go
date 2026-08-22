@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -50,6 +52,9 @@ const (
 	defaultGatewayRequestStoreMode      = "memory_dev"
 	defaultGatewayRequestQuotaStoreMode = "memory_dev"
 	defaultGatewayModelPricingStoreMode = "memory_dev"
+	defaultLocalIdentityStoreMode       = "memory_dev"
+	defaultLocalIdentityDBTimeout       = 5 * time.Second
+	defaultLocalIdentitySessionTTL      = 12 * time.Hour
 	defaultLocalPersistenceMode         = "memory_dev"
 	defaultSQLiteDevDatabasePath        = "var/sqlite-dev/radishmind.db"
 	defaultControlPlaneReadAuthMode     = ""
@@ -108,6 +113,13 @@ type Config struct {
 	ControlPlaneReadStoreMode                string
 	ControlPlaneReadDatabaseURL              string
 	ControlPlaneReadDatabaseTimeout          time.Duration
+	LocalIdentityDevHTTPEnabled              bool
+	LocalIdentityStoreMode                   string
+	LocalIdentityDatabaseURL                 string
+	LocalIdentityDatabaseTimeout             time.Duration
+	LocalIdentityAllowedOrigin               string
+	LocalIdentityCookieSecure                bool
+	LocalIdentitySessionTTL                  time.Duration
 	WorkflowSavedDraftDevHTTPEnabled         bool
 	WorkflowSavedDraftDevWriteEnabled        bool
 	ApplicationDraftDevHTTPEnabled           bool
@@ -216,6 +228,12 @@ type ConfigSummary struct {
 	ControlPlaneReadOIDCEvidenceRef          string            `json:"control_plane_read_oidc_evidence_ref,omitempty"`
 	ControlPlaneReadStoreMode                string            `json:"control_plane_read_store_mode"`
 	ControlPlaneReadDatabaseConfigured       bool              `json:"control_plane_read_database_configured"`
+	LocalIdentityDevHTTPEnabled              bool              `json:"local_identity_dev_http_enabled"`
+	LocalIdentityStoreMode                   string            `json:"local_identity_store_mode"`
+	LocalIdentityDatabaseConfigured          bool              `json:"local_identity_database_configured"`
+	LocalIdentityAllowedOriginConfigured     bool              `json:"local_identity_allowed_origin_configured"`
+	LocalIdentityCookieSecure                bool              `json:"local_identity_cookie_secure"`
+	LocalIdentitySessionTTL                  string            `json:"local_identity_session_ttl"`
 	WorkflowSavedDraftDevHTTPEnabled         bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled        bool              `json:"workflow_saved_draft_dev_write_enabled"`
 	ApplicationDraftDevHTTPEnabled           bool              `json:"application_draft_dev_http_enabled"`
@@ -383,6 +401,10 @@ func defaultConfig() Config {
 		ControlPlaneReadAuthMode:                 defaultControlPlaneReadAuthMode,
 		ControlPlaneReadStoreMode:                defaultControlPlaneReadStoreMode,
 		ControlPlaneReadDatabaseTimeout:          defaultControlPlaneReadDBTimeout,
+		LocalIdentityStoreMode:                   defaultLocalIdentityStoreMode,
+		LocalIdentityDatabaseTimeout:             defaultLocalIdentityDBTimeout,
+		LocalIdentityCookieSecure:                true,
+		LocalIdentitySessionTTL:                  defaultLocalIdentitySessionTTL,
 		ControlPlaneReadOIDCDiscoveryTimeout:     defaultOIDCDiscoveryTimeout,
 		ControlPlaneReadOIDCJWKSMaxAge:           defaultOIDCJWKSMaxAge,
 		ControlPlaneReadOIDCJWKSHardExpiry:       defaultOIDCJWKSHardExpiry,
@@ -441,6 +463,13 @@ func defaultConfig() Config {
 			"control_plane_read_store":                     configSourceDefault,
 			"control_plane_read_database":                  configSourceDefault,
 			"control_plane_read_database_timeout":          configSourceDefault,
+			"local_identity_dev_http":                      configSourceDefault,
+			"local_identity_store":                         configSourceDefault,
+			"local_identity_database":                      configSourceDefault,
+			"local_identity_database_timeout":              configSourceDefault,
+			"local_identity_allowed_origin":                configSourceDefault,
+			"local_identity_cookie_secure":                 configSourceDefault,
+			"local_identity_session_ttl":                   configSourceDefault,
 			"workflow_saved_draft_dev_http":                configSourceDefault,
 			"workflow_saved_draft_dev_write":               configSourceDefault,
 			"application_draft_dev_http":                   configSourceDefault,
@@ -1251,6 +1280,45 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.GatewayModelPricingDatabaseTimeout, parsed, cfg.FieldSources, "gateway_model_pricing_database_timeout", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_DEV_HTTP"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_LOCAL_IDENTITY_DEV_HTTP", value)
+		if err != nil {
+			return err
+		}
+		cfg.LocalIdentityDevHTTPEnabled = parsed
+		cfg.FieldSources["local_identity_dev_http"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_STORE"); ok {
+		applyStringValue(&cfg.LocalIdentityStoreMode, value, cfg.FieldSources, "local_identity_store", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL"); ok {
+		applyStringValue(&cfg.LocalIdentityDatabaseURL, value, cfg.FieldSources, "local_identity_database", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.LocalIdentityDatabaseTimeout, parsed, cfg.FieldSources, "local_identity_database_timeout", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN"); ok {
+		applyStringValue(&cfg.LocalIdentityAllowedOrigin, value, cfg.FieldSources, "local_identity_allowed_origin", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE", value)
+		if err != nil {
+			return err
+		}
+		cfg.LocalIdentityCookieSecure = parsed
+		cfg.FieldSources["local_identity_cookie_secure"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_SESSION_TTL"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_LOCAL_IDENTITY_SESSION_TTL", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.LocalIdentitySessionTTL, parsed, cfg.FieldSources, "local_identity_session_ttl", configSourceEnv)
+	}
 	if value, ok := stringEnv("RADISHMIND_LOCAL_PERSISTENCE_MODE"); ok {
 		applyStringValue(&cfg.LocalPersistenceMode, value, cfg.FieldSources, "local_persistence_mode", configSourceEnv)
 	}
@@ -1378,6 +1446,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	gatewayModelPricingStoreMode := strings.TrimSpace(cfg.GatewayModelPricingStoreMode)
 	if gatewayModelPricingStoreMode == "" {
 		gatewayModelPricingStoreMode = defaultGatewayModelPricingStoreMode
+	}
+	localIdentityStoreMode := strings.TrimSpace(cfg.LocalIdentityStoreMode)
+	if localIdentityStoreMode == "" {
+		localIdentityStoreMode = defaultLocalIdentityStoreMode
 	}
 	localPersistenceMode := EffectiveLocalPersistenceMode(cfg)
 	controlPlaneReadStoreMode := EffectiveControlPlaneReadStoreMode(cfg)
@@ -1597,6 +1669,12 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		ControlPlaneReadOIDCEvidenceRef:          strings.TrimSpace(cfg.ControlPlaneReadOIDCEvidenceRef),
 		ControlPlaneReadStoreMode:                controlPlaneReadStoreMode,
 		ControlPlaneReadDatabaseConfigured:       strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) != "",
+		LocalIdentityDevHTTPEnabled:              cfg.LocalIdentityDevHTTPEnabled,
+		LocalIdentityStoreMode:                   localIdentityStoreMode,
+		LocalIdentityDatabaseConfigured:          strings.TrimSpace(cfg.LocalIdentityDatabaseURL) != "",
+		LocalIdentityAllowedOriginConfigured:     strings.TrimSpace(cfg.LocalIdentityAllowedOrigin) != "",
+		LocalIdentityCookieSecure:                cfg.LocalIdentityCookieSecure,
+		LocalIdentitySessionTTL:                  cfg.LocalIdentitySessionTTL.String(),
 		WorkflowSavedDraftDevHTTPEnabled:         cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled:        cfg.WorkflowSavedDraftDevWriteEnabled,
 		ApplicationDraftDevHTTPEnabled:           cfg.ApplicationDraftDevHTTPEnabled,
@@ -1686,6 +1764,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 			"bridge":                               cfg.BridgeTimeout.String(),
 			"bridge_handshake":                     bridgeHandshakeTimeout.String(),
 			"control_plane_read_database":          cfg.ControlPlaneReadDatabaseTimeout.String(),
+			"local_identity_database":              cfg.LocalIdentityDatabaseTimeout.String(),
 			"control_plane_read_oidc_discovery":    cfg.ControlPlaneReadOIDCDiscoveryTimeout.String(),
 			"control_plane_read_oidc_jwks_max_age": cfg.ControlPlaneReadOIDCJWKSMaxAge.String(),
 			"workflow_saved_draft_database":        cfg.WorkflowSavedDraftDatabaseTimeout.String(),
@@ -1713,6 +1792,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		MissingRequiredFields: missingRequiredFields,
 		SecretFields: []string{
 			"RADISHMIND_PLATFORM_API_KEY",
+			"RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",
 			"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_MIGRATION_DATABASE_URL",
 			"RADISHMIND_APPLICATION_DRAFT_DEV_TEST_DATABASE_URL",
@@ -1815,7 +1895,7 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 			}
 		case "control_plane_read_verified_auth":
 			mode := EffectiveControlPlaneReadAuthMode(cfg)
-			if mode != "signed_test_token" && mode != "radish_oidc_integration_test" {
+			if mode != "signed_test_token" && mode != "radish_oidc_integration_test" && mode != "local_session_dev_test" {
 				missing = append(missing, field)
 			}
 		case "control_plane_read_database":
@@ -2059,15 +2139,22 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		if err := validateControlPlaneReadOIDCIntegrationConfig(cfg); err != nil {
 			return err
 		}
+	case "local_session_dev_test":
+		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.LocalIdentityDevHTTPEnabled {
+			return fmt.Errorf("control plane read local_session_dev_test auth mode requires control plane read dev auth and local identity dev HTTP")
+		}
 	default:
-		return fmt.Errorf("control plane read auth mode must be disabled, dev_headers, signed_test_token, or radish_oidc_integration_test")
+		return fmt.Errorf("control plane read auth mode must be disabled, dev_headers, signed_test_token, radish_oidc_integration_test, or local_session_dev_test")
+	}
+	if err := validateLocalIdentityConfig(cfg); err != nil {
+		return err
 	}
 	switch EffectiveControlPlaneReadStoreMode(cfg) {
 	case "fake_store_dev":
 	case "postgres_dev_test":
 		mode := EffectiveControlPlaneReadAuthMode(cfg)
-		if mode != "signed_test_token" && mode != "radish_oidc_integration_test" {
-			return fmt.Errorf("control plane read postgres_dev_test store requires signed_test_token or radish_oidc_integration_test auth mode")
+		if mode != "signed_test_token" && mode != "radish_oidc_integration_test" && mode != "local_session_dev_test" {
+			return fmt.Errorf("control plane read postgres_dev_test store requires a verified auth mode")
 		}
 		if strings.TrimSpace(cfg.ControlPlaneReadDatabaseURL) == "" {
 			return fmt.Errorf("control plane read postgres_dev_test store requires a database URL")
@@ -2495,6 +2582,63 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.BridgeHandshakeTimeout <= 0 {
 		return fmt.Errorf("bridge_handshake_timeout must be positive")
+	}
+	return nil
+}
+
+func validateLocalIdentityConfig(cfg Config) error {
+	mode := strings.TrimSpace(cfg.LocalIdentityStoreMode)
+	if mode == "" {
+		mode = defaultLocalIdentityStoreMode
+	}
+	switch mode {
+	case "memory_dev":
+	case "sqlite_dev":
+		if EffectiveLocalPersistenceMode(cfg) != "sqlite_dev" {
+			return fmt.Errorf("local identity sqlite_dev store requires sqlite_dev local persistence")
+		}
+	case "postgres_dev_test":
+		if strings.TrimSpace(cfg.LocalIdentityDatabaseURL) == "" {
+			return fmt.Errorf("local identity postgres_dev_test store requires a database URL")
+		}
+	default:
+		return fmt.Errorf("local identity store must be memory_dev, sqlite_dev, or postgres_dev_test")
+	}
+	if cfg.LocalIdentityDatabaseTimeout < 0 {
+		return fmt.Errorf("local identity database timeout must be positive")
+	}
+	if cfg.LocalIdentitySessionTTL < 0 || cfg.LocalIdentitySessionTTL > 30*24*time.Hour {
+		return fmt.Errorf("local identity session TTL must be positive and no greater than 30 days")
+	}
+	authMode := EffectiveControlPlaneReadAuthMode(cfg)
+	if cfg.LocalIdentityDevHTTPEnabled && authMode != "local_session_dev_test" {
+		return fmt.Errorf("local identity dev HTTP requires local_session_dev_test auth mode")
+	}
+	if authMode == "local_session_dev_test" && !cfg.LocalIdentityDevHTTPEnabled {
+		return fmt.Errorf("local_session_dev_test auth mode requires local identity dev HTTP")
+	}
+	if !cfg.LocalIdentityDevHTTPEnabled {
+		return nil
+	}
+	if cfg.LocalIdentitySessionTTL == 0 {
+		return fmt.Errorf("local identity dev HTTP requires a positive session TTL")
+	}
+	origin, err := url.Parse(strings.TrimSpace(cfg.LocalIdentityAllowedOrigin))
+	if err != nil || origin.Scheme == "" || origin.Host == "" || origin.User != nil || origin.Path != "" || origin.RawQuery != "" || origin.Fragment != "" {
+		return fmt.Errorf("local identity allowed origin must be an absolute origin without path, query, fragment, or user info")
+	}
+	if origin.Scheme != "https" {
+		address := net.ParseIP(origin.Hostname())
+		loopback := strings.EqualFold(origin.Hostname(), "localhost") || address != nil && address.IsLoopback()
+		if origin.Scheme != "http" || !loopback {
+			return fmt.Errorf("local identity allowed origin must use HTTPS or loopback HTTP")
+		}
+		if cfg.LocalIdentityCookieSecure {
+			return fmt.Errorf("local identity secure cookie cannot be used with a loopback HTTP origin")
+		}
+	}
+	if !cfg.LocalIdentityCookieSecure && origin.Scheme != "http" {
+		return fmt.Errorf("local identity insecure cookie is restricted to loopback HTTP")
 	}
 	return nil
 }

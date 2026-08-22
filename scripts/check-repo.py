@@ -24,6 +24,10 @@ from scripts.eval.report_real_batch_governance_status import build_report as bui
 from scripts.eval.report_suggest_edits_profile_coverage import (  # noqa: E402
     build_report as build_suggest_edits_profile_coverage,
 )
+from scripts.checks.repository_governance import (  # noqa: E402
+    check_markdown_links,
+    repository_paths,
+)
 FIXTURE_DIR = REPO_ROOT / "scripts/checks/fixtures"
 
 
@@ -325,33 +329,15 @@ def check_required_files() -> None:
             raise SystemExit(f"missing required file: {relative_path}")
 
 
-def iter_tracked_files() -> list[Path]:
-    result = subprocess.run(
-        ["git", "ls-files", "-z"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=False,
-        check=True,
-    )
-    tracked_paths: list[Path] = []
-    for raw_path in result.stdout.split(b"\0"):
-        if not raw_path:
-            continue
-        tracked_paths.append(Path(raw_path.decode("utf-8")))
-    return tracked_paths
-
-
-def check_path_budget() -> None:
-    tracked_files = iter_tracked_files()
-
+def check_path_budget(repository_file_paths: list[Path]) -> None:
     too_long_paths = [
         path.as_posix()
-        for path in tracked_files
+        for path in repository_file_paths
         if len(path.as_posix()) > MAX_COMMITTED_PATH_LENGTH
     ]
     if too_long_paths:
         raise SystemExit(
-            "tracked path exceeds repository path budget "
+            "repository path exceeds path budget "
             f"({MAX_COMMITTED_PATH_LENGTH}): {too_long_paths[0]}"
         )
 
@@ -369,12 +355,12 @@ def check_path_budget() -> None:
 
     radishflow_files = [
         path
-        for path in tracked_files
+        for path in repository_file_paths
         if path.parts[: len(RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts)] == RADISHFLOW_CANDIDATE_RECORDS_ROOT.parts
     ]
     radish_files = [
         path
-        for path in tracked_files
+        for path in repository_file_paths
         if path.parts[: len(RADISH_CANDIDATE_RECORDS_ROOT.parts)] == RADISH_CANDIDATE_RECORDS_ROOT.parts
     ]
     for path in radish_files:
@@ -422,18 +408,42 @@ def check_path_budget() -> None:
 
 
 def check_content_baseline() -> None:
-    for collaboration_filename in ("AGENTS.md", "CLAUDE.md"):
-        collaboration_content = (REPO_ROOT / collaboration_filename).read_text(encoding="utf-8")
-        for expected_content in (
-            "当前常态开发分支为 `dev`",
-            "`feature/* -> dev -> master -> dev`",
-            "每次 `dev -> master` PR 合并后",
-            "`master -> dev` 是合并后的稳定主线回同步",
-        ):
-            if expected_content not in collaboration_content:
-                raise SystemExit(
-                    f"{collaboration_filename} is missing branch topology governance: {expected_content}"
-                )
+    readme_content = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    for expected_link in (
+        "[参与贡献](CONTRIBUTING.md)",
+        "[社区行为准则](CODE_OF_CONDUCT.md)",
+        "[安全策略](SECURITY.md)",
+    ):
+        if expected_link not in readme_content:
+            raise SystemExit(f"README.md is missing governance entry: {expected_link}")
+
+    security_content = (REPO_ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    private_reporting_url = "https://github.com/laugh0608/RadishMind/security/advisories/new"
+    if "本仓库已启用" not in security_content or private_reporting_url not in security_content:
+        raise SystemExit("SECURITY.md does not expose the enabled private vulnerability reporting entry")
+
+    issue_config_content = (REPO_ROOT / ".github/ISSUE_TEMPLATE/config.yml").read_text(encoding="utf-8")
+    for expected_content in ("blank_issues_enabled: false", private_reporting_url):
+        if expected_content not in issue_config_content:
+            raise SystemExit(f"Issue template config is missing expected content: {expected_content}")
+
+    for issue_form in ("bug-report.yml", "change-proposal.yml"):
+        issue_form_content = (REPO_ROOT / ".github/ISSUE_TEMPLATE" / issue_form).read_text(encoding="utf-8")
+        if "SECURITY.md" not in issue_form_content or "私密" not in issue_form_content:
+            raise SystemExit(f"{issue_form} does not route security reports to the private channel")
+
+    agents_content = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    claude_content = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    if agents_content != claude_content:
+        raise SystemExit("AGENTS.md and CLAUDE.md must remain byte-for-byte identical")
+    for expected_content in (
+        "只保留启动级长期约束",
+        "[当前推进焦点](docs/radishmind-current-focus.md)",
+        "[Agent 协作与执行规则](docs/agent-collaboration.md)",
+        "两个文件必须逐字一致",
+    ):
+        if expected_content not in agents_content:
+            raise SystemExit(f"Agent root entry is missing governance anchor: {expected_content}")
 
     pr_template_content = (REPO_ROOT / ".github/PULL_REQUEST_TEMPLATE.md").read_text(encoding="utf-8")
     if "默认目标分支为 `dev`" not in pr_template_content:
@@ -463,16 +473,19 @@ def check_content_baseline() -> None:
         item.get("context")
         for item in ((required_check_rule.get("parameters") or {}).get("required_status_checks") or [])
     ]
-    required_contexts = {
-        "Repo Hygiene",
-        "Repository Baseline",
-        "RadishMind Web Build",
-        "RadishMind Console Build",
-        "Platform Go Tests",
-    }
-    missing_contexts = sorted(required_contexts - set(contexts))
-    if missing_contexts:
-        raise SystemExit(f"master-protection.json is missing required checks: {missing_contexts}")
+    required_contexts = {"Candidate Quality"}
+    if set(contexts) != required_contexts:
+        raise SystemExit(
+            "master-protection.json required checks mismatch: "
+            f"expected {sorted(required_contexts)}, got {sorted(set(contexts))}"
+        )
+
+    pull_request_rule = next((rule for rule in ruleset.get("rules", []) if rule.get("type") == "pull_request"), None)
+    approving_review_count = ((pull_request_rule or {}).get("parameters") or {}).get(
+        "required_approving_review_count"
+    )
+    if approving_review_count != 0:
+        raise SystemExit("master-protection.json must not require extra approval during single-maintainer stage")
 
     pr_workflow = (REPO_ROOT / ".github/workflows/pr-check.yml").read_text(encoding="utf-8")
     expected_pr_trigger = """on:
@@ -503,6 +516,8 @@ def check_content_baseline() -> None:
         "name: RadishMind Web Build",
         "name: RadishMind Console Build",
         "name: Platform Go Tests",
+        "name: Platform PostgreSQL Integration",
+        "name: Candidate Quality",
         "npm ci",
         "npm run test:coverage",
         "npm run build",
@@ -512,6 +527,17 @@ def check_content_baseline() -> None:
     ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
+
+    candidate_quality_needs = """    needs:
+      - repo-hygiene
+      - repository-baseline
+      - web-build
+      - console-build
+      - platform-go-tests
+      - platform-postgres-integration
+"""
+    if candidate_quality_needs not in pr_workflow:
+        raise SystemExit(".github/workflows/pr-check.yml Candidate Quality dependencies drifted")
 
     release_workflow = (REPO_ROOT / ".github/workflows/release-check.yml").read_text(encoding="utf-8")
     for pattern in (
@@ -587,6 +613,7 @@ def check_contract_schemas() -> None:
         REPO_ROOT / "contracts/application-session-v4.schema.json",
         REPO_ROOT / "contracts/application-session-turn-v4.schema.json",
         REPO_ROOT / "contracts/workflow-run-record-v7.schema.json",
+        REPO_ROOT / "contracts/workflow-run-record-v9.schema.json",
         REPO_ROOT / "contracts/radishflow-ghost-candidate-set.schema.json",
         REPO_ROOT / "contracts/radishflow-adapter-snapshot.schema.json",
         REPO_ROOT / "contracts/radishflow-export-snapshot.schema.json",
@@ -1369,6 +1396,7 @@ def check_fast_baseline() -> None:
     run_python_script("check-radishmind-core-candidate-prompt-budget.py", [])
     run_python_unittest("services/runtime/tests")
     run_python_unittest("services/gateway/tests")
+    run_python_unittest("scripts/checks/tests")
     run_python_unittest("scripts/checks/platform/tests")
     run_python_script("check-runtime-provider-dispatch.py", [])
     run_python_script("check-provider-capability-matrix.py", [])
@@ -1523,8 +1551,10 @@ def check_fast_baseline() -> None:
     run_python_script("check-image-artifact-runtime-mapper-runtime-implementation-v1.py", [])
     run_python_script("check-image-artifact-response-consumer-runtime-implementation-v1.py", [])
     run_python_script("check-image-artifact-response-builder-runtime-integration-implementation-v1.py", [])
-    check_path_budget()
+    repository_file_paths = repository_paths(REPO_ROOT)
+    check_path_budget(repository_file_paths)
     check_required_files()
+    check_markdown_links(REPO_ROOT, repository_file_paths)
     check_content_baseline()
     check_contract_schemas()
 

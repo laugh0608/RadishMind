@@ -69,7 +69,8 @@ test("application operations keeps channel attribution separate and sorts one lo
   assert.equal(snapshot.metrics.gatewayTotalTokens, 31);
   assert.equal(snapshot.metrics.gatewayCostEstimated, 1);
   assert.equal(snapshot.metrics.gatewayCostUsageNotReported, 1);
-  assert.equal(snapshot.metrics.gatewayEstimatedCostMicros, 17);
+  assert.equal(snapshot.metrics.gatewayCostPartial, 1);
+  assert.equal(snapshot.metrics.gatewayEstimatedCostMicros, 23);
   assert.equal(snapshot.metrics.workflowLoaded, 2);
   assert.equal(snapshot.metrics.workflowSucceeded, 1);
   assert.equal(snapshot.metrics.workflowFailed, 1);
@@ -83,6 +84,11 @@ test("application operations keeps channel attribution separate and sorts one lo
     "gateway_request",
   ]);
   assert.equal(snapshot.timeline.filter((entry) => entry.requestId === "shared_request").length, 2);
+  const gatewayEntry = snapshot.timeline.find((entry) => entry.source === "gateway_request" && entry.requestId === "shared_request");
+  assert.equal(gatewayEntry?.provider, "backup-provider");
+  assert.equal(gatewayEntry?.providerAttempts, 2);
+  assert.equal(gatewayEntry?.fallbackUsed, true);
+  assert.equal(gatewayEntry?.attemptCostCoverage, "partial");
 });
 
 test("application operations marks coverage complete only for successful exhausted channels", () => {
@@ -149,8 +155,8 @@ function gatewayReadyState(): GatewayRequestHistoryState {
     status: "ready",
     requests: [
       {
-        schemaVersion: "gateway_request_record.v2",
-        recordVersion: 2,
+        schemaVersion: "gateway_request_record.v3",
+        recordVersion: 3,
         storeMode: "sqlite_dev",
         requestId: "shared_request",
         auditRef: "audit_gateway_new",
@@ -167,6 +173,9 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         selectedProvider: "mock",
         selectedProfile: "profile_mock",
         selectedModel: "mock-model",
+        providerRouteConfigurationId: "gprc_demo",
+        providerRouteGeneration: 3,
+        providerRouteSnapshotDigest: `sha256:${"d".repeat(64)}`,
         httpStatusCode: 200,
         failureCode: "",
         failureBoundary: "none",
@@ -176,6 +185,18 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         outputTokens: 7,
         totalTokens: 31,
         costEstimate: estimatedCost(17),
+        attemptCount: 2,
+        fallbackAllowed: true,
+        fallbackUsed: true,
+        terminalProvider: "backup-provider",
+        terminalProfile: "backup-profile",
+        attemptCostSummary: {
+          schemaVersion: "gateway_request_attempt_cost_summary.v1",
+          knownCostMicros: 23,
+          coverage: "partial",
+          estimatedAttemptCount: 1,
+          unknownAttemptCount: 1,
+        },
         staleStarted: false,
       },
       {
@@ -197,6 +218,9 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         selectedProvider: "mock",
         selectedProfile: "profile_mock",
         selectedModel: "mock-model",
+        providerRouteConfigurationId: "",
+        providerRouteGeneration: 0,
+        providerRouteSnapshotDigest: "",
         httpStatusCode: 503,
         failureCode: "provider_failed",
         failureBoundary: "provider",
@@ -206,6 +230,12 @@ function gatewayReadyState(): GatewayRequestHistoryState {
         outputTokens: 0,
         totalTokens: 0,
         costEstimate: unavailableCost("usage_not_reported", "provider_usage_not_reported"),
+        attemptCount: 0,
+        fallbackAllowed: false,
+        fallbackUsed: false,
+        terminalProvider: "",
+        terminalProfile: "",
+        attemptCostSummary: null,
         staleStarted: false,
       },
     ],

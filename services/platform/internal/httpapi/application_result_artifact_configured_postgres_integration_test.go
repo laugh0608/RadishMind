@@ -1,0 +1,302 @@
+//go:build postgres_integration
+
+package httpapi
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+)
+
+func TestPostgresConfiguredApplicationResultArtifactProductChainRestartsWithoutFallback(t *testing.T) {
+	adminPool, runtimeDatabaseURL, ctx := newConfiguredPostgresTestDatabase(t)
+	for _, gate := range configuredPostgresMigrationGates(adminPool) {
+		state, _, err := gate.apply(ctx)
+		if err != nil || state != "applied" {
+			t.Fatalf("apply %s migration for result artifact product chain: state=%s err=%v", gate.name, state, err)
+		}
+	}
+
+	cfg := configuredPostgresProductConfig(runtimeDatabaseURL)
+	cfg.ApplicationSessionDevEnabled = true
+	server, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-artifact-first"})
+	if err != nil {
+		t.Fatalf("start configured PostgreSQL result artifact platform: %v", err)
+	}
+	assertConfiguredPostgresRepositorySelection(t, server)
+	if repository, ok := server.applicationResultArtifactRepository.(*postgresApplicationResultArtifactRepository); !ok ||
+		repository.pool != server.workflowRunStore.(*postgresWorkflowRunStore).pool {
+		server.Close()
+		t.Fatalf("configured result artifact store did not share the PostgreSQL pool: %T", server.applicationResultArtifactRepository)
+	}
+
+	artifactContext, session, turn := createConfiguredPostgresResultArtifactSource(t, ctx, server)
+	artifactService := server.applicationResultArtifactService()
+	artifactService.newID = func(string) (string, error) { return "appres_dddddddddddddddd", nil }
+	artifactService.now = func() time.Time { return time.Date(2026, 8, 17, 12, 0, 2, 123456000, time.UTC) }
+	content := "# PostgreSQL product result\n\nRestart-safe explicit user-owned content."
+	captured := artifactService.Capture(artifactContext, ApplicationResultArtifactCaptureInput{
+		Turn: turn, ContentType: "text/markdown", Content: content,
+	})
+	if captured.FailureCode != "" || captured.Artifact == nil || captured.Summary == nil || captured.Lifecycle == nil ||
+		captured.IdempotentReplay || captured.Artifact.SessionID != session.SessionID ||
+		captured.Artifact.Content != content || captured.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive {
+		server.Close()
+		t.Fatalf("capture configured PostgreSQL result artifact: %#v", captured)
+	}
+	replayed := artifactService.Capture(artifactContext, ApplicationResultArtifactCaptureInput{
+		Turn: turn, ContentType: "text/markdown", Content: content,
+	})
+	if replayed.FailureCode != "" || replayed.Artifact == nil || !replayed.IdempotentReplay ||
+		replayed.Artifact.ArtifactID != captured.Artifact.ArtifactID {
+		server.Close()
+		t.Fatalf("configured PostgreSQL result artifact idempotency drifted: %#v", replayed)
+	}
+	active := artifactService.List(artifactContext, ApplicationResultArtifactListInput{SessionID: session.SessionID, Limit: 1})
+	if active.FailureCode != "" || len(active.Items) != 1 || active.NextCursor != nil ||
+		active.Items[0].ArtifactID != captured.Artifact.ArtifactID || active.Items[0].LifecycleState != ApplicationResultArtifactLifecycleActive {
+		server.Close()
+		t.Fatalf("list configured PostgreSQL active result artifact: %#v", active)
+	}
+	applicationActive := artifactService.ListApplication(artifactContext, ApplicationResultArtifactListInput{})
+	exported := artifactService.Export(artifactContext, captured.Artifact.ArtifactID)
+	if applicationActive.FailureCode != "" || len(applicationActive.Items) != 1 ||
+		applicationActive.Items[0].ArtifactID != captured.Artifact.ArtifactID ||
+		exported.FailureCode != "" || exported.Export == nil || exported.Export.Artifact.Content != content ||
+		exported.Export.ExportDigest != applicationResultArtifactExportDigest(*exported.Export) {
+		server.Close()
+		t.Fatalf("configured PostgreSQL application library/export drifted: list=%#v export=%#v", applicationActive, exported)
+	}
+	archived := artifactService.Archive(artifactContext, ApplicationResultArtifactLifecycleTransitionInput{
+		SessionID: session.SessionID, ArtifactID: captured.Artifact.ArtifactID, ExpectedLifecycleVersion: 1,
+	})
+	if archived.FailureCode != "" || archived.Lifecycle == nil || archived.Event == nil ||
+		archived.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived || archived.Lifecycle.LifecycleVersion != 2 {
+		server.Close()
+		t.Fatalf("archive configured PostgreSQL result artifact: %#v", archived)
+	}
+	assertApplicationResultArtifactPurgeRouteAbsent(t, server, session.SessionID, captured.Artifact.ArtifactID)
+
+	closedRepository := server.applicationResultArtifactRepository
+	server.Close()
+	if _, err = closedRepository.Read(artifactContext, captured.Artifact.ArtifactID); !errors.Is(err, errApplicationResultArtifactStore) {
+		t.Fatalf("closed configured PostgreSQL result artifact store did not fail closed: %v", err)
+	}
+	closedService := newApplicationResultArtifactService(closedRepository)
+	if closedExport := closedService.Export(artifactContext, captured.Artifact.ArtifactID); closedExport.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("closed configured PostgreSQL export did not fail closed: %#v", closedExport)
+	}
+
+	restarted, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-artifact-restarted"})
+	if err != nil {
+		t.Fatalf("restart configured PostgreSQL result artifact platform: %v", err)
+	}
+	t.Cleanup(restarted.Close)
+	assertConfiguredPostgresRepositorySelection(t, restarted)
+	restartedService := restarted.applicationResultArtifactService()
+	restored := restartedService.Read(artifactContext, captured.Artifact.ArtifactID)
+	applicationArchived := restartedService.ListApplication(artifactContext, ApplicationResultArtifactListInput{
+		LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
+	restoredExport := restartedService.Export(artifactContext, captured.Artifact.ArtifactID)
+	archivedPage := restartedService.List(artifactContext, ApplicationResultArtifactListInput{
+		SessionID: session.SessionID, LifecycleState: ApplicationResultArtifactLifecycleArchived,
+	})
+	if restored.FailureCode != "" || restored.Artifact == nil || restored.Lifecycle == nil ||
+		restored.Artifact.Content != content || restored.Artifact.ContentDigest != captured.Artifact.ContentDigest ||
+		restored.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived || restored.Lifecycle.LifecycleVersion != 2 ||
+		archivedPage.FailureCode != "" || len(archivedPage.Items) != 1 || archivedPage.Items[0].ArtifactID != captured.Artifact.ArtifactID ||
+		applicationArchived.FailureCode != "" || len(applicationArchived.Items) != 1 || applicationArchived.Items[0].ArtifactID != captured.Artifact.ArtifactID ||
+		restoredExport.FailureCode != "" || restoredExport.Export == nil || restoredExport.Export.Lifecycle.LifecycleVersion != 2 ||
+		restoredExport.Export.ExportDigest != applicationResultArtifactExportDigest(*restoredExport.Export) {
+		t.Fatalf("restore configured PostgreSQL result artifact after restart: restored=%#v archived=%#v application_archived=%#v export=%#v", restored, archivedPage, applicationArchived, restoredExport)
+	}
+	unarchived := restartedService.Unarchive(artifactContext, ApplicationResultArtifactLifecycleTransitionInput{
+		SessionID: session.SessionID, ArtifactID: captured.Artifact.ArtifactID, ExpectedLifecycleVersion: 2,
+	})
+	if unarchived.FailureCode != "" || unarchived.Lifecycle == nil || unarchived.Event == nil ||
+		unarchived.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive || unarchived.Lifecycle.LifecycleVersion != 3 {
+		t.Fatalf("unarchive restored configured PostgreSQL result artifact: %#v", unarchived)
+	}
+	active = restartedService.List(artifactContext, ApplicationResultArtifactListInput{SessionID: session.SessionID})
+	if active.FailureCode != "" || len(active.Items) != 1 || active.Items[0].LifecycleVersion != 3 {
+		t.Fatalf("restored artifact did not return to the active list: %#v", active)
+	}
+}
+
+func TestPostgresConfiguredApplicationResultArtifactLibraryFixtureRestartsWithoutFallback(t *testing.T) {
+	adminPool, runtimeDatabaseURL, ctx := newConfiguredPostgresTestDatabase(t)
+	for _, gate := range configuredPostgresMigrationGates(adminPool) {
+		state, _, err := gate.apply(ctx)
+		if err != nil || state != "applied" {
+			t.Fatalf("apply %s migration for result artifact library fixture: state=%s err=%v", gate.name, state, err)
+		}
+	}
+
+	cfg := configuredPostgresProductConfig(runtimeDatabaseURL)
+	cfg.ApplicationSessionDevEnabled = true
+	server, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-library-fixture-first"})
+	if err != nil {
+		t.Fatalf("start configured PostgreSQL result artifact library fixture server: %v", err)
+	}
+	fixture, err := seedApplicationResultArtifactLibraryDevFixture(server)
+	if err != nil {
+		server.Close()
+		t.Fatalf("seed configured PostgreSQL result artifact library fixture: %v", err)
+	}
+	assertApplicationResultArtifactLibraryFixture(t, server, fixture)
+
+	archived := server.applicationResultArtifactService().Archive(
+		fixture.ArtifactContext,
+		ApplicationResultArtifactLifecycleTransitionInput{
+			SessionID:                fixture.Artifacts[0].SessionID,
+			ArtifactID:               fixture.Artifacts[0].ArtifactID,
+			ExpectedLifecycleVersion: 1,
+		},
+	)
+	if archived.FailureCode != "" || archived.Lifecycle == nil || archived.Lifecycle.LifecycleVersion != 2 {
+		server.Close()
+		t.Fatalf("archive configured PostgreSQL result artifact library fixture: %#v", archived)
+	}
+	closedRepository := server.applicationResultArtifactRepository
+	server.Close()
+	closedService := newApplicationResultArtifactService(closedRepository)
+	if closed := closedService.ListApplication(fixture.ArtifactContext, ApplicationResultArtifactListInput{}); closed.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("closed configured PostgreSQL application library did not fail closed: %#v", closed)
+	}
+	if closed := closedService.Export(fixture.ArtifactContext, fixture.Artifacts[0].ArtifactID); closed.FailureCode != ApplicationResultArtifactFailureStoreUnavailable {
+		t.Fatalf("closed configured PostgreSQL application export did not fail closed: %#v", closed)
+	}
+
+	restarted, err := NewServerWithError(cfg, Options{BuildVersion: "postgres-result-library-fixture-restarted"})
+	if err != nil {
+		t.Fatalf("restart configured PostgreSQL result artifact library fixture server: %v", err)
+	}
+	t.Cleanup(restarted.Close)
+	read := restarted.applicationResultArtifactService().Read(fixture.ArtifactContext, fixture.Artifacts[0].ArtifactID)
+	exported := restarted.applicationResultArtifactService().Export(fixture.ArtifactContext, fixture.Artifacts[0].ArtifactID)
+	if read.FailureCode != "" || read.Artifact == nil || read.Lifecycle == nil ||
+		read.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleArchived || read.Lifecycle.LifecycleVersion != 2 ||
+		exported.FailureCode != "" || exported.Export == nil || exported.Export.Lifecycle.LifecycleVersion != 2 ||
+		exported.Export.ExportDigest != applicationResultArtifactExportDigest(*exported.Export) {
+		t.Fatalf("configured PostgreSQL result artifact library fixture did not survive restart: read=%#v export=%#v", read, exported)
+	}
+	unarchived := restarted.applicationResultArtifactService().Unarchive(
+		fixture.ArtifactContext,
+		ApplicationResultArtifactLifecycleTransitionInput{
+			SessionID:                fixture.Artifacts[0].SessionID,
+			ArtifactID:               fixture.Artifacts[0].ArtifactID,
+			ExpectedLifecycleVersion: 2,
+		},
+	)
+	if unarchived.FailureCode != "" || unarchived.Lifecycle == nil ||
+		unarchived.Lifecycle.LifecycleState != ApplicationResultArtifactLifecycleActive ||
+		unarchived.Lifecycle.LifecycleVersion != 3 {
+		t.Fatalf("unarchive configured PostgreSQL result artifact library fixture after restart: %#v", unarchived)
+	}
+}
+
+func createConfiguredPostgresResultArtifactSource(
+	t *testing.T,
+	requestContext context.Context,
+	server *Server,
+) (ApplicationInteractionContext, ApplicationInteractionSession, ApplicationInteractionTurn) {
+	t.Helper()
+	fixtureService, fixtureContext, binding, _ := applicationInteractionSessionTestFixture(t)
+	fixtureService.newID = func(string) (string, error) { return "appsess_dddddddddddddddd", nil }
+	fixtureService.now = func() time.Time { return time.Date(2026, 8, 17, 12, 0, 0, 123456000, time.UTC) }
+	fixture := fixtureService.Create(fixtureContext, ApplicationInteractionSessionCreateInput{ProfileBinding: binding})
+	if fixture.FailureCode != "" || fixture.Session == nil {
+		t.Fatalf("create valid result artifact session fixture: %#v", fixture)
+	}
+
+	context := fixtureContext
+	context.RequestContext = requestContext
+	context.RequestID = "request_postgres_result_artifact"
+	context.ApplicationID = "app_dddddddddddddddd"
+	context.ActorRef = "subject_platform_ops"
+	context.OwnerSubjectRef = "subject_platform_ops"
+	context.AuditRef = "audit_postgres_result_artifact"
+	applicationContext := applicationCatalogTestContext(context.OwnerSubjectRef)
+	applicationContext.RequestContext = requestContext
+	catalogService := newApplicationCatalogService(server.applicationCatalogRepository)
+	catalogService.newID = func() (string, error) { return context.ApplicationID, nil }
+	catalogService.now = func() time.Time { return time.Date(2026, 8, 17, 11, 59, 59, 123456000, time.UTC) }
+	application := catalogService.Create(applicationContext, ApplicationCatalogCreateInput{
+		DisplayName:     "Result artifact PostgreSQL product chain",
+		Description:     "Configured PostgreSQL result artifact restart evidence.",
+		ApplicationKind: "workflow_copilot",
+	})
+	if application.FailureCode != "" || application.Record == nil {
+		t.Fatalf("create result artifact product application: %#v", application)
+	}
+	context.TenantRef = application.Record.TenantRef
+	context.WorkspaceID = application.Record.WorkspaceID
+
+	session := *fixture.Session
+	session.TenantRef = context.TenantRef
+	session.WorkspaceID = context.WorkspaceID
+	session.ApplicationID = context.ApplicationID
+	session.OwnerSubjectRef = context.OwnerSubjectRef
+	session.Authority.ApplicationID = context.ApplicationID
+	session.Authority.ApplicationRecordVersion = application.Record.RecordVersion
+	session.Authority.ApplicationLifecycle = applicationCatalogLifecycleActive
+	session.Authority.AuthorityDigest = ""
+	digest, err := applicationInteractionAuthorityDigest(session.Authority)
+	if err != nil {
+		t.Fatalf("digest configured PostgreSQL result artifact authority: %v", err)
+	}
+	session.Authority.AuthorityDigest = digest
+	session.CreatedByActorRef = context.ActorRef
+	session.UpdatedByActorRef = context.ActorRef
+	session.RequestID = context.RequestID
+	session.AuditRef = context.AuditRef
+	storedSession, err := server.applicationInteractionSessionRepository.Create(context, session)
+	if err != nil {
+		t.Fatalf("store configured PostgreSQL result artifact session: %v", err)
+	}
+
+	resolver := applicationInteractionAuthorityResolverFunc(func(
+		ApplicationInteractionContext,
+		ApplicationInteractionProfileBinding,
+	) (ApplicationInteractionAuthoritySnapshot, string) {
+		return storedSession.Authority, ""
+	})
+	sessionService := newApplicationInteractionSessionService(server.applicationInteractionSessionRepository, resolver)
+	sessionService.newID = func(string) (string, error) { return "appturn_dddddddddddddddd", nil }
+	turnResult := sessionService.AppendTerminalTurn(context, storedSession.SessionID, ApplicationInteractionTerminalTurnInput{
+		ExpectedSessionVersion: 1,
+		ClientTurnKey:          "postgres_result_turn_1",
+		Status:                 string(WorkflowRunStatusSucceeded),
+		InputDigest:            workflowDefinitionInputDigest("private PostgreSQL product input"),
+		InputBytes:             len("private PostgreSQL product input"),
+		RunRef: &ApplicationInteractionRunRef{
+			RunID: "run_dddddddddddddddd", SchemaVersion: workflowRunRecordDefinitionSchemaVersion,
+		},
+		StartedAt:   time.Date(2026, 8, 17, 12, 0, 1, 123456000, time.UTC),
+		CompletedAt: time.Date(2026, 8, 17, 12, 0, 2, 123456000, time.UTC),
+	})
+	if turnResult.FailureCode != "" || turnResult.Turn == nil || turnResult.Turn.Status != string(WorkflowRunStatusSucceeded) {
+		t.Fatalf("store configured PostgreSQL result artifact source turn: %#v", turnResult)
+	}
+	return context, storedSession, *turnResult.Turn
+}
+
+func assertApplicationResultArtifactPurgeRouteAbsent(
+	t *testing.T,
+	server *Server,
+	sessionID string,
+	artifactID string,
+) {
+	t.Helper()
+	request := httptest.NewRequest(http.MethodDelete,
+		"/v1/user-workspace/application-sessions/"+sessionID+"/result-artifacts/"+artifactID, nil)
+	response := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(response, request)
+	if response.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("result artifact purge route unexpectedly exists: status=%d body=%s", response.Code, response.Body.String())
+	}
+}

@@ -11,9 +11,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_WARN_LINES = 500
 DEFAULT_ERROR_LINES = 800
 ENTRY_ERROR_LINES = 250
+AGENT_ENTRY_WARN_LINES = 180
+AGENT_ENTRY_ERROR_LINES = 250
 HISTORY_WARN_LINES = 350
 HISTORY_ERROR_LINES = 600
 ALLOWLIST_MARKER = "markdown-size-allow:"
+AGENT_ENTRY_DOCS = {
+    "AGENTS.md",
+    "CLAUDE.md",
+}
 ENTRY_DOCS = {
     "docs/README.md",
     "docs/radishmind-current-focus.md",
@@ -47,6 +53,8 @@ def iter_markdown_files() -> list[str]:
 
 
 def budget_for(relative_path: str) -> MarkdownBudget:
+    if relative_path in AGENT_ENTRY_DOCS:
+        return MarkdownBudget(AGENT_ENTRY_WARN_LINES, AGENT_ENTRY_ERROR_LINES, "agent entry")
     if relative_path in ENTRY_DOCS:
         return MarkdownBudget(ENTRY_ERROR_LINES, ENTRY_ERROR_LINES, "entry")
     if any(relative_path.startswith(prefix) for prefix in HISTORY_PREFIXES):

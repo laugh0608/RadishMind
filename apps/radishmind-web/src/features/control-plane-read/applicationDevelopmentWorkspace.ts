@@ -7,7 +7,7 @@ export const APPLICATION_DEVELOPMENT_STAGE_IDS = [
 ] as const;
 
 export type ApplicationDevelopmentStageId = typeof APPLICATION_DEVELOPMENT_STAGE_IDS[number];
-export type ApplicationRuntimeReviewSurface = "run" | "request" | "evidence";
+export type ApplicationRuntimeReviewSurface = "run" | "request" | "evidence" | "results";
 export type WorkflowReviewSurface = "runs" | "comparison" | "cases" | "release";
 export type ApplicationDevelopmentWorkspaceStatus = "active" | "archived" | "unavailable";
 export type ApplicationDevelopmentStageAvailability = "available" | "read_only" | "blocked";
@@ -117,6 +117,7 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
       "workflow-rag-evaluation-panel",
       "application-operations",
       "model-gateway-request-history",
+      "application-result-artifact-library",
     ],
   },
   {
@@ -209,6 +210,7 @@ export function applicationRuntimeReviewSurfaceForHash(hash: string): Applicatio
   if (anchor === "model-gateway-playground") return "run";
   if (anchor === "model-gateway-request-history") return "request";
   if (anchor === "application-operations") return "evidence";
+  if (anchor === "application-result-artifact-library") return "results";
   return null;
 }
 

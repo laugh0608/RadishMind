@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  createWorkflowDefinitionHTTPToolActionPlan,
   createWorkflowHTTPToolActionPlan,
   decideWorkflowHTTPToolActionPlan,
   evaluateWorkflowHTTPToolActionEligibility,
   initialWorkflowHTTPToolActionConsumerState,
   readWorkflowHTTPToolActionPlan,
+  readWorkflowHTTPToolActionPlanReference,
+  rememberWorkflowHTTPToolActionPlanReference,
   validateWorkflowHTTPToolPublicArguments,
   workflowHTTPToolActionPermissions,
   type WorkflowHTTPToolActionPlan,
@@ -46,10 +49,55 @@ test("Batch C permissions keep execution closed until all three grants are expli
   });
   assert.equal(executable.execute.available, true);
 
+  const definitionExecutable = workflowHTTPToolActionPermissions({
+    ...config,
+    scopeGrants: [...config.scopeGrants, "workflow_definitions:read", "workflow_tool_actions:execute", "workflow_runs:execute"],
+  });
+  assert.equal(definitionExecutable.definitionPlan.available, true);
+  assert.equal(definitionExecutable.definitionExecute.available, true);
+  assert.deepEqual(definitionExecutable.definitionExecute.requiredGrants, [
+    "workflow_tool_actions:execute",
+    "workflow_runs:execute",
+    "workflow_definitions:read",
+  ]);
+
   const restricted = workflowHTTPToolActionPermissions({ ...config, scopeGrants: ["workflow_tool_actions:read"] });
   assert.equal(restricted.plan.available, false);
   assert.equal(restricted.read.available, true);
   assert.equal(restricted.confirm.available, false);
+});
+
+test("plan reference keeps an exact optional run id and rejects unknown storage fields", (t) => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+  const values = new Map<string, string>();
+  Object.defineProperty(globalThis, "sessionStorage", {
+    configurable: true,
+    value: {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+    } as Storage,
+  });
+  t.after(() => {
+    if (original) Object.defineProperty(globalThis, "sessionStorage", original);
+    else delete (globalThis as { sessionStorage?: Storage }).sessionStorage;
+  });
+
+  rememberWorkflowHTTPToolActionPlanReference(mappedPlan(), "run_0123456789abcdef");
+  assert.deepEqual(readWorkflowHTTPToolActionPlanReference(), {
+    workspaceId: "workspace_demo",
+    applicationId: "app_flow_copilot",
+    sourceKind: "saved_workflow_draft",
+    sourceId: "draft_http_tool_review",
+    planId: "wtap_abcdefghijklmnop",
+    runId: "run_0123456789abcdef",
+  });
+
+  const storageKey = [...values.keys()][0]!;
+  values.set(storageKey, JSON.stringify({
+    ...JSON.parse(values.get(storageKey)!),
+    unexpected: true,
+  }));
+  assert.equal(readWorkflowHTTPToolActionPlanReference(), null);
 });
 
 test("HTTP Tool action eligibility requires an exact saved clean single-chain draft", () => {
@@ -174,6 +222,60 @@ test("create sends only exact saved scope and public arguments, then maps a reda
   assert.equal(headers["X-RadishMind-Active-Workspace"], "workspace_demo");
   assert.equal(headers["X-RadishMind-Dev-Read-Membership-Workspace"], "workspace_demo");
   assert.equal(headers["X-RadishMind-Dev-Read-Membership-Permissions"], "workflow_drafts:read,workflow_tool_actions:plan");
+});
+
+test("Definition create binds exact active authority and maps strict v2 plan evidence", async (t) => {
+  const requests: Array<{ url: string; init: RequestInit }> = [];
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (input, init = {}) => {
+    requests.push({ url: String(input), init });
+    return jsonResponse(successEnvelope(definitionActionPlanDocument()));
+  };
+  const definitionConfig = { ...config, scopeGrants: [...config.scopeGrants, "workflow_definitions:read"] };
+  const state = await createWorkflowDefinitionHTTPToolActionPlan(definitionConfig, {
+    definitionId: "definition_http_tool",
+    applicationId: "app_flow_copilot",
+    nodeId: "node_http_tool",
+    expectedDefinitionVersion: 3,
+    expectedDefinitionDigest: digest("e"),
+    expectedPointerVersion: 4,
+    publicArguments: { resourceKey: "catalog/review:item-1", locale: "zh-CN" },
+  });
+
+  assert.equal(state.status, "ready");
+  assert.equal(state.actionPlan?.schemaVersion, "workflow_http_tool_action_plan.v2");
+  assert.equal(state.actionPlan?.sourceKind, "workflow_definition");
+  assert.equal(state.actionPlan?.workflowDefinitionId, "definition_http_tool");
+  assert.equal(state.actionPlan?.activationPointerVersion, 4);
+  assert.equal(requests[0]?.url.endsWith("/v1/user-workspace/workflow-definitions/definition_http_tool/tool-action-plans"), true);
+  assert.deepEqual(JSON.parse(String(requests[0]?.init.body)), {
+    workspace_id: "workspace_demo",
+    application_id: "app_flow_copilot",
+    node_id: "node_http_tool",
+    public_arguments: { resource_key: "catalog/review:item-1", locale: "zh-CN" },
+  });
+  const headers = requests[0]?.init.headers as Record<string, string>;
+  assert.equal(headers["X-RadishMind-Dev-Read-Scopes"], "workflow_definitions:read,workflow_tool_actions:plan");
+});
+
+test("Definition plan rejects active authority drift after the server response", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => jsonResponse(successEnvelope({
+    ...definitionActionPlanDocument(),
+    activation_pointer_version: 5,
+  }));
+  const state = await createWorkflowDefinitionHTTPToolActionPlan(
+    { ...config, scopeGrants: [...config.scopeGrants, "workflow_definitions:read"] },
+    {
+      definitionId: "definition_http_tool", applicationId: "app_flow_copilot", nodeId: "node_http_tool",
+      expectedDefinitionVersion: 3, expectedDefinitionDigest: digest("e"), expectedPointerVersion: 4,
+      publicArguments: { resourceKey: "catalog/review:item-1" },
+    },
+  );
+  assert.equal(state.failureCode, "workflow_tool_store_contract_mismatch");
+  assert.equal(state.actionPlan, null);
 });
 
 test("detail reload reads the durable scoped plan without a list route", async (t) => {
@@ -372,6 +474,11 @@ function mappedPlan(): WorkflowHTTPToolActionPlan {
     applicationId: "app_flow_copilot",
     draftId: "draft_http_tool_review",
     draftVersion: 4,
+    sourceKind: "saved_workflow_draft",
+    workflowDefinitionId: "",
+    workflowDefinitionVersion: 0,
+    workflowDefinitionDigest: "",
+    activationPointerVersion: 0,
     nodeId: "node_http_tool",
     toolId: "workflow.http.reviewed-json-read.v1",
     toolVersion: 1,
@@ -434,6 +541,19 @@ function actionPlanDocument() {
     last_decision_by_actor_ref: plan.lastDecisionByActorRef,
     last_decision_at: plan.lastDecisionAt,
     audit_ref: plan.auditRef,
+  };
+}
+
+function definitionActionPlanDocument() {
+  const { draft_id: _draftId, draft_version: _draftVersion, ...draftPlan } = actionPlanDocument();
+  return {
+    ...draftPlan,
+    schema_version: "workflow_http_tool_action_plan.v2",
+    source_kind: "workflow_definition",
+    workflow_definition_id: "definition_http_tool",
+    workflow_definition_version: 3,
+    workflow_definition_digest: digest("e"),
+    activation_pointer_version: 4,
   };
 }
 

@@ -20,6 +20,7 @@ const (
 type ApplicationInteractionTurnExecutionInput struct {
 	ExpectedSessionVersion int
 	ClientTurnKey          string
+	SaveResult             bool
 	InputText              string
 	Inputs                 map[string]any
 	ConditionValues        map[string]bool
@@ -45,15 +46,17 @@ type applicationInteractionTurnInputMetadata struct {
 }
 
 type ApplicationInteractionTurnExecutionResult struct {
-	Session          *ApplicationInteractionSession
-	Turn             *ApplicationInteractionTurn
-	AdvisoryOutput   string
-	Answer           *WorkflowRAGApplicationAnswer
-	PromptOutput     string
-	AgentResponse    *AgentCopilotResponse
-	FailureCode      string
-	FailureSummary   string
-	IdempotentReplay bool
+	Session                   *ApplicationInteractionSession
+	Turn                      *ApplicationInteractionTurn
+	ResultArtifact            *ApplicationResultArtifactSummary
+	ResultArtifactFailureCode string
+	AdvisoryOutput            string
+	Answer                    *WorkflowRAGApplicationAnswer
+	PromptOutput              string
+	AgentResponse             *AgentCopilotResponse
+	FailureCode               string
+	FailureSummary            string
+	IdempotentReplay          bool
 }
 
 type ApplicationInteractionReconciliationResult struct {
@@ -68,6 +71,7 @@ type applicationInteractionAgentCopilotDelegate func(AgentCopilotRuntimeContext,
 
 type applicationInteractionTurnCoordinator struct {
 	sessions        applicationInteractionSessionService
+	resultArtifacts *applicationResultArtifactService
 	resolver        applicationInteractionAuthorityResolver
 	executeWorkflow applicationInteractionWorkflowDelegate
 	invokeRAG       applicationInteractionRAGDelegate
@@ -96,6 +100,11 @@ func newApplicationInteractionTurnCoordinator(
 
 func (coordinator applicationInteractionTurnCoordinator) withAgentCopilot(delegate applicationInteractionAgentCopilotDelegate) applicationInteractionTurnCoordinator {
 	coordinator.invokeAgent = delegate
+	return coordinator
+}
+
+func (coordinator applicationInteractionTurnCoordinator) withResultArtifacts(service applicationResultArtifactService) applicationInteractionTurnCoordinator {
+	coordinator.resultArtifacts = &service
 	return coordinator
 }
 
@@ -148,6 +157,9 @@ func (coordinator applicationInteractionTurnCoordinator) Execute(
 		if reserved.Turn.Status != string(WorkflowRunStatusSucceeded) && reserved.Turn.Status != string(WorkflowRunStatusRunning) {
 			result.FailureCode, result.FailureSummary = reserved.Turn.FailureCode, reserved.Turn.FailureSummary
 		}
+		if normalized.SaveResult && reserved.Turn.Status == string(WorkflowRunStatusSucceeded) {
+			result = coordinator.attachExistingResultArtifact(ctx, result)
+		}
 		return result
 	}
 	currentAuthority, authorityFailure := coordinator.resolver.Resolve(ctx, reserved.Session.ProfileBinding)
@@ -196,6 +208,14 @@ func (coordinator applicationInteractionTurnCoordinator) executeAgentCopilotTurn
 	if completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
 		response.AgentResponse, response.FailureCode, response.FailureSummary = result.Response, "", ""
 	}
+	if input.SaveResult && response.AgentResponse != nil {
+		content, err := json.Marshal(response.AgentResponse)
+		if err != nil {
+			response.ResultArtifactFailureCode = ApplicationResultArtifactFailurePayloadInvalid
+			return response
+		}
+		return coordinator.captureResultArtifact(ctx, response, "application/json", string(content))
+	}
 	return response
 }
 
@@ -229,6 +249,9 @@ func (coordinator applicationInteractionTurnCoordinator) executeWorkflowTurn(
 		response.AdvisoryOutput = result.AdvisoryOutput
 		response.FailureCode, response.FailureSummary = "", ""
 	}
+	if input.SaveResult {
+		return coordinator.captureResultArtifact(ctx, response, "text/markdown", response.AdvisoryOutput)
+	}
 	return response
 }
 
@@ -252,6 +275,14 @@ func (coordinator applicationInteractionTurnCoordinator) executeRAGTurn(
 	if completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
 		response.Answer = result.Answer
 		response.FailureCode, response.FailureSummary = "", ""
+	}
+	if input.SaveResult && response.Answer != nil {
+		content, err := json.Marshal(response.Answer)
+		if err != nil {
+			response.ResultArtifactFailureCode = ApplicationResultArtifactFailurePayloadInvalid
+			return response
+		}
+		return coordinator.captureResultArtifact(ctx, response, "application/json", string(content))
 	}
 	return response
 }
@@ -283,6 +314,49 @@ func (coordinator applicationInteractionTurnCoordinator) executePromptTurn(
 		response.PromptOutput = result.Output
 		response.FailureCode, response.FailureSummary = "", ""
 	}
+	if input.SaveResult {
+		return coordinator.captureResultArtifact(ctx, response, "text/markdown", response.PromptOutput)
+	}
+	return response
+}
+
+func (coordinator applicationInteractionTurnCoordinator) captureResultArtifact(
+	ctx ApplicationInteractionContext,
+	response ApplicationInteractionTurnExecutionResult,
+	contentType string,
+	content string,
+) ApplicationInteractionTurnExecutionResult {
+	if response.Turn == nil || response.Turn.Status != string(WorkflowRunStatusSucceeded) || response.Turn.RunRef == nil || strings.TrimSpace(content) == "" {
+		response.ResultArtifactFailureCode = ApplicationResultArtifactFailureSourceUnavailable
+		return response
+	}
+	if coordinator.resultArtifacts == nil {
+		response.ResultArtifactFailureCode = ApplicationResultArtifactFailureStoreUnavailable
+		return response
+	}
+	result := coordinator.resultArtifacts.Capture(ctx, ApplicationResultArtifactCaptureInput{
+		Turn: *response.Turn, ContentType: contentType, Content: content,
+	})
+	response.ResultArtifact = result.Summary
+	response.ResultArtifactFailureCode = result.FailureCode
+	return response
+}
+
+func (coordinator applicationInteractionTurnCoordinator) attachExistingResultArtifact(
+	ctx ApplicationInteractionContext,
+	response ApplicationInteractionTurnExecutionResult,
+) ApplicationInteractionTurnExecutionResult {
+	if response.Turn == nil || coordinator.resultArtifacts == nil {
+		response.ResultArtifactFailureCode = ApplicationResultArtifactFailureSourceUnavailable
+		return response
+	}
+	result := coordinator.resultArtifacts.ReadByTurn(ctx, response.Turn.SessionID, response.Turn.TurnID)
+	if result.FailureCode == ApplicationResultArtifactFailureNotFound {
+		response.ResultArtifactFailureCode = ApplicationResultArtifactFailureSourceUnavailable
+		return response
+	}
+	response.ResultArtifact = result.Summary
+	response.ResultArtifactFailureCode = result.FailureCode
 	return response
 }
 

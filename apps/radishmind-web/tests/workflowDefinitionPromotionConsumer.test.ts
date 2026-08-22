@@ -42,6 +42,30 @@ test("candidate compatibility routes RAG drafts to their dedicated promotion own
   assert.match(rag.summary, /RAG Promotion/u);
 });
 
+test("candidate compatibility accepts only the exact confirmed HTTP Tool chain", () => {
+  const nodes = [
+    { nodeId: "node_prompt", nodeType: "prompt" as const },
+    { nodeId: "node_http_tool", nodeType: "http_tool" as const, toolRef: "workflow.http.reviewed-json-read.v1", riskLevel: "medium", requiresConfirmation: true },
+    { nodeId: "node_model", nodeType: "llm" as const },
+    { nodeId: "node_output", nodeType: "output" as const },
+  ];
+  const edges = [
+    { fromNodeId: "node_prompt", toNodeId: "node_http_tool" },
+    { fromNodeId: "node_http_tool", toNodeId: "node_model" },
+    { fromNodeId: "node_model", toNodeId: "node_output" },
+  ];
+  const compatible = evaluateWorkflowDefinitionCandidateCompatibility({ nodes, edges });
+  assert.equal(compatible.compatible, true);
+  assert.equal(compatible.executionProfile, "workflow_definition_http_tool_v1");
+
+  const drifted = evaluateWorkflowDefinitionCandidateCompatibility({
+    nodes: nodes.map((node) => node.nodeType === "http_tool" ? { ...node, requiresConfirmation: false } : node),
+    edges,
+  });
+  assert.equal(drifted.compatible, false);
+  assert.match(drifted.summary, /强制人工确认/u);
+});
+
 test("candidate create sends exact scope and strict authority fields", async () => {
   let captured: { headers: Headers; body: unknown } | undefined;
   globalThis.fetch = async (_input, init) => {
@@ -76,6 +100,28 @@ test("candidate v2 list decodes only the exact structured input contract", async
   assert.equal("fields" in (listed[0]?.snapshot.inputContract ?? {}), true);
 
   globalThis.fetch = async () => json({ request_id: "request_list", workspace_id: "workspace_demo", application_id: applicationId, candidates: [{ ...candidate, snapshot: { ...candidate.snapshot, input_contract: { ...candidate.snapshot.input_contract, unexpected: true } } }], failure_code: null, audit_ref: "audit_list" });
+  await assert.rejects(() => listWorkflowDefinitionCandidates(live, applicationId), /candidate list failed/u);
+});
+
+test("candidate v3 uses an explicit HTTP Tool profile and rejects confirmation drift", async () => {
+  let requestBody: Record<string, unknown> | undefined;
+  globalThis.fetch = async (_input, init) => {
+    requestBody = JSON.parse(String(init?.body));
+    return json(releaseEnvelope({ candidate: candidateV3Document() }));
+  };
+  const created = await createWorkflowDefinitionCandidate(live, applicationId, {
+    candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo",
+    expectedDraftVersion: 3, expectedLifecycleVersion: 2, executionProfile: "workflow_definition_http_tool_v1",
+  });
+  assert.equal(created.schemaVersion, "workflow_definition_release_candidate.v3");
+  assert.equal(created.snapshot.executionProfile, "workflow_definition_http_tool_v1");
+  assert.equal(requestBody?.execution_profile, "workflow_definition_http_tool_v1");
+
+  const drifted = candidateV3Document();
+  drifted.snapshot.nodes = drifted.snapshot.nodes.map((node) => node.node_type === "http_tool"
+    ? { ...node, requires_confirmation: false }
+    : node);
+  globalThis.fetch = async () => json({ request_id: "request_list", workspace_id: "workspace_demo", application_id: applicationId, candidates: [drifted], failure_code: null, audit_ref: "audit_list" });
   await assert.rejects(() => listWorkflowDefinitionCandidates(live, applicationId), /candidate list failed/u);
 });
 
@@ -147,6 +193,22 @@ test("derived draft preserves exact immutable base version provenance", () => {
 function releaseEnvelope(overrides: Record<string, unknown> = {}) { return { request_id: "request_release", workspace_id: "workspace_demo", application_id: applicationId, candidate: null, version: null, activation: null, failure_code: null, current_review_version: 0, current_pointer_version: 0, audit_ref: "audit_release", ...overrides }; }
 function candidateDocument() { return { schema_version: "workflow_definition_release_candidate.v1", candidate_id: "candidate_demo", definition_id: "definition_demo", source_draft_id: "draft_demo", source_draft_version: 3, source_draft_digest: digest, definition_digest: digest, snapshot: snapshotDocument(), activation_eligible: true, eligibility_blockers: [], state: "pending", review_version: 0, reviews: [], created_at: "2026-07-19T10:00:00Z", updated_at: "2026-07-19T10:00:00Z", created_by_actor_ref: "subject_demo_user", updated_by_actor_ref: "subject_demo_user", request_id: "request_candidate", audit_ref: "audit_candidate" }; }
 function candidateV2Document() { return { ...candidateDocument(), schema_version: "workflow_definition_release_candidate.v2", source_draft_version: 4, snapshot: { ...snapshotDocument(), schema_version: "saved_workflow_draft.v2", input_contract: { contract_id: "contract_customer_retry", fields: [{ name: "customer_name", value_type: "string", required: true, label: "Customer", description: "Bounded label." }, { name: "retry_count", value_type: "integer", required: true, label: "Retries", description: "Safe retry count." }], summary: "Typed runtime inputs.", contract_digest: digest }, execution_profile: "workflow_definition_executor_v2" } }; }
+function candidateV3Document() {
+  const snapshot = snapshotDocument();
+  const baseNode = snapshot.nodes[0]!;
+  const toolNode = { ...baseNode, node_id: "node_http_tool", node_type: "http_tool", label: "Reviewed JSON Read",
+    provider_ref: "", tool_ref: "workflow.http.reviewed-json-read.v1", risk_level: "medium", requires_confirmation: true };
+  return { ...candidateDocument(), schema_version: "workflow_definition_release_candidate.v3", snapshot: {
+    ...snapshot,
+    nodes: [snapshot.nodes[0]!, toolNode, snapshot.nodes[1]!, snapshot.nodes[2]!],
+    edges: [
+      { edge_id: "edge_prompt_tool", from_node_id: "node_prompt", to_node_id: "node_http_tool", condition_summary: "always" },
+      { edge_id: "edge_tool_model", from_node_id: "node_http_tool", to_node_id: "node_model", condition_summary: "always" },
+      snapshot.edges[1]!,
+    ],
+    tool_refs: ["workflow.http.reviewed-json-read.v1"], rag_refs: [], execution_profile: "workflow_definition_http_tool_v1",
+  } };
+}
 function versionDocument() { return { schema_version: "workflow_definition_version.v1" as const, definition_id: "definition_demo", version: 1, definition_digest: digest, candidate_id: "candidate_demo", candidate_review_version: 1, source_draft_id: "draft_demo", source_draft_version: 3, source_draft_digest: digest, snapshot: snapshotDocument(), activation_eligible: true, eligibility_blockers: [], created_at: "2026-07-19T10:01:00Z", created_by_actor_ref: "subject_demo_user", request_id: "request_version", audit_ref: "audit_version" }; }
 function snapshotDocument() {
   const node = (id: string, type: string) => ({ node_id: id, node_type: type, label: id, input_summary: "bounded metadata", output_summary: "bounded metadata", input_contract_ref: "contract_input", output_contract_ref: "contract_output", input_contract_fields: ["input_text"], output_contract_fields: ["answer"], output_mapping_summary: "bounded mapping", provider_ref: type === "llm" ? "provider:mock" : "", tool_ref: "", rag_ref: "", risk_level: "low", requires_confirmation: false });

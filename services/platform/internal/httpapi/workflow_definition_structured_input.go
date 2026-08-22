@@ -75,18 +75,33 @@ func workflowDefinitionSchemaIdentityForDraft(schemaVersion string) (candidateSc
 	}
 }
 
-func workflowDefinitionCandidateSchemaMatchesSnapshot(candidateSchema, snapshotSchema string) bool {
-	expected, _, _, ok := workflowDefinitionSchemaIdentityForDraft(snapshotSchema)
+func workflowDefinitionReleaseIdentityForDraft(schemaVersion, executionProfile string) (candidateSchema, versionSchema string, ok bool) {
+	_, _, defaultProfile, supported := workflowDefinitionSchemaIdentityForDraft(schemaVersion)
+	if !supported {
+		return "", "", false
+	}
+	if executionProfile == "" || executionProfile == defaultProfile {
+		candidateSchema, versionSchema, _, _ = workflowDefinitionSchemaIdentityForDraft(schemaVersion)
+		return candidateSchema, versionSchema, true
+	}
+	if schemaVersion == savedWorkflowDraftSchemaVersion && executionProfile == workflowDefinitionHTTPToolProfile {
+		return workflowDefinitionHTTPToolCandidateSchemaVersion, workflowDefinitionHTTPToolVersionSchemaVersion, true
+	}
+	return "", "", false
+}
+
+func workflowDefinitionCandidateSchemaMatchesSnapshot(candidateSchema string, snapshot WorkflowDefinitionSnapshot) bool {
+	expected, _, ok := workflowDefinitionReleaseIdentityForDraft(snapshot.SchemaVersion, snapshot.ExecutionProfile)
 	return ok && candidateSchema == expected
 }
 
-func workflowDefinitionCandidateSchemaForDraft(snapshotSchema string) string {
-	candidateSchema, _, _, _ := workflowDefinitionSchemaIdentityForDraft(snapshotSchema)
+func workflowDefinitionCandidateSchemaForDraft(snapshotSchema, executionProfile string) string {
+	candidateSchema, _, _ := workflowDefinitionReleaseIdentityForDraft(snapshotSchema, executionProfile)
 	return candidateSchema
 }
 
-func workflowDefinitionVersionSchemaMatchesSnapshot(versionSchema, snapshotSchema string) bool {
-	_, expected, _, ok := workflowDefinitionSchemaIdentityForDraft(snapshotSchema)
+func workflowDefinitionVersionSchemaMatchesSnapshot(versionSchema string, snapshot WorkflowDefinitionSnapshot) bool {
+	_, expected, ok := workflowDefinitionReleaseIdentityForDraft(snapshot.SchemaVersion, snapshot.ExecutionProfile)
 	return ok && versionSchema == expected
 }
 
@@ -96,6 +111,8 @@ func workflowDefinitionVersionSchemaForCandidate(candidateSchema string) (string
 		return workflowDefinitionVersionSchemaVersion, true
 	case workflowDefinitionCandidateStructuredSchemaVersion:
 		return workflowDefinitionVersionStructuredSchemaVersion, true
+	case workflowDefinitionHTTPToolCandidateSchemaVersion:
+		return workflowDefinitionHTTPToolVersionSchemaVersion, true
 	default:
 		return "", false
 	}
@@ -110,7 +127,8 @@ func savedWorkflowDraftContractFromDefinition(contract WorkflowDefinitionContrac
 
 func validWorkflowDefinitionSnapshotVersionIdentity(snapshot WorkflowDefinitionSnapshot) bool {
 	_, _, executorProfile, ok := workflowDefinitionSchemaIdentityForDraft(snapshot.SchemaVersion)
-	if !ok || snapshot.ExecutionProfile != executorProfile {
+	if !ok || (snapshot.ExecutionProfile != executorProfile &&
+		!(snapshot.SchemaVersion == savedWorkflowDraftSchemaVersion && snapshot.ExecutionProfile == workflowDefinitionHTTPToolProfile)) {
 		return false
 	}
 	if snapshot.OutputContract.ContractID == "" || len(snapshot.OutputContract.RequiredFields) == 0 ||

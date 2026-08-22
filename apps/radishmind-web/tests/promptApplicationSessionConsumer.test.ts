@@ -49,10 +49,12 @@ test("Prompt Session v2 creates explicit profile and sends transient variables o
     created.session!,
     { question: "如何审查？", tone: "清晰" },
     "prompt-turn-client-0001",
+    true,
   );
   assert.equal(turn.status, "succeeded");
   assert.equal(turn.output, "请检查模板、草案与候选。");
   assert.equal(turn.turn?.runId, "run_aaaaaaaaaaaaaaaa");
+  assert.equal(turn.resultArtifact?.artifactId, "appres_aaaaaaaaaaaaaaaa");
   assert.deepEqual(requests[1]?.body, {
     workspace_id: "workspace_demo",
     application_id: applicationId,
@@ -62,6 +64,7 @@ test("Prompt Session v2 creates explicit profile and sends transient variables o
     condition_values: {},
     model: "",
     variables: { question: "如何审查？", tone: "清晰" },
+    save_result: true,
   });
   assert.equal(requests[1]?.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:execute");
   assert.equal(requests[1]?.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
@@ -229,10 +232,36 @@ function turnEnvelope() {
       audit_ref: "audit-prompt-turn-request",
     },
     prompt_output: "请检查模板、草案与候选。",
+    result_artifact: artifactSummary(),
     failure_code: null,
     failure_summary: "",
     idempotent_replay: false,
     audit_ref: "audit-prompt-turn-request",
+  };
+}
+
+function artifactSummary() {
+  return {
+    schema_version: "application_result_artifact_summary.v2",
+    artifact_id: "appres_aaaaaaaaaaaaaaaa",
+    record_version: 1,
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    application_id: applicationId,
+    owner_subject_ref: "subject_demo_user",
+    session_id: "appsess_aaaaaaaaaaaaaaaa",
+    turn_id: "appturn_aaaaaaaaaaaaaaaa",
+    client_turn_key: "prompt-turn-client-0001",
+    execution_profile: "prompt_application_invocation_v1",
+    run_ref: { schema_version: "workflow_run_record.v6", run_id: "run_aaaaaaaaaaaaaaaa" },
+    content_type: "text/markdown",
+    content_bytes: 36,
+    content_digest: `sha256:${"a".repeat(64)}`,
+    created_at: "2026-07-24T01:02:03Z",
+    lifecycle_state: "active",
+    lifecycle_version: 1,
+    archived_at: null,
+    lifecycle_updated_at: "2026-07-24T01:02:03Z",
   };
 }
 

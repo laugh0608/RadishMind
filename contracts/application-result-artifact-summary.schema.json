@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-result-artifact-summary.schema.json",
+  "title": "Application Result Artifact Summary v2",
+  "description": "应用结果资产列表使用的 metadata-only 摘要，包含独立生命周期投影，不包含 content。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_id", "record_version", "tenant_ref", "workspace_id", "application_id", "owner_subject_ref", "session_id", "turn_id", "client_turn_key", "execution_profile", "run_ref", "content_type", "content_bytes", "content_digest", "created_at", "lifecycle_state", "lifecycle_version", "archived_at", "lifecycle_updated_at"],
+  "properties": {
+    "schema_version": {"const": "application_result_artifact_summary.v2"},
+    "artifact_id": {"type": "string", "pattern": "^appres_[a-z2-7]{16}$"},
+    "record_version": {"const": 1},
+    "tenant_ref": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "workspace_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "application_id": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "owner_subject_ref": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "session_id": {"type": "string", "pattern": "^appsess_[a-z2-7]{16}$"},
+    "turn_id": {"type": "string", "pattern": "^appturn_[a-z2-7]{16}$"},
+    "client_turn_key": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/id"},
+    "execution_profile": {"enum": ["workflow_definition_executor_v1", "workflow_definition_executor_v2", "application_rag_invocation_v1", "prompt_application_invocation_v1", "agent_copilot_suggestion_v1"]},
+    "run_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "schema_version"],
+      "properties": {
+        "run_id": {"type": "string", "pattern": "^run_[a-z0-9]{16,64}$"},
+        "schema_version": {"enum": ["workflow_run_record.v4", "workflow_run_record.v5", "workflow_run_record.v6", "workflow_run_record.v7", "workflow_run_record.v8"]}
+      }
+    },
+    "content_type": {"enum": ["text/markdown", "application/json"]},
+    "content_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+    "content_digest": {"$ref": "saved-workflow-draft-v2.schema.json#/$defs/digest"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "lifecycle_state": {"enum": ["active", "archived"]},
+    "lifecycle_version": {"type": "integer", "minimum": 1},
+    "archived_at": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "format": "date-time"}
+      ]
+    },
+    "lifecycle_updated_at": {"type": "string", "format": "date-time"}
+  }
+}

@@ -18,10 +18,10 @@ type sqliteWorkflowDefinitionQueryer interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
 }
 
-func (repository *sqliteWorkflowDefinitionReleaseRepository) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
+func (repository *sqliteWorkflowDefinitionReleaseRepository) CreateCandidate(ctx WorkflowDefinitionReleaseContext, candidateID, definitionID, executionProfile string, draft SavedWorkflowDraft, now time.Time) (WorkflowDefinitionReleaseCandidate, error) {
 	var output WorkflowDefinitionReleaseCandidate
 	err := repository.mutate(ctx, func(connection *sql.Conn, store *workflowDefinitionReleaseStore) error {
-		candidate, err := store.CreateCandidate(ctx, candidateID, definitionID, draft, now)
+		candidate, err := store.CreateCandidate(ctx, candidateID, definitionID, executionProfile, draft, now)
 		if err != nil {
 			return err
 		}

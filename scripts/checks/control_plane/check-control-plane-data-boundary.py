@@ -65,7 +65,7 @@ REQUIRED_DOC_REFERENCES = {
     ],
     "docs/radishmind-architecture.md": [
         "control-plane-data-boundary",
-        "Radish remains identity",
+        "RadishMind 本地账户、角色与工作区成员关系是平台内部真相",
     ],
     "docs/radishmind-capability-matrix.md": [
         "control-plane-data-boundary",
@@ -146,7 +146,10 @@ def assert_ownership_model(fixture: dict[str, Any]) -> None:
         require(isinstance(read_surfaces, list) and read_surfaces, f"{entity_id}.read_surfaces must be non-empty")
         require(isinstance(blocked_until, list) and blocked_until, f"{entity_id}.blocked_until must be non-empty")
 
-    require("Radish" in str(entities["user"]["source_of_truth"]), "user source of truth must remain Radish")
+    require(
+        entities["user"]["source_of_truth"] == "RadishMind local account store",
+        "user source of truth must be the RadishMind local account store",
+    )
     require(
         "future audited admin API" in str(entities["tenant"]["write_boundary"]),
         "tenant writes must stay future audited admin API only",
@@ -163,7 +166,12 @@ def assert_ownership_model(fixture: dict[str, Any]) -> None:
 
 def assert_shared_policies(fixture: dict[str, Any]) -> None:
     policies = fixture.get("shared_policies") or {}
-    require("Radish remains identity" in str(policies.get("identity_truth") or ""), "identity truth policy drifted")
+    identity_truth = str(policies.get("identity_truth") or "")
+    require(
+        "RadishMind local accounts and permissions are platform truth" in identity_truth
+        and "Radish OIDC is an external authentication source" in identity_truth,
+        "identity truth policy drifted",
+    )
     require("not created" in str(policies.get("storage_truth") or ""), "storage truth must forbid schema creation")
     require("audited control plane APIs" in str(policies.get("write_policy") or ""), "write policy must require audit")
     require("secret values may not be committed" in str(policies.get("secret_policy") or ""), "secret policy drifted")

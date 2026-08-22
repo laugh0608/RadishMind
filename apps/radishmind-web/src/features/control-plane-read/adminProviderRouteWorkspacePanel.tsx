@@ -22,11 +22,12 @@ import {
   type AdminProviderRouteDecision,
   type AdminProviderRouteDraftInput,
   type AdminProviderRouteEnvelope,
+  type AdminProviderRouteExecutionMode,
   type AdminProviderRouteProtocol,
   type AdminProviderRouteSnapshot,
 } from "./adminProviderRouteConsumer.ts";
 
-const config = readAdminProviderRouteConfig();
+const defaultConfig = readAdminProviderRouteConfig();
 const PROTOCOLS: AdminProviderRouteProtocol[] = ["chat_completions", "responses", "messages"];
 
 type WorkspaceOperation = {
@@ -39,9 +40,15 @@ type WorkspaceOperation = {
 
 export function AdminProviderRouteWorkspacePanel({
   focus = "route",
+  applicationId,
 }: {
   focus?: "provider" | "profile" | "route";
+  applicationId?: string;
 }) {
+  const config = useMemo(() => ({
+    ...defaultConfig,
+    applicationId: applicationId?.trim() || defaultConfig.applicationId,
+  }), [applicationId]);
   const [draftInput, setDraftInput] = useState<AdminProviderRouteDraftInput>(() =>
     createAdminProviderRouteDraftInput(config),
   );
@@ -53,8 +60,8 @@ export function AdminProviderRouteWorkspacePanel({
   const [reviewReason, setReviewReason] = useState("Reviewed runtime inventory, capabilities, and exact model routes.");
   const [activationAction, setActivationAction] = useState<AdminProviderRouteActivationAction>("activate");
   const [activationReason, setActivationReason] = useState("Enable the independently reviewed route configuration.");
-  const [operation, setOperation] = useState<WorkspaceOperation>(() => initialOperation());
-  const findings = useMemo(() => validateAdminProviderRouteDraft(config, draftInput), [draftInput]);
+  const [operation, setOperation] = useState<WorkspaceOperation>(() => initialOperation(config));
+  const findings = useMemo(() => validateAdminProviderRouteDraft(config, draftInput), [config, draftInput]);
   const candidateDiff = useMemo(
     () => candidate ? buildAdminProviderRouteCandidateDiff(candidate, snapshot) : null,
     [candidate, snapshot],
@@ -62,7 +69,7 @@ export function AdminProviderRouteWorkspacePanel({
 
   useEffect(() => {
     if (config.mode === "dev_admin_provider_route_http") void refreshWorkspace();
-  }, []);
+  }, [config]);
 
   async function refreshWorkspace() {
     setOperation(loadingOperation("Loading draft, active snapshot, and activation history."));
@@ -196,11 +203,11 @@ export function AdminProviderRouteWorkspacePanel({
     }));
   }
 
-  function updateRoute(index: number, patch: Partial<AdminModelRouteDefinition>) {
+  function updateRoute(index: number, nextRoute: AdminModelRouteDefinition) {
     setDraftInput((current) => ({
       ...current,
       modelRoutes: current.modelRoutes.map((route, routeIndex) =>
-        routeIndex === index ? { ...route, ...patch } : route),
+        routeIndex === index ? nextRoute : route),
     }));
   }
 
@@ -223,6 +230,7 @@ export function AdminProviderRouteWorkspacePanel({
     setDraftInput((current) => ({
       ...current,
       modelRoutes: [...current.modelRoutes, {
+        contractVersion: "v1",
         routeId: `route-${suffix}`,
         protocol: "chat_completions",
         modelId: "",
@@ -512,28 +520,108 @@ function ModelRouteEditor({
   route: AdminModelRouteDefinition;
   profiles: AdminProviderProfileAssignment[];
   removable: boolean;
-  onChange: (patch: Partial<AdminModelRouteDefinition>) => void;
+  onChange: (route: AdminModelRouteDefinition) => void;
   onRemove: () => void;
 }) {
   return (
     <fieldset className="admin-provider-route-editor admin-provider-route-model-editor">
       <legend>{route.routeId || "Model route"}</legend>
-      <label>Route ID<input value={route.routeId} maxLength={160} onChange={(event) => onChange({ routeId: event.target.value })} /></label>
+      <label>Route ID<input value={route.routeId} maxLength={160} onChange={(event) => onChange({ ...route, routeId: event.target.value })} /></label>
       <label>Protocol
-        <select value={route.protocol} onChange={(event) => onChange({ protocol: event.target.value as AdminProviderRouteProtocol })}>
+        <select value={route.protocol} onChange={(event) => onChange({ ...route, protocol: event.target.value as AdminProviderRouteProtocol })}>
           {PROTOCOLS.map((protocol) => <option value={protocol} key={protocol}>{protocol}</option>)}
         </select>
       </label>
-      <label>Requested model<input value={route.modelId} maxLength={160} onChange={(event) => onChange({ modelId: event.target.value })} /></label>
-      <label>Provider Profile
-        <select value={route.providerProfileId} onChange={(event) => onChange({ providerProfileId: event.target.value })}>
-          <option value="">Select profile</option>
-          {profiles.map((profile) => <option value={profile.profileId} key={profile.profileId}>{profile.profileId}</option>)}
+      <label>Requested model<input value={route.modelId} maxLength={160} onChange={(event) => onChange({ ...route, modelId: event.target.value })} /></label>
+      <label>Route contract
+        <select
+          value={route.contractVersion}
+          onChange={(event) => onChange(routeForContractVersion(route, event.target.value as "v1" | "v2", profiles))}
+        >
+          <option value="v1">v1 · single profile</option>
+          <option value="v2">v2 · ordered attempt plan</option>
         </select>
       </label>
+      {route.contractVersion === "v1" ? (
+        <label>Provider Profile
+          <select value={route.providerProfileId} onChange={(event) => onChange({ ...route, providerProfileId: event.target.value })}>
+            <option value="">Select profile</option>
+            {profiles.map((profile) => <option value={profile.profileId} key={profile.profileId}>{profile.profileId}</option>)}
+          </select>
+        </label>
+      ) : (
+        <div className="admin-provider-route-attempt-plan">
+          <label>Execution mode
+            <select
+              value={route.executionMode}
+              onChange={(event) => onChange(routeWithExecutionMode(route, event.target.value as AdminProviderRouteExecutionMode, profiles))}
+            >
+              <option value="single_attempt">Single attempt</option>
+              <option value="sequential_fallback">Sequential fallback</option>
+            </select>
+          </label>
+          <p className="boundary-note">Fallback requires both the active route policy and an explicit non-stream API Key request. Each actual attempt has independent quota and cost evidence.</p>
+          {route.attemptTargets.map((target, targetIndex) => (
+            <label key={target.ordinal}>{target.ordinal === 1 ? "Primary target" : "Backup target"}
+              <select
+                value={target.providerProfileId}
+                onChange={(event) => onChange({
+                  ...route,
+                  attemptTargets: route.attemptTargets.map((item, itemIndex) =>
+                    itemIndex === targetIndex ? { ...item, providerProfileId: event.target.value } : item),
+                })}
+              >
+                <option value="">Select profile</option>
+                {profiles.map((profile) => <option value={profile.profileId} key={profile.profileId}>{profile.profileId}</option>)}
+              </select>
+            </label>
+          ))}
+        </div>
+      )}
       {removable ? <button type="button" className="secondary-action" onClick={onRemove}>Remove route</button> : null}
     </fieldset>
   );
+}
+
+function routeForContractVersion(
+  route: AdminModelRouteDefinition,
+  version: "v1" | "v2",
+  profiles: AdminProviderProfileAssignment[],
+): AdminModelRouteDefinition {
+  const primary = routeTargets(route)[0] || profiles[0]?.profileId || "";
+  if (version === "v1") {
+    return { contractVersion: "v1", routeId: route.routeId, protocol: route.protocol, modelId: route.modelId, providerProfileId: primary };
+  }
+  const backup = profiles.find((profile) => profile.profileId !== primary)?.profileId ?? "";
+  return {
+    contractVersion: "v2", routeId: route.routeId, protocol: route.protocol, modelId: route.modelId,
+    executionMode: "sequential_fallback",
+    attemptTargets: [{ ordinal: 1, providerProfileId: primary }, { ordinal: 2, providerProfileId: backup }],
+  };
+}
+
+function routeWithExecutionMode(
+  route: Extract<AdminModelRouteDefinition, { contractVersion: "v2" }>,
+  executionMode: AdminProviderRouteExecutionMode,
+  profiles: AdminProviderProfileAssignment[],
+): AdminModelRouteDefinition {
+  const primary = route.attemptTargets[0]?.providerProfileId || profiles[0]?.profileId || "";
+  if (executionMode === "single_attempt") {
+    return { ...route, executionMode, attemptTargets: [{ ordinal: 1, providerProfileId: primary }] };
+  }
+  const backup = route.attemptTargets[1]?.providerProfileId ||
+    profiles.find((profile) => profile.profileId !== primary)?.profileId || "";
+  return {
+    ...route,
+    executionMode,
+    attemptTargets: [{ ordinal: 1, providerProfileId: primary }, { ordinal: 2, providerProfileId: backup }],
+  };
+}
+
+function routeTargets(route: AdminModelRouteDefinition): string[] {
+  return route.contractVersion === "v1"
+    ? [route.providerProfileId]
+    : route.attemptTargets.map((target) => target.providerProfileId);
 }
 
 function CandidateSummary({ candidate }: { candidate: AdminProviderRouteCandidate }) {
@@ -553,6 +641,21 @@ function CandidateSummary({ candidate }: { candidate: AdminProviderRouteCandidat
         <div><dt>Created by</dt><dd>{candidate.createdByActorRef}</dd></div>
         <div><dt>Created</dt><dd>{formatTimestamp(candidate.createdAt)}</dd></div>
       </dl>
+      <div className="admin-provider-route-plan-review" aria-label="Candidate attempt plans">
+        {candidate.configuration.modelRoutes.map((route) => (
+          <article key={route.routeId}>
+            <p><strong>{route.routeId}</strong> · {route.contractVersion === "v1" ? "single attempt" : route.executionMode}</p>
+            <ol>
+              {routeTargets(route).map((profileId, index) => (
+                <li key={`${route.routeId}-${index}`}>{index === 0 ? "Primary" : "Backup"}: {profileId}</li>
+              ))}
+            </ol>
+            {route.contractVersion === "v2" && route.executionMode === "sequential_fallback" ? (
+              <small>Fallback can consume a second quota admission and may leave partial cost coverage.</small>
+            ) : null}
+          </article>
+        ))}
+      </div>
       <div className="admin-provider-route-binding-list">
         {candidate.inventoryBindings.map((binding) => (
           <p key={binding.profileId}>
@@ -593,7 +696,14 @@ function ActiveSnapshotPanel({
               <article key={route.routeId}>
                 <p className="eyebrow">{route.protocol}</p>
                 <h6>{route.modelId}</h6>
-                <p>{route.routeId} → {route.providerProfileId}</p>
+                <p>{route.routeId} · {route.contractVersion === "v1" ? "single profile" : route.executionMode}</p>
+                <ol className="admin-provider-route-target-list">
+                  {routeTargets(route).map((profileId, index) => (
+                    <li key={`${route.routeId}-${index}`}>
+                      <strong>{index === 0 ? "Primary" : "Backup"}</strong> · {profileId || "unavailable"}
+                    </li>
+                  ))}
+                </ol>
               </article>
             ))}
           </div>
@@ -677,7 +787,7 @@ function OperationStatus({ operation }: { operation: WorkspaceOperation }) {
   );
 }
 
-function initialOperation(): WorkspaceOperation {
+function initialOperation(config: ReturnType<typeof readAdminProviderRouteConfig>): WorkspaceOperation {
   return config.mode === "dev_admin_provider_route_http"
     ? { status: "idle", label: "Ready to load the controlled configuration workspace.", failureCode: "", requestId: "", auditRef: "" }
     : { status: "offline", label: "Offline evidence mode sends no management request.", failureCode: "", requestId: "", auditRef: "" };

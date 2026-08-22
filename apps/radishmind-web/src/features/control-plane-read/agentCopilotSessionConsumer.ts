@@ -1,3 +1,8 @@
+import {
+  parseApplicationResultArtifactSummary,
+  type ApplicationResultArtifactSummary,
+} from "./applicationResultArtifactConsumer.ts";
+
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const EXECUTION_PROFILE = "agent_copilot_suggestion_v1";
 const FORBIDDEN_KEYS = new Set([
@@ -51,6 +56,8 @@ export type AgentCopilotSessionResult = {
   session: AgentCopilotSession | null;
   turn: AgentCopilotSessionTurn | null;
   response: AgentCopilotResponse | null;
+  resultArtifact: ApplicationResultArtifactSummary | null;
+  resultArtifactFailureCode: string;
   failureCode: string;
   failureSummary: string;
   idempotentReplay: boolean;
@@ -70,6 +77,7 @@ export type AgentCopilotTurnInput = {
     metadata?: Record<string, unknown>;
   }>;
   context: Record<string, unknown>;
+  saveResult?: boolean;
   clientTurnKey: string;
 };
 
@@ -98,6 +106,8 @@ export function initialAgentCopilotSessionResult(
     session: null,
     turn: null,
     response: null,
+    resultArtifact: null,
+    resultArtifactFailureCode: "",
     failureCode: config.mode === "offline" ? "application_session_http_disabled" : "",
     failureSummary: "",
     idempotentReplay: false,
@@ -156,6 +166,7 @@ export async function executeAgentCopilotSessionTurn(
       conversation_id: input.conversationId || undefined,
       artifacts: input.artifacts,
       context: input.context,
+      ...(input.saveResult === true ? { save_result: true } : {}),
     },
     "application_sessions:execute",
     session.sessionId,
@@ -194,11 +205,23 @@ async function requestSession(
     const agentResponse = !replay && isAgentResponse(value.agent_response)
       ? mapAgentResponse(value.agent_response)
       : null;
+    const resultArtifact = value.result_artifact === undefined || value.result_artifact === null
+      ? null
+      : parseApplicationResultArtifactSummary(value.result_artifact, config, applicationId, expectedSessionId ?? "");
+    const resultArtifactFailureCode = nullableString(value.result_artifact_failure_code);
+    if ((value.result_artifact !== undefined && value.result_artifact !== null && !resultArtifact) ||
+      (resultArtifact && resultArtifactFailureCode) ||
+      (resultArtifactFailureCode && (!turn || turn.status !== "succeeded" || Boolean(failureCode))) ||
+      (resultArtifact && (!turn || resultArtifact.turnId !== turn.turnId || resultArtifact.runRef.runId !== turn.runId))) {
+      return failed("application_session_response_invalid");
+    }
     return {
       status: failureCode ? "blocked" : replay ? "replayed" : turn ? "succeeded" : "ready",
       session,
       turn,
       response: agentResponse,
+      resultArtifact,
+      resultArtifactFailureCode,
       failureCode,
       failureSummary: nullableString(value.failure_summary),
       idempotentReplay: replay,
@@ -228,11 +251,14 @@ function isEnvelope(
       (value.session !== null && !isSession(value.session, config, applicationId))) return false;
   if (!expectedSessionId) {
     return Object.hasOwn(value, "current_record_version") && Object.hasOwn(value, "current_state") &&
-      !Object.hasOwn(value, "turn") && !Object.hasOwn(value, "agent_response");
+      !Object.hasOwn(value, "turn") && !Object.hasOwn(value, "agent_response") &&
+      !Object.hasOwn(value, "result_artifact") && !Object.hasOwn(value, "result_artifact_failure_code");
   }
   return value.session_id === expectedSessionId && value.session !== null &&
     (value.turn === null || isTurn(value.turn, config, applicationId, expectedSessionId)) &&
     (value.agent_response === undefined || value.agent_response === null || isAgentResponse(value.agent_response)) &&
+    (value.result_artifact === undefined || value.result_artifact === null || isRecord(value.result_artifact)) &&
+    (value.result_artifact_failure_code === undefined || typeof value.result_artifact_failure_code === "string" && /^[a-z][a-z0-9_]{2,127}$/u.test(value.result_artifact_failure_code)) &&
     value.prompt_output === undefined && value.answer === undefined && value.advisory_output === undefined &&
     (!value.idempotent_replay || value.agent_response === undefined || value.agent_response === null);
 }
@@ -381,6 +407,8 @@ function failed(failureCode: string): AgentCopilotSessionResult {
     session: null,
     turn: null,
     response: null,
+    resultArtifact: null,
+    resultArtifactFailureCode: "",
     failureCode,
     failureSummary: "",
     idempotentReplay: false,

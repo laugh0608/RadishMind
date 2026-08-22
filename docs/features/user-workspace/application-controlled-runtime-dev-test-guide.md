@@ -1,10 +1,10 @@
 # 应用受控运行开发测试态指南
 
-更新时间：2026-08-11
+更新时间：2026-08-17
 
 ## 适用范围
 
-本文说明如何在 `apps/radishmind-web/` 中使用 Application RAG、Workflow Definition、Application Interaction Session、Run History 与 Application Operations 的开发测试态连续链。
+本文说明如何在 `apps/radishmind-web/` 中使用 Application RAG、Workflow Definition、Application Interaction Session、应用结果资产库、Run History 与 Application Operations 的开发测试态连续链。
 
 这是一份使用与排障说明，不是生产部署手册。所有能力都要求显式 dev/test gate、可信 application scope、对应作用域和可用 repository；默认离线产品 UI 不发出这些请求。
 
@@ -51,6 +51,14 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowDefinitionLoca
 ```
 
 PostgreSQL 对应参数为 `--workflow-definition-postgres-dev-test` / `-WorkflowDefinitionPostgresDevTest`。Application RAG 的完整本地产品链使用 `--workflow-rag-application-local-product` / `-WorkflowRAGApplicationLocalProduct`。
+
+应用结果资产库的稳定 SQLite 产品复验使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --application-result-artifact-library-local-product
+```
+
+该 Shell 专用入口会继承完整 Application Session SQLite 产品档，并显式加入幂等双 Session fixture。fixture 只用于开发测试态 application-scoped list / filter / exact read / export / lifecycle / restart 复验，不建立真实 Provider、Session 或 Run 执行事实，也不会在重启时覆盖已推进的 lifecycle。PowerShell wrapper 当前没有对称 fixture 参数；常规 Application Session 链继续使用上方双端入口。
 
 launcher 会组合必要的 Platform gate、Web source、workspace / application scope、共享 store 与 migration preflight。不要再手工组合不完整 selector；`configured` 档只用于显式 PostgreSQL组件组合和故障注入，缺失 marker、checksum、角色或连接时必须失败关闭。
 
@@ -141,22 +149,36 @@ Session 路由族为：
 - `POST /v1/user-workspace/application-sessions/{session_id}/close`
 - `GET /v1/user-workspace/application-sessions/{session_id}/turns`
 - `POST /v1/user-workspace/application-sessions/{session_id}/turns`
+- `GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts`
+- `GET /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}`
+- `POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/archive`
+- `POST /v1/user-workspace/application-sessions/{session_id}/result-artifacts/{artifact_id}/unarchive`
+- `GET /v1/user-workspace/applications/{application_id}/result-artifacts`
+- `GET /v1/user-workspace/applications/{application_id}/result-artifacts/{artifact_id}/export`
 
 读取、管理和执行分别要求 `application_sessions:read`、`application_sessions:write`、`application_sessions:execute`。Session 只能从 `active` 转为 `closed`；closed session 可以查看 metadata，但不能继续创建 turn。
 
-Web 使用顺序：
+当前 HTTP 使用顺序：
 
 1. 选择 application 和 profile；Workflow Definition profile 同时选择 definition。
 2. 创建 session，确认服务端返回的 authority refs 与 profile。
-3. 提交 turn。输入与同步 answer 只存在于当前交互视图内存。
-4. 从 turn metadata 打开对应 v4 / v5 / v8 Run Detail、Comparison 或 Evaluation；v8 只展示合同与字段 metadata，不回显字段值。
-5. 不再继续时显式关闭 session；通过 Active / Closed 过滤器区分可执行会话与历史会话。
+3. 提交 turn。`save_result` 默认 false，输入与同步 answer 只存在于当前交互视图内存；只有显式设为 true，服务端才从本次成功执行的 canonical result 创建独立结果资产。
+4. 保存成功时，turn 响应返回 metadata-only `result_artifact`；保存失败使用独立 `result_artifact_failure_code`，不改变已经成功的 run，也不重放 Provider。
+5. 在同一 application / session 下列出结果资产 summary；默认只返回 active，可显式指定 `lifecycle_state=archived`。再以精确 `artifact_id` 读取正文；列表和 lifecycle event 不返回 content，精确读取响应使用 `Cache-Control: no-store`。
+6. archive / unarchive 使用独立 `application_result_artifacts:archive` 权限和 `expected_lifecycle_version` CAS；陈旧版本或重复状态返回冲突，不修改 artifact content、digest、来源与 created at。永久 purge route 尚未开放。
+7. 从 turn metadata 打开对应 v4 / v5 / v8 Run Detail、Comparison 或 Evaluation；v8 只展示合同与字段 metadata，不回显字段值。
+8. 不再继续时显式关闭 session；通过 Active / Closed 过滤器区分可执行会话与历史会话。
 
-切换 workspace、application、profile 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata 和 run refs，不重建 transcript。
+当前 React Application Interaction、Prompt Session 与 Agent Session 已复用单一 strict artifact consumer 和共享结果资产面板。逐 turn 保存选择默认关闭；显式开启后只发送 `save_result=true`，并分别展示执行结果与保存状态。页面可读取 active / archived metadata 列表、精确正文与来源 Run，并以独立 archive 权限和 expected-version CAS 执行 archive / unarchive；列表、URL 与浏览器持久存储均不包含正文。三类 Session 不复制 schema 解析、scope guard 或迟到响应状态。
+
+Application Runtime Review 的 `Saved results` 任务复用同一 artifact / lifecycle owner，以当前 application 和 owner 跨 Session 列出 metadata，可按 lifecycle、execution profile 与 content type 过滤。export 额外要求 `application_result_artifacts:export`；服务端重新读取 exact artifact / lifecycle 并生成 `application_result_artifact_export.v1`，Web 复核 content / export digest 后才准备一个易失 Blob URL，再由用户显式下载。export 不落库、不改变 lifecycle、不形成下载历史或公开分享；切换 application、筛选、选择或卸载页面都会撤销已准备 URL。
+
+切换 workspace、application、profile、session、identity 或路由时，Web 会中止活动请求，并清除当前 input、answer、transcript、已读取 artifact content、一次性 credential 与冲突状态。刷新页面或重启服务后只恢复 session / turn metadata、run refs 和 SQLite / PostgreSQL 中显式保存的 artifact，不重建 transcript。结果资产使用独立 owner：memory 模式只在同一服务进程内可精确读取；SQLite / PostgreSQL 开发测试态可在服务重启后恢复显式保存的 artifact，但不得把该结论扩写为 transcript 恢复或 production durable 能力。
 
 ## 幂等、取消与不确定结果
 
 - `client_turn_key` 在 session owner 内提供幂等。相同 key 与相同请求只返回既有 turn；冲突载荷返回 `idempotency_conflict`，不能再次调用 provider。
+- 相同 key 的首次请求若已保存结果，重试只返回既有 artifact summary，不回传首次易失结果、不再次调用 Provider；首次没有保存时，重试不能事后补建已经丢失的内容。
 - 用户取消会沿用既有 v4 / v5 / v8 的取消语义。取消不是 replay 或 resume，也不自动创建替代 turn。
 - provider 已返回但终态持久化不确定时，记录只能进入明确的不确定状态；不得为“补结果”自动重放 provider。
 - stale reconciliation 只把长期非终态记录收敛为 `outcome_unknown` 等 metadata-only 结果，不恢复答案、不重放执行。
@@ -175,19 +197,20 @@ Application Operations 同时读取当前 application 的 Gateway Request Histor
 
 ## 持久化与隐私边界
 
-memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
+memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A 至 D 固定单份正文上限 `64 KiB`，session list 和 lifecycle event 只返回 metadata，共享 Web consumer 也只在精确 read 后把正文保留于当前组件内存，SQLite / PostgreSQL 仅由精确 artifact read 恢复正文。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
 
 - 原始 input、answer 或 transcript
 - prompt、provider raw response 或 fragment 正文
 - Authorization、API key、credential、token、cookie 或 header
 - provider secret、DSN 或异常原文
 
-SQLite 中 Application RAG、Workflow Definition release、definition execution 与 Application Session 基线依次为 `0009`、`0010`、`0011`、`0012`，结构化 Definition、Session 与 Evaluation 扩展为 `0017`、`0018`、`0019`；PostgreSQL 基线对应 `0012`、`0013`、`0014`、`0015`，结构化扩展对应 `0020`、`0021`、`0022`。运行角色只授予必要 DML，migration role 与 runtime role 不得互换；旧 v1 记录不自动迁移到 v2 / v4 / v8。
+SQLite 中 Application RAG、Workflow Definition release、definition execution 与 Application Session 基线依次为 `0009`、`0010`、`0011`、`0012`，结构化 Definition、Session 与 Evaluation 扩展为 `0017`、`0018`、`0019`，Definition HTTP Tool 来源 / 执行、结果资产、结果资产生命周期与 application history 索引依次为 `0020`、`0021`、`0022`、`0023`、`0024`；PostgreSQL 基线对应 `0012`、`0013`、`0014`、`0015`，结构化扩展对应 `0020`、`0021`、`0022`，Definition HTTP Tool 来源 / 执行、结果资产、生命周期与 application history 索引对应 `0023`、`0024`、`0025`、`0026`、`0027`。两个 application history migration 只增加同一 owner 的读取索引，不新增 export 表或 repository。运行角色只授予必要 DML，migration role 与 runtime role 不得互换；旧结果资产在生命周期迁移中只回填 active v1，不改写 artifact payload；旧 Session / Run 记录不自动迁移到 v2 / v4 / v8。
 
 ## 停止线
 
 - 不自动 review、activation、publish、assignment 或 profile 选择。
 - 不增加 schedule、retry / fallback、replay / resume、agent loop、长期记忆或后台任务。
 - 不从 session transcript 派生持久记忆，不把 answer 写回上层业务真相源。
+- 不允许客户端事后上传 artifact content、digest 或 run ref，不从日志、缓存或 Provider 重建结果；memory artifact 不声明重启恢复，SQLite / PostgreSQL artifact 只声明开发测试态重启恢复。
 - 不把本地 SQLite、PostgreSQL dev/test、mock provider、真实浏览器验收或 launcher 连续链解释为 production ready。
 - 不绕过 HTTP Tool、Workflow RAG、Application RAG 或 Workflow Definition 各自的 authority owner。

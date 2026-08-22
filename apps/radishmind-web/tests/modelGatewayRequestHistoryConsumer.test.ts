@@ -44,6 +44,9 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
     assert.equal(url.searchParams.get("protocol"), "openai-responses");
     assert.equal(url.searchParams.get("status"), "failed");
     assert.equal(url.searchParams.get("usage_availability"), "not_reported");
+    assert.equal(url.searchParams.get("fallback_used"), "true");
+    assert.equal(url.searchParams.get("terminal_provider"), "mock-backup");
+    assert.equal(url.searchParams.get("terminal_profile"), "backup-dev");
     assert.equal(url.searchParams.get("cursor"), "cursor_previous");
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("X-RadishMind-Dev-Gateway-Tenant"), "tenant_demo");
@@ -63,7 +66,15 @@ test("Gateway request history maps scoped summaries, filters, pagination, and ca
   try {
     const result = await listGatewayRequestHistory(
       live,
-      { ...EMPTY_GATEWAY_REQUEST_HISTORY_FILTER, protocol: "openai-responses", status: "failed", usageAvailability: "not_reported" },
+      {
+        ...EMPTY_GATEWAY_REQUEST_HISTORY_FILTER,
+        protocol: "openai-responses",
+        status: "failed",
+        usageAvailability: "not_reported",
+        fallbackUsed: "true",
+        terminalProvider: "mock-backup",
+        terminalProfile: "backup-dev",
+      },
       "cursor_previous",
     );
     assert.equal(result.status, "ready");
@@ -147,6 +158,118 @@ test("Gateway request history maps sanitized detail and usage availability", asy
     assert.equal(detail.schemaVersion, "gateway_request_record.v2");
     assert.equal(detail.costEstimate.estimatedCostMicros, 17);
     assert.equal(detail.costEstimate.pricingPolicyVersion, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history strictly maps v3 attempt lineage and partial cost coverage", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const detailRequest = new URL(String(input)).pathname.includes("request_gateway_v3");
+    return detailRequest
+      ? jsonResponse({
+        request_id: "request_detail_v3",
+        ...historyEnvelopeScope(),
+        request: v3DetailDocument(),
+        failure_code: null,
+        failure_summary: "",
+        audit_ref: "audit_detail_v3",
+      })
+      : jsonResponse({
+        request_id: "request_list_v3",
+        ...historyEnvelopeScope(),
+        requests: [v3SummaryDocument()],
+        next_cursor: "",
+        has_more: false,
+        failure_code: null,
+        failure_summary: "",
+        audit_ref: "audit_list_v3",
+      });
+  };
+  try {
+    const listed = await listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER);
+    assert.equal(listed.requests[0]?.schemaVersion, "gateway_request_record.v3");
+    assert.equal(listed.requests[0]?.attemptCount, 2);
+    assert.equal(listed.requests[0]?.fallbackUsed, true);
+    assert.equal(listed.requests[0]?.terminalProfile, "backup-dev");
+    assert.equal(listed.requests[0]?.attemptCostSummary?.coverage, "partial");
+
+    const detail = await readGatewayRequestHistoryDetail(live, "request_gateway_v3");
+    assert.equal(detail.attemptPhase, "terminal");
+    assert.equal(detail.attemptPlan?.executionMode, "sequential_fallback");
+    assert.equal(detail.attemptPlan?.targets[0]?.pricingAvailability, "configured");
+    assert.equal(detail.attemptPlan?.targets[1]?.pricingAvailability, "not_configured");
+    assert.equal(detail.providerAttempts[0]?.failure?.fallbackDisposition, "eligible");
+    assert.equal(detail.providerAttempts[1]?.status, "succeeded");
+    assert.equal(detail.providerAttempts[1]?.totalTokens, 14);
+    assert.equal(detail.terminalAttemptId, "request_gateway_v3.pa2");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history derives omitted v3 terminal projection from the terminal attempt", async () => {
+  const originalFetch = globalThis.fetch;
+  const detail = v3DetailDocument();
+  delete detail.terminal_provider;
+  delete detail.terminal_profile;
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_detail_v3_raw",
+    ...historyEnvelopeScope(),
+    request: detail,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_detail_v3_raw",
+  });
+  try {
+    const mapped = await readGatewayRequestHistoryDetail(live, "request_gateway_v3");
+    assert.equal(mapped.terminalProvider, "mock-backup");
+    assert.equal(mapped.terminalProfile, "backup-dev");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history rejects a v3 terminal projection that conflicts with the terminal attempt", async () => {
+  const originalFetch = globalThis.fetch;
+  const detail = v3DetailDocument();
+  detail.terminal_provider = "unexpected-provider";
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_detail_v3_conflict",
+    ...historyEnvelopeScope(),
+    request: detail,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_detail_v3_conflict",
+  });
+  try {
+    await assert.rejects(
+      () => readGatewayRequestHistoryDetail(live, "request_gateway_v3"),
+      /Gateway request detail route failed/u,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gateway request history rejects inconsistent v3 terminal lineage", async () => {
+  const originalFetch = globalThis.fetch;
+  const detail = v3DetailDocument();
+  detail.terminal_attempt_id = "request_gateway_v3.pa1";
+  globalThis.fetch = async () => jsonResponse({
+    request_id: "request_detail_v3_invalid",
+    ...historyEnvelopeScope(),
+    request: detail,
+    failure_code: null,
+    failure_summary: "",
+    audit_ref: "audit_detail_v3_invalid",
+  });
+  try {
+    await assert.rejects(
+      () => readGatewayRequestHistoryDetail(live, "request_gateway_v3"),
+      /Gateway request detail route failed/u,
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -333,6 +456,9 @@ function summaryDocument() {
       total_tokens: 0,
     },
     cost_estimate: unavailableCostDocument("usage_not_reported", "provider_usage_not_reported"),
+    attempt_count: 0,
+    fallback_allowed: false,
+    fallback_used: false,
     stale_started: false,
   };
 }
@@ -352,6 +478,165 @@ function estimatedCostDocument(estimatedCostMicros: number) {
     pricing_policy_digest: `sha256:${"c".repeat(64)}`,
     rounding_mode: "half_up_to_currency_micro",
   };
+}
+
+function v3SummaryDocument() {
+  return {
+    ...summaryDocument(),
+    schema_version: "gateway_request_record.v3",
+    request_id: "request_gateway_v3",
+    status: "succeeded",
+    http_status_code: 200,
+    failure_code: "",
+    failure_boundary: "",
+    selected_provider: "mock-primary",
+    selected_profile: "primary-dev",
+    attempt_count: 2,
+    fallback_allowed: true,
+    fallback_used: true,
+    terminal_provider: "mock-backup",
+    terminal_profile: "backup-dev",
+    provider_attempt_cost_summary: attemptCostSummaryDocument(),
+  };
+}
+
+function v3DetailDocument() {
+  const { usage_availability: _usageAvailability, ...summary } = v3SummaryDocument();
+  return {
+    ...summary,
+    tenant_ref: "tenant_demo",
+    workspace_id: "workspace_demo",
+    consumer_ref: "consumer_web_dev",
+    application_id: "application_demo",
+    subject_ref: "subject_web_dev",
+    gateway_duration_ms: 120,
+    gateway_duration_available: true,
+    provider_attempt_plan: {
+      schema_version: "gateway_provider_attempt_plan.v1",
+      root_request_id: "request_gateway_v3",
+      route: "POST /v1/responses",
+      protocol: "openai-responses",
+      requested_model: "mock-model",
+      configuration_id: "gateway-default",
+      route_generation: 3,
+      route_snapshot_digest: `sha256:${"d".repeat(64)}`,
+      execution_mode: "sequential_fallback",
+      fallback_mode: "allow_configured",
+      fallback_allowed: true,
+      max_attempts: 2,
+      targets: [
+        attemptPlanTarget(1, "primary", "mock-primary", "primary-dev", "primary-upstream", "e"),
+        attemptPlanTarget(2, "backup", "mock-backup", "backup-dev", "backup-upstream", "f"),
+      ],
+    },
+    provider_attempt_phase: "terminal",
+    terminal_attempt_id: "request_gateway_v3.pa2",
+    provider_attempts: [
+      {
+        ...attemptRecord(1, "primary", "mock-primary", "primary-dev", "primary-upstream", "e"),
+        status: "failed",
+        completed_at: "2026-07-12T04:00:00.050Z",
+        duration_ms: 50,
+        quota_admission_id: "quota-primary",
+        failure: {
+          schema_version: "gateway_provider_attempt_failure.v1",
+          failure_class: "provider_temporarily_unavailable",
+          fallback_disposition: "eligible",
+          provider_response_started: false,
+          outcome: "failed",
+          code: "PROVIDER_TEMPORARILY_UNAVAILABLE",
+          http_status_class: "5xx",
+        },
+        failure_boundary: "provider",
+        usage: unavailableUsageDocument(),
+        cost_estimate: unavailableCostDocument("usage_not_reported", "provider_usage_not_reported"),
+      },
+      {
+        ...attemptRecord(2, "backup", "mock-backup", "backup-dev", "backup-upstream", "f"),
+        status: "succeeded",
+        completed_at: "2026-07-12T04:00:00.100Z",
+        duration_ms: 40,
+        quota_admission_id: "quota-backup",
+        usage: {
+          availability: "reported",
+          source: "openai_compatible_usage",
+          input_tokens: 10,
+          output_tokens: 4,
+          total_tokens: 14,
+        },
+        cost_estimate: estimatedCostDocument(17),
+      },
+    ],
+  };
+}
+
+function attemptPlanTarget(
+  ordinal: number,
+  profileId: string,
+  providerId: string,
+  runtimeProfile: string,
+  upstreamModel: string,
+  digestCharacter: string,
+) {
+  return {
+    attempt_id: `request_gateway_v3.pa${ordinal}`,
+    ordinal,
+    provider_profile_id: profileId,
+    provider_id: providerId,
+    runtime_profile: runtimeProfile,
+    selected_model: "mock-model",
+    upstream_model: upstreamModel,
+    inventory_digest: `sha256:${digestCharacter.repeat(64)}`,
+    pricing_snapshot: ordinal === 1 ? {
+      availability: "configured",
+      currency: "USD",
+      token_unit: 1_000_000,
+      input_price_micros_per_token_unit: 1_000_000,
+      output_price_micros_per_token_unit: 3_000_000,
+      pricing_policy_id: `gmp_${"a".repeat(24)}`,
+      pricing_policy_version: 3,
+      pricing_policy_digest: `sha256:${"c".repeat(64)}`,
+      integrity_digest: "b".repeat(64),
+    } : { availability: "not_configured", reason: "pricing_policy_not_configured" },
+  };
+}
+
+function attemptRecord(
+  ordinal: number,
+  profileId: string,
+  providerId: string,
+  runtimeProfile: string,
+  upstreamModel: string,
+  digestCharacter: string,
+) {
+  return {
+    schema_version: "gateway_provider_attempt_record.v1",
+    attempt_id: `request_gateway_v3.pa${ordinal}`,
+    ordinal,
+    configured_profile_id: profileId,
+    provider_id: providerId,
+    runtime_profile: runtimeProfile,
+    selected_model: "mock-model",
+    upstream_model: upstreamModel,
+    route_generation: 3,
+    route_snapshot_digest: `sha256:${"d".repeat(64)}`,
+    inventory_digest: `sha256:${digestCharacter.repeat(64)}`,
+    started_at: `2026-07-12T04:00:00.0${ordinal}0Z`,
+  };
+}
+
+function attemptCostSummaryDocument() {
+  return {
+    schema_version: "gateway_request_attempt_cost_summary.v1",
+    known_cost_micros: 17,
+    coverage: "partial",
+    estimated_attempt_count: 1,
+    unknown_attempt_count: 1,
+  };
+}
+
+function unavailableUsageDocument() {
+  return { availability: "not_reported", source: "", input_tokens: 0, output_tokens: 0, total_tokens: 0 };
 }
 
 function unavailableCostDocument(availability: string, reason: string) {

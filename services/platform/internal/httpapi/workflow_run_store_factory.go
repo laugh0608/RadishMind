@@ -130,6 +130,25 @@ func newApplicationInteractionSessionRepositoryForRunStore(store workflowRunStor
 	}
 }
 
+func newApplicationResultArtifactRepositoryForRunStore(store workflowRunStore) (applicationResultArtifactRepository, error) {
+	switch typed := store.(type) {
+	case *memoryWorkflowRunStore:
+		return newMemoryApplicationResultArtifactRepository(), nil
+	case *sqliteWorkflowRunStore:
+		if typed.database == nil {
+			return nil, errors.New("application result artifact store requires the shared SQLite database")
+		}
+		return newSQLiteApplicationResultArtifactRepository(typed.database), nil
+	case *postgresWorkflowRunStore:
+		if typed.pool == nil {
+			return nil, errors.New("application result artifact store requires the workflow PostgreSQL pool")
+		}
+		return newPostgresApplicationResultArtifactRepository(typed.pool), nil
+	default:
+		return nil, errors.New("application result artifact store requires a supported workflow runtime backend")
+	}
+}
+
 func newWorkflowHTTPToolActionStoreForRunStore(store workflowRunStore) workflowHTTPToolActionStore {
 	switch typed := store.(type) {
 	case *memoryWorkflowRunStore:

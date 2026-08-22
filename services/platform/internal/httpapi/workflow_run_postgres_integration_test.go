@@ -90,6 +90,31 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if err = actionStore.DecidePlan(actionContext, &actionPlan, invalidateDecision, invalidateAudit); err != nil {
 		t.Fatalf("invalidate PostgreSQL workflow HTTP tool action plan: %v", err)
 	}
+	definitionActionContext := workflowHTTPToolActionTestContext()
+	definitionActionContext.RequestContext = ctx
+	definitionActionContext.AuditRef = "audit_workflow_http_tool_postgres_definition_create"
+	definitionActionPlan := workflowHTTPToolDefinitionActionPlanForStoreTest(t, definitionActionContext, "wtap_0000000000000240")
+	if err = actionStore.CreatePlan(definitionActionContext, &definitionActionPlan, workflowHTTPToolAuditForStoreTest(definitionActionPlan, "wtae_0000000000000240", "confirmation_requested")); err != nil {
+		t.Fatalf("create PostgreSQL Definition-source workflow HTTP tool plan: %v", err)
+	}
+	definitionActionPlan.RecordVersion = 2
+	definitionActionPlan.Status = WorkflowHTTPToolActionStatusApproved
+	definitionActor, definitionDecidedAt := definitionActionContext.ActorRef, "2026-07-16T09:01:00Z"
+	definitionActionPlan.LastDecisionByActorRef, definitionActionPlan.LastDecisionAt = &definitionActor, &definitionDecidedAt
+	definitionDecision := workflowHTTPToolDecisionForStoreTest(definitionActionPlan, "wtcd_0000000000000240", WorkflowHTTPToolConfirmationApprove, definitionActor)
+	definitionDecision.AuditRef = "audit_workflow_http_tool_postgres_definition_decision"
+	definitionActionContext.AuditRef = definitionDecision.AuditRef
+	definitionAudit := workflowHTTPToolAuditForStoreTest(definitionActionPlan, "wtae_0000000000000241", "confirmation_recorded", definitionDecision.ConfirmationID)
+	definitionAudit.AuditRef = definitionDecision.AuditRef
+	if err = actionStore.DecidePlan(definitionActionContext, &definitionActionPlan, definitionDecision, definitionAudit); err != nil {
+		t.Fatalf("approve PostgreSQL Definition-source workflow HTTP tool plan: %v", err)
+	}
+	if _, mutationErr := runtimePool.Exec(ctx, `UPDATE workflow_http_tool_action_plans
+	 SET source_kind='saved_workflow_draft',draft_id='draft_forbidden',draft_version=1,
+	 workflow_definition_id=NULL,workflow_definition_version=NULL,workflow_definition_digest=NULL,activation_pointer_version=NULL
+	 WHERE plan_id=$1`, definitionActionPlan.PlanID); mutationErr == nil {
+		t.Fatal("PostgreSQL Definition-source plan accepted a source-union fallback mutation")
+	}
 	expireContext := workflowHTTPToolActionTestContext()
 	expireContext.RequestContext = ctx
 	expireContext.AuditRef = "audit_workflow_http_tool_postgres_expire_create"
@@ -512,6 +537,15 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	}
 	if recoveredAction, actionFound, actionErr := actionStore.ReadPlan(actionContext, actionPlan.PlanID); actionErr != nil || !actionFound || recoveredAction.Status != WorkflowHTTPToolActionStatusInvalidated || recoveredAction.RecordVersion != 3 {
 		t.Fatalf("restart workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredAction, actionErr)
+	}
+	if recoveredDefinitionAction, actionFound, actionErr := actionStore.ReadPlan(definitionActionContext, definitionActionPlan.PlanID); actionErr != nil || !actionFound ||
+		recoveredDefinitionAction.Status != WorkflowHTTPToolActionStatusApproved || recoveredDefinitionAction.RecordVersion != 2 ||
+		recoveredDefinitionAction.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
+		recoveredDefinitionAction.SourceKind != workflowHTTPToolSourceDefinition ||
+		recoveredDefinitionAction.WorkflowDefinitionID != definitionActionPlan.WorkflowDefinitionID ||
+		recoveredDefinitionAction.WorkflowDefinitionDigest != definitionActionPlan.WorkflowDefinitionDigest ||
+		recoveredDefinitionAction.ActivationPointerVersion != definitionActionPlan.ActivationPointerVersion {
+		t.Fatalf("restart Definition-source workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredDefinitionAction, actionErr)
 	}
 	if recoveredExpired, actionFound, actionErr := actionStore.ReadPlan(expireContext, expiredActionPlan.PlanID); actionErr != nil || !actionFound || recoveredExpired.Status != WorkflowHTTPToolActionStatusExpired || recoveredExpired.RecordVersion != 2 {
 		t.Fatalf("restart expired workflow HTTP tool action recovery failed: found=%v plan=%#v err=%v", actionFound, recoveredExpired, actionErr)
@@ -1025,7 +1059,7 @@ func runPostgresApplicationEvaluationRepositoryContract(t *testing.T, requestCon
 
 func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
-	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS application_evaluation_campaigns, application_evaluation_plan_versions, application_evaluation_plans, agent_copilot_run_records, agent_copilot_session_turns, agent_copilot_sessions, agent_copilot_runtime_assignment_events, agent_copilot_runtime_assignments, prompt_application_run_records, prompt_application_session_turns, prompt_application_sessions, prompt_application_runtime_assignment_events, prompt_application_runtime_assignments, application_interaction_session_turns, application_interaction_sessions, workflow_definition_release_audits, workflow_definition_activation_events, workflow_definition_activations, workflow_definition_versions, workflow_definition_release_decisions, workflow_definition_release_candidates, workflow_rag_application_runtime_audits, workflow_rag_application_runtime_events, workflow_rag_application_runtime_assignments, workflow_rag_knowledge_promotion_audits, workflow_rag_application_bindings, workflow_rag_knowledge_promotion_decisions, workflow_rag_knowledge_promotion_candidates, workflow_rag_evaluation_audits, workflow_rag_candidate_snapshot_reviews, workflow_rag_evaluation_dataset_versions, workflow_rag_evaluation_dataset_resources, workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS application_result_artifact_lifecycle_events, application_result_artifact_lifecycles, application_result_artifacts, application_evaluation_campaigns, application_evaluation_plan_versions, application_evaluation_plans, agent_copilot_run_records, agent_copilot_session_turns, agent_copilot_sessions, agent_copilot_runtime_assignment_events, agent_copilot_runtime_assignments, prompt_application_run_records, prompt_application_session_turns, prompt_application_sessions, prompt_application_runtime_assignment_events, prompt_application_runtime_assignments, application_interaction_session_turns, application_interaction_sessions, workflow_definition_release_audits, workflow_definition_activation_events, workflow_definition_activations, workflow_definition_versions, workflow_definition_release_decisions, workflow_definition_release_candidates, workflow_rag_application_runtime_audits, workflow_rag_application_runtime_events, workflow_rag_application_runtime_assignments, workflow_rag_knowledge_promotion_audits, workflow_rag_application_bindings, workflow_rag_knowledge_promotion_decisions, workflow_rag_knowledge_promotion_candidates, workflow_rag_evaluation_audits, workflow_rag_candidate_snapshot_reviews, workflow_rag_evaluation_dataset_versions, workflow_rag_evaluation_dataset_resources, workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
 		t.Fatalf("reset workflow run integration tables: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_agent_copilot_invocation_projection_mutation(), enforce_agent_copilot_run_update(), enforce_agent_copilot_turn_update(), enforce_agent_copilot_session_update()`); err != nil {
@@ -1051,6 +1085,12 @@ func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_mutation(), enforce_application_evaluation_campaign_update(), enforce_application_evaluation_plan_update()`); err != nil {
 		t.Fatalf("reset application evaluation guards: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_result_artifact_mutation()`); err != nil {
+		t.Fatalf("reset application result artifact guard: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_result_artifact_lifecycle_event_mutation(), validate_application_result_artifact_lifecycle_mutation()`); err != nil {
+		t.Fatalf("reset application result artifact lifecycle guards: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS workflow_run_schema_versions (component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL, migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
 		t.Fatalf("prepare workflow run integration marker: %v", err)

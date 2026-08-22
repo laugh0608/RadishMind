@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workflow-http-tool-confirmation-decision-v2.schema.json",
+  "title": "WorkflowHttpToolConfirmationDecisionV2",
+  "description": "Append-only decision bound to one Definition-source action plan and its immutable source digest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "confirmation_id", "plan_id", "tenant_ref", "workspace_id", "application_id",
+    "source_kind", "workflow_definition_id", "workflow_definition_version", "workflow_definition_digest",
+    "activation_pointer_version", "node_id", "tool_id", "tool_version", "tool_plan_digest", "outcome",
+    "decided_by_actor_ref", "actor_source", "decided_at", "reason_code", "expected_record_version",
+    "resulting_record_version", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": {"const": "workflow_http_tool_confirmation_decision.v2"},
+    "confirmation_id": {"type": "string", "pattern": "^wtcd_[a-z0-9]{16,64}$"},
+    "plan_id": {"type": "string", "pattern": "^wtap_[a-z0-9]{16,64}$"},
+    "tenant_ref": {"$ref": "#/$defs/reference"},
+    "workspace_id": {"$ref": "#/$defs/scoped_id"},
+    "application_id": {"$ref": "#/$defs/scoped_id"},
+    "source_kind": {"const": "workflow_definition"},
+    "workflow_definition_id": {"$ref": "#/$defs/scoped_id"},
+    "workflow_definition_version": {"type": "integer", "minimum": 1},
+    "workflow_definition_digest": {"$ref": "#/$defs/digest"},
+    "activation_pointer_version": {"type": "integer", "minimum": 1},
+    "node_id": {"$ref": "#/$defs/scoped_id"},
+    "tool_id": {"type": "string", "pattern": "^workflow\\.http\\.[a-z0-9][a-z0-9._-]*\\.v[0-9]+$", "maxLength": 120},
+    "tool_version": {"const": 1},
+    "tool_plan_digest": {"$ref": "#/$defs/digest"},
+    "outcome": {"enum": ["approve", "reject", "defer", "cancel", "expire", "invalidate"]},
+    "decided_by_actor_ref": {"$ref": "#/$defs/reference"},
+    "actor_source": {"enum": ["human", "system"]},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "reason_code": {"type": "string", "pattern": "^workflow_tool_confirmation_[a-z_]{3,64}$"},
+    "expected_record_version": {"type": "integer", "minimum": 1},
+    "resulting_record_version": {"type": "integer", "minimum": 2},
+    "audit_ref": {"$ref": "#/$defs/reference"}
+  },
+  "allOf": [{
+    "if": {"properties": {"actor_source": {"const": "human"}}, "required": ["actor_source"]},
+    "then": {"properties": {"outcome": {"enum": ["approve", "reject", "defer", "cancel"]}}},
+    "else": {"properties": {"outcome": {"enum": ["expire", "invalidate"]}}}
+  }],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "reference": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"},
+    "scoped_id": {"type": "string", "minLength": 3, "maxLength": 120, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"}
+  }
+}

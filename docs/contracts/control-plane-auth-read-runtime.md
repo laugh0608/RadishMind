@@ -1,6 +1,6 @@
 # Control Plane 鉴权与只读运行时契约
 
-更新时间：2026-07-12
+更新时间：2026-08-19
 
 ## 契约定位
 
@@ -20,7 +20,7 @@
 | Workflow Definitions | `GET /v1/user-workspace/workflow-definitions` | fake repository | fake binding | `workspace_membership_unavailable` |
 | Runs | `GET /v1/user-workspace/runs` | fake repository | fake binding | `workspace_membership_unavailable` |
 
-OIDC integration 只允许与 `postgres_dev_test` 组合。五条 workspace operation 没有正式 membership owner，必须在 repository 之前拒绝，不能读取 fake repository。
+OIDC integration 只允许与 `postgres_dev_test` 组合。上表保留 legacy resource-server 路径的运行语义：其 integration token 没有 external identity binding，不得因本地 membership owner 已存在而自动回退。2026-08-19 新增的 `local_session_dev_test` 可与受控 read store 组合，从 RadishMind Web Session 恢复 `user:<user_id>`，并由本地 `WorkspaceMembershipProvider` 在业务 repository 前重读 membership / role；两条路径互斥且不互相 fallback。
 
 ## Auth mode
 
@@ -28,6 +28,7 @@ OIDC integration 只允许与 `postgres_dev_test` 组合。五条 workspace oper
 - `dev_headers`：只在显式 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 的本地开发路径接受测试 header。
 - `signed_test_token`：验证 RS256 test token、exact issuer / audience、required claims、时间窗口、resource binding 和版本化 permission projection；不连接 discovery / JWKS。
 - `radish_oidc_integration_test`：验证受控 discovery、JWKS 与 JWT；不回退 signed token、dev headers 或 fake identity。
+- `local_session_dev_test`：只接受 RadishMind 安全 cookie，重读 active session / account 后投影本地 actor，workspace operation 再由本地 membership / role 做原子判定；任一身份头、Bearer token、cookie、session、account、membership 或 store 冲突 / 失败都失败关闭。
 
 所有模式都投影同一内部 `VerifiedControlPlaneIdentity`。handler 和 repository 只能读取脱敏 subject、tenant、permission、issuer / mapping reference、request id 与 audit ref，不得读取 Authorization、raw token 或 raw claims。
 

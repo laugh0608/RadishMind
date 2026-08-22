@@ -25,6 +25,7 @@ type WorkflowDefinitionCandidateCreateInput struct {
 	DraftID                  string
 	ExpectedDraftVersion     int
 	ExpectedLifecycleVersion int
+	ExecutionProfile         string
 }
 
 type WorkflowDefinitionReviewInput struct {
@@ -67,6 +68,7 @@ func (service workflowDefinitionReleaseService) Create(ctx WorkflowDefinitionRel
 	input.CandidateID = strings.TrimSpace(input.CandidateID)
 	input.DefinitionID = strings.TrimSpace(input.DefinitionID)
 	input.DraftID = strings.TrimSpace(input.DraftID)
+	input.ExecutionProfile = strings.TrimSpace(input.ExecutionProfile)
 	if !validWorkflowDefinitionContext(ctx) || !applicationDraftIdentifierPattern.MatchString(input.CandidateID) ||
 		!applicationDraftIdentifierPattern.MatchString(input.DefinitionID) || !applicationDraftIdentifierPattern.MatchString(input.DraftID) ||
 		input.ExpectedDraftVersion < 1 || input.ExpectedLifecycleVersion < 1 {
@@ -77,12 +79,13 @@ func (service workflowDefinitionReleaseService) Create(ctx WorkflowDefinitionRel
 		input.DraftID,
 		input.ExpectedDraftVersion,
 		input.ExpectedLifecycleVersion,
+		input.ExecutionProfile,
 		true,
 	)
 	if failureCode != "" {
 		return WorkflowDefinitionReleaseResult{FailureCode: failureCode}
 	}
-	candidate, err := service.store.CreateCandidate(ctx, input.CandidateID, input.DefinitionID, draft, service.now())
+	candidate, err := service.store.CreateCandidate(ctx, input.CandidateID, input.DefinitionID, input.ExecutionProfile, draft, service.now())
 	if err != nil {
 		return workflowDefinitionResultFromError(err)
 	}
@@ -106,6 +109,7 @@ func (service workflowDefinitionReleaseService) Review(ctx WorkflowDefinitionRel
 		candidate.SourceDraftID,
 		candidate.SourceDraftVersion,
 		0,
+		candidate.Snapshot.ExecutionProfile,
 		false,
 	)
 	if failureCode != "" {
@@ -114,7 +118,7 @@ func (service workflowDefinitionReleaseService) Review(ctx WorkflowDefinitionRel
 		}
 		return WorkflowDefinitionReleaseResult{Candidate: &candidate, FailureCode: failureCode, CurrentReviewVersion: candidate.ReviewVersion}
 	}
-	_, sourceDigest, digestErr := workflowDefinitionSnapshotFromDraft(draft)
+	_, sourceDigest, digestErr := workflowDefinitionSnapshotFromDraft(draft, candidate.Snapshot.ExecutionProfile)
 	if digestErr != nil {
 		return WorkflowDefinitionReleaseResult{Candidate: &candidate, FailureCode: workflowDefinitionFailureStoreUnavailable, CurrentReviewVersion: candidate.ReviewVersion}
 	}
@@ -197,6 +201,7 @@ func (service workflowDefinitionReleaseService) readExactDraft(
 	draftID string,
 	expectedVersion int,
 	expectedLifecycleVersion int,
+	executionProfile string,
 	requireActive bool,
 ) (SavedWorkflowDraft, string) {
 	draftContext := SavedWorkflowDraftContext{
@@ -234,6 +239,17 @@ func (service workflowDefinitionReleaseService) readExactDraft(
 			return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
 		}
 		draft = activeDraft
+	}
+	resolvedProfile, supported := workflowDefinitionExecutionProfileForDraft(draft, executionProfile)
+	if !supported {
+		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
+	}
+	if resolvedProfile == workflowDefinitionHTTPToolProfile {
+		eligible, _ := workflowDefinitionHTTPToolEligibility(draft)
+		if !eligible {
+			return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible
+		}
+		return draft, ""
 	}
 	if draft.DraftStatus != SavedWorkflowDraftStatusValidForReview || !draft.ValidationSummary.ValidForReview || len(draft.BlockedCapabilitySummary) > 0 {
 		return SavedWorkflowDraft{}, workflowDefinitionFailureSourceIneligible

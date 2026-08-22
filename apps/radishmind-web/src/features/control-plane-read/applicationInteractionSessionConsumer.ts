@@ -4,6 +4,10 @@ import {
   type StructuredRuntimeInputContract,
   type StructuredRuntimeInputValues,
 } from "./structuredRuntimeInput.ts";
+import {
+  parseApplicationResultArtifactSummary,
+  type ApplicationResultArtifactSummary,
+} from "./applicationResultArtifactConsumer.ts";
 
 const DEV_SOURCE = "dev-application-session-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -180,6 +184,8 @@ export type ApplicationInteractionTurnResult = {
   turn: ApplicationInteractionTurn | null;
   advisoryOutput: string;
   answer: ApplicationInteractionAnswer | null;
+  resultArtifact: ApplicationResultArtifactSummary | null;
+  resultArtifactFailureCode: string;
   failureCode: string;
   failureSummary: string;
   idempotentReplay: boolean;
@@ -233,6 +239,8 @@ type TurnEnvelope = {
   turn: unknown;
   advisory_output?: string;
   answer?: unknown;
+  result_artifact?: unknown;
+  result_artifact_failure_code?: string;
   failure_code: string | null;
   failure_summary: string;
   idempotent_replay: boolean;
@@ -363,6 +371,7 @@ export async function executeApplicationInteractionTurn(
     conditionValues?: Record<string, boolean>;
     model?: string;
     temperature?: number | null;
+    saveResult?: boolean;
   },
   signal?: AbortSignal,
 ): Promise<ApplicationInteractionTurnResult> {
@@ -401,6 +410,7 @@ export async function executeApplicationInteractionTurn(
         condition_values: conditionValues,
         model,
         temperature,
+        ...(input.saveResult === true ? { save_result: true } : {}),
       }),
       signal,
     });
@@ -409,14 +419,28 @@ export async function executeApplicationInteractionTurn(
     const session = document.session === null ? null : parseSession(document.session, config, input.session.applicationId);
     const turn = document.turn === null ? null : parseTurn(document.turn, config, input.session.applicationId, input.session.sessionId, input.session.executionProfile);
     const answer = document.answer === undefined || document.answer === null ? null : parseAnswer(document.answer);
-    if ((document.session !== null && !session) || (document.turn !== null && !turn) || (document.answer !== undefined && document.answer !== null && !answer)) {
+    const resultArtifact = document.result_artifact === undefined || document.result_artifact === null
+      ? null
+      : parseApplicationResultArtifactSummary(document.result_artifact, config, input.session.applicationId, input.session.sessionId);
+    const resultArtifactFailureCode = typeof document.result_artifact_failure_code === "string"
+      ? document.result_artifact_failure_code
+      : "";
+    if ((document.session !== null && !session) || (document.turn !== null && !turn) ||
+      (document.answer !== undefined && document.answer !== null && !answer) ||
+      (document.result_artifact !== undefined && document.result_artifact !== null && !resultArtifact) ||
+      (resultArtifact && resultArtifactFailureCode) ||
+      (resultArtifactFailureCode && (!turn || turn.status !== "succeeded" || Boolean(document.failure_code))) ||
+      (resultArtifact && (!turn || resultArtifact.turnId !== turn.turnId || resultArtifact.runRef.runId !== turn.runRef?.runId))) {
       return failedTurn("application_session_store_contract_mismatch", document.request_id);
     }
     if (!response.ok || document.failure_code || !session || !turn) {
-      return { status: turn?.status === "canceled" ? "canceled" : "failed", session, turn, advisoryOutput: "", answer: null, failureCode: document.failure_code || "application_session_store_unavailable", failureSummary: document.failure_summary, idempotentReplay: document.idempotent_replay, requestId: document.request_id, auditRef: document.audit_ref, summary: document.failure_summary || document.failure_code || "Application session turn failed closed." };
+      return { status: turn?.status === "canceled" ? "canceled" : "failed", session, turn, advisoryOutput: "", answer: null, resultArtifact: null, resultArtifactFailureCode: "", failureCode: document.failure_code || "application_session_store_unavailable", failureSummary: document.failure_summary, idempotentReplay: document.idempotent_replay, requestId: document.request_id, auditRef: document.audit_ref, summary: document.failure_summary || document.failure_code || "Application session turn failed closed." };
     }
-    if (turn.status !== "succeeded" || (!document.advisory_output && !answer) || (document.advisory_output && answer)) return failedTurn("application_session_store_contract_mismatch", document.request_id);
-    return { status: "succeeded", session, turn, advisoryOutput: document.advisory_output ?? "", answer, failureCode: "", failureSummary: "", idempotentReplay: document.idempotent_replay, requestId: document.request_id, auditRef: document.audit_ref, summary: "Turn succeeded. Request and response content remain only in current component memory." };
+    if (turn.status !== "succeeded" || (!document.idempotent_replay && !document.advisory_output && !answer) ||
+      (document.idempotent_replay && Boolean(document.advisory_output || answer)) || (document.advisory_output && answer)) {
+      return failedTurn("application_session_store_contract_mismatch", document.request_id);
+    }
+    return { status: "succeeded", session, turn, advisoryOutput: document.advisory_output ?? "", answer, resultArtifact, resultArtifactFailureCode, failureCode: "", failureSummary: "", idempotentReplay: document.idempotent_replay, requestId: document.request_id, auditRef: document.audit_ref, summary: resultArtifact ? "Turn succeeded and its canonical result was explicitly saved." : resultArtifactFailureCode ? "Turn succeeded, but explicit result saving failed closed." : "Turn succeeded. Request and response content remain only in current component memory." };
   } catch (error) {
     return failedTurn(isAbort(error) ? "application_session_request_canceled" : "application_session_store_unavailable", requestId);
   }
@@ -606,11 +630,13 @@ function isTurnListEnvelope(value: unknown, config: ApplicationInteractionSessio
 
 function isTurnEnvelope(value: unknown, config: ApplicationInteractionSessionConfig, applicationId: string, sessionId: string): value is TurnEnvelope {
   if (!isRecord(value)) return false;
-  const allowed = new Set(["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "advisory_output", "answer", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"]);
+  const allowed = new Set(["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "result_artifact", "result_artifact_failure_code", "advisory_output", "answer", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"]);
   const required = ["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"];
   return required.every((key) => Object.hasOwn(value, key)) && Object.keys(value).every((key) => allowed.has(key)) &&
     !containsForbiddenFieldExceptAnswer(value) && envelopeScopeMatches(value, config, applicationId) && value.session_id === sessionId &&
     (value.session === null || isRecord(value.session)) && (value.turn === null || isRecord(value.turn)) &&
+    (value.result_artifact === undefined || value.result_artifact === null || isRecord(value.result_artifact)) &&
+    (value.result_artifact_failure_code === undefined || typeof value.result_artifact_failure_code === "string" && REF_PATTERN.test(value.result_artifact_failure_code)) &&
     (value.advisory_output === undefined || typeof value.advisory_output === "string") && (value.answer === undefined || value.answer === null || isRecord(value.answer)) &&
     (value.failure_code === null || typeof value.failure_code === "string") && typeof value.failure_summary === "string" && typeof value.idempotent_replay === "boolean";
 }
@@ -715,7 +741,7 @@ function offlineSessionResult(): ApplicationInteractionSessionResult {
 }
 
 function offlineTurnResult(): ApplicationInteractionTurnResult {
-  return { status: "offline", session: null, turn: null, advisoryOutput: "", answer: null, failureCode: "application_session_http_disabled", failureSummary: "", idempotentReplay: false, requestId: "", auditRef: "", summary: "Offline mode sends zero application session requests." };
+  return { status: "offline", session: null, turn: null, advisoryOutput: "", answer: null, resultArtifact: null, resultArtifactFailureCode: "", failureCode: "application_session_http_disabled", failureSummary: "", idempotentReplay: false, requestId: "", auditRef: "", summary: "Offline mode sends zero application session requests." };
 }
 
 function failedSessionList(failureCode: string, requestId = "", auditRef = ""): ApplicationInteractionSessionListResult {
@@ -731,7 +757,7 @@ function failedTurnList(failureCode: string, requestId = "", auditRef = ""): App
 }
 
 function failedTurn(failureCode: string, requestId = ""): ApplicationInteractionTurnResult {
-  return { status: failureCode === "application_session_request_canceled" ? "canceled" : "failed", session: null, turn: null, advisoryOutput: "", answer: null, failureCode, failureSummary: "", idempotentReplay: false, requestId, auditRef: "", summary: sessionFailureSummary(failureCode) };
+  return { status: failureCode === "application_session_request_canceled" ? "canceled" : "failed", session: null, turn: null, advisoryOutput: "", answer: null, resultArtifact: null, resultArtifactFailureCode: "", failureCode, failureSummary: "", idempotentReplay: false, requestId, auditRef: "", summary: sessionFailureSummary(failureCode) };
 }
 
 function sessionFailureSummary(failureCode: string): string {

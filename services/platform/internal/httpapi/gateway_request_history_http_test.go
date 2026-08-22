@@ -75,6 +75,10 @@ func runGatewayRequestHistoryRecordsNorthboundAndReadsScopedHistory(t *testing.T
 		readEnvelope.Request.Usage.TotalTokens != 13 {
 		t.Fatalf("unexpected request detail: %#v", readEnvelope)
 	}
+	if readEnvelope.Request.SchemaVersion == gatewayRequestRecordSchemaVersionV3 ||
+		strings.Contains(readResponse.Body.String(), `"provider_attempt_cost_summary"`) {
+		t.Fatalf("legacy detail fabricated Provider Attempt cost summary: %s", readResponse.Body.String())
+	}
 }
 
 func TestGatewayRequestHistoryRecordsInvalidBodyAndSkipsUnscopedRequest(t *testing.T) {
@@ -331,6 +335,27 @@ func TestGatewayRequestHistoryReadScopeAndDevGateFailClosed(t *testing.T) {
 	if disabledResponse.Code != http.StatusForbidden ||
 		!strings.Contains(disabledResponse.Body.String(), "GATEWAY_REQUEST_HISTORY_DEV_DISABLED") {
 		t.Fatalf("disabled history route did not fail closed: %d %s", disabledResponse.Code, disabledResponse.Body.String())
+	}
+}
+
+func TestGatewayRequestHistoryParsesProviderAttemptFiltersStrictly(t *testing.T) {
+	request, failureCode := parseGatewayRequestListRequest(map[string][]string{
+		"fallback_used":     {"true"},
+		"terminal_provider": {"mock"},
+		"terminal_profile":  {"mock-secondary"},
+	})
+	if failureCode != "" || request.FallbackUsed == nil || !*request.FallbackUsed ||
+		request.TerminalProvider != "mock" || request.TerminalProfile != "mock-secondary" {
+		t.Fatalf("provider attempt filters were not parsed: request=%#v failure=%s", request, failureCode)
+	}
+	for name, values := range map[string]map[string][]string{
+		"invalid boolean": {"fallback_used": {"1"}},
+		"duplicate":       {"fallback_used": {"true", "false"}},
+		"unknown":         {"terminal_attempt": {"mock-secondary"}},
+	} {
+		if _, code := parseGatewayRequestListRequest(values); code != GatewayRequestHistoryFailureFilterInvalid {
+			t.Fatalf("%s filter was accepted: %s", name, code)
+		}
 	}
 }
 

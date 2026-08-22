@@ -234,6 +234,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             <Suspense fallback={<StageFallback label="Workflow Definition promotion" />}>
               <WorkflowDefinitionPromotionPanel
                 key={`${context.generationKey}:workflow-definition-promotion`}
+                workspaceId={context.workspaceId}
                 applicationId={context.applicationId}
                 activeDraft={activeWorkflowDraft}
                 savedDraftVersion={savedDraftVersion}

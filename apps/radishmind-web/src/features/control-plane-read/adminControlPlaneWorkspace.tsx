@@ -220,7 +220,11 @@ export default function AdminControlPlaneWorkspace({
             <AdminAuditOwner auditLog={auditLog} sourceConfig={sourceConfig} />
           ) : null}
           {activeSurface === "provider" || activeSurface === "profile" || activeSurface === "route" ? (
-            <AdminProviderRouteOwner surface={activeSurface} config={providerRouteConfig} />
+            <AdminProviderRouteOwner
+              surface={activeSurface}
+              config={providerRouteConfig}
+              selectedApplicationId={selectedApplicationId}
+            />
           ) : null}
           {activeSurface === "quota" ? (
             <AdminQuotaOwner
@@ -545,9 +549,11 @@ function AuditReadOnlyDetail({ event, requestId }: { event: AdminAuditEventRow |
 function AdminProviderRouteOwner({
   surface,
   config,
+  selectedApplicationId,
 }: {
   surface: "provider" | "profile" | "route";
   config: AdminProviderRouteConfig;
+  selectedApplicationId: string;
 }) {
   const copy = {
     provider: ["Provider inventory boundary", "Reference existing runtime inventory without copying endpoint or credential material."],
@@ -567,7 +573,7 @@ function AdminProviderRouteOwner({
         </StatusPill>
       </header>
       <Suspense fallback={<div className="admin-control-plane-loading">Loading controlled configuration owner…</div>}>
-        <AdminProviderRouteWorkspacePanel focus={surface} />
+        <AdminProviderRouteWorkspacePanel focus={surface} applicationId={selectedApplicationId} />
       </Suspense>
     </section>
   );
