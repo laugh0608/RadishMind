@@ -80,7 +80,7 @@
 完成证据：
 
 - 七条 fixed Admin route 已由 `Server` 注册并复用同一 administration service；read 与 mutation 分别重读 exact `local_identity_members:read`、`local_identity_memberships:write`、`local_identity_roles:read`、`local_identity_roles:assign`，没有通用“管理员”布尔旁路。
-- 认证只接受显式 `local_session_dev_test` Web Session。tenant 来自 verified actor context，单值 `X-RadishMind-Active-Workspace` 必须与 path workspace 相等；Bearer、dev header、signed-test、缺失 session、membership / permission / repository failure 都不能 fallback。
+- 认证只接受显式 `local_session_dev_test` Web Session。七条请求都必须各提供一份 `X-RadishMind-Active-Tenant` 与 `X-RadishMind-Active-Workspace`：tenant selection 必须与 middleware 恢复的 verified actor tenant 相等，workspace selection 必须与 path workspace 相等；Bearer、dev header、signed-test、缺失 session、scope / membership / permission / repository failure 都不能 fallback。
 - mutation 复用 exact Origin、double-submit CSRF、十分钟近期认证、显式 `confirmed`、expected catalog / record version，并从 request id 生成有界摘要 audit ref；request body 拒绝未知 / 重复字段、客户端 `permission_grants`、scope 覆盖与多 JSON 文档。
 - 自动化覆盖七条成功链、strict query / method、非成员、单权限隔离、跨 workspace、目标不可用、unknown role、grants 注入、missing confirmation、stale CAS、self / last-admin denial、CSRF / Origin、stale authentication、脱敏 projection 与稳定 recovery metadata；first-admin bootstrap HTTP 保持 `404`。
 - 精准管理 HTTP / service 测试、完整 `internal/httpapi`、Platform `go test ./...` 与管理专项 race 已通过；本批没有修改 config、migration、Pencil 或 Web，也没有启动 PostgreSQL 容器或宣称 production IAM。

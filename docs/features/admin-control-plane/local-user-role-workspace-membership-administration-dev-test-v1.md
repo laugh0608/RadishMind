@@ -97,7 +97,7 @@
 | `POST /v1/admin/local-identity/workspaces/{workspace_id}/role-assignments` | `local_identity_roles:assign` | 从 canonical catalog 创建冻结 assignment |
 | `POST /v1/admin/local-identity/workspaces/{workspace_id}/role-assignments/{assignment_id}/revoke` | `local_identity_roles:assign` | assignment CAS revoke |
 
-所有 mutation 同时要求同源 Origin、CSRF、近期认证、request / audit ref、expected version（适用时）和显式影响确认字段。tenant 来自已验证 actor context；path workspace 必须与 active workspace 和 membership decision 一致，客户端不能覆盖 tenant 或通过 payload 改 scope。
+所有七条 Admin 请求都必须各携带一份 `X-RadishMind-Active-Tenant` 与 `X-RadishMind-Active-Workspace`；tenant header 只用于 local-session 选择，并必须与 middleware 恢复的 verified actor tenant 精确一致，workspace header 必须与 path workspace 和 membership decision 一致。所有 mutation 还要求同源 Origin、CSRF、近期认证、request / audit ref、expected version（适用时）和显式影响确认字段；客户端不能通过 payload 覆盖 tenant / workspace 或改写 scope。
 
 strict request body 已固定：membership create 为 `user_id + expires_at? + confirmed`；membership / assignment revoke 为 `expected_record_version + confirmed`；role assignment create 为 `user_id + role_key + expected_catalog_version + expected_role_definition_digest + expires_at? + confirmed`。客户端提交 `tenant_ref`、`workspace_id`、`permission_grants`、重复字段、未知字段或多份 JSON 文档均被拒绝。成功响应统一携带 `request_id + tenant_ref + workspace_id`，再返回当前 endpoint 的 canonical member、catalog、membership 或 assignment 管理投影；不返回领域记录中的 audit ref、登录标识、credential 或 session。
 

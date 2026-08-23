@@ -21,7 +21,7 @@
 - RadishMind 拥有服务自身的本地账户、凭证、Web Session、角色、权限和工作区成员关系；同时可以由 Radish 注册为 OIDC application/client，以 `(issuer, subject)` 把 Radish 外部身份绑定到本地 `user_id`。RadishMind 当前不成为第二个 OIDC issuer，也不读取或复制 Radish 身份数据库与业务授权真相。参考 `Radish` 的部署、数据库和运维方式不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
 - `RadishFlow` 和 `Radish` 是优先接入对象与产品参考，但不是 RadishMind 平台本体开发的阻塞条件。上层暂时没有稳定 UI、command 或 API 挂载点时，本仓库应继续推进可离线验证、可复用到后续真实接入的用户端、workflow runtime、control plane 和模型网关功能；不把等待上层接线写成产品停滞理由。
 - 当前首要用户是 Radish 体系内部开发者和团队成员，首要产品任务是创建、校验、保存、恢复和审查 Workflow；Gateway 是第一工程支撑面，Admin 只推进支撑 Workflow / Gateway 所需能力。
-- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；其中 dev header / signed-test assertion 只证明 legacy 授权、资源绑定和零副作用边界。联合身份专题批次 A 至 D 已独立建立本地账户、Web Session、durable membership、local session actor 链、确定性 OIDC 浏览器登录、Web gateway 与 S7 当前账户 owner；真实 Radish 联调和生产授权尚未成立。
+- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；其中 dev header / signed-test assertion 只证明 legacy 授权、资源绑定和零副作用边界。联合身份专题批次 A 至 D 已独立建立本地账户、Web Session、durable membership、local session actor 链、确定性 OIDC 浏览器登录、Web gateway 与当前账户 owner；本地成员管理专题批次 A 至 E 又在同一 owner 上完成 S7 workspace 成员 / 角色管理。真实 Radish 联调和生产授权尚未成立。
 - 四个一级产品面保持不变；`Image Generation / Artifact Return` 是横切适配能力，不作为当前第五条一级产品主线。
 - `Radish` 保持 Radish 自身身份、成员关系和上层业务真相；RadishMind 保持平台本地账户、角色、工作区成员关系，以及 Workflow draft / version、run record、trace、usage 和 audit 运行数据。两套身份通过显式 external identity binding 联合，不以同步数据库、email 自动合并或 claim 隐式授权混为同一真相源。
 
@@ -95,7 +95,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 
 - 面向平台管理员和运维。
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
-- 认证同时支持 RadishMind 本地账户与 Radish OIDC 联合登录；授权始终由 RadishMind 本地角色和工作区成员关系 owner 决定。当前新产品顺位已在该 owner 上完成开发测试态 workspace-scoped 成员目录合同、canonical 内建角色、三存储 management owner、显式 bootstrap CLI、七条 local-session-only strict Admin HTTP、批准 Pencil 与 S7 User / Role React strict consumer；下一候选只验证批次 E 双数据库产品连续链，不开放全局账户搜索、自定义角色、上游 claim 授权或 production IAM。数据库、部署和运维习惯可参考 `Radish`，但不复制其身份表或后端语言栈。
+- 认证同时支持 RadishMind 本地账户与 Radish OIDC 联合登录；授权始终由 RadishMind 本地角色和工作区成员关系 owner 决定。本地成员管理专题批次 A 至 E 已在该 owner 上完成开发测试态 workspace-scoped 成员目录合同、canonical 内建角色、三存储 management owner、显式 bootstrap CLI、七条 local-session-only strict Admin HTTP、批准 Pencil、S7 User / Role React strict consumer、SQLite / PostgreSQL configured Server 产品连续链与浏览器隐私审计；专题关闭，不派生批次 F，也不开放全局账户搜索、自定义角色、上游 claim 授权或 production IAM。数据库、部署和运维习惯可参考 `Radish`，但不复制其身份表或后端语言栈。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
 - 当前 Web 提供 `admin-tenant-overview`、`admin-audit-log`、Admin Operations Review，以及 Provider/Profile & Deployment Review 内的开发测试态受控配置工作区；它不是 production admin console。Provider Profile / Model Route 受控启用批次 A 至 E 已建立作用域领域、不可变候选、人工 review、显式 activation、历史 rollback、只读 inventory resolver、三模式 durable owner、verified Admin HTTP、Gateway snapshot consumer、Request History 谱系与双数据库浏览器证据。
 - User Workspace 五条只读 operation 已共享 `WorkspaceMembershipProvider`：Applications、API Keys、Workflow Definitions 与 Runs 复用既有 durable owner，Quota 在缺少可信 policy owner 时失败关闭；active workspace 只在当前 Web 进程内选择，切换会失效旧选择和旧快照。运营收件箱只消费四类已授权首分页快照，不创建 incident、notification 或 remediation owner。

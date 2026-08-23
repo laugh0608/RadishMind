@@ -45,14 +45,21 @@
 1. 产品线：本地成员管理专题批次 A 至 E 已全部关闭；下一轮先回到[功能设计文档入口](features/README.md)选择并更新新的长期功能目标，不从已关闭专题派生批次 F、S11 或同层 gate-only 切片。[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
-## 2026-08-23 今日完成与下一事项
+## 2026-08-23 今日完成
 
 1. 已完成批次 D 完整设计覆盖并修正 Family UI 语言：五维评分 `2 / 1 / 2 / 2 / 2 = 9`，正确设计源第二排的 Authentication Gateway Desktop `scHoA`、Narrow `uR4Yd` 已统一为 Visual R2 的 `Inter + Geist Mono`、冷灰白工作区、深蓝主操作与紧凑信息密度，Decision `SQPBB` 更新为 R19；布局检查无问题，修正提交为 `cb9df403`。
 2. Platform 已增加 `GET /v1/auth/account` 与 `POST /v1/auth/external-identities/{binding_id}/revoke`。当前账户 profile 由 memory / SQLite / PostgreSQL 的唯一 repository contract 投影；解绑要求近期认证、ownership、CSRF / Origin、版本 CAS 与至少一种剩余登录方式。
-3. Web 已增加显式 opt-in 本地身份 gateway、strict consumer、登录 / 注册 / Radish 登录入口、当前账户、link / revoke / logout 和 metadata-only 跨标签同步；S7 User / Role 只读取当前本地账户、role assignment 与 membership，不使用离线 fixture 冒充目录事实。
+3. 联合登录批次 D 的 Web 已增加显式 opt-in 本地身份 gateway、strict consumer、登录 / 注册 / Radish 登录入口、当前账户、link / revoke / logout 和 metadata-only 跨标签同步；该批次当时的 S7 User / Role 只读取当前本地账户、role assignment 与 membership，不使用离线 fixture 冒充目录事实，随后已由本地成员管理专题升级为 workspace 成员与角色管理面。
 4. 真实浏览器完成错误密码、正确登录、当前账户面板、S7 User / Role、双标签登出、刷新、SQLite 服务重启恢复及 `1440×900`、`720×900`、`390×844`；无横向溢出，三标签 console 无 warning / error。临时账户、SQLite 文件、服务与浏览器标签均已清理。
 5. “本地用户、角色与工作区成员管理 v1”批次 E 已完成并关闭专题：SQLite 与 PostgreSQL configured Server 均完成双账户注册、显式 bootstrap、membership / role create / revoke、业务权限 `200 → 403` 即时失效、Server 停止 no-fallback 与重启恢复；实链路发现并修复七条 Admin 请求缺少 active tenant header 的 scope mismatch。User 三视口、Role Narrow、双标签 logout、URL / Storage / IndexedDB / Cache / service worker / cookie 属性审计通过，临时账号、数据库、浏览器日志、服务、容器、网络和 volume 已清理。真实 Radish、production session store、MFA、恢复、速率限制、refresh token 与 production auth 继续关闭。
 6. Batch B 的 SQLite v2 → v3 与 PostgreSQL v1 → v3、`121` 条同时间戳 cursor、并发 CAS、原子 revoke、受限 runtime role、重启、rollback / reapply、回滚后 no-fallback 和双数据库显式 bootstrap 均通过；`local_workspace_memberships_directory_idx` 已由 SQLite `EXPLAIN QUERY PLAN` 与 PostgreSQL `ANALYZE + EXPLAIN` 验证。PostgreSQL 测试容器和网络已关闭。
+
+## 2026-08-24 明天事项
+
+1. 先从[功能设计文档入口](features/README.md)、路线图和能力矩阵复核四个一级产品面的真实用户缺口，只选择一个新的长期功能目标；先更新或建立对应功能专题并明确 owner、核心流程、数据边界、停止线和验收方式，再决定是否需要高风险任务卡和实现批次。
+2. 优先选择能形成用户可感知端到端流程、复用既有 canonical owner、且可在本仓库完成确定性验证的能力；没有真实使用证据时不新增普通只读 console、同层 gate-only 切片或为了延续编号而产生的功能。
+3. 本地成员管理专题保持关闭，不派生批次 F、S11、全局账户搜索、自定义角色或客户端 grants；联合登录批次 E 继续等待 reviewed 真实 Radish 注册条件，不以 loopback 证据替代外部联调，也不提前打开 production IAM。
+4. 明日完成目标选择和专题评审后，再由项目所有者确认是否进入代码；在此之前不预设 API、schema、migration、repository、权限或生产边界变化。
 
 ## 2026-08-19 今日评审
 

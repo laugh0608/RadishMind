@@ -29,7 +29,7 @@
 - 本地注册、登录、当前 session、logout / revoke 与 browser OIDC route 均接入独立 `local_session_dev_test` 模式；middleware 只从 Web Session cookie 恢复 `user:<user_id>`，再由本地 `WorkspaceMembershipProvider` 重读 membership / role。dev header、signed-test token、resource-server Bearer token 与本地 session 互斥，不形成失败 fallback。
 - `GET /v1/auth/account` 已通过唯一 repository projection 返回当前会话的本地账户、外部身份、角色分配、workspace membership 与受控 capability；memory、SQLite、PostgreSQL 均在同一读取事务内形成确定性排序，不返回登录标识、issuer、subject、credential、token、raw claim 或 audit ref。
 - `POST /v1/auth/external-identities/{binding_id}/revoke` 已实现同源 Origin、CSRF、近期认证、当前账户 ownership、record version CAS 与最后登录方式保护；不存在或不属于当前账户的 binding 不泄露其事实。
-- Web 仅在 `VITE_RADISHMIND_LOCAL_IDENTITY_MODE=local_identity_dev` 显式启用本地身份 gateway；consumer 使用 credentialed cookie transport、严格 exact response shape 与敏感字段拒绝，不写 Web Storage。S7 User / Role 已改为只消费当前本地账户 owner；没有 assignment / membership 时显示真实空状态，不构造目录、角色或成员 fixture。
+- Web 仅在 `VITE_RADISHMIND_LOCAL_IDENTITY_MODE=local_identity_dev` 显式启用本地身份 gateway；consumer 使用 credentialed cookie transport、严格 exact response shape 与敏感字段拒绝，不写 Web Storage。本专题批次 D 当时把 S7 User / Role 改为只消费当前本地账户 owner；没有 assignment / membership 时显示真实空状态，不构造目录、角色或成员 fixture。随后独立的本地成员管理专题已在同一 S7 任务结构上接入 workspace 成员 / 角色目录与受控 mutation，不改变本专题的账户和 external identity owner。
 
 ## 批次 A 实现状态
 
@@ -152,7 +152,7 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 - 五维评分 `2 / 1 / 2 / 2 / 2 = 9`，采用 `A / 完整 Pencil`。正确的 `docs/designs/radishmind-web-family-ui-v1.pen` 第二排新增 Desktop `scHoA`、Narrow `uR4Yd` 与 Decision `SQPBB` 三块代表板；旧节点未修改，布局问题检查通过。
 - 已提供本地注册 / 登录、Radish 登录入口、显式绑定 / 解绑、当前会话、失败与恢复状态；本地密码和 OIDC 最终只恢复 RadishMind session，浏览器不保存 token 或 session credential。
-- User / Role 页面已切换为当前账户的本地 identity / role owner。页面只呈现 `GET /v1/auth/account` 的真实当前账户投影；缺少 assignment / membership 时保持空状态，离线或服务失败时保持 blocked，不提供假目录或管理 mutation。
+- 本专题批次 D 的 User / Role 页面先切换为当前账户的本地 identity / role owner，当时只呈现 `GET /v1/auth/account` 的真实当前账户投影；缺少 assignment / membership 时保持空状态，离线或服务失败时保持 blocked，不提供假目录或管理 mutation。2026-08-23 后续本地成员管理专题已在独立 strict consumer 中升级同一 S7 User / Role，当前账户与 external identity 管理仍留在 Authentication / Account surface。
 - 真实浏览器完成错误密码、正确登录、当前账户面板、S7 User / Role、本地空状态、双标签登出传播、刷新恢复、SQLite 服务重启恢复及 `1440×900`、`720×900`、`390×844` 响应式检查；三标签 console 均无 warning / error。确定性 OIDC login / link 与 revoke 继续由批次 C loopback issuer、HTTP 和 strict consumer 自动化覆盖，真实 Radish 浏览器证据仍属于批次 E。
 
 ### 批次 E：真实 Radish 集成

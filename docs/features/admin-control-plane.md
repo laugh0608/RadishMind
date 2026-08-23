@@ -25,14 +25,14 @@
 ## 设计边界
 
 - RadishMind 拥有服务自身的本地账号、角色、权限和工作区成员关系；作为 Radish OIDC client 时只把外部 `(issuer, subject)` 绑定到本地账户。当前不自建 OIDC issuer，不读取或复制 Radish 身份数据库。
-- 管理端动作必须区分 read、draft、review、activate / rollback；Tenant / Audit 与身份边界当前只读，只有 Provider / Profile / Route 在 development / test 配置 owner 内开放四项独立权限和显式 generation 切换。
+- 管理端动作必须区分 read、draft、review、activate / rollback；Tenant / Audit 继续只读，Provider / Profile / Route 只在 development / test 配置 owner 内开放四项独立权限和显式 generation 切换，User / Role 则只在独立 local identity owner 内开放四项成员 / 角色管理权限、近期认证和显式确认。两类 mutation 不共享状态机或宽泛“管理员”旁路。
 - 审计记录、secret reference 和 deployment evidence 只能展示脱敏摘要。
 - 管理端 readiness 不等于 production ready，也不等于可以绕过人工确认。
 
 ## 下一批开发方向
 
-1. 本地成员管理批次 D 已完成；下一候选只进入批次 E，以既有 SQLite / PostgreSQL owner、七条 Admin HTTP 和单一 React strict consumer完成产品连续链、三视口及浏览器隐私审计，不重开 Pencil，也不扩 production IAM。
-2. `S7 R1` 七资源页面族与 `S9 R1` Admin Quota Admission 均已完成功能纵向切片；S7 User / Role 后续只按新成员管理专题升级，不建立 S11，也不把目录管理并入 Provider / Profile / Route、quota 或 Pricing owner。
+1. 本地成员管理批次 A 至 E 已完成并关闭；SQLite / PostgreSQL configured Server、七条 Admin HTTP、单一 React strict consumer、三视口、双标签和浏览器隐私审计均已形成证据。下一轮回到功能设计入口选择新的长期目标，不从该专题派生批次 F。
+2. `S7 R1` 七资源页面族、S7 User / Role 成员管理升级与 `S9 R1` Admin Quota Admission 均已完成功能纵向切片；不建立 S11，也不把目录管理并入 Provider / Profile / Route、quota 或 Pricing owner。
 3. `Radish OIDC Integration Test Runtime v1` deterministic resource-server 与 browser OIDC 本地批次均已完成；真实 Radish 联调继续 deferred，不阻塞 local identity Admin 产品链，也不为其提供目录或 grant。
 4. Provider Profile assignment 与 Model Route 的开发测试态受控配置已完成；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 只消费显式启用的不可变快照。不得从现有 Web 原地扩 production 配置。
 5. 普通 evidence review 展示不再新增逐项 task card；只有真实 auth、数据库、secret、deployment 或新管理动作才新增专项 gate。

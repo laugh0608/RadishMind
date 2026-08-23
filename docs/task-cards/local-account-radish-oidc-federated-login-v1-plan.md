@@ -92,7 +92,7 @@
 
 - 五维评分 `2 / 1 / 2 / 2 / 2 = 9`，采用 `A / 完整 Pencil`；正确设计源第二排新增 Desktop `scHoA`、Narrow `uR4Yd` 与 Decision `SQPBB`，未修改旧节点。
 - Platform 新增当前账户严格投影与 external identity revoke route；三种 repository 共享同一当前账户 profile contract，解绑要求近期认证、ownership、CSRF / Origin、CAS 与至少一种剩余登录方式。
-- Web 使用显式 opt-in gateway、credentialed cookie、exact response parser、forbidden field guard、无 Web Storage 和 metadata-only `BroadcastChannel`。S7 User / Role 只读取当前本地 owner，不伪造用户目录、角色目录或 membership。
+- Web 使用显式 opt-in gateway、credentialed cookie、exact response parser、forbidden field guard、无 Web Storage 和 metadata-only `BroadcastChannel`。本任务批次 D 当时的 S7 User / Role 只读取当前本地 owner，不伪造用户目录、角色目录或 membership；后续 workspace 成员 / 角色管理由独立专题和 strict consumer 承接。
 - 真实浏览器覆盖错误密码、正确登录、当前账户、S7 User / Role、双标签登出、刷新与 SQLite 服务重启恢复；`1440×900`、`720×900`、`390×844` 无横向溢出，三标签 console 无 warning / error。OIDC login / link 与 revoke 的确定性行为由批次 C loopback issuer及本批 HTTP / consumer 自动化承接；真实 Radish 浏览器链留在批次 E。
 
 ## 批次 E：真实 Radish 联调
