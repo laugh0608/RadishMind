@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_d_completed_batch_e_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_completed`
 
 对应功能设计：[本地用户、角色与工作区成员管理（开发 / 测试态）v1](../features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)
 
@@ -115,6 +115,14 @@
 - 完成 `1440×900`、`720×900`、`390×844`、双标签、console / network / URL / storage / privacy 审计。
 - 回写功能专题、Admin 入口、当前焦点、路线图、能力矩阵和周志后关闭专题。
 
+完成证据：
+
+- SQLite 页面链完成两账户注册、显式 bootstrap、exact `user_id` membership create、canonical `workspace_reader` assign / revoke、业务权限 `200 → workspace_permission_denied`、membership revoke 后 `workspace_membership_denied`、原子 assignment revoke、Server no-fallback 与同库重启恢复。
+- PostgreSQL 17 通过独立临时容器、显式 `0003` migration、受限 runtime role 和 configured Server 完成同构链、关闭 no-fallback 与重连恢复；临时容器、网络和 volume 已删除。
+- 实链路发现并修复 strict consumer 缺少 `X-RadishMind-Active-Tenant` 的 scope header；七条 API 现统一发送 exact tenant / workspace，精准 consumer 测试固定该合同，服务端仍保持 scope mismatch fail-closed。
+- User 页面在 `1440×900`、`720×900`、`390×844`，Role 页面在 `390×844` 均无横向溢出；双标签 logout 同步失效。URL query、Web Storage、IndexedDB、Cache Storage 与 service worker 均未保存身份目录或确认内容，登录态 session credential 仅存在 HttpOnly + SameSite=Strict cookie。
+- 预认证、近期认证、权限撤销与服务关闭产生的预期 `401 / 403 / unavailable` 已逐项核对；临时账号、数据库、浏览器快照 / 日志与所有本地服务均已清理。
+
 ## 必须保持的负向边界
 
 - 无全局账户搜索、email / login identifier 查询、上游目录同步或 email 自动合并。
@@ -149,4 +157,4 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：Admin HTTP 与 local session 授权。
 - [x] 批次 D：Pencil 与 React strict consumer。
-- [ ] 批次 E：双数据库产品连续链与专题收口。
+- [x] 批次 E：双数据库产品连续链与专题收口。

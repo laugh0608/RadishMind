@@ -4,6 +4,7 @@ import {
   type LocalIdentityConsumerConfig,
 } from "./localIdentityConsumer.ts";
 
+const ACTIVE_TENANT_HEADER = "X-RadishMind-Active-Tenant";
 const ACTIVE_WORKSPACE_HEADER = "X-RadishMind-Active-Workspace";
 const CSRF_HEADER = "X-RadishMind-CSRF-Token";
 const MEMBER_SUMMARY_SCHEMA = "local_identity_workspace_member_summary.v1";
@@ -471,6 +472,7 @@ async function requestAdministration(
     cache: "no-store",
     headers: {
       Accept: "application/json",
+      [ACTIVE_TENANT_HEADER]: config.tenantRef,
       [ACTIVE_WORKSPACE_HEADER]: config.workspaceId,
       ...(method === "POST" ? {
         "Content-Type": "application/json",

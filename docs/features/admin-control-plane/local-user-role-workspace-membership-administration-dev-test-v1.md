@@ -1,8 +1,8 @@
 # 本地用户、角色与工作区成员管理（开发 / 测试态）v1
 
-更新时间：2026-08-23
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_completed`
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_d_completed_batch_e_ready`
+更新时间：2026-08-23
 
 ## 功能定位
 
@@ -182,9 +182,11 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 ### 批次 E：双数据库产品连续链与专题收口
 
-- SQLite 产品链先完成第一账户注册 → 显式 bootstrap CLI 建立首个 workspace administrator，再由页面完成第二账户注册 → exact user id 交接 → membership create → role assign → 业务权限生效 → role revoke / membership revoke → 立即失败关闭 → 服务重启恢复。
-- PostgreSQL 配置化 Server 完成同构 repository / HTTP 连续链、关闭后 no-fallback 与重连恢复。
-- 完成三视口、双标签、隐私、console / network / storage 审计和最终仓库门禁。
+- SQLite 产品链已完成第一账户注册 → 显式 bootstrap CLI 建立首个 workspace administrator → 页面注册第二账户 → exact `user_id` 交接 → membership create → `workspace_reader` assign → 业务读取 `200` → role revoke 后 `workspace_permission_denied` → 重新分配 → membership revoke 后 `workspace_membership_denied` → 服务停止 no-fallback → 同库重启恢复 revoked membership 与 assignment 历史。
+- PostgreSQL 17 已由 migration identity 显式应用 `0003_local_identity_administration`，再以受限 runtime identity 启动 configured Server 并完成同构注册、bootstrap、目录 / 详情、角色分配、业务权限、role / membership revoke、立即失败关闭、Server 停止 no-fallback 与同库重连恢复。独立临时容器、网络和 volume 已删除。
+- 真实页面链发现 strict consumer 缺少 `X-RadishMind-Active-Tenant`，导致已 bootstrap 的 local session 被服务端以 `local_identity_admin_scope_mismatch` 失败关闭；七条 Admin API 现统一发送 exact tenant / workspace header，并由 consumer 自动化固定，不放宽服务端 scope 校验。
+- `1440×900`、`720×900`、`390×844` 的 User 页面及 `390×844` Role 页面均无横向溢出；双标签 logout 立即回到认证入口。浏览器审计确认 location 只保留静态 owner hash，query 为空，Local / Session Storage、IndexedDB、Cache Storage 和 service worker 均为空；登录态只有 SameSite=Strict 的 CSRF cookie 与 HttpOnly session cookie，未保存目录载荷或确认正文。
+- 预认证 `401`、近期认证拒绝、显式业务权限 `403` 和 Server 停止时的 service-unavailable console / network 记录均与预期 fail-closed 状态对应；测试账号、SQLite 数据库、Playwright 快照 / 日志、服务、浏览器和 PostgreSQL 临时资源已清理。
 
 ## 验收方式
 
@@ -207,4 +209,4 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 ## 下一实现入口
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 D 已完成；下一入口仅为批次 E 的 SQLite / PostgreSQL 产品连续链、三视口与浏览器隐私审计。本批不提前执行批次 E，也不扩张到真实 Radish 或 production IAM。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接的批次 A 至 E 已全部完成，专题关闭。下一产品入口回到[功能设计文档入口](../README.md)选择新的长期功能目标；不得从本专题派生批次 F、真实 Radish、production IAM、全局账户搜索、自定义角色或客户端 grants。

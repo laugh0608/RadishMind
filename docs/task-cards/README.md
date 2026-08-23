@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)状态为 `local_user_role_workspace_membership_administration_dev_test_v1_batch_d_completed_batch_e_ready`。批次 A 至 D 的 workspace-scoped 合同、canonical 四角色、三存储 administration owner、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、批准 Pencil 与 React strict consumer 已完成；下一候选仅为批次 E 双数据库产品连续链，真实 Radish 与 production IAM 仍不在范围。
+当前没有可直接实施的高风险任务卡。下一产品目标先在 `docs/features/` 建立或更新长期功能专题，再按真实实现风险决定是否新建任务卡。
 
 ## 当前外部阻塞任务
 
@@ -20,7 +20,7 @@
 
 ## 最近关闭任务
 
-最新关闭：[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)已完成批次 A 至 C 的 application-scoped list、受控 export、strict Web consumer、SQLite 页面重启链和 PostgreSQL 配置化 no-fallback / 重启链；[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)已完成批次 A 至 D 的显式 opt-in、服务端 canonical capture、三存储不可变 artifact 与 lifecycle owner。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
+最新关闭：[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)已完成批次 A 至 E 的 workspace-scoped 合同、canonical 四角色、三存储 administration owner、显式 bootstrap、七条 strict Admin HTTP、批准 Pencil、React consumer、双数据库产品链和浏览器审计；[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)与[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)保持关闭。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。

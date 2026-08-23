@@ -101,6 +101,7 @@ test("local identity administration consumer connects all seven strict routes wi
     for (const request of captured) {
       assert.equal(request.credentials, "include");
       assert.equal(request.cache, "no-store");
+      assert.equal(request.headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
       assert.equal(request.headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
       assert.equal(request.headers.get("Authorization"), null);
       assert.equal(request.headers.get("X-RadishMind-Dev-Read-Identity"), null);

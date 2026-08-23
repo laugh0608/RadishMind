@@ -37,12 +37,12 @@
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
-- 新的本地可执行产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_batch_d_completed_batch_e_ready`。批次 A 至 D 已在现有 local identity owner 上完成 canonical 四角色、三存储管理 service、`0003` durable metadata / 顺序索引、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP，以及已批准 S7 User / Role Pencil 对应的单一 React strict consumer；下一步只在明确续推时进入批次 E 双数据库产品连续链，不打开全局账户搜索、自定义角色、真实 Radish 或 production IAM。
+- 最新关闭产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。批次 A 至 E 已在现有 local identity owner 上完成 canonical 四角色、三存储管理 service、`0003` durable metadata / 顺序索引、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、已批准 S7 User / Role Pencil、单一 React strict consumer，以及 SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计；专题关闭，不打开全局账户搜索、自定义角色、真实 Radish 或 production IAM。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)批次 D 已完成；下一候选只为批次 E 的 SQLite / PostgreSQL 页面连续链、三视口和隐私审计，必须消费既有 Admin HTTP 与 strict consumer，不重开 Pencil、不创建 S11，也不与真实 Radish 或 production IAM 耦合。[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：本地成员管理专题批次 A 至 E 已全部关闭；下一轮先回到[功能设计文档入口](features/README.md)选择并更新新的长期功能目标，不从已关闭专题派生批次 F、S11 或同层 gate-only 切片。[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成与下一事项
@@ -51,7 +51,7 @@
 2. Platform 已增加 `GET /v1/auth/account` 与 `POST /v1/auth/external-identities/{binding_id}/revoke`。当前账户 profile 由 memory / SQLite / PostgreSQL 的唯一 repository contract 投影；解绑要求近期认证、ownership、CSRF / Origin、版本 CAS 与至少一种剩余登录方式。
 3. Web 已增加显式 opt-in 本地身份 gateway、strict consumer、登录 / 注册 / Radish 登录入口、当前账户、link / revoke / logout 和 metadata-only 跨标签同步；S7 User / Role 只读取当前本地账户、role assignment 与 membership，不使用离线 fixture 冒充目录事实。
 4. 真实浏览器完成错误密码、正确登录、当前账户面板、S7 User / Role、双标签登出、刷新、SQLite 服务重启恢复及 `1440×900`、`720×900`、`390×844`；无横向溢出，三标签 console 无 warning / error。临时账户、SQLite 文件、服务与浏览器标签均已清理。
-5. “本地用户、角色与工作区成员管理 v1”批次 D 已完成：复用提交 `72205455` 的 Desktop `fFTsy` / `jEmjK`、Narrow `Wrggq` / `LQ297` 与 Decision `bkvt3`，单一 strict consumer 接入七条 Admin API，完成成员目录、exact detail、canonical role catalog 与受控 create / revoke，并覆盖 loading、empty、denied、unavailable、stale、catalog drift、last-admin、success、revoked。身份目录和确认内容不进入 URL 或浏览器持久化；下一事项仅为未执行的批次 E 双数据库产品连续链，真实 Radish、production session store、MFA、恢复、速率限制、refresh token 与 production auth 继续关闭。
+5. “本地用户、角色与工作区成员管理 v1”批次 E 已完成并关闭专题：SQLite 与 PostgreSQL configured Server 均完成双账户注册、显式 bootstrap、membership / role create / revoke、业务权限 `200 → 403` 即时失效、Server 停止 no-fallback 与重启恢复；实链路发现并修复七条 Admin 请求缺少 active tenant header 的 scope mismatch。User 三视口、Role Narrow、双标签 logout、URL / Storage / IndexedDB / Cache / service worker / cookie 属性审计通过，临时账号、数据库、浏览器日志、服务、容器、网络和 volume 已清理。真实 Radish、production session store、MFA、恢复、速率限制、refresh token 与 production auth 继续关闭。
 6. Batch B 的 SQLite v2 → v3 与 PostgreSQL v1 → v3、`121` 条同时间戳 cursor、并发 CAS、原子 revoke、受限 runtime role、重启、rollback / reapply、回滚后 no-fallback 和双数据库显式 bootstrap 均通过；`local_workspace_memberships_directory_idx` 已由 SQLite `EXPLAIN QUERY PLAN` 与 PostgreSQL `ANALYZE + EXPLAIN` 验证。PostgreSQL 测试容器和网络已关闭。
 
 ## 2026-08-19 今日评审
