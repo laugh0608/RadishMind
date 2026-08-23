@@ -237,6 +237,9 @@ func (service *localIdentityAdministrationService) ReadWorkspaceMember(
 	if err := service.authorize(ctx, actor, tenantRef, workspaceID, false, localIdentityPermissionMembersRead); err != nil {
 		return LocalIdentityWorkspaceMemberDetail{}, err
 	}
+	if !localUserIDPattern.MatchString(strings.TrimSpace(userID)) {
+		return LocalIdentityWorkspaceMemberDetail{}, errLocalIdentityContractMismatch
+	}
 	detail, err := service.repository.ReadWorkspaceMember(ctx, tenantRef, workspaceID, strings.TrimSpace(userID), now)
 	if err != nil {
 		return LocalIdentityWorkspaceMemberDetail{}, normalizeLocalIdentityAdministrationError(err)
@@ -472,11 +475,6 @@ func (service *localIdentityAdministrationService) authorize(
 		return errLocalIdentityAdminScopeMismatch
 	}
 	now := service.currentTime()
-	if requireRecentAuthentication &&
-		(actor.AuthenticatedAt.IsZero() || actor.AuthenticatedAt.Location() != time.UTC ||
-			actor.AuthenticatedAt.After(now) || now.Sub(actor.AuthenticatedAt) > localIdentityAdministrationRecentAuthenticationAge) {
-		return errLocalIdentityRecentAuthentication
-	}
 	if _, err := service.repository.AuthorizeWorkspace(
 		ctx,
 		strings.TrimSpace(actor.UserID),
@@ -486,6 +484,11 @@ func (service *localIdentityAdministrationService) authorize(
 		now,
 	); err != nil {
 		return normalizeAdministrationAuthorizationError(err)
+	}
+	if requireRecentAuthentication &&
+		(actor.AuthenticatedAt.IsZero() || actor.AuthenticatedAt.Location() != time.UTC ||
+			actor.AuthenticatedAt.After(now) || now.Sub(actor.AuthenticatedAt) > localIdentityAdministrationRecentAuthenticationAge) {
+		return errLocalIdentityRecentAuthentication
 	}
 	return nil
 }

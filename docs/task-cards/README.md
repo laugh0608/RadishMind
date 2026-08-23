@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)状态为 `local_user_role_workspace_membership_administration_dev_test_v1_batch_b_completed_batch_c_ready`。批次 A / B 的 workspace-scoped 合同、canonical 四角色、三存储 administration owner、`0003` catalog metadata / 顺序索引、显式 one-shot bootstrap CLI、CAS 与 self / last-admin protection 已完成；当前只打开批次 C 的 Admin HTTP 与 local Web Session 授权，Pencil、Web、真实 Radish 与 production IAM 均不在本批范围。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)状态为 `local_user_role_workspace_membership_administration_dev_test_v1_batch_c_completed_batch_d_ready`。批次 A 至 C 的 workspace-scoped 合同、canonical 四角色、三存储 administration owner、显式 one-shot bootstrap CLI 与七条 local-session-only strict Admin HTTP 已完成；当前只打开批次 D 的 S7 User / Role Pencil 与 React strict consumer，真实 Radish、双数据库产品收口与 production IAM 均不在本批范围。
 
 ## 当前外部阻塞任务
 

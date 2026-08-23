@@ -181,6 +181,7 @@ func registerLocalIdentityHTTPRoutes(mux *http.ServeMux, server *Server) {
 	mux.HandleFunc("POST "+localIdentitySessionRevokeRoute, server.handleLocalIdentitySessionRevoke)
 	mux.HandleFunc("POST "+localIdentityExternalIdentityRevokeRoute, server.handleLocalIdentityExternalIdentityRevoke)
 	registerLocalIdentityOIDCHTTPRoutes(mux, server)
+	registerLocalIdentityAdministrationHTTPRoutes(mux, server)
 }
 
 func withLocalIdentitySessionAuthentication(next http.Handler, service *localIdentityHTTPService) http.Handler {

@@ -148,6 +148,13 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - `POST /v1/auth/logout`
 - `POST /v1/auth/sessions/{session_id}/revoke`
 - `POST /v1/auth/external-identities/{binding_id}/revoke`
+- `GET /v1/admin/local-identity/workspaces/{workspace_id}/members`
+- `GET /v1/admin/local-identity/workspaces/{workspace_id}/members/{user_id}`
+- `GET /v1/admin/local-identity/role-catalog`
+- `POST /v1/admin/local-identity/workspaces/{workspace_id}/memberships`
+- `POST /v1/admin/local-identity/workspaces/{workspace_id}/memberships/{membership_id}/revoke`
+- `POST /v1/admin/local-identity/workspaces/{workspace_id}/role-assignments`
+- `POST /v1/admin/local-identity/workspaces/{workspace_id}/role-assignments/{assignment_id}/revoke`
 
 完整路由按服务 README 的六类入口导航到对应协议或功能专题。路由注册不表示默认启用；User Workspace、Workflow、Application RAG、Gateway history 与 Admin 路由必须满足各自 auth、scope、dev/test gate 和 store selector。Application Session 每轮还会重读所选 profile 的 exact authority，不能用 session 中的旧摘要绕过 v5 / v4 owner。
 

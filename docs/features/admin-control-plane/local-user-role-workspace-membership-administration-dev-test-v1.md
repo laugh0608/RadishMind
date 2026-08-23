@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_c_completed_batch_d_ready`
 
 ## 功能定位
 
@@ -13,7 +13,7 @@
 ## 选择依据
 
 - [本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)已经完成 `UserAccount`、`LocalRoleAssignment`、`WorkspaceMembership`、memory / SQLite / PostgreSQL repository 与本地 Session 授权链。
-- 当前 `localIdentityRepository` 已有单账户读取、角色分配创建 / 撤销、成员关系创建 / 撤销和 CAS；批次 A / B 已补齐三种 store 的 workspace-scoped 管理 repository 与产品级 mutation service，正式 Admin HTTP 仍留在批次 C。
+- 当前 `localIdentityRepository` 已有单账户读取、角色分配创建 / 撤销、成员关系创建 / 撤销和 CAS；批次 A 至 C 已补齐三种 store 的 workspace-scoped 管理 repository、产品级 mutation service 与正式 Admin HTTP，S7 管理 consumer 留在批次 D。
 - S7 User / Role 明确显示当前账户，不伪造目录事实；因此下一步应在现有 owner 上建立真实目录与授权管理，而不是继续补只读 evidence 页面或依赖真实 Radish 批次 E。
 - 本功能可以完全在本仓库的开发测试态三种 store 中验证，不依赖 production secret、真实 issuer、外部账号资源或上层项目接线。
 
@@ -85,7 +85,7 @@
 
 ## Admin HTTP 与权限
 
-首版计划使用以下开发测试态 HTTP surface：
+首版已注册以下开发测试态 HTTP surface：
 
 | 方法与路径 | 权限 | 语义 |
 | --- | --- | --- |
@@ -98,6 +98,8 @@
 | `POST /v1/admin/local-identity/workspaces/{workspace_id}/role-assignments/{assignment_id}/revoke` | `local_identity_roles:assign` | assignment CAS revoke |
 
 所有 mutation 同时要求同源 Origin、CSRF、近期认证、request / audit ref、expected version（适用时）和显式影响确认字段。tenant 来自已验证 actor context；path workspace 必须与 active workspace 和 membership decision 一致，客户端不能覆盖 tenant 或通过 payload 改 scope。
+
+strict request body 已固定：membership create 为 `user_id + expires_at? + confirmed`；membership / assignment revoke 为 `expected_record_version + confirmed`；role assignment create 为 `user_id + role_key + expected_catalog_version + expected_role_definition_digest + expires_at? + confirmed`。客户端提交 `tenant_ref`、`workspace_id`、`permission_grants`、重复字段、未知字段或多份 JSON 文档均被拒绝。成功响应统一携带 `request_id + tenant_ref + workspace_id`，再返回当前 endpoint 的 canonical member、catalog、membership 或 assignment 管理投影；不返回领域记录中的 audit ref、登录标识、credential 或 session。
 
 first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstrap` 只在开发者显式执行时调用同一领域 service，并要求 exact 账户已存在且 active、目标 scope 没有 active identity administrator、repository mode 明确为 `sqlite_dev` 或 `postgres_dev_test`。数据库位置只从对应环境变量读取，不进入 argv 或 JSON 输出；memory、生产模式、服务启动和普通注册流程不得触发 bootstrap。
 
@@ -164,9 +166,10 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 ### 批次 C：Admin HTTP 与 local session 授权
 
-- 注册七条 strict route、四项独立权限、CSRF / Origin、近期认证、确认和稳定失败映射。
-- 覆盖非成员、权限不足、跨 workspace、cursor 漂移、目标枚举、stale CAS、self / last-admin protection 和零业务副作用。
-- 只允许显式开发测试态 local session，不增加 dev header / signed-test fallback。
+- 已注册七条 strict route；Server 只从现有 `local_session_dev_test` middleware 恢复 exact `user_id + tenant`，要求单值 active workspace 与 path 一致，并在解析 query / payload 与执行 mutation 前重读 active account、membership 和 endpoint 对应的 exact permission。
+- mutation 已复用同源 Origin、double-submit CSRF、十分钟近期认证、显式 `confirmed`、catalog / record expected version 和摘要化 request-bound audit ref；成功只返回 canonical 管理投影，稳定失败附带脱敏 `recovery` metadata。
+- HTTP 自动化已覆盖七条成功链、非成员、单权限隔离、跨 workspace、目标不可用、未知 role、客户端 grants 注入、cursor / filter、stale CAS、self / last-admin protection、缺失确认、CSRF / Origin、近期认证、错误 method 和零业务副作用。
+- Bearer、dev header、signed-test 与缺失 / 无效 local session 均不能 fallback；first-admin bootstrap 没有 HTTP route，Server startup 和普通注册也未接入 bootstrap。
 
 ### 批次 D：Pencil 与 React strict consumer
 
@@ -201,4 +204,4 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 ## 下一实现入口
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A / B 已完成，下一入口为批次 C 的 Admin HTTP 与 local Web Session 授权；批次 D / E 必须继续依次消费前一批证据，不并行扩张 HTTP 与 UI 边界。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 C 已完成，下一入口为批次 D：只更新既有第二排 S7 User / Role Desktop、Narrow 与 Decision Record，再接入 React strict consumer；批次 E 必须继续消费前一批证据，不并行扩张 UI 与双数据库产品验收边界。

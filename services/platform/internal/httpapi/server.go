@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -72,6 +73,7 @@ type Server struct {
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
 	gatewayModelPricingRepository           GatewayModelPricingRepository
 	localIdentityHTTPService                *localIdentityHTTPService
+	localIdentityAdministrationService      *localIdentityAdministrationService
 	closeSavedWorkflowDraftStore            func()
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
@@ -296,6 +298,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		return nil, err
 	}
 	localIdentityHTTPService := newLocalIdentityHTTPService(runtimeConfig, localIdentityRepository)
+	localIdentityAdministrationRepository, ok := localIdentityRepository.(localIdentityAdministrationRepository)
+	if !ok {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
+		return nil, errors.New("local identity administration repository is unavailable")
+	}
+	localIdentityAdministrationService := newLocalIdentityAdministrationService(localIdentityAdministrationRepository)
 	if err := localIdentityHTTPService.configureOIDC(context.Background(), runtimeConfig); err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
 		return nil, err
@@ -349,6 +357,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
 		gatewayModelPricingRepository:           gatewayModelPricingRepository,
 		localIdentityHTTPService:                localIdentityHTTPService,
+		localIdentityAdministrationService:      localIdentityAdministrationService,
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
