@@ -60248,14 +60248,14 @@
       "id": "scHoA",
       "x": 0,
       "y": 1180,
-      "name": "Authentication Gateway — Desktop / Dev Test · R1",
+      "name": "Authentication Gateway — Desktop / Dev Test · R2",
       "theme": {
         "theme": "guofeng"
       },
       "clip": true,
       "width": 1440,
       "height": 900,
-      "fill": "#F4EFE6",
+      "fill": "#F6F7F4",
       "layout": "vertical",
       "children": [
         {
@@ -60263,15 +60263,15 @@
           "id": "H6mG0",
           "name": "Authentication Header",
           "width": "fill_container",
-          "height": 72,
-          "fill": "#FBF7F0",
-          "stroke": "#D8C9BB",
+          "height": 64,
+          "fill": "#FFFFFF",
+          "stroke": "#D8DED9",
           "strokeWidth": {
             "bottom": 1
           },
           "padding": [
-            16,
-            28
+            12,
+            24
           ],
           "justifyContent": "space_between",
           "alignItems": "center",
@@ -60287,10 +60287,10 @@
                   "type": "frame",
                   "id": "iXC2L",
                   "name": "Brand Seal",
-                  "width": 36,
-                  "height": 36,
+                  "width": 32,
+                  "height": 32,
                   "fill": "#5D6C57",
-                  "cornerRadius": 10,
+                  "cornerRadius": 9,
                   "layout": "vertical",
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -60302,8 +60302,8 @@
                       "fill": "#FFFFFF",
                       "content": "R",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 18,
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
                       "fontWeight": "700"
                     }
                   ]
@@ -60313,28 +60313,28 @@
                   "id": "M4A3z",
                   "name": "Brand Copy",
                   "layout": "vertical",
-                  "gap": 2,
+                  "gap": 1,
                   "children": [
                     {
                       "type": "text",
                       "id": "Shn5A",
                       "name": "Brand Name",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "content": "RadishMind",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 16,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "O34qs",
                       "name": "Brand Scope",
-                      "fill": "#746B62",
+                      "fill": "#8A928C",
                       "content": "AI tools · workflow · model gateway",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 11,
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
                       "fontWeight": "500"
                     }
                   ]
@@ -60352,11 +60352,11 @@
                   "type": "frame",
                   "id": "rBB8Q",
                   "name": "Preview Mode Badge",
-                  "fill": "#E2E8DC",
-                  "cornerRadius": "$radius-sm",
+                  "fill": "#F1F3EF",
+                  "cornerRadius": 8,
                   "padding": [
-                    7,
-                    11
+                    6,
+                    10
                   ],
                   "children": [
                     {
@@ -60366,8 +60366,8 @@
                       "fill": "#5D6C57",
                       "content": "INTERNAL DEVELOPER PREVIEW",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 9,
                       "fontWeight": "700"
                     }
                   ]
@@ -60376,24 +60376,24 @@
                   "type": "frame",
                   "id": "g0Lmv",
                   "name": "Identity State Badge",
-                  "fill": "#FBF7F0",
-                  "cornerRadius": "$radius-sm",
-                  "stroke": "#D8C9BB",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 8,
+                  "stroke": "#D8DED9",
                   "strokeWidth": 1,
                   "padding": [
-                    7,
-                    11
+                    6,
+                    10
                   ],
                   "children": [
                     {
                       "type": "text",
                       "id": "M2MveS",
                       "name": "Identity State Label",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "content": "LOCAL IDENTITY · DEV / TEST",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 9,
                       "fontWeight": "700"
                     }
                   ]
@@ -60413,19 +60413,19 @@
               "type": "frame",
               "id": "LgTXx",
               "name": "Identity Trust Rail",
-              "width": 430,
+              "width": 264,
               "height": "fill_container",
-              "fill": "#F3EBDD",
-              "stroke": "#D8C9BB",
+              "fill": "#FAFBF9",
+              "stroke": "#D8DED9",
               "strokeWidth": {
                 "right": 1
               },
               "layout": "vertical",
               "padding": [
-                54,
-                48,
-                42,
-                48
+                36,
+                28,
+                28,
+                28
               ],
               "justifyContent": "space_between",
               "children": [
@@ -60435,28 +60435,28 @@
                   "name": "Trust Narrative",
                   "width": "fill_container",
                   "layout": "vertical",
-                  "gap": 22,
+                  "gap": 18,
                   "children": [
                     {
                       "type": "frame",
                       "id": "cCk4A",
                       "name": "Trust Kicker",
-                      "fill": "#E2E8DC",
-                      "cornerRadius": "$radius-sm",
+                      "fill": "#F1F3EF",
+                      "cornerRadius": 8,
                       "padding": [
                         6,
-                        10
+                        9
                       ],
                       "children": [
                         {
                           "type": "text",
                           "id": "H9MdOd",
                           "name": "Trust Kicker Label",
-                          "fill": "#5D6C57",
+                          "fill": "#314F68",
                           "content": "LOCAL SESSION OWNER",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 10,
+                          "fontFamily": "Geist Mono",
+                          "fontSize": 9,
                           "fontWeight": "700"
                         }
                       ]
@@ -60465,33 +60465,33 @@
                       "type": "text",
                       "id": "LGtUV",
                       "name": "Trust Title",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "One identity boundary,\nowned by RadishMind.",
-                      "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 38,
-                      "fontWeight": "600"
+                      "content": "Identity stays local\nto RadishMind.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "Inter",
+                      "fontSize": 20,
+                      "fontWeight": "650"
                     },
                     {
                       "type": "text",
                       "id": "CvI9b",
                       "name": "Trust Summary",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "Use a local account or a reviewed Radish OIDC binding. Both paths end in the same RadishMind Web Session.",
+                      "content": "Local account or reviewed Radish OIDC. Both paths end in the same Web Session.",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 15
+                      "fontFamily": "Inter",
+                      "fontSize": 12
                     },
                     {
                       "type": "frame",
                       "id": "dpXK4",
                       "name": "Identity Guarantees",
                       "width": "fill_container",
-                      "stroke": "#D8C9BB",
+                      "stroke": "#D8DED9",
                       "strokeWidth": {
                         "top": 1
                       },
@@ -60502,13 +60502,13 @@
                           "id": "Lmyre",
                           "name": "Guarantee 01",
                           "width": "fill_container",
-                          "stroke": "#D8C9BB",
+                          "stroke": "#D8DED9",
                           "strokeWidth": {
                             "bottom": 1
                           },
-                          "gap": 14,
+                          "gap": 12,
                           "padding": [
-                            15,
+                            12,
                             0
                           ],
                           "children": [
@@ -60516,11 +60516,11 @@
                               "type": "frame",
                               "id": "tiwsP",
                               "name": "Guarantee Number 01",
-                              "width": 30,
-                              "height": 30,
-                              "fill": "#FBF7F0",
-                              "cornerRadius": 8,
-                              "stroke": "#D8C9BB",
+                              "width": 28,
+                              "height": 28,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 7,
+                              "stroke": "#D8DED9",
                               "strokeWidth": 1,
                               "layout": "vertical",
                               "justifyContent": "center",
@@ -60530,11 +60530,11 @@
                                   "type": "text",
                                   "id": "VcC0w",
                                   "name": "Guarantee Number Label 01",
-                                  "fill": "#5D6C57",
+                                  "fill": "#314F68",
                                   "content": "01",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 10,
+                                  "fontFamily": "Geist Mono",
+                                  "fontSize": 9,
                                   "fontWeight": "700"
                                 }
                               ]
@@ -60545,30 +60545,30 @@
                               "name": "Guarantee Copy 01",
                               "width": "fill_container",
                               "layout": "vertical",
-                              "gap": 3,
+                              "gap": 2,
                               "children": [
                                 {
                                   "type": "text",
                                   "id": "UGcVw",
                                   "name": "Guarantee Title 01",
-                                  "fill": "#2F2A25",
+                                  "fill": "#171A18",
                                   "content": "Local session",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 13,
-                                  "fontWeight": "700"
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "650"
                                 },
                                 {
                                   "type": "text",
                                   "id": "YHp8j",
                                   "name": "Guarantee Body 01",
-                                  "fill": "#746B62",
+                                  "fill": "#555D57",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
                                   "content": "Browser tokens never become business authorization.",
-                                  "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10
                                 }
                               ]
                             }
@@ -60579,13 +60579,13 @@
                           "id": "OWBZp",
                           "name": "Guarantee 02",
                           "width": "fill_container",
-                          "stroke": "#D8C9BB",
+                          "stroke": "#D8DED9",
                           "strokeWidth": {
                             "bottom": 1
                           },
-                          "gap": 14,
+                          "gap": 12,
                           "padding": [
-                            15,
+                            12,
                             0
                           ],
                           "children": [
@@ -60593,11 +60593,11 @@
                               "type": "frame",
                               "id": "u5jGM4",
                               "name": "Guarantee Number 02",
-                              "width": 30,
-                              "height": 30,
-                              "fill": "#FBF7F0",
-                              "cornerRadius": 8,
-                              "stroke": "#D8C9BB",
+                              "width": 28,
+                              "height": 28,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 7,
+                              "stroke": "#D8DED9",
                               "strokeWidth": 1,
                               "layout": "vertical",
                               "justifyContent": "center",
@@ -60607,11 +60607,11 @@
                                   "type": "text",
                                   "id": "e72Nn",
                                   "name": "Guarantee Number Label 02",
-                                  "fill": "#5D6C57",
+                                  "fill": "#314F68",
                                   "content": "02",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 10,
+                                  "fontFamily": "Geist Mono",
+                                  "fontSize": 9,
                                   "fontWeight": "700"
                                 }
                               ]
@@ -60622,30 +60622,30 @@
                               "name": "Guarantee Copy 02",
                               "width": "fill_container",
                               "layout": "vertical",
-                              "gap": 3,
+                              "gap": 2,
                               "children": [
                                 {
                                   "type": "text",
                                   "id": "vZdIx",
                                   "name": "Guarantee Title 02",
-                                  "fill": "#2F2A25",
+                                  "fill": "#171A18",
                                   "content": "Explicit binding",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 13,
-                                  "fontWeight": "700"
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "650"
                                 },
                                 {
                                   "type": "text",
                                   "id": "j0bJO",
                                   "name": "Guarantee Body 02",
-                                  "fill": "#746B62",
+                                  "fill": "#555D57",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
                                   "content": "External identity is keyed only by issuer + subject.",
-                                  "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10
                                 }
                               ]
                             }
@@ -60656,13 +60656,13 @@
                           "id": "c1g45",
                           "name": "Guarantee 03",
                           "width": "fill_container",
-                          "stroke": "#D8C9BB",
+                          "stroke": "#D8DED9",
                           "strokeWidth": {
                             "bottom": 1
                           },
-                          "gap": 14,
+                          "gap": 12,
                           "padding": [
-                            15,
+                            12,
                             0
                           ],
                           "children": [
@@ -60670,11 +60670,11 @@
                               "type": "frame",
                               "id": "gjbkL",
                               "name": "Guarantee Number 03",
-                              "width": 30,
-                              "height": 30,
-                              "fill": "#FBF7F0",
-                              "cornerRadius": 8,
-                              "stroke": "#D8C9BB",
+                              "width": 28,
+                              "height": 28,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 7,
+                              "stroke": "#D8DED9",
                               "strokeWidth": 1,
                               "layout": "vertical",
                               "justifyContent": "center",
@@ -60684,11 +60684,11 @@
                                   "type": "text",
                                   "id": "qbyOL",
                                   "name": "Guarantee Number Label 03",
-                                  "fill": "#5D6C57",
+                                  "fill": "#314F68",
                                   "content": "03",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 10,
+                                  "fontFamily": "Geist Mono",
+                                  "fontSize": 9,
                                   "fontWeight": "700"
                                 }
                               ]
@@ -60699,30 +60699,30 @@
                               "name": "Guarantee Copy 03",
                               "width": "fill_container",
                               "layout": "vertical",
-                              "gap": 3,
+                              "gap": 2,
                               "children": [
                                 {
                                   "type": "text",
                                   "id": "SdzAG",
                                   "name": "Guarantee Title 03",
-                                  "fill": "#2F2A25",
+                                  "fill": "#171A18",
                                   "content": "Local grants",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 13,
-                                  "fontWeight": "700"
+                                  "fontFamily": "Inter",
+                                  "fontSize": 11,
+                                  "fontWeight": "650"
                                 },
                                 {
                                   "type": "text",
                                   "id": "YcTnH",
                                   "name": "Guarantee Body 03",
-                                  "fill": "#746B62",
+                                  "fill": "#555D57",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
                                   "content": "Email, role and permission claims create no local grant.",
-                                  "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 12
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10
                                 }
                               ]
                             }
@@ -60737,38 +60737,38 @@
                   "id": "BKSRo",
                   "name": "Development Boundary",
                   "width": "fill_container",
-                  "fill": "#FBF7F0",
-                  "cornerRadius": "$radius-md",
-                  "stroke": "#9B6A32",
+                  "fill": "#F6ECE6",
+                  "cornerRadius": 10,
+                  "stroke": "#E4CFC4",
                   "strokeWidth": {
                     "left": 3
                   },
                   "layout": "vertical",
-                  "gap": 7,
-                  "padding": 14,
+                  "gap": 6,
+                  "padding": 12,
                   "children": [
                     {
                       "type": "text",
                       "id": "ojUqs",
                       "name": "Boundary Label",
-                      "fill": "#9B6A32",
+                      "fill": "#A76E52",
                       "content": "DEVELOPMENT / TEST ONLY",
                       "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 9,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "BfI56",
                       "name": "Boundary Copy",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "No production auth, MFA, account recovery or real Radish integration is claimed here.",
-                      "lineHeight": 1.35,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 12,
+                      "lineHeight": 1.3,
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
                       "fontWeight": "500"
                     }
                   ]
@@ -60781,11 +60781,11 @@
               "name": "Authentication Main",
               "width": "fill_container",
               "height": "fill_container",
-              "fill": "#F4EFE6",
+              "fill": "#F6F7F4",
               "layout": "vertical",
               "padding": [
-                36,
-                64
+                44,
+                56
               ],
               "justifyContent": "center",
               "alignItems": "center",
@@ -60794,23 +60794,24 @@
                   "type": "frame",
                   "id": "cLlAs",
                   "name": "Authentication Card",
-                  "width": 560,
-                  "fill": "#FBF7F0",
-                  "stroke": "#D8C9BB",
+                  "width": 620,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 12,
+                  "stroke": "#D8DED9",
                   "strokeWidth": 1,
                   "effect": {
                     "type": "shadow",
                     "shadowType": "outer",
-                    "color": "#23313B14",
+                    "color": "#23313B12",
                     "offset": {
                       "x": 0,
-                      "y": 10
+                      "y": 8
                     },
-                    "blur": 28
+                    "blur": 22
                   },
                   "layout": "vertical",
-                  "gap": 20,
-                  "padding": 34,
+                  "gap": 16,
+                  "padding": 28,
                   "children": [
                     {
                       "type": "frame",
@@ -60818,43 +60819,43 @@
                       "name": "Authentication Intro",
                       "width": "fill_container",
                       "layout": "vertical",
-                      "gap": 8,
+                      "gap": 6,
                       "children": [
                         {
                           "type": "text",
                           "id": "flCz6",
                           "name": "Authentication Eyebrow",
-                          "fill": "#5D6C57",
+                          "fill": "#314F68",
                           "content": "RETURN TO YOUR WORKSPACE",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 10,
+                          "fontFamily": "Geist Mono",
+                          "fontSize": 9,
                           "fontWeight": "700"
                         },
                         {
                           "type": "text",
                           "id": "KDIxP",
                           "name": "Authentication Title",
-                          "fill": "#2F2A25",
+                          "fill": "#171A18",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
                           "content": "Sign in to RadishMind",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 30,
-                          "fontWeight": "600"
+                          "fontFamily": "Inter",
+                          "fontSize": 24,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "text",
                           "id": "fMrNJ",
                           "name": "Authentication Summary",
-                          "fill": "#746B62",
+                          "fill": "#555D57",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
                           "content": "Restore a local Web Session without placing credentials in the URL or browser storage.",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 13
+                          "fontFamily": "Inter",
+                          "fontSize": 12
                         }
                       ]
                     },
@@ -60863,9 +60864,9 @@
                       "id": "C7ADnm",
                       "name": "Authentication Mode Tabs",
                       "width": "fill_container",
-                      "height": 44,
-                      "fill": "#F3EBDD",
-                      "cornerRadius": "$radius-md",
+                      "height": 40,
+                      "fill": "#F1F3EF",
+                      "cornerRadius": 10,
                       "gap": 4,
                       "padding": 4,
                       "children": [
@@ -60875,9 +60876,9 @@
                           "name": "Sign In Tab",
                           "width": "fill_container",
                           "height": "fill_container",
-                          "fill": "#FBF7F0",
-                          "cornerRadius": "$radius-sm",
-                          "stroke": "#D8C9BB",
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 7,
+                          "stroke": "#D8DED9",
                           "strokeWidth": 1,
                           "layout": "vertical",
                           "justifyContent": "center",
@@ -60887,11 +60888,11 @@
                               "type": "text",
                               "id": "FK7Pt",
                               "name": "Sign In Tab Label",
-                              "fill": "#435C74",
+                              "fill": "#314F68",
                               "content": "Sign in",
                               "lineHeight": 1.35,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 13,
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
                               "fontWeight": "700"
                             }
                           ]
@@ -60902,7 +60903,7 @@
                           "name": "Create Account Tab",
                           "width": "fill_container",
                           "height": "fill_container",
-                          "cornerRadius": "$radius-sm",
+                          "cornerRadius": 7,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -60911,11 +60912,11 @@
                               "type": "text",
                               "id": "t9aXm",
                               "name": "Create Account Tab Label",
-                              "fill": "#746B62",
+                              "fill": "#555D57",
                               "content": "Create account",
                               "lineHeight": 1.35,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 13,
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
                               "fontWeight": "600"
                             }
                           ]
@@ -60928,7 +60929,7 @@
                       "name": "Local Credential Fields",
                       "width": "fill_container",
                       "layout": "vertical",
-                      "gap": 14,
+                      "gap": 12,
                       "children": [
                         {
                           "type": "frame",
@@ -60936,32 +60937,32 @@
                           "name": "Account ID Field Group",
                           "width": "fill_container",
                           "layout": "vertical",
-                          "gap": 7,
+                          "gap": 5,
                           "children": [
                             {
                               "type": "text",
                               "id": "C4jMgB",
                               "name": "Account ID Label",
-                              "fill": "#2F2A25",
+                              "fill": "#171A18",
                               "content": "Local account ID",
                               "lineHeight": 1.35,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 12,
-                              "fontWeight": "700"
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "650"
                             },
                             {
                               "type": "frame",
                               "id": "Pi4vw",
                               "name": "Account ID Input",
                               "width": "fill_container",
-                              "height": 46,
-                              "fill": "#FBF7F0",
-                              "cornerRadius": "$radius-sm",
-                              "stroke": "#D8C9BB",
+                              "height": 42,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 8,
+                              "stroke": "#D8DED9",
                               "strokeWidth": 1,
                               "padding": [
                                 0,
-                                14
+                                12
                               ],
                               "alignItems": "center",
                               "children": [
@@ -60969,11 +60970,11 @@
                                   "type": "text",
                                   "id": "bXioP",
                                   "name": "Account ID Input Hint",
-                                  "fill": "#746B62",
+                                  "fill": "#8A928C",
                                   "content": "Enter your local account identifier",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 13
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12
                                 }
                               ]
                             }
@@ -60985,32 +60986,32 @@
                           "name": "Password Field Group",
                           "width": "fill_container",
                           "layout": "vertical",
-                          "gap": 7,
+                          "gap": 5,
                           "children": [
                             {
                               "type": "text",
                               "id": "LzCrs",
                               "name": "Password Label",
-                              "fill": "#2F2A25",
+                              "fill": "#171A18",
                               "content": "Password",
                               "lineHeight": 1.35,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 12,
-                              "fontWeight": "700"
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "650"
                             },
                             {
                               "type": "frame",
                               "id": "vHIiK",
                               "name": "Password Input",
                               "width": "fill_container",
-                              "height": 46,
-                              "fill": "#FBF7F0",
-                              "cornerRadius": "$radius-sm",
-                              "stroke": "#D8C9BB",
+                              "height": 42,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 8,
+                              "stroke": "#D8DED9",
                               "strokeWidth": 1,
                               "padding": [
                                 0,
-                                14
+                                12
                               ],
                               "alignItems": "center",
                               "children": [
@@ -61018,11 +61019,11 @@
                                   "type": "text",
                                   "id": "e3huSD",
                                   "name": "Password Input Hint",
-                                  "fill": "#746B62",
+                                  "fill": "#8A928C",
                                   "content": "At least 12 characters",
                                   "lineHeight": 1.35,
-                                  "fontFamily": "Noto Sans SC",
-                                  "fontSize": 13
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12
                                 }
                               ]
                             }
@@ -61035,9 +61036,9 @@
                       "id": "ieC7r",
                       "name": "Sign In Action",
                       "width": "fill_container",
-                      "height": 46,
-                      "fill": "#435C74",
-                      "cornerRadius": "$radius-sm",
+                      "height": 42,
+                      "fill": "#314F68",
+                      "cornerRadius": 8,
                       "layout": "vertical",
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -61049,8 +61050,8 @@
                           "fill": "#FFFFFF",
                           "content": "Sign in",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 14,
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
                           "fontWeight": "700"
                         }
                       ]
@@ -61069,17 +61070,17 @@
                           "name": "Divider Before",
                           "width": "fill_container",
                           "height": 1,
-                          "fill": "#D8C9BB"
+                          "fill": "#D8DED9"
                         },
                         {
                           "type": "text",
                           "id": "jLMdH",
                           "name": "Divider Label",
-                          "fill": "#746B62",
+                          "fill": "#8A928C",
                           "content": "or",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 11,
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
                           "fontWeight": "600"
                         },
                         {
@@ -61088,7 +61089,7 @@
                           "name": "Divider After",
                           "width": "fill_container",
                           "height": 1,
-                          "fill": "#D8C9BB"
+                          "fill": "#D8DED9"
                         }
                       ]
                     },
@@ -61097,10 +61098,10 @@
                       "id": "ljVdS",
                       "name": "Radish OIDC Action",
                       "width": "fill_container",
-                      "height": 46,
-                      "fill": "#FBF7F0",
-                      "cornerRadius": "$radius-sm",
-                      "stroke": "#435C74",
+                      "height": 42,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 8,
+                      "stroke": "#314F68",
                       "strokeWidth": 1,
                       "gap": 9,
                       "justifyContent": "center",
@@ -61110,10 +61111,10 @@
                           "type": "frame",
                           "id": "oUYxk",
                           "name": "OIDC Mark",
-                          "width": 22,
-                          "height": 22,
+                          "width": 20,
+                          "height": 20,
                           "fill": "#E2E8DC",
-                          "cornerRadius": 7,
+                          "cornerRadius": 6,
                           "layout": "vertical",
                           "justifyContent": "center",
                           "alignItems": "center",
@@ -61125,7 +61126,7 @@
                               "fill": "#5D6C57",
                               "content": "R",
                               "lineHeight": 1.35,
-                              "fontFamily": "Noto Sans SC",
+                              "fontFamily": "Inter",
                               "fontSize": 11,
                               "fontWeight": "700"
                             }
@@ -61135,11 +61136,11 @@
                           "type": "text",
                           "id": "PmYLM",
                           "name": "Radish OIDC Action Label",
-                          "fill": "#435C74",
+                          "fill": "#314F68",
                           "content": "Continue with Radish",
                           "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 14,
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
                           "fontWeight": "700"
                         }
                       ]
@@ -61149,10 +61150,10 @@
                       "id": "zVlrG",
                       "name": "Authentication Recovery Note",
                       "width": "fill_container",
-                      "fill": "#DCE5EC",
-                      "cornerRadius": "$radius-sm",
+                      "fill": "#E8EEF2",
+                      "cornerRadius": 8,
                       "gap": 10,
-                      "padding": 12,
+                      "padding": 10,
                       "children": [
                         {
                           "type": "frame",
@@ -61160,7 +61161,7 @@
                           "name": "Recovery Note Icon",
                           "width": 20,
                           "height": 20,
-                          "fill": "#FBF7F0",
+                          "fill": "#FFFFFF",
                           "cornerRadius": 10,
                           "layout": "vertical",
                           "justifyContent": "center",
@@ -61170,10 +61171,10 @@
                               "type": "text",
                               "id": "NkFjg",
                               "name": "Recovery Note Icon Label",
-                              "fill": "#435C74",
+                              "fill": "#314F68",
                               "content": "i",
                               "lineHeight": 1.35,
-                              "fontFamily": "Noto Sans SC",
+                              "fontFamily": "Inter",
                               "fontSize": 11,
                               "fontWeight": "700"
                             }
@@ -61183,13 +61184,13 @@
                           "type": "text",
                           "id": "EPaXL",
                           "name": "Recovery Note Copy",
-                          "fill": "#746B62",
+                          "fill": "#555D57",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
                           "content": "Account recovery is not available in this preview. Sanitized failures never reveal whether an account exists.",
-                          "lineHeight": 1.35,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 11,
+                          "lineHeight": 1.3,
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
                           "fontWeight": "500"
                         }
                       ]
@@ -61207,11 +61208,11 @@
       "id": "uR4Yd",
       "x": 1520,
       "y": 1180,
-      "name": "Authentication Gateway — Narrow / Dev Test · R1",
+      "name": "Authentication Gateway — Narrow / Dev Test · R2",
       "clip": true,
       "width": 390,
       "height": 844,
-      "fill": "#F4EFE6",
+      "fill": "#ECEEEA",
       "layout": "vertical",
       "children": [
         {
@@ -61220,14 +61221,14 @@
           "name": "Narrow Authentication Header",
           "width": "fill_container",
           "height": 64,
-          "fill": "#FBF7F0",
-          "stroke": "#D8C9BB",
+          "fill": "#FFFFFF",
+          "stroke": "#D8DED9",
           "strokeWidth": {
             "bottom": 1
           },
           "padding": [
             12,
-            16
+            14
           ],
           "justifyContent": "space_between",
           "alignItems": "center",
@@ -61258,7 +61259,7 @@
                       "fill": "#FFFFFF",
                       "content": "R",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
+                      "fontFamily": "Inter",
                       "fontSize": 15,
                       "fontWeight": "700"
                     }
@@ -61268,11 +61269,11 @@
                   "type": "text",
                   "id": "i0eXaJ",
                   "name": "Narrow Brand Name",
-                  "fill": "#2F2A25",
+                  "fill": "#171A18",
                   "content": "RadishMind",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 14,
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
                   "fontWeight": "700"
                 }
               ]
@@ -61281,11 +61282,11 @@
               "type": "frame",
               "id": "v9fzF",
               "name": "Narrow Preview Badge",
-              "fill": "#E2E8DC",
-              "cornerRadius": 8,
+              "fill": "#F1F3EF",
+              "cornerRadius": 7,
               "padding": [
                 6,
-                9
+                8
               ],
               "children": [
                 {
@@ -61295,8 +61296,8 @@
                   "fill": "#5D6C57",
                   "content": "DEV / TEST",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 9,
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 8,
                   "fontWeight": "700"
                 }
               ]
@@ -61309,13 +61310,14 @@
           "name": "Narrow Authentication Body",
           "width": "fill_container",
           "height": "fill_container",
+          "fill": "#F6F7F4",
           "layout": "vertical",
-          "gap": 14,
+          "gap": 12,
           "padding": [
-            20,
-            16,
-            16,
-            16
+            18,
+            12,
+            14,
+            12
           ],
           "alignItems": "center",
           "children": [
@@ -61323,45 +61325,45 @@
               "type": "frame",
               "id": "xroPH",
               "name": "Narrow Page Intro",
-              "width": 358,
+              "width": "fill_container",
               "layout": "vertical",
-              "gap": 5,
+              "gap": 4,
               "children": [
                 {
                   "type": "text",
                   "id": "S4uV8",
                   "name": "Narrow Page Eyebrow",
-                  "fill": "#5D6C57",
+                  "fill": "#314F68",
                   "content": "RETURN TO YOUR WORKSPACE",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 9,
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 8,
                   "fontWeight": "700"
                 },
                 {
                   "type": "text",
                   "id": "yuuiQ",
                   "name": "Narrow Page Title",
-                  "fill": "#2F2A25",
+                  "fill": "#171A18",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Sign in to RadishMind",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 25,
-                  "fontWeight": "600"
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "650"
                 },
                 {
                   "type": "text",
                   "id": "ZCSq6",
                   "name": "Narrow Page Summary",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "The browser keeps only RadishMind's secure session cookie.",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 11
+                  "fontFamily": "Inter",
+                  "fontSize": 10
                 }
               ]
             },
@@ -61369,10 +61371,10 @@
               "type": "frame",
               "id": "eNURd",
               "name": "Narrow Authentication Card",
-              "width": 358,
-              "fill": "#FBF7F0",
-              "cornerRadius": 14,
-              "stroke": "#D8C9BB",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 10,
+              "stroke": "#D8DED9",
               "strokeWidth": 1,
               "effect": {
                 "type": "shadow",
@@ -61380,22 +61382,22 @@
                 "color": "#23313B12",
                 "offset": {
                   "x": 0,
-                  "y": 7
+                  "y": 6
                 },
-                "blur": 20
+                "blur": 18
               },
               "layout": "vertical",
-              "gap": 12,
-              "padding": 20,
+              "gap": 10,
+              "padding": 16,
               "children": [
                 {
                   "type": "frame",
                   "id": "GKrNC",
                   "name": "Narrow Authentication Tabs",
                   "width": "fill_container",
-                  "height": 40,
-                  "fill": "#F3EBDD",
-                  "cornerRadius": 10,
+                  "height": 38,
+                  "fill": "#F1F3EF",
+                  "cornerRadius": 9,
                   "gap": 4,
                   "padding": 4,
                   "children": [
@@ -61405,9 +61407,9 @@
                       "name": "Narrow Sign In Tab",
                       "width": "fill_container",
                       "height": "fill_container",
-                      "fill": "#FBF7F0",
-                      "cornerRadius": 7,
-                      "stroke": "#D8C9BB",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 6,
+                      "stroke": "#D8DED9",
                       "strokeWidth": 1,
                       "layout": "vertical",
                       "justifyContent": "center",
@@ -61417,11 +61419,11 @@
                           "type": "text",
                           "id": "dmTfN",
                           "name": "Narrow Sign In Tab Label",
-                          "fill": "#435C74",
+                          "fill": "#314F68",
                           "content": "Sign in",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 12,
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
                           "fontWeight": "700"
                         }
                       ]
@@ -61432,7 +61434,7 @@
                       "name": "Narrow Create Account Tab",
                       "width": "fill_container",
                       "height": "fill_container",
-                      "cornerRadius": 7,
+                      "cornerRadius": 6,
                       "layout": "vertical",
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -61441,11 +61443,11 @@
                           "type": "text",
                           "id": "P43qYx",
                           "name": "Narrow Create Account Tab Label",
-                          "fill": "#746B62",
+                          "fill": "#555D57",
                           "content": "Create account",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 12,
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
                           "fontWeight": "600"
                         }
                       ]
@@ -61472,26 +61474,26 @@
                           "type": "text",
                           "id": "clHXj",
                           "name": "Narrow Account ID Label",
-                          "fill": "#2F2A25",
+                          "fill": "#171A18",
                           "content": "Local account ID",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 11,
-                          "fontWeight": "700"
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "frame",
                           "id": "b4EAn",
                           "name": "Narrow Account ID Input",
                           "width": "fill_container",
-                          "height": 42,
-                          "fill": "#FBF7F0",
-                          "cornerRadius": 8,
-                          "stroke": "#D8C9BB",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 7,
+                          "stroke": "#D8DED9",
                           "strokeWidth": 1,
                           "padding": [
                             0,
-                            12
+                            11
                           ],
                           "alignItems": "center",
                           "children": [
@@ -61499,11 +61501,11 @@
                               "type": "text",
                               "id": "LRFJx",
                               "name": "Narrow Account ID Hint",
-                              "fill": "#746B62",
+                              "fill": "#8A928C",
                               "content": "Enter your local account identifier",
                               "lineHeight": 1.32,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 11
+                              "fontFamily": "Inter",
+                              "fontSize": 10
                             }
                           ]
                         }
@@ -61521,26 +61523,26 @@
                           "type": "text",
                           "id": "n5hz1",
                           "name": "Narrow Password Label",
-                          "fill": "#2F2A25",
+                          "fill": "#171A18",
                           "content": "Password",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 11,
-                          "fontWeight": "700"
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "frame",
                           "id": "dfsCW",
                           "name": "Narrow Password Input",
                           "width": "fill_container",
-                          "height": 42,
-                          "fill": "#FBF7F0",
-                          "cornerRadius": 8,
-                          "stroke": "#D8C9BB",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 7,
+                          "stroke": "#D8DED9",
                           "strokeWidth": 1,
                           "padding": [
                             0,
-                            12
+                            11
                           ],
                           "alignItems": "center",
                           "children": [
@@ -61548,11 +61550,11 @@
                               "type": "text",
                               "id": "U3Rhyc",
                               "name": "Narrow Password Hint",
-                              "fill": "#746B62",
+                              "fill": "#8A928C",
                               "content": "At least 12 characters",
                               "lineHeight": 1.32,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 11
+                              "fontFamily": "Inter",
+                              "fontSize": 10
                             }
                           ]
                         }
@@ -61565,9 +61567,9 @@
                   "id": "r9qu0w",
                   "name": "Narrow Sign In Action",
                   "width": "fill_container",
-                  "height": 44,
-                  "fill": "#435C74",
-                  "cornerRadius": 8,
+                  "height": 42,
+                  "fill": "#314F68",
+                  "cornerRadius": 7,
                   "layout": "vertical",
                   "justifyContent": "center",
                   "alignItems": "center",
@@ -61579,8 +61581,8 @@
                       "fill": "#FFFFFF",
                       "content": "Sign in",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
                       "fontWeight": "700"
                     }
                   ]
@@ -61599,17 +61601,17 @@
                       "name": "Narrow Divider Before",
                       "width": "fill_container",
                       "height": 1,
-                      "fill": "#D8C9BB"
+                      "fill": "#D8DED9"
                     },
                     {
                       "type": "text",
                       "id": "VbNFe",
                       "name": "Narrow Divider Label",
-                      "fill": "#746B62",
+                      "fill": "#8A928C",
                       "content": "or",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "600"
                     },
                     {
@@ -61618,7 +61620,7 @@
                       "name": "Narrow Divider After",
                       "width": "fill_container",
                       "height": 1,
-                      "fill": "#D8C9BB"
+                      "fill": "#D8DED9"
                     }
                   ]
                 },
@@ -61627,10 +61629,10 @@
                   "id": "aHHjb",
                   "name": "Narrow Radish OIDC Action",
                   "width": "fill_container",
-                  "height": 44,
-                  "fill": "#FBF7F0",
-                  "cornerRadius": 8,
-                  "stroke": "#435C74",
+                  "height": 42,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 7,
+                  "stroke": "#314F68",
                   "strokeWidth": 1,
                   "gap": 8,
                   "justifyContent": "center",
@@ -61640,10 +61642,10 @@
                       "type": "frame",
                       "id": "SaKOJ",
                       "name": "Narrow OIDC Mark",
-                      "width": 20,
-                      "height": 20,
+                      "width": 18,
+                      "height": 18,
                       "fill": "#E2E8DC",
-                      "cornerRadius": 6,
+                      "cornerRadius": 5,
                       "layout": "vertical",
                       "justifyContent": "center",
                       "alignItems": "center",
@@ -61655,8 +61657,8 @@
                           "fill": "#5D6C57",
                           "content": "R",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 10,
+                          "fontFamily": "Inter",
+                          "fontSize": 9,
                           "fontWeight": "700"
                         }
                       ]
@@ -61665,11 +61667,11 @@
                       "type": "text",
                       "id": "R8JamN",
                       "name": "Narrow Radish OIDC Label",
-                      "fill": "#435C74",
+                      "fill": "#314F68",
                       "content": "Continue with Radish",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 13,
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
                       "fontWeight": "700"
                     }
                   ]
@@ -61679,10 +61681,10 @@
                   "id": "S4cn3",
                   "name": "Narrow Recovery Note",
                   "width": "fill_container",
-                  "fill": "#DCE5EC",
-                  "cornerRadius": 8,
+                  "fill": "#E8EEF2",
+                  "cornerRadius": 7,
                   "gap": 8,
-                  "padding": 10,
+                  "padding": 9,
                   "children": [
                     {
                       "type": "frame",
@@ -61690,7 +61692,7 @@
                       "name": "Narrow Recovery Icon",
                       "width": 18,
                       "height": 18,
-                      "fill": "#FBF7F0",
+                      "fill": "#FFFFFF",
                       "cornerRadius": 9,
                       "layout": "vertical",
                       "justifyContent": "center",
@@ -61700,10 +61702,10 @@
                           "type": "text",
                           "id": "PemsD",
                           "name": "Narrow Recovery Icon Label",
-                          "fill": "#435C74",
+                          "fill": "#314F68",
                           "content": "i",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
+                          "fontFamily": "Inter",
                           "fontSize": 10,
                           "fontWeight": "700"
                         }
@@ -61713,13 +61715,13 @@
                       "type": "text",
                       "id": "pRSUE",
                       "name": "Narrow Recovery Copy",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "No account recovery in this preview. Failures stay sanitized.",
-                      "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "lineHeight": 1.3,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "500"
                     }
                   ]
@@ -61730,42 +61732,42 @@
               "type": "frame",
               "id": "TE9Bd",
               "name": "Narrow Identity Boundary",
-              "width": 358,
-              "fill": "#F3EBDD",
-              "cornerRadius": 10,
-              "stroke": "#D8C9BB",
+              "width": "fill_container",
+              "fill": "#F6ECE6",
+              "cornerRadius": 9,
+              "stroke": "#E4CFC4",
               "strokeWidth": {
                 "left": 3
               },
               "layout": "vertical",
-              "gap": 7,
+              "gap": 6,
               "padding": [
-                12,
-                14
+                11,
+                12
               ],
               "children": [
                 {
                   "type": "text",
                   "id": "RiLhn",
                   "name": "Narrow Boundary Label",
-                  "fill": "#5D6C57",
+                  "fill": "#A76E52",
                   "content": "IDENTITY BOUNDARY",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 9,
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 8,
                   "fontWeight": "700"
                 },
                 {
                   "type": "text",
                   "id": "RgBxI",
                   "name": "Narrow Boundary Copy",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Local session owner · explicit issuer + subject binding · no upstream claim grants.",
-                  "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "lineHeight": 1.3,
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
                   "fontWeight": "500"
                 }
               ]
@@ -61779,21 +61781,21 @@
       "id": "SQPBB",
       "x": 1990,
       "y": 1180,
-      "name": "Authentication + S7 Local Identity — Design Decision Record · R18",
+      "name": "Authentication + S7 Local Identity — Design Decision Record · R19",
       "clip": true,
       "width": 1440,
       "height": 520,
-      "fill": "#FBF7F0",
+      "fill": "#FFFFFF",
       "layout": "vertical",
       "children": [
         {
           "type": "frame",
           "id": "f9ODz",
-          "name": "R18 Decision Header",
+          "name": "R19 Decision Header",
           "width": "fill_container",
           "height": 112,
-          "fill": "#F3EBDD",
-          "stroke": "#D8C9BB",
+          "fill": "#F6F7F4",
+          "stroke": "#D8DED9",
           "strokeWidth": {
             "bottom": 1
           },
@@ -61815,38 +61817,38 @@
                 {
                   "type": "text",
                   "id": "ZlR9Q",
-                  "name": "R18 Eyebrow",
-                  "fill": "#5D6C57",
-                  "content": "DESIGN DECISION · BATCH D",
+                  "name": "R19 Eyebrow",
+                  "fill": "#314F68",
+                  "content": "DESIGN DECISION · BATCH D · FAMILY UI",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 9,
                   "fontWeight": "700"
                 },
                 {
                   "type": "text",
                   "id": "s2LC6",
-                  "name": "R18 Title",
-                  "fill": "#2F2A25",
+                  "name": "R19 Title",
+                  "fill": "#171A18",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "Authentication Gateway + S7 Local Identity",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 28,
-                  "fontWeight": "600"
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "650"
                 },
                 {
                   "type": "text",
                   "id": "q5nT2",
-                  "name": "R18 Subtitle",
-                  "fill": "#746B62",
+                  "name": "R19 Subtitle",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "A full authentication baseline; User / Role remain direct S7 owner replacements.",
+                  "content": "Authentication keeps its simplified shell while inheriting Family UI tokens, typography and density.",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 12,
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
                   "fontWeight": "500"
                 }
               ]
@@ -61854,9 +61856,9 @@
             {
               "type": "frame",
               "id": "nU8Xk",
-              "name": "R18 Coverage Badge",
-              "fill": "#435C74",
-              "cornerRadius": 12,
+              "name": "R19 Coverage Badge",
+              "fill": "#314F68",
+              "cornerRadius": 8,
               "layout": "vertical",
               "gap": 3,
               "padding": [
@@ -61868,23 +61870,23 @@
                 {
                   "type": "text",
                   "id": "KsOQN",
-                  "name": "R18 Coverage Label",
+                  "name": "R19 Coverage Label",
                   "fill": "#FFFFFF",
                   "content": "A / FULL PENCIL",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 11,
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 10,
                   "fontWeight": "700"
                 },
                 {
                   "type": "text",
                   "id": "udeII",
-                  "name": "R18 Score",
+                  "name": "R19 Score",
                   "fill": "#FFFFFF",
-                  "content": "9 POINTS",
+                  "content": "9 POINTS · R2",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Geist Mono",
+                  "fontSize": 9,
                   "fontWeight": "600"
                 }
               ]
@@ -61897,8 +61899,8 @@
           "name": "R18 Five Dimension Score",
           "width": "fill_container",
           "height": 92,
-          "fill": "#FBF7F0",
-          "stroke": "#D8C9BB",
+          "fill": "#FFFFFF",
+          "stroke": "#D8DED9",
           "strokeWidth": {
             "bottom": 1
           },
@@ -61913,7 +61915,7 @@
               "name": "Score 01",
               "width": "fill_container",
               "height": "fill_container",
-              "stroke": "#D8C9BB",
+              "stroke": "#D8DED9",
               "strokeWidth": {
                 "right": 1
               },
@@ -61936,22 +61938,22 @@
                       "type": "text",
                       "id": "g9uXf",
                       "name": "Score Label 01",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "content": "Structure",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 11,
-                      "fontWeight": "700"
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "650"
                     },
                     {
                       "type": "text",
                       "id": "cJBZd",
                       "name": "Score Value 01",
-                      "fill": "#435C74",
+                      "fill": "#314F68",
                       "content": "2",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 22,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 20,
                       "fontWeight": "700"
                     }
                   ]
@@ -61960,13 +61962,13 @@
                   "type": "text",
                   "id": "t1Ui3",
                   "name": "Score Rationale 01",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "new unauthenticated shell",
+                  "content": "auth structure inside Family UI",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
                   "fontWeight": "500"
                 }
               ]
@@ -61977,7 +61979,7 @@
               "name": "Score 02",
               "width": "fill_container",
               "height": "fill_container",
-              "stroke": "#D8C9BB",
+              "stroke": "#D8DED9",
               "strokeWidth": {
                 "right": 1
               },
@@ -62000,12 +62002,12 @@
                       "type": "text",
                       "id": "VempD",
                       "name": "Score Label 02",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "content": "Interaction",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 11,
-                      "fontWeight": "700"
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "650"
                     },
                     {
                       "type": "text",
@@ -62014,8 +62016,8 @@
                       "fill": "#5D6C57",
                       "content": "1",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 22,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 20,
                       "fontWeight": "700"
                     }
                   ]
@@ -62024,13 +62026,13 @@
                   "type": "text",
                   "id": "MlUia",
                   "name": "Score Rationale 02",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "existing auth controls",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
                   "fontWeight": "500"
                 }
               ]
@@ -62041,7 +62043,7 @@
               "name": "Score 03",
               "width": "fill_container",
               "height": "fill_container",
-              "stroke": "#D8C9BB",
+              "stroke": "#D8DED9",
               "strokeWidth": {
                 "right": 1
               },
@@ -62064,22 +62066,22 @@
                       "type": "text",
                       "id": "sTdr0",
                       "name": "Score Label 03",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "content": "Boundary risk",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 11,
-                      "fontWeight": "700"
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "650"
                     },
                     {
                       "type": "text",
                       "id": "LokEF",
                       "name": "Score Value 03",
-                      "fill": "#435C74",
+                      "fill": "#314F68",
                       "content": "2",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 22,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 20,
                       "fontWeight": "700"
                     }
                   ]
@@ -62088,13 +62090,13 @@
                   "type": "text",
                   "id": "ZmLg8",
                   "name": "Score Rationale 03",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "password + OIDC + session",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
                   "fontWeight": "500"
                 }
               ]
@@ -62105,7 +62107,7 @@
               "name": "Score 04",
               "width": "fill_container",
               "height": "fill_container",
-              "stroke": "#D8C9BB",
+              "stroke": "#D8DED9",
               "strokeWidth": {
                 "right": 1
               },
@@ -62128,22 +62130,22 @@
                       "type": "text",
                       "id": "Hf4Jz",
                       "name": "Score Label 04",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "content": "State / narrow",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 11,
-                      "fontWeight": "700"
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "650"
                     },
                     {
                       "type": "text",
                       "id": "WAhbY",
                       "name": "Score Value 04",
-                      "fill": "#435C74",
+                      "fill": "#314F68",
                       "content": "2",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 22,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 20,
                       "fontWeight": "700"
                     }
                   ]
@@ -62152,13 +62154,13 @@
                   "type": "text",
                   "id": "VQpdC",
                   "name": "Score Rationale 04",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "restore, failure, redirect",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
                   "fontWeight": "500"
                 }
               ]
@@ -62169,7 +62171,7 @@
               "name": "Score 05",
               "width": "fill_container",
               "height": "fill_container",
-              "stroke": "#D8C9BB",
+              "stroke": "#D8DED9",
               "layout": "vertical",
               "gap": 3,
               "padding": [
@@ -62189,22 +62191,22 @@
                       "type": "text",
                       "id": "yQbzq",
                       "name": "Score Label 05",
-                      "fill": "#2F2A25",
+                      "fill": "#171A18",
                       "content": "Reuse leverage",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 11,
-                      "fontWeight": "700"
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "650"
                     },
                     {
                       "type": "text",
                       "id": "I4c94",
                       "name": "Score Value 05",
-                      "fill": "#435C74",
+                      "fill": "#314F68",
                       "content": "2",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 22,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 20,
                       "fontWeight": "700"
                     }
                   ]
@@ -62213,13 +62215,13 @@
                   "type": "text",
                   "id": "eMsgi",
                   "name": "Score Rationale 05",
-                  "fill": "#746B62",
+                  "fill": "#555D57",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "auth + S7 + app shell",
+                  "content": "Family UI + auth + S7",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 10,
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
                   "fontWeight": "500"
                 }
               ]
@@ -62253,12 +62255,12 @@
                   "type": "text",
                   "id": "YhDPW",
                   "name": "R18 Hierarchy Title",
-                  "fill": "#2F2A25",
-                  "content": "Hierarchy and state policy",
+                  "fill": "#171A18",
+                  "content": "Family alignment and state policy",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 14,
-                  "fontWeight": "700"
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "650"
                 },
                 {
                   "type": "frame",
@@ -62272,9 +62274,9 @@
                       "id": "hU5zn",
                       "name": "Hierarchy 1",
                       "width": "fill_container",
-                      "fill": "#F3EBDD",
+                      "fill": "#F6F7F4",
                       "cornerRadius": 10,
-                      "stroke": "#D8C9BB",
+                      "stroke": "#D8DED9",
                       "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 6,
@@ -62299,11 +62301,11 @@
                               "type": "text",
                               "id": "p1svqq",
                               "name": "Hierarchy Number Label 1",
-                              "fill": "#5D6C57",
+                              "fill": "#314F68",
                               "content": "1",
                               "lineHeight": 1.32,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 10,
+                              "fontFamily": "Geist Mono",
+                              "fontSize": 9,
                               "fontWeight": "700"
                             }
                           ]
@@ -62312,24 +62314,24 @@
                           "type": "text",
                           "id": "eoPMs",
                           "name": "Hierarchy Title 1",
-                          "fill": "#2F2A25",
-                          "content": "Form first",
+                          "fill": "#171A18",
+                          "content": "Family UI first",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 12,
-                          "fontWeight": "700"
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "text",
                           "id": "k9Wwc0",
                           "name": "Hierarchy Copy 1",
-                          "fill": "#746B62",
+                          "fill": "#555D57",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "One dominant sign-in owner; registration is a mode, Radish is an alternative.",
+                          "content": "Inter + Geist Mono, cool workbench surfaces, shared controls and semantic colors are mandatory.",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 10,
+                          "fontFamily": "Inter",
+                          "fontSize": 9,
                           "fontWeight": "500"
                         }
                       ]
@@ -62339,9 +62341,9 @@
                       "id": "bZzct",
                       "name": "Hierarchy 2",
                       "width": "fill_container",
-                      "fill": "#F3EBDD",
+                      "fill": "#F6F7F4",
                       "cornerRadius": 10,
-                      "stroke": "#D8C9BB",
+                      "stroke": "#D8DED9",
                       "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 6,
@@ -62366,11 +62368,11 @@
                               "type": "text",
                               "id": "TQeXa",
                               "name": "Hierarchy Number Label 2",
-                              "fill": "#5D6C57",
+                              "fill": "#314F68",
                               "content": "2",
                               "lineHeight": 1.32,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 10,
+                              "fontFamily": "Geist Mono",
+                              "fontSize": 9,
                               "fontWeight": "700"
                             }
                           ]
@@ -62379,24 +62381,24 @@
                           "type": "text",
                           "id": "cyo1A",
                           "name": "Hierarchy Title 2",
-                          "fill": "#2F2A25",
-                          "content": "Boundary second",
+                          "fill": "#171A18",
+                          "content": "Auth structure second",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 12,
-                          "fontWeight": "700"
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "text",
                           "id": "T0oaj",
                           "name": "Hierarchy Copy 2",
-                          "fill": "#746B62",
+                          "fill": "#555D57",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "Desktop trust rail and narrow trailing note explain ownership without competing.",
+                          "content": "Desktop 264px identity rail and narrow trailing note may simplify navigation without creating a new visual system.",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 10,
+                          "fontFamily": "Inter",
+                          "fontSize": 9,
                           "fontWeight": "500"
                         }
                       ]
@@ -62406,9 +62408,9 @@
                       "id": "RtGEp",
                       "name": "Hierarchy 3",
                       "width": "fill_container",
-                      "fill": "#F3EBDD",
+                      "fill": "#F6F7F4",
                       "cornerRadius": 10,
-                      "stroke": "#D8C9BB",
+                      "stroke": "#D8DED9",
                       "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 6,
@@ -62433,11 +62435,11 @@
                               "type": "text",
                               "id": "x1g2c",
                               "name": "Hierarchy Number Label 3",
-                              "fill": "#5D6C57",
+                              "fill": "#314F68",
                               "content": "3",
                               "lineHeight": 1.32,
-                              "fontFamily": "Noto Sans SC",
-                              "fontSize": 10,
+                              "fontFamily": "Geist Mono",
+                              "fontSize": 9,
                               "fontWeight": "700"
                             }
                           ]
@@ -62446,24 +62448,24 @@
                           "type": "text",
                           "id": "mkjEj",
                           "name": "Hierarchy Title 3",
-                          "fill": "#2F2A25",
+                          "fill": "#171A18",
                           "content": "State explicit",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 12,
-                          "fontWeight": "700"
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "650"
                         },
                         {
                           "type": "text",
                           "id": "GItIj",
                           "name": "Hierarchy Copy 3",
-                          "fill": "#746B62",
+                          "fill": "#555D57",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
                           "content": "Probe → unauthenticated → pending / redirect → restored; failures stay sanitized.",
                           "lineHeight": 1.32,
-                          "fontFamily": "Noto Sans SC",
-                          "fontSize": 10,
+                          "fontFamily": "Inter",
+                          "fontSize": 9,
                           "fontWeight": "500"
                         }
                       ]
@@ -62491,25 +62493,25 @@
                     {
                       "type": "text",
                       "id": "KjuUq",
-                      "name": "R18 Stop Lines Label",
+                      "name": "R19 Stop Lines Label",
                       "fill": "#A54848",
                       "content": "STOP LINES",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 9,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 8,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "ED2LF",
-                      "name": "R18 Stop Lines Copy",
-                      "fill": "#746B62",
+                      "name": "R19 Stop Lines Copy",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "No browser token persistence · no email merge · no upstream claim grants · no production auth or real Radish evidence.",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "600"
                     }
                   ]
@@ -62522,7 +62524,7 @@
               "name": "R18 Reuse And Mapping",
               "width": 470,
               "height": "fill_container",
-              "stroke": "#D8C9BB",
+              "stroke": "#D8DED9",
               "strokeWidth": {
                 "left": 1
               },
@@ -62539,19 +62541,19 @@
                   "type": "text",
                   "id": "sTxWv",
                   "name": "R18 Mapping Title",
-                  "fill": "#2F2A25",
+                  "fill": "#171A18",
                   "content": "Reuse and implementation mapping",
                   "lineHeight": 1.32,
-                  "fontFamily": "Noto Sans SC",
-                  "fontSize": 14,
-                  "fontWeight": "700"
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "650"
                 },
                 {
                   "type": "frame",
                   "id": "PlkZb",
                   "name": "Mapping AUTH GATEWAY",
                   "width": "fill_container",
-                  "stroke": "#D8C9BB",
+                  "stroke": "#D8DED9",
                   "strokeWidth": {
                     "bottom": 1
                   },
@@ -62568,24 +62570,24 @@
                       "type": "text",
                       "id": "uwb13",
                       "name": "Mapping Label AUTH GATEWAY",
-                      "fill": "#5D6C57",
+                      "fill": "#314F68",
                       "content": "AUTH GATEWAY",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 9,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 8,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "VM1Ou",
                       "name": "Mapping Copy AUTH GATEWAY",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "Desktop / Narrow R1 define the only new shell, credential hierarchy and responsive order.",
+                      "content": "Desktop / Narrow R2 inherit the Family UI shell grammar, control styling and responsive density.",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "500"
                     }
                   ]
@@ -62595,7 +62597,7 @@
                   "id": "COi3R",
                   "name": "Mapping S7 USER OWNER",
                   "width": "fill_container",
-                  "stroke": "#D8C9BB",
+                  "stroke": "#D8DED9",
                   "strokeWidth": {
                     "bottom": 1
                   },
@@ -62612,24 +62614,24 @@
                       "type": "text",
                       "id": "j7VmJ",
                       "name": "Mapping Label S7 USER OWNER",
-                      "fill": "#5D6C57",
+                      "fill": "#314F68",
                       "content": "S7 USER OWNER",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 9,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 8,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "f9GHS",
                       "name": "Mapping Copy S7 USER OWNER",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Replace the obsolete Radish-owned boundary with current local account, binding and session facts.",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "500"
                     }
                   ]
@@ -62639,7 +62641,7 @@
                   "id": "P64yc",
                   "name": "Mapping S7 ROLE OWNER",
                   "width": "fill_container",
-                  "stroke": "#D8C9BB",
+                  "stroke": "#D8DED9",
                   "strokeWidth": {
                     "bottom": 1
                   },
@@ -62656,24 +62658,24 @@
                       "type": "text",
                       "id": "h9rHv",
                       "name": "Mapping Label S7 ROLE OWNER",
-                      "fill": "#5D6C57",
+                      "fill": "#314F68",
                       "content": "S7 ROLE OWNER",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 9,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 8,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "r08BrA",
                       "name": "Mapping Copy S7 ROLE OWNER",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "Consume local role / membership projection; absent list facts remain blocked, never fixture-backed.",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "500"
                     }
                   ]
@@ -62683,7 +62685,7 @@
                   "id": "XihWT",
                   "name": "Mapping REACT ANCHORS",
                   "width": "fill_container",
-                  "stroke": "#D8C9BB",
+                  "stroke": "#D8DED9",
                   "strokeWidth": {
                     "bottom": 1
                   },
@@ -62700,24 +62702,24 @@
                       "type": "text",
                       "id": "W3fzm",
                       "name": "Mapping Label REACT ANCHORS",
-                      "fill": "#5D6C57",
+                      "fill": "#314F68",
                       "content": "REACT ANCHORS",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 9,
+                      "fontFamily": "Geist Mono",
+                      "fontSize": 8,
                       "fontWeight": "700"
                     },
                     {
                       "type": "text",
                       "id": "h8HQRQ",
                       "name": "Mapping Copy REACT ANCHORS",
-                      "fill": "#746B62",
+                      "fill": "#555D57",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
                       "content": "localIdentityConsumer.ts · localIdentityGateway.tsx · adminLocalIdentityOwner.tsx · App.tsx · styles.css",
                       "lineHeight": 1.32,
-                      "fontFamily": "Noto Sans SC",
-                      "fontSize": 10,
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
                       "fontWeight": "500"
                     }
                   ]
