@@ -60242,6 +60242,2491 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "scHoA",
+      "x": 0,
+      "y": 1180,
+      "name": "Authentication Gateway — Desktop / Dev Test · R1",
+      "theme": {
+        "theme": "guofeng"
+      },
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "#F4EFE6",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "H6mG0",
+          "name": "Authentication Header",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "#FBF7F0",
+          "stroke": "#D8C9BB",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            16,
+            28
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "pFkfm",
+              "name": "RadishMind Brand",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "iXC2L",
+                  "name": "Brand Seal",
+                  "width": 36,
+                  "height": 36,
+                  "fill": "#5D6C57",
+                  "cornerRadius": 10,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "f5fyfE",
+                      "name": "Brand Initial",
+                      "fill": "#FFFFFF",
+                      "content": "R",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "M4A3z",
+                  "name": "Brand Copy",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Shn5A",
+                      "name": "Brand Name",
+                      "fill": "#2F2A25",
+                      "content": "RadishMind",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "O34qs",
+                      "name": "Brand Scope",
+                      "fill": "#746B62",
+                      "content": "AI tools · workflow · model gateway",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "n6jAr",
+              "name": "Header Environment",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rBB8Q",
+                  "name": "Preview Mode Badge",
+                  "fill": "#E2E8DC",
+                  "cornerRadius": "$radius-sm",
+                  "padding": [
+                    7,
+                    11
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Pqz3c",
+                      "name": "Preview Mode Label",
+                      "fill": "#5D6C57",
+                      "content": "INTERNAL DEVELOPER PREVIEW",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "g0Lmv",
+                  "name": "Identity State Badge",
+                  "fill": "#FBF7F0",
+                  "cornerRadius": "$radius-sm",
+                  "stroke": "#D8C9BB",
+                  "strokeWidth": 1,
+                  "padding": [
+                    7,
+                    11
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "M2MveS",
+                      "name": "Identity State Label",
+                      "fill": "#746B62",
+                      "content": "LOCAL IDENTITY · DEV / TEST",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sjL8y",
+          "name": "Authentication Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "type": "frame",
+              "id": "LgTXx",
+              "name": "Identity Trust Rail",
+              "width": 430,
+              "height": "fill_container",
+              "fill": "#F3EBDD",
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "padding": [
+                54,
+                48,
+                42,
+                48
+              ],
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wLLiN",
+                  "name": "Trust Narrative",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 22,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cCk4A",
+                      "name": "Trust Kicker",
+                      "fill": "#E2E8DC",
+                      "cornerRadius": "$radius-sm",
+                      "padding": [
+                        6,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "H9MdOd",
+                          "name": "Trust Kicker Label",
+                          "fill": "#5D6C57",
+                          "content": "LOCAL SESSION OWNER",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "LGtUV",
+                      "name": "Trust Title",
+                      "fill": "#2F2A25",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "One identity boundary,\nowned by RadishMind.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 38,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CvI9b",
+                      "name": "Trust Summary",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Use a local account or a reviewed Radish OIDC binding. Both paths end in the same RadishMind Web Session.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 15
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dpXK4",
+                      "name": "Identity Guarantees",
+                      "width": "fill_container",
+                      "stroke": "#D8C9BB",
+                      "strokeWidth": {
+                        "top": 1
+                      },
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Lmyre",
+                          "name": "Guarantee 01",
+                          "width": "fill_container",
+                          "stroke": "#D8C9BB",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "gap": 14,
+                          "padding": [
+                            15,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "tiwsP",
+                              "name": "Guarantee Number 01",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "#FBF7F0",
+                              "cornerRadius": 8,
+                              "stroke": "#D8C9BB",
+                              "strokeWidth": 1,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "VcC0w",
+                                  "name": "Guarantee Number Label 01",
+                                  "fill": "#5D6C57",
+                                  "content": "01",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 10,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "WM7dV",
+                              "name": "Guarantee Copy 01",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "UGcVw",
+                                  "name": "Guarantee Title 01",
+                                  "fill": "#2F2A25",
+                                  "content": "Local session",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 13,
+                                  "fontWeight": "700"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "YHp8j",
+                                  "name": "Guarantee Body 01",
+                                  "fill": "#746B62",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Browser tokens never become business authorization.",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 12
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "OWBZp",
+                          "name": "Guarantee 02",
+                          "width": "fill_container",
+                          "stroke": "#D8C9BB",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "gap": 14,
+                          "padding": [
+                            15,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "u5jGM4",
+                              "name": "Guarantee Number 02",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "#FBF7F0",
+                              "cornerRadius": 8,
+                              "stroke": "#D8C9BB",
+                              "strokeWidth": 1,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "e72Nn",
+                                  "name": "Guarantee Number Label 02",
+                                  "fill": "#5D6C57",
+                                  "content": "02",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 10,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "jUg7V",
+                              "name": "Guarantee Copy 02",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "vZdIx",
+                                  "name": "Guarantee Title 02",
+                                  "fill": "#2F2A25",
+                                  "content": "Explicit binding",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 13,
+                                  "fontWeight": "700"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "j0bJO",
+                                  "name": "Guarantee Body 02",
+                                  "fill": "#746B62",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "External identity is keyed only by issuer + subject.",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 12
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "c1g45",
+                          "name": "Guarantee 03",
+                          "width": "fill_container",
+                          "stroke": "#D8C9BB",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "gap": 14,
+                          "padding": [
+                            15,
+                            0
+                          ],
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "gjbkL",
+                              "name": "Guarantee Number 03",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "#FBF7F0",
+                              "cornerRadius": 8,
+                              "stroke": "#D8C9BB",
+                              "strokeWidth": 1,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "qbyOL",
+                                  "name": "Guarantee Number Label 03",
+                                  "fill": "#5D6C57",
+                                  "content": "03",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 10,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "DG2HW",
+                              "name": "Guarantee Copy 03",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "SdzAG",
+                                  "name": "Guarantee Title 03",
+                                  "fill": "#2F2A25",
+                                  "content": "Local grants",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 13,
+                                  "fontWeight": "700"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "YcTnH",
+                                  "name": "Guarantee Body 03",
+                                  "fill": "#746B62",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Email, role and permission claims create no local grant.",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 12
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BKSRo",
+                  "name": "Development Boundary",
+                  "width": "fill_container",
+                  "fill": "#FBF7F0",
+                  "cornerRadius": "$radius-md",
+                  "stroke": "#9B6A32",
+                  "strokeWidth": {
+                    "left": 3
+                  },
+                  "layout": "vertical",
+                  "gap": 7,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ojUqs",
+                      "name": "Boundary Label",
+                      "fill": "#9B6A32",
+                      "content": "DEVELOPMENT / TEST ONLY",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BfI56",
+                      "name": "Boundary Copy",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "No production auth, MFA, account recovery or real Radish integration is claimed here.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "R8vII",
+              "name": "Authentication Main",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#F4EFE6",
+              "layout": "vertical",
+              "padding": [
+                36,
+                64
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cLlAs",
+                  "name": "Authentication Card",
+                  "width": 560,
+                  "fill": "#FBF7F0",
+                  "stroke": "#D8C9BB",
+                  "strokeWidth": 1,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#23313B14",
+                    "offset": {
+                      "x": 0,
+                      "y": 10
+                    },
+                    "blur": 28
+                  },
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 34,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "z6nFI",
+                      "name": "Authentication Intro",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "flCz6",
+                          "name": "Authentication Eyebrow",
+                          "fill": "#5D6C57",
+                          "content": "RETURN TO YOUR WORKSPACE",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "KDIxP",
+                          "name": "Authentication Title",
+                          "fill": "#2F2A25",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Sign in to RadishMind",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 30,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fMrNJ",
+                          "name": "Authentication Summary",
+                          "fill": "#746B62",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Restore a local Web Session without placing credentials in the URL or browser storage.",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 13
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C7ADnm",
+                      "name": "Authentication Mode Tabs",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "#F3EBDD",
+                      "cornerRadius": "$radius-md",
+                      "gap": 4,
+                      "padding": 4,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "t0gZe",
+                          "name": "Sign In Tab",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "fill": "#FBF7F0",
+                          "cornerRadius": "$radius-sm",
+                          "stroke": "#D8C9BB",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "FK7Pt",
+                              "name": "Sign In Tab Label",
+                              "fill": "#435C74",
+                              "content": "Sign in",
+                              "lineHeight": 1.35,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 13,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QwJDe",
+                          "name": "Create Account Tab",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "cornerRadius": "$radius-sm",
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "t9aXm",
+                              "name": "Create Account Tab Label",
+                              "fill": "#746B62",
+                              "content": "Create account",
+                              "lineHeight": 1.35,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "k724i",
+                      "name": "Local Credential Fields",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 14,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "pBZI2",
+                          "name": "Account ID Field Group",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 7,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C4jMgB",
+                              "name": "Account ID Label",
+                              "fill": "#2F2A25",
+                              "content": "Local account ID",
+                              "lineHeight": 1.35,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 12,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Pi4vw",
+                              "name": "Account ID Input",
+                              "width": "fill_container",
+                              "height": 46,
+                              "fill": "#FBF7F0",
+                              "cornerRadius": "$radius-sm",
+                              "stroke": "#D8C9BB",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "bXioP",
+                                  "name": "Account ID Input Hint",
+                                  "fill": "#746B62",
+                                  "content": "Enter your local account identifier",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 13
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "OlQza",
+                          "name": "Password Field Group",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 7,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "LzCrs",
+                              "name": "Password Label",
+                              "fill": "#2F2A25",
+                              "content": "Password",
+                              "lineHeight": 1.35,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 12,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "vHIiK",
+                              "name": "Password Input",
+                              "width": "fill_container",
+                              "height": 46,
+                              "fill": "#FBF7F0",
+                              "cornerRadius": "$radius-sm",
+                              "stroke": "#D8C9BB",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "e3huSD",
+                                  "name": "Password Input Hint",
+                                  "fill": "#746B62",
+                                  "content": "At least 12 characters",
+                                  "lineHeight": 1.35,
+                                  "fontFamily": "Noto Sans SC",
+                                  "fontSize": 13
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ieC7r",
+                      "name": "Sign In Action",
+                      "width": "fill_container",
+                      "height": 46,
+                      "fill": "#435C74",
+                      "cornerRadius": "$radius-sm",
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qrszR",
+                          "name": "Sign In Action Label",
+                          "fill": "#FFFFFF",
+                          "content": "Sign in",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ku1vP",
+                      "name": "Authentication Divider",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FKfLv",
+                          "name": "Divider Before",
+                          "width": "fill_container",
+                          "height": 1,
+                          "fill": "#D8C9BB"
+                        },
+                        {
+                          "type": "text",
+                          "id": "jLMdH",
+                          "name": "Divider Label",
+                          "fill": "#746B62",
+                          "content": "or",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fPcS9",
+                          "name": "Divider After",
+                          "width": "fill_container",
+                          "height": 1,
+                          "fill": "#D8C9BB"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ljVdS",
+                      "name": "Radish OIDC Action",
+                      "width": "fill_container",
+                      "height": 46,
+                      "fill": "#FBF7F0",
+                      "cornerRadius": "$radius-sm",
+                      "stroke": "#435C74",
+                      "strokeWidth": 1,
+                      "gap": 9,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "oUYxk",
+                          "name": "OIDC Mark",
+                          "width": 22,
+                          "height": 22,
+                          "fill": "#E2E8DC",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lLO4U",
+                              "name": "OIDC Mark Label",
+                              "fill": "#5D6C57",
+                              "content": "R",
+                              "lineHeight": 1.35,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 11,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "PmYLM",
+                          "name": "Radish OIDC Action Label",
+                          "fill": "#435C74",
+                          "content": "Continue with Radish",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zVlrG",
+                      "name": "Authentication Recovery Note",
+                      "width": "fill_container",
+                      "fill": "#DCE5EC",
+                      "cornerRadius": "$radius-sm",
+                      "gap": 10,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "BjYIx",
+                          "name": "Recovery Note Icon",
+                          "width": 20,
+                          "height": 20,
+                          "fill": "#FBF7F0",
+                          "cornerRadius": 10,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NkFjg",
+                              "name": "Recovery Note Icon Label",
+                              "fill": "#435C74",
+                              "content": "i",
+                              "lineHeight": 1.35,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 11,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "EPaXL",
+                          "name": "Recovery Note Copy",
+                          "fill": "#746B62",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Account recovery is not available in this preview. Sanitized failures never reveal whether an account exists.",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 11,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "uR4Yd",
+      "x": 1520,
+      "y": 1180,
+      "name": "Authentication Gateway — Narrow / Dev Test · R1",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#F4EFE6",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Dfb7x",
+          "name": "Narrow Authentication Header",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#FBF7F0",
+          "stroke": "#D8C9BB",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            12,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "QdKs4",
+              "name": "Narrow RadishMind Brand",
+              "gap": 9,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "L4DNF",
+                  "name": "Narrow Brand Seal",
+                  "width": 32,
+                  "height": 32,
+                  "fill": "#5D6C57",
+                  "cornerRadius": 9,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xrIZZ",
+                      "name": "Narrow Brand Initial",
+                      "fill": "#FFFFFF",
+                      "content": "R",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 15,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "i0eXaJ",
+                  "name": "Narrow Brand Name",
+                  "fill": "#2F2A25",
+                  "content": "RadishMind",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v9fzF",
+              "name": "Narrow Preview Badge",
+              "fill": "#E2E8DC",
+              "cornerRadius": 8,
+              "padding": [
+                6,
+                9
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "N8kRi",
+                  "name": "Narrow Preview Label",
+                  "fill": "#5D6C57",
+                  "content": "DEV / TEST",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 9,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fOXqT",
+          "name": "Narrow Authentication Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": [
+            20,
+            16,
+            16,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "xroPH",
+              "name": "Narrow Page Intro",
+              "width": 358,
+              "layout": "vertical",
+              "gap": 5,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "S4uV8",
+                  "name": "Narrow Page Eyebrow",
+                  "fill": "#5D6C57",
+                  "content": "RETURN TO YOUR WORKSPACE",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 9,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "yuuiQ",
+                  "name": "Narrow Page Title",
+                  "fill": "#2F2A25",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Sign in to RadishMind",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 25,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "ZCSq6",
+                  "name": "Narrow Page Summary",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "The browser keeps only RadishMind's secure session cookie.",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 11
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eNURd",
+              "name": "Narrow Authentication Card",
+              "width": 358,
+              "fill": "#FBF7F0",
+              "cornerRadius": 14,
+              "stroke": "#D8C9BB",
+              "strokeWidth": 1,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#23313B12",
+                "offset": {
+                  "x": 0,
+                  "y": 7
+                },
+                "blur": 20
+              },
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "GKrNC",
+                  "name": "Narrow Authentication Tabs",
+                  "width": "fill_container",
+                  "height": 40,
+                  "fill": "#F3EBDD",
+                  "cornerRadius": 10,
+                  "gap": 4,
+                  "padding": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Lm9Kd",
+                      "name": "Narrow Sign In Tab",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "#FBF7F0",
+                      "cornerRadius": 7,
+                      "stroke": "#D8C9BB",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dmTfN",
+                          "name": "Narrow Sign In Tab Label",
+                          "fill": "#435C74",
+                          "content": "Sign in",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "c6Skg",
+                      "name": "Narrow Create Account Tab",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "cornerRadius": 7,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "P43qYx",
+                          "name": "Narrow Create Account Tab Label",
+                          "fill": "#746B62",
+                          "content": "Create account",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uBe5i",
+                  "name": "Narrow Local Credential Fields",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xVcKN",
+                      "name": "Narrow Account ID Group",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "clHXj",
+                          "name": "Narrow Account ID Label",
+                          "fill": "#2F2A25",
+                          "content": "Local account ID",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "b4EAn",
+                          "name": "Narrow Account ID Input",
+                          "width": "fill_container",
+                          "height": 42,
+                          "fill": "#FBF7F0",
+                          "cornerRadius": 8,
+                          "stroke": "#D8C9BB",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "LRFJx",
+                              "name": "Narrow Account ID Hint",
+                              "fill": "#746B62",
+                              "content": "Enter your local account identifier",
+                              "lineHeight": 1.32,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 11
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "o5lKYm",
+                      "name": "Narrow Password Group",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "n5hz1",
+                          "name": "Narrow Password Label",
+                          "fill": "#2F2A25",
+                          "content": "Password",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dfsCW",
+                          "name": "Narrow Password Input",
+                          "width": "fill_container",
+                          "height": 42,
+                          "fill": "#FBF7F0",
+                          "cornerRadius": 8,
+                          "stroke": "#D8C9BB",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "U3Rhyc",
+                              "name": "Narrow Password Hint",
+                              "fill": "#746B62",
+                              "content": "At least 12 characters",
+                              "lineHeight": 1.32,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 11
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "r9qu0w",
+                  "name": "Narrow Sign In Action",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "#435C74",
+                  "cornerRadius": 8,
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w0Y7fY",
+                      "name": "Narrow Sign In Action Label",
+                      "fill": "#FFFFFF",
+                      "content": "Sign in",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BtfkV",
+                  "name": "Narrow Authentication Divider",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wPjN6",
+                      "name": "Narrow Divider Before",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#D8C9BB"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VbNFe",
+                      "name": "Narrow Divider Label",
+                      "fill": "#746B62",
+                      "content": "or",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "M9mw2",
+                      "name": "Narrow Divider After",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "#D8C9BB"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "aHHjb",
+                  "name": "Narrow Radish OIDC Action",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "#FBF7F0",
+                  "cornerRadius": 8,
+                  "stroke": "#435C74",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "SaKOJ",
+                      "name": "Narrow OIDC Mark",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "#E2E8DC",
+                      "cornerRadius": 6,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "G1tHK",
+                          "name": "Narrow OIDC Mark Label",
+                          "fill": "#5D6C57",
+                          "content": "R",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "R8JamN",
+                      "name": "Narrow Radish OIDC Label",
+                      "fill": "#435C74",
+                      "content": "Continue with Radish",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "S4cn3",
+                  "name": "Narrow Recovery Note",
+                  "width": "fill_container",
+                  "fill": "#DCE5EC",
+                  "cornerRadius": 8,
+                  "gap": 8,
+                  "padding": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "f5p7R",
+                      "name": "Narrow Recovery Icon",
+                      "width": 18,
+                      "height": 18,
+                      "fill": "#FBF7F0",
+                      "cornerRadius": 9,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PemsD",
+                          "name": "Narrow Recovery Icon Label",
+                          "fill": "#435C74",
+                          "content": "i",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "pRSUE",
+                      "name": "Narrow Recovery Copy",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "No account recovery in this preview. Failures stay sanitized.",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TE9Bd",
+              "name": "Narrow Identity Boundary",
+              "width": 358,
+              "fill": "#F3EBDD",
+              "cornerRadius": 10,
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "left": 3
+              },
+              "layout": "vertical",
+              "gap": 7,
+              "padding": [
+                12,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RiLhn",
+                  "name": "Narrow Boundary Label",
+                  "fill": "#5D6C57",
+                  "content": "IDENTITY BOUNDARY",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 9,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "RgBxI",
+                  "name": "Narrow Boundary Copy",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Local session owner · explicit issuer + subject binding · no upstream claim grants.",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SQPBB",
+      "x": 1990,
+      "y": 1180,
+      "name": "Authentication + S7 Local Identity — Design Decision Record · R18",
+      "clip": true,
+      "width": 1440,
+      "height": 520,
+      "fill": "#FBF7F0",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "f9ODz",
+          "name": "R18 Decision Header",
+          "width": "fill_container",
+          "height": 112,
+          "fill": "#F3EBDD",
+          "stroke": "#D8C9BB",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            24,
+            32
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "h3dUx",
+              "name": "R18 Decision Title",
+              "width": 900,
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZlR9Q",
+                  "name": "R18 Eyebrow",
+                  "fill": "#5D6C57",
+                  "content": "DESIGN DECISION · BATCH D",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "s2LC6",
+                  "name": "R18 Title",
+                  "fill": "#2F2A25",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Authentication Gateway + S7 Local Identity",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "q5nT2",
+                  "name": "R18 Subtitle",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "A full authentication baseline; User / Role remain direct S7 owner replacements.",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nU8Xk",
+              "name": "R18 Coverage Badge",
+              "fill": "#435C74",
+              "cornerRadius": 12,
+              "layout": "vertical",
+              "gap": 3,
+              "padding": [
+                12,
+                18
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KsOQN",
+                  "name": "R18 Coverage Label",
+                  "fill": "#FFFFFF",
+                  "content": "A / FULL PENCIL",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "udeII",
+                  "name": "R18 Score",
+                  "fill": "#FFFFFF",
+                  "content": "9 POINTS",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OvzIZ",
+          "name": "R18 Five Dimension Score",
+          "width": "fill_container",
+          "height": 92,
+          "fill": "#FBF7F0",
+          "stroke": "#D8C9BB",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            16,
+            32
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "RH8nf",
+              "name": "Score 01",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 3,
+              "padding": [
+                0,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "w65EUC",
+                  "name": "Score Heading 01",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "g9uXf",
+                      "name": "Score Label 01",
+                      "fill": "#2F2A25",
+                      "content": "Structure",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "cJBZd",
+                      "name": "Score Value 01",
+                      "fill": "#435C74",
+                      "content": "2",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "t1Ui3",
+                  "name": "Score Rationale 01",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "new unauthenticated shell",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y85DA",
+              "name": "Score 02",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 3,
+              "padding": [
+                0,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dZx0v",
+                  "name": "Score Heading 02",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "VempD",
+                      "name": "Score Label 02",
+                      "fill": "#2F2A25",
+                      "content": "Interaction",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "RK99W",
+                      "name": "Score Value 02",
+                      "fill": "#5D6C57",
+                      "content": "1",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "MlUia",
+                  "name": "Score Rationale 02",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "existing auth controls",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IXh8c",
+              "name": "Score 03",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 3,
+              "padding": [
+                0,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YCa3O",
+                  "name": "Score Heading 03",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sTdr0",
+                      "name": "Score Label 03",
+                      "fill": "#2F2A25",
+                      "content": "Boundary risk",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "LokEF",
+                      "name": "Score Value 03",
+                      "fill": "#435C74",
+                      "content": "2",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "ZmLg8",
+                  "name": "Score Rationale 03",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "password + OIDC + session",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "clPOx",
+              "name": "Score 04",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 3,
+              "padding": [
+                0,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "FMyyG",
+                  "name": "Score Heading 04",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Hf4Jz",
+                      "name": "Score Label 04",
+                      "fill": "#2F2A25",
+                      "content": "State / narrow",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "WAhbY",
+                      "name": "Score Value 04",
+                      "fill": "#435C74",
+                      "content": "2",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "VQpdC",
+                  "name": "Score Rationale 04",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "restore, failure, redirect",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u8hbt",
+              "name": "Score 05",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "#D8C9BB",
+              "layout": "vertical",
+              "gap": 3,
+              "padding": [
+                0,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vtt9N",
+                  "name": "Score Heading 05",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yQbzq",
+                      "name": "Score Label 05",
+                      "fill": "#2F2A25",
+                      "content": "Reuse leverage",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "I4c94",
+                      "name": "Score Value 05",
+                      "fill": "#435C74",
+                      "content": "2",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "eMsgi",
+                  "name": "Score Rationale 05",
+                  "fill": "#746B62",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "auth + S7 + app shell",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "grD6K",
+          "name": "R18 Decision Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 28,
+          "padding": [
+            22,
+            32,
+            26,
+            32
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "m9UI3n",
+              "name": "R18 Hierarchy And State",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YhDPW",
+                  "name": "R18 Hierarchy Title",
+                  "fill": "#2F2A25",
+                  "content": "Hierarchy and state policy",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "hzQif",
+                  "name": "R18 Hierarchy Row",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hU5zn",
+                      "name": "Hierarchy 1",
+                      "width": "fill_container",
+                      "fill": "#F3EBDD",
+                      "cornerRadius": 10,
+                      "stroke": "#D8C9BB",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 6,
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "qaog5",
+                          "name": "Hierarchy Number 1",
+                          "width": 24,
+                          "height": 24,
+                          "fill": "#E2E8DC",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "p1svqq",
+                              "name": "Hierarchy Number Label 1",
+                              "fill": "#5D6C57",
+                              "content": "1",
+                              "lineHeight": 1.32,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "eoPMs",
+                          "name": "Hierarchy Title 1",
+                          "fill": "#2F2A25",
+                          "content": "Form first",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "k9Wwc0",
+                          "name": "Hierarchy Copy 1",
+                          "fill": "#746B62",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "One dominant sign-in owner; registration is a mode, Radish is an alternative.",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "bZzct",
+                      "name": "Hierarchy 2",
+                      "width": "fill_container",
+                      "fill": "#F3EBDD",
+                      "cornerRadius": 10,
+                      "stroke": "#D8C9BB",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 6,
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "DwLer",
+                          "name": "Hierarchy Number 2",
+                          "width": 24,
+                          "height": 24,
+                          "fill": "#E2E8DC",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "TQeXa",
+                              "name": "Hierarchy Number Label 2",
+                              "fill": "#5D6C57",
+                              "content": "2",
+                              "lineHeight": 1.32,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "cyo1A",
+                          "name": "Hierarchy Title 2",
+                          "fill": "#2F2A25",
+                          "content": "Boundary second",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "T0oaj",
+                          "name": "Hierarchy Copy 2",
+                          "fill": "#746B62",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Desktop trust rail and narrow trailing note explain ownership without competing.",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RtGEp",
+                      "name": "Hierarchy 3",
+                      "width": "fill_container",
+                      "fill": "#F3EBDD",
+                      "cornerRadius": 10,
+                      "stroke": "#D8C9BB",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 6,
+                      "padding": [
+                        12,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "vzVoB",
+                          "name": "Hierarchy Number 3",
+                          "width": 24,
+                          "height": 24,
+                          "fill": "#E2E8DC",
+                          "cornerRadius": 7,
+                          "layout": "vertical",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "x1g2c",
+                              "name": "Hierarchy Number Label 3",
+                              "fill": "#5D6C57",
+                              "content": "3",
+                              "lineHeight": 1.32,
+                              "fontFamily": "Noto Sans SC",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "mkjEj",
+                          "name": "Hierarchy Title 3",
+                          "fill": "#2F2A25",
+                          "content": "State explicit",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "GItIj",
+                          "name": "Hierarchy Copy 3",
+                          "fill": "#746B62",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Probe → unauthenticated → pending / redirect → restored; failures stay sanitized.",
+                          "lineHeight": 1.32,
+                          "fontFamily": "Noto Sans SC",
+                          "fontSize": 10,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Mu4bN",
+                  "name": "R18 Stop Lines",
+                  "width": "fill_container",
+                  "fill": "#FBE9E6",
+                  "cornerRadius": 9,
+                  "stroke": "#A54848",
+                  "strokeWidth": {
+                    "left": 3
+                  },
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    11,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KjuUq",
+                      "name": "R18 Stop Lines Label",
+                      "fill": "#A54848",
+                      "content": "STOP LINES",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ED2LF",
+                      "name": "R18 Stop Lines Copy",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "No browser token persistence · no email merge · no upstream claim grants · no production auth or real Radish evidence.",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gri68",
+              "name": "R18 Reuse And Mapping",
+              "width": 470,
+              "height": "fill_container",
+              "stroke": "#D8C9BB",
+              "strokeWidth": {
+                "left": 1
+              },
+              "layout": "vertical",
+              "gap": 13,
+              "padding": [
+                0,
+                0,
+                0,
+                24
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sTxWv",
+                  "name": "R18 Mapping Title",
+                  "fill": "#2F2A25",
+                  "content": "Reuse and implementation mapping",
+                  "lineHeight": 1.32,
+                  "fontFamily": "Noto Sans SC",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "PlkZb",
+                  "name": "Mapping AUTH GATEWAY",
+                  "width": "fill_container",
+                  "stroke": "#D8C9BB",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    0,
+                    0,
+                    9,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uwb13",
+                      "name": "Mapping Label AUTH GATEWAY",
+                      "fill": "#5D6C57",
+                      "content": "AUTH GATEWAY",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VM1Ou",
+                      "name": "Mapping Copy AUTH GATEWAY",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Desktop / Narrow R1 define the only new shell, credential hierarchy and responsive order.",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "COi3R",
+                  "name": "Mapping S7 USER OWNER",
+                  "width": "fill_container",
+                  "stroke": "#D8C9BB",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    0,
+                    0,
+                    9,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "j7VmJ",
+                      "name": "Mapping Label S7 USER OWNER",
+                      "fill": "#5D6C57",
+                      "content": "S7 USER OWNER",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "f9GHS",
+                      "name": "Mapping Copy S7 USER OWNER",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Replace the obsolete Radish-owned boundary with current local account, binding and session facts.",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "P64yc",
+                  "name": "Mapping S7 ROLE OWNER",
+                  "width": "fill_container",
+                  "stroke": "#D8C9BB",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    0,
+                    0,
+                    9,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h9rHv",
+                      "name": "Mapping Label S7 ROLE OWNER",
+                      "fill": "#5D6C57",
+                      "content": "S7 ROLE OWNER",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "r08BrA",
+                      "name": "Mapping Copy S7 ROLE OWNER",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Consume local role / membership projection; absent list facts remain blocked, never fixture-backed.",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "XihWT",
+                  "name": "Mapping REACT ANCHORS",
+                  "width": "fill_container",
+                  "stroke": "#D8C9BB",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    0,
+                    0,
+                    9,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "W3fzm",
+                      "name": "Mapping Label REACT ANCHORS",
+                      "fill": "#5D6C57",
+                      "content": "REACT ANCHORS",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "h8HQRQ",
+                      "name": "Mapping Copy REACT ANCHORS",
+                      "fill": "#746B62",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "localIdentityConsumer.ts · localIdentityGateway.tsx · adminLocalIdentityOwner.tsx · App.tsx · styles.css",
+                      "lineHeight": 1.32,
+                      "fontFamily": "Noto Sans SC",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "variables": {

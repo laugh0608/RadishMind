@@ -118,6 +118,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment 的配置、路由、权限、CAS 和故障处理见 [Prompt Application 开发测试态使用指南](../features/user-workspace/prompt-application-dev-test-usage-guide.md)；长期领域边界见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
 - 本地注册、Web Session 与 browser OIDC 只在显式 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=true`、`RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 和 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 时启用；还必须配置 exact `RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN`。HTTPS 保持默认 `RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE=true`；loopback HTTP 开发测试必须显式设为 `false`。`RADISHMIND_LOCAL_IDENTITY_SESSION_TTL` 默认 `12h` 且不得超过 `30d`；`RADISHMIND_LOCAL_IDENTITY_STORE` 可选 `memory_dev | sqlite_dev | postgres_dev_test`，PostgreSQL 另需 `RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL` 和可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT`。OIDC 的 exact issuer、discovery、client、redirect、scope、algorithm、JWKS origin、transaction TTL 与首登准入开关见 [Platform Service README](../../services/platform/README.md)；这些开关只声明开发测试 session / OIDC，不声明真实 Radish 或 production auth。
+- Web 本地身份 gateway 还必须显式设置 `VITE_RADISHMIND_LOCAL_IDENTITY_MODE=local_identity_dev`；`VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL` 只接受 HTTPS 或 loopback HTTP，未设置时沿用受控 control-plane read base URL。consumer 使用 cookie credential、`no-store` 与 strict response shape，不把 session 或 OIDC token 写入 Web Storage。生产 build 中未显式启用时，既有 Web 产品面保持原行为。
 
 所有未知 selector、保留 production 值和不完整数据库配置都在启动前失败关闭。组件显式 `*_STORE` 与聚合 `RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 不得同时设置；数据库、migration、marker、checksum 或查询失败不得回退 `memory_dev`。
 
@@ -142,8 +143,10 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - `POST /v1/auth/oidc/start`
 - `GET /v1/auth/oidc/callback`
 - `GET /v1/auth/session`
+- `GET /v1/auth/account`
 - `POST /v1/auth/logout`
 - `POST /v1/auth/sessions/{session_id}/revoke`
+- `POST /v1/auth/external-identities/{binding_id}/revoke`
 
 完整路由按服务 README 的六类入口导航到对应协议或功能专题。路由注册不表示默认启用；User Workspace、Workflow、Application RAG、Gateway history 与 Admin 路由必须满足各自 auth、scope、dev/test gate 和 store selector。Application Session 每轮还会重读所选 profile 的 exact authority，不能用 session 中的旧摘要绕过 v5 / v4 owner。
 

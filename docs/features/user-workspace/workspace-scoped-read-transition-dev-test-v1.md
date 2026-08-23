@@ -211,4 +211,4 @@ Admin Web 已增加进程内 active workspace selector。五条 workspace read r
 
 ## 下一实现入口
 
-批次 A、B 已完成，开发 / 测试态 v1 的 workspace authorization、durable read projection、workspace-wide Run history 与非持久化 Web selector 已形成闭环，本专题保持关闭。RadishMind 本地 membership owner、Web Session actor 与确定性 browser OIDC 已转由[本地账户与 Radish OIDC 联合登录 v1](../admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 A 至 C 实现；下一步在新专题进入批次 D Web 与管理面，不恢复本专题的 legacy Radish membership adapter。
+批次 A、B 已完成，开发 / 测试态 v1 的 workspace authorization、durable read projection、workspace-wide Run history 与非持久化 Web selector 已形成闭环，本专题保持关闭。RadishMind 本地 membership owner、Web Session actor、确定性 browser OIDC 与当前账户 Web / S7 owner 已由[本地账户与 Radish OIDC 联合登录 v1](../admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 A 至 D 实现；真实 Radish 仍等待批次 E 外部条件，不恢复本专题的 legacy Radish membership adapter。

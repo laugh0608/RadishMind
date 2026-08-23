@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_account_radish_oidc_federated_login_v1_batch_c_completed_batch_d_ready`
+状态：`local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`
 
 对应功能设计：[RadishMind 本地账户与 Radish OIDC 联合登录 v1](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)
 
@@ -88,6 +88,13 @@
 - URL、Web Storage、IndexedDB、service worker、截图与构建产物不含身份 credential。
 - 控制台无 React warning、未处理异常或敏感 provider error。
 
+完成证据：
+
+- 五维评分 `2 / 1 / 2 / 2 / 2 = 9`，采用 `A / 完整 Pencil`；正确设计源第二排新增 Desktop `scHoA`、Narrow `uR4Yd` 与 Decision `SQPBB`，未修改旧节点。
+- Platform 新增当前账户严格投影与 external identity revoke route；三种 repository 共享同一当前账户 profile contract，解绑要求近期认证、ownership、CSRF / Origin、CAS 与至少一种剩余登录方式。
+- Web 使用显式 opt-in gateway、credentialed cookie、exact response parser、forbidden field guard、无 Web Storage 和 metadata-only `BroadcastChannel`。S7 User / Role 只读取当前本地 owner，不伪造用户目录、角色目录或 membership。
+- 真实浏览器覆盖错误密码、正确登录、当前账户、S7 User / Role、双标签登出、刷新与 SQLite 服务重启恢复；`1440×900`、`720×900`、`390×844` 无横向溢出，三标签 console 无 warning / error。OIDC login / link 与 revoke 的确定性行为由批次 C loopback issuer及本批 HTTP / consumer 自动化承接；真实 Radish 浏览器链留在批次 E。
+
 ## 批次 E：真实 Radish 联调
 
 进入条件：
@@ -128,7 +135,7 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 A：领域契约与三种开发测试仓储完成。
 - [x] 批次 B：本地注册、登录和 Web Session 完成。
 - [x] 批次 C：确定性 OIDC Relying Party 完成。
-- [ ] 批次 D：Web、浏览器、隐私和响应式验收完成。
-- [ ] 批次 E：真实 Radish integration evidence 完成，或明确保留为外部阻塞且不影响 A 至 D 的开发测试态关闭。
-- [ ] 功能专题、当前焦点、路线图、契约、周志和停止线同步。
-- [ ] 精准测试、fast gate 和最终完整门禁按风险通过。
+- [x] 批次 D：Web、浏览器、隐私和响应式验收完成。
+- [x] 批次 E：真实 Radish integration evidence 明确保留为外部阻塞，不影响 A 至 D 的开发测试态收口。
+- [x] 功能专题、当前焦点、路线图、契约、周志和停止线同步。
+- [x] 精准测试、fast gate 和最终完整门禁按风险通过。

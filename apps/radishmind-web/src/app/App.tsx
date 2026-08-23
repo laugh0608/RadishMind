@@ -254,6 +254,15 @@ const WorkflowUserWorkspaceHomePanel = lazy(() =>
     default: module.WorkflowUserWorkspaceHomePanel,
   })),
 );
+
+const LocalIdentityGateway = lazy(() =>
+  import("../features/local-identity/localIdentityGateway.tsx").then((module) => ({
+    default: module.LocalIdentityGateway,
+  })),
+);
+
+const localIdentityGatewayEnabled = (import.meta.env as Record<string, string | undefined>)
+  .VITE_RADISHMIND_LOCAL_IDENTITY_MODE?.trim() === "local_identity_dev";
 const AdminControlPlaneWorkspace = lazy(() => import("../features/control-plane-read/adminControlPlaneWorkspace"));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
@@ -318,6 +327,17 @@ const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
 ];
 
 export function App() {
+  if (!localIdentityGatewayEnabled) return <ProductApp />;
+  return (
+    <Suspense fallback={null}>
+      <LocalIdentityGateway>
+        <ProductApp />
+      </LocalIdentityGateway>
+    </Suspense>
+  );
+}
+
+function ProductApp() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(
     () => normalizeActiveWorkspaceId(devLiveConfig.workspaceId ?? "") ?? "workspace_demo",
   );

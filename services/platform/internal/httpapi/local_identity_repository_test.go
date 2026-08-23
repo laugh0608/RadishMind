@@ -509,6 +509,16 @@ func runLocalIdentityRepositoryContract(t *testing.T, repository localIdentityRe
 	if err := repository.CreateRoleAssignment(ctx, role); err != nil {
 		t.Fatalf("create local role assignment: %v", err)
 	}
+	profile, err := repository.ReadAccountAccessProfile(ctx, account.UserID)
+	if err != nil || profile.Account.UserID != account.UserID || !profile.HasActiveLocalCredential ||
+		len(profile.ExternalIdentities) != 1 || profile.ExternalIdentities[0].BindingID != binding.BindingID ||
+		len(profile.RoleAssignments) != 1 || profile.RoleAssignments[0].AssignmentID != role.AssignmentID ||
+		len(profile.WorkspaceMemberships) != 1 || profile.WorkspaceMemberships[0].MembershipID != membership.MembershipID {
+		t.Fatalf("account access profile mismatch: profile=%#v err=%v", profile, err)
+	}
+	if _, err := repository.ReadAccountAccessProfile(ctx, "usr_missingaaaaaaaaa"); !errors.Is(err, errLocalIdentityNotFound) {
+		t.Fatalf("missing account access profile must remain not found: %v", err)
+	}
 	secondaryRole := role
 	secondaryRole.AssignmentID = "rla_bbbbbbbbbbbbbbbb"
 	secondaryRole.UserID = second.UserID

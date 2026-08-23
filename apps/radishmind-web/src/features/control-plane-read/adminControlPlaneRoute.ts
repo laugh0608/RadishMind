@@ -19,8 +19,8 @@ export type AdminControlPlaneResourceTask = {
 
 export const ADMIN_CONTROL_PLANE_RESOURCE_TASKS: ReadonlyArray<AdminControlPlaneResourceTask> = [
   { surface: "tenant", anchor: "admin-tenant-overview", label: "Tenant", scope: "tenant:read", number: "01" },
-  { surface: "user", anchor: "admin-user-directory", label: "User", scope: "Radish owner", number: "02" },
-  { surface: "role", anchor: "admin-role-policy", label: "Role", scope: "policy mapping", number: "03" },
+  { surface: "user", anchor: "admin-user-directory", label: "User", scope: "local identity", number: "02" },
+  { surface: "role", anchor: "admin-role-policy", label: "Role", scope: "local grants", number: "03" },
   { surface: "audit", anchor: "admin-audit-log", label: "Audit", scope: "audit:read", number: "04" },
   { surface: "provider", anchor: "admin-provider-config", label: "Provider", scope: "inventory ref", number: "05" },
   { surface: "profile", anchor: "admin-profile-config", label: "Profile", scope: "assignment", number: "06" },

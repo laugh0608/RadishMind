@@ -10,9 +10,9 @@
 - 如果你现在要判断应该优先做什么，先读 `docs/radishmind-current-focus.md`、`docs/radishmind-capability-matrix.md` 和 `docs/radishmind-roadmap.md`，不要把这些任务卡误解成当前唯一主线。
 - 2026-06-14 起，长期功能设计默认写入 `docs/features/`；任务卡只用于具体实现批次、前置条件或高风险边界。普通只读展示、文案、布局和 evidence 组织不再默认逐项新增任务卡。
 
-## 当前活跃任务
+## 当前外部阻塞任务
 
-[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_c_completed_batch_d_ready`。批次 A 至 C 的 identity owner、三种仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、state / nonce、callback 与 external identity binding 已完成；下一步只开放批次 D Web 与管理面，真实 Radish 联调仍按批次 E 的外部条件开放。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)状态为 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 的 identity owner、三种仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、strict Web、S7 当前账户 owner 与浏览器链已完成；批次 E 只在真实 Radish client registration 等外部条件成立后恢复，当前没有可直接实施的身份批次。
 
 ## 最近关闭任务
 

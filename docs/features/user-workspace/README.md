@@ -39,7 +39,7 @@
 - S9 / S10 功能实现、SQLite 重启复验、Visual R3 人工复核、React 迁移与三视口浏览器证据已完成；旧 R1 与 Visual R2 仍只保留为退回历史。Provider 价格与应用成本专题的 S7 / S5 Visual R1、React strict consumer 和产品连续链也已完成。下一顺位回到功能设计入口选择新的真实产品阻塞，不从已关闭专题派生同层页面、自动执行或生产能力。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
-- Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成并关闭。历史条件式批次 C 只指 legacy Radish resource-server membership adapter；本地 membership owner、Web Session actor 与确定性 browser OIDC 已由联合身份专题批次 A 至 C 承接，不从本专题恢复该 adapter。
+- Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成并关闭。历史条件式批次 C 只指 legacy Radish resource-server membership adapter；本地 membership owner、Web Session actor、确定性 browser OIDC 与当前账户 Web / S7 owner 已由联合身份专题批次 A 至 D 承接，不从本专题恢复该 adapter。
 - Workspace-scoped Mutation Authorization 批次 A 至 E 已完成并关闭；后续生产 membership adapter 和真实 OIDC 只在 reviewed 上游契约齐备后独立恢复，不从本专题派生同层 gate-only 批次。
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层 readiness、refresh 或 gate-only 批次。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。

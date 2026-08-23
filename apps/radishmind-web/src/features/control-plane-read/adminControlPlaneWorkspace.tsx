@@ -25,6 +25,8 @@ import {
   type ControlPlaneReadDevLiveLoadState,
 } from "./devLiveReadConsumer.ts";
 import type { WorkspaceApplicationRow } from "./workspaceApplications.ts";
+import { AdminLocalIdentityOwner } from "../local-identity/adminLocalIdentityOwner.tsx";
+import { useLocalIdentity } from "../local-identity/localIdentityGateway.tsx";
 
 const AdminOperationsReviewPanel = lazy(() =>
   import("./adminOperationsReviewPanel.tsx").then((module) => ({
@@ -77,6 +79,7 @@ export default function AdminControlPlaneWorkspace({
   selectedApplicationDisplayName: string;
   onSelectApplication: (applicationId: string) => void;
 }) {
+  const localIdentity = useLocalIdentity();
   const [activeSurface, setActiveSurface] = useState<AdminControlPlaneSurface | null>(() =>
     adminControlPlaneSurfaceForHash(window.location.hash),
   );
@@ -147,8 +150,9 @@ export default function AdminControlPlaneWorkspace({
       providerRouteConfig,
       quotaConfig.mode,
       pricingConfig.mode,
+      localIdentity !== null,
     ),
-    [auditLog, pricingConfig.mode, quotaConfig.mode, sourceConfig, sourceState, tenantOverview],
+    [auditLog, localIdentity, pricingConfig.mode, quotaConfig.mode, sourceConfig, sourceState, tenantOverview],
   );
 
   const pricingActive = activeSurface === "pricing";
@@ -179,7 +183,7 @@ export default function AdminControlPlaneWorkspace({
         <dl>
           <div><dt>Tenant</dt><dd>{sourceConfig.tenantRef}</dd></div>
           <div><dt>Workspace</dt><dd>{sourceConfig.workspaceId ?? "unavailable"}</dd></div>
-          <div><dt>Auth source</dt><dd>{adminAuthSourceLabel(sourceConfig)}</dd></div>
+          <div><dt>Auth source</dt><dd>{adminAuthSourceLabel(sourceConfig, localIdentity !== null)}</dd></div>
           <div><dt>Environment</dt><dd>{quotaActive ? quotaConfig.environment : pricingActive ? pricingConfig.environment : providerRouteConfig.environment}</dd></div>
         </dl>
       </header>
@@ -206,15 +210,15 @@ export default function AdminControlPlaneWorkspace({
           })}
           <p className="admin-control-plane-boundary">
             <span aria-hidden="true">!</span>
-            User and Role remain Radish-owned. Production membership, formal OIDC, secrets, onboarding,
-            automatic routing, production quota, production price and billing stay closed.
+            User and Role expose only the authenticated local account and repository-owned grants. Directory listing,
+            production membership, production OIDC, secrets, onboarding, billing and automatic routing stay closed.
           </p>
         </nav>
 
         <main className="admin-control-plane-owner" data-owner={activeSurface ?? "inactive"}>
           {activeSurface === "tenant" ? <AdminTenantOwner overview={tenantOverview} /> : null}
           {activeSurface === "user" || activeSurface === "role" ? (
-            <AdminIdentityBoundaryOwner surface={activeSurface} />
+            <AdminLocalIdentityOwner surface={activeSurface} />
           ) : null}
           {activeSurface === "audit" ? (
             <AdminAuditOwner auditLog={auditLog} sourceConfig={sourceConfig} />
@@ -275,6 +279,7 @@ function buildResourceStatuses(
   routeConfig: AdminProviderRouteConfig,
   quotaMode: "offline" | "dev_admin_gateway_request_quota_http",
   pricingMode: "offline" | "dev_admin_gateway_model_pricing_http",
+  localIdentityReady: boolean,
 ): Record<AdminControlPlaneSurface, ResourceStatus> {
   const liveReady = sourceConfig.mode === "dev_live_http" && sourceState.status === "ready";
   const tenantStatus: ResourceStatus = liveReady && tenantOverview.canRenderTenant
@@ -292,8 +297,8 @@ function buildResourceStatuses(
     : { label: "offline", tone: "neutral" };
   return {
     tenant: tenantStatus,
-    user: { label: "not connected", tone: "blocked" },
-    role: { label: "not connected", tone: "blocked" },
+    user: localIdentityReady ? { label: "current account", tone: "ready" } : { label: "offline", tone: "neutral" },
+    role: localIdentityReady ? { label: "local grants", tone: "ready" } : { label: "offline", tone: "neutral" },
     audit: auditStatus,
     provider: routeStatus,
     profile: routeStatus,
@@ -307,7 +312,8 @@ function buildResourceStatuses(
   };
 }
 
-function adminAuthSourceLabel(config: ControlPlaneReadDevLiveConfig): string {
+function adminAuthSourceLabel(config: ControlPlaneReadDevLiveConfig, localIdentityReady: boolean): string {
+  if (localIdentityReady) return "local Web session";
   if (config.mode !== "dev_live_http") return "offline fixtures";
   if (config.authMode === "radish_oidc_integration_test") return "OIDC integration test";
   if (config.authMode === "signed_test_token") return "signed test token";
@@ -344,49 +350,6 @@ function AdminTenantOwner({ overview }: { overview: AdminTenantOverviewViewModel
       <BoundaryNotice>
         This is a sanitized summary projection. It cannot create a tenant, edit membership, change plan or quota,
         reveal a raw tenant record, or establish production authorization.
-      </BoundaryNotice>
-    </section>
-  );
-}
-
-function AdminIdentityBoundaryOwner({ surface }: { surface: "user" | "role" }) {
-  const user = surface === "user";
-  return (
-    <section className="admin-control-owner-surface admin-control-identity-owner" aria-labelledby="admin-identity-owner-title">
-      <header>
-        <div>
-          <p className="eyebrow">{user ? "User" : "Role"} · upstream identity boundary</p>
-          <h4 id="admin-identity-owner-title">No RadishMind directory owner</h4>
-        </div>
-        <StatusPill tone="blocked">not connected</StatusPill>
-      </header>
-      <div className="admin-control-identity-statement">
-        <span aria-hidden="true">∅</span>
-        <div>
-          <strong>{user ? "Users remain owned by Radish" : "Roles and upstream permissions remain owned by Radish"}</strong>
-          <p>
-            RadishMind currently consumes sanitized subject and tenant references at verified boundaries. It does not
-            have a production membership adapter, a user list repository, or a role catalog consumer.
-          </p>
-        </div>
-      </div>
-      <dl className="admin-control-owner-meta admin-control-identity-meta">
-        <div><dt>Truth owner</dt><dd>Radish identity system</dd></div>
-        <div><dt>Current local evidence</dt><dd>subject / tenant refs only</dd></div>
-        <div><dt>Missing prerequisite</dt><dd>reviewed membership and permission mapping</dd></div>
-        <div><dt>Allowed action</dt><dd>none</dd></div>
-      </dl>
-      <div className="admin-control-blocked-actions" aria-label="Blocked identity actions">
-        {[
-          "Invite or create user",
-          "Assign or revoke role",
-          "Infer permission from role name",
-          "Enable production session",
-        ].map((action) => <span key={action}>{action}</span>)}
-      </div>
-      <BoundaryNotice>
-        The absence of a list is intentional. Offline examples, development headers, or deterministic OIDC tests
-        cannot be promoted into production membership facts.
       </BoundaryNotice>
     </section>
   );

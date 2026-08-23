@@ -36,21 +36,21 @@
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
-- 当前产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_batch_c_completed`。批次 A 至 C 已完成本地身份 owner、三种 repository、本地 Web Session HTTP，以及独立 browser OIDC Authorization Code + PKCE、一次性 authorization transaction、ID token policy、外部身份 resolve / create / link 和本地 session issuance；下一步进入批次 D 的 Web 与管理面，不直接开始真实 Radish 联调。
+- 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A 至 C。当前下一步只推进批次 D：先按五维评分决定登录、注册、Radish 登录、绑定 / 解绑、当前会话与 User / Role 本地 owner 页面的 Pencil 覆盖级别，再进入 React strict consumer 和真实浏览器连续链；批次 E 的真实 Radish 联调仍等待外部注册条件。
+1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)的本地可执行批次 A 至 D 已完成；批次 E 只在 reviewed client registration、issuer、redirect、scope、signing policy、secret 注入与测试账户流程成立后恢复。外部条件未满足时，下一轮先回到[功能设计文档入口](features/README.md)选择新的长期产品顺位，不派生同层身份 gate，也不提前打开 production auth。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成与下一事项
 
-1. 已完成联合身份专题批次 C：`POST /v1/auth/oidc/start`、`GET /v1/auth/oidc/callback`、Authorization Code + PKCE、一次性 `state / nonce / code verifier`、exact client policy 和独立 ID token verifier 已落地；既有 Admin resource-server audience / permission projection 未被复用。
-2. 已完成外部身份 resolve / create / link 与本地 session 闭环：首登准入由显式开发测试开关控制，账户 / binding / session 原子创建；显式绑定同时固定发起 `session_id + record_version + user_id`，开始与 callback 均要求最近 10 分钟认证；最后登录方式不能解绑。
-3. 上游 email、display name、tenant、role 与 permission claim 不触发账户合并或本地 grant；raw code、ID token、access token、claim envelope 与 session credential 不进入响应、audit 或持久身份记录。refresh token 仍未实现。
-4. memory / SQLite / PostgreSQL 的单次事务、并发单胜者、重启和 no-fallback 已复验；PostgreSQL `local_identity_records_store_v2` 完成 v1 升级、受限运行角色、rollback / reapply 集成，测试容器已关闭并保留命名卷。
-5. 下一事项只进入批次 D 的设计覆盖评估和 Web 产品面；不把 loopback issuer 解释为真实 Radish 或 production auth，不提前打开批次 E、production session store、MFA、恢复、速率限制、secret 或 refresh token。
+1. 已完成批次 D 完整设计覆盖：五维评分 `2 / 1 / 2 / 2 / 2 = 9`，在正确的 `radishmind-web-family-ui-v1.pen` 第二排新增 Desktop `scHoA`、Narrow `uR4Yd` 与 Decision `SQPBB`，旧节点未修改且布局检查无问题。
+2. Platform 已增加 `GET /v1/auth/account` 与 `POST /v1/auth/external-identities/{binding_id}/revoke`。当前账户 profile 由 memory / SQLite / PostgreSQL 的唯一 repository contract 投影；解绑要求近期认证、ownership、CSRF / Origin、版本 CAS 与至少一种剩余登录方式。
+3. Web 已增加显式 opt-in 本地身份 gateway、strict consumer、登录 / 注册 / Radish 登录入口、当前账户、link / revoke / logout 和 metadata-only 跨标签同步；S7 User / Role 只读取当前本地账户、role assignment 与 membership，不使用离线 fixture 冒充目录事实。
+4. 真实浏览器完成错误密码、正确登录、当前账户面板、S7 User / Role、双标签登出、刷新、SQLite 服务重启恢复及 `1440×900`、`720×900`、`390×844`；无横向溢出，三标签 console 无 warning / error。临时账户、SQLite 文件、服务与浏览器标签均已清理。
+5. 下一事项不直接启动批次 E。真实 Radish client registration、issuer、redirect、scope、signing policy、secret 注入与测试账户流程未齐备时，身份专题保持外部阻塞；下一轮回到功能设计入口选择新的长期产品任务，production session store、MFA、恢复、速率限制、refresh token 与 production auth 继续关闭。
 
 ## 2026-08-19 今日评审
 

@@ -15,6 +15,7 @@ type localIdentityRepository interface {
 	CreateAccountAndWebSession(context.Context, UserAccount, LocalCredential, WebSession) error
 	CreateOIDCAccountAndWebSession(context.Context, UserAccount, ExternalIdentityBinding, WebSession) error
 	ReadAccount(context.Context, string) (UserAccount, error)
+	ReadAccountAccessProfile(context.Context, string) (LocalIdentityAccountAccessProfile, error)
 	FindAccountByLoginIdentifier(context.Context, string) (UserAccount, error)
 	DisableAccount(context.Context, string, int, time.Time, string) (UserAccount, error)
 	ReadActiveCredential(context.Context, string) (LocalCredential, error)
