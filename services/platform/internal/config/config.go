@@ -15,59 +15,60 @@ import (
 )
 
 const (
-	defaultListenAddr                   = ":7000"
-	defaultReadHeaderTimeout            = 5 * time.Second
-	defaultWriteTimeout                 = 30 * time.Second
-	defaultBridgeTimeout                = 30 * time.Second
-	defaultBridgeMode                   = "stdio_pool"
-	defaultBridgeWorkerCount            = 4
-	defaultBridgeQueueSize              = 64
-	defaultBridgeHandshake              = 5 * time.Second
-	defaultDraftDBTimeout               = 5 * time.Second
-	defaultApplicationDraftDBTimeout    = 5 * time.Second
-	defaultApplicationPublishDBTimeout  = 5 * time.Second
-	defaultApplicationCatalogDBTimeout  = 5 * time.Second
-	defaultPromptTemplateDBTimeout      = 5 * time.Second
-	defaultAgentCopilotProfileDBTimeout = 5 * time.Second
-	defaultAdminProviderRouteDBTimeout  = 5 * time.Second
-	defaultAPIKeyDBTimeout              = 5 * time.Second
-	defaultRunDBTimeout                 = 5 * time.Second
-	defaultGatewayRequestDBTimeout      = 5 * time.Second
-	defaultGatewayRequestQuotaDBTimeout = 5 * time.Second
-	defaultGatewayModelPricingDBTimeout = 5 * time.Second
-	defaultPythonBinary                 = "python3"
-	defaultBridgeScript                 = "scripts/run-platform-bridge.py"
-	defaultProvider                     = "mock"
-	defaultDraftStoreMode               = "memory_dev"
-	defaultApplicationDraftStoreMode    = "memory_dev"
-	defaultApplicationPublishStoreMode  = "memory_dev"
-	defaultApplicationCatalogStoreMode  = "memory_dev"
-	defaultPromptTemplateStoreMode      = "memory_dev"
-	defaultAgentCopilotProfileStoreMode = "memory_dev"
-	defaultAdminProviderRouteStoreMode  = "memory_dev"
-	defaultAPIKeyStoreMode              = "memory_dev"
-	defaultGatewayAuthMode              = "dev_headers"
-	defaultGatewayProviderRouteSource   = "static_config"
-	defaultRunStoreMode                 = "memory_dev"
-	defaultGatewayRequestStoreMode      = "memory_dev"
-	defaultGatewayRequestQuotaStoreMode = "memory_dev"
-	defaultGatewayModelPricingStoreMode = "memory_dev"
-	defaultLocalIdentityStoreMode       = "memory_dev"
-	defaultLocalIdentityDBTimeout       = 5 * time.Second
-	defaultLocalIdentitySessionTTL      = 12 * time.Hour
-	defaultLocalPersistenceMode         = "memory_dev"
-	defaultSQLiteDevDatabasePath        = "var/sqlite-dev/radishmind.db"
-	defaultControlPlaneReadAuthMode     = ""
-	defaultControlPlaneReadStoreMode    = "fake_store_dev"
-	defaultControlPlaneReadDBTimeout    = 5 * time.Second
-	defaultOIDCDiscoveryTimeout         = 3 * time.Second
-	defaultOIDCJWKSMaxAge               = 5 * time.Minute
-	defaultOIDCJWKSHardExpiry           = 15 * time.Minute
-	defaultOIDCRotationOverlap          = 5 * time.Minute
-	defaultOIDCClockSkew                = 30 * time.Second
-	defaultOIDCMaxTokenLifetime         = 10 * time.Minute
-	defaultOIDCMaxResponseBytes         = 256 * 1024
-	defaultOIDCMaxKeys                  = 32
+	defaultListenAddr                      = ":7000"
+	defaultReadHeaderTimeout               = 5 * time.Second
+	defaultWriteTimeout                    = 30 * time.Second
+	defaultBridgeTimeout                   = 30 * time.Second
+	defaultBridgeMode                      = "stdio_pool"
+	defaultBridgeWorkerCount               = 4
+	defaultBridgeQueueSize                 = 64
+	defaultBridgeHandshake                 = 5 * time.Second
+	defaultDraftDBTimeout                  = 5 * time.Second
+	defaultApplicationDraftDBTimeout       = 5 * time.Second
+	defaultApplicationPublishDBTimeout     = 5 * time.Second
+	defaultApplicationCatalogDBTimeout     = 5 * time.Second
+	defaultPromptTemplateDBTimeout         = 5 * time.Second
+	defaultAgentCopilotProfileDBTimeout    = 5 * time.Second
+	defaultAdminProviderRouteDBTimeout     = 5 * time.Second
+	defaultAPIKeyDBTimeout                 = 5 * time.Second
+	defaultRunDBTimeout                    = 5 * time.Second
+	defaultGatewayRequestDBTimeout         = 5 * time.Second
+	defaultGatewayRequestQuotaDBTimeout    = 5 * time.Second
+	defaultGatewayModelPricingDBTimeout    = 5 * time.Second
+	defaultPythonBinary                    = "python3"
+	defaultBridgeScript                    = "scripts/run-platform-bridge.py"
+	defaultProvider                        = "mock"
+	defaultDraftStoreMode                  = "memory_dev"
+	defaultApplicationDraftStoreMode       = "memory_dev"
+	defaultApplicationPublishStoreMode     = "memory_dev"
+	defaultApplicationCatalogStoreMode     = "memory_dev"
+	defaultPromptTemplateStoreMode         = "memory_dev"
+	defaultAgentCopilotProfileStoreMode    = "memory_dev"
+	defaultAdminProviderRouteStoreMode     = "memory_dev"
+	defaultAPIKeyStoreMode                 = "memory_dev"
+	defaultGatewayAuthMode                 = "dev_headers"
+	defaultGatewayProviderRouteSource      = "static_config"
+	defaultRunStoreMode                    = "memory_dev"
+	defaultGatewayRequestStoreMode         = "memory_dev"
+	defaultGatewayRequestQuotaStoreMode    = "memory_dev"
+	defaultGatewayModelPricingStoreMode    = "memory_dev"
+	defaultLocalIdentityStoreMode          = "memory_dev"
+	defaultLocalIdentityDBTimeout          = 5 * time.Second
+	defaultLocalIdentitySessionTTL         = 12 * time.Hour
+	defaultLocalIdentityOIDCTransactionTTL = 5 * time.Minute
+	defaultLocalPersistenceMode            = "memory_dev"
+	defaultSQLiteDevDatabasePath           = "var/sqlite-dev/radishmind.db"
+	defaultControlPlaneReadAuthMode        = ""
+	defaultControlPlaneReadStoreMode       = "fake_store_dev"
+	defaultControlPlaneReadDBTimeout       = 5 * time.Second
+	defaultOIDCDiscoveryTimeout            = 3 * time.Second
+	defaultOIDCJWKSMaxAge                  = 5 * time.Minute
+	defaultOIDCJWKSHardExpiry              = 15 * time.Minute
+	defaultOIDCRotationOverlap             = 5 * time.Minute
+	defaultOIDCClockSkew                   = 30 * time.Second
+	defaultOIDCMaxTokenLifetime            = 10 * time.Minute
+	defaultOIDCMaxResponseBytes            = 256 * 1024
+	defaultOIDCMaxKeys                     = 32
 )
 
 const (
@@ -120,6 +121,16 @@ type Config struct {
 	LocalIdentityAllowedOrigin               string
 	LocalIdentityCookieSecure                bool
 	LocalIdentitySessionTTL                  time.Duration
+	LocalIdentityOIDCEnabled                 bool
+	LocalIdentityOIDCIssuer                  string
+	LocalIdentityOIDCDiscoveryURL            string
+	LocalIdentityOIDCClientID                string
+	LocalIdentityOIDCRedirectURI             string
+	LocalIdentityOIDCScopes                  string
+	LocalIdentityOIDCAlgorithms              string
+	LocalIdentityOIDCJWKSOrigin              string
+	LocalIdentityOIDCTransactionTTL          time.Duration
+	LocalIdentityOIDCFirstLoginEnabled       bool
 	WorkflowSavedDraftDevHTTPEnabled         bool
 	WorkflowSavedDraftDevWriteEnabled        bool
 	ApplicationDraftDevHTTPEnabled           bool
@@ -234,6 +245,10 @@ type ConfigSummary struct {
 	LocalIdentityAllowedOriginConfigured     bool              `json:"local_identity_allowed_origin_configured"`
 	LocalIdentityCookieSecure                bool              `json:"local_identity_cookie_secure"`
 	LocalIdentitySessionTTL                  string            `json:"local_identity_session_ttl"`
+	LocalIdentityOIDCEnabled                 bool              `json:"local_identity_oidc_enabled"`
+	LocalIdentityOIDCConfigured              bool              `json:"local_identity_oidc_configured"`
+	LocalIdentityOIDCFirstLoginEnabled       bool              `json:"local_identity_oidc_first_login_enabled"`
+	LocalIdentityOIDCTransactionTTL          string            `json:"local_identity_oidc_transaction_ttl"`
 	WorkflowSavedDraftDevHTTPEnabled         bool              `json:"workflow_saved_draft_dev_http_enabled"`
 	WorkflowSavedDraftDevWriteEnabled        bool              `json:"workflow_saved_draft_dev_write_enabled"`
 	ApplicationDraftDevHTTPEnabled           bool              `json:"application_draft_dev_http_enabled"`
@@ -405,6 +420,7 @@ func defaultConfig() Config {
 		LocalIdentityDatabaseTimeout:             defaultLocalIdentityDBTimeout,
 		LocalIdentityCookieSecure:                true,
 		LocalIdentitySessionTTL:                  defaultLocalIdentitySessionTTL,
+		LocalIdentityOIDCTransactionTTL:          defaultLocalIdentityOIDCTransactionTTL,
 		ControlPlaneReadOIDCDiscoveryTimeout:     defaultOIDCDiscoveryTimeout,
 		ControlPlaneReadOIDCJWKSMaxAge:           defaultOIDCJWKSMaxAge,
 		ControlPlaneReadOIDCJWKSHardExpiry:       defaultOIDCJWKSHardExpiry,
@@ -1319,6 +1335,50 @@ func applyEnvOverrides(cfg *Config) error {
 		}
 		applyDurationValue(&cfg.LocalIdentitySessionTTL, parsed, cfg.FieldSources, "local_identity_session_ttl", configSourceEnv)
 	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_LOCAL_IDENTITY_OIDC_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.LocalIdentityOIDCEnabled = parsed
+		cfg.FieldSources["local_identity_oidc_dev"] = configSourceEnv
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_ISSUER"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCIssuer, value, cfg.FieldSources, "local_identity_oidc_issuer", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_DISCOVERY_URL"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCDiscoveryURL, value, cfg.FieldSources, "local_identity_oidc_discovery_url", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_CLIENT_ID"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCClientID, value, cfg.FieldSources, "local_identity_oidc_client_id", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_REDIRECT_URI"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCRedirectURI, value, cfg.FieldSources, "local_identity_oidc_redirect_uri", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_SCOPES"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCScopes, value, cfg.FieldSources, "local_identity_oidc_scopes", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_ALGORITHMS"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCAlgorithms, value, cfg.FieldSources, "local_identity_oidc_algorithms", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_JWKS_ORIGIN"); ok {
+		applyStringValue(&cfg.LocalIdentityOIDCJWKSOrigin, value, cfg.FieldSources, "local_identity_oidc_jwks_origin", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_TRANSACTION_TTL"); ok {
+		parsed, err := parseDurationValue("RADISHMIND_LOCAL_IDENTITY_OIDC_TRANSACTION_TTL", value)
+		if err != nil {
+			return err
+		}
+		applyDurationValue(&cfg.LocalIdentityOIDCTransactionTTL, parsed, cfg.FieldSources, "local_identity_oidc_transaction_ttl", configSourceEnv)
+	}
+	if value, ok := stringEnv("RADISHMIND_LOCAL_IDENTITY_OIDC_FIRST_LOGIN"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_LOCAL_IDENTITY_OIDC_FIRST_LOGIN", value)
+		if err != nil {
+			return err
+		}
+		cfg.LocalIdentityOIDCFirstLoginEnabled = parsed
+		cfg.FieldSources["local_identity_oidc_first_login"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_LOCAL_PERSISTENCE_MODE"); ok {
 		applyStringValue(&cfg.LocalPersistenceMode, value, cfg.FieldSources, "local_persistence_mode", configSourceEnv)
 	}
@@ -1675,6 +1735,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		LocalIdentityAllowedOriginConfigured:     strings.TrimSpace(cfg.LocalIdentityAllowedOrigin) != "",
 		LocalIdentityCookieSecure:                cfg.LocalIdentityCookieSecure,
 		LocalIdentitySessionTTL:                  cfg.LocalIdentitySessionTTL.String(),
+		LocalIdentityOIDCEnabled:                 cfg.LocalIdentityOIDCEnabled,
+		LocalIdentityOIDCConfigured:              strings.TrimSpace(cfg.LocalIdentityOIDCIssuer) != "" && strings.TrimSpace(cfg.LocalIdentityOIDCClientID) != "" && strings.TrimSpace(cfg.LocalIdentityOIDCRedirectURI) != "",
+		LocalIdentityOIDCFirstLoginEnabled:       cfg.LocalIdentityOIDCFirstLoginEnabled,
+		LocalIdentityOIDCTransactionTTL:          cfg.LocalIdentityOIDCTransactionTTL.String(),
 		WorkflowSavedDraftDevHTTPEnabled:         cfg.WorkflowSavedDraftDevHTTPEnabled,
 		WorkflowSavedDraftDevWriteEnabled:        cfg.WorkflowSavedDraftDevWriteEnabled,
 		ApplicationDraftDevHTTPEnabled:           cfg.ApplicationDraftDevHTTPEnabled,
@@ -2618,6 +2682,9 @@ func validateLocalIdentityConfig(cfg Config) error {
 		return fmt.Errorf("local_session_dev_test auth mode requires local identity dev HTTP")
 	}
 	if !cfg.LocalIdentityDevHTTPEnabled {
+		if cfg.LocalIdentityOIDCEnabled || cfg.LocalIdentityOIDCFirstLoginEnabled {
+			return fmt.Errorf("local identity OIDC requires local identity dev HTTP")
+		}
 		return nil
 	}
 	if cfg.LocalIdentitySessionTTL == 0 {
@@ -2640,7 +2707,113 @@ func validateLocalIdentityConfig(cfg Config) error {
 	if !cfg.LocalIdentityCookieSecure && origin.Scheme != "http" {
 		return fmt.Errorf("local identity insecure cookie is restricted to loopback HTTP")
 	}
+	return validateLocalIdentityOIDCConfig(cfg, origin)
+}
+
+func validateLocalIdentityOIDCConfig(cfg Config, allowedOrigin *url.URL) error {
+	if !cfg.LocalIdentityOIDCEnabled {
+		if cfg.LocalIdentityOIDCFirstLoginEnabled {
+			return fmt.Errorf("local identity OIDC first login requires OIDC enablement")
+		}
+		return nil
+	}
+	issuer, err := validateLocalIdentityOIDCEndpoint("issuer", cfg.LocalIdentityOIDCIssuer, false)
+	if err != nil {
+		return err
+	}
+	if issuer.RawQuery != "" {
+		return fmt.Errorf("local identity OIDC issuer must not contain a query")
+	}
+	discovery, err := validateLocalIdentityOIDCEndpoint("discovery URL", cfg.LocalIdentityOIDCDiscoveryURL, false)
+	if err != nil {
+		return err
+	}
+	if discovery.RawQuery != "" {
+		return fmt.Errorf("local identity OIDC discovery URL must not contain a query")
+	}
+	if endpointOrigin(discovery) != endpointOrigin(issuer) {
+		return fmt.Errorf("local identity OIDC discovery URL must use the exact issuer origin")
+	}
+	jwksOrigin, err := validateLocalIdentityOIDCEndpoint("JWKS origin", cfg.LocalIdentityOIDCJWKSOrigin, true)
+	if err != nil {
+		return err
+	}
+	if jwksOrigin.Path != "" || endpointOrigin(jwksOrigin) != endpointOrigin(issuer) {
+		return fmt.Errorf("local identity OIDC JWKS origin must equal the issuer origin")
+	}
+	redirect, err := validateLocalIdentityOIDCEndpoint("redirect URI", cfg.LocalIdentityOIDCRedirectURI, false)
+	if err != nil {
+		return err
+	}
+	if endpointOrigin(redirect) != endpointOrigin(allowedOrigin) || redirect.Path != "/v1/auth/oidc/callback" || redirect.RawQuery != "" {
+		return fmt.Errorf("local identity OIDC redirect URI must use the allowed origin and exact callback path")
+	}
+	clientID := strings.TrimSpace(cfg.LocalIdentityOIDCClientID)
+	if len(clientID) < 3 || len(clientID) > 255 || strings.ContainsAny(clientID, " \t\r\n\x00") {
+		return fmt.Errorf("local identity OIDC client ID is invalid")
+	}
+	if !validLocalIdentityOIDCStringList(cfg.LocalIdentityOIDCScopes, true) {
+		return fmt.Errorf("local identity OIDC scopes must be an exact comma-separated list containing openid")
+	}
+	algorithms := strings.Split(cfg.LocalIdentityOIDCAlgorithms, ",")
+	allowedAlgorithms := map[string]bool{"RS256": true, "RS384": true, "RS512": true, "ES256": true, "ES384": true, "ES512": true}
+	seenAlgorithms := map[string]bool{}
+	for _, raw := range algorithms {
+		algorithm := strings.TrimSpace(raw)
+		if !allowedAlgorithms[algorithm] || seenAlgorithms[algorithm] {
+			return fmt.Errorf("local identity OIDC algorithms are invalid")
+		}
+		seenAlgorithms[algorithm] = true
+	}
+	if len(seenAlgorithms) == 0 {
+		return fmt.Errorf("local identity OIDC algorithms are required")
+	}
+	if cfg.LocalIdentityOIDCTransactionTTL <= 0 || cfg.LocalIdentityOIDCTransactionTTL > 15*time.Minute {
+		return fmt.Errorf("local identity OIDC transaction TTL must be positive and no greater than 15 minutes")
+	}
 	return nil
+}
+
+func validateLocalIdentityOIDCEndpoint(label string, raw string, originOnly bool) (*url.URL, error) {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" || parsed.User != nil || parsed.Fragment != "" ||
+		originOnly && (parsed.Path != "" && parsed.Path != "/" || parsed.RawQuery != "") {
+		return nil, fmt.Errorf("local identity OIDC %s is invalid", label)
+	}
+	if parsed.Scheme != "https" {
+		address := net.ParseIP(parsed.Hostname())
+		loopback := strings.EqualFold(parsed.Hostname(), "localhost") || address != nil && address.IsLoopback()
+		if parsed.Scheme != "http" || !loopback {
+			return nil, fmt.Errorf("local identity OIDC %s must use HTTPS or loopback HTTP", label)
+		}
+	}
+	parsed.Path = strings.TrimRight(parsed.Path, "/")
+	return parsed, nil
+}
+
+func endpointOrigin(endpoint *url.URL) string {
+	return strings.ToLower(endpoint.Scheme) + "://" + strings.ToLower(endpoint.Host)
+}
+
+func validLocalIdentityOIDCStringList(raw string, requireOpenID bool) bool {
+	values := strings.Split(raw, ",")
+	if len(values) == 0 || len(values) > 16 {
+		return false
+	}
+	seen := map[string]bool{}
+	for _, rawValue := range values {
+		value := strings.TrimSpace(rawValue)
+		if value == "" || len(value) > 128 || seen[value] {
+			return false
+		}
+		for _, character := range value {
+			if character < 0x21 || character > 0x7e || character == ',' {
+				return false
+			}
+		}
+		seen[value] = true
+	}
+	return !requireOpenID || seen["openid"]
 }
 
 func EffectiveControlPlaneReadAuthMode(cfg Config) string {

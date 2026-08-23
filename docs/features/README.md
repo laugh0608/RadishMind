@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-08-19
+更新时间：2026-08-23
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-19 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)与[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)均已关闭。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审也已完成，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`：真实跨页任务、统一 snapshot / cursor、时间桶 / 性能预算和正式 billing owner 均未成立，不启动服务端 summary。随后真实页面已贯通 Session、Operations、结果保存、Result Workspace、Run detail 与 Comparison，并在既有 owner 内补齐 exact Run 直接交接、缺失 evidence 说明和 Session authority 恢复引导。当前回到本入口比较四个正式产品面的下一项长期任务；不打开 transcript、public share、永久 purge、真实 Provider 或 production。
+2026-08-23 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)与[应用结果资产库与受控导出（开发 / 测试态）v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)均已关闭。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审保持 `no_entry`。[本地账户与 Radish OIDC 联合登录 v1](admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 A 至 C 已完成 identity owner、本地 Web Session 和确定性 browser OIDC Relying Party；当前下一步只进入批次 D 的设计覆盖评估、Web strict consumer 与真实浏览器连续链，不提前打开真实 Radish、production auth、refresh token、MFA、恢复或速率限制。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -73,7 +73,7 @@
 | [Admin Control Plane Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) | 功能 / 平台协同专题 | verified identity、tenant / audit PostgreSQL dev/test repository 与 deterministic OIDC boundary 均已完成；真实 Radish 联调 deferred |
 | [Admin Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) | 功能 / 平台协同专题 | schema / migration、manual CLI、read-only role、selector、cursor、真实 PostgreSQL、HTTP/Web 与 browser validation 已完成 |
 | [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | deterministic discovery / JWKS / JWT verifier、两条 Admin auth boundary、五条 workspace membership fail-closed 与 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来按 application/client registration 恢复 |
-| [RadishMind 本地账户与 Radish OIDC 联合登录 v1](admin-control-plane/local-account-radish-oidc-federated-login-v1.md) | 功能 / 高风险身份专题 | 批次 A、B 已完成六类 identity owner、三种 repository、原子注册、登录、Web Session、CSRF / Origin、no-fallback 与本地 membership actor 链；下一步为批次 C 确定性 Authorization Code + PKCE |
+| [RadishMind 本地账户与 Radish OIDC 联合登录 v1](admin-control-plane/local-account-radish-oidc-federated-login-v1.md) | 功能 / 高风险身份专题 | 批次 A 至 C 已完成六类 identity owner、三种 repository、原子注册、Web Session、CSRF / Origin、确定性 Authorization Code + PKCE、外部身份绑定、no-fallback 与本地 membership actor 链；下一步为批次 D Web 与管理面 |
 | [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-read-transition-dev-test-v1.md) | 功能 / 授权与读投影专题 | 批次 A、B 已完成并关闭：共享 membership provider、五条 route 授权、durable owner 投影、workspace-wide Run cursor、非持久化 Web selector 与 quota fail-closed 已成立；本地 membership owner 已由联合身份专题承接，不恢复 legacy Radish membership adapter |
 | [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) | 功能 / 写入与执行授权专题 | 批次 A 至 E 共 47 条 mutation 已完成共享授权、原子组合 / 条件权限、稳定 failure mapping、零业务 / 外部副作用和三模式 / 双数据库 / Web 证据；专题关闭 |
 | [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) | 功能 / 跨资源运营审查专题 | 批次 A 已完成四类既有 owner 首分页关注项、coverage、确定性排序、workspace 切换失效和既有详情跳转；不新增运营真相源或自动修复 |

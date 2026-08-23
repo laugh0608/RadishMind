@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-17
+更新时间：2026-08-23
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_b_completed_batch_c_ready`。批次 A、B 的 identity owner、三种仓储与本地 Web Session HTTP 已完成；下一步只开放批次 C 确定性 Authorization Code + PKCE、state / nonce、callback 与 external identity binding，Web 与真实 Radish 联调仍按后续批次顺序开放。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](local-account-radish-oidc-federated-login-v1-plan.md)是当前唯一活跃高风险任务，状态为 `local_account_radish_oidc_federated_login_v1_batch_c_completed_batch_d_ready`。批次 A 至 C 的 identity owner、三种仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、state / nonce、callback 与 external identity binding 已完成；下一步只开放批次 D Web 与管理面，真实 Radish 联调仍按批次 E 的外部条件开放。
 
 ## 最近关闭任务
 

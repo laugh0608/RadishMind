@@ -236,10 +236,21 @@ func (repository *postgresLocalIdentityRepository) BindExternalIdentity(ctx cont
 	if !validExternalIdentityBinding(binding) || binding.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
-	if err := repository.requireActivePostgresAccount(ctx, binding.UserID); err != nil {
-		return err
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return errLocalIdentityStoreUnavailable
 	}
-	_, err := repository.pool.Exec(identityContext(ctx), `INSERT INTO external_identity_bindings
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	var accountState string
+	if err := transaction.QueryRow(identityContext(ctx), `SELECT lifecycle_state FROM local_user_accounts
+		WHERE user_id=$1 FOR UPDATE`, binding.UserID).Scan(&accountState); errors.Is(err, pgx.ErrNoRows) {
+		return errLocalIdentityNotFound
+	} else if err != nil {
+		return errLocalIdentityStoreUnavailable
+	} else if accountState != localIdentityStateActive {
+		return errLocalIdentityAccountInactive
+	}
+	_, err = transaction.Exec(identityContext(ctx), `INSERT INTO external_identity_bindings
         (binding_id, user_id, schema_version, issuer, subject_value, lifecycle_state, record_version,
          created_at, updated_at, revoked_at, audit_ref) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
 		binding.BindingID, binding.UserID, binding.SchemaVersion, binding.Issuer, binding.Subject,
@@ -247,6 +258,9 @@ func (repository *postgresLocalIdentityRepository) BindExternalIdentity(ctx cont
 		binding.AuditRef)
 	if err != nil {
 		return postgresIdentityConflictOrUnavailable(err, errLocalIdentityExternalConflict)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return errLocalIdentityStoreUnavailable
 	}
 	return nil
 }
@@ -275,13 +289,49 @@ func (repository *postgresLocalIdentityRepository) RevokeExternalIdentity(ctx co
 	if !localBindingIDPattern.MatchString(bindingID) || expectedVersion < 1 || revokedAt.IsZero() || !validAuditRef(auditRef) {
 		return ExternalIdentityBinding{}, errLocalIdentityContractMismatch
 	}
-	binding, err := scanPostgresExternalIdentityBinding(repository.pool.QueryRow(identityContext(ctx), `UPDATE external_identity_bindings SET
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	var userID, lifecycleState string
+	var currentVersion int
+	if err := transaction.QueryRow(identityContext(ctx), `SELECT user_id, record_version, lifecycle_state
+        FROM external_identity_bindings WHERE binding_id=$1 FOR UPDATE`, bindingID).Scan(&userID, &currentVersion, &lifecycleState); errors.Is(err, pgx.ErrNoRows) {
+		return ExternalIdentityBinding{}, errLocalIdentityVersionConflict
+	} else if err != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	if currentVersion != expectedVersion || lifecycleState != localIdentityStateActive {
+		return ExternalIdentityBinding{}, errLocalIdentityVersionConflict
+	}
+	var lockedUserID string
+	if err := transaction.QueryRow(identityContext(ctx), `SELECT user_id FROM local_user_accounts
+		WHERE user_id=$1 FOR UPDATE`, userID).Scan(&lockedUserID); err != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	var activeCredentialCount, activeBindingCount int
+	if err := transaction.QueryRow(identityContext(ctx), `SELECT COUNT(*) FROM local_credentials
+        WHERE user_id=$1 AND lifecycle_state='active'`, userID).Scan(&activeCredentialCount); err != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	if err := transaction.QueryRow(identityContext(ctx), `SELECT COUNT(*) FROM external_identity_bindings
+        WHERE user_id=$1 AND lifecycle_state='active'`, userID).Scan(&activeBindingCount); err != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	if activeCredentialCount == 0 && activeBindingCount <= 1 {
+		return ExternalIdentityBinding{}, errLocalIdentityLastLoginMethodRemoval
+	}
+	binding, err := scanPostgresExternalIdentityBinding(transaction.QueryRow(identityContext(ctx), `UPDATE external_identity_bindings SET
         lifecycle_state='revoked', record_version=record_version+1, updated_at=$1, revoked_at=$1, audit_ref=$2
         WHERE binding_id=$3 AND record_version=$4 AND lifecycle_state='active' RETURNING
         schema_version, binding_id, user_id, issuer, subject_value, lifecycle_state, record_version,
         created_at, updated_at, revoked_at, audit_ref`, revokedAt, auditRef, bindingID, expectedVersion))
 	if err != nil {
 		return ExternalIdentityBinding{}, classifyPostgresMutationFailure(err)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
 	}
 	return binding, nil
 }
@@ -350,6 +400,29 @@ func (repository *postgresLocalIdentityRepository) ResolveWebSession(ctx context
 		return WebSession{}, UserAccount{}, err
 	}
 	if account.LifecycleState != localIdentityStateActive {
+		return WebSession{}, UserAccount{}, errLocalIdentityAccountInactive
+	}
+	return session, account, nil
+}
+
+func (repository *postgresLocalIdentityRepository) ReadWebSession(ctx context.Context, sessionID string, now time.Time) (WebSession, UserAccount, error) {
+	if repository == nil || repository.pool == nil {
+		return WebSession{}, UserAccount{}, errLocalIdentityStoreUnavailable
+	}
+	now = now.UTC()
+	session, err := scanPostgresWebSession(repository.pool.QueryRow(identityContext(ctx), postgresSessionSelect+`
+		WHERE session_id=$1`, strings.TrimSpace(sessionID)))
+	if errors.Is(err, errLocalIdentityNotFound) || err == nil && session.LifecycleState != localIdentityStateActive {
+		return WebSession{}, UserAccount{}, errLocalIdentitySessionInvalid
+	}
+	if err != nil {
+		return WebSession{}, UserAccount{}, err
+	}
+	if !session.ExpiresAt.After(now) {
+		return WebSession{}, UserAccount{}, errLocalIdentitySessionExpired
+	}
+	account, err := repository.ReadAccount(ctx, session.UserID)
+	if err != nil || account.LifecycleState != localIdentityStateActive {
 		return WebSession{}, UserAccount{}, errLocalIdentityAccountInactive
 	}
 	return session, account, nil

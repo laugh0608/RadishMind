@@ -8,13 +8,15 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	modernsqlite "modernc.org/sqlite"
 )
 
 type sqliteLocalIdentityRepository struct {
-	database *sql.DB
+	database      *sql.DB
+	oidcConsumeMu sync.Mutex
 }
 
 type localIdentitySQLRow interface {
@@ -300,15 +302,34 @@ func (repository *sqliteLocalIdentityRepository) RevokeExternalIdentity(ctx cont
 	}
 	revokedAtUnixNano, _ := localIdentityUnixNano(revokedAt)
 	binding, err := scanSQLiteExternalIdentityBinding(repository.database.QueryRowContext(identityContext(ctx), `UPDATE external_identity_bindings SET
-        lifecycle_state='revoked', record_version=record_version+1, updated_at_unix_nano=?, revoked_at_unix_nano=?, audit_ref=?
-        WHERE binding_id=? AND record_version=? AND lifecycle_state='active' RETURNING
-        schema_version, binding_id, user_id, issuer, subject_value, lifecycle_state, record_version,
-        created_at_unix_nano, updated_at_unix_nano, revoked_at_unix_nano, audit_ref`, revokedAtUnixNano,
+		lifecycle_state='revoked', record_version=record_version+1, updated_at_unix_nano=?, revoked_at_unix_nano=?, audit_ref=?
+		WHERE binding_id=? AND record_version=? AND lifecycle_state='active'
+		AND (
+			EXISTS (SELECT 1 FROM local_credentials WHERE user_id=external_identity_bindings.user_id AND lifecycle_state='active')
+			OR (SELECT COUNT(*) FROM external_identity_bindings AS active_bindings
+				WHERE active_bindings.user_id=external_identity_bindings.user_id AND active_bindings.lifecycle_state='active') > 1
+		) RETURNING
+		schema_version, binding_id, user_id, issuer, subject_value, lifecycle_state, record_version,
+		created_at_unix_nano, updated_at_unix_nano, revoked_at_unix_nano, audit_ref`, revokedAtUnixNano,
 		revokedAtUnixNano, auditRef, bindingID, expectedVersion))
-	if err != nil {
-		return ExternalIdentityBinding{}, classifySQLiteMutationFailure(err)
+	if !errors.Is(err, errLocalIdentityNotFound) {
+		if err != nil {
+			return ExternalIdentityBinding{}, classifySQLiteMutationFailure(err)
+		}
+		return binding, nil
 	}
-	return binding, nil
+	var userID, lifecycleState string
+	var currentVersion int
+	if readErr := repository.database.QueryRowContext(identityContext(ctx), `SELECT user_id, record_version, lifecycle_state
+		FROM external_identity_bindings WHERE binding_id=?`, bindingID).Scan(&userID, &currentVersion, &lifecycleState); errors.Is(readErr, sql.ErrNoRows) {
+		return ExternalIdentityBinding{}, errLocalIdentityVersionConflict
+	} else if readErr != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	if currentVersion == expectedVersion && lifecycleState == localIdentityStateActive {
+		return ExternalIdentityBinding{}, errLocalIdentityLastLoginMethodRemoval
+	}
+	return ExternalIdentityBinding{}, errLocalIdentityVersionConflict
 }
 
 func (repository *sqliteLocalIdentityRepository) CreateWebSession(ctx context.Context, session WebSession) error {
@@ -379,6 +400,29 @@ func (repository *sqliteLocalIdentityRepository) ResolveWebSession(ctx context.C
 		return WebSession{}, UserAccount{}, err
 	}
 	if account.LifecycleState != localIdentityStateActive {
+		return WebSession{}, UserAccount{}, errLocalIdentityAccountInactive
+	}
+	return session, account, nil
+}
+
+func (repository *sqliteLocalIdentityRepository) ReadWebSession(ctx context.Context, sessionID string, now time.Time) (WebSession, UserAccount, error) {
+	if repository == nil || repository.database == nil {
+		return WebSession{}, UserAccount{}, errLocalIdentityStoreUnavailable
+	}
+	now = now.UTC()
+	session, err := scanSQLiteWebSession(repository.database.QueryRowContext(identityContext(ctx), sqliteSessionSelect+`
+		WHERE session_id=?`, strings.TrimSpace(sessionID)))
+	if errors.Is(err, errLocalIdentityNotFound) || err == nil && session.LifecycleState != localIdentityStateActive {
+		return WebSession{}, UserAccount{}, errLocalIdentitySessionInvalid
+	}
+	if err != nil {
+		return WebSession{}, UserAccount{}, err
+	}
+	if !session.ExpiresAt.After(now) {
+		return WebSession{}, UserAccount{}, errLocalIdentitySessionExpired
+	}
+	account, err := repository.ReadAccount(ctx, session.UserID)
+	if err != nil || account.LifecycleState != localIdentityStateActive {
 		return WebSession{}, UserAccount{}, errLocalIdentityAccountInactive
 	}
 	return session, account, nil

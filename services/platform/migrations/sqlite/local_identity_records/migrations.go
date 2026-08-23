@@ -7,13 +7,18 @@ import (
 )
 
 const (
-	Component          = "local_identity_records"
-	MigrationID        = "0001_local_identity_records"
-	StoreSchemaVersion = "local_identity_records_store_v1"
+	Component                      = "local_identity_records"
+	MigrationID                    = "0001_local_identity_records"
+	StoreSchemaVersion             = "local_identity_records_store_v1"
+	OIDCAuthorizationMigrationID   = "0002_local_identity_oidc_authorization_transactions"
+	OIDCAuthorizationSchemaVersion = "local_identity_records_store_v2"
 )
 
 //go:embed 0001_local_identity_records.up.sql
 var upSQL string
+
+//go:embed 0002_local_identity_oidc_authorization_transactions.up.sql
+var oidcAuthorizationUpSQL string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{{
@@ -21,5 +26,10 @@ func Migrations() []sqlitedev.Migration {
 		ID:                 MigrationID,
 		StoreSchemaVersion: StoreSchemaVersion,
 		UpSQL:              upSQL,
+	}, {
+		Component:          Component,
+		ID:                 OIDCAuthorizationMigrationID,
+		StoreSchemaVersion: OIDCAuthorizationSchemaVersion,
+		UpSQL:              oidcAuthorizationUpSQL,
 	}}
 }

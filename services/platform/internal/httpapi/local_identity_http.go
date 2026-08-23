@@ -20,11 +20,12 @@ import (
 )
 
 const (
-	localIdentityRegisterRoute       = "/v1/auth/local/register"
-	localIdentityLoginRoute          = "/v1/auth/local/login"
-	localIdentityCurrentSessionRoute = "/v1/auth/session"
-	localIdentityLogoutRoute         = "/v1/auth/logout"
-	localIdentitySessionRevokeRoute  = "/v1/auth/sessions/{session_id}/revoke"
+	localIdentityRegisterRoute                  = "/v1/auth/local/register"
+	localIdentityLoginRoute                     = "/v1/auth/local/login"
+	localIdentityCurrentSessionRoute            = "/v1/auth/session"
+	localIdentityLogoutRoute                    = "/v1/auth/logout"
+	localIdentitySessionRevokeRoute             = "/v1/auth/sessions/{session_id}/revoke"
+	localIdentityLinkRecentAuthenticationMaxAge = 10 * time.Minute
 
 	localIdentityActiveTenantHeader = "X-RadishMind-Active-Tenant"
 	localIdentityCSRFHeader         = "X-RadishMind-CSRF-Token"
@@ -48,6 +49,7 @@ const (
 
 type localIdentityHTTPService struct {
 	repository    localIdentityRepository
+	oidcClient    *localIdentityOIDCClient
 	enabled       bool
 	allowedOrigin string
 	cookieSecure  bool
@@ -62,6 +64,7 @@ type localIdentityRequestSession struct {
 	displayName          string
 	accountLifecycle     string
 	authenticationMethod string
+	lastVerifiedAt       time.Time
 	expiresAt            time.Time
 	csrfToken            string
 	csrfCookieValid      bool
@@ -119,6 +122,7 @@ func registerLocalIdentityHTTPRoutes(mux *http.ServeMux, server *Server) {
 	mux.HandleFunc("GET "+localIdentityCurrentSessionRoute, server.handleLocalIdentityCurrentSession)
 	mux.HandleFunc("POST "+localIdentityLogoutRoute, server.handleLocalIdentityLogout)
 	mux.HandleFunc("POST "+localIdentitySessionRevokeRoute, server.handleLocalIdentitySessionRevoke)
+	registerLocalIdentityOIDCHTTPRoutes(mux, server)
 }
 
 func withLocalIdentitySessionAuthentication(next http.Handler, service *localIdentityHTTPService) http.Handler {
@@ -199,7 +203,8 @@ func (service *localIdentityHTTPService) authenticateRequest(request *http.Reque
 	return localIdentityRequestSession{
 		sessionID: session.SessionID, sessionVersion: session.RecordVersion, userID: account.UserID,
 		displayName: account.DisplayName, accountLifecycle: account.LifecycleState,
-		authenticationMethod: session.AuthenticationMethod, expiresAt: session.ExpiresAt,
+		authenticationMethod: session.AuthenticationMethod, lastVerifiedAt: session.LastVerifiedAt,
+		expiresAt:       session.ExpiresAt,
 		csrfToken:       csrfToken,
 		csrfCookieValid: csrfCookieFound && subtle.ConstantTimeCompare([]byte(csrfCookie), []byte(csrfToken)) == 1,
 	}, auth
@@ -667,6 +672,26 @@ func localIdentityHTTPErrorDefinition(code string) (int, string, string) {
 		return http.StatusConflict, "authentication_error", "the request already has an active local session"
 	case localIdentitySessionOwnershipDenied:
 		return http.StatusForbidden, "permission_error", "the session cannot be revoked by this actor"
+	case localIdentityOIDCDisabled:
+		return http.StatusForbidden, "configuration_error", "local identity OIDC is disabled"
+	case localIdentityOIDCStateInvalid:
+		return http.StatusBadRequest, "authentication_error", "OIDC authorization state is invalid or expired"
+	case localIdentityOIDCCallbackMismatch:
+		return http.StatusBadRequest, "authentication_error", "OIDC callback does not match the reviewed client contract"
+	case localIdentityOIDCTokenExchangeFailed:
+		return http.StatusBadGateway, "authentication_error", "OIDC token exchange failed"
+	case localIdentityOIDCIdentityMismatch:
+		return http.StatusUnauthorized, "authentication_error", "OIDC identity could not be verified"
+	case localIdentityOIDCProviderUnavailable:
+		return http.StatusServiceUnavailable, "service_unavailable_error", "OIDC provider is unavailable"
+	case localIdentityExternalIdentityUnbound:
+		return http.StatusForbidden, "authentication_error", "external identity is not admitted to a local account"
+	case localIdentityExternalIdentityConflict:
+		return http.StatusConflict, "authentication_error", "external identity is already bound to another account"
+	case localIdentityOIDCAdmissionDenied:
+		return http.StatusForbidden, "authentication_error", "OIDC first-login admission is disabled"
+	case localIdentityLinkRecentAuthRequired:
+		return http.StatusUnauthorized, "authentication_error", "linking an external identity requires recent authentication"
 	default:
 		return http.StatusServiceUnavailable, "service_unavailable_error", "local identity service is unavailable"
 	}

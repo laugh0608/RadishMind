@@ -1,8 +1,8 @@
 # 本地账户与 Radish OIDC 联合登录 v1 高风险任务卡
 
-更新时间：2026-08-19
+更新时间：2026-08-23
 
-状态：`local_account_radish_oidc_federated_login_v1_batch_b_completed_batch_c_ready`
+状态：`local_account_radish_oidc_federated_login_v1_batch_c_completed_batch_d_ready`
 
 对应功能设计：[RadishMind 本地账户与 Radish OIDC 联合登录 v1](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)
 
@@ -67,6 +67,13 @@
 - 相同 email 不自动合并；上游 tenant / role / permission claim 不直接形成 local grant。
 - callback 失败不创建半账户、半 binding、半 session，也不回退本地管理员。
 
+完成证据：
+
+- Platform 已落地 `POST /v1/auth/oidc/start` 与 `GET /v1/auth/oidc/callback`，采用 Authorization Code + PKCE、一次性服务端 authorization transaction、exact client policy 和独立 ID token verifier；refresh token、动态 issuer 和上游 permission projection 均未打开。
+- memory / SQLite / PostgreSQL 已实现 authorization transaction 单次消费、OIDC 首登账户 / binding / session 原子创建、external identity 唯一绑定和最后登录方式解绑拒绝；PostgreSQL migration 已推进到 `local_identity_records_store_v2` 并验证 v1 升级、受限运行角色、重启、rollback / reapply。
+- loopback issuer 已覆盖首登、已绑定登录、准入拒绝、显式绑定、近期认证、绑定冲突、issuer / audience / `azp` / algorithm / signature / time、state / nonce / PKCE、畸形 callback、rotation、provider unavailable、replay、两个 callback 同时观察未绑定时的原子注册单胜者和敏感字段不出响应 / grant。
+- Platform 完整 Go 回归、tagged PostgreSQL 编译、PostgreSQL 17 聚合集成、`./scripts/check-repo.sh --fast` 与完整 `./scripts/check-repo.sh` 均通过；测试容器和网络已关闭，命名卷保留。
+
 ## 批次 D：Web 产品面
 
 实施范围：
@@ -120,7 +127,7 @@ npm --prefix apps/radishmind-web run build
 
 - [x] 批次 A：领域契约与三种开发测试仓储完成。
 - [x] 批次 B：本地注册、登录和 Web Session 完成。
-- [ ] 批次 C：确定性 OIDC Relying Party 完成。
+- [x] 批次 C：确定性 OIDC Relying Party 完成。
 - [ ] 批次 D：Web、浏览器、隐私和响应式验收完成。
 - [ ] 批次 E：真实 Radish integration evidence 完成，或明确保留为外部阻塞且不影响 A 至 D 的开发测试态关闭。
 - [ ] 功能专题、当前焦点、路线图、契约、周志和停止线同步。

@@ -1,8 +1,8 @@
 # RadishMind 本地账户与 Radish OIDC 联合登录 v1
 
-更新时间：2026-08-19
+更新时间：2026-08-23
 
-状态：`local_account_radish_oidc_federated_login_v1_batch_b_completed`
+状态：`local_account_radish_oidc_federated_login_v1_batch_c_completed`
 
 ## 功能定位
 
@@ -23,10 +23,10 @@
 
 ## 当前代码事实
 
-- Platform 已有 deterministic OIDC discovery / JWKS / JWT verifier，只服务两条 Admin resource-server operation。
-- 当前 OIDC runtime 不实现 authorization code、PKCE、`state`、`nonce`、callback 或 refresh token；本地密码登录的 RadishMind Web Session HTTP 已独立落地，不能与既有 resource-server Bearer token 混用。
-- Platform 已落地本地账户、密码凭证、外部身份绑定、Web Session、角色分配与 workspace membership 的领域契约，以及 memory / 聚合 SQLite / 显式 PostgreSQL dev/test repository；PostgreSQL 保持 manual migration 和受限 runtime role，三种实现都不 fallback。
-- 本地注册、登录、当前 session、logout 与当前 session revoke route 已接入独立 `local_session_dev_test` 模式；middleware 只从 Web Session cookie 恢复 `user:<user_id>`，再由本地 `WorkspaceMembershipProvider` 重读 membership / role。browser OIDC callback 仍不存在；dev header、signed-test token 与本地 session 是互斥模式，不形成失败 fallback。
+- Platform 的 deterministic discovery / JWKS / JWT primitive 现在分别服务 Admin resource-server operation 与独立 browser OIDC Relying Party policy；两者不共用 audience、permission projection 或 session issuance。
+- `POST /v1/auth/oidc/start` 与 `GET /v1/auth/oidc/callback` 已实现 Authorization Code + PKCE、一次性 `state / nonce / code verifier`、exact client policy、ID token 验证、外部身份 resolve / create / link 和 RadishMind Web Session；refresh token 仍不进入当前范围。
+- Platform 已落地本地账户、密码凭证、外部身份绑定、Web Session、角色分配、workspace membership 与 OIDC authorization transaction 的领域契约，以及 memory / 聚合 SQLite / 显式 PostgreSQL dev/test repository；PostgreSQL 保持 manual migration 和受限 runtime role，v1 → v2 upgrade、重启与 rollback 已复验，三种实现都不 fallback。
+- 本地注册、登录、当前 session、logout / revoke 与 browser OIDC route 均接入独立 `local_session_dev_test` 模式；middleware 只从 Web Session cookie 恢复 `user:<user_id>`，再由本地 `WorkspaceMembershipProvider` 重读 membership / role。dev header、signed-test token、resource-server Bearer token 与本地 session 互斥，不形成失败 fallback。
 - User / Role 页面目前仍是旧 Radish-owned blocked surface，必须在身份后端形成稳定读写契约后再迁移，不能用离线 fixture 冒充本地用户事实。
 
 ## 批次 A 实现状态
@@ -140,9 +140,11 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 ### 批次 C：确定性 OIDC Relying Party
 
-- 实现 Authorization Code + PKCE、`state`、`nonce`、callback 和 `(issuer, subject)` binding。
-- 复用既有受限 discovery / JWKS primitives，但建立独立 client / ID token policy，不复用 Admin resource audience permission projection。
-- 使用仓库拥有的 loopback issuer 完成正向、负向、rotation、replay、并发和 privacy 测试，不冒充真实 Radish 联调。
+- 已实现 Authorization Code + PKCE、单次消费 `state`、摘要化 `nonce`、持久化一次性 code verifier、callback 与 `(issuer, subject)` resolve / create / link；畸形 callback、过期与重放均在 token endpoint 前失败关闭。
+- exact issuer / client id / redirect URI / scope / algorithm 与 discovery / JWKS origin 由显式开发测试配置固定；独立 ID token policy 校验 issuer、audience / `azp`、签名、算法、`iat / nbf / exp` 和 nonce，不消费上游 email、role、permission 形成账户合并或本地 grant。
+- 首次准入允许时以 `CreateOIDCAccountAndWebSession` 原子写入账户、binding 与 session；已绑定登录只签发新的本地 session。显式 link 同时绑定发起会话的 `session_id + record_version + user_id`，开始与 callback 均要求最近 10 分钟内认证。
+- memory / SQLite / PostgreSQL 均提供 authorization transaction 单胜者语义与最后登录方式解绑保护；PostgreSQL `local_identity_records_store_v2` 支持 v1 升级，集成测试覆盖受限运行角色、重启、rollback / reapply 与 no-fallback。
+- 仓库自有 loopback issuer 已覆盖首登、已绑定登录、准入拒绝、显式绑定、冲突、issuer / audience / `azp` / algorithm / signature / time、nonce / PKCE、rotation、provider unavailable、code / state replay、畸形 callback、两个 callback 同时观察未绑定时的原子注册单胜者和隐私；这些证据不冒充真实 Radish 联调。
 
 ### 批次 D：Web 与管理面
 
@@ -177,4 +179,4 @@ Radish OIDC claims 不直接注入 `WorkspaceMembershipProvider`。未来若需�
 
 ## 下一实现入口
 
-[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](../../task-cards/local-account-radish-oidc-federated-login-v1-plan.md)承接批次 A 至 E。批次 A、B 已完成；下一步进入批次 C，建立确定性 Authorization Code + PKCE、state / nonce、callback 与 external identity resolve / create / link。真实 Radish 联调仍等待批次 E 的外部条件。
+[本地账户与 Radish OIDC 联合登录 v1 高风险任务卡](../../task-cards/local-account-radish-oidc-federated-login-v1-plan.md)承接批次 A 至 E。批次 A、B、C 已完成；下一步进入批次 D，先按五维评分确定登录、绑定 / 解绑、当前会话与 User / Role 本地 owner 页面的设计覆盖级别，再实现 React strict consumer 和真实浏览器连续链。真实 Radish 联调仍等待批次 E 的外部条件。

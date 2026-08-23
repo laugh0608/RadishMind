@@ -14,17 +14,25 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 		"CREATE TABLE local_role_assignments", "local_role_assignments_active_scope_idx",
 		"CREATE TABLE local_workspace_memberships", "local_workspace_memberships_active_scope_idx",
 	} {
-		if !strings.Contains(upSQL, fragment) {
+		if !strings.Contains(legacyUpSQL, fragment) {
 			t.Fatalf("up migration missing %q", fragment)
+		}
+	}
+	for _, fragment := range []string{"CREATE TABLE local_identity_oidc_authorization_transactions", "state_digest bytea NOT NULL UNIQUE", "code_verifier text NOT NULL"} {
+		if !strings.Contains(oidcAuthorizationUpSQL, fragment) {
+			t.Fatalf("OIDC authorization migration missing %q", fragment)
 		}
 	}
 	for _, table := range []string{
 		"local_workspace_memberships", "local_role_assignments", "local_web_sessions",
 		"external_identity_bindings", "local_credentials", "local_user_accounts",
 	} {
-		if !strings.Contains(downSQL, "DROP TABLE IF EXISTS "+table) {
+		if !strings.Contains(legacyDownSQL, "DROP TABLE IF EXISTS "+table) {
 			t.Fatalf("down migration does not remove %s", table)
 		}
+	}
+	if !strings.Contains(oidcAuthorizationDownSQL, "DROP TABLE IF EXISTS local_identity_oidc_authorization_transactions") {
+		t.Fatal("OIDC authorization down migration does not remove its table")
 	}
 	if !strings.HasPrefix(ExpectedChecksum(), "sha256:") || len(ExpectedChecksum()) != 71 {
 		t.Fatalf("unexpected migration checksum: %s", ExpectedChecksum())

@@ -1,6 +1,6 @@
 # 平台服务运行手册 v1
 
-更新时间：2026-07-21
+更新时间：2026-08-23
 
 ## 文档职责
 
@@ -117,7 +117,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - Application Draft / Publish gate 见 [User Workspace 专题](../features/user-workspace/README.md)。
 - Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment 的配置、路由、权限、CAS 和故障处理见 [Prompt Application 开发测试态使用指南](../features/user-workspace/prompt-application-dev-test-usage-guide.md)；长期领域边界见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
-- 本地注册与 Web Session 只在显式 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=true`、`RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 和 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 时启用；还必须配置 exact `RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN`。HTTPS 保持默认 `RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE=true`；loopback HTTP 开发测试必须显式设为 `false`。`RADISHMIND_LOCAL_IDENTITY_SESSION_TTL` 默认 `12h` 且不得超过 `30d`；`RADISHMIND_LOCAL_IDENTITY_STORE` 可选 `memory_dev | sqlite_dev | postgres_dev_test`，PostgreSQL 另需 `RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL` 和可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT`。这些开关只声明开发测试 session，不声明 production auth。
+- 本地注册、Web Session 与 browser OIDC 只在显式 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=true`、`RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 和 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 时启用；还必须配置 exact `RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN`。HTTPS 保持默认 `RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE=true`；loopback HTTP 开发测试必须显式设为 `false`。`RADISHMIND_LOCAL_IDENTITY_SESSION_TTL` 默认 `12h` 且不得超过 `30d`；`RADISHMIND_LOCAL_IDENTITY_STORE` 可选 `memory_dev | sqlite_dev | postgres_dev_test`，PostgreSQL 另需 `RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL` 和可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT`。OIDC 的 exact issuer、discovery、client、redirect、scope、algorithm、JWKS origin、transaction TTL 与首登准入开关见 [Platform Service README](../../services/platform/README.md)；这些开关只声明开发测试 session / OIDC，不声明真实 Radish 或 production auth。
 
 所有未知 selector、保留 production 值和不完整数据库配置都在启动前失败关闭。组件显式 `*_STORE` 与聚合 `RADISHMIND_LOCAL_PERSISTENCE_MODE=sqlite_dev` 不得同时设置；数据库、migration、marker、checksum 或查询失败不得回退 `memory_dev`。
 
@@ -139,6 +139,8 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - `POST /v1/tools/actions`
 - `POST /v1/auth/local/register`
 - `POST /v1/auth/local/login`
+- `POST /v1/auth/oidc/start`
+- `GET /v1/auth/oidc/callback`
 - `GET /v1/auth/session`
 - `POST /v1/auth/logout`
 - `POST /v1/auth/sessions/{session_id}/revoke`

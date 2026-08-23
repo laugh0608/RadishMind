@@ -10,7 +10,7 @@
 - 为 RadishMind 自有运行数据提供 `memory_dev`、聚合 `sqlite_dev` 与显式 `postgres_dev_test` repository 选择，并保持 migration、作用域和 no-fallback 约束。
 - 输出结构化 diagnostics、request observability、本地 overview 和 local smoke 摘要。
 
-本服务已提供 RadishMind 自有本地账户、外部身份绑定、Web Session、角色和工作区成员关系的领域契约与 memory / SQLite / PostgreSQL dev/test repository；SQLite migration 进入 shared runtime，PostgreSQL 只通过 `radishmind-local-identity-migrate` 显式执行。显式 `local_session_dev_test` 模式已提供本地注册、登录、当前 session、logout / revoke、安全 cookie、CSRF / Origin 和 session actor → local membership 链；browser OIDC callback 仍未开放。服务不复制 `Radish` 的身份数据库、组织成员关系或业务数据真相源，也不绕过 `contracts/` 自定义第二套协议。
+本服务已提供 RadishMind 自有本地账户、外部身份绑定、Web Session、角色、工作区成员关系与一次性 OIDC authorization transaction 的领域契约及 memory / SQLite / PostgreSQL dev/test repository；SQLite migration 进入 shared runtime，PostgreSQL 只通过 `radishmind-local-identity-migrate` 显式执行。显式 `local_session_dev_test` 模式已提供本地注册 / 登录、browser Authorization Code + PKCE、外部身份 resolve / create / link、当前 session、logout / revoke、安全 cookie、CSRF / Origin 和 session actor → local membership 链。服务不复制 `Radish` 的身份数据库、组织成员关系或业务数据真相源，也不绕过 `contracts/` 自定义第二套协议。
 
 ## 路由分类
 
@@ -19,12 +19,29 @@
 | 服务状态与本地运维 | `/healthz`、`/v1/platform/*` | [平台服务运行手册](../../docs/platform/platform-service-operations-runbook-v1.md) |
 | Model Gateway / API Distribution | `/v1/models*`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/model-gateway/requests*` | [服务 API 契约](../../docs/contracts/service-api.md)、[Gateway 功能专题](../../docs/features/gateway/README.md) |
 | Session / Tooling metadata shell | `/v1/session/*`、`/v1/tools/*` | [Session 契约](../../docs/contracts/session.md)、[Tooling 契约](../../docs/contracts/tooling.md) |
-| 本地身份（开发 / 测试态） | `/v1/auth/local/*`、`/v1/auth/session`、`/v1/auth/logout`、`/v1/auth/sessions/*` | [本地账户与 Radish OIDC 联合登录 v1](../../docs/features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md) |
+| 本地身份（开发 / 测试态） | `/v1/auth/local/*`、`/v1/auth/oidc/*`、`/v1/auth/session`、`/v1/auth/logout`、`/v1/auth/sessions/*` | [本地账户与 Radish OIDC 联合登录 v1](../../docs/features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md) |
 | Admin Control Plane | `/v1/control-plane/*` | [Control Plane read-side 契约](../../docs/contracts/control-plane-read-side.md)、[Admin Control Plane 专题](../../docs/features/admin-control-plane/README.md) |
 | User Workspace | `/v1/user-workspace/applications*`、`/v1/user-workspace/application-sessions*`（包含 Session-scoped 结果资产 list / read / archive / unarchive）、`/v1/user-workspace/applications/{application_id}/result-artifacts*`（application-scoped list / export）、`/v1/user-workspace/api-keys*`、`/v1/user-workspace/application-configuration-drafts*`、`/v1/user-workspace/application-publish-candidates*`、`/v1/user-workspace/prompt-application-templates*`、`/v1/user-workspace/agent-copilot-profiles*`、两类 `/v1/user-workspace/applications/{application_id}/*-runtime-assignment*` | [User Workspace 专题](../../docs/features/user-workspace/README.md)、[应用结果资产专题](../../docs/features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)、[应用结果资产库专题](../../docs/features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)、[Prompt Application 使用指南](../../docs/features/user-workspace/prompt-application-dev-test-usage-guide.md)、[Agent / Copilot 使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md) |
 | Workflow / Agent Runtime | `/v1/user-workspace/workflow-drafts*`、`/v1/user-workspace/workflow-runs*`、`/v1/user-workspace/workflow-definition-*`、`/v1/user-workspace/workflow-definitions*`、`/v1/user-workspace/workflow-evaluation-*`、`/v1/user-workspace/workflow-retrieval-snapshots*`、`/v1/user-workspace/workflow-rag-*`、`/v1/application-rag/invocations`、`/v1/agent-copilot/invocations` | [Workflow 专题](../../docs/features/workflow/README.md)、[Workflow RAG 开发测试态指南](../../docs/features/workflow/workflow-rag-dev-test-usage-governance-guide.md)、[Agent / Copilot 使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md) |
 
 精确路由、核心配置、启动命令、smoke 和故障处理统一维护在[平台服务运行手册](../../docs/platform/platform-service-operations-runbook-v1.md)。schema、字段与失败 envelope 以 `contracts/` 和对应功能专题为准；README 不重复保存逐批 readiness 状态。
+
+## Browser OIDC 开发测试配置
+
+browser OIDC 只在 `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 与 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 已成立时允许显式开启。当前使用 public client + PKCE，不接收 client secret；若真实 Radish 要求 confidential client，必须留到批次 E 单独评审 secret ref、部署与泄漏响应。
+
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_DEV=true`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_ISSUER`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_DISCOVERY_URL`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_CLIENT_ID`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_REDIRECT_URI`，必须等于 allowed origin 下的 `/v1/auth/oidc/callback`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_SCOPES`，逗号分隔且必须包含 `openid`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_ALGORITHMS`，只允许显式 `RS* / ES*` allowlist
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_JWKS_ORIGIN`，必须等于 issuer origin
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_TRANSACTION_TTL`，默认 `5m`，最大 `15m`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_FIRST_LOGIN=true` 仅表示显式开发测试首登准入，默认关闭
+
+服务启动会先执行 bounded discovery / JWKS preflight；配置漂移、provider 不可用或 policy 不匹配都会阻止 OIDC client 初始化，不回退本地管理员、dev header 或旧缓存身份。
 
 ## 启动入口
 

@@ -4,6 +4,8 @@ package httpapi
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -39,6 +41,11 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 		adminPool.Close()
 	})
 
+	installPostgresLocalIdentityV1Schema(t, ctx, adminPool)
+	legacyState, err := localidentitymigrations.Inspect(ctx, adminPool)
+	if err != nil || legacyState.MigrationState != localidentitymigrations.MigrationStateUpgradeRequired {
+		t.Fatalf("inspect local identity v1 migration: state=%#v err=%v", legacyState, err)
+	}
 	state, err := localidentitymigrations.Apply(ctx, adminPool)
 	if err != nil || state.MigrationState != localidentitymigrations.MigrationStateApplied {
 		t.Fatalf("apply local identity migration: state=%#v err=%v", state, err)
@@ -58,6 +65,12 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 	repository := newPostgresLocalIdentityRepository(runtimePool)
 	runLocalIdentityRepositoryContract(t, repository)
 	runConcurrentLocalIdentityBindingCreate(t, repository)
+	pending := localIdentityTestOIDCTransaction(
+		"oat_postgresrestartaa", "postgres-restart-state-with-more-than-thirty-two-characters", localIdentityTestNow.Add(3*time.Hour),
+	)
+	if err := repository.CreateOIDCAuthorizationTransaction(ctx, pending); err != nil {
+		t.Fatalf("create PostgreSQL restart OIDC authorization transaction: %v", err)
+	}
 	runtimePool.Close()
 
 	restartedPool, err := localidentitymigrations.OpenPool(ctx, runtimeDatabaseURL)
@@ -68,6 +81,11 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 	account, err := restarted.ReadAccount(ctx, "usr_aaaaaaaaaaaaaaaa")
 	if err != nil || account.LifecycleState != localIdentityStateDisabled || account.RecordVersion != 2 {
 		t.Fatalf("restart local identity account mismatch: account=%#v err=%v", account, err)
+	}
+	restartStateDigest, _ := localIdentityOIDCStateDigest("postgres-restart-state-with-more-than-thirty-two-characters")
+	if restoredTransaction, consumeErr := restarted.ConsumeOIDCAuthorizationTransaction(ctx, restartStateDigest, localIdentityTestNow.Add(3*time.Hour+time.Minute)); consumeErr != nil ||
+		restoredTransaction.TransactionID != pending.TransactionID || restoredTransaction.codeVerifier == "" {
+		t.Fatalf("restart PostgreSQL OIDC authorization transaction mismatch: transaction=%#v err=%v", restoredTransaction, consumeErr)
 	}
 	restartedPool.Close()
 
@@ -81,9 +99,32 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 	}
 }
 
+func installPostgresLocalIdentityV1Schema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
+	t.Helper()
+	legacySQL, err := os.ReadFile("../../migrations/local_identity_records/0001_local_identity_records.up.sql")
+	if err != nil {
+		t.Fatalf("read local identity v1 migration: %v", err)
+	}
+	if _, err := pool.Exec(ctx, string(legacySQL)); err != nil {
+		t.Fatalf("apply local identity v1 migration: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `CREATE TABLE local_identity_schema_versions (
+		component text PRIMARY KEY, migration_id text NOT NULL, store_schema_version text NOT NULL,
+		migration_checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
+		t.Fatalf("create local identity v1 migration marker: %v", err)
+	}
+	checksum := fmt.Sprintf("sha256:%x", sha256.Sum256(legacySQL))
+	if _, err := pool.Exec(ctx, `INSERT INTO local_identity_schema_versions
+		(component, migration_id, store_schema_version, migration_checksum)
+		VALUES ('local_identity_records','0001_local_identity_records','local_identity_records_store_v1',$1)`, checksum); err != nil {
+		t.Fatalf("write local identity v1 migration marker: %v", err)
+	}
+}
+
 func resetPostgresLocalIdentitySchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
 	for _, table := range []string{
+		"local_identity_oidc_authorization_transactions",
 		"local_workspace_memberships", "local_role_assignments", "local_web_sessions",
 		"external_identity_bindings", "local_credentials", "local_user_accounts", "local_identity_schema_versions",
 	} {

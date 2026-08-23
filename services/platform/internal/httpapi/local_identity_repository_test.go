@@ -3,6 +3,7 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -95,6 +96,10 @@ func TestSQLiteLocalIdentityRepositoryContractAndRestart(t *testing.T) {
 	}
 	repository := newSQLiteLocalIdentityRepository(runtime.DB())
 	runLocalIdentityRepositoryContract(t, repository)
+	pending := localIdentityTestOIDCTransaction("oat_restartaaaaaaaaaaa", "restart-state-with-more-than-thirty-two-characters", localIdentityTestNow.Add(3*time.Hour))
+	if err := repository.CreateOIDCAuthorizationTransaction(context.Background(), pending); err != nil {
+		t.Fatalf("create restart OIDC authorization transaction: %v", err)
+	}
 	if err := runtime.Close(); err != nil {
 		t.Fatalf("close SQLite identity runtime: %v", err)
 	}
@@ -114,6 +119,11 @@ func TestSQLiteLocalIdentityRepositoryContractAndRestart(t *testing.T) {
 	}
 	if _, _, err := restored.ResolveWebSession(context.Background(), localIdentityTestSessionDigest(t), localIdentityTestNow.Add(time.Hour)); !errors.Is(err, errLocalIdentitySessionInvalid) {
 		t.Fatalf("restored revoked session must remain invalid: %v", err)
+	}
+	restartStateDigest, _ := localIdentityOIDCStateDigest("restart-state-with-more-than-thirty-two-characters")
+	if restoredTransaction, err := restored.ConsumeOIDCAuthorizationTransaction(context.Background(), restartStateDigest, localIdentityTestNow.Add(3*time.Hour+time.Minute)); err != nil ||
+		restoredTransaction.TransactionID != pending.TransactionID || restoredTransaction.codeVerifier == "" {
+		t.Fatalf("restored OIDC authorization transaction mismatch: transaction=%#v err=%v", restoredTransaction, err)
 	}
 }
 
@@ -323,6 +333,60 @@ func runLocalIdentityRepositoryContract(t *testing.T, repository localIdentityRe
 	if resolvedSession, resolvedAccount, err := repository.ResolveWebSession(ctx, registeredDigest, localIdentityTestNow); err != nil ||
 		resolvedSession.SessionID != registeredSession.SessionID || resolvedAccount.UserID != registered.UserID {
 		t.Fatalf("resolve atomic registration: session=%#v account=%#v err=%v", resolvedSession, resolvedAccount, err)
+	}
+
+	oidcTransaction := localIdentityTestOIDCTransaction(
+		"oat_aaaaaaaaaaaaaaaa", "authorization-state-with-more-than-thirty-two-characters", localIdentityTestNow,
+	)
+	if err := repository.CreateOIDCAuthorizationTransaction(ctx, oidcTransaction); err != nil {
+		t.Fatalf("create OIDC authorization transaction: %v", err)
+	}
+	stateDigest, _ := localIdentityOIDCStateDigest("authorization-state-with-more-than-thirty-two-characters")
+	runConcurrentLocalIdentitySingleWinner(t, "OIDC authorization transaction consume", errLocalIdentityOIDCStateInvalid, []func() error{
+		func() error {
+			_, consumeErr := repository.ConsumeOIDCAuthorizationTransaction(ctx, stateDigest, localIdentityTestNow.Add(time.Minute))
+			return consumeErr
+		},
+		func() error {
+			_, consumeErr := repository.ConsumeOIDCAuthorizationTransaction(ctx, stateDigest, localIdentityTestNow.Add(time.Minute))
+			return consumeErr
+		},
+	})
+	expiredTransaction := localIdentityTestOIDCTransaction(
+		"oat_bbbbbbbbbbbbbbbb", "expired-authorization-state-with-more-than-thirty-two-characters", localIdentityTestNow,
+	)
+	expiredTransaction.ExpiresAt = localIdentityTestNow.Add(time.Minute)
+	if err := repository.CreateOIDCAuthorizationTransaction(ctx, expiredTransaction); err != nil {
+		t.Fatalf("create expiring OIDC authorization transaction: %v", err)
+	}
+	expiredStateDigest, _ := localIdentityOIDCStateDigest("expired-authorization-state-with-more-than-thirty-two-characters")
+	if _, err := repository.ConsumeOIDCAuthorizationTransaction(ctx, expiredStateDigest, localIdentityTestNow.Add(2*time.Minute)); !errors.Is(err, errLocalIdentityOIDCStateExpired) {
+		t.Fatalf("expired OIDC authorization transaction must fail closed: %v", err)
+	}
+
+	oidcAccount := UserAccount{
+		SchemaVersion: localIdentitySchemaVersion, UserID: "usr_oidconlyaaaaaaaa", LoginIdentifier: "oidc.only.account",
+		NormalizedLoginIdentifier: "oidc.only.account", DisplayName: "OIDC only", LifecycleState: localIdentityStateActive,
+		RecordVersion: 1, CreatedAt: localIdentityTestNow, UpdatedAt: localIdentityTestNow, AuditRef: "audit:oidc-account",
+	}
+	oidcBinding := localIdentityTestBinding("xid_oidconlyaaaaaaaa", oidcAccount.UserID, "https://radish.example.com/oidc", "oidc-only-subject")
+	oidcSession := localIdentityTestSession(t, oidcAccount.UserID)
+	oidcSession.SessionID = "ses_oidconlyaaaaaaaa"
+	oidcSession.AuthenticationMethod = localAuthenticationMethodOIDC
+	oidcSession.AuthenticationSourceRef = "external:" + oidcBinding.BindingID
+	oidcDigest, digestErr := DigestWebSessionCredential("oidc-only-session-credential-with-enough-entropy")
+	if digestErr != nil {
+		t.Fatalf("digest OIDC-only session: %v", digestErr)
+	}
+	oidcSession.credentialDigest = oidcDigest[:]
+	if err := repository.CreateOIDCAccountAndWebSession(ctx, oidcAccount, oidcBinding, oidcSession); err != nil {
+		t.Fatalf("create atomic OIDC account, binding, and session: %v", err)
+	}
+	if _, _, err := repository.ResolveWebSession(ctx, oidcDigest, localIdentityTestNow.Add(time.Minute)); err != nil {
+		t.Fatalf("resolve OIDC-only session: %v", err)
+	}
+	if _, err := repository.RevokeExternalIdentity(ctx, oidcBinding.BindingID, 1, localIdentityTestNow.Add(time.Minute), "audit:oidc-orphan-denied"); !errors.Is(err, errLocalIdentityLastLoginMethodRemoval) {
+		t.Fatalf("OIDC-only last login method removal must be denied: %v", err)
 	}
 
 	replacement := localIdentityTestCredential("cred_cccccccccccccccc", account.UserID, localIdentityTestNow.Add(time.Minute))
@@ -536,6 +600,19 @@ func runLocalIdentityRepositoryContract(t *testing.T, repository localIdentityRe
 	}
 	if _, _, err := repository.ResolveWebSession(ctx, localIdentityTestSessionDigest(t), localIdentityTestNow.Add(3*time.Hour)); !errors.Is(err, errLocalIdentitySessionInvalid) {
 		t.Fatalf("account disable must revoke active sessions: %v", err)
+	}
+}
+
+func localIdentityTestOIDCTransaction(transactionID string, rawState string, now time.Time) LocalIdentityOIDCAuthorizationTransaction {
+	stateDigest := sha256.Sum256([]byte(rawState))
+	nonceDigest := sha256.Sum256([]byte("nonce-" + rawState))
+	policyDigest := sha256.Sum256([]byte("policy-" + rawState))
+	return LocalIdentityOIDCAuthorizationTransaction{
+		SchemaVersion: localIdentitySchemaVersion, TransactionID: transactionID, Intent: localIdentityOIDCIntentLogin,
+		ReturnTo: "/workspace", stateDigest: stateDigest[:], nonceDigest: nonceDigest[:], policyDigest: policyDigest[:],
+		codeVerifier:   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~",
+		LifecycleState: localIdentityOIDCTransactionPending, RecordVersion: 1, CreatedAt: now, UpdatedAt: now,
+		ExpiresAt: now.Add(5 * time.Minute), AuditRef: "audit:oidc-authorization",
 	}
 }
 

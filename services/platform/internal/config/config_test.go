@@ -1170,6 +1170,54 @@ func TestLocalIdentityDevHTTPConfigFailsClosed(t *testing.T) {
 	}
 }
 
+func TestLocalIdentityOIDCClientConfigFailsClosed(t *testing.T) {
+	valid := defaultConfig()
+	valid.ControlPlaneReadDevAuthEnabled = true
+	valid.ControlPlaneReadAuthMode = "local_session_dev_test"
+	valid.LocalIdentityDevHTTPEnabled = true
+	valid.LocalIdentityAllowedOrigin = "http://127.0.0.1:4000"
+	valid.LocalIdentityCookieSecure = false
+	valid.LocalIdentityOIDCEnabled = true
+	valid.LocalIdentityOIDCIssuer = "http://127.0.0.1:18080/issuer"
+	valid.LocalIdentityOIDCDiscoveryURL = "http://127.0.0.1:18080/issuer/.well-known/openid-configuration"
+	valid.LocalIdentityOIDCClientID = "radishmind-loopback-client"
+	valid.LocalIdentityOIDCRedirectURI = "http://127.0.0.1:4000/v1/auth/oidc/callback"
+	valid.LocalIdentityOIDCScopes = "openid,profile"
+	valid.LocalIdentityOIDCAlgorithms = "RS256"
+	valid.LocalIdentityOIDCJWKSOrigin = "http://127.0.0.1:18080"
+	valid.LocalIdentityOIDCFirstLoginEnabled = true
+	if err := validateBridgeRuntimeConfig(valid); err != nil {
+		t.Fatalf("valid local identity OIDC client config was rejected: %v", err)
+	}
+	summary := valid.SanitizedSummary()
+	if !summary.LocalIdentityOIDCEnabled || !summary.LocalIdentityOIDCConfigured ||
+		!summary.LocalIdentityOIDCFirstLoginEnabled || summary.LocalIdentityOIDCTransactionTTL != "5m0s" {
+		t.Fatalf("local identity OIDC summary drifted: %#v", summary)
+	}
+
+	for name, mutate := range map[string]func(*Config){
+		"disabled first login": func(cfg *Config) { cfg.LocalIdentityOIDCEnabled = false },
+		"cross-origin discovery": func(cfg *Config) {
+			cfg.LocalIdentityOIDCDiscoveryURL = "https://other.invalid/.well-known/openid-configuration"
+		},
+		"remote HTTP issuer": func(cfg *Config) { cfg.LocalIdentityOIDCIssuer = "http://example.com/issuer" },
+		"redirect path drift": func(cfg *Config) {
+			cfg.LocalIdentityOIDCRedirectURI = "http://127.0.0.1:4000/arbitrary-callback"
+		},
+		"missing openid scope":   func(cfg *Config) { cfg.LocalIdentityOIDCScopes = "profile,email" },
+		"wildcard algorithm":     func(cfg *Config) { cfg.LocalIdentityOIDCAlgorithms = "*" },
+		"excess transaction TTL": func(cfg *Config) { cfg.LocalIdentityOIDCTransactionTTL = 30 * time.Minute },
+	} {
+		t.Run(name, func(t *testing.T) {
+			candidate := valid
+			mutate(&candidate)
+			if err := validateBridgeRuntimeConfig(candidate); err == nil {
+				t.Fatal("invalid local identity OIDC config was accepted")
+			}
+		})
+	}
+}
+
 func TestControlPlaneReadOIDCIntegrationConfigFailsClosed(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.ControlPlaneReadAuthMode = "radish_oidc_integration_test"

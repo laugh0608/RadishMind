@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-19
+更新时间：2026-08-23
 
 ## 文档目的
 
@@ -36,13 +36,21 @@
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
-- 新的产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_batch_b_completed`。批次 A、B 已完成本地身份领域与三种 repository，以及注册、登录、当前 session、logout / revoke、安全 cookie、CSRF / Origin 和 local session actor → membership 链；下一步进入批次 C 的确定性 Authorization Code + PKCE，不直接开始真实 Radish 联调。
+- 当前产品顺位为[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)，状态为 `local_account_radish_oidc_federated_login_v1_batch_c_completed`。批次 A 至 C 已完成本地身份 owner、三种 repository、本地 Web Session HTTP，以及独立 browser OIDC Authorization Code + PKCE、一次性 authorization transaction、ID token policy、外部身份 resolve / create / link 和本地 session issuance；下一步进入批次 D 的 Web 与管理面，不直接开始真实 Radish 联调。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A、B。当前下一步只推进批次 C 的确定性 browser OIDC client：Authorization Code + PKCE、state / nonce、callback 与 external identity binding；既有 deterministic OIDC verifier 继续只作为 resource-server 基础，不能直接冒充 browser login。
+1. 产品线：[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成批次 A 至 C。当前下一步只推进批次 D：先按五维评分决定登录、注册、Radish 登录、绑定 / 解绑、当前会话与 User / Role 本地 owner 页面的 Pencil 覆盖级别，再进入 React strict consumer 和真实浏览器连续链；批次 E 的真实 Radish 联调仍等待外部注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
+
+## 2026-08-23 今日完成与下一事项
+
+1. 已完成联合身份专题批次 C：`POST /v1/auth/oidc/start`、`GET /v1/auth/oidc/callback`、Authorization Code + PKCE、一次性 `state / nonce / code verifier`、exact client policy 和独立 ID token verifier 已落地；既有 Admin resource-server audience / permission projection 未被复用。
+2. 已完成外部身份 resolve / create / link 与本地 session 闭环：首登准入由显式开发测试开关控制，账户 / binding / session 原子创建；显式绑定同时固定发起 `session_id + record_version + user_id`，开始与 callback 均要求最近 10 分钟认证；最后登录方式不能解绑。
+3. 上游 email、display name、tenant、role 与 permission claim 不触发账户合并或本地 grant；raw code、ID token、access token、claim envelope 与 session credential 不进入响应、audit 或持久身份记录。refresh token 仍未实现。
+4. memory / SQLite / PostgreSQL 的单次事务、并发单胜者、重启和 no-fallback 已复验；PostgreSQL `local_identity_records_store_v2` 完成 v1 升级、受限运行角色、rollback / reapply 集成，测试容器已关闭并保留命名卷。
+5. 下一事项只进入批次 D 的设计覆盖评估和 Web 产品面；不把 loopback issuer 解释为真实 Radish 或 production auth，不提前打开批次 E、production session store、MFA、恢复、速率限制、secret 或 refresh token。
 
 ## 2026-08-19 今日评审
 
@@ -51,14 +59,6 @@
 3. 审计发现的既有 owner 恢复交接缺口已修正：exact Run action 在 `React.StrictMode` 下仍保持一次稳定 owner-scope 初始化，有效目标直接打开精确详情；目标不存在或不在当前 Application scope 时显示稳定说明，不回退其它 Run，也不合成 canonical evidence。三类 Session authority 失败会显示只读 reload、显式选择当前 authority 或审查后新建 Session 的恢复说明，且不会自动切换、创建、重试或调用 Provider。
 4. 身份 owner 已修正为 RadishMind 本地账户、角色与 workspace membership；Radish OIDC 只按 `(issuer, subject)` 绑定本地 `user_id`，不按 email 自动合并，也不直接采用 Radish role / permission claim。
 5. 联合身份专题批次 A、B 已完成，下一实现入口为批次 C 的确定性 browser OIDC client；工作区运营收件箱批次 B、结果资产批次 D / E、S11、真实 Provider、production auth / secret、billing 与同层 gate-only 切片继续关闭。
-
-## 2026-08-20 明日事项
-
-1. 只启动联合身份专题批次 C，先对照功能文档、高风险任务卡和已有 resource-server OIDC primitive 复核职责边界；不进入真实 Radish 联调或 Web 产品面。
-2. 建立受审 provider / client policy 和一次性 authorization transaction owner，固定 exact issuer / client / redirect / scope、受限 return target、state / nonce / PKCE verifier 的期限、单次消费和并发语义。
-3. 实现 login start、Authorization Code callback 和独立 ID token policy；只复用 bounded discovery / JWKS 基础，不复用 Admin resource audience 或 permission projection 充当 browser login。
-4. 完成已绑定身份登录、准入受控的首次创建、已登录用户显式绑定和冲突拒绝；账户、binding 与 session 必须保持原子或零副作用，不按 email 自动合并，不把上游 claim 转为本地 grant。
-5. 用仓库自有 loopback issuer 验证正向、state / nonce / PKCE / code replay、provider unavailable、key rotation、并发、重启、隐私和 memory / SQLite / PostgreSQL no-fallback；批次 C 不提供 UI，不保存 refresh token，不声明 production auth ready。
 
 ## 2026-08-17 今日完成与明天事项
 
