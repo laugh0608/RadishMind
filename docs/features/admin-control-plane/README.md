@@ -6,6 +6,7 @@
 
 ## 当前专题
 
+- [本地用户、角色与工作区成员管理（开发 / 测试态）v1](local-user-role-workspace-membership-administration-dev-test-v1.md)：当前新产品顺位，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_design_defined_batch_a_ready`。复用唯一 local identity repository，打开 workspace-scoped 成员目录、服务器内建角色目录、membership / role assignment 受控 mutation 和 S7 User / Role 产品链；批次 A 先固定 canonical role catalog、cursor、memory owner 与 self / last-admin protection，不依赖真实 Radish 批次 E。
 - [RadishMind 本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)：批次 A 至 D 已完成六类本地身份 owner、三种 repository、原子注册、Web Session、CSRF / Origin、确定性 Authorization Code + PKCE、当前账户 / external identity revoke HTTP、完整 Pencil、strict Web、S7 当前账户 owner、no-fallback 与真实浏览器连续链。批次 E 等待真实 Radish 注册条件，不提前声明 production auth。
 - [Admin Control Plane 设计与开发文档](../admin-control-plane.md)：`S7 R1` 已把 Tenant、User、Role、Audit、Provider、Profile 与 Route 编排为七任务单 owner 工作面。Tenant / Audit 复用既有 authenticated read；User / Role 明确失败关闭；Provider / Profile / Route 复用同一开发测试态原子配置 owner。Pencil、React、关键断点和真实浏览器验收已完成，未扩 API、schema、repository、permission 或生产边界。
 - [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](provider-profile-model-route-controlled-activation-dev-test-v1.md)：五批开发已完成并关闭，覆盖领域与三模式 repository、Admin API / Auth、Gateway 不可变快照消费、Admin Web、SQLite / PostgreSQL 产品连续验证、服务重启和真实浏览器 activation / rollback；没有创建第二套 provider inventory，也没有读取真实 secret 或启用 production。
@@ -19,4 +20,5 @@
 - RadishMind 拥有平台本地用户、角色、权限与 workspace membership；Radish 保持自身 issuer、用户和业务授权真相。两者只通过 explicit external identity binding 联合，不复制数据库或按 email 自动合并。
 - Admin read transition 不并入管理写入、application promotion、API key lifecycle、billing、secret runtime 或部署执行；开发测试态 quota 是独立 owner，不回填 Tenant / Audit read store。
 - 每个实现批次只打开一个主要高风险边界；auth、membership、store 与真实 Radish 联调按顺序验收，不同时切换。
+- 本地成员管理只接受 exact `user_id`、exact tenant / workspace 与 canonical built-in `role_key`；不开放全局账户搜索、客户端任意 grants、自定义角色、邀请、批量授权或账户安全 mutation。
 - 当前 Provider / Route 管理专题只保存既有 runtime inventory 的引用、版本、审查与激活事实；credential、endpoint 和 provider raw config 不进入 Admin repository。
