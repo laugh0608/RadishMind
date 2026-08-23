@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_d_completed_batch_e_ready`
 
 对应功能设计：[本地用户、角色与工作区成员管理（开发 / 测试态）v1](../features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)
 
@@ -98,6 +98,14 @@
 
 - 不在 URL、Web Storage、IndexedDB、service worker、日志或截图持久化目录载荷、确认正文或身份敏感字段。
 
+完成证据：
+
+- 复用提交 `72205455` 已批准的 `docs/designs/radishmind-web-family-ui-v1.pen`，Desktop `fFTsy` / `jEmjK`、Narrow `Wrggq` / `LQ297`、Decision `bkvt3` 未重新设计。
+- 单一 React strict consumer 已接入七条 Admin API；S7 User 提供 active / revoked 成员目录与 exact detail，S7 Role 复用同一 selected member、canonical 四角色目录及受控 membership / role assignment create / revoke。
+- mutation 只在内存中建立候选并显式确认；成功、workspace / session / actor scope 变化会失效 cursor、selection、dirty form、confirmation 与迟到响应。客户端不提交 `permission_grants`，不推算 canonical grants 或 CAS version。
+- 自动化覆盖七条 route 的 exact method / path / header / body、cookie session、CSRF、confirmation、CAS、scope / unknown / forbidden field 拒绝、稳定 recovery 分类和请求前输入拒绝；Web 全套测试与 production build 已通过。
+- 隐私静态审查未发现 URL、Web Storage、IndexedDB 或 service worker 持久化目录载荷与确认内容；本批未执行批次 E 双数据库产品连续链、真实 Radish 或 production IAM。
+
 ## 批次 E：双数据库产品连续链与收口
 
 实施范围：
@@ -140,5 +148,5 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 A：领域合同、canonical role catalog 与 memory 纵向链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：Admin HTTP 与 local session 授权。
-- [ ] 批次 D：Pencil 与 React strict consumer。
+- [x] 批次 D：Pencil 与 React strict consumer。
 - [ ] 批次 E：双数据库产品连续链与专题收口。

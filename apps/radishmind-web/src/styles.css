@@ -7376,6 +7376,915 @@ dd {
   }
 }
 
+/* S7 local identity administration · approved Batch D mapping */
+.local-identity-administration {
+  gap: 12px;
+}
+
+.local-identity-administration button,
+.local-identity-administration input {
+  font: inherit;
+}
+
+.local-identity-administration button {
+  cursor: pointer;
+}
+
+.local-identity-administration button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.local-identity-administration button:focus-visible,
+.local-identity-administration input:focus-visible,
+.local-identity-role-member a:focus-visible {
+  outline: 3px solid var(--rm-focus-ring);
+  outline-offset: 2px;
+}
+
+.local-identity-administration-scope {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-surface);
+}
+
+.local-identity-administration-scope > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-right: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-administration-scope > div:last-child {
+  border-right: 0;
+}
+
+.local-identity-administration-scope dt,
+.local-identity-member-facts dt,
+.local-identity-role-member-facts dt,
+.local-identity-mutation-confirmation dt {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.local-identity-administration-scope dd,
+.local-identity-member-facts dd,
+.local-identity-role-member-facts dd,
+.local-identity-mutation-confirmation dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.local-identity-administration-scope small {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.local-identity-member-workspace,
+.local-identity-role-workspace {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.local-identity-member-workspace {
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.85fr);
+}
+
+.local-identity-role-workspace {
+  grid-template-columns: minmax(280px, 0.7fr) minmax(0, 1.3fr);
+}
+
+.local-identity-member-directory,
+.local-identity-member-inspector,
+.local-identity-role-member,
+.local-identity-role-catalog,
+.local-identity-mutation-confirmation {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-bg-surface);
+}
+
+.local-identity-member-directory > header,
+.local-identity-role-member > header,
+.local-identity-role-catalog > header,
+.local-identity-mutation-confirmation > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-member-directory > header > div,
+.local-identity-role-catalog > header > div,
+.local-identity-mutation-confirmation > header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.local-identity-member-directory > header span,
+.local-identity-role-member > header > span,
+.local-identity-role-catalog > header span,
+.local-identity-mutation-confirmation > header span,
+.local-identity-role-member-heading small,
+.local-identity-member-inspector > header small {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.local-identity-member-directory h5,
+.local-identity-member-inspector h5,
+.local-identity-role-catalog h5,
+.local-identity-mutation-confirmation h5 {
+  color: var(--rm-text-primary);
+  font-size: 14px;
+  font-weight: 660;
+}
+
+.local-identity-member-directory > header button,
+.local-identity-member-directory > footer button,
+.local-identity-role-member > header a,
+.local-identity-administration .secondary-action,
+.local-identity-administration .danger-action,
+.local-identity-membership-create > button,
+.local-identity-role-candidate-editor > button,
+.local-identity-mutation-confirmation > div > button,
+.local-identity-operation > button,
+.local-identity-state-failure > button,
+.local-identity-current-assignments article > button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font-size: 9px;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.local-identity-membership-create > button,
+.local-identity-role-candidate-editor > button,
+.local-identity-mutation-confirmation > div > button:last-child {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+}
+
+.local-identity-administration .danger-action,
+.local-identity-mutation-confirmation.is-destructive > div > button:last-child {
+  border-color: var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+  color: var(--rm-state-danger);
+}
+
+.local-identity-directory-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.local-identity-directory-filters button {
+  min-height: 26px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--rm-radius-pill);
+  background: transparent;
+  color: var(--rm-text-muted);
+  font-size: 8px;
+  font-weight: 780;
+  text-transform: uppercase;
+}
+
+.local-identity-directory-filters button[aria-pressed="true"] {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-soft);
+  color: var(--rm-action-primary);
+}
+
+.local-identity-directory-filters > span {
+  margin-left: auto;
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.local-identity-membership-create,
+.local-identity-role-candidate-editor {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border-bottom: 1px solid var(--rm-border-soft);
+  background: var(--rm-action-soft);
+}
+
+.local-identity-membership-create {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.local-identity-membership-create label,
+.local-identity-role-candidate-editor label {
+  display: grid;
+  gap: 5px;
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  font-weight: 720;
+}
+
+.local-identity-membership-create input,
+.local-identity-role-candidate-editor input {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+}
+
+.local-identity-membership-create > small {
+  grid-column: 1 / -1;
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.local-identity-member-rows,
+.local-identity-role-definitions,
+.local-identity-current-assignments,
+.local-identity-assignment-evidence {
+  display: grid;
+}
+
+.local-identity-member-rows > button {
+  display: grid;
+  grid-template-columns: 3px 38px minmax(0, 1fr) minmax(112px, auto);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 68px;
+  padding: 7px 12px 7px 0;
+  border: 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+  border-radius: 0;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  text-align: left;
+}
+
+.local-identity-member-rows > button:hover {
+  background: var(--rm-bg-muted);
+}
+
+.local-identity-member-rows > button.is-selected {
+  background: var(--rm-action-soft);
+}
+
+.local-identity-member-rows > button > i {
+  width: 3px;
+  height: 100%;
+  background: transparent;
+}
+
+.local-identity-member-rows > button.is-selected > i {
+  background: var(--rm-action-primary);
+}
+
+.local-identity-member-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--rm-identity-soft);
+  color: var(--rm-identity-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+  font-weight: 780;
+}
+
+.local-identity-member-rows > button > span:nth-child(3),
+.local-identity-member-role,
+.local-identity-member-inspector > header > div,
+.local-identity-role-member-heading > div,
+.local-identity-current-assignments article > span,
+.local-identity-assignment-evidence article > span {
+  display: grid;
+  gap: 4px;
+}
+
+.local-identity-member-rows strong,
+.local-identity-current-assignments strong,
+.local-identity-assignment-evidence strong {
+  overflow: hidden;
+  color: var(--rm-text-primary);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.local-identity-member-rows small,
+.local-identity-current-assignments small,
+.local-identity-assignment-evidence small {
+  overflow: hidden;
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.local-identity-member-role {
+  justify-items: end;
+  text-align: right;
+}
+
+.local-identity-member-directory > footer,
+.local-identity-role-catalog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--rm-border-soft);
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.local-identity-member-inspector {
+  align-content: start;
+  display: grid;
+}
+
+.local-identity-member-inspector > header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-member-inspector > header p,
+.local-identity-role-member-heading small {
+  overflow-wrap: anywhere;
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.local-identity-member-inspector > header em,
+.local-identity-role-member-heading > em,
+.local-identity-current-assignments article > em,
+.local-identity-assignment-evidence article > em,
+.local-identity-role-catalog > header > em,
+.local-identity-mutation-confirmation > header > em {
+  padding: 4px 7px;
+  border-radius: var(--rm-radius-pill);
+  background: var(--rm-state-neutral-soft);
+  color: var(--rm-state-neutral);
+  font-family: var(--rm-font-mono);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.local-identity-member-inspector > header em.is-ready,
+.local-identity-role-member-heading > em {
+  background: var(--rm-state-success-soft);
+  color: var(--rm-state-success);
+}
+
+.local-identity-member-inspector > header em.is-revoked {
+  background: var(--rm-state-neutral-soft);
+  color: var(--rm-state-neutral);
+}
+
+.local-identity-member-facts,
+.local-identity-role-member-facts,
+.local-identity-mutation-confirmation dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-member-facts > div,
+.local-identity-role-member-facts > div,
+.local-identity-mutation-confirmation dl > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-right: 1px solid var(--rm-border-soft);
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-member-facts > div:nth-child(even),
+.local-identity-role-member-facts > div:nth-child(even),
+.local-identity-mutation-confirmation dl > div:nth-child(even) {
+  border-right: 0;
+}
+
+.local-identity-assignment-evidence,
+.local-identity-current-assignments {
+  padding: 12px;
+}
+
+.local-identity-assignment-evidence > header,
+.local-identity-current-assignments > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+
+.local-identity-assignment-evidence > header small,
+.local-identity-current-assignments > header small,
+.local-identity-assignment-evidence > p,
+.local-identity-current-assignments > p {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.local-identity-assignment-evidence article,
+.local-identity-current-assignments article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 0;
+  border-top: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-current-assignments article.has-drift {
+  border-left: 3px solid var(--rm-state-warning);
+  padding-left: 8px;
+}
+
+.local-identity-protection,
+.local-identity-catalog-drift {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 8px;
+  margin: 0 12px 12px;
+  padding: 10px;
+  border-left: 3px solid var(--rm-state-warning);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-state-warning);
+}
+
+.local-identity-protection > span,
+.local-identity-catalog-drift > span {
+  grid-row: 1 / 3;
+}
+
+.local-identity-protection small,
+.local-identity-catalog-drift small {
+  color: inherit;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.local-identity-inspector-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--rm-border-soft);
+  background: var(--rm-bg-muted);
+}
+
+.local-identity-inspector-action > span {
+  display: grid;
+  gap: 4px;
+}
+
+.local-identity-inspector-action small {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.local-identity-role-member > header a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.local-identity-role-member-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-role-definitions > button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+  border-radius: 0;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  text-align: left;
+}
+
+.local-identity-role-definitions > button:hover {
+  background: var(--rm-bg-muted);
+}
+
+.local-identity-role-definitions > button.is-selected {
+  box-shadow: inset 3px 0 0 var(--rm-action-primary);
+  background: var(--rm-action-soft);
+}
+
+.local-identity-role-definitions > button > b {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 50%;
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.local-identity-role-definitions > button > span {
+  display: grid;
+  gap: 4px;
+}
+
+.local-identity-role-definitions > button strong {
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+}
+
+.local-identity-role-definitions > button small {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.local-identity-role-definitions > button > em {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.local-identity-role-candidate-editor {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-top: 1px solid var(--rm-border-soft);
+  border-bottom: 0;
+}
+
+.local-identity-candidate-marker {
+  display: block;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rm-border-soft);
+  background: var(--rm-state-info-soft);
+  color: var(--rm-state-info);
+  font-size: 8px;
+}
+
+.local-identity-mutation-confirmation {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+  align-items: stretch;
+  border-color: var(--rm-action-primary);
+}
+
+.local-identity-mutation-confirmation > header {
+  border-right: 1px solid var(--rm-border-soft);
+  border-bottom: 0;
+}
+
+.local-identity-mutation-confirmation dl {
+  border: 0;
+}
+
+.local-identity-mutation-confirmation > p {
+  align-self: center;
+  padding: 12px;
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.local-identity-mutation-confirmation > div {
+  align-content: center;
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border-left: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-operation,
+.local-identity-state-failure,
+.local-identity-state-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--rm-border-soft);
+  border-left: 3px solid var(--rm-state-info);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-state-info-soft);
+  color: var(--rm-state-info);
+}
+
+.local-identity-state-notice {
+  grid-template-columns: auto minmax(0, 1fr);
+  margin: 12px;
+  border-left-color: var(--rm-border-strong);
+  background: var(--rm-bg-muted);
+  color: var(--rm-text-muted);
+}
+
+.local-identity-state-failure {
+  margin: 12px;
+  border-left-color: var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+  color: var(--rm-state-danger);
+}
+
+.local-identity-operation.is-success {
+  border-left-color: var(--rm-state-success);
+  background: var(--rm-state-success-soft);
+  color: var(--rm-state-success);
+}
+
+.local-identity-operation.is-stale_conflict,
+.local-identity-operation.is-catalog_drift,
+.local-identity-operation.is-last_admin,
+.local-identity-operation.is-recent_authentication {
+  border-left-color: var(--rm-state-warning);
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-state-warning);
+}
+
+.local-identity-operation.is-denied,
+.local-identity-operation.is-unavailable,
+.local-identity-operation.is-invalid_response,
+.local-identity-operation.is-failed {
+  border-left-color: var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+  color: var(--rm-state-danger);
+}
+
+.local-identity-operation > span,
+.local-identity-state-failure > span,
+.local-identity-state-notice > span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.local-identity-operation > div,
+.local-identity-state-failure > div,
+.local-identity-state-notice > div {
+  display: grid;
+  gap: 3px;
+}
+
+.local-identity-operation p,
+.local-identity-state-failure p,
+.local-identity-state-notice p {
+  color: inherit;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.local-identity-operation small,
+.local-identity-state-failure small {
+  color: inherit;
+  font-family: var(--rm-font-mono);
+  font-size: 7px;
+}
+
+.local-identity-administration-boundary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--rm-state-warning);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-state-warning-soft);
+  color: var(--rm-state-warning);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.local-identity-administration-boundary > span {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--rm-font-mono);
+  font-weight: 800;
+}
+
+@media (max-width: 1080px) {
+  .local-identity-member-workspace,
+  .local-identity-role-workspace,
+  .local-identity-mutation-confirmation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .local-identity-mutation-confirmation > header,
+  .local-identity-mutation-confirmation > div {
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .local-identity-mutation-confirmation > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .local-identity-administration-scope {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .local-identity-administration-scope > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .local-identity-administration-scope > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .local-identity-member-directory > header,
+  .local-identity-role-catalog > header,
+  .local-identity-mutation-confirmation > header,
+  .local-identity-inspector-action,
+  .local-identity-operation,
+  .local-identity-state-failure {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .local-identity-member-directory > header,
+  .local-identity-role-catalog > header,
+  .local-identity-mutation-confirmation > header,
+  .local-identity-inspector-action {
+    flex-direction: column;
+  }
+
+  .local-identity-membership-create,
+  .local-identity-role-candidate-editor,
+  .local-identity-member-facts,
+  .local-identity-role-member-facts,
+  .local-identity-mutation-confirmation dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .local-identity-membership-create > button,
+  .local-identity-role-candidate-editor > button {
+    width: 100%;
+  }
+
+  .local-identity-member-rows > button {
+    grid-template-columns: 3px 34px minmax(0, 1fr) auto;
+    min-height: 74px;
+  }
+
+  .local-identity-member-role strong {
+    max-width: 90px;
+  }
+
+  .local-identity-member-facts > div,
+  .local-identity-role-member-facts > div,
+  .local-identity-mutation-confirmation dl > div,
+  .local-identity-member-facts > div:nth-child(even),
+  .local-identity-role-member-facts > div:nth-child(even),
+  .local-identity-mutation-confirmation dl > div:nth-child(even) {
+    border-right: 0;
+  }
+
+  .local-identity-current-assignments article,
+  .local-identity-assignment-evidence article {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .local-identity-current-assignments article > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .local-identity-operation > span,
+  .local-identity-state-failure > span {
+    display: none;
+  }
+
+  .local-identity-operation > button,
+  .local-identity-state-failure > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .local-identity-administration-scope,
+  .local-identity-member-facts,
+  .local-identity-role-member-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .local-identity-administration-scope > div,
+  .local-identity-administration-scope > div:nth-child(2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .local-identity-directory-filters {
+    flex-wrap: wrap;
+  }
+
+  .local-identity-directory-filters > span {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .local-identity-member-rows > button {
+    grid-template-columns: 3px 32px minmax(0, 1fr);
+  }
+
+  .local-identity-member-role {
+    grid-column: 3;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .local-identity-member-inspector > header,
+  .local-identity-role-member-heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .local-identity-member-inspector > header > em,
+  .local-identity-role-member-heading > em {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .local-identity-role-definitions > button {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .local-identity-role-definitions > button > em {
+    grid-column: 2;
+  }
+
+  .local-identity-mutation-confirmation > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Local Identity Gateway · batch D development/test owner */
 .local-identity-gateway,
 .local-identity-status-surface {

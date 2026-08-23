@@ -25,8 +25,13 @@ import {
   type ControlPlaneReadDevLiveLoadState,
 } from "./devLiveReadConsumer.ts";
 import type { WorkspaceApplicationRow } from "./workspaceApplications.ts";
-import { AdminLocalIdentityOwner } from "../local-identity/adminLocalIdentityOwner.tsx";
 import { useLocalIdentity } from "../local-identity/localIdentityGateway.tsx";
+
+const AdminLocalIdentityOwner = lazy(() =>
+  import("../local-identity/adminLocalIdentityOwner.tsx").then((module) => ({
+    default: module.AdminLocalIdentityOwner,
+  })),
+);
 
 const AdminOperationsReviewPanel = lazy(() =>
   import("./adminOperationsReviewPanel.tsx").then((module) => ({
@@ -210,15 +215,21 @@ export default function AdminControlPlaneWorkspace({
           })}
           <p className="admin-control-plane-boundary">
             <span aria-hidden="true">!</span>
-            User and Role expose only the authenticated local account and repository-owned grants. Directory listing,
-            production membership, production OIDC, secrets, onboarding, billing and automatic routing stay closed.
+            User and Role consume only the exact workspace member directory and server-owned built-in role catalog.
+            Global account search, email lookup, invitations, custom roles, production IAM and bootstrap HTTP stay closed.
           </p>
         </nav>
 
         <main className="admin-control-plane-owner" data-owner={activeSurface ?? "inactive"}>
           {activeSurface === "tenant" ? <AdminTenantOwner overview={tenantOverview} /> : null}
           {activeSurface === "user" || activeSurface === "role" ? (
-            <AdminLocalIdentityOwner surface={activeSurface} />
+            <Suspense fallback={<div className="admin-control-plane-loading">Loading local identity administration…</div>}>
+              <AdminLocalIdentityOwner
+                surface={activeSurface}
+                tenantRef={sourceConfig.tenantRef}
+                workspaceId={sourceConfig.workspaceId ?? ""}
+              />
+            </Suspense>
           ) : null}
           {activeSurface === "audit" ? (
             <AdminAuditOwner auditLog={auditLog} sourceConfig={sourceConfig} />
@@ -297,8 +308,8 @@ function buildResourceStatuses(
     : { label: "offline", tone: "neutral" };
   return {
     tenant: tenantStatus,
-    user: localIdentityReady ? { label: "current account", tone: "ready" } : { label: "offline", tone: "neutral" },
-    role: localIdentityReady ? { label: "local grants", tone: "ready" } : { label: "offline", tone: "neutral" },
+    user: localIdentityReady ? { label: "member directory", tone: "ready" } : { label: "offline", tone: "neutral" },
+    role: localIdentityReady ? { label: "built-in catalog", tone: "ready" } : { label: "offline", tone: "neutral" },
     audit: auditStatus,
     provider: routeStatus,
     profile: routeStatus,

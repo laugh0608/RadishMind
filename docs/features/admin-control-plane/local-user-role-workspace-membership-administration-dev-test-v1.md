@@ -2,19 +2,19 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_d_completed_batch_e_ready`
 
 ## 功能定位
 
 本功能在 RadishMind 已有本地账户、Web Session、角色分配与 `WorkspaceMembership` owner 之上，为平台管理员提供 workspace-scoped 的本地成员目录、内建角色目录、成员关系管理和角色分配管理。
 
-它解决的是联合登录批次 D 之后的真实产品缺口：S7 User / Role 当前只能展示已登录账户及其 repository-owned grants，管理员无法在同一 workspace 中查看成员、授予或撤销 membership、分配或撤销内建角色。首版只管理 RadishMind 本地授权事实，不读取 Radish 用户目录，不同步 OIDC claim，也不建立第二套身份或权限真相源。
+它解决的是联合登录批次 D 之后的真实产品缺口：S7 User / Role 已从仅展示当前账户升级为 exact workspace 的成员目录、详情、内建角色目录与受控 membership / role assignment create / revoke。首版只管理 RadishMind 本地授权事实，不读取 Radish 用户目录，不同步 OIDC claim，也不建立第二套身份或权限真相源。
 
 ## 选择依据
 
 - [本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)已经完成 `UserAccount`、`LocalRoleAssignment`、`WorkspaceMembership`、memory / SQLite / PostgreSQL repository 与本地 Session 授权链。
-- 当前 `localIdentityRepository` 已有单账户读取、角色分配创建 / 撤销、成员关系创建 / 撤销和 CAS；批次 A 至 C 已补齐三种 store 的 workspace-scoped 管理 repository、产品级 mutation service 与正式 Admin HTTP，S7 管理 consumer 留在批次 D。
-- S7 User / Role 明确显示当前账户，不伪造目录事实；因此下一步应在现有 owner 上建立真实目录与授权管理，而不是继续补只读 evidence 页面或依赖真实 Radish 批次 E。
+- 当前 `localIdentityRepository` 已有单账户读取、角色分配创建 / 撤销、成员关系创建 / 撤销和 CAS；批次 A 至 D 已补齐三种 store 的 workspace-scoped 管理 repository、产品级 mutation service、正式 Admin HTTP 与 S7 strict consumer。
+- S7 User / Role 只消费 repository-owned canonical 目录、详情、角色与 mutation projection，不伪造目录事实，也不依赖真实 Radish 批次 E。
 - 本功能可以完全在本仓库的开发测试态三种 store 中验证，不依赖 production secret、真实 issuer、外部账号资源或上层项目接线。
 
 ## 已确认产品决策
@@ -145,6 +145,8 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 五维初评为 `2 / 1 / 2 / 2 / 2 = 9`，采用 `A / 完整 Pencil`。设计只修改 S7 User / Role 代表面及对应 Decision Record，不建立 S11，也不改变其它页面 owner。
 
+批次 D 复用提交 `72205455` 已批准的设计源 `docs/designs/radishmind-web-family-ui-v1.pen`：Desktop `fFTsy` / `jEmjK`、Narrow `Wrggq` / `LQ297`、Decision `bkvt3`。React 使用单一 strict consumer 接入七条 Admin API；目录保持 dominant、详情为 subordinate inspector，Role 复用同一 selected member 与服务器 canonical 四角色目录。create / revoke 均先形成内存候选再显式确认，成功后失效旧 selection、cursor、表单、确认和迟到响应；目录载荷与确认内容不写入 URL、Web Storage、IndexedDB 或 service worker。
+
 ## 实施拆分
 
 ### 批次 A：领域合同、角色目录与 memory 纵向链
@@ -173,9 +175,10 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 ### 批次 D：Pencil 与 React strict consumer
 
-- 在既有 Family UI 中完成 S7 User / Role Desktop、Narrow 和 Decision Record。
-- 建立单一 strict consumer、workspace member directory、detail、role catalog 和显式 mutation flow。
-- Web 不缓存身份目录到 URL、Web Storage、IndexedDB 或 service worker。
+- 已在既有 Family UI 中完成 S7 User / Role Desktop、Narrow 和 Decision Record；批准节点为 Desktop `fFTsy` / `jEmjK`、Narrow `Wrggq` / `LQ297`、Decision `bkvt3`，本批不重新设计。
+- 已建立单一 strict consumer，接入 workspace member directory、exact detail、role catalog 和四条显式 mutation flow；客户端只提交 canonical candidate，不提交任意 grants，也不推算服务端版本或权限。
+- 已覆盖 loading、empty、denied、unavailable、stale conflict、catalog drift、last-admin protection、success 与 revoked，并以 authorization key、generation 与 abort 清除 scope 变化和 mutation 成功后的旧状态 / 迟到响应。
+- Web 不缓存身份目录或确认内容到 URL、Web Storage、IndexedDB 或 service worker；当前批次仅完成自动化 Web 测试与 production build，不执行批次 E 的真实双数据库页面连续链。
 
 ### 批次 E：双数据库产品连续链与专题收口
 
@@ -204,4 +207,4 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 ## 下一实现入口
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 C 已完成，下一入口为批次 D：只更新既有第二排 S7 User / Role Desktop、Narrow 与 Decision Record，再接入 React strict consumer；批次 E 必须继续消费前一批证据，不并行扩张 UI 与双数据库产品验收边界。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 D 已完成；下一入口仅为批次 E 的 SQLite / PostgreSQL 产品连续链、三视口与浏览器隐私审计。本批不提前执行批次 E，也不扩张到真实 Radish 或 production IAM。
