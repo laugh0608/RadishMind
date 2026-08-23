@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_design_defined_batch_a_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_a_completed_batch_b_ready`
 
 对应功能设计：[本地用户、角色与工作区成员管理（开发 / 测试态）v1](../features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)
 
@@ -33,6 +33,13 @@
 
 - 不注册 HTTP route，不修改 config，不增加数据库 migration，不改 Web 或 Pencil。
 - 不把 permission matrix 散落到 handler、fixture 或前端；只有 canonical catalog 是 grants 来源。
+
+完成证据：
+
+- `local_identity_builtin_roles_v1` 与固定 catalog digest 已落地；四角色 exact grants、完整 allowlist 覆盖、唯一 identity-management capability 和 immutable copy 均有测试。
+- summary / detail / filter-bound cursor、memory administration repository / service、catalog-derived assignment、原子 membership revoke、十分钟 recent-auth、CAS、self / last-admin protection 与 one-shot bootstrap 已落地。
+- memory 覆盖 `121` 条同时间戳三页、cursor 篡改、catalog drift、重新加入不恢复 grants、并发单胜者、bootstrap 单胜者、repository 锁内授权重读和稳定失败码；完整 `internal/httpapi/...` 与 PostgreSQL tagged compile 已通过。
+- 停止线保持：没有 HTTP / config / migration / durable administration owner / Pencil / Web 改动；通用 assignment 入口拒绝四项管理权限，避免在批次 B 前绕开 canonical durable 写入。
 
 ## 批次 B：SQLite / PostgreSQL durable owner
 
@@ -114,7 +121,7 @@ npm --prefix apps/radishmind-web run build
 
 - [x] 新长期功能专题、owner、流程、失败语义、批次与停止线已定义。
 - [x] 唯一高风险任务卡已建立，批次 A 可进入实现。
-- [ ] 批次 A：领域合同、canonical role catalog 与 memory 纵向链。
+- [x] 批次 A：领域合同、canonical role catalog 与 memory 纵向链。
 - [ ] 批次 B：SQLite / PostgreSQL durable owner。
 - [ ] 批次 C：Admin HTTP 与 local session 授权。
 - [ ] 批次 D：Pencil 与 React strict consumer。

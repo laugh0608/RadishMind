@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)状态为 `local_user_role_workspace_membership_administration_dev_test_v1_design_defined_batch_a_ready`。当前只打开批次 A：固定 workspace-scoped summary / detail / cursor、canonical 四角色 grant matrix、memory repository / service、显式 one-shot first-admin bootstrap、CAS、self-revoke 与 last-admin protection；数据库、HTTP、Pencil、Web、真实 Radish 与 production IAM 均不在本批范围。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)状态为 `local_user_role_workspace_membership_administration_dev_test_v1_batch_a_completed_batch_b_ready`。批次 A 的 workspace-scoped 合同、canonical 四角色、memory repository / service、显式 one-shot bootstrap、CAS 与 self / last-admin protection 已完成；当前只打开批次 B 的 SQLite / PostgreSQL durable owner 与开发测试态 CLI，HTTP、Pencil、Web、真实 Radish 与 production IAM 均不在本批范围。
 
 ## 当前外部阻塞任务
 

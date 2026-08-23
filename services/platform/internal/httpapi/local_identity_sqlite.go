@@ -456,7 +456,8 @@ func (repository *sqliteLocalIdentityRepository) CreateRoleAssignment(ctx contex
 	if repository == nil || repository.database == nil {
 		return errLocalIdentityStoreUnavailable
 	}
-	if !ok || !validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
+	if !ok || localIdentityContainsManagementPermission(grants) ||
+		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
 	if err := repository.requireActiveSQLiteAccount(ctx, assignment.UserID); err != nil {

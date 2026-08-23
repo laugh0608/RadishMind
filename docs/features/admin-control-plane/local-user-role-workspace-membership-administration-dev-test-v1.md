@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_design_defined_batch_a_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_a_completed_batch_b_ready`
 
 ## 功能定位
 
@@ -69,6 +69,8 @@
 
 所有 grants 使用已有 canonical permission 名称。Batch A 必须一次性枚举并测试初始四个角色的 exact grant matrix；不能在 handler、Web fixture 或测试中重复维护第二份 grants。`workspace_admin` 是首版唯一可包含本功能四项管理权限的角色，最后管理员保护以 `can_manage_local_identity` 与有效 assignment 决策，不以 display name 或前端标签判断。
 
+批次 A 已将目录冻结为 `local_identity_builtin_roles_v1`，catalog digest 为 `sha256:d784ef5d5595f4fa3ed96f32c86f3fd12edbd4098da46668366f97ce42e2d4d0`。四角色按 reader → builder → reviewer → administrator 累积既有 canonical grants；`workspace_admin` 覆盖完整 workspace permission allowlist，并且只有它包含四项本地身份管理权限。catalog、角色 definition digest、allowlist 完整覆盖和不可变复制均由 Go 测试固定；后续 grant 变化必须显式评估 catalog version，而不能静默改写历史 assignment。
+
 ## 目录、详情与 cursor
 
 成员目录只列出 exact `tenant_ref + workspace_id` 下存在 membership 历史的本地账户，不提供全局未分配账户列表。首版固定：
@@ -124,6 +126,7 @@ first-admin bootstrap 不注册 HTTP route。它只由批次 B 的显式开发�
 - `local_identity_self_membership_revoke_denied`
 - `local_identity_last_admin_removal_denied`
 - `local_identity_recent_authentication_required`
+- `local_identity_admin_bootstrap_denied`
 - `workspace_membership_denied`
 - `workspace_permission_denied`
 
@@ -144,10 +147,12 @@ first-admin bootstrap 不注册 HTTP route。它只由批次 B 的显式开发�
 
 ### 批次 A：领域合同、角色目录与 memory 纵向链
 
-- 固定 summary / detail / role catalog / cursor 合同和 exact grant matrix。
-- 为 repository 增加 workspace-scoped list / exact read 与原子 membership revoke aggregate。
-- 建立管理 service、CAS、one-shot first-admin bootstrap、self / last-admin protection、memory tests 和零副作用负向矩阵。
-- 本批不注册 HTTP，不修改数据库，不改 Web。
+- 已固定 summary / detail / role catalog / filter-bound cursor 合同、exact grant matrix、catalog version 和 digest；legacy assignment 通过 catalog metadata 比较显式投影 drift。
+- 已在同一 memory identity owner 上增加独立 administration capability，完成 workspace-scoped list / exact read、catalog-derived assignment、原子 membership + workspace assignment revoke，以及重新加入不恢复旧 grants。
+- 已建立管理 service、十分钟 recent-auth 输入、CAS、并发单胜者、显式 one-shot first-admin bootstrap、self / last-admin protection，并在 repository 锁内重读 actor 权限以关闭授权检查与写入之间的竞态。
+- 四项管理权限已进入 canonical workspace permission allowlist，但通用 role assignment 入口明确拒绝这些 grants；在批次 B durable canonical assignment 落地前，SQLite / PostgreSQL 旧入口不能取得本地身份管理能力。
+- memory 证据覆盖 `121` 条同时间戳三页稳定分页、cursor filter / limit / tamper 拒绝、脱敏详情、catalog drift、重复与 stale CAS、并发单胜者、原子 revoke、bootstrap 单胜者、权限即时失效和零副作用负向路径。
+- 本批未注册 HTTP、未修改 config / migration / durable administration owner，也未修改 Pencil 或 Web。
 
 ### 批次 B：SQLite / PostgreSQL durable owner
 
@@ -195,4 +200,4 @@ first-admin bootstrap 不注册 HTTP route。它只由批次 B 的显式开发�
 
 ## 下一实现入口
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。当前只打开批次 A；批次 B 至 E 必须依次消费前一批的 canonical contract 和行为证据，不并行扩张数据库、HTTP 与 UI 边界。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 已完成，下一入口为批次 B 的 SQLite / PostgreSQL durable administration owner 与显式开发测试态 bootstrap CLI；批次 C 至 E 必须继续依次消费前一批证据，不并行扩张 HTTP 与 UI 边界。

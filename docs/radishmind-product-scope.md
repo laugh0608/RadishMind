@@ -95,7 +95,7 @@ read store 的产品范围现在已经从“继续固定未来迁移契约”推
 
 - 面向平台管理员和运维。
 - 管理租户、用户、角色、权限、模型供应商、provider profile、模型路由、API key、额度、价格、审计、secret backend 和部署状态。
-- 认证同时支持 RadishMind 本地账户与 Radish OIDC 联合登录；授权始终由 RadishMind 本地角色和工作区成员关系 owner 决定。当前新产品顺位只在该 owner 上补齐开发测试态 workspace-scoped 成员目录、canonical 内建角色与 membership / assignment 管理，首批只实施合同、memory owner 和安全不变量，不开放全局账户搜索、自定义角色、上游 claim 授权或 production IAM。数据库、部署和运维习惯可参考 `Radish`，但不复制其身份表或后端语言栈。
+- 认证同时支持 RadishMind 本地账户与 Radish OIDC 联合登录；授权始终由 RadishMind 本地角色和工作区成员关系 owner 决定。当前新产品顺位已在该 owner 上完成开发测试态 workspace-scoped 成员目录合同、canonical 内建角色、memory membership / assignment 管理和安全不变量，下一步只实现 SQLite / PostgreSQL durable owner 与显式 bootstrap CLI；不开放全局账户搜索、自定义角色、上游 claim 授权或 production IAM。数据库、部署和运维习惯可参考 `Radish`，但不复制其身份表或后端语言栈。
 - Control Plane 可以拆成独立 Go 服务，但不因为职责扩张而引入新后端语言或塞进 gateway 单体。
 - 当前 Web 提供 `admin-tenant-overview`、`admin-audit-log`、Admin Operations Review，以及 Provider/Profile & Deployment Review 内的开发测试态受控配置工作区；它不是 production admin console。Provider Profile / Model Route 受控启用批次 A 至 E 已建立作用域领域、不可变候选、人工 review、显式 activation、历史 rollback、只读 inventory resolver、三模式 durable owner、verified Admin HTTP、Gateway snapshot consumer、Request History 谱系与双数据库浏览器证据。
 - User Workspace 五条只读 operation 已共享 `WorkspaceMembershipProvider`：Applications、API Keys、Workflow Definitions 与 Runs 复用既有 durable owner，Quota 在缺少可信 policy owner 时失败关闭；active workspace 只在当前 Web 进程内选择，切换会失效旧选择和旧快照。运营收件箱只消费四类已授权首分页快照，不创建 incident、notification 或 remediation owner。

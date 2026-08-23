@@ -523,7 +523,8 @@ func (repository *memoryLocalIdentityRepository) CreateRoleAssignment(_ context.
 	}
 	grants, ok := normalizedPermissionGrants(assignment.PermissionGrants)
 	assignment.PermissionGrants = grants
-	if !ok || !validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
+	if !ok || localIdentityContainsManagementPermission(grants) ||
+		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
 	repository.mu.Lock()
@@ -764,6 +765,28 @@ func localIdentityRepositoryError(err error) string {
 		return LocalIdentityFailureMembershipDenied
 	case errors.Is(err, errLocalIdentityPermissionDenied):
 		return LocalIdentityFailurePermissionDenied
+	case errors.Is(err, errLocalIdentityAdminUnavailable):
+		return LocalIdentityFailureAdminUnavailable
+	case errors.Is(err, errLocalIdentityAdminScopeMismatch):
+		return LocalIdentityFailureAdminScopeMismatch
+	case errors.Is(err, errLocalIdentityMemberUnavailable):
+		return LocalIdentityFailureMemberUnavailable
+	case errors.Is(err, errLocalIdentityMemberCursorInvalid):
+		return LocalIdentityFailureMemberCursorInvalid
+	case errors.Is(err, errLocalIdentityRoleCatalogMismatch):
+		return LocalIdentityFailureRoleCatalogMismatch
+	case errors.Is(err, errLocalIdentityMembershipConflict):
+		return LocalIdentityFailureMembershipConflict
+	case errors.Is(err, errLocalIdentityRoleAssignmentConflict):
+		return LocalIdentityFailureRoleAssignmentConflict
+	case errors.Is(err, errLocalIdentitySelfMembershipRevoke):
+		return LocalIdentityFailureSelfMembershipRevoke
+	case errors.Is(err, errLocalIdentityLastAdminRemoval):
+		return LocalIdentityFailureLastAdminRemoval
+	case errors.Is(err, errLocalIdentityRecentAuthentication):
+		return LocalIdentityFailureRecentAuthentication
+	case errors.Is(err, errLocalIdentityAdminBootstrapDenied):
+		return LocalIdentityFailureAdminBootstrapDenied
 	case errors.Is(err, errLocalIdentityNotFound):
 		return LocalIdentityFailureNotFound
 	default:

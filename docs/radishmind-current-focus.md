@@ -37,12 +37,12 @@
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
-- 新的本地可执行产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_design_defined_batch_a_ready`。它只在现有本地 identity owner 上补齐 workspace-scoped 成员目录、canonical 内建角色、membership / assignment 管理与安全不变量；当前只打开批次 A，不打开数据库、HTTP、Web、全局账户搜索、自定义角色或 production IAM。
+- 新的本地可执行产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_batch_a_completed_batch_b_ready`。批次 A 已在现有 memory identity owner 上完成 workspace-scoped 合同、canonical 四角色、管理 service、one-shot bootstrap、CAS 与 self / last-admin 安全不变量；下一步只打开批次 B 的 SQLite / PostgreSQL durable administration owner 与显式开发测试态 bootstrap CLI，不打开 HTTP、Web、全局账户搜索、自定义角色或 production IAM。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：先实施[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)批次 A，固定 summary / detail / cursor、canonical 四角色 grant matrix、memory repository / service、one-shot first-admin bootstrap、CAS、self-revoke 与 last-admin protection；本批不注册 HTTP、不改数据库和 Web。[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件，不与本地管理专题耦合。
+1. 产品线：实施[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)批次 B，把已验证的 summary / detail / cursor、canonical catalog、原子 mutation 和安全不变量落到 SQLite / PostgreSQL，并增加显式开发测试态 bootstrap CLI；先审查 query plan，不建重复目录 / 角色表，不注册 HTTP 或改 Web。[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件，不与本地管理专题耦合。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成与下一事项
@@ -51,7 +51,7 @@
 2. Platform 已增加 `GET /v1/auth/account` 与 `POST /v1/auth/external-identities/{binding_id}/revoke`。当前账户 profile 由 memory / SQLite / PostgreSQL 的唯一 repository contract 投影；解绑要求近期认证、ownership、CSRF / Origin、版本 CAS 与至少一种剩余登录方式。
 3. Web 已增加显式 opt-in 本地身份 gateway、strict consumer、登录 / 注册 / Radish 登录入口、当前账户、link / revoke / logout 和 metadata-only 跨标签同步；S7 User / Role 只读取当前本地账户、role assignment 与 membership，不使用离线 fixture 冒充目录事实。
 4. 真实浏览器完成错误密码、正确登录、当前账户面板、S7 User / Role、双标签登出、刷新、SQLite 服务重启恢复及 `1440×900`、`720×900`、`390×844`；无横向溢出，三标签 console 无 warning / error。临时账户、SQLite 文件、服务与浏览器标签均已清理。
-5. 已选择新的长期产品任务“本地用户、角色与工作区成员管理 v1”并完成设计与高风险任务卡；下一事项只实施批次 A 的合同、canonical 角色目录、memory owner / service、显式 one-shot first-admin bootstrap 和安全不变量。真实 Radish 批次 E、production session store、MFA、恢复、速率限制、refresh token 与 production auth 继续关闭。
+5. “本地用户、角色与工作区成员管理 v1”批次 A 已完成：固定合同、canonical 角色目录、memory owner / service、显式 one-shot first-admin bootstrap 和安全不变量均已有测试证据。下一事项只实施批次 B 的 SQLite / PostgreSQL durable owner 与 CLI；真实 Radish 批次 E、production session store、MFA、恢复、速率限制、refresh token 与 production auth 继续关闭。
 
 ## 2026-08-19 今日评审
 

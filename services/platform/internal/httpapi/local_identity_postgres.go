@@ -454,7 +454,8 @@ func (repository *postgresLocalIdentityRepository) CreateRoleAssignment(ctx cont
 	if repository == nil || repository.pool == nil {
 		return errLocalIdentityStoreUnavailable
 	}
-	if !ok || !validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
+	if !ok || localIdentityContainsManagementPermission(grants) ||
+		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
 	if err := repository.requireActivePostgresAccount(ctx, assignment.UserID); err != nil {

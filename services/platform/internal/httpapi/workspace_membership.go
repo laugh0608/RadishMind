@@ -77,6 +77,10 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"admin_gateway_quotas:write":               {},
 	"admin_gateway_pricing:read":               {},
 	"admin_gateway_pricing:write":              {},
+	localIdentityPermissionMembersRead:         {},
+	localIdentityPermissionMembershipsWrite:    {},
+	localIdentityPermissionRolesRead:           {},
+	localIdentityPermissionRolesAssign:         {},
 }
 
 type VerifiedWorkspaceMembershipAssertion struct {

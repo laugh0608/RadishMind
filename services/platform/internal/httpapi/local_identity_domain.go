@@ -137,20 +137,22 @@ type WebSession struct {
 }
 
 type LocalRoleAssignment struct {
-	SchemaVersion    string     `json:"schema_version"`
-	AssignmentID     string     `json:"assignment_id"`
-	UserID           string     `json:"user_id"`
-	TenantRef        string     `json:"tenant_ref"`
-	WorkspaceID      string     `json:"workspace_id,omitempty"`
-	RoleKey          string     `json:"role_key"`
-	PermissionGrants []string   `json:"permission_grants"`
-	LifecycleState   string     `json:"lifecycle_state"`
-	RecordVersion    int        `json:"record_version"`
-	CreatedAt        time.Time  `json:"created_at"`
-	UpdatedAt        time.Time  `json:"updated_at"`
-	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
-	RevokedAt        *time.Time `json:"revoked_at,omitempty"`
-	AuditRef         string     `json:"audit_ref"`
+	SchemaVersion        string     `json:"schema_version"`
+	AssignmentID         string     `json:"assignment_id"`
+	UserID               string     `json:"user_id"`
+	TenantRef            string     `json:"tenant_ref"`
+	WorkspaceID          string     `json:"workspace_id,omitempty"`
+	RoleKey              string     `json:"role_key"`
+	RoleCatalogVersion   string     `json:"role_catalog_version,omitempty"`
+	RoleDefinitionDigest string     `json:"role_definition_digest,omitempty"`
+	PermissionGrants     []string   `json:"permission_grants"`
+	LifecycleState       string     `json:"lifecycle_state"`
+	RecordVersion        int        `json:"record_version"`
+	CreatedAt            time.Time  `json:"created_at"`
+	UpdatedAt            time.Time  `json:"updated_at"`
+	ExpiresAt            *time.Time `json:"expires_at,omitempty"`
+	RevokedAt            *time.Time `json:"revoked_at,omitempty"`
+	AuditRef             string     `json:"audit_ref"`
 }
 
 type WorkspaceMembership struct {
@@ -307,7 +309,8 @@ func validLocalRoleAssignment(assignment LocalRoleAssignment) bool {
 	return assignment.SchemaVersion == localIdentitySchemaVersion && localRoleAssignmentIDPattern.MatchString(assignment.AssignmentID) &&
 		localUserIDPattern.MatchString(assignment.UserID) && validControlPlaneReadAuthReference(assignment.TenantRef, false) &&
 		(assignment.WorkspaceID == "" || validControlPlaneReadAuthReference(assignment.WorkspaceID, false)) &&
-		localRoleKeyPattern.MatchString(assignment.RoleKey) && validWorkspacePermissionGrants(assignment.PermissionGrants) &&
+		localRoleKeyPattern.MatchString(assignment.RoleKey) && validLocalIdentityRoleCatalogMetadata(assignment) &&
+		validWorkspacePermissionGrants(assignment.PermissionGrants) &&
 		assignment.RecordVersion > 0 && validAuditRef(assignment.AuditRef) && validOptionalExpiry(assignment.CreatedAt, assignment.ExpiresAt) &&
 		validLifecycleTimes(assignment.LifecycleState, assignment.CreatedAt, assignment.UpdatedAt, assignment.RevokedAt, localIdentityStateRevoked)
 }
