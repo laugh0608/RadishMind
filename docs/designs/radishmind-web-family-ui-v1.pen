@@ -67564,31 +67564,34 @@
                       "children": [
                         {
                           "type": "frame",
-                          "id": "I1DXW",
+                          "id": "ouwRl",
                           "name": "Selected Role Member",
+                          "clip": true,
                           "width": 260,
                           "height": "fill_container",
-                          "fill": "$bg-muted",
+                          "fill": "$bg-surface",
                           "cornerRadius": 10,
+                          "stroke": "$border-soft",
+                          "strokeWidth": 1,
                           "layout": "vertical",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "P4kxd",
+                              "id": "oC0Up",
                               "name": "Selected Role Member Header",
                               "width": "fill_container",
-                              "height": 82,
+                              "height": 88,
                               "fill": "$action-soft",
                               "layout": "vertical",
-                              "gap": 4,
+                              "gap": 5,
                               "padding": [
                                 13,
-                                14
+                                16
                               ],
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "WiS5T",
+                                  "id": "v9vTE",
                                   "name": "Selected Role Member Header Top",
                                   "width": "fill_container",
                                   "justifyContent": "space_between",
@@ -67596,7 +67599,7 @@
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "tFFGb",
+                                      "id": "oFOhK",
                                       "name": "Selected Role Member Label",
                                       "fill": "$action",
                                       "content": "SELECTED MEMBER",
@@ -67606,7 +67609,7 @@
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "K0WjGh",
+                                      "id": "P7Mfrf",
                                       "name": "Selected Role Member State",
                                       "fill": "$success-soft",
                                       "cornerRadius": 999,
@@ -67618,7 +67621,7 @@
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "acVhu",
+                                          "id": "X8Yqtp",
                                           "name": "Selected Role Member State Label",
                                           "fill": "$success",
                                           "content": "ACTIVE",
@@ -67632,7 +67635,7 @@
                                 },
                                 {
                                   "type": "text",
-                                  "id": "J1RIb9",
+                                  "id": "x4MZx",
                                   "name": "Selected Role Member Name",
                                   "fill": "$text-primary",
                                   "content": "Ada Lin",
@@ -67642,7 +67645,7 @@
                                 },
                                 {
                                   "type": "text",
-                                  "id": "bOUDu",
+                                  "id": "lCteg",
                                   "name": "Selected Role Member ID",
                                   "fill": "$text-secondary",
                                   "content": "usr_01F9A7D2",
@@ -67654,20 +67657,25 @@
                             },
                             {
                               "type": "frame",
-                              "id": "F0cv5l",
-                              "name": "Selected Role Member Facts",
+                              "id": "A4lul",
+                              "name": "Selected Role Membership",
                               "width": "fill_container",
-                              "height": 84,
+                              "height": 76,
+                              "fill": "$bg-surface",
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
                               "layout": "vertical",
                               "gap": 6,
                               "padding": [
-                                12,
-                                14
+                                11,
+                                16
                               ],
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "p2y7H",
+                                  "id": "V8u8S",
                                   "name": "Selected Role Membership Label",
                                   "fill": "$text-muted",
                                   "content": "MEMBERSHIP",
@@ -67677,7 +67685,7 @@
                                 },
                                 {
                                   "type": "text",
-                                  "id": "sftIM",
+                                  "id": "ssOn3",
                                   "name": "Selected Role Membership Value",
                                   "fill": "$text-primary",
                                   "content": "mship_A7C2 · record v7",
@@ -67687,7 +67695,7 @@
                                 },
                                 {
                                   "type": "text",
-                                  "id": "Qbx8g",
+                                  "id": "y61AP",
                                   "name": "Selected Role Membership Window",
                                   "fill": "$text-secondary",
                                   "content": "active · no expiry",
@@ -67699,54 +67707,89 @@
                             },
                             {
                               "type": "frame",
-                              "id": "EBLjx",
-                              "name": "Selected Role Assignments",
+                              "id": "gWAC6",
+                              "name": "Selected Role Evidence Header",
                               "width": "fill_container",
-                              "height": 118,
+                              "height": 40,
                               "fill": "$bg-surface",
-                              "layout": "vertical",
-                              "gap": 7,
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
                               "padding": [
-                                11,
-                                12
+                                0,
+                                16
                               ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "DvmFM",
-                                  "name": "Selected Role Assignments Label",
+                                  "id": "s8b88",
+                                  "name": "Selected Role Evidence Label",
                                   "fill": "$text-muted",
-                                  "content": "CURRENT ASSIGNMENTS",
+                                  "content": "ACCESS EVIDENCE",
                                   "fontFamily": "$font-mono",
                                   "fontSize": 8,
                                   "fontWeight": "700"
                                 },
                                 {
+                                  "type": "text",
+                                  "id": "fulLh",
+                                  "name": "Selected Role Evidence Count",
+                                  "fill": "$text-muted",
+                                  "content": "2 RECORDS",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CRiRC",
+                              "name": "Current Role Record",
+                              "width": "fill_container",
+                              "height": 70,
+                              "fill": "$bg-surface",
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
+                              "children": [
+                                {
                                   "type": "frame",
-                                  "id": "T2W4t",
-                                  "name": "Selected Admin Assignment",
+                                  "id": "nQQVe",
+                                  "name": "Current Role Record Status Rail",
+                                  "width": 4,
+                                  "height": "fill_container",
+                                  "fill": "$success"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "T9d12G",
+                                  "name": "Current Role Record Body",
                                   "width": "fill_container",
-                                  "height": 48,
-                                  "fill": "$action-soft",
-                                  "cornerRadius": 8,
+                                  "height": "fill_container",
                                   "layout": "vertical",
-                                  "gap": 3,
+                                  "gap": 7,
                                   "padding": [
-                                    8,
-                                    10
+                                    11,
+                                    12
                                   ],
                                   "children": [
                                     {
                                       "type": "frame",
-                                      "id": "Gqou8",
-                                      "name": "Selected Admin Assignment Top",
+                                      "id": "Zu7K0",
+                                      "name": "Current Role Record Top",
                                       "width": "fill_container",
                                       "justifyContent": "space_between",
+                                      "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "OnYEN",
-                                          "name": "Selected Admin Assignment Key",
+                                          "id": "OQqRv",
+                                          "name": "Current Role Record Key",
                                           "fill": "$text-primary",
                                           "content": "workspace_admin",
                                           "fontFamily": "$font-mono",
@@ -67755,8 +67798,8 @@
                                         },
                                         {
                                           "type": "text",
-                                          "id": "JoGTB",
-                                          "name": "Selected Admin Assignment State",
+                                          "id": "exGiN",
+                                          "name": "Current Role Record State",
                                           "fill": "$success",
                                           "content": "ACTIVE",
                                           "fontFamily": "$font-sans",
@@ -67767,8 +67810,8 @@
                                     },
                                     {
                                       "type": "text",
-                                      "id": "uPvzM",
-                                      "name": "Selected Admin Assignment Version",
+                                      "id": "GtEeF",
+                                      "name": "Current Role Record Metadata",
                                       "fill": "$text-muted",
                                       "content": "assignment v3 · catalog v1",
                                       "fontFamily": "$font-mono",
@@ -67776,13 +67819,111 @@
                                       "fontWeight": "normal"
                                     }
                                   ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "oWAxs",
+                              "name": "Revoked Role Record",
+                              "width": "fill_container",
+                              "height": 70,
+                              "fill": "$bg-surface",
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "rxbbl",
+                                  "name": "Revoked Role Record Status Rail",
+                                  "width": 4,
+                                  "height": "fill_container",
+                                  "fill": "$danger"
                                 },
                                 {
+                                  "type": "frame",
+                                  "id": "PUAEG",
+                                  "name": "Revoked Role Record Body",
+                                  "width": "fill_container",
+                                  "height": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 7,
+                                  "padding": [
+                                    11,
+                                    12
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "EdX8m",
+                                      "name": "Revoked Role Record Top",
+                                      "width": "fill_container",
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "yF68X",
+                                          "name": "Revoked Role Record Key",
+                                          "fill": "$text-primary",
+                                          "content": "workspace_reviewer",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 9,
+                                          "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "z8wcd",
+                                          "name": "Revoked Role Record State",
+                                          "fill": "$danger",
+                                          "content": "REVOKED",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "pbRbm",
+                                      "name": "Revoked Role Record Metadata",
+                                      "fill": "$text-muted",
+                                      "content": "rla_08D2 · 2026-08-18",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "NMKV0",
+                              "name": "Selected Role Lifecycle Note",
+                              "width": "fill_container",
+                              "height": 44,
+                              "fill": "$bg-canvas",
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "bottom": 1
+                              },
+                              "padding": [
+                                0,
+                                16
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
                                   "type": "text",
-                                  "id": "MfNpv",
-                                  "name": "Selected Role Assignment Count",
+                                  "id": "V0jSC9",
+                                  "name": "Selected Role Lifecycle Note Copy",
                                   "fill": "$text-secondary",
-                                  "content": "1 active · 1 revoked retained as evidence",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Revoked records remain visible as lifecycle evidence.",
                                   "fontFamily": "$font-sans",
                                   "fontSize": 8,
                                   "fontWeight": "normal"
@@ -67791,69 +67932,29 @@
                             },
                             {
                               "type": "frame",
-                              "id": "Iiq5U",
-                              "name": "Selected Role Revoked Evidence",
+                              "id": "pY35z",
+                              "name": "Selected Role Context Space",
                               "width": "fill_container",
-                              "height": 70,
+                              "height": "fill_container",
+                              "fill": "$bg-surface"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Q6mSmJ",
+                              "name": "Selected Role Protection",
+                              "width": "fill_container",
+                              "height": 82,
+                              "fill": "$warning-soft",
                               "layout": "vertical",
-                              "gap": 4,
+                              "gap": 5,
                               "padding": [
-                                10,
-                                14
+                                12,
+                                16
                               ],
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "iykaS",
-                                  "name": "Revoked Assignment Label",
-                                  "fill": "$text-muted",
-                                  "content": "REVOKED EVIDENCE",
-                                  "fontFamily": "$font-sans",
-                                  "fontSize": 8,
-                                  "fontWeight": "700"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "UA043",
-                                  "name": "Revoked Assignment Key",
-                                  "fill": "$text-primary",
-                                  "content": "workspace_reviewer · rla_08D2",
-                                  "fontFamily": "$font-mono",
-                                  "fontSize": 9,
-                                  "fontWeight": "600"
-                                },
-                                {
-                                  "type": "text",
-                                  "id": "HwFjy",
-                                  "name": "Revoked Assignment State",
-                                  "fill": "$danger",
-                                  "content": "REVOKED · 2026-08-18",
-                                  "fontFamily": "$font-mono",
-                                  "fontSize": 8,
-                                  "fontWeight": "700"
-                                }
-                              ]
-                            },
-                            {
-                              "type": "frame",
-                              "id": "g6aqP",
-                              "name": "Selected Role Context Space",
-                              "width": "fill_container",
-                              "height": "fill_container"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "NXjNe",
-                              "name": "Selected Role Protection",
-                              "width": "fill_container",
-                              "fill": "$warning-soft",
-                              "layout": "vertical",
-                              "gap": 4,
-                              "padding": 12,
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "cA5yA",
+                                  "id": "Djqx7",
                                   "name": "Selected Role Protection Label",
                                   "fill": "$warning",
                                   "content": "LAST ADMIN GUARD",
@@ -67863,7 +67964,7 @@
                                 },
                                 {
                                   "type": "text",
-                                  "id": "XkTKG",
+                                  "id": "Y6AXB",
                                   "name": "Selected Role Protection Copy",
                                   "fill": "$text-secondary",
                                   "textGrowth": "fixed-width",
@@ -67879,8 +67980,9 @@
                         },
                         {
                           "type": "frame",
-                          "id": "K0D4ZE",
+                          "id": "wmsnk",
                           "name": "Role Assignment Owner",
+                          "clip": true,
                           "width": "fill_container",
                           "height": "fill_container",
                           "fill": "$bg-surface",
@@ -67891,67 +67993,87 @@
                           "children": [
                             {
                               "type": "frame",
-                              "id": "OVvGj",
-                              "name": "Role Owner Header",
+                              "id": "QH442",
+                              "name": "Role Catalog Header",
                               "width": "fill_container",
-                              "height": 58,
+                              "height": 66,
                               "padding": [
                                 0,
-                                14
+                                18
                               ],
                               "justifyContent": "space_between",
                               "alignItems": "center",
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "sZwo3",
-                                  "name": "Role Owner Header Copy",
+                                  "id": "klAV4",
+                                  "name": "Role Catalog Header Copy",
                                   "layout": "vertical",
-                                  "gap": 3,
+                                  "gap": 4,
                                   "children": [
                                     {
                                       "type": "text",
-                                      "id": "TXHqf",
-                                      "name": "Role Owner Eyebrow",
+                                      "id": "Ym20y",
+                                      "name": "Role Catalog Eyebrow",
                                       "fill": "$text-muted",
                                       "content": "BUILT-IN ROLE CATALOG",
                                       "fontFamily": "$font-mono",
-                                      "fontSize": 9,
+                                      "fontSize": 8,
                                       "fontWeight": "700"
                                     },
                                     {
                                       "type": "text",
-                                      "id": "Ovv1Z",
-                                      "name": "Role Owner Title",
+                                      "id": "PWuL9",
+                                      "name": "Role Catalog Title",
                                       "fill": "$text-primary",
-                                      "content": "Choose one canonical definition",
+                                      "content": "Choose a canonical definition",
                                       "fontFamily": "$font-sans",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "650"
                                     }
                                   ]
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "pzLoS",
-                                  "name": "Role Catalog Count",
-                                  "fill": "$neutral-soft",
-                                  "cornerRadius": 999,
-                                  "padding": [
-                                    5,
-                                    9
-                                  ],
-                                  "alignItems": "center",
+                                  "id": "NElWs",
+                                  "name": "Role Catalog Header Meta",
+                                  "layout": "vertical",
+                                  "gap": 5,
+                                  "alignItems": "end",
                                   "children": [
                                     {
+                                      "type": "frame",
+                                      "id": "J2XM1K",
+                                      "name": "Role Catalog Count",
+                                      "fill": "$neutral-soft",
+                                      "cornerRadius": 999,
+                                      "padding": [
+                                        5,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "GW7t0",
+                                          "name": "Role Catalog Count Label",
+                                          "fill": "$text-secondary",
+                                          "content": "4 DEFINITIONS",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    },
+                                    {
                                       "type": "text",
-                                      "id": "mbe41",
-                                      "name": "Role Catalog Count Label",
-                                      "fill": "$text-secondary",
-                                      "content": "4 ROLES",
-                                      "fontFamily": "$font-sans",
-                                      "fontSize": 9,
-                                      "fontWeight": "700"
+                                      "id": "DRsgs",
+                                      "name": "Role Catalog Authority",
+                                      "fill": "$text-muted",
+                                      "content": "server-owned · immutable",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "normal"
                                     }
                                   ]
                                 }
@@ -67959,194 +68081,88 @@
                             },
                             {
                               "type": "frame",
-                              "id": "QV9Eb",
-                              "name": "Role Catalog And Assignments",
+                              "id": "SvB55",
+                              "name": "Current Assignment Context",
                               "width": "fill_container",
-                              "height": 326,
+                              "height": 74,
+                              "fill": "$bg-muted",
                               "stroke": "$border-soft",
                               "strokeWidth": {
                                 "top": 1,
                                 "bottom": 1
                               },
+                              "gap": 12,
+                              "padding": [
+                                0,
+                                18
+                              ],
+                              "alignItems": "center",
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "ZA2hR",
-                                  "name": "Current Role Assignment Column",
-                                  "width": 260,
-                                  "height": "fill_container",
-                                  "fill": "$bg-muted",
-                                  "layout": "vertical",
+                                  "id": "Y1bMAd",
+                                  "name": "Current Assignment Mark",
+                                  "width": 34,
+                                  "height": 34,
+                                  "fill": "$brand-soft",
+                                  "cornerRadius": 10,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
                                   "children": [
                                     {
+                                      "type": "text",
+                                      "id": "uULBC",
+                                      "name": "Current Assignment Mark Label",
+                                      "fill": "$brand",
+                                      "content": "A",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 11,
+                                      "fontWeight": "700"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "anbfT",
+                                  "name": "Current Assignment Copy",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "I0ZGJ",
+                                      "name": "Current Assignment Label",
+                                      "fill": "$text-muted",
+                                      "content": "CURRENT ACCESS FOR ADA LIN",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "700"
+                                    },
+                                    {
                                       "type": "frame",
-                                      "id": "V8R1I",
-                                      "name": "Current Assignment Header",
-                                      "width": "fill_container",
-                                      "height": 50,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
+                                      "id": "JRonT",
+                                      "name": "Current Assignment Value Row",
+                                      "gap": 8,
                                       "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "UCzlT",
-                                          "name": "Current Assignment Heading",
-                                          "fill": "$text-muted",
-                                          "content": "CURRENT ASSIGNMENTS",
+                                          "id": "Y1yQ6Z",
+                                          "name": "Current Assignment Value",
+                                          "fill": "$text-primary",
+                                          "content": "workspace_admin",
                                           "fontFamily": "$font-mono",
-                                          "fontSize": 8,
-                                          "fontWeight": "700"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "ghZdz",
-                                      "name": "Current Admin Assignment",
-                                      "width": "fill_container",
-                                      "height": 82,
-                                      "fill": "$bg-surface",
-                                      "layout": "vertical",
-                                      "gap": 6,
-                                      "padding": [
-                                        11,
-                                        12
-                                      ],
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "VGnzO",
-                                          "name": "Current Admin Assignment Header",
-                                          "width": "fill_container",
-                                          "justifyContent": "space_between",
-                                          "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "ZeTGf",
-                                              "name": "Current Admin Assignment Role",
-                                              "fill": "$text-primary",
-                                              "content": "workspace_admin",
-                                              "fontFamily": "$font-mono",
-                                              "fontSize": 10,
-                                              "fontWeight": "650"
-                                            },
-                                            {
-                                              "type": "frame",
-                                              "id": "oBqmN",
-                                              "name": "Current Admin Assignment Active",
-                                              "fill": "$success-soft",
-                                              "cornerRadius": 999,
-                                              "padding": [
-                                                5,
-                                                9
-                                              ],
-                                              "alignItems": "center",
-                                              "children": [
-                                                {
-                                                  "type": "text",
-                                                  "id": "XgB3F",
-                                                  "name": "Current Admin Assignment Active Label",
-                                                  "fill": "$success",
-                                                  "content": "ACTIVE",
-                                                  "fontFamily": "$font-sans",
-                                                  "fontSize": 9,
-                                                  "fontWeight": "700"
-                                                }
-                                              ]
-                                            }
-                                          ]
+                                          "fontSize": 11,
+                                          "fontWeight": "650"
                                         },
                                         {
                                           "type": "text",
-                                          "id": "iiWOl",
-                                          "name": "Current Admin Assignment Digest",
+                                          "id": "iFO4K",
+                                          "name": "Current Assignment Digest",
                                           "fill": "$text-muted",
                                           "content": "catalog v1 · 6ee2…9bc1",
                                           "fontFamily": "$font-mono",
-                                          "fontSize": 8,
-                                          "fontWeight": "normal"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "y37qWE",
-                                          "name": "Current Admin Assignment Note",
-                                          "fill": "$warning",
-                                          "content": "Identity management enabled",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 9,
-                                          "fontWeight": "650"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "Smu5O",
-                                      "name": "Current Assignment Action",
-                                      "width": "fill_container",
-                                      "height": 64,
-                                      "fill": "$warning-soft",
-                                      "layout": "vertical",
-                                      "gap": 4,
-                                      "padding": [
-                                        10,
-                                        12
-                                      ],
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "wIcio",
-                                          "name": "Current Assignment Action Label",
-                                          "fill": "$warning",
-                                          "content": "REVOKE BLOCKED",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 8,
-                                          "fontWeight": "700"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "H3wyvb",
-                                          "name": "Current Assignment Action Detail",
-                                          "fill": "$text-secondary",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Final administrator protection is evaluated atomically.",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 8,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "WaD5x",
-                                      "name": "Current Assignment Space",
-                                      "width": "fill_container",
-                                      "height": "fill_container"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "N6XvC",
-                                      "name": "Current Assignment Footer",
-                                      "width": "fill_container",
-                                      "height": 54,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "i6Sg6J",
-                                          "name": "Current Assignment Footer Copy",
-                                          "fill": "$text-muted",
-                                          "textGrowth": "fixed-width",
-                                          "width": "fill_container",
-                                          "content": "Revoked records remain visible only as lifecycle evidence.",
-                                          "fontFamily": "$font-sans",
                                           "fontSize": 8,
                                           "fontWeight": "normal"
                                         }
@@ -68156,468 +68172,562 @@
                                 },
                                 {
                                   "type": "frame",
-                                  "id": "qJwU3",
-                                  "name": "Built In Role Catalog",
+                                  "id": "qrEGI",
+                                  "name": "Current Assignment Active",
+                                  "fill": "$success-soft",
+                                  "cornerRadius": 999,
+                                  "padding": [
+                                    5,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "WWb2j",
+                                      "name": "Current Assignment Active Label",
+                                      "fill": "$success",
+                                      "content": "ACTIVE",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "700"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "TjhNc",
+                                  "name": "Current Assignment Guard",
+                                  "fill": "$warning-soft",
+                                  "cornerRadius": 999,
+                                  "padding": [
+                                    5,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "sD8Bi",
+                                      "name": "Current Assignment Guard Label",
+                                      "fill": "$warning",
+                                      "content": "LAST ADMIN GUARD",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "700"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "u3Hzvn",
+                              "name": "Canonical Definitions",
+                              "width": "fill_container",
+                              "height": 262,
+                              "layout": "vertical",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "l7l9eT",
+                                  "name": "Canonical Definitions Header",
                                   "width": "fill_container",
-                                  "height": "fill_container",
-                                  "layout": "vertical",
+                                  "height": 34,
+                                  "padding": [
+                                    0,
+                                    18
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "N6HF28",
+                                      "name": "Canonical Definitions Label",
+                                      "fill": "$text-muted",
+                                      "content": "CANONICAL DEFINITIONS",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "700"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "hWpoZ",
+                                      "name": "Canonical Definitions Rule",
+                                      "fill": "$warning",
+                                      "content": "role_key only · grants derived by server",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 8,
+                                      "fontWeight": "650"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dU1JP",
+                                  "name": "Reader Definition",
+                                  "width": "fill_container",
+                                  "height": 57,
+                                  "fill": "$bg-surface",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "bottom": 1
+                                  },
+                                  "gap": 10,
+                                  "padding": [
+                                    0,
+                                    16
+                                  ],
+                                  "alignItems": "center",
                                   "children": [
                                     {
                                       "type": "frame",
-                                      "id": "RU3YU",
-                                      "name": "Catalog Reader",
-                                      "width": "fill_container",
-                                      "height": 64,
-                                      "fill": "$bg-surface",
-                                      "stroke": "$border-soft",
-                                      "strokeWidth": {
-                                        "bottom": 1
-                                      },
-                                      "gap": 10,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "MIoKg",
-                                          "name": "Catalog Reader Ordinal",
-                                          "width": 26,
-                                          "height": 26,
-                                          "fill": "$bg-muted",
-                                          "cornerRadius": 7,
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "UzL1Z",
-                                              "name": "Catalog Reader Ordinal Label",
-                                              "fill": "$text-muted",
-                                              "content": "01",
-                                              "fontFamily": "$font-mono",
-                                              "fontSize": 8,
-                                              "fontWeight": "700"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "frame",
-                                          "id": "ibYT3",
-                                          "name": "Catalog Reader Copy",
-                                          "width": "fill_container",
-                                          "layout": "vertical",
-                                          "gap": 3,
-                                          "children": [
-                                            {
-                                              "type": "frame",
-                                              "id": "F69lV",
-                                              "name": "Catalog Reader Title Row",
-                                              "width": "fill_container",
-                                              "gap": 7,
-                                              "alignItems": "center",
-                                              "children": [
-                                                {
-                                                  "type": "text",
-                                                  "id": "jFJZj",
-                                                  "name": "Catalog Reader Title",
-                                                  "fill": "$text-primary",
-                                                  "content": "workspace_reader",
-                                                  "fontFamily": "$font-mono",
-                                                  "fontSize": 10,
-                                                  "fontWeight": "650"
-                                                },
-                                                {
-                                                  "type": "frame",
-                                                  "id": "d54bSK",
-                                                  "name": "Catalog Reader Identity Spacer",
-                                                  "width": 1,
-                                                  "height": 1
-                                                }
-                                              ]
-                                            },
-                                            {
-                                              "type": "text",
-                                              "id": "qLN7P",
-                                              "name": "Catalog Reader Summary",
-                                              "fill": "$text-secondary",
-                                              "textGrowth": "fixed-width",
-                                              "width": "fill_container",
-                                              "content": "Read applications, runs, workflows and usage.",
-                                              "fontFamily": "$font-sans",
-                                              "fontSize": 8,
-                                              "fontWeight": "normal"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "tM1MN",
-                                          "name": "Catalog Reader State",
-                                          "fill": "$success",
-                                          "content": "AVAILABLE",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 8,
-                                          "fontWeight": "700"
-                                        }
-                                      ]
+                                      "id": "fPlNz",
+                                      "name": "Reader Definition Selection Rail",
+                                      "width": 4,
+                                      "height": 32,
+                                      "fill": "#00000000",
+                                      "cornerRadius": 999
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "mtLoT",
-                                      "name": "Catalog Builder",
-                                      "width": "fill_container",
-                                      "height": 64,
-                                      "fill": "$bg-surface",
-                                      "stroke": "$border-soft",
-                                      "strokeWidth": {
-                                        "bottom": 1
-                                      },
-                                      "gap": 10,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "T9S7Ng",
-                                          "name": "Catalog Builder Ordinal",
-                                          "width": 26,
-                                          "height": 26,
-                                          "fill": "$bg-muted",
-                                          "cornerRadius": 7,
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "dX2rr",
-                                              "name": "Catalog Builder Ordinal Label",
-                                              "fill": "$text-muted",
-                                              "content": "02",
-                                              "fontFamily": "$font-mono",
-                                              "fontSize": 8,
-                                              "fontWeight": "700"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "frame",
-                                          "id": "tp44v",
-                                          "name": "Catalog Builder Copy",
-                                          "width": "fill_container",
-                                          "layout": "vertical",
-                                          "gap": 3,
-                                          "children": [
-                                            {
-                                              "type": "frame",
-                                              "id": "KXbD7",
-                                              "name": "Catalog Builder Title Row",
-                                              "width": "fill_container",
-                                              "gap": 7,
-                                              "alignItems": "center",
-                                              "children": [
-                                                {
-                                                  "type": "text",
-                                                  "id": "qNrpY",
-                                                  "name": "Catalog Builder Title",
-                                                  "fill": "$text-primary",
-                                                  "content": "workspace_builder",
-                                                  "fontFamily": "$font-mono",
-                                                  "fontSize": 10,
-                                                  "fontWeight": "650"
-                                                },
-                                                {
-                                                  "type": "frame",
-                                                  "id": "u41Pd",
-                                                  "name": "Catalog Builder Identity Spacer",
-                                                  "width": 1,
-                                                  "height": 1
-                                                }
-                                              ]
-                                            },
-                                            {
-                                              "type": "text",
-                                              "id": "Oqzdg",
-                                              "name": "Catalog Builder Summary",
-                                              "fill": "$text-secondary",
-                                              "textGrowth": "fixed-width",
-                                              "width": "fill_container",
-                                              "content": "Create and execute workspace resources.",
-                                              "fontFamily": "$font-sans",
-                                              "fontSize": 8,
-                                              "fontWeight": "normal"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "eI3uO",
-                                          "name": "Catalog Builder State",
-                                          "fill": "$success",
-                                          "content": "AVAILABLE",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 8,
-                                          "fontWeight": "700"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "XIhhP",
-                                      "name": "Catalog Reviewer",
-                                      "width": "fill_container",
-                                      "height": 64,
-                                      "fill": "$action-soft",
-                                      "stroke": "$border-soft",
-                                      "strokeWidth": {
-                                        "bottom": 1
-                                      },
-                                      "gap": 10,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "lt1SP",
-                                          "name": "Catalog Reviewer Ordinal",
-                                          "width": 26,
-                                          "height": 26,
-                                          "fill": "$action",
-                                          "cornerRadius": 7,
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "vnrT9",
-                                              "name": "Catalog Reviewer Ordinal Label",
-                                              "fill": "$text-on-accent",
-                                              "content": "03",
-                                              "fontFamily": "$font-mono",
-                                              "fontSize": 8,
-                                              "fontWeight": "700"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "frame",
-                                          "id": "wD9ib",
-                                          "name": "Catalog Reviewer Copy",
-                                          "width": "fill_container",
-                                          "layout": "vertical",
-                                          "gap": 3,
-                                          "children": [
-                                            {
-                                              "type": "frame",
-                                              "id": "B8RBnX",
-                                              "name": "Catalog Reviewer Title Row",
-                                              "width": "fill_container",
-                                              "gap": 7,
-                                              "alignItems": "center",
-                                              "children": [
-                                                {
-                                                  "type": "text",
-                                                  "id": "K4yhq",
-                                                  "name": "Catalog Reviewer Title",
-                                                  "fill": "$text-primary",
-                                                  "content": "workspace_reviewer",
-                                                  "fontFamily": "$font-mono",
-                                                  "fontSize": 10,
-                                                  "fontWeight": "650"
-                                                },
-                                                {
-                                                  "type": "frame",
-                                                  "id": "wEZLz",
-                                                  "name": "Catalog Reviewer Identity Spacer",
-                                                  "width": 1,
-                                                  "height": 1
-                                                }
-                                              ]
-                                            },
-                                            {
-                                              "type": "text",
-                                              "id": "s4itmn",
-                                              "name": "Catalog Reviewer Summary",
-                                              "fill": "$text-secondary",
-                                              "textGrowth": "fixed-width",
-                                              "width": "fill_container",
-                                              "content": "Review, activate and explicitly confirm.",
-                                              "fontFamily": "$font-sans",
-                                              "fontSize": 8,
-                                              "fontWeight": "normal"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "Jmc3s",
-                                          "name": "Catalog Reviewer State",
-                                          "fill": "$action",
-                                          "content": "SELECTED",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 8,
-                                          "fontWeight": "700"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "yz2Tv",
-                                      "name": "Catalog Admin",
-                                      "width": "fill_container",
-                                      "height": 64,
-                                      "fill": "$bg-surface",
-                                      "stroke": "$border-soft",
-                                      "strokeWidth": {
-                                        "bottom": 1
-                                      },
-                                      "gap": 10,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "alignItems": "center",
-                                      "children": [
-                                        {
-                                          "type": "frame",
-                                          "id": "v4XlAk",
-                                          "name": "Catalog Admin Ordinal",
-                                          "width": 26,
-                                          "height": 26,
-                                          "fill": "$bg-muted",
-                                          "cornerRadius": 7,
-                                          "justifyContent": "center",
-                                          "alignItems": "center",
-                                          "children": [
-                                            {
-                                              "type": "text",
-                                              "id": "pZ5Tz",
-                                              "name": "Catalog Admin Ordinal Label",
-                                              "fill": "$text-muted",
-                                              "content": "04",
-                                              "fontFamily": "$font-mono",
-                                              "fontSize": 8,
-                                              "fontWeight": "700"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "frame",
-                                          "id": "wS5j7",
-                                          "name": "Catalog Admin Copy",
-                                          "width": "fill_container",
-                                          "layout": "vertical",
-                                          "gap": 3,
-                                          "children": [
-                                            {
-                                              "type": "frame",
-                                              "id": "feq5P",
-                                              "name": "Catalog Admin Title Row",
-                                              "width": "fill_container",
-                                              "gap": 7,
-                                              "alignItems": "center",
-                                              "children": [
-                                                {
-                                                  "type": "text",
-                                                  "id": "d0MKM",
-                                                  "name": "Catalog Admin Title",
-                                                  "fill": "$text-primary",
-                                                  "content": "workspace_admin",
-                                                  "fontFamily": "$font-mono",
-                                                  "fontSize": 10,
-                                                  "fontWeight": "650"
-                                                },
-                                                {
-                                                  "type": "frame",
-                                                  "id": "QH8zw",
-                                                  "name": "Catalog Admin Identity Badge",
-                                                  "fill": "$warning-soft",
-                                                  "cornerRadius": 999,
-                                                  "padding": [
-                                                    5,
-                                                    9
-                                                  ],
-                                                  "alignItems": "center",
-                                                  "children": [
-                                                    {
-                                                      "type": "text",
-                                                      "id": "QsqxM",
-                                                      "name": "Catalog Admin Identity Badge Label",
-                                                      "fill": "$warning",
-                                                      "content": "IDENTITY",
-                                                      "fontFamily": "$font-sans",
-                                                      "fontSize": 9,
-                                                      "fontWeight": "700"
-                                                    }
-                                                  ]
-                                                }
-                                              ]
-                                            },
-                                            {
-                                              "type": "text",
-                                              "id": "I2Lb9",
-                                              "name": "Catalog Admin Summary",
-                                              "fill": "$text-secondary",
-                                              "textGrowth": "fixed-width",
-                                              "width": "fill_container",
-                                              "content": "Lifecycle, policy and identity management.",
-                                              "fontFamily": "$font-sans",
-                                              "fontSize": 8,
-                                              "fontWeight": "normal"
-                                            }
-                                          ]
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "LVH9m",
-                                          "name": "Catalog Admin State",
-                                          "fill": "$success",
-                                          "content": "GUARDED",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 8,
-                                          "fontWeight": "700"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "A6mFD",
-                                      "name": "Catalog Footer",
-                                      "width": "fill_container",
-                                      "height": "fill_container",
+                                      "id": "bofed",
+                                      "name": "Reader Definition Index",
+                                      "width": 28,
+                                      "height": 28,
                                       "fill": "$bg-muted",
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "justifyContent": "space_between",
+                                      "cornerRadius": 8,
+                                      "justifyContent": "center",
                                       "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "cNqfI",
-                                          "name": "Catalog Footer Version",
+                                          "id": "nw0Kr",
+                                          "name": "Reader Definition Index Label",
                                           "fill": "$text-muted",
-                                          "content": "local_identity_builtin_roles_v1",
+                                          "content": "01",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "zwFRK",
+                                      "name": "Reader Definition Identity",
+                                      "width": 172,
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "ebxlr",
+                                          "name": "Reader Definition Title",
+                                          "fill": "$text-primary",
+                                          "content": "Reader",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 10,
+                                          "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "drYEZ",
+                                          "name": "Reader Definition Key",
+                                          "fill": "$text-muted",
+                                          "content": "workspace_reader",
                                           "fontFamily": "$font-mono",
                                           "fontSize": 8,
                                           "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "PRbRc",
+                                      "name": "Reader Definition Summary",
+                                      "fill": "$text-secondary",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Read applications, runs, workflows and usage.",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 9,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "zqK2N",
+                                      "name": "Reader Definition State",
+                                      "fill": "$neutral-soft",
+                                      "cornerRadius": 999,
+                                      "padding": [
+                                        5,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "nKKsH",
+                                          "name": "Reader Definition State Label",
+                                          "fill": "$text-muted",
+                                          "content": "AVAILABLE",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "d4pgb",
+                                  "name": "Builder Definition",
+                                  "width": "fill_container",
+                                  "height": 57,
+                                  "fill": "$bg-surface",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "bottom": 1
+                                  },
+                                  "gap": 10,
+                                  "padding": [
+                                    0,
+                                    16
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "IRjkC",
+                                      "name": "Builder Definition Selection Rail",
+                                      "width": 4,
+                                      "height": 32,
+                                      "fill": "#00000000",
+                                      "cornerRadius": 999
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "hpzII",
+                                      "name": "Builder Definition Index",
+                                      "width": 28,
+                                      "height": 28,
+                                      "fill": "$bg-muted",
+                                      "cornerRadius": 8,
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "AWDOt",
+                                          "name": "Builder Definition Index Label",
+                                          "fill": "$text-muted",
+                                          "content": "02",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "n2tLp",
+                                      "name": "Builder Definition Identity",
+                                      "width": 172,
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "k00P8g",
+                                          "name": "Builder Definition Title",
+                                          "fill": "$text-primary",
+                                          "content": "Builder",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 10,
+                                          "fontWeight": "650"
                                         },
                                         {
                                           "type": "text",
-                                          "id": "D30xH",
-                                          "name": "Catalog Footer Rule",
-                                          "fill": "$warning",
-                                          "content": "client grants forbidden",
+                                          "id": "F5ZHV",
+                                          "name": "Builder Definition Key",
+                                          "fill": "$text-muted",
+                                          "content": "workspace_builder",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "SFr6M",
+                                      "name": "Builder Definition Summary",
+                                      "fill": "$text-secondary",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Create and execute workspace resources.",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 9,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "o9MAvW",
+                                      "name": "Builder Definition State",
+                                      "fill": "$neutral-soft",
+                                      "cornerRadius": 999,
+                                      "padding": [
+                                        5,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "MfgkR",
+                                          "name": "Builder Definition State Label",
+                                          "fill": "$text-muted",
+                                          "content": "AVAILABLE",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "t7PnK",
+                                  "name": "Reviewer Definition",
+                                  "width": "fill_container",
+                                  "height": 57,
+                                  "fill": "$action-soft",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "bottom": 1
+                                  },
+                                  "gap": 10,
+                                  "padding": [
+                                    0,
+                                    16
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "HZ2yD",
+                                      "name": "Reviewer Definition Selection Rail",
+                                      "width": 4,
+                                      "height": 32,
+                                      "fill": "$action",
+                                      "cornerRadius": 999
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "a8t7a",
+                                      "name": "Reviewer Definition Index",
+                                      "width": 28,
+                                      "height": 28,
+                                      "fill": "$action",
+                                      "cornerRadius": 8,
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "avJJH",
+                                          "name": "Reviewer Definition Index Label",
+                                          "fill": "$text-on-accent",
+                                          "content": "03",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "PDsov",
+                                      "name": "Reviewer Definition Identity",
+                                      "width": 172,
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "kmDL0",
+                                          "name": "Reviewer Definition Title",
+                                          "fill": "$text-primary",
+                                          "content": "Reviewer",
                                           "fontFamily": "$font-sans",
+                                          "fontSize": 10,
+                                          "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "HyY1p",
+                                          "name": "Reviewer Definition Key",
+                                          "fill": "$text-muted",
+                                          "content": "workspace_reviewer",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "J8Etl6",
+                                      "name": "Reviewer Definition Summary",
+                                      "fill": "$text-secondary",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Review, activate and explicitly confirm.",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 9,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "JPVpx",
+                                      "name": "Reviewer Definition State",
+                                      "fill": "$action-soft",
+                                      "cornerRadius": 999,
+                                      "padding": [
+                                        5,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "HY9Ib",
+                                          "name": "Reviewer Definition State Label",
+                                          "fill": "$action",
+                                          "content": "TO ASSIGN",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Nl18v",
+                                  "name": "Administrator Definition",
+                                  "width": "fill_container",
+                                  "height": 57,
+                                  "fill": "$bg-surface",
+                                  "stroke": "$border-soft",
+                                  "strokeWidth": {
+                                    "bottom": 1
+                                  },
+                                  "gap": 10,
+                                  "padding": [
+                                    0,
+                                    16
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "yGol1",
+                                      "name": "Administrator Definition Selection Rail",
+                                      "width": 4,
+                                      "height": 32,
+                                      "fill": "#00000000",
+                                      "cornerRadius": 999
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "Hmpiw",
+                                      "name": "Administrator Definition Index",
+                                      "width": 28,
+                                      "height": 28,
+                                      "fill": "$bg-muted",
+                                      "cornerRadius": 8,
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "V8C07A",
+                                          "name": "Administrator Definition Index Label",
+                                          "fill": "$text-muted",
+                                          "content": "04",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "X9XWI",
+                                      "name": "Administrator Definition Identity",
+                                      "width": 172,
+                                      "layout": "vertical",
+                                      "gap": 3,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "JhlDY",
+                                          "name": "Administrator Definition Title",
+                                          "fill": "$text-primary",
+                                          "content": "Administrator",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 10,
+                                          "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "zLhuv",
+                                          "name": "Administrator Definition Key",
+                                          "fill": "$text-muted",
+                                          "content": "workspace_admin",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "euNus",
+                                      "name": "Administrator Definition Summary",
+                                      "fill": "$text-secondary",
+                                      "textGrowth": "fixed-width",
+                                      "width": "fill_container",
+                                      "content": "Lifecycle, policy and identity management.",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 9,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "jGUq2",
+                                      "name": "Administrator Definition State",
+                                      "fill": "$warning-soft",
+                                      "cornerRadius": 999,
+                                      "padding": [
+                                        5,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "s5xoX",
+                                          "name": "Administrator Definition State Label",
+                                          "fill": "$warning",
+                                          "content": "CURRENT · GUARDED",
+                                          "fontFamily": "$font-mono",
                                           "fontSize": 8,
                                           "fontWeight": "700"
                                         }
@@ -68629,308 +68739,357 @@
                             },
                             {
                               "type": "frame",
-                              "id": "tn6Iw",
-                              "name": "Role Confirmation Rail",
+                              "id": "r4G4Fh",
+                              "name": "Catalog Evidence Footer",
+                              "width": "fill_container",
+                              "height": 40,
+                              "fill": "$bg-canvas",
+                              "padding": [
+                                0,
+                                18
+                              ],
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "QGJsn",
+                                  "name": "Catalog Evidence Version",
+                                  "fill": "$text-muted",
+                                  "content": "local_identity_builtin_roles_v1",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "jJ6m6",
+                                  "name": "Catalog Evidence Digest",
+                                  "fill": "$text-muted",
+                                  "content": "catalog digest 6ee2…9bc1",
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 8,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "p2xBp9",
+                                  "name": "Catalog Evidence Rule",
+                                  "fill": "$warning",
+                                  "content": "client grants forbidden",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 8,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "jwcm7",
+                              "name": "Assignment Review",
                               "width": "fill_container",
                               "height": "fill_container",
+                              "fill": "$bg-surface",
+                              "stroke": "$border-soft",
+                              "strokeWidth": {
+                                "top": 1
+                              },
                               "layout": "vertical",
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "CE33m",
-                                  "name": "Role Confirmation Header",
+                                  "id": "BVued",
+                                  "name": "Assignment Review Header",
                                   "width": "fill_container",
-                                  "height": 54,
+                                  "height": 58,
                                   "fill": "$action-soft",
+                                  "gap": 12,
                                   "padding": [
                                     0,
-                                    14
+                                    18
                                   ],
-                                  "justifyContent": "space_between",
                                   "alignItems": "center",
                                   "children": [
                                     {
                                       "type": "frame",
-                                      "id": "bj72n",
-                                      "name": "Role Confirmation Header Copy",
+                                      "id": "BKCOS",
+                                      "name": "Assignment Review Rail",
+                                      "width": 4,
+                                      "height": 34,
+                                      "fill": "$action",
+                                      "cornerRadius": 999
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "dJBa4",
+                                      "name": "Assignment Review Copy",
+                                      "width": "fill_container",
                                       "layout": "vertical",
-                                      "gap": 3,
+                                      "gap": 4,
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "s3LlFW",
-                                          "name": "Role Confirmation Label",
+                                          "id": "s8kIA",
+                                          "name": "Assignment Review Label",
                                           "fill": "$action",
-                                          "content": "ASSIGNMENT CANDIDATE",
+                                          "content": "ASSIGNMENT REVIEW",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "If41D",
+                                          "name": "Assignment Review Relationship",
+                                          "gap": 8,
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "D9GCQ",
+                                              "name": "Assignment Review Member",
+                                              "fill": "$text-primary",
+                                              "content": "Ada Lin",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 11,
+                                              "fontWeight": "650"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "aODK2",
+                                              "name": "Assignment Review Verb",
+                                              "fill": "$text-muted",
+                                              "content": "+ add",
+                                              "fontFamily": "$font-sans",
+                                              "fontSize": 9,
+                                              "fontWeight": "600"
+                                            },
+                                            {
+                                              "type": "text",
+                                              "id": "oTLLN",
+                                              "name": "Assignment Review Role",
+                                              "fill": "$text-primary",
+                                              "content": "workspace_reviewer",
+                                              "fontFamily": "$font-mono",
+                                              "fontSize": 11,
+                                              "fontWeight": "650"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "EIOwD",
+                                      "name": "Assignment Review State",
+                                      "fill": "$success-soft",
+                                      "cornerRadius": 999,
+                                      "padding": [
+                                        5,
+                                        8
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Rbody",
+                                          "name": "Assignment Review State Label",
+                                          "fill": "$success",
+                                          "content": "READY",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "vt84R",
+                                  "name": "Assignment Evidence Rail",
+                                  "width": "fill_container",
+                                  "height": 72,
+                                  "fill": "$bg-muted",
+                                  "gap": 22,
+                                  "padding": [
+                                    12,
+                                    18
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "Gnl7y",
+                                      "name": "Assignment Catalog Evidence",
+                                      "width": 170,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "YaiEr",
+                                          "name": "Assignment Catalog Evidence Label",
+                                          "fill": "$text-muted",
+                                          "content": "CATALOG",
                                           "fontFamily": "$font-mono",
                                           "fontSize": 8,
                                           "fontWeight": "700"
                                         },
                                         {
                                           "type": "text",
-                                          "id": "BIgxD",
-                                          "name": "Role Confirmation Title",
+                                          "id": "cAmJY",
+                                          "name": "Assignment Catalog Evidence Value",
                                           "fill": "$text-primary",
-                                          "content": "workspace_reviewer → Ada Lin",
+                                          "content": "builtin_roles_v1",
                                           "fontFamily": "$font-mono",
-                                          "fontSize": 12,
+                                          "fontSize": 9,
                                           "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "zUPwb",
+                                          "name": "Assignment Catalog Evidence Note",
+                                          "fill": "$text-secondary",
+                                          "content": "server re-check",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 8,
+                                          "fontWeight": "normal"
                                         }
                                       ]
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "f8J2fy",
-                                      "name": "Role Confirmation State",
-                                      "fill": "$success-soft",
-                                      "cornerRadius": 999,
-                                      "padding": [
-                                        5,
-                                        9
-                                      ],
+                                      "id": "haA5L",
+                                      "name": "Assignment Definition Evidence",
+                                      "width": 150,
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "VaULn",
+                                          "name": "Assignment Definition Evidence Label",
+                                          "fill": "$text-muted",
+                                          "content": "ROLE DIGEST",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "Px2mS",
+                                          "name": "Assignment Definition Evidence Value",
+                                          "fill": "$text-primary",
+                                          "content": "9d87…0af2",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 9,
+                                          "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "V6COaB",
+                                          "name": "Assignment Definition Evidence Note",
+                                          "fill": "$text-secondary",
+                                          "content": "exact definition",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 8,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "bgtXn",
+                                      "name": "Assignment Membership Evidence",
+                                      "width": "fill_container",
+                                      "layout": "vertical",
+                                      "gap": 4,
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "dGtEH",
+                                          "name": "Assignment Membership Evidence Label",
+                                          "fill": "$text-muted",
+                                          "content": "MEMBERSHIP",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 8,
+                                          "fontWeight": "700"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "haxQ4",
+                                          "name": "Assignment Membership Evidence Value",
+                                          "fill": "$text-primary",
+                                          "content": "record v7 · active",
+                                          "fontFamily": "$font-mono",
+                                          "fontSize": 9,
+                                          "fontWeight": "650"
+                                        },
+                                        {
+                                          "type": "text",
+                                          "id": "H84mX",
+                                          "name": "Assignment Membership Evidence Note",
+                                          "fill": "$text-secondary",
+                                          "content": "CAS required",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 8,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "v3kcP",
+                                  "name": "Assignment Review Action",
+                                  "width": "fill_container",
+                                  "height": "fill_container",
+                                  "gap": 14,
+                                  "padding": [
+                                    10,
+                                    18
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "HDMh5",
+                                      "name": "Assignment Review Warning",
+                                      "width": "fill_container",
+                                      "gap": 9,
                                       "alignItems": "center",
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "flgDj",
-                                          "name": "Role Confirmation State Label",
-                                          "fill": "$success",
-                                          "content": "READY TO REVIEW",
+                                          "id": "R2hwx",
+                                          "name": "Assignment Review Warning Mark",
+                                          "fill": "$warning",
+                                          "content": "△",
                                           "fontFamily": "$font-sans",
-                                          "fontSize": 9,
-                                          "fontWeight": "700"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "ldonv",
-                                  "name": "Role Confirmation Facts",
-                                  "width": "fill_container",
-                                  "height": 58,
-                                  "padding": [
-                                    8,
-                                    0
-                                  ],
-                                  "children": [
-                                    {
-                                      "type": "frame",
-                                      "id": "TL6y1",
-                                      "name": "Role Confirmation Catalog",
-                                      "width": "fill_container",
-                                      "height": "fill_container",
-                                      "stroke": "$border-soft",
-                                      "strokeWidth": {
-                                        "right": 1
-                                      },
-                                      "layout": "vertical",
-                                      "gap": 3,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "justifyContent": "center",
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "qgmI0",
-                                          "name": "Role Confirmation Catalog Key",
-                                          "fill": "$text-muted",
-                                          "content": "EXPECTED CATALOG",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 9,
+                                          "fontSize": 12,
                                           "fontWeight": "700"
                                         },
                                         {
                                           "type": "text",
-                                          "id": "j9Cq8Y",
-                                          "name": "Role Confirmation Catalog Value",
-                                          "fill": "$text-primary",
-                                          "content": "builtin_roles_v1",
-                                          "fontFamily": "$font-mono",
-                                          "fontSize": 11,
-                                          "fontWeight": "600"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "RWdjd",
-                                          "name": "Role Confirmation Catalog Detail",
+                                          "id": "s6HHl",
+                                          "name": "Assignment Review Warning Copy",
                                           "fill": "$text-secondary",
-                                          "content": "server re-check",
+                                          "textGrowth": "fixed-width",
+                                          "width": "fill_container",
+                                          "content": "Catalog drift or stale membership discards this candidate before confirmation.",
                                           "fontFamily": "$font-sans",
-                                          "fontSize": 9,
+                                          "fontSize": 8,
                                           "fontWeight": "normal"
                                         }
                                       ]
                                     },
                                     {
                                       "type": "frame",
-                                      "id": "IEsI0",
-                                      "name": "Role Confirmation Digest",
-                                      "width": "fill_container",
-                                      "height": "fill_container",
-                                      "stroke": "$border-soft",
-                                      "strokeWidth": {
-                                        "right": 1
-                                      },
-                                      "layout": "vertical",
-                                      "gap": 3,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "justifyContent": "center",
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "L709GU",
-                                          "name": "Role Confirmation Digest Key",
-                                          "fill": "$text-muted",
-                                          "content": "DEFINITION DIGEST",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 9,
-                                          "fontWeight": "700"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "D3ViHv",
-                                          "name": "Role Confirmation Digest Value",
-                                          "fill": "$text-primary",
-                                          "content": "9d87…0af2",
-                                          "fontFamily": "$font-mono",
-                                          "fontSize": 11,
-                                          "fontWeight": "600"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "qSKd1",
-                                          "name": "Role Confirmation Digest Detail",
-                                          "fill": "$text-secondary",
-                                          "content": "exact role digest",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 9,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "c1M782",
-                                      "name": "Role Confirmation Member",
-                                      "width": "fill_container",
-                                      "height": "fill_container",
-                                      "stroke": "#00000000",
-                                      "layout": "vertical",
-                                      "gap": 3,
-                                      "padding": [
-                                        0,
-                                        12
-                                      ],
-                                      "justifyContent": "center",
-                                      "children": [
-                                        {
-                                          "type": "text",
-                                          "id": "V5r0xo",
-                                          "name": "Role Confirmation Member Key",
-                                          "fill": "$text-muted",
-                                          "content": "MEMBERSHIP VERSION",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 9,
-                                          "fontWeight": "700"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "z0Ur2",
-                                          "name": "Role Confirmation Member Value",
-                                          "fill": "$text-primary",
-                                          "content": "record v7",
-                                          "fontFamily": "$font-mono",
-                                          "fontSize": 11,
-                                          "fontWeight": "600"
-                                        },
-                                        {
-                                          "type": "text",
-                                          "id": "AQLtS",
-                                          "name": "Role Confirmation Member Detail",
-                                          "fill": "$text-secondary",
-                                          "content": "must remain active",
-                                          "fontFamily": "$font-sans",
-                                          "fontSize": 9,
-                                          "fontWeight": "normal"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "jPid9",
-                                  "name": "Role Confirmation Safety",
-                                  "width": "fill_container",
-                                  "height": 52,
-                                  "fill": "$warning-soft",
-                                  "gap": 9,
-                                  "padding": [
-                                    8,
-                                    14
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "az626",
-                                      "name": "Role Confirmation Safety Mark",
-                                      "fill": "$warning",
-                                      "content": "△",
-                                      "fontFamily": "$font-sans",
-                                      "fontSize": 12,
-                                      "fontWeight": "700"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "JBaXm",
-                                      "name": "Role Confirmation Safety Copy",
-                                      "fill": "$text-secondary",
-                                      "textGrowth": "fixed-width",
-                                      "width": "fill_container",
-                                      "content": "Catalog drift or stale membership closes this candidate; reload never changes the selected role implicitly.",
-                                      "fontFamily": "$font-sans",
-                                      "fontSize": 8,
-                                      "fontWeight": "normal"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
-                                  "id": "w4FwH9",
-                                  "name": "Role Confirmation Action",
-                                  "width": "fill_container",
-                                  "height": "fill_container",
-                                  "padding": [
-                                    9,
-                                    14
-                                  ],
-                                  "justifyContent": "space_between",
-                                  "alignItems": "end",
-                                  "children": [
-                                    {
-                                      "type": "text",
-                                      "id": "vL02A",
-                                      "name": "Role Confirmation Action Copy",
-                                      "fill": "$text-muted",
-                                      "textGrowth": "fixed-width",
-                                      "width": 430,
-                                      "content": "Next step opens an explicit summary with recent-auth, Origin, CSRF and confirmed=true.",
-                                      "fontFamily": "$font-sans",
-                                      "fontSize": 8,
-                                      "fontWeight": "normal"
-                                    },
-                                    {
-                                      "type": "frame",
-                                      "id": "q3l5ye",
-                                      "name": "Review Role Assignment",
+                                      "id": "J8LKFb",
+                                      "name": "Review Assignment Action",
                                       "fill": "$action",
                                       "cornerRadius": 8,
                                       "padding": [
@@ -68941,12 +69100,12 @@
                                       "children": [
                                         {
                                           "type": "text",
-                                          "id": "O0PSb",
-                                          "name": "Review Role Assignment Label",
+                                          "id": "lxeU0",
+                                          "name": "Review Assignment Action Label",
                                           "fill": "$text-on-accent",
                                           "content": "Review assignment",
                                           "fontFamily": "$font-sans",
-                                          "fontSize": 10,
+                                          "fontSize": 9,
                                           "fontWeight": "700"
                                         }
                                       ]
@@ -69343,7 +69502,7 @@
                       "id": "D50Pzg",
                       "name": "Narrow Role Selected ID",
                       "fill": "$text-secondary",
-                      "content": "usr_01F9A7D2 · membership v7",
+                      "content": "usr_01F9A7D2 · current workspace_admin",
                       "fontFamily": "$font-mono",
                       "fontSize": 8,
                       "fontWeight": "normal"
@@ -69420,7 +69579,7 @@
                           "id": "O0qjQ3",
                           "name": "Narrow Catalog Title",
                           "fill": "$text-primary",
-                          "content": "Choose a canonical role",
+                          "content": "Choose a canonical definition",
                           "fontFamily": "$font-sans",
                           "fontSize": 12,
                           "fontWeight": "650"
@@ -69862,8 +70021,8 @@
                       "type": "text",
                       "id": "vk6Rr",
                       "name": "Narrow Catalog Admin State",
-                      "fill": "$success",
-                      "content": "GUARDED",
+                      "fill": "$warning",
+                      "content": "CURRENT · GUARDED",
                       "fontFamily": "$font-sans",
                       "fontSize": 8,
                       "fontWeight": "700"
