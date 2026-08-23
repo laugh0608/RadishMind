@@ -1,12 +1,14 @@
 {
   "component": "local_identity_records",
-  "migration_id": "0002_local_identity_oidc_authorization_transactions",
-  "store_schema_version": "local_identity_records_store_v2",
+  "migration_id": "0003_local_identity_administration",
+  "store_schema_version": "local_identity_records_store_v3",
   "up": [
     "0001_local_identity_records.up.sql",
-    "0002_local_identity_oidc_authorization_transactions.up.sql"
+    "0002_local_identity_oidc_authorization_transactions.up.sql",
+    "0003_local_identity_administration.up.sql"
   ],
   "down": [
+    "0003_local_identity_administration.down.sql",
     "0002_local_identity_oidc_authorization_transactions.down.sql",
     "0001_local_identity_records.down.sql"
   ],

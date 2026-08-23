@@ -108,40 +108,8 @@ func (repository *memoryLocalIdentityRepository) ReadWorkspaceMember(
 	if len(memberships) == 0 {
 		return LocalIdentityWorkspaceMemberDetail{}, errLocalIdentityMemberUnavailable
 	}
-	slices.SortFunc(memberships, func(left, right WorkspaceMembership) int {
-		if !left.UpdatedAt.Equal(right.UpdatedAt) {
-			return right.UpdatedAt.Compare(left.UpdatedAt)
-		}
-		return strings.Compare(right.MembershipID, left.MembershipID)
-	})
-	hasEffectiveMembership := false
-	membershipViews := make([]LocalIdentityWorkspaceMembershipView, 0, len(memberships))
-	for _, membership := range memberships {
-		effective := account.LifecycleState == localIdentityStateActive && localIdentityMembershipEffective(membership, asOf)
-		hasEffectiveMembership = hasEffectiveMembership || effective
-		membershipViews = append(membershipViews, localIdentityMembershipView(membership, effective))
-	}
 	assignments := repository.workspaceRoleAssignmentsLocked(userID, tenantRef, workspaceID)
-	assignmentViews := make([]LocalIdentityWorkspaceRoleAssignmentView, 0, len(assignments))
-	canManage := false
-	for _, assignment := range assignments {
-		effective := hasEffectiveMembership && localIdentityRoleAssignmentEffective(assignment, asOf)
-		view := localIdentityRoleAssignmentView(assignment, effective, asOf)
-		canManage = canManage || view.CanManageLocalIdentity
-		assignmentViews = append(assignmentViews, view)
-	}
-	return LocalIdentityWorkspaceMemberDetail{
-		SchemaVersion:          localIdentityWorkspaceMemberDetailSchemaVersion,
-		TenantRef:              tenantRef,
-		WorkspaceID:            workspaceID,
-		UserID:                 account.UserID,
-		DisplayName:            account.DisplayName,
-		AccountLifecycleState:  account.LifecycleState,
-		AccountRecordVersion:   account.RecordVersion,
-		Memberships:            membershipViews,
-		RoleAssignments:        assignmentViews,
-		CanManageLocalIdentity: canManage,
-	}, nil
+	return buildLocalIdentityWorkspaceMemberDetail(account, tenantRef, workspaceID, memberships, assignments, asOf), nil
 }
 
 func (repository *memoryLocalIdentityRepository) CreateWorkspaceMembershipForAdministration(
@@ -427,45 +395,8 @@ func (repository *memoryLocalIdentityRepository) workspaceMemberSummaryLocked(
 	if !exists {
 		return LocalIdentityWorkspaceMemberSummary{}, errLocalIdentityStoreUnavailable
 	}
-	membershipEffective := account.LifecycleState == localIdentityStateActive && localIdentityMembershipEffective(membership, asOf)
-	roleSet := make(map[string]struct{})
-	canManage := false
-	drift := false
-	if membershipEffective {
-		for _, assignment := range repository.workspaceRoleAssignmentsLocked(account.UserID, membership.TenantRef, membership.WorkspaceID) {
-			if !localIdentityRoleAssignmentEffective(assignment, asOf) {
-				continue
-			}
-			roleSet[assignment.RoleKey] = struct{}{}
-			definition, known := builtInLocalIdentityRole(assignment.RoleKey)
-			if !known || !localIdentityRoleDefinitionMatchesAssignment(definition, assignment) {
-				drift = true
-			}
-			canManage = canManage || localIdentityAssignmentCanManage(assignment, asOf)
-		}
-	}
-	roleKeys := make([]string, 0, len(roleSet))
-	for roleKey := range roleSet {
-		roleKeys = append(roleKeys, roleKey)
-	}
-	slices.Sort(roleKeys)
-	return LocalIdentityWorkspaceMemberSummary{
-		SchemaVersion:            localIdentityWorkspaceMemberSummarySchemaVersion,
-		TenantRef:                membership.TenantRef,
-		WorkspaceID:              membership.WorkspaceID,
-		UserID:                   account.UserID,
-		DisplayName:              account.DisplayName,
-		AccountLifecycleState:    account.LifecycleState,
-		MembershipID:             membership.MembershipID,
-		MembershipLifecycleState: membership.LifecycleState,
-		MembershipRecordVersion:  membership.RecordVersion,
-		MembershipExpiresAt:      cloneTimePointer(membership.ExpiresAt),
-		MembershipEffective:      membershipEffective,
-		RoleKeys:                 roleKeys,
-		CanManageLocalIdentity:   canManage,
-		RoleCatalogDrift:         drift,
-		UpdatedAt:                membership.UpdatedAt,
-	}, nil
+	assignments := repository.workspaceRoleAssignmentsLocked(account.UserID, membership.TenantRef, membership.WorkspaceID)
+	return buildLocalIdentityWorkspaceMemberSummary(account, membership, assignments, asOf), nil
 }
 
 func (repository *memoryLocalIdentityRepository) workspaceRoleAssignmentsLocked(

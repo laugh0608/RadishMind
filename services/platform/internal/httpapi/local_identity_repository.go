@@ -523,7 +523,8 @@ func (repository *memoryLocalIdentityRepository) CreateRoleAssignment(_ context.
 	}
 	grants, ok := normalizedPermissionGrants(assignment.PermissionGrants)
 	assignment.PermissionGrants = grants
-	if !ok || localIdentityContainsManagementPermission(grants) ||
+	if !ok || assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" ||
+		localIdentityContainsManagementPermission(grants) ||
 		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
@@ -561,6 +562,9 @@ func (repository *memoryLocalIdentityRepository) RevokeRoleAssignment(_ context.
 	}
 	if assignment.RecordVersion != expectedVersion || assignment.LifecycleState != localIdentityStateActive {
 		return LocalRoleAssignment{}, errLocalIdentityVersionConflict
+	}
+	if assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" {
+		return LocalRoleAssignment{}, errLocalIdentityContractMismatch
 	}
 	assignment.LifecycleState = localIdentityStateRevoked
 	assignment.RecordVersion++
@@ -613,6 +617,12 @@ func (repository *memoryLocalIdentityRepository) RevokeWorkspaceMembership(_ con
 	}
 	if membership.RecordVersion != expectedVersion || membership.LifecycleState != localIdentityStateActive {
 		return WorkspaceMembership{}, errLocalIdentityVersionConflict
+	}
+	for _, assignment := range repository.roleAssignments {
+		if assignment.UserID == membership.UserID && assignment.TenantRef == membership.TenantRef &&
+			assignment.WorkspaceID == membership.WorkspaceID && assignment.LifecycleState == localIdentityStateActive {
+			return WorkspaceMembership{}, errLocalIdentityContractMismatch
+		}
 	}
 	membership.LifecycleState = localIdentityStateRevoked
 	membership.RecordVersion++

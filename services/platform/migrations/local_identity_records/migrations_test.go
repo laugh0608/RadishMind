@@ -23,6 +23,11 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 			t.Fatalf("OIDC authorization migration missing %q", fragment)
 		}
 	}
+	for _, fragment := range []string{"ADD COLUMN role_catalog_version", "ADD COLUMN role_definition_digest", "local_workspace_memberships_directory_idx"} {
+		if !strings.Contains(administrationUpSQL, fragment) {
+			t.Fatalf("administration migration missing %q", fragment)
+		}
+	}
 	for _, table := range []string{
 		"local_workspace_memberships", "local_role_assignments", "local_web_sessions",
 		"external_identity_bindings", "local_credentials", "local_user_accounts",
@@ -33,6 +38,10 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 	}
 	if !strings.Contains(oidcAuthorizationDownSQL, "DROP TABLE IF EXISTS local_identity_oidc_authorization_transactions") {
 		t.Fatal("OIDC authorization down migration does not remove its table")
+	}
+	if !strings.Contains(administrationDownSQL, "DROP INDEX IF EXISTS local_workspace_memberships_directory_idx") ||
+		!strings.Contains(administrationDownSQL, "DROP COLUMN IF EXISTS role_catalog_version") {
+		t.Fatal("administration down migration does not remove its index and columns")
 	}
 	if !strings.HasPrefix(ExpectedChecksum(), "sha256:") || len(ExpectedChecksum()) != 71 {
 		t.Fatalf("unexpected migration checksum: %s", ExpectedChecksum())

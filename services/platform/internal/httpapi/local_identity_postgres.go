@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"errors"
 	"slices"
 	"strings"
@@ -454,22 +455,40 @@ func (repository *postgresLocalIdentityRepository) CreateRoleAssignment(ctx cont
 	if repository == nil || repository.pool == nil {
 		return errLocalIdentityStoreUnavailable
 	}
-	if !ok || localIdentityContainsManagementPermission(grants) ||
+	if !ok || assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" ||
+		localIdentityContainsManagementPermission(grants) ||
 		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
 	if err := repository.requireActivePostgresAccount(ctx, assignment.UserID); err != nil {
 		return err
 	}
-	_, err := repository.pool.Exec(identityContext(ctx), `INSERT INTO local_role_assignments
-        (assignment_id, user_id, schema_version, tenant_ref, workspace_id, role_key, permission_grants,
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	if assignment.WorkspaceID != "" {
+		if err := lockPostgresLocalIdentityAdministrationScope(
+			identityContext(ctx), transaction, assignment.TenantRef, assignment.WorkspaceID,
+		); err != nil {
+			return err
+		}
+	}
+	_, err = transaction.Exec(identityContext(ctx), `INSERT INTO local_role_assignments
+        (assignment_id, user_id, schema_version, tenant_ref, workspace_id, role_key, role_catalog_version,
+         role_definition_digest, permission_grants,
          lifecycle_state, record_version, created_at, updated_at, expires_at, revoked_at, audit_ref)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`, assignment.AssignmentID,
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`, assignment.AssignmentID,
 		assignment.UserID, assignment.SchemaVersion, assignment.TenantRef, assignment.WorkspaceID, assignment.RoleKey,
+		nullableLocalIdentityString(assignment.RoleCatalogVersion), nullableLocalIdentityString(assignment.RoleDefinitionDigest),
 		assignment.PermissionGrants, assignment.LifecycleState, assignment.RecordVersion, assignment.CreatedAt,
 		assignment.UpdatedAt, assignment.ExpiresAt, assignment.RevokedAt, assignment.AuditRef)
 	if err != nil {
 		return postgresIdentityConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return errLocalIdentityStoreUnavailable
 	}
 	return nil
 }
@@ -482,14 +501,36 @@ func (repository *postgresLocalIdentityRepository) RevokeRoleAssignment(ctx cont
 	if !localRoleAssignmentIDPattern.MatchString(assignmentID) || expectedVersion < 1 || revokedAt.IsZero() || !validAuditRef(auditRef) {
 		return LocalRoleAssignment{}, errLocalIdentityContractMismatch
 	}
-	assignment, err := scanPostgresLocalRoleAssignment(repository.pool.QueryRow(identityContext(ctx), `UPDATE local_role_assignments SET
+	var tenantRef, workspaceID string
+	if err := repository.pool.QueryRow(identityContext(ctx), `SELECT tenant_ref, workspace_id
+        FROM local_role_assignments WHERE assignment_id=$1`, assignmentID).Scan(&tenantRef, &workspaceID); err != nil {
+		return LocalRoleAssignment{}, classifyPostgresMutationFailure(err)
+	}
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return LocalRoleAssignment{}, errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	if workspaceID != "" {
+		if err := lockPostgresLocalIdentityAdministrationScope(
+			identityContext(ctx), transaction, tenantRef, workspaceID,
+		); err != nil {
+			return LocalRoleAssignment{}, err
+		}
+	}
+	assignment, err := scanPostgresLocalRoleAssignment(transaction.QueryRow(identityContext(ctx), `UPDATE local_role_assignments SET
         lifecycle_state='revoked', record_version=record_version+1, updated_at=$1, revoked_at=$1, audit_ref=$2
-        WHERE assignment_id=$3 AND record_version=$4 AND lifecycle_state='active' RETURNING
-        schema_version, assignment_id, user_id, tenant_ref, workspace_id, role_key, permission_grants,
+		WHERE assignment_id=$3 AND record_version=$4 AND lifecycle_state='active'
+		AND role_catalog_version IS NULL AND role_definition_digest IS NULL RETURNING
+        schema_version, assignment_id, user_id, tenant_ref, workspace_id, role_key, role_catalog_version,
+        role_definition_digest, permission_grants,
         lifecycle_state, record_version, created_at, updated_at, expires_at, revoked_at, audit_ref`,
 		revokedAt, auditRef, assignmentID, expectedVersion))
 	if err != nil {
 		return LocalRoleAssignment{}, classifyPostgresMutationFailure(err)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return LocalRoleAssignment{}, errLocalIdentityStoreUnavailable
 	}
 	return assignment, nil
 }
@@ -504,7 +545,17 @@ func (repository *postgresLocalIdentityRepository) CreateWorkspaceMembership(ctx
 	if err := repository.requireActivePostgresAccount(ctx, membership.UserID); err != nil {
 		return err
 	}
-	_, err := repository.pool.Exec(identityContext(ctx), `INSERT INTO local_workspace_memberships
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	if err := lockPostgresLocalIdentityAdministrationScope(
+		identityContext(ctx), transaction, membership.TenantRef, membership.WorkspaceID,
+	); err != nil {
+		return err
+	}
+	_, err = transaction.Exec(identityContext(ctx), `INSERT INTO local_workspace_memberships
         (membership_id, user_id, schema_version, tenant_ref, workspace_id, lifecycle_state, record_version,
          created_at, updated_at, expires_at, revoked_at, audit_ref)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, membership.MembershipID, membership.UserID,
@@ -513,6 +564,9 @@ func (repository *postgresLocalIdentityRepository) CreateWorkspaceMembership(ctx
 		membership.RevokedAt, membership.AuditRef)
 	if err != nil {
 		return postgresIdentityConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return errLocalIdentityStoreUnavailable
 	}
 	return nil
 }
@@ -525,13 +579,38 @@ func (repository *postgresLocalIdentityRepository) RevokeWorkspaceMembership(ctx
 	if !localMembershipIDPattern.MatchString(membershipID) || expectedVersion < 1 || revokedAt.IsZero() || !validAuditRef(auditRef) {
 		return WorkspaceMembership{}, errLocalIdentityContractMismatch
 	}
-	membership, err := scanPostgresWorkspaceMembership(repository.pool.QueryRow(identityContext(ctx), `UPDATE local_workspace_memberships SET
+	var tenantRef, workspaceID string
+	if err := repository.pool.QueryRow(identityContext(ctx), `SELECT tenant_ref, workspace_id
+        FROM local_workspace_memberships WHERE membership_id=$1`, membershipID).Scan(&tenantRef, &workspaceID); err != nil {
+		return WorkspaceMembership{}, classifyPostgresMutationFailure(err)
+	}
+	transaction, err := repository.pool.Begin(identityContext(ctx))
+	if err != nil {
+		return WorkspaceMembership{}, errLocalIdentityStoreUnavailable
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	if err := lockPostgresLocalIdentityAdministrationScope(
+		identityContext(ctx), transaction, tenantRef, workspaceID,
+	); err != nil {
+		return WorkspaceMembership{}, err
+	}
+	membership, err := scanPostgresWorkspaceMembership(transaction.QueryRow(identityContext(ctx), `UPDATE local_workspace_memberships SET
         lifecycle_state='revoked', record_version=record_version+1, updated_at=$1, revoked_at=$1, audit_ref=$2
-        WHERE membership_id=$3 AND record_version=$4 AND lifecycle_state='active' RETURNING
+		WHERE membership_id=$3 AND record_version=$4 AND lifecycle_state='active'
+		AND NOT EXISTS (
+			SELECT 1 FROM local_role_assignments r
+			WHERE r.user_id=local_workspace_memberships.user_id
+			AND r.tenant_ref=local_workspace_memberships.tenant_ref
+			AND r.workspace_id=local_workspace_memberships.workspace_id
+			AND r.lifecycle_state='active'
+		) RETURNING
         schema_version, membership_id, user_id, tenant_ref, workspace_id, lifecycle_state, record_version,
         created_at, updated_at, expires_at, revoked_at, audit_ref`, revokedAt, auditRef, membershipID, expectedVersion))
 	if err != nil {
 		return WorkspaceMembership{}, classifyPostgresMutationFailure(err)
+	}
+	if err := transaction.Commit(identityContext(ctx)); err != nil {
+		return WorkspaceMembership{}, errLocalIdentityStoreUnavailable
 	}
 	return membership, nil
 }
@@ -613,7 +692,8 @@ const postgresSessionSelect = `SELECT schema_version, session_id, user_id, crede
     last_verified_at, expires_at, revoked_at, audit_ref FROM local_web_sessions`
 
 const postgresRoleAssignmentSelect = `SELECT schema_version, assignment_id, user_id, tenant_ref, workspace_id,
-    role_key, permission_grants, lifecycle_state, record_version, created_at, updated_at, expires_at,
+    role_key, role_catalog_version, role_definition_digest, permission_grants, lifecycle_state, record_version,
+    created_at, updated_at, expires_at,
     revoked_at, audit_ref FROM local_role_assignments`
 
 const postgresMembershipSelect = `SELECT schema_version, membership_id, user_id, tenant_ref, workspace_id,
@@ -693,13 +773,17 @@ func scanPostgresWebSession(row localIdentitySQLRow) (WebSession, error) {
 
 func scanPostgresLocalRoleAssignment(row localIdentitySQLRow) (LocalRoleAssignment, error) {
 	var assignment LocalRoleAssignment
+	var roleCatalogVersion, roleDefinitionDigest sql.NullString
 	err := row.Scan(&assignment.SchemaVersion, &assignment.AssignmentID, &assignment.UserID, &assignment.TenantRef,
-		&assignment.WorkspaceID, &assignment.RoleKey, &assignment.PermissionGrants, &assignment.LifecycleState,
+		&assignment.WorkspaceID, &assignment.RoleKey, &roleCatalogVersion, &roleDefinitionDigest,
+		&assignment.PermissionGrants, &assignment.LifecycleState,
 		&assignment.RecordVersion, &assignment.CreatedAt, &assignment.UpdatedAt, &assignment.ExpiresAt,
 		&assignment.RevokedAt, &assignment.AuditRef)
 	if err != nil {
 		return LocalRoleAssignment{}, normalizePostgresReadError(err)
 	}
+	assignment.RoleCatalogVersion = roleCatalogVersion.String
+	assignment.RoleDefinitionDigest = roleDefinitionDigest.String
 	assignment.CreatedAt = assignment.CreatedAt.UTC()
 	assignment.UpdatedAt = assignment.UpdatedAt.UTC()
 	assignment.ExpiresAt = cloneTimePointer(assignment.ExpiresAt)

@@ -43,6 +43,39 @@ browser OIDC 只在 `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_t
 
 服务启动会先执行 bounded discovery / JWKS preflight；配置漂移、provider 不可用或 policy 不匹配都会阻止 OIDC client 初始化，不回退本地管理员、dev header 或旧缓存身份。
 
+## 显式首管理员 bootstrap（仅开发 / 测试态）
+
+`radishmind-local-identity-bootstrap` 只对已经存在且 active 的 exact `user_id` 建立首个 workspace membership 与 canonical `workspace_admin` assignment。它只接受 `sqlite_dev | postgres_dev_test`，同一 tenant / workspace 已存在 active identity administrator 时失败关闭；不会由注册或 Server 启动自动执行，也没有 HTTP route。数据库位置只从环境变量读取，不通过 argv 或 JSON 输出。
+
+SQLite 使用共享本地产品数据库：
+
+```bash
+RADISHMIND_SQLITE_DEV_DATABASE_PATH=/absolute/path/to/radishmind.db \
+go run ./cmd/radishmind-local-identity-bootstrap \
+  --store sqlite_dev \
+  --tenant-ref tenant_demo \
+  --workspace-id workspace_demo \
+  --user-id usr_0000000000000001 \
+  --audit-ref audit:bootstrap-workspace-admin
+```
+
+PostgreSQL 必须先由 migration identity 显式应用 `0003_local_identity_administration`，再用受限 runtime URL 执行 bootstrap：
+
+```bash
+RADISHMIND_LOCAL_IDENTITY_DEV_TEST_MIGRATION_DATABASE_URL='<migration-url>' \
+go run ./cmd/radishmind-local-identity-migrate up
+
+RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL='<runtime-url>' \
+go run ./cmd/radishmind-local-identity-bootstrap \
+  --store postgres_dev_test \
+  --tenant-ref tenant_demo \
+  --workspace-id workspace_demo \
+  --user-id usr_0000000000000001 \
+  --audit-ref audit:bootstrap-workspace-admin
+```
+
+可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT` 使用 Go duration，默认 `30s`。命令只输出脱敏 JSON 中的 store、scope、stable membership / assignment id、role catalog metadata 与 audit ref；不输出数据库路径、URL、credential、session 或账户登录标识。重复执行不会返回既有记录，而是以 `local_identity_admin_bootstrap_denied` 拒绝。
+
 ## 启动入口
 
 从仓库根目录先准备开发环境并执行配置检查：
@@ -72,6 +105,7 @@ wrapper 默认使用 `local-product` 档；显式组件配置、PostgreSQL 专�
 | 职责 | 入口 |
 | --- | --- |
 | 命令与服务生命周期 | `cmd/radishmind-platform/` |
+| 本地身份迁移与显式首管理员 bootstrap | `cmd/radishmind-local-identity-migrate/`、`cmd/radishmind-local-identity-bootstrap/` |
 | 配置 | `internal/config/` |
 | HTTP 与 northbound 协议适配 | `internal/httpapi/` |
 | Python bridge 与 worker pool | `internal/bridge/` |

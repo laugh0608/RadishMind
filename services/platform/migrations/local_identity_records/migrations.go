@@ -15,10 +15,12 @@ import (
 
 const (
 	Component                           = "local_identity_records"
-	MigrationID                         = "0002_local_identity_oidc_authorization_transactions"
-	StoreSchemaVersion                  = "local_identity_records_store_v2"
+	MigrationID                         = "0003_local_identity_administration"
+	StoreSchemaVersion                  = "local_identity_records_store_v3"
 	legacyMigrationID                   = "0001_local_identity_records"
 	legacyStoreSchemaVersion            = "local_identity_records_store_v1"
+	oidcMigrationID                     = "0002_local_identity_oidc_authorization_transactions"
+	oidcStoreSchemaVersion              = "local_identity_records_store_v2"
 	MigrationStateApplied               = "applied"
 	MigrationStateNotApplied            = "not_applied"
 	MigrationStateUpgradeRequired       = "upgrade_required"
@@ -46,6 +48,12 @@ var oidcAuthorizationUpSQL string
 
 //go:embed 0002_local_identity_oidc_authorization_transactions.down.sql
 var oidcAuthorizationDownSQL string
+
+//go:embed 0003_local_identity_administration.up.sql
+var administrationUpSQL string
+
+//go:embed 0003_local_identity_administration.down.sql
+var administrationDownSQL string
 
 type State struct {
 	MigrationState     string
@@ -82,11 +90,15 @@ func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 }
 
 func ExpectedChecksum() string {
-	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(legacyUpSQL+"\n"+oidcAuthorizationUpSQL)))
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(legacyUpSQL+"\n"+oidcAuthorizationUpSQL+"\n"+administrationUpSQL)))
 }
 
 func legacyExpectedChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(legacyUpSQL)))
+}
+
+func oidcExpectedChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(legacyUpSQL+"\n"+oidcAuthorizationUpSQL)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -133,8 +145,13 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("local identity migration marker mismatch")
 	}
 	if state.MigrationState == MigrationStateUpgradeRequired {
-		if _, err := transaction.Exec(ctx, oidcAuthorizationUpSQL); err != nil {
-			return State{}, errors.New("upgrade local identity OIDC authorization migration")
+		if state.MigrationID == legacyMigrationID {
+			if _, err := transaction.Exec(ctx, oidcAuthorizationUpSQL); err != nil {
+				return State{}, errors.New("upgrade local identity OIDC authorization migration")
+			}
+		}
+		if _, err := transaction.Exec(ctx, administrationUpSQL); err != nil {
+			return State{}, errors.New("upgrade local identity administration migration")
 		}
 		if _, err := transaction.Exec(ctx, `UPDATE local_identity_schema_versions SET
             migration_id=$2, store_schema_version=$3, migration_checksum=$4, applied_at=now() WHERE component=$1`,
@@ -147,6 +164,9 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		}
 		if _, err := transaction.Exec(ctx, oidcAuthorizationUpSQL); err != nil {
 			return State{}, errors.New("apply local identity OIDC authorization migration")
+		}
+		if _, err := transaction.Exec(ctx, administrationUpSQL); err != nil {
+			return State{}, errors.New("apply local identity administration migration")
 		}
 		if _, err := transaction.Exec(ctx, `INSERT INTO local_identity_schema_versions
             (component, migration_id, store_schema_version, migration_checksum) VALUES ($1,$2,$3,$4)`,
@@ -194,6 +214,13 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 		return State{}, errors.New("local identity rollback requires matching migration marker")
 	}
 	if state.MigrationState == MigrationStateApplied {
+		if _, err := transaction.Exec(ctx, administrationDownSQL); err != nil {
+			return State{}, errors.New("rollback local identity administration migration")
+		}
+		if _, err := transaction.Exec(ctx, oidcAuthorizationDownSQL); err != nil {
+			return State{}, errors.New("rollback local identity OIDC authorization migration")
+		}
+	} else if state.MigrationID == oidcMigrationID {
 		if _, err := transaction.Exec(ctx, oidcAuthorizationDownSQL); err != nil {
 			return State{}, errors.New("rollback local identity OIDC authorization migration")
 		}
@@ -244,6 +271,11 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStateUpgradeRequired
 		return state, nil
 	}
+	if state.MigrationID == oidcMigrationID && state.StoreSchemaVersion == oidcStoreSchemaVersion &&
+		state.MigrationChecksum == oidcExpectedChecksum() {
+		state.MigrationState = MigrationStateUpgradeRequired
+		return state, nil
+	}
 	state.MigrationState = MigrationStateApplied
 	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() {
 		state.MigrationState = MigrationStateMismatch
@@ -254,6 +286,20 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		return State{}, errors.New("inspect local identity OIDC authorization table")
 	}
 	if !oidcTableExists {
+		state.MigrationState = MigrationStateMismatch
+		return state, nil
+	}
+	var catalogColumnCount int
+	if err := query.QueryRow(ctx, `SELECT count(*) FROM information_schema.columns
+        WHERE table_schema='public' AND table_name='local_role_assignments'
+        AND column_name IN ('role_catalog_version','role_definition_digest')`).Scan(&catalogColumnCount); err != nil {
+		return State{}, errors.New("inspect local identity administration columns")
+	}
+	var directoryIndexExists bool
+	if err := query.QueryRow(ctx, "SELECT to_regclass('public.local_workspace_memberships_directory_idx') IS NOT NULL").Scan(&directoryIndexExists); err != nil {
+		return State{}, errors.New("inspect local identity administration index")
+	}
+	if catalogColumnCount != 2 || !directoryIndexExists {
 		state.MigrationState = MigrationStateMismatch
 	}
 	return state, nil

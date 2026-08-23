@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_b_completed_batch_c_ready`
 
 对应功能设计：[本地用户、角色与工作区成员管理（开发 / 测试态）v1](../features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)
 
@@ -53,6 +53,14 @@
 批次 B 停止线：
 
 - 不自动迁移生产数据库，不引入新数据库或 ORM，不打开 production store mode。
+
+完成证据：
+
+- SQLite / PostgreSQL durable administration owner 已复用现有 local identity tables，实现直接 SQL 目录 / 详情、catalog metadata 持久化、CAS、scope 内授权重读和 membership + workspace assignment 单事务撤销；没有新增目录表或角色表。
+- `0003_local_identity_administration` / `local_identity_records_store_v3` 只增加两列 catalog metadata 与稳定分页顺序索引。SQLite v2 → v3 重放和 PostgreSQL v1 → v3、rollback / reapply、受限 runtime role、重启与 no-fallback 已验证。
+- query-plan 证据在 `121` 条同时间戳数据上成立：SQLite `EXPLAIN QUERY PLAN` 与 PostgreSQL `ANALYZE + EXPLAIN` 均使用 `local_workspace_memberships_directory_idx`。
+- `radishmind-local-identity-bootstrap` 只允许 `sqlite_dev | postgres_dev_test`，从环境变量读取数据库位置，并把 exact tenant / workspace / active user / audit ref 交给同一领域 service；并发和重复 bootstrap 只有一次成功，memory、缺失数据库、已有管理员和部分写入均失败关闭。
+- 批次 B 未注册 HTTP、未修改 config / Server startup、Pencil 或 Web，production store / IAM 与自动 bootstrap 继续关闭。
 
 ## 批次 C：Admin HTTP 与 local session 授权
 
@@ -122,7 +130,7 @@ npm --prefix apps/radishmind-web run build
 - [x] 新长期功能专题、owner、流程、失败语义、批次与停止线已定义。
 - [x] 唯一高风险任务卡已建立，批次 A 可进入实现。
 - [x] 批次 A：领域合同、canonical role catalog 与 memory 纵向链。
-- [ ] 批次 B：SQLite / PostgreSQL durable owner。
+- [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [ ] 批次 C：Admin HTTP 与 local session 授权。
 - [ ] 批次 D：Pencil 与 React strict consumer。
 - [ ] 批次 E：双数据库产品连续链与专题收口。

@@ -566,6 +566,11 @@ func runLocalIdentityRepositoryContract(t *testing.T, repository localIdentityRe
 		decision.Binding.WorkspaceSourceRef != "membership:local:"+membership.MembershipID {
 		t.Fatalf("local membership adapter decision mismatch: %#v", decision)
 	}
+	if _, err := repository.RevokeRoleAssignment(
+		ctx, role.AssignmentID, role.RecordVersion, localIdentityTestNow.Add(110*time.Minute), "audit:role-before-membership-revoke",
+	); err != nil {
+		t.Fatalf("revoke legacy role before primitive membership revoke: %v", err)
+	}
 
 	runConcurrentLocalIdentitySingleWinner(t, "workspace membership revocation", errLocalIdentityVersionConflict, []func() error{
 		func() error {

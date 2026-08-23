@@ -2,7 +2,7 @@
 
 更新时间：2026-08-23
 
-状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`local_user_role_workspace_membership_administration_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 功能定位
 
@@ -13,7 +13,7 @@
 ## 选择依据
 
 - [本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)已经完成 `UserAccount`、`LocalRoleAssignment`、`WorkspaceMembership`、memory / SQLite / PostgreSQL repository 与本地 Session 授权链。
-- 当前 `localIdentityRepository` 已有单账户读取、角色分配创建 / 撤销、成员关系创建 / 撤销和 CAS，但没有 workspace-scoped 列表、正式 Admin HTTP、管理权限与产品级 mutation service。
+- 当前 `localIdentityRepository` 已有单账户读取、角色分配创建 / 撤销、成员关系创建 / 撤销和 CAS；批次 A / B 已补齐三种 store 的 workspace-scoped 管理 repository 与产品级 mutation service，正式 Admin HTTP 仍留在批次 C。
 - S7 User / Role 明确显示当前账户，不伪造目录事实；因此下一步应在现有 owner 上建立真实目录与授权管理，而不是继续补只读 evidence 页面或依赖真实 Radish 批次 E。
 - 本功能可以完全在本仓库的开发测试态三种 store 中验证，不依赖 production secret、真实 issuer、外部账号资源或上层项目接线。
 
@@ -99,7 +99,7 @@
 
 所有 mutation 同时要求同源 Origin、CSRF、近期认证、request / audit ref、expected version（适用时）和显式影响确认字段。tenant 来自已验证 actor context；path workspace 必须与 active workspace 和 membership decision 一致，客户端不能覆盖 tenant 或通过 payload 改 scope。
 
-first-admin bootstrap 不注册 HTTP route。它只由批次 B 的显式开发测试态 CLI 调用批次 A 的同一领域 service，并要求 exact 账户已存在且 active、目标 scope 没有 active identity administrator、repository mode 明确为 SQLite 或 PostgreSQL dev/test。memory 只用于领域测试；生产模式、服务启动和普通注册流程不得触发 bootstrap。
+first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstrap` 只在开发者显式执行时调用同一领域 service，并要求 exact 账户已存在且 active、目标 scope 没有 active identity administrator、repository mode 明确为 `sqlite_dev` 或 `postgres_dev_test`。数据库位置只从对应环境变量读取，不进入 argv 或 JSON 输出；memory、生产模式、服务启动和普通注册流程不得触发 bootstrap。
 
 ## 授权与原子性
 
@@ -156,10 +156,11 @@ first-admin bootstrap 不注册 HTTP route。它只由批次 B 的显式开发�
 
 ### 批次 B：SQLite / PostgreSQL durable owner
 
-- 复用现有 local identity tables；按实际 query plan 增加下一顺序索引 migration，不创建重复目录表。
-- 实现稳定分页、exact detail、catalog-derived assignment 与原子 membership revoke。
-- 增加显式开发测试态 bootstrap CLI；只接受 exact scope / user、已有管理员时拒绝，不在 Server 启动或注册时自动执行。
-- 覆盖 migration / rollback / reapply、受限 runtime role、并发、重启和 no-fallback。
+- 已复用现有 local identity tables，并把 PostgreSQL marker 推进为 `0003_local_identity_administration` / `local_identity_records_store_v3`。迁移只为 assignment 增加 nullable catalog version / definition digest，并增加 `(tenant_ref, workspace_id, lifecycle_state, updated_at DESC, membership_id DESC)` 顺序索引；没有创建重复目录表或 role catalog 表。
+- SQLite / PostgreSQL 已实现直接 SQL 稳定分页与 exact detail；写入在单一事务中载入 exact scope、复用批次 A 的同一 invariant owner，再持久化 catalog-derived assignment、CAS revoke 和 membership + workspace assignment 原子撤销。SQLite 使用 `BEGIN IMMEDIATE` 串行化写者，PostgreSQL 使用 scope-bound transaction advisory lock；通用持久化 mutation 同样不能绕过 catalog aggregate 与 scope coordination。
+- `radishmind-local-identity-bootstrap` 已支持 `sqlite_dev | postgres_dev_test`，只接受命令行中的 exact tenant / workspace / user / audit ref，数据库路径或 URL 只从环境变量读取；active account、零 active identity administrator、membership + `workspace_admin` 同事务和重复拒绝均由同一 repository service 保证。Server 启动与注册流程未接入该命令。
+- SQLite 覆盖 v2 → v3 升级、迁移重放、`121` 条同时间戳分页、cursor、catalog metadata、并发 CAS、原子撤销与重启；PostgreSQL 17 覆盖 v1 → v3、真实 `ANALYZE + EXPLAIN` 索引计划、受限 runtime role、显式 bootstrap、回滚后 no-fallback、重新应用与重启。测试容器和网络已关闭。
+- 停止线保持：没有注册 Admin HTTP、没有修改 config / Server startup、Pencil 或 Web，也没有自动迁移生产数据库、引入新数据库 / ORM 或打开 production store mode。
 
 ### 批次 C：Admin HTTP 与 local session 授权
 
@@ -200,4 +201,4 @@ first-admin bootstrap 不注册 HTTP route。它只由批次 B 的显式开发�
 
 ## 下一实现入口
 
-[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 已完成，下一入口为批次 B 的 SQLite / PostgreSQL durable administration owner 与显式开发测试态 bootstrap CLI；批次 C 至 E 必须继续依次消费前一批证据，不并行扩张 HTTP 与 UI 边界。
+[本地用户、角色与工作区成员管理 v1 高风险任务卡](../../task-cards/local-user-role-workspace-membership-administration-dev-test-v1-plan.md)承接批次 A 至 E。批次 A / B 已完成，下一入口为批次 C 的 Admin HTTP 与 local Web Session 授权；批次 D / E 必须继续依次消费前一批证据，不并行扩张 HTTP 与 UI 边界。

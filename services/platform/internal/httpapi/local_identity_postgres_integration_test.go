@@ -5,6 +5,7 @@ package httpapi
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 	runtimeDatabaseURL := postgresIntegrationDatabaseURLForCredentials(
 		t, runtimeUser, os.Getenv("RADISHMIND_POSTGRES_INTEGRATION_RUNTIME_PASSWORD"),
 	)
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 	adminPool, err := localidentitymigrations.OpenPool(ctx, databaseURL)
 	if err != nil {
@@ -65,6 +66,21 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 	repository := newPostgresLocalIdentityRepository(runtimePool)
 	runLocalIdentityRepositoryContract(t, repository)
 	runConcurrentLocalIdentityBindingCreate(t, repository)
+	administrationState := runDurableLocalIdentityAdministrationContract(t, repository)
+	assertPostgresLocalIdentityDirectoryQueryPlan(t, ctx, adminPool, runtimePool)
+	bootstrapOptions := LocalIdentityDevTestBootstrapOptions{
+		StoreMode: localIdentityStoreModePostgresDevTest, PostgresDatabaseURL: runtimeDatabaseURL,
+		DatabaseTimeout: 5 * time.Second, TenantRef: "tenant_cli", WorkspaceID: "workspace_cli",
+		UserID: administrationState.Administrator.UserID, AuditRef: "audit:postgres-bootstrap-cli",
+	}
+	cliBootstrap, err := BootstrapLocalIdentityWorkspaceAdministratorDevTest(ctx, bootstrapOptions)
+	if err != nil || cliBootstrap.RoleKey != localIdentityRoleWorkspaceAdmin ||
+		cliBootstrap.UserID != administrationState.Administrator.UserID {
+		t.Fatalf("PostgreSQL explicit bootstrap coordinator mismatch: result=%#v err=%v", cliBootstrap, err)
+	}
+	if _, err := BootstrapLocalIdentityWorkspaceAdministratorDevTest(ctx, bootstrapOptions); !errors.Is(err, errLocalIdentityAdminBootstrapDenied) {
+		t.Fatalf("repeated PostgreSQL bootstrap coordinator was not denied: %v", err)
+	}
 	pending := localIdentityTestOIDCTransaction(
 		"oat_postgresrestartaa", "postgres-restart-state-with-more-than-thirty-two-characters", localIdentityTestNow.Add(3*time.Hour),
 	)
@@ -87,15 +103,77 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 		restoredTransaction.TransactionID != pending.TransactionID || restoredTransaction.codeVerifier == "" {
 		t.Fatalf("restart PostgreSQL OIDC authorization transaction mismatch: transaction=%#v err=%v", restoredTransaction, consumeErr)
 	}
+	restartedAdministrationService := newLocalIdentityAdministrationService(restarted)
+	restartedAdministrationService.now = func() time.Time { return administrationState.Now.Add(20 * time.Minute) }
+	if detail, detailErr := restartedAdministrationService.ReadWorkspaceMember(
+		ctx,
+		administrationState.Administrator,
+		administrationState.TenantRef,
+		administrationState.WorkspaceID,
+		administrationState.TargetUserID,
+	); detailErr != nil || len(detail.Memberships) != 2 || len(detail.RoleAssignments) != 2 ||
+		detail.RoleAssignments[0].RoleCatalogVersion != administrationState.CatalogVersion {
+		t.Fatalf("restart PostgreSQL administration projection mismatch: detail=%#v err=%v", detail, detailErr)
+	}
 	restartedPool.Close()
 
 	rolledBack, err := localidentitymigrations.RollbackForDevTest(ctx, adminPool)
 	if err != nil || rolledBack.MigrationState != localidentitymigrations.MigrationStateNotApplied {
 		t.Fatalf("rollback local identity migration: state=%#v err=%v", rolledBack, err)
 	}
+	if unavailable, closeUnavailable, unavailableErr := newLocalIdentityRepositoryFromOptions(localIdentityStoreOptions{
+		Mode: localIdentityStoreModePostgresDevTest, PostgresDatabaseURL: runtimeDatabaseURL,
+		DatabaseTimeout: 5 * time.Second,
+	}); unavailableErr == nil || unavailable != nil || closeUnavailable != nil {
+		if closeUnavailable != nil {
+			closeUnavailable()
+		}
+		t.Fatalf("rolled-back PostgreSQL administration owner did not fail closed: %v", unavailableErr)
+	}
 	reapplied, err := localidentitymigrations.Apply(ctx, adminPool)
 	if err != nil || reapplied.MigrationState != localidentitymigrations.MigrationStateApplied {
 		t.Fatalf("reapply local identity migration: state=%#v err=%v", reapplied, err)
+	}
+}
+
+func assertPostgresLocalIdentityDirectoryQueryPlan(
+	t *testing.T,
+	ctx context.Context,
+	adminPool *pgxpool.Pool,
+	pool *pgxpool.Pool,
+) {
+	t.Helper()
+	if _, err := adminPool.Exec(ctx, "ANALYZE local_workspace_memberships"); err != nil {
+		t.Fatalf("analyze PostgreSQL member directory statistics: %v", err)
+	}
+	transaction, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin PostgreSQL directory query plan transaction: %v", err)
+	}
+	defer func() { _ = transaction.Rollback(context.Background()) }()
+	if _, err := transaction.Exec(ctx, "SET LOCAL enable_seqscan=off"); err != nil {
+		t.Fatalf("configure PostgreSQL directory query plan: %v", err)
+	}
+	rows, err := transaction.Query(ctx, `EXPLAIN (FORMAT TEXT)
+        SELECT membership_id FROM local_workspace_memberships
+        WHERE tenant_ref=$1 AND workspace_id=$2 AND lifecycle_state=$3
+        ORDER BY updated_at DESC, membership_id DESC LIMIT 51`,
+		"tenant_demo", "workspace_demo", localIdentityStateActive,
+	)
+	if err != nil {
+		t.Fatalf("explain PostgreSQL member directory query: %v", err)
+	}
+	defer rows.Close()
+	plan := strings.Builder{}
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			t.Fatalf("scan PostgreSQL member directory query plan: %v", err)
+		}
+		plan.WriteString(line)
+	}
+	if rows.Err() != nil || !strings.Contains(plan.String(), "local_workspace_memberships_directory_idx") {
+		t.Fatalf("PostgreSQL member directory query did not use its ordered index: %s", plan.String())
 	}
 }
 
