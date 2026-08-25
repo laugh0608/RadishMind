@@ -485,7 +485,7 @@ func newLocalIdentitySelfServiceTestFixtureWithIDs(
 
 func createLocalIdentitySelfServiceTestSession(
 	t *testing.T,
-	repository *memoryLocalIdentityRepository,
+	repository localIdentityRepository,
 	userID string,
 	sessionID string,
 	authenticationMethod string,

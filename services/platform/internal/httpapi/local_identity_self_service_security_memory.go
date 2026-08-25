@@ -65,31 +65,7 @@ func (repository *memoryLocalIdentityRepository) ListSelfServiceSessions(
 		}
 		return strings.Compare(right.SessionID, left.SessionID)
 	})
-	hasNext := len(sessions) > filter.Limit
-	if hasNext {
-		sessions = sessions[:filter.Limit]
-	}
-	page := LocalIdentitySelfServiceSessionPage{
-		Sessions:   make([]LocalIdentitySelfServiceSessionSummary, 0, len(sessions)),
-		SnapshotAt: filter.snapshotAt,
-	}
-	for _, session := range sessions {
-		if !validWebSession(session) {
-			return LocalIdentitySelfServiceSessionPage{}, errLocalIdentityStoreUnavailable
-		}
-		page.Sessions = append(page.Sessions, localIdentitySelfServiceSessionSummary(
-			session,
-			currentSessionID,
-			filter.snapshotAt,
-		))
-	}
-	if hasNext && len(sessions) > 0 {
-		page.NextCursor, err = encodeLocalIdentitySelfServiceSessionCursor(userID, filter, sessions[len(sessions)-1])
-		if err != nil {
-			return LocalIdentitySelfServiceSessionPage{}, errLocalIdentityStoreUnavailable
-		}
-	}
-	return page, nil
+	return buildLocalIdentitySelfServiceSessionPage(userID, currentSessionID, filter, sessions)
 }
 
 func (repository *memoryLocalIdentityRepository) RevokeOwnedWebSession(
@@ -379,11 +355,53 @@ func localIdentitySelfServiceSessionCursorDigest(document localIdentitySelfServi
 }
 
 func localIdentitySessionComesAfterCursor(session WebSession, cursor localIdentitySelfServiceSessionCursor) bool {
-	anchor, err := time.Parse(time.RFC3339Nano, cursor.CreatedAt)
+	anchor, err := localIdentitySelfServiceCursorCreatedAt(cursor)
 	if err != nil {
 		return false
 	}
 	return session.CreatedAt.Before(anchor) || session.CreatedAt.Equal(anchor) && session.SessionID < cursor.SessionID
+}
+
+func localIdentitySelfServiceCursorCreatedAt(cursor localIdentitySelfServiceSessionCursor) (time.Time, error) {
+	return time.Parse(time.RFC3339Nano, cursor.CreatedAt)
+}
+
+func buildLocalIdentitySelfServiceSessionPage(
+	userID string,
+	currentSessionID string,
+	filter LocalIdentitySelfServiceSessionListQuery,
+	sessions []WebSession,
+) (LocalIdentitySelfServiceSessionPage, error) {
+	hasNext := len(sessions) > filter.Limit
+	if hasNext {
+		sessions = sessions[:filter.Limit]
+	}
+	page := LocalIdentitySelfServiceSessionPage{
+		Sessions:   make([]LocalIdentitySelfServiceSessionSummary, 0, len(sessions)),
+		SnapshotAt: filter.snapshotAt,
+	}
+	for _, session := range sessions {
+		if !validWebSession(session) {
+			return LocalIdentitySelfServiceSessionPage{}, errLocalIdentityStoreUnavailable
+		}
+		page.Sessions = append(page.Sessions, localIdentitySelfServiceSessionSummary(
+			session,
+			currentSessionID,
+			filter.snapshotAt,
+		))
+	}
+	if hasNext && len(sessions) > 0 {
+		var err error
+		page.NextCursor, err = encodeLocalIdentitySelfServiceSessionCursor(
+			userID,
+			filter,
+			sessions[len(sessions)-1],
+		)
+		if err != nil {
+			return LocalIdentitySelfServiceSessionPage{}, errLocalIdentityStoreUnavailable
+		}
+	}
+	return page, nil
 }
 
 func localIdentitySessionEffectiveStateAt(session WebSession, snapshotAt time.Time) string {

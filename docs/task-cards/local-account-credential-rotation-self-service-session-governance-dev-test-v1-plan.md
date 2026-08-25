@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_b_completed_batch_c_ready`
 
 对应功能设计：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](../features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)
 
@@ -63,9 +63,17 @@
 
 完成条件：
 
-- [ ] SQLite / PostgreSQL contract 与 memory 语义一致。
-- [ ] migration 与 query-plan 证据只包含必要变更。
-- [ ] 双数据库原子性、并发、重启与 no-fallback 通过。
+- [x] SQLite / PostgreSQL contract 与 memory 语义一致。
+- [x] migration 与 query-plan 证据只包含必要变更。
+- [x] 双数据库原子性、并发、重启与 no-fallback 通过。
+
+完成证据（2026-08-25）：
+
+- SQLite / PostgreSQL durable adapter 已实现 snapshot-bound session page、exact owned revoke、revoke others 与 credential rotation aggregate；SQLite 使用 `BEGIN IMMEDIATE`，PostgreSQL 锁定 exact account、credential 与 user-scoped session rows，写入与 memory 领域判断只有一个提交点。
+- 现有 active / expiry 索引无法提供 self-service 页面的稳定顺序，因此只追加 `0004_local_identity_self_service_sessions` / `local_identity_records_store_v4` 与 `(user_id, created_at DESC, session_id DESC)` ordered index。SQLite / PostgreSQL query-plan 均命中新索引；没有新表、ORM、平行 owner 或生产自动迁移。
+- 双库 contract 覆盖 cursor snapshot、同时间戳分页、CAS、并发单胜者、bulk/current/expired 边界和 credential source binding。跨账户 credential id 唯一键冲突发生在 supersede SQL 之后，最终旧 credential 与 session 全部保持不变；该用例直接证明数据库事务没有部分提交。
+- SQLite v3 → v4、重放、重启与关闭后 no-fallback 已通过；PostgreSQL 17 完成 v1 / v3 → v4、既有数据保留、受限 runtime role、DDL 拒绝、`ANALYZE + EXPLAIN`、rollback / reapply、pool 重连与 no-fallback。当前 checksum 为 `sha256:80439276fc49f9ca35a61aa321b81ceae404201678739d95197ce43427b1534a`。
+- 精准测试、SQLite race、`go vet`、PostgreSQL tagged compile 与 PostgreSQL 聚合集成已通过；批次 B 未注册 HTTP、修改 config / Server startup / Pencil / Web 或打开 production 能力。
 
 ## 批次 C：strict HTTP 与 local session 授权
 
@@ -156,7 +164,7 @@ npm --prefix apps/radishmind-web run build
 - [x] 唯一高风险任务卡已建立。
 - [x] 项目所有者已评审并批准批次 A 进入代码。
 - [x] 批次 A：领域合同与 memory 原子链。
-- [ ] 批次 B：SQLite / PostgreSQL durable owner。
+- [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [ ] 批次 C：strict HTTP 与 local session 授权。
 - [ ] 批次 D：Pencil 与 React strict consumer。
 - [ ] 批次 E：双数据库产品连续链与专题收口。

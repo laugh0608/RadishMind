@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_design_proposed_review_required`。owner、session directory、exact / bulk revoke、credential rotation 原子语义、五批实施和停止线已形成提议；项目所有者完成设计评审前，批次 A 仍不可进入代码。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_b_completed_batch_c_ready`。批次 A、B 已完成 memory / SQLite / PostgreSQL session directory、exact / bulk revoke、credential rotation 原子链、ordered index、并发、重启和 no-fallback；当前下一步只进入批次 C strict HTTP。
 
 ## 当前外部阻塞任务
 

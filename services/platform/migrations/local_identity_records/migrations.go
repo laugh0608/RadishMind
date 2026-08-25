@@ -14,18 +14,20 @@ import (
 )
 
 const (
-	Component                           = "local_identity_records"
-	MigrationID                         = "0003_local_identity_administration"
-	StoreSchemaVersion                  = "local_identity_records_store_v3"
-	legacyMigrationID                   = "0001_local_identity_records"
-	legacyStoreSchemaVersion            = "local_identity_records_store_v1"
-	oidcMigrationID                     = "0002_local_identity_oidc_authorization_transactions"
-	oidcStoreSchemaVersion              = "local_identity_records_store_v2"
-	MigrationStateApplied               = "applied"
-	MigrationStateNotApplied            = "not_applied"
-	MigrationStateUpgradeRequired       = "upgrade_required"
-	MigrationStateMismatch              = "mismatch"
-	localIdentityMigrationLock    int64 = 0x524d4944454e5431
+	Component                              = "local_identity_records"
+	MigrationID                            = "0004_local_identity_self_service_sessions"
+	StoreSchemaVersion                     = "local_identity_records_store_v4"
+	legacyMigrationID                      = "0001_local_identity_records"
+	legacyStoreSchemaVersion               = "local_identity_records_store_v1"
+	oidcMigrationID                        = "0002_local_identity_oidc_authorization_transactions"
+	oidcStoreSchemaVersion                 = "local_identity_records_store_v2"
+	administrationMigrationID              = "0003_local_identity_administration"
+	administrationStoreSchemaVersion       = "local_identity_records_store_v3"
+	MigrationStateApplied                  = "applied"
+	MigrationStateNotApplied               = "not_applied"
+	MigrationStateUpgradeRequired          = "upgrade_required"
+	MigrationStateMismatch                 = "mismatch"
+	localIdentityMigrationLock       int64 = 0x524d4944454e5431
 )
 
 const schemaMarkerSQL = `
@@ -54,6 +56,12 @@ var administrationUpSQL string
 
 //go:embed 0003_local_identity_administration.down.sql
 var administrationDownSQL string
+
+//go:embed 0004_local_identity_self_service_sessions.up.sql
+var selfServiceUpSQL string
+
+//go:embed 0004_local_identity_self_service_sessions.down.sql
+var selfServiceDownSQL string
 
 type State struct {
 	MigrationState     string
@@ -90,7 +98,9 @@ func OpenPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 }
 
 func ExpectedChecksum() string {
-	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(legacyUpSQL+"\n"+oidcAuthorizationUpSQL+"\n"+administrationUpSQL)))
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
+		legacyUpSQL+"\n"+oidcAuthorizationUpSQL+"\n"+administrationUpSQL+"\n"+selfServiceUpSQL,
+	)))
 }
 
 func legacyExpectedChecksum() string {
@@ -99,6 +109,12 @@ func legacyExpectedChecksum() string {
 
 func oidcExpectedChecksum() string {
 	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(legacyUpSQL+"\n"+oidcAuthorizationUpSQL)))
+}
+
+func administrationExpectedChecksum() string {
+	return fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
+		legacyUpSQL+"\n"+oidcAuthorizationUpSQL+"\n"+administrationUpSQL,
+	)))
 }
 
 func Inspect(ctx context.Context, pool *pgxpool.Pool) (State, error) {
@@ -150,8 +166,13 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 				return State{}, errors.New("upgrade local identity OIDC authorization migration")
 			}
 		}
-		if _, err := transaction.Exec(ctx, administrationUpSQL); err != nil {
-			return State{}, errors.New("upgrade local identity administration migration")
+		if state.MigrationID != administrationMigrationID {
+			if _, err := transaction.Exec(ctx, administrationUpSQL); err != nil {
+				return State{}, errors.New("upgrade local identity administration migration")
+			}
+		}
+		if _, err := transaction.Exec(ctx, selfServiceUpSQL); err != nil {
+			return State{}, errors.New("upgrade local identity self-service migration")
 		}
 		if _, err := transaction.Exec(ctx, `UPDATE local_identity_schema_versions SET
             migration_id=$2, store_schema_version=$3, migration_checksum=$4, applied_at=now() WHERE component=$1`,
@@ -167,6 +188,9 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		}
 		if _, err := transaction.Exec(ctx, administrationUpSQL); err != nil {
 			return State{}, errors.New("apply local identity administration migration")
+		}
+		if _, err := transaction.Exec(ctx, selfServiceUpSQL); err != nil {
+			return State{}, errors.New("apply local identity self-service migration")
 		}
 		if _, err := transaction.Exec(ctx, `INSERT INTO local_identity_schema_versions
             (component, migration_id, store_schema_version, migration_checksum) VALUES ($1,$2,$3,$4)`,
@@ -214,6 +238,16 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 		return State{}, errors.New("local identity rollback requires matching migration marker")
 	}
 	if state.MigrationState == MigrationStateApplied {
+		if _, err := transaction.Exec(ctx, selfServiceDownSQL); err != nil {
+			return State{}, errors.New("rollback local identity self-service migration")
+		}
+		if _, err := transaction.Exec(ctx, administrationDownSQL); err != nil {
+			return State{}, errors.New("rollback local identity administration migration")
+		}
+		if _, err := transaction.Exec(ctx, oidcAuthorizationDownSQL); err != nil {
+			return State{}, errors.New("rollback local identity OIDC authorization migration")
+		}
+	} else if state.MigrationID == administrationMigrationID {
 		if _, err := transaction.Exec(ctx, administrationDownSQL); err != nil {
 			return State{}, errors.New("rollback local identity administration migration")
 		}
@@ -276,6 +310,12 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStateUpgradeRequired
 		return state, nil
 	}
+	if state.MigrationID == administrationMigrationID &&
+		state.StoreSchemaVersion == administrationStoreSchemaVersion &&
+		state.MigrationChecksum == administrationExpectedChecksum() {
+		state.MigrationState = MigrationStateUpgradeRequired
+		return state, nil
+	}
 	state.MigrationState = MigrationStateApplied
 	if state.MigrationID != MigrationID || state.StoreSchemaVersion != StoreSchemaVersion || state.MigrationChecksum != ExpectedChecksum() {
 		state.MigrationState = MigrationStateMismatch
@@ -300,6 +340,14 @@ func inspect(ctx context.Context, query rowQuerier) (State, error) {
 		return State{}, errors.New("inspect local identity administration index")
 	}
 	if catalogColumnCount != 2 || !directoryIndexExists {
+		state.MigrationState = MigrationStateMismatch
+		return state, nil
+	}
+	var selfServiceIndexExists bool
+	if err := query.QueryRow(ctx, "SELECT to_regclass('public.local_web_sessions_self_service_list_idx') IS NOT NULL").Scan(&selfServiceIndexExists); err != nil {
+		return State{}, errors.New("inspect local identity self-service index")
+	}
+	if !selfServiceIndexExists {
 		state.MigrationState = MigrationStateMismatch
 	}
 	return state, nil

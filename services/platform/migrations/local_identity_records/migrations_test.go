@@ -28,6 +28,11 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 			t.Fatalf("administration migration missing %q", fragment)
 		}
 	}
+	for _, fragment := range []string{"local_web_sessions_self_service_list_idx", "user_id", "created_at DESC", "session_id DESC"} {
+		if !strings.Contains(selfServiceUpSQL, fragment) {
+			t.Fatalf("self-service migration missing %q", fragment)
+		}
+	}
 	for _, table := range []string{
 		"local_workspace_memberships", "local_role_assignments", "local_web_sessions",
 		"external_identity_bindings", "local_credentials", "local_user_accounts",
@@ -42,6 +47,9 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 	if !strings.Contains(administrationDownSQL, "DROP INDEX IF EXISTS local_workspace_memberships_directory_idx") ||
 		!strings.Contains(administrationDownSQL, "DROP COLUMN IF EXISTS role_catalog_version") {
 		t.Fatal("administration down migration does not remove its index and columns")
+	}
+	if !strings.Contains(selfServiceDownSQL, "DROP INDEX IF EXISTS local_web_sessions_self_service_list_idx") {
+		t.Fatal("self-service down migration does not remove its index")
 	}
 	if !strings.HasPrefix(ExpectedChecksum(), "sha256:") || len(ExpectedChecksum()) != 71 {
 		t.Fatalf("unexpected migration checksum: %s", ExpectedChecksum())

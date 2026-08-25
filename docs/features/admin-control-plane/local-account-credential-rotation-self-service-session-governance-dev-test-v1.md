@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 功能定位
 
@@ -124,6 +124,15 @@
 - 覆盖 migration / rollback / reapply、受限 runtime role、CAS、并发、服务重启、store unavailable 与 no-fallback。
 - 不创建第二套 session table、credential history table、ORM 或 production repository mode。
 
+完成证据（2026-08-25）：
+
+- SQLite / PostgreSQL 已由同一 `localIdentitySelfServiceSecurityRepository` capability 提供 durable owner；session page 直接读取既有 `local_web_sessions`，mutation 在单一 transaction 中重读 account、credential 与 user-scoped sessions，再提交 exact revoke、revoke others 或 credential replacement + source-bound revoke。没有扩张通用 repository interface，也没有增加第二套 table、ORM 或 fallback owner。
+- 原有 `local_web_sessions_active_user_idx` 只覆盖 active session 的过期查询，不能满足 `created_at DESC + session_id DESC` 的稳定顺序。双库因此只追加 `0004_local_identity_self_service_sessions` / `local_identity_records_store_v4` 与 `local_web_sessions_self_service_list_idx`；SQLite `EXPLAIN QUERY PLAN` 和 PostgreSQL `ANALYZE + EXPLAIN` 均证明列表使用该 ordered index，未改写既有表或历史 migration。
+- durable contract 已覆盖 snapshot-bound 多页、同时间戳顺序、后插入排除、post-snapshot revoke、exact CAS、并发双争用单胜者、bulk 保留 current / effective-expired session、OIDC current session 保留，以及 active / expired source-bound local-password session 随 credential rotation 一起撤销。
+- 以另一账户的 credential id 制造数据库唯一键冲突后，旧 active credential 与全部 source-bound session 均保持原状，证明 credential supersede 后续失败会整事务回滚；成功轮换后新密码可验证、旧 credential superseded，三条旧来源 session 同时 revoked。
+- SQLite v3 → v4 升级、重放、重启、关闭连接 no-fallback 已通过；PostgreSQL v1 / v3 → v4、既有数据保留、受限 runtime role DDL 拒绝、rollback / reapply、pool 重连和回滚后 no-fallback 已在 PostgreSQL 17 聚合集成中通过。测试容器、网络和临时 volume 已清理。
+- 批次 B 没有注册 HTTP、修改 config / Server startup / Pencil / React / CSS 或打开 production store；下一准入只进入批次 C 的四条 strict HTTP 与 local Web Session 授权。
+
 ### 批次 C：strict HTTP 与本地会话授权
 
 - 固定四条 route、strict request / response、CSRF / Origin、recent authentication、current-password proof、confirmation 与稳定失败映射。
@@ -161,4 +170,4 @@
 
 ## 下一实现入口
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 已完成并保持停止线；下一步只实施批次 B 的 SQLite / PostgreSQL durable owner、query-plan、原子 transaction、并发、重启和 no-fallback，不提前注册 HTTP 或修改 Pencil / Web。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A、B 已完成并保持停止线；下一步只实施批次 C 的四条 strict HTTP、local Web Session 授权、CSRF / Origin、recent authentication、current-password proof 与稳定失败映射，不提前修改 Pencil / Web。

@@ -13,7 +13,7 @@
 - Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test；五条 workspace operation 已共享 `WorkspaceMembershipProvider`，Applications、API Keys、Workflow Definitions 与 Runs 复用 durable owner。旧 User Workspace `QuotaSummary` 因没有 application 选择与读权限契约继续明确关闭；独立的开发测试态 Admin quota owner 已完成 policy / usage / provider attempt admission 后端，不偷换旧投影。dev / signed-test membership 与 `local_session_dev_test` 本地 membership 已可确定性复验；legacy OIDC integration token 因没有 external identity binding 仍失败关闭，不回退本地 owner。
 - 当前已有本地账户 / Web Session owner、开发测试态 session HTTP、deterministic Radish OIDC resource-server verifier，以及独立 browser Authorization Code + PKCE Relying Party；reviewed Radish client registration、真实 integration evidence、production token / session、secret resolver、deployment preflight 和 production admin 操作仍未完成。
 - [本地用户、角色与工作区成员管理（开发 / 测试态）v1](admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)已完成批次 A 至 E 并关闭。它复用既有 local identity repository，在 exact tenant / workspace 内提供成员目录、内建角色目录、三存储受控 mutation、显式 bootstrap CLI、七条 strict Admin HTTP、批准 Pencil、S7 User / Role React strict consumer、双数据库产品链、三视口、双标签与隐私审计；HTTP bootstrap、全局账户搜索、客户端 grants、自定义角色、账户安全 mutation 与 production IAM 继续关闭。
-- [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)已选为新的长期功能目标。设计提议复用现有 `UserAccount`、`LocalCredential` 与 `WebSession` owner，建立当前账户 session directory、exact revoke、revoke others，以及 credential replacement + source-bound local-password session revoke 原子链；当前等待项目所有者评审，未进入批次 A。
+- [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)已完成批次 A、B。现有 `UserAccount`、`LocalCredential` 与 `WebSession` 三存储 owner 已提供当前账户 session directory、exact revoke、revoke others，以及 credential replacement + source-bound local-password session revoke 原子链；下一步只进入 strict HTTP 与 local Web Session 授权。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。
 - [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成两条 Admin operation 的 schema、manual migration、read-only role、routed selector、分页、no-fallback、真实 PostgreSQL、HTTP/Web 与浏览器验收。
@@ -32,7 +32,7 @@
 
 ## 下一批开发方向
 
-1. 新顺位为本地账户凭证轮换与自助会话治理。当前只评审 owner、session cursor、credential replacement + source-bound revoke 原子语义、strict HTTP、Pencil 覆盖和停止线；设计通过前不进入批次 A 代码。
+1. 新顺位为本地账户凭证轮换与自助会话治理批次 C。memory 与双数据库 durable owner 已完成；当前只实施四条 strict HTTP、local-session-only actor、CSRF / Origin、recent authentication、current-password proof、confirmation、cookie 清理和稳定失败映射，不提前修改 Pencil / Web。
 2. `S7 R1` 七资源页面族、S7 User / Role 成员管理升级与 `S9 R1` Admin Quota Admission 均已完成功能纵向切片；不建立 S11，也不把目录管理并入 Provider / Profile / Route、quota 或 Pricing owner。
 3. `Radish OIDC Integration Test Runtime v1` deterministic resource-server 与 browser OIDC 本地批次均已完成；真实 Radish 联调继续 deferred，不阻塞 local identity Admin 产品链，也不为其提供目录或 grant。
 4. Provider Profile assignment 与 Model Route 的开发测试态受控配置已完成；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 只消费显式启用的不可变快照。不得从现有 Web 原地扩 production 配置。
