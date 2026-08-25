@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_pencil_approved_react_ready`
 
 ## 功能定位
 
@@ -154,6 +154,14 @@
 - 建立单一 strict consumer、session directory、exact selection、credential rotation 和跨标签 metadata-only invalidation。
 - 覆盖 loading、empty、expired、revoked、denied、unavailable、conflict、success、forced re-login 与窄屏顺序。
 
+Pencil 完成证据（2026-08-25）：
+
+- Family UI 正确设计源已新增 Desktop `pOLcz`、Narrow `LMi7H`、credential rotation danger state `n2O8A5` 与 Decision Record `DASE0`；四张根画板均无 placeholder，Pencil 全树布局检查无裁切、越界或循环尺寸问题。
+- Desktop 保持 session directory 单一主 owner，覆盖 current / other、active / expired / revoked、exact selected target，并把 local credential rotation 限制为右侧从属动作。
+- Narrow 固定 `current → other active → ended history → credential disclosure → bulk confirmation` 顺序；bulk danger sheet 显式列出 exact target set，并说明当前 session 保留。
+- danger state 使用空 input placeholder，展示当前 local-password session 会进入撤销集、OIDC session 保留、事务失败时旧 credential 与全部 session 不变，以及成功后的 cookie 清理和 forced re-login。
+- R21 记录五维评分 `0 / 2 / 2 / 1 / 2 = 7`、全状态矩阵、selection / cursor / confirmation / late response 失效、密码组件内存清理和敏感材料禁入边界。项目所有者已人工批准四张代表板与 R21；React / CSS 尚未实施。
+
 ### 批次 E：双数据库产品连续链与收口
 
 - SQLite 完成双标签、多个 local / OIDC session、单项撤销、revoke others、密码轮换、旧密码失败、新密码登录、服务重启恢复与隐私审计。
@@ -179,4 +187,4 @@
 
 ## 下一实现入口
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 C 已完成并保持停止线；下一步只进入批次 D，在现有 Authentication Gateway 页面族完成已批准范围的完整 Pencil 与 React strict consumer，不提前进入双数据库产品连续链或 production 能力。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 C 已完成，批次 D 的 Pencil 与人工评审已完成；下一步只实施 React strict consumer、状态测试与 Web production build，不提前进入双数据库产品连续链或 production 能力。

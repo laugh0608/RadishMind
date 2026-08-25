@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_c_completed_batch_d_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_pencil_approved_react_ready`
 
 对应功能设计：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](../features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)
 
@@ -120,9 +120,18 @@
 
 完成条件：
 
-- [ ] Pencil 代表面和 Decision Record 通过人工评审。
+- [x] Pencil 代表面和 Decision Record 通过人工评审。
 - [ ] strict consumer 与状态测试通过，Web production build 成功。
 - [ ] Desktop / Narrow 结构符合 Family UI 与无障碍边界。
+
+Pencil 完成证据（2026-08-25）：
+
+- 正确设计源 `docs/designs/radishmind-web-family-ui-v1.pen` 已在现有 Authentication Gateway 第二排页面族后新增 Desktop `pOLcz`、Narrow `LMi7H`、credential rotation danger state `n2O8A5` 与 Decision Record `DASE0`，未修改原 `scHoA` / `uR4Yd` / `SQPBB`。
+- Desktop 以 session directory 为唯一主区域，固定 current session、其它 active session、expired / revoked history、exact selected target 与从属 credential rotation；未增加 device、IP、User-Agent、全局账户或 session 搜索。
+- Narrow 采用真实纵向重排：current session 固定在前、ended history 收起、credential rotation 退为 disclosure，revoke others 使用 stacked danger confirmation，并明确当前 session 保持 active。
+- danger state 只显示空 password input placeholder，不放示例值或掩码值；显式展示 source-bound local-password session 影响、OIDC session 保留、原子失败不变、成功清 cookie 与 forced re-login handoff。
+- R21 固定五维评分 `0 / 2 / 2 / 1 / 2 = 7`、全状态覆盖、metadata-only invalidation、组件内存清理、敏感材料禁入边界与停止线；项目所有者已于 2026-08-25 人工批准，记录标记为 `OWNER APPROVED`。
+- 四张根画板均已移除 placeholder，并通过 Pencil `ctx.problems` 全树检查；没有裁切、越界或循环尺寸问题。React / CSS 尚未修改，下一准入是单一 strict consumer 与状态测试。
 
 ## 批次 E：双数据库产品连续链与收口
 
@@ -175,5 +184,5 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 A：领域合同与 memory 原子链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：strict HTTP 与 local session 授权。
-- [ ] 批次 D：Pencil 与 React strict consumer。
+- [ ] 批次 D：Pencil 已人工批准；React strict consumer 尚未开始。
 - [ ] 批次 E：双数据库产品连续链与专题收口。
