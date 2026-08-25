@@ -64,6 +64,13 @@
 5. 批次 C 已完成四条 strict HTTP、local-session-only actor、CSRF / Origin、recent-auth、current-password proof、confirmation、稳定失败与 cookie 清理语义；success / scope / stale / strict JSON / duplicate submission / zero-side-effect 和响应 / 日志敏感扫描均通过。下一步只进入批次 D，不提前实现双数据库产品连续链。
 6. 批次 D 已在现有 Authentication Gateway 页面族形成 Desktop `pOLcz`、Narrow `LMi7H`、credential rotation danger state `n2O8A5` 与 R21 Decision `DASE0`。四张根画板通过全树布局检查并获项目所有者人工批准，覆盖 current / other、active / expired / revoked、single / bulk confirmation、forced re-login、metadata-only invalidation 和密码易失边界；React / CSS 尚未开始。
 
+## 2026-08-26 明天事项
+
+1. 只进入批次 D 的 React 阶段：先对照已批准的 Desktop `pOLcz`、Narrow `LMi7H`、danger state `n2O8A5` 与现有 `localIdentityGateway.tsx` / `localIdentityConsumer.ts`，固定 Authentication Gateway 内的单一 owner、投影与组件边界，不建立 S11 或第二套 session / credential 状态机。
+2. 为四条现有 strict HTTP 实施单一 strict consumer：session directory、exact revoke、revoke others 与 credential rotation 均严格解析 canonical schema；密码、确认文本和 pending mutation 只保存在当前组件内存，不进入 URL、Storage、日志、跨标签 payload 或持久状态。
+3. 按批准设计覆盖 loading、empty、expired、revoked、denied、unavailable、conflict、success 与 forced re-login；actor / session / scope 变化、mutation 成功或组件离开时失效 cursor、选择、确认和迟到响应，跨标签只广播 metadata-only invalidation。
+4. 完成 consumer / 状态测试、Narrow 信息顺序与无横向溢出检查、敏感信息扫描和 Web production build 后停止。明天不进入批次 E，不启动 SQLite / PostgreSQL configured Server 产品连续链，也不打开 production auth、设备管理、MFA、恢复或全局 session console。
+
 ## 2026-08-19 今日评审
 
 1. 应用运行观测后续四项准入条件均未满足：没有真实跨页阻塞、没有统一 snapshot / cursor 语义、没有时间桶与性能预算、没有正式 quota / billing owner。评审结论已写回功能专题，不进入服务端 summary 实现。
