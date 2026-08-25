@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-08-23
+更新时间：2026-08-25
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)已完成批次 A 至 E，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。workspace-scoped 合同、canonical 四角色、三存储 administration owner、显式 one-shot bootstrap CLI、七条 strict Admin HTTP、批准 Pencil、React strict consumer、SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计均已关闭；不派生批次 F，也不开放 HTTP bootstrap、全局账户搜索、客户端任意 grants、自定义角色、真实 Radish 或 production IAM。下一轮回到[功能设计文档入口](features/README.md)选择新的长期产品目标；[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入继续保持 `no_entry`。
+1. 产品线：新选择的[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_design_proposed_review_required`。当前只评审现有 local identity owner 上的 session directory、exact / bulk revoke、credential replacement + source-bound revoke 原子语义、strict HTTP、Pencil 覆盖和五批停止线；项目所有者评审前不进入批次 A。本地成员管理专题保持关闭，[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入继续保持 `no_entry`。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。
@@ -70,7 +70,7 @@
 - 系统边界：[架构](radishmind-architecture.md)
 - 协议边界：[集成契约](radishmind-integration-contracts.md)
 - 能力状态：[能力矩阵](radishmind-capability-matrix.md)
-- 当前开发记录：[2026-W34 周志](devlogs/2026-W34.md)
+- 当前开发记录：[2026-W35 周志](devlogs/2026-W35.md)
 
 ## 停止线
 
