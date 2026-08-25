@@ -797,6 +797,28 @@ func localIdentityRepositoryError(err error) string {
 		return LocalIdentityFailureRecentAuthentication
 	case errors.Is(err, errLocalIdentityAdminBootstrapDenied):
 		return LocalIdentityFailureAdminBootstrapDenied
+	case errors.Is(err, errLocalIdentitySessionCursorInvalid):
+		return LocalIdentityFailureSessionCursorInvalid
+	case errors.Is(err, errLocalIdentitySessionScopeDenied):
+		return LocalIdentityFailureSessionScopeDenied
+	case errors.Is(err, errLocalIdentitySessionVersionConflict):
+		return LocalIdentityFailureSessionVersionConflict
+	case errors.Is(err, errLocalIdentitySessionRecentAuthentication):
+		return LocalIdentityFailureSessionRecentAuthentication
+	case errors.Is(err, errLocalIdentitySessionBulkRevokeConflict):
+		return LocalIdentityFailureSessionBulkRevokeConflict
+	case errors.Is(err, errLocalIdentityCredentialUnavailable):
+		return LocalIdentityFailureCredentialUnavailable
+	case errors.Is(err, errLocalIdentityCredentialCurrentInvalid):
+		return LocalIdentityFailureCredentialCurrentInvalid
+	case errors.Is(err, errLocalIdentityCredentialPolicyRejected):
+		return LocalIdentityFailureCredentialPolicyRejected
+	case errors.Is(err, errLocalIdentityCredentialReuseDenied):
+		return LocalIdentityFailureCredentialReuseDenied
+	case errors.Is(err, errLocalIdentityCredentialRotationConflict):
+		return LocalIdentityFailureCredentialRotationConflict
+	case errors.Is(err, errLocalIdentitySelfServiceUnavailable):
+		return LocalIdentityFailureSelfServiceUnavailable
 	case errors.Is(err, errLocalIdentityNotFound):
 		return LocalIdentityFailureNotFound
 	default:

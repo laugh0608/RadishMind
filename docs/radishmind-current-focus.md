@@ -38,12 +38,12 @@
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
 - 最新关闭产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。批次 A 至 E 已在现有 local identity owner 上完成 canonical 四角色、三存储管理 service、`0003` durable metadata / 顺序索引、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、已批准 S7 User / Role Pencil、单一 React strict consumer，以及 SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计；专题关闭，不打开全局账户搜索、自定义角色、真实 Radish 或 production IAM。
-- 2026-08-25 已选择[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)作为新长期产品目标，状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_design_proposed_review_required`。设计提议复用唯一 local identity owner，建立当前账户 session directory、exact revoke、revoke others 与 credential replacement + source-bound local-password session revoke 原子链；[高风险任务卡](task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)已建立，但项目所有者评审设计细节前不进入批次 A 代码。
+- 2026-08-25 已选择并批准[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)，状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_a_completed_batch_b_ready`。批次 A 已在唯一 local identity owner 上完成 self-service session summary / page、snapshot-bound cursor、exact revoke、revoke others 与 credential replacement + source-bound local-password session revoke memory 原子链；`121` 条分页、过期边界、ownership、recent-auth、CAS、password reuse、OIDC current session 保留、并发单胜者和零部分写入已有测试证据。下一步只进入批次 B 的 SQLite / PostgreSQL durable owner 与 query-plan，不提前注册 HTTP 或修改 Pencil / Web。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：当前只评审本地账户凭证轮换与自助会话治理的 owner、原子语义、strict HTTP、Pencil 覆盖、五批实施与停止线；评审通过后才把批次 A 设为可实施。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：本地账户凭证轮换与自助会话治理批次 A 已完成；当前下一步是批次 B，只把同构 session page、exact / bulk revoke 与 credential rotation aggregate 落到 SQLite / PostgreSQL，并先用 query-plan 证明是否需要最小顺序索引。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -57,10 +57,10 @@
 
 ## 2026-08-25 今日推进
 
-1. 已从四个一级产品面选择本地账户凭证轮换与自助会话治理，优先补齐注册 / 登录后的用户可感知安全闭环，不恢复普通只读 console、同层 gate-only 或生产 secret 历史链。
-2. 已建立功能专题与唯一高风险任务卡，固定 session directory、snapshot-bound cursor、exact / bulk revoke、credential replacement + source-bound revoke 原子语义、五批实施和负向边界提议。
-3. 代码反查确认现有 session revoke HTTP 只撤销当前 session，`ReplaceCredential` 与 `RevokeWebSession` 仍是独立原语；批次 A 必须先在同一 owner 中建立 aggregate transaction，不能用前端循环或多次单项 revoke 冒充原子成功。
-4. 下一步只进行项目所有者设计评审；批准后先实施批次 A 的领域合同与 memory 原子链，不并行修改 HTTP、数据库、Pencil 或 Web。
+1. 已从四个一级产品面选择并批准本地账户凭证轮换与自助会话治理，优先补齐注册 / 登录后的用户可感知安全闭环，不恢复普通只读 console、同层 gate-only 或生产 secret 历史链。
+2. 批次 A 已完成独立 capability interface、session summary / page / snapshot-bound cursor、exact revoke、revoke others、credential rotation result 与 memory 聚合事务；没有扩张 durable adapter 或注册 HTTP。
+3. `121` 条同时间戳分页、snapshot 过期边界、cursor owner / filter 绑定、跨账户 target、recent-auth、CAS、bulk / rotation 坏目标零部分写入、密码复用、当前 local / OIDC session 分流和四争用者并发单胜者已通过。
+4. 完整 `internal/httpapi` race、Platform `go test ./...`、`go vet ./...`、PostgreSQL tagged compile 及仓库 fast / full 门禁已通过；下一步只实施批次 B 的 SQLite / PostgreSQL 同构 owner、query-plan、原子 transaction、并发、重启和 no-fallback，不并行修改 HTTP、Pencil 或 Web。
 
 ## 2026-08-19 今日评审
 

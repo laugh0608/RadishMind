@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_design_proposed_review_required`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_a_completed_batch_b_ready`
 
 对应功能设计：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](../features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)
 
@@ -16,7 +16,7 @@
 - `UserAccount`、`LocalCredential`、`WebSession` 与 `ExternalIdentityBinding` 继续由现有 local identity repository 单一拥有。
 - 当前 `POST /v1/auth/sessions/{session_id}/revoke` 只允许撤销当前 session；现有 `ReplaceCredential` 与 `RevokeWebSession` 是彼此独立的 repository 原语，不能直接证明新产品语义已经成立。
 - 本任务只开放当前账户 self-service，不新增管理员账户禁用、代重置、全局 session 搜索、MFA、恢复或生产能力。
-- 功能专题的原子语义、路由提议、Pencil 覆盖级别和停止线必须先由项目所有者评审；评审前不得修改运行时代码。
+- 项目所有者已于 2026-08-25 批准功能专题的 owner、原子语义、路由提议、Pencil 覆盖级别和停止线，并授权批次 A 进入代码；批准不提前开放批次 B 以后的 HTTP、数据库、Pencil 或 Web 实施范围。
 
 ## 批次 A：领域合同与 memory 原子链
 
@@ -35,9 +35,17 @@
 
 完成条件：
 
-- [ ] owner、schema、cursor、effective state 与 aggregate contract 已落地。
-- [ ] memory 正向、负向、并发与原子性测试通过。
-- [ ] 精准 Go 测试、完整 Platform 测试、race 与 fast gate 通过。
+- [x] owner、schema、cursor、effective state 与 aggregate contract 已落地。
+- [x] memory 正向、负向、并发与原子性测试通过。
+- [x] 精准 Go 测试、完整 Platform 测试、race 与 fast gate 通过。
+
+完成证据（2026-08-25）：
+
+- `localIdentitySelfServiceSecurityRepository` 作为既有 local identity owner 的 capability interface，已由 `memoryLocalIdentityRepository` 实现；通用 repository interface、SQLite / PostgreSQL adapter 和 HTTP wiring 保持不变。
+- session summary / page / cursor、self-service actor、exact revoke、revoke others 与 credential rotation result 已落地；响应结构不包含 `user_id`、credential id、authentication source ref、digest、cookie、audit body、IP 或 User-Agent。
+- `121` 条同时间戳、三页 keyset、snapshot 过期边界、后插入排除、active / expired / revoked / all、cursor owner / state / limit / tamper、跨账户 target、recent authentication、CAS、当前 session 与其它 session 均已覆盖。
+- bulk revoke 与 credential rotation 都先构建并验证完整变更集再提交；损坏目标证明零部分写入。当前 local-password session 随旧 credential 失效，当前 OIDC session 保留；错误当前密码、密码策略、密码复用、credential unavailable 和四争用者并发单胜者已覆盖。
+- 验证通过：精准新增测试；`go test -race ./internal/httpapi/...`；`go test ./...`；`go vet ./...`；`go test -tags postgres ./internal/httpapi -run '^$'`；仓库 fast / full 门禁。
 
 ## 批次 B：SQLite / PostgreSQL durable owner
 
@@ -146,8 +154,8 @@ npm --prefix apps/radishmind-web run build
 - [x] 新长期功能目标已选择。
 - [x] owner、用户流程、数据边界、原子语义、批次和停止线已形成设计提议。
 - [x] 唯一高风险任务卡已建立。
-- [ ] 项目所有者已评审并批准批次 A 进入代码。
-- [ ] 批次 A：领域合同与 memory 原子链。
+- [x] 项目所有者已评审并批准批次 A 进入代码。
+- [x] 批次 A：领域合同与 memory 原子链。
 - [ ] 批次 B：SQLite / PostgreSQL durable owner。
 - [ ] 批次 C：strict HTTP 与 local session 授权。
 - [ ] 批次 D：Pencil 与 React strict consumer。

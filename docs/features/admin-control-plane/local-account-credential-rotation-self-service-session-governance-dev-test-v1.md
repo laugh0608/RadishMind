@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_design_proposed_review_required`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_a_completed_batch_b_ready`
 
 ## 功能定位
 
@@ -19,7 +19,7 @@
 - 密码凭证轮换、其它会话撤销与跨标签失效是注册 / 登录之后的直接用户闭环，不依赖 reviewed Radish client registration、真实 Provider、production secret 或上层项目挂载点。
 - 该能力涉及密码、会话、并发、API、数据库和浏览器隐私，必须先完成独立功能设计与高风险任务卡，不能作为现有成员管理批次 F 或普通 UI 小切片进入。
 
-## 待评审产品决策
+## 已批准产品决策
 
 - 当前本地 `user_id` 是 self-service scope 的唯一账户身份；session cookie 只恢复 actor，客户端不能提交或覆盖目标 `user_id`。
 - self-service session directory 只列出当前账户自己的 session。它不是管理员全局 session console，也不接受 login identifier、email、OIDC issuer / subject 或 workspace 作为账户搜索条件。
@@ -109,6 +109,15 @@
 - memory 覆盖超过 `100` 条同时间戳分页、snapshot-bound cursor、ownership、recent-auth、current / other session、bulk atomicity、password reuse、并发单胜者与零部分写入。
 - 不注册 HTTP，不修改 config、migration、Pencil 或 Web。
 
+完成证据（2026-08-25）：
+
+- 项目所有者已批准 owner、原子语义、HTTP 提议、Pencil 覆盖和停止线；代码采用独立 `localIdentitySelfServiceSecurityRepository` capability interface 接入既有 `memoryLocalIdentityRepository`，没有创建平行 identity、credential 或 session owner。
+- 已落地 `local_identity_self_service_session_summary.v1`、page、`snapshot_at`、filter-bound cursor、self-service actor，以及 exact revoke、revoke others、credential rotation 三类 canonical result。
+- memory session page 以 exact `user_id`、state、limit、`snapshot_at` 和 `created_at DESC + session_id DESC` 绑定 cursor；effective state 按快照计算，`121` 条同时间戳、多页过期边界、后插入 session 排除、owner / filter 漂移和敏感字段扫描已通过。
+- exact revoke 以 owner + expected version 执行；revoke others 在单锁中预构建全部目标后一次提交；credential rotation 在同一锁中验证 active account、active credential、当前密码与复用边界，再一起 supersede 旧 credential 并撤销全部 source-bound local-password session。当前 local session 会进入撤销集，当前 OIDC session 保持 active。
+- bulk 与 rotation 均覆盖坏目标导致的零部分写入；credential rotation 并发四争用者只有一个赢家。新增精准测试、完整 `internal/httpapi` race、完整 Platform 测试、`go vet`、PostgreSQL tagged compile 及仓库 fast / full 门禁已通过。
+- 批次 A 没有注册 HTTP、修改 config / migration / Pencil / React / CSS、增加 fixture / checker 或打开 production 能力；下一准入只进入批次 B 的双数据库 durable owner 与 query-plan 审查。
+
 ### 批次 B：SQLite / PostgreSQL durable owner
 
 - 实现与 memory 同构的稳定列表与原子 mutation；先通过 query plan 证明是否需要最小顺序索引。
@@ -152,4 +161,4 @@
 
 ## 下一实现入口
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。当前只完成设计提议与任务卡，等待项目所有者评审 owner、原子语义、HTTP 边界、UI 覆盖级别和停止线后，才能把状态推进为批次 A 可实施。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 已完成并保持停止线；下一步只实施批次 B 的 SQLite / PostgreSQL durable owner、query-plan、原子 transaction、并发、重启和 no-fallback，不提前注册 HTTP 或修改 Pencil / Web。
