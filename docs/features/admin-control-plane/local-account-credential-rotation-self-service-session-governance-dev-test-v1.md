@@ -2,13 +2,13 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_c_completed_batch_d_ready`
 
 ## 功能定位
 
 本功能在 RadishMind 已有本地账户、密码凭证、Web Session、三种开发测试态 repository 与 Authentication / Account surface 之上，为当前已登录账户提供自己的会话审查、受控会话撤销和本地密码凭证轮换。
 
-它补齐的是联合登录批次 A 至 D 与本地成员管理专题关闭后的身份安全缺口：当前页面只能看到当前会话，现有 `POST /v1/auth/sessions/{session_id}/revoke` 也只允许撤销当前会话；repository 虽已有 `ReplaceCredential`、`ReadWebSession` 与 `RevokeWebSession` 原语，却没有 user-scoped session directory，也没有“凭证替换与来源会话失效”的单一原子 owner。
+它补齐的是联合登录批次 A 至 D 与本地成员管理专题关闭后的身份安全缺口：专题启动时页面只能看到当前会话，原 `POST /v1/auth/sessions/{session_id}/revoke` 也只允许撤销当前会话；repository 虽已有 `ReplaceCredential`、`ReadWebSession` 与 `RevokeWebSession` 原语，却没有 user-scoped session directory，也没有“凭证替换与来源会话失效”的单一原子 owner。批次 A 至 C 已依次补齐 owner、双数据库和 strict HTTP，页面消费仍由批次 D 承接。
 
 本功能只处理当前账户自助安全操作。账户禁用、管理员代重置、账户恢复、MFA、生产 session store、真实 Radish 联调和 production auth 继续由后续独立目标承接。
 
@@ -67,7 +67,7 @@
 
 ## 开发测试态 HTTP 边界
 
-设计提议固定四条入口，实施前由批次 C 再核对 exact contract：
+批次 C 已固定四条入口的 exact contract：
 
 - `GET /v1/auth/sessions`：当前账户 session page，支持严格 state filter、limit 与 filter-bound cursor。
 - `POST /v1/auth/sessions/{session_id}/revoke`：撤销当前账户的 exact session，要求 expected version、recent authentication 与显式确认。
@@ -139,6 +139,15 @@
 - 扩展既有 session revoke 语义时保持 self ownership；旧 current-session logout 继续走 `POST /v1/auth/logout`。
 - 覆盖响应敏感字段扫描、错误 method、跨账户、stale version、重复提交和业务副作用为零。
 
+完成证据（2026-08-25）：
+
+- `GET /v1/auth/sessions`、exact revoke、revoke others 与 local credential rotate 已注册为四条 exact route；mutation body 分别固定为 `expected_record_version + confirmed`、`confirmed` 和 `current_password + new_password + session_impact_confirmed`，未知 / 重复字段、多份 JSON、非法或重复 query 与错误 method 均失败关闭。
+- Server 只从现有本地 session middleware 恢复 `local_session_dev_test` actor，并再次绑定 exact `user_id + current_session_id`；dev header、Bearer、active workspace 与 membership 不能形成 fallback。列表成功刷新 CSRF cookie，但不返回 credential id、authentication source ref、digest、audit ref、login identifier、cookie 或 password。
+- 三类 mutation 复用 exact Origin 与 double-submit CSRF；exact / bulk 要求十分钟近期认证，credential rotation 同时要求近期认证、当前密码 proof 与显式 session impact confirmation。跨账户或缺失 target 统一返回 `local_identity_session_scope_denied`，stale CAS、bulk conflict、credential unavailable / invalid / policy / reuse / conflict 均映射到稳定脱敏失败码。
+- exact revoke 只调用 owned-session repository operation；bulk 与 rotation 只调用各自 aggregate operation。撤销当前 session 或 local-password 当前 session 随 credential rotation 失效时同时清理 session / CSRF cookie；撤销其它 session、revoke others 或 OIDC 当前 session 轮换本地密码时不改写当前 session cookie。
+- HTTP 专项覆盖分页与 tamper cursor、跨账户、stale / duplicate CAS、bulk 重复提交零影响、current / other / OIDC cookie 分流、错误 / 复用 / 新密码、Origin / CSRF、recent-auth、strict JSON、响应与日志敏感字段扫描及失败后零业务副作用。定向 race、完整 Platform、`go vet` 与 PostgreSQL tagged compile 已通过。
+- 批次 C 未修改 config gate、migration、Pencil、React 或 CSS，未新增 MFA、恢复、管理员代重置、refresh token、OIDC upstream logout 或 production capability；下一准入只进入批次 D 的完整 Pencil 与 React strict consumer。
+
 ### 批次 D：Pencil 与 React strict consumer
 
 - 完成设计提议的 Authentication Gateway Desktop / Narrow / danger state，并在人工批准后实施。
@@ -170,4 +179,4 @@
 
 ## 下一实现入口
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A、B 已完成并保持停止线；下一步只实施批次 C 的四条 strict HTTP、local Web Session 授权、CSRF / Origin、recent authentication、current-password proof 与稳定失败映射，不提前修改 Pencil / Web。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 C 已完成并保持停止线；下一步只进入批次 D，在现有 Authentication Gateway 页面族完成已批准范围的完整 Pencil 与 React strict consumer，不提前进入双数据库产品连续链或 production 能力。

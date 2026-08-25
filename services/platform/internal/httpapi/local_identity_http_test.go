@@ -67,7 +67,8 @@ func TestServerWiresLocalIdentityHTTPModeAndCredentialedCORS(t *testing.T) {
 	registerResponse := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(registerResponse, register)
 	if registerResponse.Code != http.StatusCreated || server.localIdentityHTTPService == nil ||
-		server.localIdentityAdministrationService == nil || server.workspaceMembershipProvider == nil {
+		server.localIdentityAdministrationService == nil || server.localIdentitySelfServiceSecurityService == nil ||
+		server.workspaceMembershipProvider == nil {
 		t.Fatalf("server local identity wiring failed: status=%d body=%s", registerResponse.Code, registerResponse.Body.String())
 	}
 }
@@ -102,9 +103,15 @@ func newLocalIdentityHTTPTestFixture(repository localIdentityRepository, now tim
 		administration = newLocalIdentityAdministrationService(administrationRepository)
 		administration.now = func() time.Time { return now }
 	}
+	var selfServiceSecurity *localIdentitySelfServiceSecurityService
+	if selfServiceRepository, ok := repository.(localIdentitySelfServiceSecurityRepository); ok {
+		selfServiceSecurity = newLocalIdentitySelfServiceSecurityService(selfServiceRepository)
+		selfServiceSecurity.now = func() time.Time { return now }
+	}
 	server := &Server{
 		config: cfg, localIdentityHTTPService: service, localIdentityAdministrationService: administration,
-		workspaceMembershipProvider: newLocalWorkspaceMembershipProvider(repository),
+		localIdentitySelfServiceSecurityService: selfServiceSecurity,
+		workspaceMembershipProvider:             newLocalWorkspaceMembershipProvider(repository),
 	}
 	mux := http.NewServeMux()
 	registerLocalIdentityHTTPRoutes(mux, server)
@@ -120,6 +127,9 @@ func (fixture *localIdentityHTTPTestFixture) setNow(now time.Time) {
 	fixture.service.now = func() time.Time { return *fixture.now }
 	if fixture.server.localIdentityAdministrationService != nil {
 		fixture.server.localIdentityAdministrationService.now = func() time.Time { return *fixture.now }
+	}
+	if fixture.server.localIdentitySelfServiceSecurityService != nil {
+		fixture.server.localIdentitySelfServiceSecurityService.now = func() time.Time { return *fixture.now }
 	}
 }
 
@@ -235,11 +245,13 @@ func TestLocalIdentityHTTPNegativeSecurityMatrix(t *testing.T) {
 	fixture.handler.ServeHTTP(missingMutationCSRFResponse, missingMutationCSRF)
 	assertLocalIdentityError(t, missingMutationCSRFResponse, http.StatusForbidden, localIdentityCSRFInvalid)
 
-	wrongSessionRevoke := localIdentityHTTPJSONRequest(t, http.MethodPost, "/v1/auth/sessions/ses_0000000000000000/revoke", map[string]any{}, cookies)
+	wrongSessionRevoke := localIdentityHTTPJSONRequest(t, http.MethodPost, "/v1/auth/sessions/ses_0000000000000000/revoke", map[string]any{
+		"expected_record_version": 1, "confirmed": true,
+	}, cookies)
 	wrongSessionRevoke.Header.Set(localIdentityCSRFHeader, csrf)
 	wrongSessionRevokeResponse := httptest.NewRecorder()
 	fixture.handler.ServeHTTP(wrongSessionRevokeResponse, wrongSessionRevoke)
-	assertLocalIdentityError(t, wrongSessionRevokeResponse, http.StatusForbidden, localIdentitySessionOwnershipDenied)
+	assertLocalIdentityError(t, wrongSessionRevokeResponse, http.StatusForbidden, LocalIdentityFailureSessionScopeDenied)
 
 	account, err := fixture.repository.ReadAccount(context.Background(), registered.Account.UserID)
 	if err != nil {

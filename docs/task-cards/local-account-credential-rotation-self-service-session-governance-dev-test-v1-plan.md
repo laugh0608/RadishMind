@@ -2,7 +2,7 @@
 
 更新时间：2026-08-25
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_c_completed_batch_d_ready`
 
 对应功能设计：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](../features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)
 
@@ -14,7 +14,7 @@
 
 - 联合登录批次 A 至 D、本地成员管理批次 A 至 E 均已完成；真实 Radish 批次 E 仍为外部阻塞。
 - `UserAccount`、`LocalCredential`、`WebSession` 与 `ExternalIdentityBinding` 继续由现有 local identity repository 单一拥有。
-- 当前 `POST /v1/auth/sessions/{session_id}/revoke` 只允许撤销当前 session；现有 `ReplaceCredential` 与 `RevokeWebSession` 是彼此独立的 repository 原语，不能直接证明新产品语义已经成立。
+- 批次 C 前的 `POST /v1/auth/sessions/{session_id}/revoke` 只允许撤销当前 session；任务启动时 `ReplaceCredential` 与 `RevokeWebSession` 也是彼此独立的 repository 原语，不能直接证明新产品语义已经成立。
 - 本任务只开放当前账户 self-service，不新增管理员账户禁用、代重置、全局 session 搜索、MFA、恢复或生产能力。
 - 项目所有者已于 2026-08-25 批准功能专题的 owner、原子语义、路由提议、Pencil 覆盖级别和停止线，并授权批次 A 进入代码；批准不提前开放批次 B 以后的 HTTP、数据库、Pencil 或 Web 实施范围。
 
@@ -91,9 +91,18 @@
 
 完成条件：
 
-- [ ] exact method / path / query / header / body 与稳定 failure mapping 已固定。
-- [ ] 成功、scope、stale、CSRF / Origin、recent-auth、password、strict JSON 和零副作用测试通过。
-- [ ] HTTP 响应、错误和日志敏感字段扫描通过。
+- [x] exact method / path / query / header / body 与稳定 failure mapping 已固定。
+- [x] 成功、scope、stale、CSRF / Origin、recent-auth、password、strict JSON 和零副作用测试通过。
+- [x] HTTP 响应、错误和日志敏感字段扫描通过。
+
+完成证据（2026-08-25）：
+
+- 四条 route 已通过 `registerLocalIdentitySelfServiceSecurityHTTPRoutes` 接入既有 local identity HTTP gate；旧 `POST /v1/auth/logout` 仍独立撤销当前 session，exact revoke 不再复用旧的 current-only shortcut。
+- session page query 只接受单值 `state / limit / cursor`；mutation 禁止 query，要求 exact Origin、double-submit CSRF 与 strict JSON。exact revoke body 固定 `expected_record_version + confirmed`，revoke others 固定 `confirmed`，credential rotate 固定 `current_password + new_password + session_impact_confirmed`。
+- `Server` 显式要求 repository 提供 `localIdentitySelfServiceSecurityRepository` capability，并只从 `local_session_dev_test` middleware 的 current user / session / `last_verified_at` 构造 actor；dev header、Bearer、workspace 与 membership 均不能替代。所有 domain failure 使用专题稳定码与脱敏状态映射，contract body failure 沿用共享 `INVALID_JSON` / local payload 边界。
+- 成功链覆盖 snapshot-bound page、tamper cursor、owned exact revoke、current exact revoke、revoke others、local-password current rotation 与 OIDC current rotation。只有 current session 实际失效时清 session / CSRF cookie；其它 mutation 不写当前 session cookie。
+- 负向链覆盖跨账户与缺失 target 同码、stale / duplicate CAS、错误 method、非法 / 重复 query、Origin / CSRF、unknown / duplicate field、多份 JSON、未确认、stale recent-auth、错误密码、密码复用及失败零业务副作用；响应和 `logRequestTrace` 扫描未出现 password、cookie、credential id / digest、authentication source、audit ref 或 login identifier。
+- 验证通过：self-service HTTP 精准测试、完整 `internal/httpapi`、定向 race、完整 Platform `go test ./...`、`go vet ./...` 与 PostgreSQL tagged compile。批次 C 未修改 Pencil、React、CSS、migration 或生产 gate。
 
 ## 批次 D：Pencil 与 React strict consumer
 
@@ -165,6 +174,6 @@ npm --prefix apps/radishmind-web run build
 - [x] 项目所有者已评审并批准批次 A 进入代码。
 - [x] 批次 A：领域合同与 memory 原子链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
-- [ ] 批次 C：strict HTTP 与 local session 授权。
+- [x] 批次 C：strict HTTP 与 local session 授权。
 - [ ] 批次 D：Pencil 与 React strict consumer。
 - [ ] 批次 E：双数据库产品连续链与专题收口。

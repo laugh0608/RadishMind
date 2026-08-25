@@ -25,7 +25,6 @@ const (
 	localIdentityCurrentSessionRoute            = "/v1/auth/session"
 	localIdentityCurrentAccountRoute            = "/v1/auth/account"
 	localIdentityLogoutRoute                    = "/v1/auth/logout"
-	localIdentitySessionRevokeRoute             = "/v1/auth/sessions/{session_id}/revoke"
 	localIdentityExternalIdentityRevokeRoute    = "/v1/auth/external-identities/{binding_id}/revoke"
 	localIdentityLinkRecentAuthenticationMaxAge = 10 * time.Minute
 
@@ -45,7 +44,6 @@ const (
 	localIdentityAuthenticationFailed    = "LOCAL_IDENTITY_AUTHENTICATION_FAILED"
 	localIdentityAuthenticationRequired  = "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED"
 	localIdentityAlreadyAuthenticated    = "LOCAL_IDENTITY_ALREADY_AUTHENTICATED"
-	localIdentitySessionOwnershipDenied  = "LOCAL_IDENTITY_SESSION_OWNERSHIP_DENIED"
 	localIdentityBindingOwnershipDenied  = "LOCAL_IDENTITY_EXTERNAL_IDENTITY_OWNERSHIP_DENIED"
 	localIdentityLastLoginMethodDenied   = "LOCAL_IDENTITY_LAST_LOGIN_METHOD_REMOVAL_DENIED"
 	localIdentityBindingVersionConflict  = "LOCAL_IDENTITY_EXTERNAL_IDENTITY_VERSION_CONFLICT"
@@ -178,8 +176,8 @@ func registerLocalIdentityHTTPRoutes(mux *http.ServeMux, server *Server) {
 	mux.HandleFunc("GET "+localIdentityCurrentSessionRoute, server.handleLocalIdentityCurrentSession)
 	mux.HandleFunc("GET "+localIdentityCurrentAccountRoute, server.handleLocalIdentityCurrentAccount)
 	mux.HandleFunc("POST "+localIdentityLogoutRoute, server.handleLocalIdentityLogout)
-	mux.HandleFunc("POST "+localIdentitySessionRevokeRoute, server.handleLocalIdentitySessionRevoke)
 	mux.HandleFunc("POST "+localIdentityExternalIdentityRevokeRoute, server.handleLocalIdentityExternalIdentityRevoke)
+	registerLocalIdentitySelfServiceSecurityHTTPRoutes(mux, server)
 	registerLocalIdentityOIDCHTTPRoutes(mux, server)
 	registerLocalIdentityAdministrationHTTPRoutes(mux, server)
 }
@@ -451,24 +449,13 @@ func (server *Server) handleLocalIdentityExternalIdentityRevoke(writer http.Resp
 
 func (server *Server) handleLocalIdentityLogout(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityLogoutRoute)
-	server.revokeCurrentLocalIdentitySession(writer, request, trace, "logout")
+	server.revokeCurrentLocalIdentitySession(writer, request, trace)
 }
 
-func (server *Server) handleLocalIdentitySessionRevoke(writer http.ResponseWriter, request *http.Request) {
-	trace := newRequestTrace(request, localIdentitySessionRevokeRoute)
-	server.revokeTargetLocalIdentitySession(writer, request, trace, "revoke", strings.TrimSpace(request.PathValue("session_id")))
-}
-
-func (server *Server) revokeCurrentLocalIdentitySession(writer http.ResponseWriter, request *http.Request, trace requestTrace, action string) {
-	server.revokeTargetLocalIdentitySession(writer, request, trace, action, "")
-}
-
-func (server *Server) revokeTargetLocalIdentitySession(
+func (server *Server) revokeCurrentLocalIdentitySession(
 	writer http.ResponseWriter,
 	request *http.Request,
 	trace requestTrace,
-	action string,
-	targetSessionID string,
 ) {
 	service, ok := server.requireLocalIdentityHTTP(writer, trace)
 	if !ok {
@@ -482,17 +469,13 @@ func (server *Server) revokeTargetLocalIdentitySession(
 	if !service.requireAuthenticatedWriteRequest(writer, request, trace, requestSession.csrfToken, requestSession.csrfCookieValid) {
 		return
 	}
-	if targetSessionID != "" && targetSessionID != requestSession.sessionID {
-		server.writeLocalIdentityError(writer, trace, localIdentitySessionOwnershipDenied)
-		return
-	}
 	var input struct{}
 	if !server.decodeJSONRequestBody(writer, request, trace, &input, jsonRequestBodyOptions{
 		maxBytes: 1024, rejectUnknownFields: true, rejectDuplicateFields: true,
 	}) {
 		return
 	}
-	auditRef := "auth:" + action + ":" + trace.requestID
+	auditRef := "auth:logout:" + trace.requestID
 	_, err := service.repository.RevokeWebSession(request.Context(), requestSession.sessionID, requestSession.sessionVersion, service.nowUTC(), auditRef)
 	if err != nil && !errors.Is(err, errLocalIdentityVersionConflict) {
 		server.writeLocalIdentityError(writer, trace, localIdentityServiceUnavailable)
@@ -874,8 +857,6 @@ func localIdentityHTTPErrorDefinition(code string) (int, string, string) {
 		return http.StatusUnauthorized, "authentication_error", "an active local session is required"
 	case localIdentityAlreadyAuthenticated:
 		return http.StatusConflict, "authentication_error", "the request already has an active local session"
-	case localIdentitySessionOwnershipDenied:
-		return http.StatusForbidden, "permission_error", "the session cannot be revoked by this actor"
 	case localIdentityBindingOwnershipDenied:
 		return http.StatusForbidden, "permission_error", "the external identity cannot be changed by this actor"
 	case localIdentityLastLoginMethodDenied:
