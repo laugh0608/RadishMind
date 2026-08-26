@@ -75,6 +75,13 @@
 7. in-app Browser 完成 `1440×900`、`720×900`、`390×844`、危险确认、forced re-login、双标签 metadata-only logout、console / network / URL / storage source / cookie 属性审计。真实窄屏修复 grid implicit row 压缩与 account trigger stacking 两个 CSS 根因，复验后三视口无横向溢出。
 8. Platform、Vite、浏览器标签、PostgreSQL 容器、隔离 SQLite 与 cookie jar 均已清理，`4100`、`7100`、`55439` 无监听。专题关闭；production auth、MFA、恢复、设备管理、全局 session console 与真实 Radish 继续关闭。
 
+## 2026-08-27 明日事项
+
+1. 先进行产品顺位评审，不直接延长账户安全专题或启动代码批次。以[功能设计文档入口](features/README.md)的四个正式产品面为候选池，核对当前焦点、能力矩阵和各专题停止线。
+2. 为候选目标比较真实用户闭环、canonical owner、现有事实基础、外部依赖、可在本仓库形成的端到端证据，以及是否只是已关闭专题的同层小切片或 gate-only 延伸；收敛出不超过三个候选。
+3. 由项目所有者批准一个新的长期目标后，先新建或更新对应功能设计，明确用户、owner、协议 / 数据边界、停止线、批次与验收；只有高风险或跨模块实施再建立独立任务卡，不先写实现。
+4. 账户安全批次 F、S11、production auth、MFA、恢复、设备管理、全局 session console 和缺少 reviewed 注册条件的真实 Radish 联调继续不做；没有新目标获批时不以治理文件或普通只读页面填充排期。
+
 ## 2026-08-19 今日评审
 
 1. 应用运行观测后续四项准入条件均未满足：没有真实跨页阻塞、没有统一 snapshot / cursor 语义、没有时间桶与性能预算、没有正式 quota / billing owner。评审结论已写回功能专题，不进入服务端 summary 实现。

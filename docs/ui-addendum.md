@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-08-25
+更新时间：2026-08-26
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -102,7 +102,7 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - S9 / S10 原 R1 的首次返工只把独立米棕色板映射回项目 token，未改变宽 hero、等权卡片、稀疏工作面和另一套侧栏，因此被人工退回；Visual R2 虽完成连续 Workbench 结构归位，又把上下文、任务、owner 与 boundary 全部处理成硬方形，仍未继承 S7 / S8 和 `reference-ui` 的形态语言，因此再次被退回。2026-08-10 已完成 Visual R3：连续窗格与表格事实行保持方正发丝边界，业务表面使用 `8–11px` 职责圆角，紧凑控件使用 `7–8px`，标签使用全圆角。S9 与 S10 Visual R3 已于 2026-08-12 人工通过；已有 React 功能证据仍不得冒充逐项采用 Visual R3。
 - 结构化输入局部稿的 Visual R3 虽满足上述圆角层级，字段区仍像用整页横线切出的静态列表，因此继续修订为 Visual R4。类型化编辑器使用带留白层级的表单画布：长短字段按任务关系非对称编排，文本、数值和布尔值呈现真实控件，错误与帮助文字归属于精确输入；不可变合同、authority 与易失值边界继续分离。Visual R4 已于 2026-08-10 通过人工复核并冻结，但不表示共享 React editor 已实现。
 - Gateway Provider Attempt Visual R1 继续复用 S7 / S5 的连续 Workbench：桌面使用资源路径、单一主 owner 和一个 evidence rail，窄屏固定 `context → plan → attempts → cost / boundary`；主 / 备 target 主要由顺序、角色文字和连续 attempt 行区分，只有当前审查对象使用墨蓝选中轨。失败、quota 阻断与 partial cost 同时使用稳定文字、符号和语义状态，不依赖颜色。七个根节点已完成结构与实际渲染复核，并于 2026-08-13 获得人工视觉批准；批准不表示 React 已采用。
-- Authentication Self-Service Security Visual R1 延续 Authentication Gateway 的简化 shell 与 Family UI token：Desktop `pOLcz` 把 session directory 作为唯一主对象，Narrow `LMi7H` 以纵向 bulk confirmation 重排，danger state `n2O8A5` 单独承接 credential rotation 与 forced re-login，Decision `DASE0` 固定五维评分、隐私边界和状态失效规则。四张根画板已完成结构与实际渲染复核，并于 2026-08-25 获得人工视觉批准；2026-08-26 React 已在既有 Gateway owner 内采用该结构，以单一 strict consumer、语义 token、`900px` / `620px` 响应式边界和 metadata-only invalidation 落地。真实三视口与浏览器隐私审计仍归属批次 E，不由本次静态实现声明覆盖。
+- Authentication Self-Service Security Visual R1 延续 Authentication Gateway 的简化 shell 与 Family UI token：Desktop `pOLcz` 把 session directory 作为唯一主对象，Narrow `LMi7H` 以纵向 bulk confirmation 重排，danger state `n2O8A5` 单独承接 credential rotation 与 forced re-login，Decision `DASE0` 固定五维评分、隐私边界和状态失效规则。四张根画板已完成结构与实际渲染复核，并于 2026-08-25 获得人工视觉批准；2026-08-26 React 已在既有 Gateway owner 内采用该结构，以单一 strict consumer、语义 token、`900px` / `620px` 响应式边界和 metadata-only invalidation 落地。同日 in-app Browser 完成 `1440×900`、`720×900`、`390×844`、双标签、console / network / URL / storage / cookie 审计；真实窄屏发现并修复单列 grid implicit row 压缩裁切 session row，以及 account trigger 被 sticky mobile navigation 覆盖两个根因。复验后三视口无横向溢出、账户入口可命中，Visual R1 的 React 采用与浏览器验收均已关闭；这些证据仍只属于开发 / 测试态，不构成 production auth、设备管理或全局 session console。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
 

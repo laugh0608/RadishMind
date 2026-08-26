@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-08-23
+更新时间：2026-08-26
 
 ## 核心定义
 
@@ -21,7 +21,7 @@
 - RadishMind 拥有服务自身的本地账户、凭证、Web Session、角色、权限和工作区成员关系；同时可以由 Radish 注册为 OIDC application/client，以 `(issuer, subject)` 把 Radish 外部身份绑定到本地 `user_id`。RadishMind 当前不成为第二个 OIDC issuer，也不读取或复制 Radish 身份数据库与业务授权真相。参考 `Radish` 的部署、数据库和运维方式不代表默认引入 `.NET` / ASP.NET Core；RadishMind 后端继续使用 `Go` 承载 control plane / gateway / API 服务，`Python` 只保留在模型、评测和 AI 生态强相关链路，`TypeScript/Vite` 承载前端。
 - `RadishFlow` 和 `Radish` 是优先接入对象与产品参考，但不是 RadishMind 平台本体开发的阻塞条件。上层暂时没有稳定 UI、command 或 API 挂载点时，本仓库应继续推进可离线验证、可复用到后续真实接入的用户端、workflow runtime、control plane 和模型网关功能；不把等待上层接线写成产品停滞理由。
 - 当前首要用户是 Radish 体系内部开发者和团队成员，首要产品任务是创建、校验、保存、恢复和审查 Workflow；Gateway 是第一工程支撑面，Admin 只推进支撑 Workflow / Gateway 所需能力。
-- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；其中 dev header / signed-test assertion 只证明 legacy 授权、资源绑定和零副作用边界。联合身份专题批次 A 至 D 已独立建立本地账户、Web Session、durable membership、local session actor 链、确定性 OIDC 浏览器登录、Web gateway 与当前账户 owner；本地成员管理专题批次 A 至 E 又在同一 owner 上完成 S7 workspace 成员 / 角色管理。真实 Radish 联调和生产授权尚未成立。
+- User Workspace 的五条只读 operation 与 47 条人类交互式 mutation 已在开发 / 测试态共享 verified identity、active workspace 和唯一 membership decision；其中 dev header / signed-test assertion 只证明 legacy 授权、资源绑定和零副作用边界。联合身份专题批次 A 至 D 已独立建立本地账户、Web Session、durable membership、local session actor 链、确定性 OIDC 浏览器登录、Web gateway 与当前账户 owner；本地成员管理专题批次 A 至 E 又在同一 owner 上完成 S7 workspace 成员 / 角色管理；本地账户安全专题批次 A 至 E 进一步完成当前账户 session directory、exact / bulk revoke、credential replacement 与 source-bound local-password session revoke 原子链、双数据库产品链和真实浏览器验收。以上仍是开发 / 测试态本地 owner，不代表真实 Radish 联调、生产授权、MFA、恢复、设备管理或全局 session 管理成立。
 - 四个一级产品面保持不变；`Image Generation / Artifact Return` 是横切适配能力，不作为当前第五条一级产品主线。
 - `Radish` 保持 Radish 自身身份、成员关系和上层业务真相；RadishMind 保持平台本地账户、角色、工作区成员关系，以及 Workflow draft / version、run record、trace、usage 和 audit 运行数据。两套身份通过显式 external identity binding 联合，不以同步数据库、email 自动合并或 claim 隐式授权混为同一真相源。
 

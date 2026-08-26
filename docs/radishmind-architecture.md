@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-08-23
+更新时间：2026-08-26
 
 ## 架构目标
 
@@ -57,7 +57,7 @@ Storage adapter 历史状态锚点作为 checker 契约引用保留，不代表�
 - Provider Profile / Model Route 批次 A 至 E 已形成独立 Go 领域、memory / SQLite / PostgreSQL 三模式 repository、verified Admin HTTP 和 Admin Web：Admin 以 `tenant + workspace + environment + configuration` 原子持有 draft / candidate / review / activation，既有 runtime inventory 继续持有 provider/profile 事实；approval 不改变 active snapshot，activation / rollback 以事务 generation CAS 生成新 generation。Gateway 只通过只读 snapshot provider 在请求开始时固定 generation / digest，不读取 Admin draft / review repository，也不按请求回退静态 provider；Request History 只保存脱敏快照谱系。
 - Application request quota 使用独立 `tenant + workspace + environment + application` owner，不并入 Provider / Route 配置或旧 tenant-only read projection。Admin 以专用 read / write permission 和 policy CAS 管理 UTC 日上限；API Key 认证恢复可信作用域后，bridge wrapper 在真实 provider attempt 前调用 repository 原子 admission。admitted 后的 provider 失败不退款，policy missing、store unavailable、重复 request id 或超额均失败关闭；memory / SQLite / PostgreSQL 语义一致，runtime 不执行 DDL。
 - Workspace-scoped read authorization 由 verified identity、active workspace selection、共享 `WorkspaceMembershipProvider`、逐资源 permission 和 durable owner scope 共同组成。active workspace 不是 membership proof；membership denial、过期、workspace mismatch 或 permission denial 必须在业务 repository 前失败关闭。Web 运营收件箱只在四类已授权快照之上做易失确定性投影，不新增跨资源存储或业务真相源。
-- 本地登录和 OIDC 登录最终统一进入 RadishMind Web Session。OIDC client 使用 Authorization Code + PKCE、`state`、`nonce` 和受限 callback；`ExternalIdentityBinding` 以 `(issuer, subject)` 唯一映射本地 `user_id`，禁止按 email 自动合并。业务 handler 只消费本地 session actor context 与本地 membership decision，不直接解析浏览器 token 或 Radish role claim。
+- 本地登录和 OIDC 登录最终统一进入 RadishMind Web Session。OIDC client 使用 Authorization Code + PKCE、`state`、`nonce` 和受限 callback；`ExternalIdentityBinding` 以 `(issuer, subject)` 唯一映射本地 `user_id`，禁止按 email 自动合并。业务 handler 只消费本地 session actor context 与本地 membership decision，不直接解析浏览器 token 或 Radish role claim。当前账户安全自助治理继续归属同一 RadishMind Identity owner：开发 / 测试态由 user-scoped session directory 提供稳定分页和有效状态快照，exact revoke 使用目标版本 CAS，revoke others 与 credential replacement + source-bound local-password session revoke 分别由服务端 aggregate transaction 原子提交；React 只消费四条 local-session-only strict HTTP，并以 metadata-only 信号失效跨标签投影。该边界不建立管理员全局 session owner、设备真相源、MFA / 恢复流程或 production session store。
 
 ### 3. `Model Gateway / API Distribution`
 
