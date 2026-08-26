@@ -22,6 +22,8 @@ import {
   type LocalIdentityAccountProfile,
   type LocalIdentityConsumerConfig,
 } from "./localIdentityConsumer.ts";
+import { LocalIdentitySelfServiceSecurityPanel } from "./localIdentitySelfServiceSecurityPanel.tsx";
+import { localIdentitySelfServiceSecurityScopeKey } from "./localIdentitySelfServiceSecurityState.ts";
 
 type LocalIdentityGatewayState =
   | { status: "probing" }
@@ -49,6 +51,7 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
   const [accountAction, setAccountAction] = useState<"" | "link" | "logout" | "revoke">("");
   const [accountActionError, setAccountActionError] = useState("");
+  const [securityInvalidation, setSecurityInvalidation] = useState(0);
 
   const refresh = useCallback(async () => {
     if (config.mode !== "local_identity_dev") return;
@@ -95,10 +98,27 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
     if (config.mode !== "local_identity_dev" || typeof BroadcastChannel === "undefined") return;
     const channel = new BroadcastChannel("radishmind-local-identity-v1");
     channel.onmessage = (event: MessageEvent<unknown>) => {
-      if (isSessionChangedEvent(event.data)) void refresh();
+      if (isSessionChangedEvent(event.data)) {
+        setSecurityInvalidation((current) => current + 1);
+        void refresh();
+      }
     };
     return () => channel.close();
   }, [config.mode, refresh]);
+
+  useEffect(() => {
+    if (!accountPanelOpen) return;
+    const closeForRouteChange = () => {
+      setAccountPanelOpen(false);
+      setAccountActionError("");
+    };
+    window.addEventListener("hashchange", closeForRouteChange);
+    window.addEventListener("popstate", closeForRouteChange);
+    return () => {
+      window.removeEventListener("hashchange", closeForRouteChange);
+      window.removeEventListener("popstate", closeForRouteChange);
+    };
+  }, [accountPanelOpen]);
 
   if (config.mode !== "local_identity_dev") return <>{children}</>;
   if (state.status === "probing") return <LocalIdentityLoading />;
@@ -149,6 +169,17 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
     }
   }
 
+  function handleAuthenticationRequired() {
+    setAccountPanelOpen(false);
+    setAccountAction("");
+    setAccountActionError("");
+    setState({ status: "unauthenticated" });
+  }
+
+  function handleSessionChanged() {
+    broadcastSessionChanged();
+  }
+
   const contextValue: LocalIdentityContextValue = {
     config,
     profile: state.profile,
@@ -165,42 +196,33 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
           type="button"
           className="local-identity-account-trigger"
           aria-expanded={accountPanelOpen}
-          onClick={() => setAccountPanelOpen((open) => !open)}
+          onClick={() => {
+            setAccountActionError("");
+            setAccountPanelOpen(true);
+          }}
+          disabled={accountPanelOpen}
         >
           <span aria-hidden="true">{state.profile.account.displayName.slice(0, 1).toUpperCase()}</span>
           <strong>{state.profile.account.displayName}</strong>
           <small>{state.profile.session.authenticationMethod === "oidc" ? "Radish OIDC" : "Local session"}</small>
         </button>
         {accountPanelOpen ? (
-          <div className="local-identity-account-panel">
-            <header>
-              <p className="eyebrow">Account security · development/test</p>
-              <strong>{state.profile.account.displayName}</strong>
-              <small>{state.profile.account.userId}</small>
-            </header>
-            <dl>
-              <div><dt>Session</dt><dd>{state.profile.session.authenticationMethod}</dd></div>
-              <div><dt>External identities</dt><dd>{state.profile.externalIdentities.filter((item) => item.lifecycleState === "active").length}</dd></div>
-              <div><dt>Local grants</dt><dd>{state.profile.roleAssignments.filter((item) => item.lifecycleState === "active").length}</dd></div>
-            </dl>
-            {accountActionError ? <p className="local-identity-inline-error" role="alert">{accountActionError}</p> : null}
-            <div className="local-identity-account-actions">
-              <a href="#admin-user-directory" onClick={() => setAccountPanelOpen(false)}>Open identity owner</a>
-              <button
-                type="button"
-                onClick={() => void handleLinkOIDC()}
-                disabled={!state.profile.capabilities.oidcEnabled || !state.profile.capabilities.recentAuthentication || accountAction !== ""}
-              >
-                {accountAction === "link" ? "Opening…" : "Link Radish identity"}
-              </button>
-              <button type="button" onClick={() => void handleLogout()} disabled={accountAction !== ""}>
-                {accountAction === "logout" ? "Signing out…" : "Sign out"}
-              </button>
-            </div>
-            <p className="local-identity-account-boundary">
-              Session credentials stay in HttpOnly cookies. Upstream claims never become local grants.
-            </p>
-          </div>
+          <LocalIdentitySelfServiceSecurityPanel
+            key={localIdentitySelfServiceSecurityScopeKey(state.profile, securityInvalidation)}
+            config={config}
+            profile={state.profile}
+            onClose={() => {
+              setAccountPanelOpen(false);
+              setAccountActionError("");
+            }}
+            onRefreshProfile={refresh}
+            onAuthenticationRequired={handleAuthenticationRequired}
+            onSessionChanged={handleSessionChanged}
+            onLinkOIDC={handleLinkOIDC}
+            onLogout={handleLogout}
+            accountAction={accountAction}
+            accountActionError={accountActionError}
+          />
         ) : null}
       </aside>
     </LocalIdentityContext.Provider>

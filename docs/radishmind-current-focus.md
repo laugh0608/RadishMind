@@ -38,12 +38,12 @@
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
 - 最新关闭产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。批次 A 至 E 已在现有 local identity owner 上完成 canonical 四角色、三存储管理 service、`0003` durable metadata / 顺序索引、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、已批准 S7 User / Role Pencil、单一 React strict consumer，以及 SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计；专题关闭，不打开全局账户搜索、自定义角色、真实 Radish 或 production IAM。
-- 2026-08-25 已选择并批准[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)，状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_pencil_approved_react_ready`。批次 A、B 已完成三存储领域合同、ordered index 与 durable 原子链；批次 C 已固定四条 strict HTTP。批次 D 的 Desktop `pOLcz`、Narrow `LMi7H`、danger state `n2O8A5` 与 R21 Decision `DASE0` 已通过人工设计评审；下一步只进入 React strict consumer、状态测试与 Web production build，不提前进入双数据库产品连续链或 production 能力。
+- [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)已推进到 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`。批次 A 至 C 的三存储 owner、ordered index、durable 原子链与四条 strict HTTP 继续成立；批次 D 已完成人工批准的 Desktop `pOLcz`、Narrow `LMi7H`、danger state `n2O8A5`、R21 Decision `DASE0`、单一 React strict consumer、状态测试和 production build。下一实现入口是批次 E 的双数据库产品连续链与真实浏览器审计；本日已停在该批次之前。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：本地账户凭证轮换与自助会话治理批次 A 至 C 已完成，批次 D 的 Desktop / Narrow / danger-state 与 R21 已人工批准；当前下一步是 React 单一 strict consumer、状态测试与 production build。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：本地账户凭证轮换与自助会话治理批次 A 至 D 已完成；下一实现入口是批次 E 的 SQLite / PostgreSQL configured Server 连续链、三视口和隐私审计。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -62,14 +62,14 @@
 3. `121` 条同时间戳分页、snapshot 过期边界、cursor owner / filter 绑定、跨账户 target、recent-auth、CAS、bulk / rotation 坏目标零部分写入、密码复用、当前 local / OIDC session 分流和四争用者并发单胜者已通过。
 4. 批次 B 已完成 SQLite / PostgreSQL 同构 owner；只追加 `0004_local_identity_self_service_sessions` 与 ordered index。SQLite / PostgreSQL query-plan、并发 CAS、数据库冲突整事务回滚、v3 / v1 → v4、重启、受限角色、rollback / reapply 与 no-fallback 已通过。
 5. 批次 C 已完成四条 strict HTTP、local-session-only actor、CSRF / Origin、recent-auth、current-password proof、confirmation、稳定失败与 cookie 清理语义；success / scope / stale / strict JSON / duplicate submission / zero-side-effect 和响应 / 日志敏感扫描均通过。下一步只进入批次 D，不提前实现双数据库产品连续链。
-6. 批次 D 已在现有 Authentication Gateway 页面族形成 Desktop `pOLcz`、Narrow `LMi7H`、credential rotation danger state `n2O8A5` 与 R21 Decision `DASE0`。四张根画板通过全树布局检查并获项目所有者人工批准，覆盖 current / other、active / expired / revoked、single / bulk confirmation、forced re-login、metadata-only invalidation 和密码易失边界；React / CSS 尚未开始。
+6. 批次 D 已在现有 Authentication Gateway 页面族完成 Desktop `pOLcz`、Narrow `LMi7H`、credential rotation danger state `n2O8A5` 与 R21 Decision `DASE0` 的 React 采用。单一 strict consumer 严格消费四条 canonical route，security scope 使用 generation / abort 拒绝迟到响应，跨标签只发 metadata-only invalidation；password 和 confirmation 只保留在组件内存并在所有退出路径清理。Web `398/398`、production build、Platform `internal/httpapi` 普通测试和 race 均已通过。
 
-## 2026-08-26 明天事项
+## 2026-08-26 今日完成
 
-1. 只进入批次 D 的 React 阶段：先对照已批准的 Desktop `pOLcz`、Narrow `LMi7H`、danger state `n2O8A5` 与现有 `localIdentityGateway.tsx` / `localIdentityConsumer.ts`，固定 Authentication Gateway 内的单一 owner、投影与组件边界，不建立 S11 或第二套 session / credential 状态机。
-2. 为四条现有 strict HTTP 实施单一 strict consumer：session directory、exact revoke、revoke others 与 credential rotation 均严格解析 canonical schema；密码、确认文本和 pending mutation 只保存在当前组件内存，不进入 URL、Storage、日志、跨标签 payload 或持久状态。
-3. 按批准设计覆盖 loading、empty、expired、revoked、denied、unavailable、conflict、success 与 forced re-login；actor / session / scope 变化、mutation 成功或组件离开时失效 cursor、选择、确认和迟到响应，跨标签只广播 metadata-only invalidation。
-4. 完成 consumer / 状态测试、Narrow 信息顺序与无横向溢出检查、敏感信息扫描和 Web production build 后停止。明天不进入批次 E，不启动 SQLite / PostgreSQL configured Server 产品连续链，也不打开 production auth、设备管理、MFA、恢复或全局 session console。
+1. 在现有 Authentication Gateway 内完成单一 self-service security owner，落地 session directory、exact revoke、aggregate revoke others 与 credential rotation；没有建立 S11、device owner 或第二套 session / credential 状态机。
+2. strict consumer 严格校验 canonical schema、稳定 failure boundary 和 actor scope；state projection 将 current / other active / ended 分组，generation / abort 管理迟到响应，mutation 和跨标签 metadata-only signal 失效旧 cursor、selection 与 confirmation。
+3. password、confirmation 和 pending credential 只存在组件内存，进入 danger review 前从可见 input state 清空，并在取消、成功、失败、scope 变化、路由离开和卸载时清理。Desktop / Narrow 使用语义 token 与 `900px` / `620px` 响应式边界，不冒充批次 E 的真实三视口验收。
+4. Web `398/398`、production build、Platform `go test ./internal/httpapi/...`、`go test -race ./internal/httpapi/...` 和仓库 fast / full gate 已通过。本日在批次 D 结束后停止；未启动 SQLite / PostgreSQL configured Server、未做真实浏览器 / 隐私审计，也未打开 production auth、设备管理、MFA、恢复或全局 session console。
 
 ## 2026-08-19 今日评审
 

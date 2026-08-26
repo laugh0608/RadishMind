@@ -1,14 +1,14 @@
 # 本地账户凭证轮换与自助会话治理（开发 / 测试态）v1
 
-更新时间：2026-08-25
+更新时间：2026-08-26
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_pencil_approved_react_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`
 
 ## 功能定位
 
 本功能在 RadishMind 已有本地账户、密码凭证、Web Session、三种开发测试态 repository 与 Authentication / Account surface 之上，为当前已登录账户提供自己的会话审查、受控会话撤销和本地密码凭证轮换。
 
-它补齐的是联合登录批次 A 至 D 与本地成员管理专题关闭后的身份安全缺口：专题启动时页面只能看到当前会话，原 `POST /v1/auth/sessions/{session_id}/revoke` 也只允许撤销当前会话；repository 虽已有 `ReplaceCredential`、`ReadWebSession` 与 `RevokeWebSession` 原语，却没有 user-scoped session directory，也没有“凭证替换与来源会话失效”的单一原子 owner。批次 A 至 C 已依次补齐 owner、双数据库和 strict HTTP，页面消费仍由批次 D 承接。
+它补齐的是联合登录批次 A 至 D 与本地成员管理专题关闭后的身份安全缺口：专题启动时页面只能看到当前会话，原 `POST /v1/auth/sessions/{session_id}/revoke` 也只允许撤销当前会话；repository 虽已有 `ReplaceCredential`、`ReadWebSession` 与 `RevokeWebSession` 原语，却没有 user-scoped session directory，也没有“凭证替换与来源会话失效”的单一原子 owner。批次 A 至 D 已依次补齐 owner、双数据库、strict HTTP、完整 Pencil 与 React strict consumer；双数据库产品连续链仍由批次 E 承接。
 
 本功能只处理当前账户自助安全操作。账户禁用、管理员代重置、账户恢复、MFA、生产 session store、真实 Radish 联调和 production auth 继续由后续独立目标承接。
 
@@ -162,6 +162,15 @@ Pencil 完成证据（2026-08-25）：
 - danger state 使用空 input placeholder，展示当前 local-password session 会进入撤销集、OIDC session 保留、事务失败时旧 credential 与全部 session 不变，以及成功后的 cookie 清理和 forced re-login。
 - R21 记录五维评分 `0 / 2 / 2 / 1 / 2 = 7`、全状态矩阵、selection / cursor / confirmation / late response 失效、密码组件内存清理和敏感材料禁入边界。项目所有者已人工批准四张代表板与 R21；React / CSS 尚未实施。
 
+React 完成证据（2026-08-26）：
+
+- Authentication Gateway 已接入单一 `LocalIdentitySelfServiceSecurityPanel`，没有建立 S11 或平行 session / credential owner。页面以 current session、其它 active session 和 ended history 三组投影 canonical directory，并提供 exact revoke、aggregate revoke others 与从属 credential rotation。
+- 单一 strict consumer 已覆盖四条 route，严格解析 canonical schema、cursor / filter / state / actor scope 和稳定错误边界；响应中任意未知字段、敏感字段、scope 漂移或当前 actor 不一致均失败关闭。
+- actor、current session 或 invalidation generation 变化会替换整个 security scope；请求使用 `generation + AbortController` 丢弃迟到响应，mutation 成功和跨标签 metadata-only `session_changed` 会统一失效旧 cursor、selection 与 confirmation。
+- revoke others 和 credential rotation 只在已加载完整 directory 时展示 exact target set，不用客户端单项循环冒充服务端原子操作。password 与 confirmation 只留在组件内存，进入危险复核前就从可见 input state 清空，取消、成功、失败、scope 切换、路由离开和卸载均会清理；不进入 URL、Storage、日志或跨标签 payload。
+- Desktop / Narrow 使用 Family UI 语义 token 和连续 Workbench；`900px` 以下改为单列，`620px` 以下将操作与危险确认改为纵向布局。实现对齐已批准的 `pOLcz` / `LMi7H` / `n2O8A5`，但本批不冒充批次 E 的真实三视口浏览器审计。
+- Web strict consumer / state 测试与全量 `398/398` 通过，production build 成功；Platform `internal/httpapi` 普通测试和 race 也已通过，确认前端接入没有放宽既有 HTTP 安全边界。仓库 fast / full 门禁均通过。
+
 ### 批次 E：双数据库产品连续链与收口
 
 - SQLite 完成双标签、多个 local / OIDC session、单项撤销、revoke others、密码轮换、旧密码失败、新密码登录、服务重启恢复与隐私审计。
@@ -187,4 +196,4 @@ Pencil 完成证据（2026-08-25）：
 
 ## 下一实现入口
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 C 已完成，批次 D 的 Pencil 与人工评审已完成；下一步只实施 React strict consumer、状态测试与 Web production build，不提前进入双数据库产品连续链或 production 能力。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 D 已完成；下一实现入口是批次 E 的 SQLite / PostgreSQL configured Server 产品连续链、三视口与隐私审计。本次已停在批次 E 之前，不打开 production auth 或任何已有停止线外的能力。

@@ -1,8 +1,8 @@
 # 本地账户凭证轮换与自助会话治理 v1 高风险任务卡
 
-更新时间：2026-08-25
+更新时间：2026-08-26
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_pencil_approved_react_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`
 
 对应功能设计：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](../features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)
 
@@ -121,8 +121,8 @@
 完成条件：
 
 - [x] Pencil 代表面和 Decision Record 通过人工评审。
-- [ ] strict consumer 与状态测试通过，Web production build 成功。
-- [ ] Desktop / Narrow 结构符合 Family UI 与无障碍边界。
+- [x] strict consumer 与状态测试通过，Web production build 成功。
+- [x] Desktop / Narrow 结构符合 Family UI 与无障碍边界。
 
 Pencil 完成证据（2026-08-25）：
 
@@ -131,7 +131,16 @@ Pencil 完成证据（2026-08-25）：
 - Narrow 采用真实纵向重排：current session 固定在前、ended history 收起、credential rotation 退为 disclosure，revoke others 使用 stacked danger confirmation，并明确当前 session 保持 active。
 - danger state 只显示空 password input placeholder，不放示例值或掩码值；显式展示 source-bound local-password session 影响、OIDC session 保留、原子失败不变、成功清 cookie 与 forced re-login handoff。
 - R21 固定五维评分 `0 / 2 / 2 / 1 / 2 = 7`、全状态覆盖、metadata-only invalidation、组件内存清理、敏感材料禁入边界与停止线；项目所有者已于 2026-08-25 人工批准，记录标记为 `OWNER APPROVED`。
-- 四张根画板均已移除 placeholder，并通过 Pencil `ctx.problems` 全树检查；没有裁切、越界或循环尺寸问题。React / CSS 尚未修改，下一准入是单一 strict consumer 与状态测试。
+- 四张根画板均已移除 placeholder，并通过 Pencil `ctx.problems` 全树检查；没有裁切、越界或循环尺寸问题。
+
+React 完成证据（2026-08-26）：
+
+- 新增单一 self-service security strict consumer，严格消费 session directory、exact revoke、revoke others 和 credential rotation 四条 canonical route；未知键、递归敏感键、scope 漂移、非法 cursor / state / time 与错误 owner 边界全部失败关闭。
+- 新增 scope state 与投影模块：`generation + userId + currentSessionId` 绑定请求与迟到响应，pagination merge 拒绝重复 session，投影要求唯一 current actor 并区分 current / other active / ended 与 local credential impact。
+- Authentication Gateway 只接入一个 security panel，使用 metadata-only `session_changed` 跨标签信号。mutation 成功、actor / session / generation 变化与路由离开均失效旧 cursor、selection、confirmation 和迟到响应。
+- exact revoke 只发送 target CAS，revoke others 和 credential rotation 只调用 aggregate route；需要 exact target set 的复核只在 directory 完整加载后开放。password / confirmation 只留在组件内存，进入复核前从可见 input state 清空，并在取消、成功、失败、scope 改变、离开与卸载时清理。
+- Desktop 与 Narrow 使用 Family UI 语义 token，支持键盘可达的 button / form / dialog，在 `900px` 和 `620px` 两个边界完成单列与纵向危险确认结构；真实三视口、console / network / storage / cookie 审计仍是批次 E 的独立完成条件。
+- strict consumer / state 专项与 Web 全量 `398/398` 测试通过，production build 成功；Platform `go test ./internal/httpapi/...` 与 `go test -race ./internal/httpapi/...`、仓库 fast / full 门禁均通过，批次 D 未修改 HTTP、repository、migration、config 或 production gate。
 
 ## 批次 E：双数据库产品连续链与收口
 
@@ -184,5 +193,5 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 A：领域合同与 memory 原子链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：strict HTTP 与 local session 授权。
-- [ ] 批次 D：Pencil 已人工批准；React strict consumer 尚未开始。
+- [x] 批次 D：Pencil、React strict consumer、状态测试与 Web production build。
 - [ ] 批次 E：双数据库产品连续链与专题收口。

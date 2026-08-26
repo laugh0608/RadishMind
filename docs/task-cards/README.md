@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_pencil_approved_react_ready`。批次 A 至 C 已完成 memory / SQLite / PostgreSQL session directory、exact / bulk revoke、credential rotation 原子链、ordered index、并发、重启 / no-fallback 与四条 local-session-only strict HTTP；批次 D Pencil 已人工批准，当前下一步只实施 React strict consumer、状态测试与 Web production build。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`。批次 A 至 D 已完成 memory / SQLite / PostgreSQL session directory、exact / bulk revoke、credential rotation 原子链、ordered index、并发、重启 / no-fallback、四条 local-session-only strict HTTP、批准 Pencil、React strict consumer、状态测试和 Web production build；下一准入为批次 E 的双数据库产品连续链与专题收口。
 
 ## 当前外部阻塞任务
 
