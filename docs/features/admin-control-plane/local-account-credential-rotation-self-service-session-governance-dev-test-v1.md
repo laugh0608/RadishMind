@@ -2,13 +2,13 @@
 
 更新时间：2026-08-26
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_completed`
 
 ## 功能定位
 
 本功能在 RadishMind 已有本地账户、密码凭证、Web Session、三种开发测试态 repository 与 Authentication / Account surface 之上，为当前已登录账户提供自己的会话审查、受控会话撤销和本地密码凭证轮换。
 
-它补齐的是联合登录批次 A 至 D 与本地成员管理专题关闭后的身份安全缺口：专题启动时页面只能看到当前会话，原 `POST /v1/auth/sessions/{session_id}/revoke` 也只允许撤销当前会话；repository 虽已有 `ReplaceCredential`、`ReadWebSession` 与 `RevokeWebSession` 原语，却没有 user-scoped session directory，也没有“凭证替换与来源会话失效”的单一原子 owner。批次 A 至 D 已依次补齐 owner、双数据库、strict HTTP、完整 Pencil 与 React strict consumer；双数据库产品连续链仍由批次 E 承接。
+它补齐的是联合登录批次 A 至 D 与本地成员管理专题关闭后的身份安全缺口：专题启动时页面只能看到当前会话，原 `POST /v1/auth/sessions/{session_id}/revoke` 也只允许撤销当前会话；repository 虽已有 `ReplaceCredential`、`ReadWebSession` 与 `RevokeWebSession` 原语，却没有 user-scoped session directory，也没有“凭证替换与来源会话失效”的单一原子 owner。批次 A 至 E 已依次完成 owner、双数据库、strict HTTP、完整 Pencil、React strict consumer、SQLite / PostgreSQL 产品连续链与真实浏览器收口，专题现已关闭。
 
 本功能只处理当前账户自助安全操作。账户禁用、管理员代重置、账户恢复、MFA、生产 session store、真实 Radish 联调和 production auth 继续由后续独立目标承接。
 
@@ -177,6 +177,13 @@ React 完成证据（2026-08-26）：
 - PostgreSQL configured Server 完成同构链、停止 no-fallback、重连恢复、受限角色和 migration 证据。
 - 完成 `1440×900`、`720×900`、`390×844`、console / network / URL / storage / cookie 审计，并回写真相源后关闭专题。
 
+完成证据（2026-08-26）：
+
+- SQLite 独立本地产品数据库完成多个 local-password / OIDC session 的 list → exact revoke → revoke others → credential rotation 连续链；轮换一次撤销 `3` 条旧凭据来源会话，旧密码返回 `401`、新密码返回 `200`，OIDC 保持 active。双标签服务端失效、metadata-only logout 广播、Platform 停止 no-fallback 与同库重启恢复均通过。
+- PostgreSQL 17 使用独立 migration / runtime 角色；`0004_local_identity_self_service_sessions` marker 与 checksum 正确，runtime DDL 被拒绝。configured Server 同构完成 exact `1`、bulk `2`、rotation `3`、旧密码 `401`、新密码 `200` 与 OIDC 保留；数据库 hard pause 不返回替代身份或伪成功，恢复后连接池读取同一 durable 事实。
+- in-app Browser 在 `1440×900`、`720×900`、`390×844` 完成真实页面、危险确认 target set、forced re-login 与跨标签验收。窄屏审计发现并修复 grid implicit row 压缩和 account trigger / sticky mobile navigation stacking 两个 CSS 根因；复验后 current session 固定在前、其它会话完整可见、账户入口可点击且三视口无横向溢出。
+- console 无 warning / error，network 只有预期取消的重复 GET 与 canonical `200`，URL 不含 credential material；self-service 源码无 Web Storage / IndexedDB / Cache Storage / service worker 写入。脱敏 cookie 响应头符合开发态 `HttpOnly` / `SameSite=Strict` 边界，所有服务、浏览器标签、容器、端口、SQLite 与 cookie jar 临时产物已清理。
+
 ## 验收方式
 
 - memory、SQLite、PostgreSQL 的 session scope、稳定 cursor、effective state snapshot、CAS、并发和原子多 session revoke。
@@ -196,4 +203,4 @@ React 完成证据（2026-08-26）：
 
 ## 下一实现入口
 
-[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)承接批次 A 至 E。批次 A 至 D 已完成；下一实现入口是批次 E 的 SQLite / PostgreSQL configured Server 产品连续链、三视口与隐私审计。本次已停在批次 E 之前，不打开 production auth 或任何已有停止线外的能力。
+[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](../../task-cards/local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)的批次 A 至 E 已全部完成并关闭。本专题不派生批次 F、S11、设备管理、全局 session console、MFA、恢复或 production auth；下一产品顺位回到[功能设计文档入口](../README.md)，先选择并批准新的长期功能目标。

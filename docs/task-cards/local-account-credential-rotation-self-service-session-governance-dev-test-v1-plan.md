@@ -2,7 +2,7 @@
 
 更新时间：2026-08-26
 
-状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`
+状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_completed`
 
 对应功能设计：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](../features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)
 
@@ -153,10 +153,18 @@ React 完成证据（2026-08-26）：
 
 完成条件：
 
-- [ ] 双数据库产品连续链和服务重启恢复通过。
-- [ ] 旧 credential、旧 password 与 revoked session 全部失败关闭。
-- [ ] 浏览器三视口、跨标签和隐私审计通过。
-- [ ] 快速及完整仓库门禁通过。
+- [x] 双数据库产品连续链和服务重启恢复通过。
+- [x] 旧 credential、旧 password 与 revoked session 全部失败关闭。
+- [x] 浏览器三视口、跨标签和隐私审计通过。
+- [x] 快速及完整仓库门禁通过。
+
+完成证据（2026-08-26）：
+
+- SQLite `local-product` 使用独立临时数据库完成同账户 local-password / OIDC session directory、exact revoke `1` 条、revoke others `2` 条、credential rotation 原子撤销 `3` 条 source-bound local-password session、旧密码 `401`、新密码 `200`、OIDC session 保持 active、双标签失效、Platform 停止时 `LOCAL IDENTITY UNAVAILABLE` no-fallback，以及同库重启后当前 session 与 `9` 条历史目录恢复。
+- PostgreSQL 17 由独立 migration 角色应用 `0004_local_identity_self_service_sessions`，受限 runtime 角色可 DML 且 `CREATE TABLE` 被拒绝；configured Server 完成 `4` 条初始 session 列表、exact revoke `1` 条、revoke others `2` 条、credential rotation 原子撤销 `3` 条 local-password session、旧密码 `401`、新密码 `200` 与 OIDC 保留。数据库 hard pause 期间没有替代身份、memory / fixture 或伪成功，恢复后连接池重新读取同一账户与 session 事实。
+- in-app Browser 完成 `1440×900`、`720×900`、`390×844`、危险确认 exact target set、密码输入在 review 前清空、双标签 metadata-only logout invalidation 与 forced re-login。真实窄屏发现并修复两处响应式根因：单列 grid implicit row 压缩导致 session row 被父容器裁切，以及固定 account trigger 被 mobile navigation 的 sticky stacking context 覆盖；三视口复验均无横向溢出。
+- console 无 warning / error；network 审计只有一条被取消的重复 session GET 与一条 canonical `200`，URL 保持 `/` 且无 query / hash / credential material。self-service 源码扫描未发现 Web Storage、IndexedDB、Cache Storage 或 service worker 写入；脱敏响应头证明 session cookie 为 `HttpOnly + SameSite=Strict`、CSRF cookie 为 `SameSite=Strict`，loopback HTTP 按显式开发配置不声明 `Secure`。
+- Platform、Vite、浏览器标签与 PostgreSQL 临时容器均已关闭；隔离 SQLite、合成 cookie jar 和临时数据库目录已删除，`4100`、`7100`、`55439` 均无监听。Web 全量测试 / production build、Platform 测试 / race 与仓库 fast / full gate 通过后关闭专题；没有打开真实 Radish、production auth、MFA、恢复、设备管理或全局 session console。
 
 ## 必须保持的负向边界
 
@@ -194,4 +202,4 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：strict HTTP 与 local session 授权。
 - [x] 批次 D：Pencil、React strict consumer、状态测试与 Web production build。
-- [ ] 批次 E：双数据库产品连续链与专题收口。
+- [x] 批次 E：双数据库产品连续链与专题收口。

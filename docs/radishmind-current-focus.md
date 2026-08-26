@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-25
+更新时间：2026-08-26
 
 ## 文档目的
 
@@ -38,12 +38,12 @@
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
 - 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
 - 最新关闭产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。批次 A 至 E 已在现有 local identity owner 上完成 canonical 四角色、三存储管理 service、`0003` durable metadata / 顺序索引、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、已批准 S7 User / Role Pencil、单一 React strict consumer，以及 SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计；专题关闭，不打开全局账户搜索、自定义角色、真实 Radish 或 production IAM。
-- [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)已推进到 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_batch_d_react_completed_batch_e_ready`。批次 A 至 C 的三存储 owner、ordered index、durable 原子链与四条 strict HTTP 继续成立；批次 D 已完成人工批准的 Desktop `pOLcz`、Narrow `LMi7H`、danger state `n2O8A5`、R21 Decision `DASE0`、单一 React strict consumer、状态测试和 production build。下一实现入口是批次 E 的双数据库产品连续链与真实浏览器审计；本日已停在该批次之前。
+- 最新关闭产品顺位：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_completed`。批次 A 至 E 已完成三存储 owner、ordered index、credential replacement + source-bound revoke 原子链、四条 strict HTTP、批准 Pencil、单一 React strict consumer、SQLite / PostgreSQL configured Server 产品链、三视口、双标签和隐私审计；真实窄屏发现并修复 session group 压缩裁切与 account trigger 被 sticky mobile navigation 覆盖两个 CSS 根因。专题关闭，不派生批次 F、S11、设备管理、全局 session console 或 production auth。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：本地账户凭证轮换与自助会话治理批次 A 至 D 已完成；下一实现入口是批次 E 的 SQLite / PostgreSQL configured Server 连续链、三视口和隐私审计。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：本地账户凭证轮换与自助会话治理批次 A 至 E 已完成并关闭；当前没有活跃高风险任务卡。下一入口回到[功能设计文档入口](features/README.md)，从四个正式产品面选择并批准新的长期功能目标。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -69,7 +69,11 @@
 1. 在现有 Authentication Gateway 内完成单一 self-service security owner，落地 session directory、exact revoke、aggregate revoke others 与 credential rotation；没有建立 S11、device owner 或第二套 session / credential 状态机。
 2. strict consumer 严格校验 canonical schema、稳定 failure boundary 和 actor scope；state projection 将 current / other active / ended 分组，generation / abort 管理迟到响应，mutation 和跨标签 metadata-only signal 失效旧 cursor、selection 与 confirmation。
 3. password、confirmation 和 pending credential 只存在组件内存，进入 danger review 前从可见 input state 清空，并在取消、成功、失败、scope 变化、路由离开和卸载时清理。Desktop / Narrow 使用语义 token 与 `900px` / `620px` 响应式边界，不冒充批次 E 的真实三视口验收。
-4. Web `398/398`、production build、Platform `go test ./internal/httpapi/...`、`go test -race ./internal/httpapi/...` 和仓库 fast / full gate 已通过。本日在批次 D 结束后停止；未启动 SQLite / PostgreSQL configured Server、未做真实浏览器 / 隐私审计，也未打开 production auth、设备管理、MFA、恢复或全局 session console。
+4. 批次 D 的 Web `398/398`、production build、Platform `go test ./internal/httpapi/...`、`go test -race ./internal/httpapi/...` 和仓库 fast / full gate 已通过；随后按任务卡继续进入批次 E，没有提前打开停止线外能力。
+5. SQLite `local-product` 完成 session list、exact revoke `1`、revoke others `2`、credential rotation 撤销 `3` 条 local-password session、旧密码 `401`、新密码 `200`、OIDC 保留、双标签失效、服务停止 no-fallback 与同库重启恢复。
+6. PostgreSQL 17 由独立 migration 角色应用 `0004`，受限 runtime 角色 DDL 被拒绝；configured Server 完成同构 exact / bulk / rotation、旧密码失败、新密码登录与 OIDC 保留。数据库 hard pause 时没有 fallback，恢复后连接池重新读取 durable session 事实。
+7. in-app Browser 完成 `1440×900`、`720×900`、`390×844`、危险确认、forced re-login、双标签 metadata-only logout、console / network / URL / storage source / cookie 属性审计。真实窄屏修复 grid implicit row 压缩与 account trigger stacking 两个 CSS 根因，复验后三视口无横向溢出。
+8. Platform、Vite、浏览器标签、PostgreSQL 容器、隔离 SQLite 与 cookie jar 均已清理，`4100`、`7100`、`55439` 无监听。专题关闭；production auth、MFA、恢复、设备管理、全局 session console 与真实 Radish 继续关闭。
 
 ## 2026-08-19 今日评审
 
