@@ -2,7 +2,7 @@
 
 更新时间：2026-08-27
 
-状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_b_completed_batch_c_pencil_ready`
+状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 它把现有“个人草案派生”和“应用内 Definition 晋级”向工作区内部复用扩展，但不建立公开 Marketplace，不复制 Definition、Saved Draft、运行、评测、权限或应用真相源。模板目录只拥有工作区级模板候选、不可变模板版本、上架指针与对应 append-only 决定；模板内容来源和运行资格仍由既有 Definition 与 Draft owner 重新判定。
 
-本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 B 均已获项目所有者批准，并已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)完成批次 A 的 strict contract、memory owner 与 HTTP，以及批次 B 的 memory / SQLite / PostgreSQL durable owner、migration 与双数据库证据；当前停在批次 C Pencil 明确授权前，不自动修改 Pencil、进入 React 或产品连续链。
+本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。当前停在批次 D 单独授权前，不进入 React 或产品连续链。
 
 ## 用户与真实任务
 
@@ -212,6 +212,7 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 - 反查批次 A / B 的真实功能事实，完成 Catalog、Review、Listing 与 Derive 的 Desktop / Narrow / danger / blocked 设计。
 - 只使用语义 token 和既有 Family UI 语言；人工批准前不进入 React。
+- 状态：`completed_owner_approved`。正式设计源新增 8 个功能画板与 R22 Decision，覆盖 pending、rejected、approved-unlisted、listed、replace conflict、unlist danger、binding unavailable 与 store unavailable；Pencil 原生静态 QA 检查 1049 个节点，布局、占位符、命名、文字填充与硬编码颜色问题均为 0。项目所有者已于 2026-08-27 人工批准，无需调整。
 
 ### 批次 D：React strict consumer
 
@@ -249,4 +250,4 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ## 当前下一步
 
-批次 B 已完成并推进到 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_b_completed_batch_c_pencil_ready`。下一步必须由项目所有者显式批准批次 C 后，才允许基于已实现事实完成 Catalog、Candidate Review、Version / Listing 与 Derive 的完整 Pencil；当前不修改 Pencil，不创建 React、产品服务或真实浏览器记录。
+批次 C Pencil 已完成人工批准并推进到 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`。下一步只在项目所有者另行明确批准后进入批次 D React strict consumer；当前不创建 React、产品服务或真实浏览器记录。

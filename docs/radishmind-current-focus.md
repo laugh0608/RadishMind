@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_b_completed_batch_c_pencil_ready`。项目所有者已批准并完成批次 B；既有 workflow shared SQLite / PostgreSQL migration family 的 `0005`、同 domain durable repository、共享 backend factory、review / listing 单事务与 Saved Draft owner 派生均已通过双数据库验证。SQLite migration rollback / reapply、CAS、cursor、restart、corruption 与 no-fallback，以及 PostgreSQL runtime role、完整 tagged integration、reconnect、append-only、reviewed down / reapply 均已通过；临时容器与网络已关闭移除。当前停止在批次 C 明确授权前，不修改 Pencil，不进入 React、产品服务或真实浏览器。
+- 当前产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`。项目所有者已批准并完成批次 A、B，并人工批准批次 C；正式 Pencil 源已新增 Catalog、Candidate Review、Version / Listing、Derive 的 8 个 Desktop / Narrow / danger / blocked 功能画板与 R22 Decision，覆盖八个要求状态，原生静态 QA 为 1049 个节点、0 问题。当前停止在批次 D 单独授权前，不进入 React、产品服务或真实浏览器。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
 - 最近关闭产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_completed`。批次 A 至 D 已完成五类 session profile、memory / SQLite / PostgreSQL 不可变 artifact 与独立 lifecycle、共享 strict Web consumer、三类 Session 接入、SQLite 服务重启页面恢复，以及 PostgreSQL 配置化 Server 保存 → 归档 → 关闭 no-fallback → 重启读取 → 解除归档产品链；永久 `DELETE` route 仍不存在。专题保持关闭，不派生批次 E、通用 result store 或 transcript。
@@ -44,7 +44,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)批次 B 已完成，当前停在批次 C 完整 Pencil 明确授权前；本地成员管理与账户安全保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)批次 C Pencil 已完成人工批准，当前停在批次 D React strict consumer 的单独授权前；本地成员管理与账户安全保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -82,7 +82,7 @@
 2. 已建立功能专题，固定 approved immutable Definition → template candidate → human review → immutable template version → explicit listing → target Application recheck → Saved Draft v1 的连续链。模板目录只拥有分发与上架事实，不复制 Definition、Draft、Run、Evaluation、membership 或 Application owner。
 3. 项目所有者已明确批准并完成批次 A。`contracts/` 新增 candidate / decision、version、lineage、listing event、audit 与 `derivation_v2` 七份 strict schema；Platform 已完成 memory owner、canonical digest、authority reload、portability / target binding validator、review / listing 原子 CAS、strict cursor 与十条默认关闭 HTTP。
 4. derive 在全部预检通过后只调用 Saved Draft owner 单次创建独立 v1 草案；既有 `derivation_v1` 兼容保留并与 `derivation_v2` 互斥。精准 / 相邻测试、race、`go vet` 与完整 Platform config / HTTP API 测试已通过，未创建数据库、Pencil、React、服务或浏览器证据。
-5. 下一步等待项目所有者明确批准批次 C；获批后只基于已实现功能事实完成 Catalog、Candidate Review、Version / Listing 与 Derive 的完整 Pencil 与人工批准，不提前进入 React。公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭；账户安全批次 F、S11 与真实 Radish 外部联调也不恢复。
+5. 下一步只在项目所有者另行批准后进入批次 D React strict consumer，严格消费现有十条 route，并复用已批准的 8 个功能画板与 R22 Decision。公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭；账户安全批次 F、S11 与真实 Radish 外部联调也不恢复。
 
 ## 2026-08-19 今日评审
 

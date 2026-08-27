@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)是当前唯一活跃高风险任务卡，状态为 `batch_b_completed_batch_c_pencil_ready`。批次 B 已完成 durable repository、SQLite / PostgreSQL live integration 与 no-fallback；下一步只在项目所有者明确批准后进入批次 C 完整 Pencil，不提前修改 Pencil、进入 React 或产品服务，也不派生平行 readiness 卡。
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)是当前唯一活跃高风险任务卡，状态为 `batch_c_pencil_approved_batch_d_ready`。批次 C 的 8 个功能画板与 R22 Decision 已获项目所有者人工批准；下一步等待批次 D 单独授权，不提前进入 React 或产品服务，也不派生平行 readiness 卡。
 
 ## 当前外部阻塞任务
 

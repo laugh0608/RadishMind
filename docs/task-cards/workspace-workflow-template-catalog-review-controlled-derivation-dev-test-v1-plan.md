@@ -3,14 +3,14 @@
 更新时间：2026-08-27
 
 - 任务 ID：`workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1`
-- 状态：`batch_b_completed_batch_c_pencil_ready`
+- 状态：`batch_c_pencil_approved_batch_d_ready`
 - 功能设计：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](../features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准该长期功能目标与首版方向。本卡是唯一跨模块高风险实施入口，负责 Definition exact source、工作区模板 catalog owner、人工 review / listing、跨应用目标资格与 Saved Draft 原子派生；不再创建平行 readiness、schema-only 或 UI-only 任务卡。
 
-项目所有者已明确批准并完成批次 A，随后批准并完成批次 B。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP 与 Saved Draft `derivation_v2` 已落地；SQLite / PostgreSQL durable repository、共享 backend factory 和 `0005` migration 已通过双数据库验证。当前停在批次 C Pencil 明确授权前，不自动创建 Pencil 或进入 React。
+项目所有者已明确批准并完成批次 A、批次 B，并批准进入和人工验收批次 C。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、SQLite / PostgreSQL durable repository、共享 backend factory、`0005` migration，以及正式 Pencil 源中的批次 C 代表面与 Decision 均已完成；当前停在批次 D 单独授权前，不进入 React。
 
 ## 完成目标
 
@@ -88,18 +88,26 @@
 
 ## 批次 C：完整 Pencil 与人工批准
 
-状态：`approval_required`。
+状态：`completed_owner_approved`。
 
 - 以已实现功能事实完成 Catalog、Candidate Review、Version / Listing、Derive 的 Desktop 与不能直接推导的 Narrow。
 - 覆盖 pending / rejected / approved-unlisted / listed / replace conflict / unlist danger / target binding unavailable / store unavailable。
 - 复用现有 Workflow Workbench 与语义 token，不建立 S11、不复制 Saved Draft Library 或 Definition Review owner。
 - Pencil 根画板、关键状态和 Decision 记录必须由项目所有者人工批准；未批准不得进入 React。
 
+当前证据：
+
+- 正式设计源 `docs/designs/radishmind-web-family-ui-v1.pen` 新增 Catalog Desktop / Narrow、Candidate Review pending / rejected、Version & Listing / replace conflict、unlist danger、Derive Draft / binding unavailable 共 8 个功能画板，以及 `Workflow Template Catalog & Derive — Design Decision Record · R22`。
+- 八个要求状态均有显式代表：pending、rejected、approved-unlisted、listed、replace conflict、unlist danger、binding unavailable 与 store unavailable；approve 不自动上架、unlist 不级联删除或停止既有资源、derive 不自动替换绑定且不产生 activation / run 等副作用。
+- R22 的 5D 评分为 `2 / 1 / 2 / 2 / 2 = 9`，结论为复用现有 Family UI / Workflow Workbench，不建立 S11。
+- Pencil 原生静态 QA 检查 9 个根画板、1049 个节点；布局裁切、placeholder、缺失命名、缺失文字填充与硬编码 fill / stroke 均为 0 问题。该静态结果不替代项目所有者视觉与产品边界批准。
+- 项目所有者已于 2026-08-27 人工审查并明确批准批次 C，无需调整；批准不自动授权批次 D。
+
 完成后只能推进为 `batch_c_pencil_approved_batch_d_ready`。
 
 ## 批次 D：React strict consumer
 
-状态：`blocked_by_batch_c`。
+状态：`approval_required`。
 
 - 在现有 Workflow 产品面接入单一 template catalog consumer，覆盖 catalog / candidate / version / listing / derive。
 - strict parser 拒绝 unknown field、scope drift、invalid digest / cursor、duplicate record 与敏感字段。
@@ -134,4 +142,4 @@
 
 ## 当前下一步
 
-批次 B 已完成并停在 `batch_b_completed_batch_c_pencil_ready`。下一步必须由项目所有者明确批准批次 C，才允许反查已实现事实并完成 Catalog、Candidate Review、Version / Listing 与 Derive 的完整 Pencil；未获批准前不修改 Pencil，不进入 React、产品服务或真实浏览器。
+批次 C Pencil 已完成人工批准并停在 `batch_c_pencil_approved_batch_d_ready`。下一步只在项目所有者另行明确批准后进入批次 D React strict consumer；当前不创建 React、产品服务或真实浏览器记录。
