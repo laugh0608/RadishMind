@@ -23,6 +23,18 @@ func TestEmbeddedMigrationIdentityIsStable(t *testing.T) {
 		}
 	}
 	for _, literal := range []string{
+		"workspace_template_derivation",
+		"CREATE TABLE workflow_template_candidates",
+		"CREATE TABLE workflow_template_versions",
+		"CREATE TABLE workflow_template_lineages",
+		"workflow_template_candidates_workspace_list_idx",
+		"reject_workflow_template_history_mutation",
+	} {
+		if !strings.Contains(workflowTemplateCatalogUpMigrationSQL, literal) {
+			t.Fatalf("embedded workflow template catalog migration is missing %q", literal)
+		}
+	}
+	for _, literal := range []string{
 		"saved_workflow_draft.v2",
 		"saved_workflow_drafts_payload_schema_check",
 		"input_contract,contract_digest",
@@ -68,6 +80,9 @@ func TestEmbeddedMigrationIdentityIsStable(t *testing.T) {
 	}
 	if !strings.Contains(structuredInputDownMigrationSQL, "DROP CONSTRAINT IF EXISTS saved_workflow_drafts_payload_schema_check") {
 		t.Fatal("test rollback SQL does not remove the structured input payload constraint")
+	}
+	if !strings.Contains(workflowTemplateCatalogDownMigrationSQL, "DROP TABLE IF EXISTS workflow_template_candidates") {
+		t.Fatal("test rollback SQL does not remove the workflow template catalog")
 	}
 }
 

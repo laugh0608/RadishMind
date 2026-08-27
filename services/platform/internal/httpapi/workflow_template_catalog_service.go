@@ -233,9 +233,10 @@ func (service workflowTemplateCatalogService) Derive(ctx WorkflowTemplateCatalog
 	}
 	payload := workflowTemplateDraftPayload(ctx, input, version, definition)
 	draftContext := SavedWorkflowDraftContext{
-		RequestID: ctx.RequestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
+		RequestContext: workflowTemplateRequestContext(ctx),
+		RequestID:      ctx.RequestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: input.TargetApplicationID, ActorRef: ctx.ActorRef, OwnerSubjectRef: ctx.OwnerSubjectRef,
-		ScopeGrants: []string{"workflow_drafts:write"}, AuditRef: ctx.AuditRef, WriteEnabled: true,
+		ScopeGrants: []string{"workflow_drafts:read", "workflow_drafts:write"}, AuditRef: ctx.AuditRef, WriteEnabled: true,
 	}
 	created := service.drafts.SaveDraft(draftContext, SaveWorkflowDraftRequest{Payload: payload})
 	if created.FailureCode != "" || created.Draft == nil {

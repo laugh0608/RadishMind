@@ -3,14 +3,14 @@
 更新时间：2026-08-27
 
 - 任务 ID：`workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1`
-- 状态：`batch_a_completed_batch_b_ready`
+- 状态：`batch_b_completed_batch_c_pencil_ready`
 - 功能设计：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](../features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准该长期功能目标与首版方向。本卡是唯一跨模块高风险实施入口，负责 Definition exact source、工作区模板 catalog owner、人工 review / listing、跨应用目标资格与 Saved Draft 原子派生；不再创建平行 readiness、schema-only 或 UI-only 任务卡。
 
-项目所有者已明确批准并完成批次 A。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP 与 Saved Draft `derivation_v2` 已落地；当前停止在批次 B 授权前，不自动创建 durable repository。
+项目所有者已明确批准并完成批次 A，随后批准并完成批次 B。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP 与 Saved Draft `derivation_v2` 已落地；SQLite / PostgreSQL durable repository、共享 backend factory 和 `0005` migration 已通过双数据库验证。当前停在批次 C Pencil 明确授权前，不自动创建 Pencil 或进入 React。
 
 ## 完成目标
 
@@ -70,7 +70,7 @@
 
 ## 批次 B：SQLite / PostgreSQL durable repository
 
-状态：`approval_required`。
+状态：`completed`。
 
 - 在既有 workflow shared SQLite / PostgreSQL migration family 中追加 candidate、decision、version、lineage pointer、listing event / audit 与必要 cursor 索引。
 - memory / SQLite / PostgreSQL 共用同一 domain contract，不新增 selector、pool、DSN、database file 或 fallback。
@@ -78,11 +78,17 @@
 - 覆盖 migration / rollback / reapply、marker、checksum、keyset cursor、CAS、restart、corruption、pool reconnect 与 no-fallback。
 - derive 继续调用 Saved Draft owner；同数据库也不允许绕过 domain owner 直接插入 draft table。
 
+当前证据：
+
+- SQLite `0004 → 0005` 升级、失败 migration 整体回滚、reapply、marker / checksum、review / listing 事务回滚、keyset cursor、并发 CAS、restart、corruption、workspace isolation 与 no-fallback 已执行通过。
+- PostgreSQL 17 disposable integration 已执行通过，覆盖受限 runtime role、review / listing 原子回滚、并发 CAS、restart / reconnect、history append-only、corruption、closed-pool no-fallback、reviewed down 与 reapply；完整 `postgres_integration` suite 同时通过。
+- `go vet`、完整 Platform Go 回归、template 精准测试与 race、仓库 fast baseline 已通过；未创建 Pencil、React、CSS、launcher、产品服务或真实浏览器记录。
+
 完成后只能推进为 `batch_b_completed_batch_c_pencil_ready`。
 
 ## 批次 C：完整 Pencil 与人工批准
 
-状态：`blocked_by_batch_b`。
+状态：`approval_required`。
 
 - 以已实现功能事实完成 Catalog、Candidate Review、Version / Listing、Derive 的 Desktop 与不能直接推导的 Narrow。
 - 覆盖 pending / rejected / approved-unlisted / listed / replace conflict / unlist danger / target binding unavailable / store unavailable。
@@ -128,4 +134,4 @@
 
 ## 当前下一步
 
-批次 A 已完成并停在 `batch_a_completed_batch_b_ready`。下一步必须由项目所有者明确批准批次 B，才允许在既有 workflow shared SQLite / PostgreSQL migration family 中实现 durable repository；未获批准前不创建 migration、Pencil、React、产品服务或真实浏览器记录。
+批次 B 已完成并停在 `batch_b_completed_batch_c_pencil_ready`。下一步必须由项目所有者明确批准批次 C，才允许反查已实现事实并完成 Catalog、Candidate Review、Version / Listing 与 Derive 的完整 Pencil；未获批准前不修改 Pencil，不进入 React、产品服务或真实浏览器。

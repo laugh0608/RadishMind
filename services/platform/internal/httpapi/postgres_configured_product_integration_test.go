@@ -590,6 +590,12 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 		application_publish_candidates,
 		application_configuration_drafts,
 		application_catalog_records,
+		workflow_template_listing_events,
+		workflow_template_audits,
+		workflow_template_lineages,
+		workflow_template_versions,
+		workflow_template_decisions,
+		workflow_template_candidates,
 		saved_workflow_draft_lifecycle_events,
 		saved_workflow_draft_revisions,
 		saved_workflow_drafts,
@@ -616,7 +622,7 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(
 		ctx,
-		`DROP FUNCTION IF EXISTS reject_saved_workflow_draft_lifecycle_event_mutation()`,
+		`DROP FUNCTION IF EXISTS reject_saved_workflow_draft_lifecycle_event_mutation(), reject_workflow_template_history_mutation()`,
 	); err != nil {
 		t.Fatalf("reset configured PostgreSQL saved draft lifecycle guard: %v", err)
 	}

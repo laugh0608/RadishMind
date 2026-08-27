@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-27 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料与应用结果资产均已有可复验证据并关闭。新的产品顺位是[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)：批次 A 的 strict contract、memory owner、默认关闭 HTTP 与 Saved Draft `derivation_v2` 已完成，当前为 `batch_a_completed_batch_b_ready`。该专题复用 exact immutable Definition、workspace membership 与 Saved Draft owner，只打开工作区内部人工 review / listing / derive，不改通用 executor，不打开公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-27 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料与应用结果资产均已有可复验证据并关闭。新的产品顺位是[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)：批次 B 已完成 memory / SQLite / PostgreSQL 同 domain owner、共享 workflow backend factory、Saved Draft migration family `0005` 与双数据库 live integration，当前为 `batch_b_completed_batch_c_pencil_ready`。该专题复用 exact immutable Definition、workspace membership 与 Saved Draft owner，只打开工作区内部人工 review / listing / derive，不改通用 executor；下一步等待批次 C 完整 Pencil 的单独授权，不提前进入 React、公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 

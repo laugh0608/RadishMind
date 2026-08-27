@@ -286,7 +286,8 @@ func (server *Server) allowWorkflowTemplateCatalogHTTP(writer http.ResponseWrite
 func (server *Server) workflowTemplateContext(request *http.Request, trace requestTrace, auditSuffix string, permissions ...string) (WorkflowTemplateCatalogContext, string, int) {
 	auth, failure, status := server.authorizeWorkspaceScopedPermissions(request, permissions...)
 	ctx := WorkflowTemplateCatalogContext{
-		TenantRef: strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
+		RequestContext: request.Context(),
+		TenantRef:      strings.TrimSpace(auth.TenantBinding), WorkspaceID: strings.TrimSpace(auth.ResourceBinding.WorkspaceID),
 		OwnerSubjectRef: strings.TrimSpace(auth.SubjectBinding), ActorRef: strings.TrimSpace(auth.SubjectBinding),
 		RequestID: trace.requestID, AuditRef: "audit_" + trace.requestID + "_workflow-template-" + auditSuffix,
 	}

@@ -904,6 +904,21 @@ func resetPostgresSavedWorkflowDraftSchema(
 	pool *pgxpool.Pool,
 ) {
 	t.Helper()
+	for _, table := range []string{
+		"workflow_template_listing_events",
+		"workflow_template_audits",
+		"workflow_template_lineages",
+		"workflow_template_versions",
+		"workflow_template_decisions",
+		"workflow_template_candidates",
+	} {
+		if _, err := pool.Exec(ctx, "DROP TABLE IF EXISTS "+table); err != nil {
+			t.Fatalf("drop integration %s table: %v", table, err)
+		}
+	}
+	if _, err := pool.Exec(ctx, "DROP FUNCTION IF EXISTS reject_workflow_template_history_mutation()"); err != nil {
+		t.Fatalf("drop integration workflow template history guard: %v", err)
+	}
 	if _, err := pool.Exec(ctx, "DROP TABLE IF EXISTS saved_workflow_draft_lifecycle_events"); err != nil {
 		t.Fatalf("drop integration draft lifecycle event table: %v", err)
 	}

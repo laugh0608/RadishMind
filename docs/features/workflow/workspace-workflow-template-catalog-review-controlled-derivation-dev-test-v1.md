@@ -2,7 +2,7 @@
 
 更新时间：2026-08-27
 
-状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_b_completed_batch_c_pencil_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 它把现有“个人草案派生”和“应用内 Definition 晋级”向工作区内部复用扩展，但不建立公开 Marketplace，不复制 Definition、Saved Draft、运行、评测、权限或应用真相源。模板目录只拥有工作区级模板候选、不可变模板版本、上架指针与对应 append-only 决定；模板内容来源和运行资格仍由既有 Definition 与 Draft owner 重新判定。
 
-本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计已获项目所有者批准，并已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)完成批次 A 的 strict contract、memory owner 与 HTTP；当前停在批次 B 授权前，不自动创建 durable repository、Pencil、React 或产品连续链。
+本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 B 均已获项目所有者批准，并已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)完成批次 A 的 strict contract、memory owner 与 HTTP，以及批次 B 的 memory / SQLite / PostgreSQL durable owner、migration 与双数据库证据；当前停在批次 C Pencil 明确授权前，不自动修改 Pencil、进入 React 或产品连续链。
 
 ## 用户与真实任务
 
@@ -206,6 +206,7 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 - 在既有 workflow shared backend / pool / selector / migration family 中增加 catalog records 与必要索引。
 - 完成 migration / rollback / reapply、runtime role、transaction CAS、append-only、cursor、restart、corruption 和 no-fallback。
 - 派生继续只通过 Saved Draft owner 创建记录，不建立第二套 draft table 或 repository。
+- 状态：`completed`。SQLite / PostgreSQL migration / rollback / reapply、事务原子性、cursor、CAS、restart / reconnect、corruption、runtime role、append-only 和 no-fallback 已执行通过；完整 PostgreSQL tagged suite 通过，临时容器与网络已关闭移除。
 
 ### 批次 C：完整 Pencil 与人工批准
 
@@ -248,4 +249,4 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ## 当前下一步
 
-批次 A 已完成并推进到 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_a_completed_batch_b_ready`。下一步必须由项目所有者显式批准批次 B 后，才允许在既有 workflow shared SQLite / PostgreSQL backend、pool、selector 与 migration family 中实现 durable repository；当前不创建 migration、Pencil、React、产品服务或真实浏览器记录。
+批次 B 已完成并推进到 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_b_completed_batch_c_pencil_ready`。下一步必须由项目所有者显式批准批次 C 后，才允许基于已实现事实完成 Catalog、Candidate Review、Version / Listing 与 Derive 的完整 Pencil；当前不修改 Pencil，不创建 React、产品服务或真实浏览器记录。

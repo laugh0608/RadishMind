@@ -3,10 +3,11 @@
   "artifact_kind": "workflow_saved_draft_schema_rollback_evidence",
   "schema_artifact_id": "workflow_saved_draft_schema_artifact_v1",
   "store_schema_version": "saved_workflow_drafts_store_v1",
-  "status": "dev_test_rollback_0004_executed_and_reapply_passed",
+  "status": "dev_test_rollback_0005_executed_and_reapply_passed",
   "rollback_scope": {
     "down_migrations": [
-	  "0004_saved_workflow_draft_structured_inputs.down.sql",
+      "0005_workspace_workflow_template_catalog.down.sql",
+      "0004_saved_workflow_draft_structured_inputs.down.sql",
       "0003_saved_workflow_draft_library.down.sql",
       "0002_saved_workflow_draft_revisions.down.sql",
       "0001_saved_workflow_drafts.down.sql"
@@ -17,10 +18,12 @@
     "migration_role_required": true
   },
   "verified_sequence": [
-    "apply_0001_through_0004_migration_chain",
-    "execute_reviewed_0004_then_0003_then_0002_then_0001_down_migrations_under_advisory_lock_and_transaction",
+    "apply_0001_through_0005_migration_chain",
+    "sqlite_upgrade_from_0004_then_intentional_0006_failure_rolls_back_0005_and_partial_schema",
+    "sqlite_reapply_0005_and_verify_marker_checksum",
+    "postgres_execute_reviewed_0005_then_0004_then_0003_then_0002_then_0001_down_migrations_under_advisory_lock_and_transaction",
     "inspect_not_applied",
-    "reapply_0001_through_0004_migration_chain",
+    "reapply_0001_through_0005_migration_chain",
     "inspect_applied"
   ],
   "non_disposable_database_requirements": [

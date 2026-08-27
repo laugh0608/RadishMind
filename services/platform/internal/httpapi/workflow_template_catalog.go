@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -68,6 +69,7 @@ var (
 )
 
 type WorkflowTemplateCatalogContext struct {
+	RequestContext  context.Context
 	TenantRef       string
 	WorkspaceID     string
 	OwnerSubjectRef string

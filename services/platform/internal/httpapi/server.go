@@ -214,7 +214,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	}
 	var workflowTemplateCatalogRepository workflowTemplateCatalogRepository
 	if runtimeConfig.WorkflowTemplateCatalogDevEnabled {
-		workflowTemplateCatalogRepository = newMemoryWorkflowTemplateCatalogRepository()
+		workflowTemplateCatalogRepository, err = newWorkflowTemplateCatalogRepositoryForSavedDraftStore(savedWorkflowDraftStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
+		}
 	}
 	workflowRAGSnapshotRepository, err := newWorkflowRAGSnapshotRepositoryForRunStore(workflowRunStore)
 	if err != nil {
