@@ -1,6 +1,6 @@
 # Workflow 细专题入口
 
-更新时间：2026-08-11
+更新时间：2026-08-27
 
 ## 文档目的
 
@@ -12,6 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
+| [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md) | 功能 / 工作区内部复用与发布治理专题 | `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_a_completed_batch_b_ready` | 当前产品顺位；批次 A 已完成 strict contract、memory owner、review / listing CAS、strict HTTP 与 Saved Draft v1 受控派生 |
+| [工作区 Workflow 模板目录、审查与受控派生 v1 实施任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md) | 活跃高风险实现批次 | `batch_a_completed_batch_b_ready` | 批次 B 等待明确批准；当前不创建 migration、Pencil、React 或平行 readiness 卡 |
 | [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_completed` | 批次 A 至 D 已完成 profile、v3 Definition、action plan / decision v2、run v9、三种 store、React、SQLite 重启和真实浏览器三视口；专题关闭 |
 | [Workflow Definition 绑定受控 HTTP Tool v1 实施任务卡](../../task-cards/workflow-definition-http-tool-v1-plan.md) | 已归档高风险实现批次 | `completed` | A / B / C / D 全部完成，不派生批次 E 或同层 readiness 卡 |
 | [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) | 功能 / 本地材料暂存与快照构建专题 | `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed` | Desktop / Narrow 局部 Pencil 已人工通过；单一结构化 editor、来源 / fragment 审查、create / version、真实 CAS、SQLite 重启、隐私与三视口均已关闭，不新增后端 owner |
@@ -176,7 +178,9 @@
 
 ## 当前下一步
 
-Saved Draft、已保存草案派生、不可变修订历史与显式恢复、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground、API 密钥开发测试态认证、知识基线晋级与应用配置绑定，以及 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)均已完成。`S3 R2` Workbench 与后续 `S4 Application Access`、`S5 Application Runtime Review`、`S6 Workflow Run & Evaluation Review`、`S7 Admin Control Plane` 产品化纵向切片已通过 Pencil、Web 测试 / build、关键断点和 `390x844` 浏览器严格复验。S6 以四任务单 owner 路径冻结运行定位、兼容比较、exact-version 评测证据与 digest-bound 人工 decision；不新增自动评测执行、replay / resume 或自动 release。新的产品化顺位必须从功能设计专题产生。[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A 至 E 与[唯一高风险任务卡](../../task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)均已关闭，S3 不扩后端同层能力，也不新增 API、schema、task card 或专项 checker。
+当前产品顺位是[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)。[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)的批次 A 已完成 strict contract、memory catalog owner、Definition authority reload、portability / target binding validator、review / listing CAS、十条 strict HTTP 与 Saved Draft owner 派生；当前停在批次 B 授权前。首版只允许同 workspace、approved `workflow_definition_executor_v1`、`prompt | llm | condition | output` 和目标 Application exact binding 复核；公开 Marketplace、跨 workspace、HTTP Tool / RAG 模板、自动模型替换、自动上架 / 派生 / activation / run 与 production 能力均关闭。
+
+Saved Draft、已保存草案派生、不可变修订历史与显式恢复、Node Designer、executor v0、持久 Run History、Failure Review、Run Comparison、Evaluation Cases、Baseline / Case Versioning、Evaluation Suite / Release Review、Gateway Request History、Gateway Playground、API 密钥开发测试态认证、知识基线晋级与应用配置绑定，以及 [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)均已完成。`S3 R2` Workbench 与后续 `S4 Application Access`、`S5 Application Runtime Review`、`S6 Workflow Run & Evaluation Review`、`S7 Admin Control Plane` 产品化纵向切片已通过 Pencil、Web 测试 / build、关键断点和 `390x844` 浏览器严格复验。S6 以四任务单 owner 路径冻结运行定位、兼容比较、exact-version 评测证据与 digest-bound 人工 decision；不新增自动评测执行、replay / resume 或自动 release。[已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md) 批次 A 至 E 与[唯一高风险任务卡](../../task-cards/saved-workflow-draft-library-lifecycle-organization-dev-test-v1-plan.md)均已关闭，S3 不扩后端同层能力，也不新增 API、schema、task card 或专项 checker。
 
 [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成：版本化 definition / profile、durable action plan / confirmation、受控 transport、原子 claim、`workflow_run_record.v2`、memory / SQLite / PostgreSQL、diagnostics、`/executions`、Web 与真实浏览器重启链均已有证据。[Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 的三个批次也已完成：精确 snapshot / `rag_ref`、独立单次 retrieval / Gateway、strict citation、metadata-only run v3、Web、双数据库浏览器重启与 no-fallback 均已有证据；本专题不派生批次 D。
 

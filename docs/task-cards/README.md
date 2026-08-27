@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-26
+更新时间：2026-08-27
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险任务卡。下一入口回到[功能设计文档入口](../features/README.md)，先选择并批准新的长期功能目标，不从已关闭专题直接派生续批。
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)是当前唯一活跃高风险任务卡，状态为 `batch_a_completed_batch_b_ready`。批次 A 已完成 strict contract、memory owner、review / listing CAS、十条默认关闭 HTTP 与 Saved Draft owner 派生；下一步只在项目所有者明确批准后进入批次 B，不提前创建 migration、Pencil、React 或产品服务，也不派生平行 readiness 卡。
 
 ## 当前外部阻塞任务
 

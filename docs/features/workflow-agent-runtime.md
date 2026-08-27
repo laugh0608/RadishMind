@@ -1,6 +1,6 @@
 # Workflow / Agent Runtime 设计与开发文档
 
-更新时间：2026-08-17
+更新时间：2026-08-27
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-17 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行与 RAG 本地材料导入均已有可复验证据并关闭。Workflow Definition 绑定受控 HTTP Tool v1 的 React strict consumer、SQLite 本地产品链和 PostgreSQL 重启链也已完成，不再派生批次 E。用户工作区的[应用结果资产库与受控导出 v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)现也已完成批次 A 至 C 并关闭；Workflow 侧继续只提供既有 Run lineage handoff，不改通用 executor，不打开自动执行、业务写回、agent loop、外部 connector 或 production enablement。下一顺位回到功能设计入口依据真实使用证据选择新的长期功能，以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-27 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料与应用结果资产均已有可复验证据并关闭。新的产品顺位是[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)：批次 A 的 strict contract、memory owner、默认关闭 HTTP 与 Saved Draft `derivation_v2` 已完成，当前为 `batch_a_completed_batch_b_ready`。该专题复用 exact immutable Definition、workspace membership 与 Saved Draft owner，只打开工作区内部人工 review / listing / derive，不改通用 executor，不打开公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -157,7 +157,9 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript 严格 UTF-8 Markdown / Text reader、确定性 sectioner、局部 Pencil、单一结构化 fragment editor、来源 / fragment 审查以及 SQLite create / version / CAS / 重启和隐私复验，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。最终仍只把用户显式确认的 replacement 交给既有 snapshot create / version owner；原始文件与 staging 不持久化，没有新增 API、schema、migration、repository、permission、task card、fixture 或 checker。connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md) 是当前下一批方向。设计固定 approved immutable Definition → workspace template candidate → human review → immutable template version → explicit listing → target Application authority / binding recheck → Saved Draft v1 的连续链，并以[唯一高风险任务卡](../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)按五批推进。批次 A 已完成；下一步等待项目所有者明确批准批次 B，未获批准前不创建 SQLite / PostgreSQL migration、Pencil、React、产品服务或真实浏览器记录。
+
+[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成并保持关闭；connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置，不从模板专题旁路打开。
 
 ## 验收方式
 

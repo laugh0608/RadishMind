@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-26
+更新时间：2026-08-27
 
 ## 文档目的
 
@@ -10,6 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
+- 当前产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_a_completed_batch_b_ready`。项目所有者已批准并完成批次 A：七份 strict schema、memory catalog owner、Definition authority reload、portability / target binding validator、review / listing CAS、十条默认关闭 HTTP 与 Saved Draft `derivation_v2` 派生已落地。当前停止在批次 B 授权前，不创建 SQLite / PostgreSQL migration、Pencil、React、产品服务或真实浏览器记录。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
 - 最近关闭产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_completed`。批次 A 至 D 已完成五类 session profile、memory / SQLite / PostgreSQL 不可变 artifact 与独立 lifecycle、共享 strict Web consumer、三类 Session 接入、SQLite 服务重启页面恢复，以及 PostgreSQL 配置化 Server 保存 → 归档 → 关闭 no-fallback → 重启读取 → 解除归档产品链；永久 `DELETE` route 仍不存在。专题保持关闭，不派生批次 E、通用 result store 或 transcript。
@@ -19,7 +20,7 @@
 - 最近关闭产品顺位为 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：S9 / S10 React 已分别完成 Visual R3 纵向迁移与真实浏览器复核；本轮不改 Pencil、不建立 S11，也没有新增同层 gate-only 任务卡。该专题关闭后的入口回流已完成，当前新专题以上方 Provider Attempt 设计为准。
 - 当前成熟度：内部开发者预览，不使用 `M2` 编号，不声明生产就绪。
 - 最近关闭专题：[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成批次 A 至 C，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。Desktop `U4tmEg` 与 Narrow `nI3RW` 局部 Pencil 已人工通过；单一结构化 editor、来源 / fragment 审查、create v1、full replacement v2、双标签 CAS、SQLite 重启、隐私和 `1440×900` / `720×900` / `390×844` 均已形成真实证据。Web `338/338`、production build 和正式 `--workflow-rag-dev` launcher probe 通过；没有新增 API、schema、migration、repository、permission、持久 staging、自动执行或生产声明。下一产品顺位回到 `docs/features/README.md` 选择新的长期功能设计文档，不从本专题派生 S11 或同层 gate-only 切片。
-- 最近关闭专题：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。Draft / Definition v2、executor v2、Run v8、Comparison v7、Session v4、Evaluation Plan / Campaign v2 已在 memory、SQLite、PostgreSQL 形成连续链；SQLite 产品浏览器又完成 Direct Run → Session → 两次 Campaign → Pair Preview → Case / Suite handoff、服务重启、隐私、v1 历史和三视口复核，最终控制台无 warning / error。当前没有活跃高风险任务卡；产品顺位已经切换到上方 RAG 本地知识材料导入专题。
+- 最近关闭专题：[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md) 已完成批次 A 至 E，状态为 `workflow_definition_structured_runtime_inputs_dev_test_v1_completed`。Draft / Definition v2、executor v2、Run v8、Comparison v7、Session v4、Evaluation Plan / Campaign v2 已在 memory、SQLite、PostgreSQL 形成连续链；SQLite 产品浏览器又完成 Direct Run → Session → 两次 Campaign → Pair Preview → Case / Suite handoff、服务重启、隐私、v1 历史和三视口复核，最终控制台无 warning / error。该历史专题保持关闭，当前产品顺位以上方工作区 Workflow 模板目录专题为准。
 - [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) 功能状态仍为 `application_evaluation_campaign_controlled_execution_dev_test_v1_completed`。后端 A 至 D、React strict consumer、memory / SQLite exact handoff 与服务重启证据继续成立；SQLite exact Plan `aeplan_lkqe7gr7kjobmf73 v1` 产生两次 succeeded Campaign，Pair Preview 后交接 Case `eval_034d69aec0d7a2323c7f222f v1` 与 Suite `suite_9a8017d686be57009c7ad973`。S10 Desktop `Um8Zh`、Narrow `ZxJd7` 与 Decision R15 `UNMOS` 的 Visual R3 React 迁移已完成：页面使用 selected campaign context、campaign 主 owner、连续 item evidence rows 和单一 Handoff rail；`1440×900`、`720×900`、`390×844` 无横向溢出，campaign 切换与 exact Handoff 交接正常，控制台无 warning / error。
 - [应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1](features/gateway/application-api-key-request-quota-admission-dev-test-v1.md)批次 A 至 E 已全部完成，功能状态仍为 `application_api_key_request_quota_admission_dev_test_v1_completed`。后端三模式 quota owner、Admin GET / PUT、独立权限和六条 provider 前原子准入继续成立；S9 React 已采用 Visual R3 的 selected application context、单一 quota owner、连续 policy rows、admission rail 与职责圆角。SQLite 真实浏览器完成 missing → create v1 → 双标签 stale CAS → reload v2，`1440×900`、`720×900`、`390×844` 无横向溢出且控制台无 warning / error。旧 User Workspace `QuotaSummary` 仍为 `quota_policy_unavailable`，生产 quota、rate limit、token / cost、billing、正式 membership / OIDC 与自动路由未打开。
 - [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md) 已完成 `v26.7.3` 通用参考基线、`S1 R8` 至 `S8 R1` 的已审视觉语言，以及 S9 / S10 Visual R3 React 迁移与真实浏览器复核。结构化输入 Visual R4 与价格专题 S7 / S5 Visual R1 也已关闭；本专题不继续派生 S11，后续 UI 工作只由新的功能专题和真实使用证据产生。
@@ -36,14 +37,14 @@
 - `R2 正确性与安全清零`、`R3 工作流草案审查闭环`、`R4 Gateway 运行时产品化`、`R5 测试、CI 与性能预算`、`R6 文档与检查器收敛` 均已完成。R6 关闭评审确认活动 checker 从 `132` 项、`38,644` 行降至 `111` 项、`28,486` 行，分别下降约 `15.9%` 与 `26.3%`；Provider、Production Ops 和 Control Plane formal UI 因仍有独立证据责任继续活动，不再派生第六批或同层 readiness 链。
 - `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片。production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 - 四个正式一级产品面保持为“用户工作区”“管理控制面”“模型网关 / API 分发”“工作流 / Agent 运行时”；图片路径是横切适配能力，不作为当前第五条一级主线。
-- 当前产品顺位[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
+- 外部阻塞的[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已推进到 `local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`。批次 A 至 D 已完成本地身份 owner、三种 repository、Web Session、确定性 browser OIDC、当前账户 / external identity revoke HTTP、显式 opt-in Web gateway、S7 User / Role 当前账户 owner、完整 Pencil 与真实浏览器连续链。批次 E 仍等待真实 Radish 注册条件，不把它改写为当前可执行本地任务。
 - 最新关闭产品顺位为[本地用户、角色与工作区成员管理（开发 / 测试态）v1](features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)，状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。批次 A 至 E 已在现有 local identity owner 上完成 canonical 四角色、三存储管理 service、`0003` durable metadata / 顺序索引、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、已批准 S7 User / Role Pencil、单一 React strict consumer，以及 SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计；专题关闭，不打开全局账户搜索、自定义角色、真实 Radish 或 production IAM。
 - 最新关闭产品顺位：[本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_completed`。批次 A 至 E 已完成三存储 owner、ordered index、credential replacement + source-bound revoke 原子链、四条 strict HTTP、批准 Pencil、单一 React strict consumer、SQLite / PostgreSQL configured Server 产品链、三视口、双标签和隐私审计；真实窄屏发现并修复 session group 压缩裁切与 account trigger 被 sticky mobile navigation 覆盖两个 CSS 根因。专题关闭，不派生批次 F、S11、设备管理、全局 session console 或 production auth。
 - 旧生产凭据后端 / 存储适配器准入链已冻结为历史证据，`storage_adapter_runtime_implementation_entry_refresh_after_provider_account_resource_endpoint_review` 不再是当前开发下一步。
 
 当前最多两条在制主线：
 
-1. 产品线：本地账户凭证轮换与自助会话治理批次 A 至 E 已完成并关闭；当前没有活跃高风险任务卡。下一入口回到[功能设计文档入口](features/README.md)，从四个正式产品面选择并批准新的长期功能目标。本地成员管理保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)批次 A 已完成，当前停在批次 B 实施批准前；本地成员管理与账户安全保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -75,12 +76,13 @@
 7. in-app Browser 完成 `1440×900`、`720×900`、`390×844`、危险确认、forced re-login、双标签 metadata-only logout、console / network / URL / storage source / cookie 属性审计。真实窄屏修复 grid implicit row 压缩与 account trigger stacking 两个 CSS 根因，复验后三视口无横向溢出。
 8. Platform、Vite、浏览器标签、PostgreSQL 容器、隔离 SQLite 与 cookie jar 均已清理，`4100`、`7100`、`55439` 无监听。专题关闭；production auth、MFA、恢复、设备管理、全局 session console 与真实 Radish 继续关闭。
 
-## 2026-08-27 明日事项
+## 2026-08-27 今日推进
 
-1. 先进行产品顺位评审，不直接延长账户安全专题或启动代码批次。以[功能设计文档入口](features/README.md)的四个正式产品面为候选池，核对当前焦点、能力矩阵和各专题停止线。
-2. 为候选目标比较真实用户闭环、canonical owner、现有事实基础、外部依赖、可在本仓库形成的端到端证据，以及是否只是已关闭专题的同层小切片或 gate-only 延伸；收敛出不超过三个候选。
-3. 由项目所有者批准一个新的长期目标后，先新建或更新对应功能设计，明确用户、owner、协议 / 数据边界、停止线、批次与验收；只有高风险或跨模块实施再建立独立任务卡，不先写实现。
-4. 账户安全批次 F、S11、production auth、MFA、恢复、设备管理、全局 session console 和缺少 reviewed 注册条件的真实 Radish 联调继续不做；没有新目标获批时不以治理文件或普通只读页面填充排期。
+1. 已完成四产品面顺位评审，并以真实用户闭环、canonical owner、现有事实、外部依赖、本仓库端到端证据和同层延伸风险收敛候选；项目所有者批准工作区内部 Workflow 模板目录作为新的长期目标。
+2. 已建立功能专题，固定 approved immutable Definition → template candidate → human review → immutable template version → explicit listing → target Application recheck → Saved Draft v1 的连续链。模板目录只拥有分发与上架事实，不复制 Definition、Draft、Run、Evaluation、membership 或 Application owner。
+3. 项目所有者已明确批准并完成批次 A。`contracts/` 新增 candidate / decision、version、lineage、listing event、audit 与 `derivation_v2` 七份 strict schema；Platform 已完成 memory owner、canonical digest、authority reload、portability / target binding validator、review / listing 原子 CAS、strict cursor 与十条默认关闭 HTTP。
+4. derive 在全部预检通过后只调用 Saved Draft owner 单次创建独立 v1 草案；既有 `derivation_v1` 兼容保留并与 `derivation_v2` 互斥。精准 / 相邻测试、race、`go vet` 与完整 Platform config / HTTP API 测试已通过，未创建数据库、Pencil、React、服务或浏览器证据。
+5. 下一步等待项目所有者明确批准批次 B；未获批准前不创建 SQLite / PostgreSQL migration 或 durable repository。公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭；账户安全批次 F、S11 与真实 Radish 外部联调也不恢复。
 
 ## 2026-08-19 今日评审
 
@@ -107,6 +109,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 持久草案存储库、稳定 Gateway、执行器 v0 与持久开发测试态运行历史均已成立。真实浏览器已验证“创建 → 保存 → 启动受限运行 → 分页历史 → 详情 → 服务重启恢复”，运行记录中模型服务调用为 1，工具、确认、业务写入和重放均为 0，原始输入与条件值未持久化。无限制工具、业务写回、自动确认提交、重放和恢复继续关闭。
 
 总入口与证据：
+
+当前产品入口：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)及其[唯一高风险任务卡](task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)。
 
 1. [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
 2. [Gateway Python Bridge Runtime v1](features/gateway/python-bridge-runtime-v1.md)
@@ -178,6 +182,8 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 ## 当前不要做
 
+- 不在批次 B 获得明确实施批准前创建 Workflow 模板 SQLite / PostgreSQL migration、durable repository、Pencil、React、产品服务或真实浏览器记录。
+- 不把工作区模板目录扩成公开 Marketplace、跨作用域共享、推荐 / 评分、自动重绑定、自动运行或生产发布。
 - 不继续为普通只读展示页、evidence review、文案和布局逐项新增 task card / fixture / checker。
 - 不把 task card 当成功能长期设计文档。
 - 不在没有对应专题文档更新的情况下启动新的大功能或高风险实现。

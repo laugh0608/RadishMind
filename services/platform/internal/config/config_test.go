@@ -115,6 +115,42 @@ func TestWorkflowDefinitionReleaseDevRequiresSavedDraftAuthorityGates(t *testing
 	}
 }
 
+func TestWorkflowTemplateCatalogDevRequiresExistingAuthorities(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.WorkflowTemplateCatalogDevEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "workflow definition release") {
+		t.Fatalf("expected workflow template catalog prerequisite failure, got %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowSavedDraftDevWriteEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.WorkflowDefinitionReleaseDevEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete workflow template catalog development gates should validate: %v", err)
+	}
+}
+
+func TestWorkflowTemplateCatalogDevEnvironmentGate(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV", "1")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load workflow template catalog gate: %v", err)
+	}
+	if !cfg.WorkflowTemplateCatalogDevEnabled || cfg.FieldSources["workflow_template_catalog_dev"] != configSourceEnv {
+		t.Fatalf("workflow template catalog gate source drifted: %#v", cfg.FieldSources)
+	}
+	if !cfg.SanitizedSummary().WorkflowTemplateCatalogDevEnabled {
+		t.Fatalf("workflow template catalog gate missing from sanitized summary: %#v", cfg.SanitizedSummary())
+	}
+}
+
 func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.ApplicationSessionDevEnabled = true
@@ -1882,6 +1918,8 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+		"RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV",
+		"RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV",
 		"RADISHMIND_APPLICATION_SESSION_DEV",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",

@@ -36,6 +36,7 @@ const (
 	SavedWorkflowDraftProvenanceUnversioned  SavedWorkflowDraftProvenanceKind = "unversioned"
 	SavedWorkflowDraftProvenanceDefinition   SavedWorkflowDraftProvenanceKind = "workflow_definition"
 	SavedWorkflowDraftProvenanceDraftDerived SavedWorkflowDraftProvenanceKind = "saved_draft_derivation"
+	SavedWorkflowDraftProvenanceTemplate     SavedWorkflowDraftProvenanceKind = "workspace_template_derivation"
 )
 
 type SavedWorkflowDraftLifecycleTransitionKind string
@@ -538,6 +539,11 @@ func normalizeAndValidateSavedWorkflowDraftLifecycle(
 }
 
 func savedWorkflowDraftProvenanceKind(draft SavedWorkflowDraft) SavedWorkflowDraftProvenanceKind {
+	if _, found := normalizeSavedWorkflowTemplateDerivation(
+		draft.AdditionalFields[savedWorkflowTemplateDerivationAdditionalField],
+	); found {
+		return SavedWorkflowDraftProvenanceTemplate
+	}
 	if _, found := normalizeSavedWorkflowDraftDerivation(
 		draft.AdditionalFields[savedWorkflowDraftDerivationAdditionalField],
 		draft.DraftID,
@@ -643,7 +649,8 @@ func validSavedWorkflowDraftProvenanceFilter(kind SavedWorkflowDraftProvenanceKi
 	case "",
 		SavedWorkflowDraftProvenanceUnversioned,
 		SavedWorkflowDraftProvenanceDefinition,
-		SavedWorkflowDraftProvenanceDraftDerived:
+		SavedWorkflowDraftProvenanceDraftDerived,
+		SavedWorkflowDraftProvenanceTemplate:
 		return true
 	default:
 		return false

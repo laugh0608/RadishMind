@@ -178,6 +178,7 @@ type Config struct {
 	GatewayProviderRouteConfigurationID      string
 	GatewayProviderFallbackDevEnabled        bool
 	WorkflowDefinitionReleaseDevEnabled      bool
+	WorkflowTemplateCatalogDevEnabled        bool
 	ApplicationSessionDevEnabled             bool
 	WorkflowExecutorDevEnabled               bool
 	WorkflowToolActionDevEnabled             bool
@@ -289,6 +290,7 @@ type ConfigSummary struct {
 	GatewayProviderRouteConfigurationID      string            `json:"gateway_provider_route_configuration_id,omitempty"`
 	GatewayProviderFallbackDevEnabled        bool              `json:"gateway_provider_fallback_dev_enabled"`
 	WorkflowDefinitionReleaseDevEnabled      bool              `json:"workflow_definition_release_dev_enabled"`
+	WorkflowTemplateCatalogDevEnabled        bool              `json:"workflow_template_catalog_dev_enabled"`
 	ApplicationSessionDevEnabled             bool              `json:"application_session_dev_enabled"`
 	WorkflowExecutorDevEnabled               bool              `json:"workflow_executor_dev_enabled"`
 	WorkflowToolActionDevEnabled             bool              `json:"workflow_tool_action_dev_enabled"`
@@ -1095,6 +1097,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.WorkflowDefinitionReleaseDevEnabled = parsed
 		cfg.FieldSources["workflow_definition_release_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.WorkflowTemplateCatalogDevEnabled = parsed
+		cfg.FieldSources["workflow_template_catalog_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_APPLICATION_SESSION_DEV"); ok {
 		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_SESSION_DEV", value)
 		if err != nil {
@@ -1779,6 +1789,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		GatewayProviderRouteConfigurationID:      strings.TrimSpace(cfg.GatewayProviderRouteConfigurationID),
 		GatewayProviderFallbackDevEnabled:        cfg.GatewayProviderFallbackDevEnabled,
 		WorkflowDefinitionReleaseDevEnabled:      cfg.WorkflowDefinitionReleaseDevEnabled,
+		WorkflowTemplateCatalogDevEnabled:        cfg.WorkflowTemplateCatalogDevEnabled,
 		ApplicationSessionDevEnabled:             cfg.ApplicationSessionDevEnabled,
 		WorkflowExecutorDevEnabled:               cfg.WorkflowExecutorDevEnabled,
 		WorkflowToolActionDevEnabled:             cfg.WorkflowToolActionDevEnabled,
@@ -2237,6 +2248,10 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	}
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return fmt.Errorf("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
+	}
+	if cfg.WorkflowTemplateCatalogDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowDefinitionReleaseDevEnabled ||
+		!cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled || !cfg.ApplicationCatalogDevHTTPEnabled) {
+		return fmt.Errorf("workflow template catalog dev requires control plane auth, workflow definition release, application catalog HTTP, and saved workflow draft HTTP/write gates")
 	}
 	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled ||
 		(!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&

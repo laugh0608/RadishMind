@@ -56,6 +56,8 @@ type Server struct {
 	workflowRunStore                        workflowRunStore
 	applicationRunStore                     workflowRunStore
 	workflowDefinitionReleaseRepository     workflowDefinitionReleaseRepository
+	workflowTemplateCatalogRepository       workflowTemplateCatalogRepository
+	workflowTemplateTargetBindingValidator  workflowTemplateTargetBindingValidator
 	workflowRAGSnapshotRepository           workflowRAGSnapshotRepository
 	workflowRAGEvaluationDatasetRepository  workflowRAGEvaluationDatasetRepository
 	workflowRAGPromotionRepository          workflowRAGPromotionRepository
@@ -210,6 +212,10 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		}
 		controlPlaneReadRepository = liveWorkflowDefinitionControlPlaneReadRepository{ControlPlaneReadRepository: controlPlaneReadRepository, definitions: workflowDefinitionReleaseRepository}
 	}
+	var workflowTemplateCatalogRepository workflowTemplateCatalogRepository
+	if runtimeConfig.WorkflowTemplateCatalogDevEnabled {
+		workflowTemplateCatalogRepository = newMemoryWorkflowTemplateCatalogRepository()
+	}
 	workflowRAGSnapshotRepository, err := newWorkflowRAGSnapshotRepositoryForRunStore(workflowRunStore)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -348,6 +354,8 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowRunStore:                        workflowRunStore,
 		applicationRunStore:                     combinedRunStore,
 		workflowDefinitionReleaseRepository:     workflowDefinitionReleaseRepository,
+		workflowTemplateCatalogRepository:       workflowTemplateCatalogRepository,
+		workflowTemplateTargetBindingValidator:  strictWorkflowTemplateTargetBindingValidator{},
 		workflowRAGSnapshotRepository:           workflowRAGSnapshotRepository,
 		workflowRAGEvaluationDatasetRepository:  workflowRAGEvaluationDatasetRepository,
 		workflowRAGPromotionRepository:          workflowRAGPromotionRepository,
@@ -492,6 +500,16 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowDefinitionActivationReadRoute, server.handleReadWorkflowDefinitionActivation)
 	mux.HandleFunc(workflowDefinitionActivationDecisionRoute, server.handleDecideWorkflowDefinitionActivation)
 	mux.HandleFunc(workflowDefinitionRunCreateRoute, server.handleStartWorkflowDefinitionRun)
+	mux.HandleFunc(workflowTemplateCandidateCreateRoute, server.handleCreateWorkflowTemplateCandidate)
+	mux.HandleFunc(workflowTemplateCandidateListRoute, server.handleListWorkflowTemplateCandidates)
+	mux.HandleFunc(workflowTemplateCandidateReadRoute, server.handleReadWorkflowTemplateCandidate)
+	mux.HandleFunc(workflowTemplateCandidateDecisionRoute, server.handleDecideWorkflowTemplateCandidate)
+	mux.HandleFunc(workflowTemplateListRoute, server.handleListWorkflowTemplates)
+	mux.HandleFunc(workflowTemplateReadRoute, server.handleReadWorkflowTemplate)
+	mux.HandleFunc(workflowTemplateVersionListRoute, server.handleListWorkflowTemplateVersions)
+	mux.HandleFunc(workflowTemplateVersionReadRoute, server.handleReadWorkflowTemplateVersion)
+	mux.HandleFunc(workflowTemplateListingDecisionRoute, server.handleDecideWorkflowTemplateListing)
+	mux.HandleFunc(workflowTemplateDerivationRoute, server.handleDeriveWorkflowTemplate)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
 	mux.HandleFunc("POST "+workflowRAGExecutionRoute, server.handleWorkflowRAGExecution)
 	mux.HandleFunc(workflowRAGSnapshotCreateRoute, server.handleCreateWorkflowRAGSnapshot)
