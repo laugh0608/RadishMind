@@ -2,7 +2,7 @@
 
 更新时间：2026-08-27
 
-状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`
+状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_preflight_required`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 它把现有“个人草案派生”和“应用内 Definition 晋级”向工作区内部复用扩展，但不建立公开 Marketplace，不复制 Definition、Saved Draft、运行、评测、权限或应用真相源。模板目录只拥有工作区级模板候选、不可变模板版本、上架指针与对应 append-only 决定；模板内容来源和运行资格仍由既有 Definition 与 Draft owner 重新判定。
 
-本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。当前停在批次 D 单独授权前，不进入 React 或产品连续链。
+本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。2026-08-27 日终代码反查发现 target binding authority 与 HTTP query cardinality 尚未达到专题原定边界，当前停在批次 D 前置修正授权前，不进入 React 或产品连续链。
 
 ## 用户与真实任务
 
@@ -159,6 +159,15 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 所有 route 只在显式 `RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV=1` 下注册或启用，默认离线 Web 零请求。unknown mode、disabled mode、store unavailable、schema mismatch 或 upstream owner failure 均不得回退 sample、memory、旧模板版本、源应用草案或默认模型绑定。
 
+### 已实现边界反查
+
+2026-08-27 对批次 A / B 当前代码逐项反查后，确认 durable owner、十条 route、strict JSON、组合 permission、CAS、cursor、no-fallback 与零执行副作用证据仍成立，但有两项必须在 React 前修正：
+
+- 当前 configured Server 使用的 `strictWorkflowTemplateTargetBindingValidator` 只验证目标 Application 为 active `workflow_copilot`，并验证 Definition 中 `profile:` 引用的形状、去重和节点一致性。现有 `ApplicationCatalogRecord` 不包含 Provider / Profile / Model binding projection，测试中的 binding unavailable 强制拒绝来自注入 validator；因此当前代码尚不能证明同一精确引用在目标 Application 下真实可用，也不能把测试替身写成真实 binding owner。
+- request body 已拒绝 unknown / duplicate field，但 route query 仍通过 `URL.Query().Get` 读取，尚未统一拒绝 unknown key、重复值和 mutation query。批次 D 前必须让 GET query 采用 exact allowlist 与 single-value cardinality，并让四条 mutation route 拒绝任意 query，避免 Web strict consumer 建立在宽松 northbound 输入上。
+
+这两项不推翻批次 A 的 domain / memory 证据、批次 B 的 durable repository 证据或批次 C 的已批准设计，但会阻塞批次 D。修正必须继续留在本任务卡内，不新建平行 readiness 卡；实现范围和验证应由项目所有者单独批准。
+
 ## 失败与并发语义
 
 稳定失败至少包括：
@@ -180,6 +189,7 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 - `workflow_template_target_application_unavailable`
 - `workflow_template_target_binding_unavailable`
 - `workflow_template_draft_id_conflict`
+- `workflow_template_cursor_invalid`
 - `workflow_template_store_unavailable`
 
 相同 expected review / pointer version 的并发 mutation 最多一个成功。candidate approval 物化版本、listing pointer + event + audit 必须分别在 catalog owner 的单一 lock / transaction 中原子提交。派生只在所有 catalog、Definition、Application、membership 和 binding 预检通过后调用 Saved Draft owner；Draft create 失败时不得写部分 provenance，也不得修改模板 pointer。
@@ -216,6 +226,7 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ### 批次 D：React strict consumer
 
+- 前置：完成 target binding authority 与十条 route exact query cardinality 修正，并通过相邻 Go / race / HTTP / no-side-effect 验证；未完成不得开始 React。
 - 接入单一 workspace template catalog consumer、strict schema、cursor、CAS、scope generation、late-response guard 与 Draft Designer exact handoff。
 - offline 零请求，target application / confirmation 只存在组件内存；不在本批启动数据库产品服务或冒充真实浏览器证据。
 
@@ -250,4 +261,4 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ## 当前下一步
 
-批次 C Pencil 已完成人工批准并推进到 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`。下一步只在项目所有者另行明确批准后进入批次 D React strict consumer；当前不创建 React、产品服务或真实浏览器记录。
+批次 C Pencil 已完成人工批准；日终代码反查将状态收紧为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_preflight_required`。下一步先由项目所有者批准同一任务卡内的 target binding authority 与 HTTP exact query 修正，完成并验证后再判断批次 D React 是否准入；当前不创建 React、产品服务或真实浏览器记录。
