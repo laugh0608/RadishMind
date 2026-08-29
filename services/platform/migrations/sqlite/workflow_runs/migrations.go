@@ -8,8 +8,8 @@ import (
 
 const (
 	Component                          = "workflow_runs"
-	MigrationID                        = "0024_application_result_artifact_application_history"
-	StoreSchemaVersion                 = "workflow_run_store_sqlite_v24"
+	MigrationID                        = "0025_action_safety_snapshots"
+	StoreSchemaVersion                 = "workflow_run_store_sqlite_v25"
 	RunRecordStoreSchemaVersion        = "workflow_runs_store_v7"
 	legacyMigrationID                  = "0001_workflow_runs"
 	toolActionsMigrationID             = "0002_workflow_http_tool_actions"
@@ -57,6 +57,8 @@ const (
 	resultArtifactSchemaVersion        = "workflow_run_store_sqlite_v22"
 	resultArtifactLifecycleMigrationID = "0023_application_result_artifact_lifecycle"
 	resultArtifactLifecycleVersion     = "workflow_run_store_sqlite_v23"
+	resultArtifactHistoryMigrationID   = "0024_application_result_artifact_application_history"
+	resultArtifactHistoryVersion       = "workflow_run_store_sqlite_v24"
 )
 
 //go:embed 0001_workflow_runs.up.sql
@@ -131,6 +133,9 @@ var upSQLV23 string
 //go:embed 0024_application_result_artifact_application_history.up.sql
 var upSQLV24 string
 
+//go:embed 0025_action_safety_snapshots.up.sql
+var upSQLV25 string
+
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
 		{
@@ -186,6 +191,7 @@ func Migrations() []sqlitedev.Migration {
 		{Component: Component, ID: definitionHTTPToolMigrationID, StoreSchemaVersion: definitionHTTPToolSchemaVersion, UpSQL: upSQLV21},
 		{Component: Component, ID: resultArtifactMigrationID, StoreSchemaVersion: resultArtifactSchemaVersion, UpSQL: upSQLV22},
 		{Component: Component, ID: resultArtifactLifecycleMigrationID, StoreSchemaVersion: resultArtifactLifecycleVersion, UpSQL: upSQLV23},
-		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV24},
+		{Component: Component, ID: resultArtifactHistoryMigrationID, StoreSchemaVersion: resultArtifactHistoryVersion, UpSQL: upSQLV24},
+		{Component: Component, ID: MigrationID, StoreSchemaVersion: StoreSchemaVersion, UpSQL: upSQLV25},
 	}
 }

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-29
 
-状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_b_completed_batch_c_ready`
+状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_c_completed_batch_d_pencil_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 首版只负责候选动作的执行资格，不创建通用动作执行器。模型、客户端、Prompt、Profile、Workflow 草案、候选审查结果或人工批准都不能直接授予执行权限；确定性规则层必须在每个高风险检查点重读精确 authority，并把结果收口为 `requested_level / maximum_allowed_level / effective_level`。既有 Workflow HTTP Tool 是唯一可进入 `tool_callable` 的执行路径，而且仍必须经过其独立 action plan、人工 confirmation、原子 claim 与单次 allowlisted `GET`。
 
-项目所有者已分别批准并完成批次 A、B。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run memory projection 六个检查点。当前实现只在 memory 开发测试 owner 内保留 `json:"-"` 易失 projection，不修改 HTTP contract、SQLite / PostgreSQL 编码或 migration；每次 transition / dispatch 重读 exact authority，迟到响应、drift、缺失确认、CAS 与重复执行均失败关闭。批次 C 仍需单独批准。
+项目所有者已分别批准并完成批次 A、B、C。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run projection 六个检查点。批次 C 又在既有 Agent assignment / event、Agent Run、Workflow HTTP Tool plan 与 Workflow Run owner 中加入同构、版本化、脱敏 snapshot；memory、SQLite 与 PostgreSQL 共用相同 projection contract，历史空三元组显式读取为 `not_recorded_legacy`，损坏、部分写入、未知 / 重复字段、digest 漂移和存储不可用都失败关闭且不按当前 policy 反算。现有 HTTP contract 未改变，Pencil 与 React 尚未开始；批次 D 仍需单独批准。
 
 ## 用户价值与目标用户
 
@@ -182,9 +182,13 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 
 ### 批次 C：SQLite / PostgreSQL 同构证据
 
+状态：已完成。
+
 - 仅在需要历史 snapshot 的既有 migration family 中追加字段或关联记录。
 - 覆盖 migration / rollback / reapply、runtime role、并发 CAS、重启、corruption、no-fallback、legacy read 与 policy snapshot 不重算。
 - 证明 `tool_callable` 仍只消费既有 HTTP Tool owner，`write_allowed_by_policy` 无数据库成功路径。
+
+完成事实：PostgreSQL `0028_action_safety_snapshots / workflow_run_store_v28` 与 SQLite `0025_action_safety_snapshots / workflow_run_store_sqlite_v25` 只为五张既有 owner 表追加 `schema_version / projection_digest / sanitized_snapshot` 三元组，没有新增 selector、pool、DSN、database、跨 store join 或 fallback。Agent assignment / append-only event 保存 assignment projection，Agent Run 与 Workflow Run 保存 run projection，HTTP Tool plan 保存 plan projection；原有 owner transaction 与 CAS 同时封存 snapshot，Tool plan 的状态转换 CAS 还绑定 projection digest。全空三元组是唯一 legacy 形状，读取状态为 `not_recorded_legacy`；部分三元组、schema / digest / payload 漂移、未知 / 重复字段、尾随 JSON 和损坏记录均失败关闭。SQLite 重启与 PostgreSQL reconnect 保留当时 policy version / digest，Agent replay 遇到损坏记录不会回退或重复 provider。PostgreSQL 实测覆盖 runtime role、完整 rollback / `not_applied` / reapply、marker / checksum 与 no-fallback；首次实测还发现并修复 SQL `NULL` 三值逻辑可绕过部分三元组约束的问题。`write_allowed_by_policy` 在数据库约束和 domain 校验中都没有成功路径，Run 的 business / replay write 仍为 0。
 
 ### 批次 D：完整 Pencil 与人工批准
 
@@ -198,6 +202,8 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 - 关闭专题时同步真相源并清理服务、容器、数据库与临时材料；不自动派生批次 F。
 
 每个批次都需要项目所有者单独批准。唯一实施入口是[Action Safety Ladder 与候选动作执行资格 v1 高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)。
+
+当前下一步只评审批次 D 的完整 Pencil 与人工批准。批次 C 的完成不自动授权 Pencil、HTTP contract、React、产品服务或浏览器实现。
 
 ## 验收方式
 

@@ -300,7 +300,7 @@ func (service agentCopilotRuntimeService) Decide(ctx AgentCopilotRuntimeContext,
 		if input.Action == "revoke" {
 			return agentCopilotRuntimeFailure(AgentCopilotRuntimeFailurePayload)
 		}
-		if _, memory := service.repository.(*memoryAgentCopilotRuntimeRepository); !memory || service.actionSafety == nil {
+		if service.actionSafety == nil {
 			return agentCopilotRuntimeFailure(AgentCopilotRuntimeFailureStoreContract)
 		}
 		projection, safetyFailure := service.actionSafety.ActivateCandidate(

@@ -460,7 +460,8 @@ func newWorkflowHTTPToolActionService(
 		readDraft: readDraft, definitions: definitions, store: store, registry: registry,
 		now: func() time.Time { return time.Now().UTC() }, newID: newWorkflowHTTPToolActionID,
 	}
-	if _, memory := store.(*memoryWorkflowHTTPToolActionStore); memory {
+	switch store.(type) {
+	case *memoryWorkflowHTTPToolActionStore, *sqliteWorkflowHTTPToolActionStore, *postgresWorkflowHTTPToolActionStore:
 		service.actionSafety = newActionSafetyRuntimeV1(registry.profile.Environment)
 	}
 	return service, nil

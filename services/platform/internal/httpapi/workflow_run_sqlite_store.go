@@ -42,6 +42,11 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 		return errWorkflowRunStoreContract
 	}
 	inputContractID, inputContractDigest := workflowRunStructuredInputProjection(next)
+	safety, err := encodeActionSafetyRunSnapshot(next.ActionSafety)
+	if err != nil {
+		return errWorkflowRunStoreContract
+	}
+	safetySchema, safetyDigest, safetyPayload := safety.sqliteColumnValues()
 	completedAtUnixNano, err := optionalWorkflowRunUnixNano(completedAt)
 	if err != nil {
 		return errWorkflowRunStoreContract
@@ -78,6 +83,9 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 			inputContractID,
 			inputContractDigest,
 			string(payload),
+			safetySchema,
+			safetyDigest,
+			safetyPayload,
 		)
 	} else {
 		row = store.database.QueryRowContext(
@@ -99,6 +107,9 @@ func (store *sqliteWorkflowRunStore) UpsertRun(
 			inputContractID,
 			inputContractDigest,
 			string(payload),
+			safetySchema,
+			safetyDigest,
+			safetyPayload,
 			runContext.TenantRef,
 			runContext.WorkspaceID,
 			runContext.ApplicationID,
@@ -369,6 +380,8 @@ func scanSQLiteWorkflowRunRecord(
 	var inputContractID string
 	var inputContractDigest string
 	var payload []byte
+	var safetySchema, safetyDigest sql.NullString
+	var safetyPayload []byte
 	if err := row.Scan(
 		&tenantRef,
 		&workspaceID,
@@ -393,6 +406,9 @@ func scanSQLiteWorkflowRunRecord(
 		&inputContractID,
 		&inputContractDigest,
 		&payload,
+		&safetySchema,
+		&safetyDigest,
+		&safetyPayload,
 	); err != nil {
 		return WorkflowRunRecord{}, err
 	}
@@ -401,6 +417,12 @@ func scanSQLiteWorkflowRunRecord(
 	}
 	record, err := decodeWorkflowRunStorageRecord(runContext, payload)
 	if err != nil {
+		return WorkflowRunRecord{}, errWorkflowRunStoreContract
+	}
+	record.ActionSafety, err = decodeActionSafetyRunSnapshot(actionSafetyStorageSnapshot{
+		SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+	})
+	if err != nil || validateWorkflowRunStoreRecord(runContext, &record) != nil {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
 	_, startedAt, completedAt, err := encodeWorkflowRunStorageRecord(record)
@@ -479,7 +501,10 @@ const sqliteWorkflowRunColumns = `
 	selected_model,
 	input_contract_id,
 	input_contract_digest,
-	sanitized_run_record`
+	sanitized_run_record,
+	action_safety_schema_version,
+	action_safety_projection_digest,
+	sanitized_action_safety_snapshot`
 
 const sqliteWorkflowRunInsertSQL = `
 INSERT INTO workflow_run_records (
@@ -488,8 +513,9 @@ INSERT INTO workflow_run_records (
     record_version, store_schema_version, schema_version, run_status,
     started_at_unix_nano, completed_at_unix_nano, actor_ref, request_id, audit_ref,
 	failure_code, failure_boundary, selected_provider, selected_model,
-	input_contract_id, input_contract_digest, sanitized_run_record
-) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	input_contract_id, input_contract_digest, sanitized_run_record,
+	action_safety_schema_version, action_safety_projection_digest, sanitized_action_safety_snapshot
+) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT (tenant_ref, workspace_id, application_id, run_id) DO NOTHING
 RETURNING ` + sqliteWorkflowRunColumns
 
@@ -499,7 +525,8 @@ UPDATE workflow_run_records
        record_version=record_version+1, schema_version=?, run_status=?,
        completed_at_unix_nano=?, actor_ref=?, request_id=?, audit_ref=?, failure_code=?,
 	   failure_boundary=?, selected_provider=?, selected_model=?,
-	   input_contract_id=?, input_contract_digest=?, sanitized_run_record=?
+	   input_contract_id=?, input_contract_digest=?, sanitized_run_record=?,
+	   action_safety_schema_version=?, action_safety_projection_digest=?, sanitized_action_safety_snapshot=?
  WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?
    AND record_version=? AND run_status='running' AND started_at_unix_nano=?
 RETURNING ` + sqliteWorkflowRunColumns

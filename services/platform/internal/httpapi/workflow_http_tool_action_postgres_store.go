@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -28,6 +29,11 @@ func (store *postgresWorkflowHTTPToolActionStore) CreatePlan(ctx WorkflowHTTPToo
 	if err != nil {
 		return errWorkflowHTTPToolActionContract
 	}
+	safety, err := encodeActionSafetyPlanSnapshot(plan.ActionSafety)
+	if err != nil {
+		return errWorkflowHTTPToolActionContract
+	}
+	safetySchema, safetyDigest, safetyPayload := safety.columnValues()
 	tx, err := store.pool.Begin(ctx.RequestContext)
 	if err != nil {
 		return errWorkflowHTTPToolActionUnavailable
@@ -37,9 +43,10 @@ func (store *postgresWorkflowHTTPToolActionStore) CreatePlan(ctx WorkflowHTTPToo
 	 tenant_ref,workspace_id,application_id,plan_id,schema_version,status,record_version,source_kind,draft_id,draft_version,
 	 workflow_definition_id,workflow_definition_version,workflow_definition_digest,activation_pointer_version,
 	 node_id,tool_id,tool_version,definition_digest,profile_id,profile_version,profile_digest,target_policy_key,tool_plan_digest,
-	 method,credential_policy,timeout_ms,max_response_bytes,max_output_bytes,planned_by_actor_ref,audit_ref,
-	 created_at,expires_at,sanitized_action_plan
-	) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33)
+		 method,credential_policy,timeout_ms,max_response_bytes,max_output_bytes,planned_by_actor_ref,audit_ref,
+		 created_at,expires_at,sanitized_action_plan,
+		 action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
+	) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
 	 ON CONFLICT (tenant_ref,workspace_id,application_id,plan_id) DO NOTHING`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, plan.PlanID, plan.SchemaVersion, plan.Status,
 		plan.RecordVersion, source.SourceKind, nullableWorkflowHTTPToolString(source.DraftID), nullableWorkflowHTTPToolInt(source.DraftVersion),
@@ -48,7 +55,8 @@ func (store *postgresWorkflowHTTPToolActionStore) CreatePlan(ctx WorkflowHTTPToo
 		plan.NodeID, plan.ToolID, plan.ToolVersion, plan.DefinitionDigest,
 		plan.ProfileID, plan.ProfileVersion, plan.ProfileDigest, plan.TargetPolicyKey, plan.ToolPlanDigest,
 		plan.Method, plan.CredentialPolicy, plan.TimeoutMS, plan.MaxResponseBytes, plan.MaxOutputBytes,
-		plan.PlannedByActorRef, plan.AuditRef, createdAt, expiresAt, planJSON)
+		plan.PlannedByActorRef, plan.AuditRef, createdAt, expiresAt, planJSON,
+		safetySchema, safetyDigest, safetyPayload)
 	if err != nil {
 		return errWorkflowHTTPToolActionUnavailable
 	}
@@ -69,16 +77,20 @@ func (store *postgresWorkflowHTTPToolActionStore) ReadPlan(ctx WorkflowHTTPToolA
 		return WorkflowHTTPToolActionPlan{}, false, errWorkflowHTTPToolActionContract
 	}
 	var payload []byte
+	var safetyPayload []byte
+	var safetySchema, safetyDigest sql.NullString
 	var recordVersion, toolVersion int
 	var status, digest string
 	var source workflowHTTPToolStorageSource
 	err := store.pool.QueryRow(ctx.RequestContext, `SELECT sanitized_action_plan,record_version,status,tool_plan_digest,tool_version,
 	 source_kind,coalesce(draft_id,''),coalesce(draft_version,0),coalesce(workflow_definition_id,''),
-	 coalesce(workflow_definition_version,0),coalesce(workflow_definition_digest,''),coalesce(activation_pointer_version,0)
+	 coalesce(workflow_definition_version,0),coalesce(workflow_definition_digest,''),coalesce(activation_pointer_version,0),
+	 action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
 	 FROM workflow_http_tool_action_plans WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND plan_id=$4`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, planID).Scan(
 		&payload, &recordVersion, &status, &digest, &toolVersion, &source.SourceKind, &source.DraftID, &source.DraftVersion,
 		&source.WorkflowDefinitionID, &source.WorkflowDefinitionVersion, &source.WorkflowDefinitionDigest, &source.ActivationPointerVersion,
+		&safetySchema, &safetyDigest, &safetyPayload,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return WorkflowHTTPToolActionPlan{}, false, nil
@@ -86,7 +98,8 @@ func (store *postgresWorkflowHTTPToolActionStore) ReadPlan(ctx WorkflowHTTPToolA
 	if err != nil {
 		return WorkflowHTTPToolActionPlan{}, false, errWorkflowHTTPToolActionUnavailable
 	}
-	plan, err := decodeWorkflowHTTPToolActionPlan(payload, ctx, recordVersion, status, digest, toolVersion, source)
+	plan, err := decodeWorkflowHTTPToolActionPlan(payload, ctx, recordVersion, status, digest, toolVersion, source,
+		actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload})
 	return plan, err == nil, err
 }
 
@@ -104,6 +117,11 @@ func (store *postgresWorkflowHTTPToolActionStore) DecidePlan(ctx WorkflowHTTPToo
 	if err != nil {
 		return errWorkflowHTTPToolActionContract
 	}
+	safety, err := encodeActionSafetyPlanSnapshot(plan.ActionSafety)
+	if err != nil {
+		return errWorkflowHTTPToolActionContract
+	}
+	_, safetyDigest, _ := safety.columnValues()
 	tx, err := store.pool.Begin(ctx.RequestContext)
 	if err != nil {
 		return errWorkflowHTTPToolActionUnavailable
@@ -112,12 +130,13 @@ func (store *postgresWorkflowHTTPToolActionStore) DecidePlan(ctx WorkflowHTTPToo
 	result, err := tx.Exec(ctx.RequestContext, `UPDATE workflow_http_tool_action_plans
  SET status=$1,record_version=$2,sanitized_action_plan=$3
 	 WHERE tenant_ref=$4 AND workspace_id=$5 AND application_id=$6 AND plan_id=$7 AND record_version=$8 AND tool_plan_digest=$9 AND audit_ref=$10 AND tool_version=$11
+	   AND action_safety_projection_digest IS NOT DISTINCT FROM $12
 	   AND (status='pending'
-	     OR (status='deferred' AND $12 IN ('approve','reject','cancel','expire','invalidate'))
-	     OR (status='approved' AND $12 IN ('cancel','expire','invalidate')))`,
+	     OR (status='deferred' AND $13 IN ('approve','reject','cancel','expire','invalidate'))
+	     OR (status='approved' AND $13 IN ('cancel','expire','invalidate')))`,
 		plan.Status, plan.RecordVersion, planJSON, ctx.TenantRef, ctx.WorkspaceID,
 		ctx.ApplicationID, plan.PlanID, decision.ExpectedRecordVersion, plan.ToolPlanDigest, plan.AuditRef,
-		plan.ToolVersion, decision.Outcome)
+		plan.ToolVersion, safetyDigest, decision.Outcome)
 	if err != nil {
 		return errWorkflowHTTPToolActionUnavailable
 	}

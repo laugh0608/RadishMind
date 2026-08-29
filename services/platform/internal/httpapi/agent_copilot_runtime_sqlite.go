@@ -82,6 +82,16 @@ func (repository *sqliteAgentCopilotRuntimeRepository) Apply(
 	if err != nil {
 		return errAgentCopilotRuntimeContract
 	}
+	assignmentSafety, err := encodeActionSafetyAssignmentSnapshot(assignment.ActionSafety)
+	if err != nil {
+		return errAgentCopilotRuntimeContract
+	}
+	eventSafety, err := encodeActionSafetyAssignmentSnapshot(event.ActionSafety)
+	if err != nil {
+		return errAgentCopilotRuntimeContract
+	}
+	assignmentSafetySchema, assignmentSafetyDigest, assignmentSafetyPayload := assignmentSafety.sqliteColumnValues()
+	eventSafetySchema, eventSafetyDigest, eventSafetyPayload := eventSafety.sqliteColumnValues()
 	updatedAt, err := promptApplicationRuntimeUnixNano(assignment.UpdatedAt)
 	if err != nil {
 		return errAgentCopilotRuntimeContract
@@ -93,16 +103,20 @@ func (repository *sqliteAgentCopilotRuntimeRepository) Apply(
 	var result sql.Result
 	if exists {
 		result, err = connection.ExecContext(ctx.RequestContext, `UPDATE agent_copilot_runtime_assignments
-SET assignment_version=?,assignment_state=?,assignment_digest=?,updated_at_unix_nano=?,sanitized_assignment_payload=?
+SET assignment_version=?,assignment_state=?,assignment_digest=?,updated_at_unix_nano=?,sanitized_assignment_payload=?,
+action_safety_schema_version=?,action_safety_projection_digest=?,sanitized_action_safety_snapshot=?
 WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND assignment_id=? AND assignment_version=?`,
 			assignment.AssignmentVersion, assignment.State, assignment.AssignmentDigest, updatedAt, string(assignmentPayload),
+			assignmentSafetySchema, assignmentSafetyDigest, assignmentSafetyPayload,
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, assignment.AssignmentID, expectedVersion)
 	} else {
 		result, err = connection.ExecContext(ctx.RequestContext, `INSERT INTO agent_copilot_runtime_assignments
-(tenant_ref,workspace_id,application_id,owner_subject_ref,assignment_id,assignment_version,assignment_state,assignment_digest,updated_at_unix_nano,sanitized_assignment_payload)
-VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT (tenant_ref,workspace_id,application_id,owner_subject_ref) DO NOTHING`,
+(tenant_ref,workspace_id,application_id,owner_subject_ref,assignment_id,assignment_version,assignment_state,assignment_digest,updated_at_unix_nano,sanitized_assignment_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT (tenant_ref,workspace_id,application_id,owner_subject_ref) DO NOTHING`,
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, assignment.AssignmentID,
-			assignment.AssignmentVersion, assignment.State, assignment.AssignmentDigest, updatedAt, string(assignmentPayload))
+			assignment.AssignmentVersion, assignment.State, assignment.AssignmentDigest, updatedAt, string(assignmentPayload),
+			assignmentSafetySchema, assignmentSafetyDigest, assignmentSafetyPayload)
 	}
 	if err != nil {
 		return errAgentCopilotRuntimeStore
@@ -112,10 +126,11 @@ VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT (tenant_ref,workspace_id,application_id
 		return errAgentCopilotRuntimeVersionConflict
 	}
 	if _, err = connection.ExecContext(ctx.RequestContext, `INSERT INTO agent_copilot_runtime_assignment_events
-(tenant_ref,workspace_id,application_id,owner_subject_ref,event_id,assignment_id,event_sequence,resulting_assignment_version,occurred_at_unix_nano,sanitized_event_payload)
-VALUES (?,?,?,?,?,?,?,?,?,?)`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
+(tenant_ref,workspace_id,application_id,owner_subject_ref,event_id,assignment_id,event_sequence,resulting_assignment_version,occurred_at_unix_nano,sanitized_event_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`, ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
 		event.EventID, event.AssignmentID, event.EventSequence, event.ResultingAssignmentVersion,
-		occurredAt, string(eventPayload)); err != nil {
+		occurredAt, string(eventPayload), eventSafetySchema, eventSafetyDigest, eventSafetyPayload); err != nil {
 		return errAgentCopilotRuntimeStore
 	}
 	if _, err = connection.ExecContext(ctx.RequestContext, "COMMIT"); err != nil {
@@ -132,11 +147,13 @@ func readSQLiteAgentCopilotRuntimeEntry(
 	var assignmentID, state, digest string
 	var assignmentVersion int
 	var updatedAt int64
-	var payload []byte
-	err := query.QueryRowContext(ctx.RequestContext, `SELECT assignment_id,assignment_version,assignment_state,assignment_digest,updated_at_unix_nano,sanitized_assignment_payload
+	var payload, safetyPayload []byte
+	var safetySchema, safetyDigest sql.NullString
+	err := query.QueryRowContext(ctx.RequestContext, `SELECT assignment_id,assignment_version,assignment_state,assignment_digest,updated_at_unix_nano,sanitized_assignment_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
 FROM agent_copilot_runtime_assignments WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=?`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
-	).Scan(&assignmentID, &assignmentVersion, &state, &digest, &updatedAt, &payload)
+	).Scan(&assignmentID, &assignmentVersion, &state, &digest, &updatedAt, &payload, &safetySchema, &safetyDigest, &safetyPayload)
 	if errors.Is(err, sql.ErrNoRows) {
 		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeNotFound
 	}
@@ -148,6 +165,12 @@ FROM agent_copilot_runtime_assignments WHERE tenant_ref=? AND workspace_id=? AND
 		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeContract
 	}
 	assignment := *decodedAssignment.(*AgentCopilotRuntimeAssignmentV1)
+	assignment.ActionSafety, decodeErr = decodeActionSafetyAssignmentSnapshot(actionSafetyStorageSnapshot{
+		SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+	})
+	if decodeErr != nil {
+		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeContract
+	}
 	decodedUpdatedAt, err := promptApplicationRuntimeUnixNano(assignment.UpdatedAt)
 	if err != nil || assignmentID != assignment.AssignmentID || assignmentVersion != assignment.AssignmentVersion ||
 		state != assignment.State || digest != assignment.AssignmentDigest || updatedAt != decodedUpdatedAt {
@@ -168,7 +191,8 @@ func readSQLiteAgentCopilotRuntimeEvents(
 	query sqliteAgentCopilotRuntimeQueryer,
 	assignmentID string,
 ) ([]AgentCopilotRuntimeAssignmentEventV1, error) {
-	rows, err := query.QueryContext(ctx.RequestContext, `SELECT event_id,event_sequence,resulting_assignment_version,occurred_at_unix_nano,sanitized_event_payload
+	rows, err := query.QueryContext(ctx.RequestContext, `SELECT event_id,event_sequence,resulting_assignment_version,occurred_at_unix_nano,sanitized_event_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
 FROM agent_copilot_runtime_assignment_events
 WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref=? AND assignment_id=? ORDER BY event_sequence`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, assignmentID)
@@ -181,8 +205,9 @@ WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref
 		var eventID string
 		var sequence, version int
 		var occurredAt int64
-		var payload []byte
-		if rows.Scan(&eventID, &sequence, &version, &occurredAt, &payload) != nil {
+		var payload, safetyPayload []byte
+		var safetySchema, safetyDigest sql.NullString
+		if rows.Scan(&eventID, &sequence, &version, &occurredAt, &payload, &safetySchema, &safetyDigest, &safetyPayload) != nil {
 			return nil, errAgentCopilotRuntimeStore
 		}
 		decodedEvent, decodeErr := decodeAgentCopilotContract(agentCopilotRuntimeAssignmentEventSchema, payload)
@@ -190,6 +215,12 @@ WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND owner_subject_ref
 			return nil, errAgentCopilotRuntimeContract
 		}
 		event := *decodedEvent.(*AgentCopilotRuntimeAssignmentEventV1)
+		event.ActionSafety, decodeErr = decodeActionSafetyAssignmentSnapshot(actionSafetyStorageSnapshot{
+			SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+		})
+		if decodeErr != nil {
+			return nil, errAgentCopilotRuntimeContract
+		}
 		decodedAt, decodeErr := promptApplicationRuntimeUnixNano(event.OccurredAt)
 		if decodeErr != nil || eventID != event.EventID || sequence != event.EventSequence ||
 			version != event.ResultingAssignmentVersion || occurredAt != decodedAt {

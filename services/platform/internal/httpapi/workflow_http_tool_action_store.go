@@ -93,6 +93,7 @@ func (store *memoryWorkflowHTTPToolActionStore) DecidePlan(
 	stored, found := store.plans[key]
 	if !found || stored.RecordVersion != decision.ExpectedRecordVersion || stored.ToolPlanDigest != plan.ToolPlanDigest ||
 		stored.AuditRef != plan.AuditRef ||
+		!actionSafetyPlanProjectionsEqual(stored.ActionSafety, plan.ActionSafety) ||
 		!workflowHTTPToolDecisionAllowedFrom(stored.Status, decision.Outcome) {
 		return errWorkflowHTTPToolActionConflict
 	}
@@ -100,6 +101,13 @@ func (store *memoryWorkflowHTTPToolActionStore) DecidePlan(
 	store.decisions = append(store.decisions, decision)
 	store.audits = append(store.audits, audit)
 	return nil
+}
+
+func actionSafetyPlanProjectionsEqual(left, right *ActionSafetyPlanProjectionV1) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return left.ProjectionDigest == right.ProjectionDigest
 }
 
 func workflowHTTPToolActionStoreKey(ctx WorkflowHTTPToolActionContext, planID string) string {

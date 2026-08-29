@@ -163,7 +163,7 @@ func newAgentCopilotInvocationService(
 		runStore: runStore, bridge: bridgeClient, maxRuntime: agentCopilotInvocationMaxRuntime,
 		now: func() time.Time { return time.Now().UTC() },
 	}
-	if _, memory := runStore.(*memoryWorkflowRunStore); memory {
+	if workflowRunStoreSupportsActionSafety(runStore) {
 		service.actionSafety = newActionSafetyRuntimeV1("development")
 	}
 	return service

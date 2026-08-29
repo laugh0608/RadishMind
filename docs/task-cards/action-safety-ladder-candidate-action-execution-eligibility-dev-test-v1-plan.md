@@ -3,14 +3,14 @@
 更新时间：2026-08-29
 
 - 任务 ID：`action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1`
-- 状态：`batch_b_completed_batch_c_ready`
+- 状态：`batch_c_completed_batch_d_pencil_ready`
 - 功能设计：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](../features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准长期功能目标与首版设计边界：把战略层的动作梯度实现为规则层确定性资格，不让模型、客户端或人工批准直接授予执行能力；`tool_callable` 只复用既有 Workflow HTTP Tool 的人工确认只读 `GET`，`write_allowed_by_policy` 在 v1 始终不可达。
 
-本卡是唯一跨模块高风险实施入口。项目所有者已经分别批准并完成批次 A、B；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前不自动进入批次 C，也不创建 SQLite / PostgreSQL snapshot、修改 HTTP contract、Pencil 或 React。
+本卡是唯一跨模块高风险实施入口。项目所有者已经分别批准并完成批次 A、B、C；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前不自动进入批次 D，也不修改 HTTP contract、Pencil 或 React。
 
 ## 完成目标
 
@@ -75,7 +75,7 @@
 
 ## 批次 C：SQLite / PostgreSQL 同构 snapshot
 
-状态：`not_started`。
+状态：`completed`。
 
 - 只在确需冻结历史 decision 的既有 candidate / Tool plan / Workflow Run migration family 中追加版本化 projection。
 - memory、SQLite、PostgreSQL 共用同一 domain contract，不新增 selector、pool、DSN、database file、跨 store join 或 fallback。
@@ -84,6 +84,8 @@
 - 数据库必须证明 `write_allowed_by_policy` 零成功记录，blocked write 零 action plan / Tool / Run / business mutation。
 
 完成后只能推进为 `batch_c_completed_batch_d_pencil_ready`。
+
+完成证据：PostgreSQL `0028_action_safety_snapshots / workflow_run_store_v28` 与 SQLite `0025_action_safety_snapshots / workflow_run_store_sqlite_v25` 在五张既有 owner 表内追加 all-or-none 的 `schema_version / projection_digest / sanitized_snapshot`，覆盖 Agent assignment / event、Agent Run v7、Workflow HTTP Tool plan 与 Workflow Run。三种 store 共用严格 projection contract；全空三元组只读为 `not_recorded_legacy`，不按当前 policy 回填，部分三元组、未知 / 重复字段、尾随内容、schema / digest / payload 损坏都失败关闭。既有 transaction / CAS 同时封存 projection，Tool plan transition 额外绑定 projection digest；SQLite restart 与 PostgreSQL reconnect 保留当时 policy version / digest，损坏 Agent Run 的 replay 不回退、不重复 provider。PostgreSQL 真实门禁覆盖 runtime role DML / DDL 边界、rollback → `not_applied` → reapply、marker / checksum、corruption 与 no-fallback；门禁过程中发现并修复 SQL `NULL` 三值逻辑允许部分三元组的缺口。没有新 selector、pool、DSN、database、跨 store join、HTTP contract、Pencil 或 React；`write_allowed_by_policy` 无数据库成功记录，business write / replay 为 0。
 
 ## 批次 D：完整 Pencil 与人工批准
 
@@ -122,4 +124,4 @@
 
 ## 当前下一步
 
-只等待项目所有者单独批准批次 C。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_b_completed_batch_c_ready`：六个检查点只在 canonical scope 的 memory 开发测试 owner 中保留易失 projection，不新增数据库字段、migration、HTTP 字段 / route、Pencil 或 React，不把 legacy 无 snapshot 记录按当前 policy 反算，也不打开 `write_allowed_by_policy`。
+只等待项目所有者单独批准批次 D。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_c_completed_batch_d_pencil_ready`：批次 C 的双数据库 snapshot 只存在既有 owner 内部持久化边界，不新增 HTTP 字段 / route，不开始 Pencil 或 React，不把 legacy 无 snapshot 记录按当前 policy 反算，也不打开 `write_allowed_by_policy`。
