@@ -234,6 +234,7 @@ type WorkflowRunRecord struct {
 	AgentCitationCount        int                                    `json:"-"`
 	AgentRiskLevel            string                                 `json:"-"`
 	AgentRequiresConfirmation bool                                   `json:"-"`
+	ActionSafety              *ActionSafetyRunProjectionV1           `json:"-"`
 	Output                    string                                 `json:"output"`
 	RequestID                 string                                 `json:"request_id"`
 	AuditRef                  string                                 `json:"audit_ref"`

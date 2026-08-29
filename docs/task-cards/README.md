@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)为当前唯一活跃高风险产品任务卡，状态为 `batch_a_completed_batch_b_ready`。批次 A 已完成 strict decision contract、compatibility / transition matrix、canonical digest、纯函数 compiler 与精准回归；批次 B 仍需项目所有者单独批准，批准前不接既有 owner、不修改数据库、HTTP、Pencil 或 React。`tool_callable` 只复用既有人工确认只读 GET，`write_allowed_by_policy` 在 v1 不可达。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)为当前唯一活跃高风险产品任务卡，状态为 `batch_b_completed_batch_c_ready`。批次 A strict decision contract / compiler 与批次 B 六个既有 owner memory checkpoint 已完成；批次 C 仍需项目所有者单独批准，批准前不新增 SQLite / PostgreSQL snapshot、HTTP contract、Pencil 或 React。`tool_callable` 只复用既有人工确认只读 GET，`write_allowed_by_policy` 在 v1 不可达。
 
 ## 当前外部阻塞任务
 

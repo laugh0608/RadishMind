@@ -2,7 +2,7 @@
 
 更新时间：2026-08-29
 
-状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_a_completed_batch_b_ready`
+状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_b_completed_batch_c_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 首版只负责候选动作的执行资格，不创建通用动作执行器。模型、客户端、Prompt、Profile、Workflow 草案、候选审查结果或人工批准都不能直接授予执行权限；确定性规则层必须在每个高风险检查点重读精确 authority，并把结果收口为 `requested_level / maximum_allowed_level / effective_level`。既有 Workflow HTTP Tool 是唯一可进入 `tool_callable` 的执行路径，而且仍必须经过其独立 action plan、人工 confirmation、原子 claim 与单次 allowlisted `GET`。
 
-项目所有者已批准并完成批次 A。仓库现已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`；compiler 只消费 caller 从既有 owner 重读的 metadata-only authority，不访问 store、HTTP、Provider、Tool、Confirmation 或 Run。当前尚未接入任何 owner checkpoint，也没有 migration、repository、route、Pencil、React 或运行副作用；批次 B 仍需单独批准。
+项目所有者已分别批准并完成批次 A、B。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run memory projection 六个检查点。当前实现只在 memory 开发测试 owner 内保留 `json:"-"` 易失 projection，不修改 HTTP contract、SQLite / PostgreSQL 编码或 migration；每次 transition / dispatch 重读 exact authority，迟到响应、drift、缺失确认、CAS 与重复执行均失败关闭。批次 C 仍需单独批准。
 
 ## 用户价值与目标用户
 
@@ -69,7 +69,7 @@
 
 ## Canonical decision 边界
 
-后续批次 A 需要版本化 `action_safety_decision.v1`，至少包含：
+`action_safety_decision.v1` 已版本化并包含：
 
 - `schema_version`、`decision_id` 或 owner 内稳定引用；
 - tenant、workspace、environment、application 的 exact scope；
@@ -172,11 +172,13 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 
 ### 批次 B：既有 owner 检查点与开发测试态 runtime 组合
 
-状态：待项目所有者单独批准。
+状态：已完成。
 
 - 将 response normalization、candidate review、activation / assignment、Tool action plan 和 pre-dispatch 接入同一 compiler。
 - 版本化扩展现有 candidate / plan / run projection；不建立通用 decision mutation API 或新 store。
 - memory owner 证明 scope、CAS、authority / policy drift、confirmation 与零越权副作用。
+
+完成事实：candidate / assignment / plan / Run 使用各自版本化内部 projection，不新增通用 decision owner；response normalization 在 provider 返回后重读 authority，迟到响应与漂移不进入 projection；Tool 在既有原子 claim 前重编译，只有 exact Definition、Tool profile、plan digest、execute grants、development gate 与 confirmation 全部匹配时才为 `tool_callable`。所有 projection 都不进入 HTTP 或数据库编码，canonical memory owner 校验 digest、CAS 与 side-effect counters，legacy workflow application identifier 保持无 snapshot。
 
 ### 批次 C：SQLite / PostgreSQL 同构证据
 

@@ -44,9 +44,10 @@ type AgentCopilotRuntimeContext struct {
 }
 
 type AgentCopilotRuntimeDecisionInput struct {
-	ExpectedAssignmentVersion int    `json:"expected_assignment_version"`
-	Action                    string `json:"action"`
-	CandidateID               string `json:"candidate_id"`
+	ExpectedAssignmentVersion int                                `json:"expected_assignment_version"`
+	Action                    string                             `json:"action"`
+	CandidateID               string                             `json:"candidate_id"`
+	ActionSafetyCandidate     *ActionSafetyCandidateProjectionV1 `json:"-"`
 }
 
 type AgentCopilotRuntimeResult struct {
@@ -109,7 +110,7 @@ func (repository *memoryAgentCopilotRuntimeRepository) Read(ctx AgentCopilotRunt
 	if validateAgentCopilotRuntimeEntry(ctx, entry) != nil {
 		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeContract
 	}
-	return entry.assignment, append([]AgentCopilotRuntimeAssignmentEventV1(nil), entry.events...), nil
+	return cloneAgentCopilotRuntimeAssignment(entry.assignment), cloneAgentCopilotRuntimeEvents(entry.events), nil
 }
 
 func (repository *memoryAgentCopilotRuntimeRepository) Apply(
@@ -138,8 +139,8 @@ func (repository *memoryAgentCopilotRuntimeRepository) Apply(
 	if validateAgentCopilotRuntimeMutation(ctx, current, exists, assignment, event) != nil {
 		return errAgentCopilotRuntimeContract
 	}
-	current.assignment = assignment
-	current.events = append(current.events, event)
+	current.assignment = cloneAgentCopilotRuntimeAssignment(assignment)
+	current.events = append(current.events, cloneAgentCopilotRuntimeEvent(event))
 	repository.entries[key] = current
 	return nil
 }
@@ -213,18 +214,20 @@ func (resolver agentCopilotRuntimeAuthorityResolver) Resolve(
 }
 
 type agentCopilotRuntimeService struct {
-	repository agentCopilotRuntimeRepository
-	resolver   agentCopilotRuntimeAuthorityResolver
-	now        func() time.Time
-	newID      func(string) (string, error)
+	repository   agentCopilotRuntimeRepository
+	resolver     agentCopilotRuntimeAuthorityResolver
+	now          func() time.Time
+	newID        func(string) (string, error)
+	actionSafety *actionSafetyRuntimeV1
 }
 
 func newAgentCopilotRuntimeService(repository agentCopilotRuntimeRepository, resolver agentCopilotRuntimeAuthorityResolver) agentCopilotRuntimeService {
 	return agentCopilotRuntimeService{
-		repository: repository,
-		resolver:   resolver,
-		now:        func() time.Time { return time.Now().UTC() },
-		newID:      newWorkflowRAGStableID,
+		repository:   repository,
+		resolver:     resolver,
+		now:          func() time.Time { return time.Now().UTC() },
+		newID:        newWorkflowRAGStableID,
+		actionSafety: newActionSafetyRuntimeV1("development"),
 	}
 }
 
@@ -292,6 +295,22 @@ func (service agentCopilotRuntimeService) Decide(ctx AgentCopilotRuntimeContext,
 			return agentCopilotRuntimeFailure(failure)
 		}
 	}
+	var actionSafetyAssignment *ActionSafetyAssignmentProjectionV1
+	if input.ActionSafetyCandidate != nil {
+		if input.Action == "revoke" {
+			return agentCopilotRuntimeFailure(AgentCopilotRuntimeFailurePayload)
+		}
+		if _, memory := service.repository.(*memoryAgentCopilotRuntimeRepository); !memory || service.actionSafety == nil {
+			return agentCopilotRuntimeFailure(AgentCopilotRuntimeFailureStoreContract)
+		}
+		projection, safetyFailure := service.actionSafety.ActivateCandidate(
+			ctx, *input.ActionSafetyCandidate, authority.Profile, input.ExpectedAssignmentVersion+1, true,
+		)
+		if safetyFailure != "" {
+			return agentCopilotRuntimeFailure(string(safetyFailure))
+		}
+		actionSafetyAssignment = &projection
+	}
 	at := service.now().UTC().Format(time.RFC3339Nano)
 	assignment := current
 	if !exists {
@@ -312,12 +331,14 @@ func (service agentCopilotRuntimeService) Decide(ctx AgentCopilotRuntimeContext,
 	assignment.State, assignment.RevokedAt = "active", nil
 	if input.Action == "revoke" {
 		assignment.State, assignment.RevokedAt = "revoked", &at
+		assignment.ActionSafety = nil
 	} else {
 		assignment.CandidateID = authority.Candidate.CandidateID
 		assignment.CandidateReviewVersion = authority.Candidate.ReviewVersion
 		assignment.DraftID, assignment.DraftVersion = authority.Draft.DraftID, authority.Draft.DraftVersion
 		assignment.DraftDigest = authority.Candidate.DraftDigest
 		assignment.AgentCopilotProfileRef = *authority.Candidate.Configuration.AgentCopilotProfileRef
+		assignment.ActionSafety = cloneActionSafetyAssignmentProjection(actionSafetyAssignment)
 	}
 	digest, err := agentCopilotRuntimeAssignmentDigest(assignment)
 	if err != nil {
@@ -340,6 +361,7 @@ func (service agentCopilotRuntimeService) Decide(ctx AgentCopilotRuntimeContext,
 		AgentCopilotProfileRef: assignment.AgentCopilotProfileRef,
 		AssignmentDigest:       assignment.AssignmentDigest, OccurredAt: at, ActorRef: ctx.ActorRef,
 		RequestID: ctx.RequestID, AuditRef: ctx.AuditRef,
+		ActionSafety: cloneActionSafetyAssignmentProjection(assignment.ActionSafety),
 	}
 	if err := service.repository.Apply(ctx, input.ExpectedAssignmentVersion, assignment, event); err != nil {
 		return agentCopilotRuntimeRepositoryFailure(err)
@@ -377,6 +399,10 @@ func validateAgentCopilotRuntimeMutation(
 		event.DraftID != assignment.DraftID || event.DraftVersion != assignment.DraftVersion ||
 		event.DraftDigest != assignment.DraftDigest ||
 		event.AgentCopilotProfileRef != assignment.AgentCopilotProfileRef {
+		return errAgentCopilotRuntimeContract
+	}
+	if (event.ActionSafety == nil) != (assignment.ActionSafety == nil) || event.ActionSafety != nil &&
+		event.ActionSafety.ProjectionDigest != assignment.ActionSafety.ProjectionDigest {
 		return errAgentCopilotRuntimeContract
 	}
 	if !exists && (event.Action != "activate" || assignment.AssignmentVersion != 1) ||
@@ -423,6 +449,10 @@ func validateAgentCopilotRuntimeEntry(ctx AgentCopilotRuntimeContext, entry agen
 		latest.AgentCopilotProfileRef != entry.assignment.AgentCopilotProfileRef {
 		return errAgentCopilotRuntimeContract
 	}
+	if (latest.ActionSafety == nil) != (entry.assignment.ActionSafety == nil) || latest.ActionSafety != nil &&
+		latest.ActionSafety.ProjectionDigest != entry.assignment.ActionSafety.ProjectionDigest {
+		return errAgentCopilotRuntimeContract
+	}
 	return nil
 }
 
@@ -438,6 +468,30 @@ func agentCopilotRuntimeAssignmentDigest(value AgentCopilotRuntimeAssignmentV1) 
 
 func agentCopilotRuntimeKey(ctx AgentCopilotRuntimeContext) string {
 	return strings.Join([]string{ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef}, "\x00")
+}
+
+func cloneAgentCopilotRuntimeAssignment(value AgentCopilotRuntimeAssignmentV1) AgentCopilotRuntimeAssignmentV1 {
+	cloned := value
+	cloned.ActionSafety = cloneActionSafetyAssignmentProjection(value.ActionSafety)
+	if value.RevokedAt != nil {
+		revokedAt := *value.RevokedAt
+		cloned.RevokedAt = &revokedAt
+	}
+	return cloned
+}
+
+func cloneAgentCopilotRuntimeEvent(value AgentCopilotRuntimeAssignmentEventV1) AgentCopilotRuntimeAssignmentEventV1 {
+	cloned := value
+	cloned.ActionSafety = cloneActionSafetyAssignmentProjection(value.ActionSafety)
+	return cloned
+}
+
+func cloneAgentCopilotRuntimeEvents(values []AgentCopilotRuntimeAssignmentEventV1) []AgentCopilotRuntimeAssignmentEventV1 {
+	cloned := make([]AgentCopilotRuntimeAssignmentEventV1, len(values))
+	for index, value := range values {
+		cloned[index] = cloneAgentCopilotRuntimeEvent(value)
+	}
+	return cloned
 }
 
 func agentCopilotRuntimeActionAllowed(action string) bool {

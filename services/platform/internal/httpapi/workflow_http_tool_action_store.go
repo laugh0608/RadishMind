@@ -172,6 +172,8 @@ func workflowHTTPToolPlanMatchesContext(plan WorkflowHTTPToolActionPlan, ctx Wor
 		_, lastDecisionAtErr := time.Parse(time.RFC3339Nano, *plan.LastDecisionAt)
 		lastDecisionValid = workflowHTTPToolReferencePattern.MatchString(*plan.LastDecisionByActorRef) && lastDecisionAtErr == nil
 	}
+	actionSafetyValid := plan.ActionSafety == nil || validateActionSafetyPlanProjection(*plan.ActionSafety) == nil &&
+		plan.ActionSafety.PlanID == plan.PlanID && plan.ActionSafety.ToolPlanDigest == plan.ToolPlanDigest
 	return workflowHTTPToolPlanIDPattern.MatchString(plan.PlanID) &&
 		(plan.SchemaVersion == workflowHTTPToolPlanSchema || plan.SchemaVersion == workflowHTTPToolPlanSchemaV2) &&
 		workflowHTTPToolPlanSourceValid(plan) && plan.RecordVersion > 0 &&
@@ -189,7 +191,8 @@ func workflowHTTPToolPlanMatchesContext(plan WorkflowHTTPToolActionPlan, ctx Wor
 		plan.MaxResponseBytes == workflowHTTPToolPlanV1MaxResponseBytes && plan.MaxOutputBytes == workflowHTTPToolPlanV1MaxOutputBytes &&
 		workflowHTTPToolReferencePattern.MatchString(plan.PlannedByActorRef) && createdErr == nil && expiresErr == nil && expiresAt.After(createdAt) &&
 		workflowHTTPToolReferencePattern.MatchString(plan.AuditRef) && digestErr == nil &&
-		workflowHTTPToolDigestPattern.MatchString(plan.ToolPlanDigest) && plan.ToolPlanDigest == computedDigest && decisionStateValid && lastDecisionValid
+		workflowHTTPToolDigestPattern.MatchString(plan.ToolPlanDigest) && plan.ToolPlanDigest == computedDigest && decisionStateValid &&
+		lastDecisionValid && actionSafetyValid
 }
 
 func workflowHTTPToolPlanSourceValid(plan WorkflowHTTPToolActionPlan) bool {

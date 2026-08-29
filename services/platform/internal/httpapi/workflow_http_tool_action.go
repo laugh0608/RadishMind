@@ -246,6 +246,7 @@ type WorkflowHTTPToolActionPlan struct {
 	LastDecisionByActorRef    *string                         `json:"last_decision_by_actor_ref"`
 	LastDecisionAt            *string                         `json:"last_decision_at"`
 	AuditRef                  string                          `json:"audit_ref"`
+	ActionSafety              *ActionSafetyPlanProjectionV1   `json:"-"`
 }
 
 type WorkflowHTTPToolConfirmationDecision struct {
@@ -437,12 +438,13 @@ func workflowHTTPToolOutputSchemaV1() WorkflowHTTPToolOutputSchema {
 }
 
 type workflowHTTPToolActionService struct {
-	readDraft   func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult
-	definitions workflowDefinitionReleaseRepository
-	store       workflowHTTPToolActionStore
-	registry    workflowHTTPToolRegistry
-	now         func() time.Time
-	newID       func(string) (string, error)
+	readDraft    func(SavedWorkflowDraftContext, ReadWorkflowDraftRequest) SavedWorkflowDraftResult
+	definitions  workflowDefinitionReleaseRepository
+	store        workflowHTTPToolActionStore
+	registry     workflowHTTPToolRegistry
+	now          func() time.Time
+	newID        func(string) (string, error)
+	actionSafety *actionSafetyRuntimeV1
 }
 
 func newWorkflowHTTPToolActionService(
@@ -454,10 +456,14 @@ func newWorkflowHTTPToolActionService(
 	if err != nil {
 		return workflowHTTPToolActionService{}, err
 	}
-	return workflowHTTPToolActionService{
+	service := workflowHTTPToolActionService{
 		readDraft: readDraft, definitions: definitions, store: store, registry: registry,
 		now: func() time.Time { return time.Now().UTC() }, newID: newWorkflowHTTPToolActionID,
-	}, nil
+	}
+	if _, memory := store.(*memoryWorkflowHTTPToolActionStore); memory {
+		service.actionSafety = newActionSafetyRuntimeV1(registry.profile.Environment)
+	}
+	return service, nil
 }
 
 func (service workflowHTTPToolActionService) CreatePlan(ctx WorkflowHTTPToolActionContext, request WorkflowHTTPToolCreatePlanRequest) WorkflowHTTPToolActionResult {
@@ -529,6 +535,19 @@ func (service workflowHTTPToolActionService) CreatePlan(ctx WorkflowHTTPToolActi
 	plan.ToolPlanDigest, err = workflowHTTPToolPlanDigest(plan)
 	if err != nil {
 		return workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureStoreContract, "Workflow HTTP tool plan could not be canonicalized.")
+	}
+	// Batch B keeps legacy workflow application identifiers on their pre-snapshot
+	// path; only canonical application scopes can own a strict safety decision.
+	if definitionSource && service.actionSafety != nil && applicationCatalogIDPattern.MatchString(ctx.ApplicationID) {
+		projection, safetyFailure := service.actionSafety.CompileToolPlanCreation(
+			ctx, plan, service.registry, true,
+			controlPlaneReadHasScope(ctx.ScopeGrants, "workflow_tool_actions:plan") && controlPlaneReadHasScope(ctx.ScopeGrants, "workflow_definitions:read"),
+			true,
+		)
+		if safetyFailure != "" {
+			return workflowHTTPToolActionFailure(WorkflowHTTPToolActionFailureStoreContract, "Workflow HTTP tool safety projection could not be compiled.")
+		}
+		plan.ActionSafety = &projection
 	}
 	audit, err := service.newAudit(ctx, plan, "confirmation_requested", nil, "human", now)
 	if err != nil {
@@ -1204,5 +1223,6 @@ func cloneWorkflowHTTPToolActionPlan(plan WorkflowHTTPToolActionPlan) WorkflowHT
 		value := *plan.LastDecisionAt
 		plan.LastDecisionAt = &value
 	}
+	plan.ActionSafety = cloneActionSafetyPlanProjection(plan.ActionSafety)
 	return plan
 }

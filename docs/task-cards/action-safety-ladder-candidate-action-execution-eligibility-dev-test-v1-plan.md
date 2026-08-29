@@ -3,14 +3,14 @@
 更新时间：2026-08-29
 
 - 任务 ID：`action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1`
-- 状态：`batch_a_completed_batch_b_ready`
+- 状态：`batch_b_completed_batch_c_ready`
 - 功能设计：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](../features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准长期功能目标与首版设计边界：把战略层的动作梯度实现为规则层确定性资格，不让模型、客户端或人工批准直接授予执行能力；`tool_callable` 只复用既有 Workflow HTTP Tool 的人工确认只读 `GET`，`write_allowed_by_policy` 在 v1 始终不可达。
 
-本卡是唯一跨模块高风险实施入口。项目所有者已经单独批准并完成批次 A；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前不自动进入批次 B，也不修改 owner record、数据库、HTTP、Pencil 或 React。
+本卡是唯一跨模块高风险实施入口。项目所有者已经分别批准并完成批次 A、B；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前不自动进入批次 C，也不创建 SQLite / PostgreSQL snapshot、修改 HTTP contract、Pencil 或 React。
 
 ## 完成目标
 
@@ -61,7 +61,7 @@
 
 ## 批次 B：既有 owner 检查点与开发测试态 runtime 组合
 
-状态：`not_started`。
+状态：`completed`。
 
 - response normalization 在 canonical response 校验后编译 decision，不重复 Gateway / provider。
 - Candidate Review、activation / assignment、HTTP Tool action plan 和 pre-dispatch 复用同一 compiler，并在各自事务或 claim 前重读 exact authority。
@@ -70,6 +70,8 @@
 - 本批不创建 SQLite / PostgreSQL migration、Pencil 或 React。
 
 完成后只能推进为 `batch_b_completed_batch_c_ready`。
+
+完成证据：同一 compiler 已接入 Agent Copilot response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 和 Workflow Run memory projection 六个检查点。每次 transition / dispatch 都重新读取当前 source、policy、scope、membership、permission、confirmation 或 assignment authority；迟到响应、provider 后 authority 漂移、source / policy drift、confirmation 缺失 / 漂移、stale CAS、重复执行和并发 claim 均失败关闭。内部 projection 统一使用 `json:"-"`，memory owner 深拷贝并校验 projection digest 与真实 side-effect counters；既有 HTTP contract、SQLite / PostgreSQL 编码和 migration 未改变，legacy workflow application identifier 保持无 snapshot 兼容。精准测试、定向 race、完整 `internal/httpapi` 回归均已通过，provider 不重复、Tool / confirmation 最多各一次、business write / replay 始终为 0。
 
 ## 批次 C：SQLite / PostgreSQL 同构 snapshot
 
@@ -120,4 +122,4 @@
 
 ## 当前下一步
 
-只等待项目所有者单独批准批次 B。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_a_completed_batch_b_ready`：contract / compiler 只供内存测试和后续 owner 组合，不接 response normalization、candidate、activation、plan、pre-dispatch 或 Run，不改数据库、HTTP、Pencil 或 React，也不打开 `write_allowed_by_policy`。
+只等待项目所有者单独批准批次 C。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_b_completed_batch_c_ready`：六个检查点只在 canonical scope 的 memory 开发测试 owner 中保留易失 projection，不新增数据库字段、migration、HTTP 字段 / route、Pencil 或 React，不把 legacy 无 snapshot 记录按当前 policy 反算，也不打开 `write_allowed_by_policy`。

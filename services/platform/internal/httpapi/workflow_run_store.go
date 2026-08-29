@@ -271,6 +271,10 @@ func validateWorkflowRunStoreRecord(runContext WorkflowRunContext, record *Workf
 		len([]rune(record.FailureSummary)) > 256 || workflowRunRecordContainsEndpoint(record) {
 		return errWorkflowRunStoreContract
 	}
+	if record.ActionSafety != nil && (validateActionSafetyRunProjection(*record.ActionSafety) != nil ||
+		record.ActionSafety.SideEffects != record.SideEffects) {
+		return errWorkflowRunStoreContract
+	}
 	if record.SchemaVersion == workflowRunRecordAppRAGSchemaVersion {
 		if err := validateWorkflowRAGApplicationRunStoreRecord(runContext, record); err != nil {
 			return errWorkflowRunStoreContract
@@ -413,6 +417,7 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		authority := *record.AgentCopilotAuthority
 		cloned.AgentCopilotAuthority = &authority
 	}
+	cloned.ActionSafety = cloneActionSafetyRunProjection(record.ActionSafety)
 	cloned.VariableNames = append([]string(nil), record.VariableNames...)
 	if record.PromptDiagnostic != nil {
 		diagnostic := *record.PromptDiagnostic

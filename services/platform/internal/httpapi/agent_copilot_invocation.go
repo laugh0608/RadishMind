@@ -50,24 +50,26 @@ type AgentCopilotInvocationInput struct {
 type AgentCopilotInvocationResult struct {
 	Run              *WorkflowRunRecord
 	Response         *AgentCopilotResponse
+	ActionSafety     *ActionSafetyResponseProjectionV1 `json:"-"`
 	FailureCode      string
 	FailureSummary   string
 	IdempotentReplay bool
 }
 
 type AgentCopilotResponse struct {
-	SchemaVersion        int                            `json:"schema_version"`
-	Status               string                         `json:"status"`
-	Project              string                         `json:"project"`
-	Task                 string                         `json:"task"`
-	Summary              string                         `json:"summary"`
-	Answers              []AgentCopilotResponseAnswer   `json:"answers"`
-	Issues               []AgentCopilotResponseIssue    `json:"issues"`
-	ProposedActions      []AgentCopilotResponseAction   `json:"proposed_actions"`
-	Citations            []AgentCopilotResponseCitation `json:"citations"`
-	Confidence           float64                        `json:"confidence"`
-	RiskLevel            string                         `json:"risk_level"`
-	RequiresConfirmation bool                           `json:"requires_confirmation"`
+	SchemaVersion        int                               `json:"schema_version"`
+	Status               string                            `json:"status"`
+	Project              string                            `json:"project"`
+	Task                 string                            `json:"task"`
+	Summary              string                            `json:"summary"`
+	Answers              []AgentCopilotResponseAnswer      `json:"answers"`
+	Issues               []AgentCopilotResponseIssue       `json:"issues"`
+	ProposedActions      []AgentCopilotResponseAction      `json:"proposed_actions"`
+	Citations            []AgentCopilotResponseCitation    `json:"citations"`
+	Confidence           float64                           `json:"confidence"`
+	RiskLevel            string                            `json:"risk_level"`
+	RequiresConfirmation bool                              `json:"requires_confirmation"`
+	ActionSafety         *ActionSafetyResponseProjectionV1 `json:"-"`
 }
 
 type AgentCopilotResponseAnswer struct {
@@ -146,6 +148,7 @@ type agentCopilotInvocationService struct {
 	envelopeOptions   func(northboundSelection, float64) bridge.EnvelopeOptions
 	maxRuntime        time.Duration
 	now               func() time.Time
+	actionSafety      *actionSafetyRuntimeV1
 }
 
 func newAgentCopilotInvocationService(
@@ -155,11 +158,15 @@ func newAgentCopilotInvocationService(
 	runStore workflowRunStore,
 	bridgeClient bridgeClient,
 ) agentCopilotInvocationService {
-	return agentCopilotInvocationService{
+	service := agentCopilotInvocationService{
 		runtimeRepository: runtimeRepository, authorityResolver: authorityResolver, catalogRepository: catalogRepository,
 		runStore: runStore, bridge: bridgeClient, maxRuntime: agentCopilotInvocationMaxRuntime,
 		now: func() time.Time { return time.Now().UTC() },
 	}
+	if _, memory := runStore.(*memoryWorkflowRunStore); memory {
+		service.actionSafety = newActionSafetyRuntimeV1("development")
+	}
+	return service
 }
 
 func (service agentCopilotInvocationService) Invoke(ctx AgentCopilotRuntimeContext, input AgentCopilotInvocationInput) AgentCopilotInvocationResult {
@@ -228,9 +235,31 @@ func (service agentCopilotInvocationService) Invoke(ctx AgentCopilotRuntimeConte
 		}
 		return service.complete(runContext, record, nil, WorkflowRunStatusFailed, AgentCopilotInvocationFailureOutcomeUnknown, "gateway", "provider", gatewayCategory)
 	}
-	response, failure := decodeAndValidateAgentCopilotResponse(responsePayload, request, checkpoint.Resolved.Profile.ResponsePolicy)
+	normalizationAuthority := checkpoint
+	if service.actionSafety != nil {
+		current, currentFailure := service.resolveAuthority(ctx)
+		if currentFailure != "" || current.Snapshot.AuthorityDigest != checkpoint.Snapshot.AuthorityDigest {
+			return service.complete(runContext, record, nil, WorkflowRunStatusFailed, AgentCopilotRuntimeFailureAuthorityChanged, "authority", "response_normalization", "none")
+		}
+		normalizationAuthority = current
+	}
+	response, failure := decodeAndValidateAgentCopilotResponse(responsePayload, request, normalizationAuthority.Resolved.Profile.ResponsePolicy)
 	if failure != "" {
 		return service.complete(runContext, record, nil, WorkflowRunStatusFailed, failure, "response_contract", "output", "output_unavailable")
+	}
+	if service.actionSafety != nil {
+		projection, safetyFailure := service.actionSafety.NormalizeAgentCopilotResponse(ctx, runID, response, normalizationAuthority)
+		if safetyFailure != "" {
+			return service.complete(runContext, record, nil, WorkflowRunStatusFailed, string(safetyFailure), "response_contract", "output", "output_unavailable")
+		}
+		runProjection, projectionErr := service.actionSafety.ProjectRun(
+			"response_normalization", actionSafetyResponseDecisions(projection), WorkflowRunSideEffects{ProviderCalls: 1},
+		)
+		if projectionErr != nil {
+			return service.complete(runContext, record, nil, WorkflowRunStatusFailed, string(ActionSafetyFailureStoreContractMismatch), "response_contract", "output", "output_unavailable")
+		}
+		record.ActionSafety = &runProjection
+		response.ActionSafety = &projection
 	}
 	return service.complete(runContext, record, &response, WorkflowRunStatusSucceeded, "", "", "", "none")
 }
@@ -486,6 +515,12 @@ func (service agentCopilotInvocationService) callGateway(ctx context.Context, ru
 		}
 		return nil, "unavailable", AgentCopilotInvocationFailureOutcomeUnknown
 	}
+	if errors.Is(ctx.Err(), context.Canceled) {
+		return nil, "canceled", AgentCopilotInvocationFailureCanceled
+	}
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return nil, "timeout", AgentCopilotInvocationFailureOutcomeUnknown
+	}
 	gatewayStatus := strings.ToLower(strings.TrimSpace(envelope.Status))
 	if (gatewayStatus != "ok" && gatewayStatus != "partial") || envelope.Error != nil || envelope.Response == nil {
 		return nil, "provider_failed", AgentCopilotInvocationFailureOutcomeUnknown
@@ -532,7 +567,12 @@ func (service agentCopilotInvocationService) complete(
 		record.PromptDiagnostic.TerminalWriteState, record.PromptDiagnostic.Summary = "unknown", record.FailureSummary
 		return AgentCopilotInvocationResult{Run: &record, FailureCode: AgentCopilotInvocationFailureOutcomeUnknown, FailureSummary: record.FailureSummary}
 	}
-	return AgentCopilotInvocationResult{Run: &record, Response: response, FailureCode: failureCode, FailureSummary: record.FailureSummary}
+	result := AgentCopilotInvocationResult{Run: &record, Response: response, FailureCode: failureCode, FailureSummary: record.FailureSummary}
+	if response != nil && response.ActionSafety != nil {
+		projection := *response.ActionSafety
+		result.ActionSafety = &projection
+	}
+	return result
 }
 
 func newAgentCopilotRunRecord(
@@ -641,6 +681,15 @@ func agentCopilotInvocationFailureSummary(code string) string {
 		return "Agent Copilot request quota is unavailable."
 	case GatewayRequestQuotaFailureAttemptConflict:
 		return "Agent Copilot request quota admission conflicts with an existing attempt."
+	case string(ActionSafetyFailureScopeDenied):
+		return "Action Safety denied the Agent Copilot response scope."
+	case string(ActionSafetyFailurePayloadInvalid), string(ActionSafetyFailureSourceUnavailable),
+		string(ActionSafetyFailureSourceChanged), string(ActionSafetyFailurePolicyUnavailable),
+		string(ActionSafetyFailurePolicyChanged), string(ActionSafetyFailureLevelEscalationDenied),
+		string(ActionSafetyFailureConfirmationRequired), string(ActionSafetyFailureConfirmationChanged),
+		string(ActionSafetyFailureToolAuthorityUnavailable), string(ActionSafetyFailureWriteBlocked),
+		string(ActionSafetyFailureStoreContractMismatch):
+		return "Action Safety rejected the Agent Copilot response."
 	default:
 		return "Agent Copilot runtime store is unavailable."
 	}
@@ -656,6 +705,13 @@ func agentCopilotInvocationReviewAction(code string) string {
 		return "review_response_contract"
 	case AgentCopilotInvocationFailureCanceled:
 		return "review_cancellation"
+	case string(ActionSafetyFailureScopeDenied), string(ActionSafetyFailurePayloadInvalid),
+		string(ActionSafetyFailureSourceUnavailable), string(ActionSafetyFailureSourceChanged),
+		string(ActionSafetyFailurePolicyUnavailable), string(ActionSafetyFailurePolicyChanged),
+		string(ActionSafetyFailureLevelEscalationDenied), string(ActionSafetyFailureConfirmationRequired),
+		string(ActionSafetyFailureConfirmationChanged), string(ActionSafetyFailureToolAuthorityUnavailable),
+		string(ActionSafetyFailureWriteBlocked), string(ActionSafetyFailureStoreContractMismatch):
+		return "review_action_safety"
 	case GatewayRequestQuotaFailureExceeded, GatewayRequestQuotaFailurePolicyNotFound,
 		GatewayRequestQuotaFailureAttemptConflict, GatewayRequestQuotaFailureStoreUnavailable:
 		return "review_run"
