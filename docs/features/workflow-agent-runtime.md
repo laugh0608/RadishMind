@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-29 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料、应用结果资产与工作区 Workflow 模板目录均已有可复验证据并关闭。[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)批次 A、B、C 已完成，状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_c_completed_batch_d_pencil_ready`；唯一任务卡只等待批次 D 单独批准。strict contract 与纯函数 compiler 已接入 response、candidate、assignment、Tool plan、pre-dispatch、Run 六个 canonical checkpoint，既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot、legacy / corruption / no-fallback 与迁移连续性也已成立，但尚未进入 HTTP contract、Pencil 或 Web；公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-29 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料、应用结果资产与工作区 Workflow 模板目录均已有可复验证据并关闭。[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)批次 A、B、C 与批次 D Pencil 已完成，状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_completed_owner_review_required`；唯一任务卡只等待项目所有者人工设计审查。strict contract 与纯函数 compiler 已接入 response、candidate、assignment、Tool plan、pre-dispatch、Run 六个 canonical checkpoint，既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot、legacy / corruption / no-fallback 与迁移连续性也已成立；8 个功能画板和 R23 已锁定产品层级与失败状态，但尚未进入 HTTP contract 或 Web。公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -157,7 +157,7 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已固定六级状态、现有 owner 重读、六个检查点、失败语义、副作用矩阵和五批拆分，并完成[唯一高风险任务卡](../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)批次 A strict decision contract / compiler、批次 B 既有 owner runtime 组合与批次 C SQLite / PostgreSQL 同构 snapshot。下一步只评审批次 D 完整 Pencil 与人工批准；未获批准不开始 Pencil、HTTP contract 或 React。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已固定六级状态、现有 owner 重读、六个检查点、失败语义、副作用矩阵和五批拆分，并完成[唯一高风险任务卡](../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)批次 A strict decision contract / compiler、批次 B 既有 owner runtime 组合、批次 C SQLite / PostgreSQL 同构 snapshot，以及批次 D 的 8 个功能画板与 R23 Decision。下一步只由项目所有者人工审查 Pencil；未获人工批准不开始 HTTP contract 或 React。
 
 [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)已完成五批并关闭，不从该专题延伸批次 F。
 

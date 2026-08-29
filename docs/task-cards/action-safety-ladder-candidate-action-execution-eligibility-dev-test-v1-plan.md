@@ -3,14 +3,14 @@
 更新时间：2026-08-29
 
 - 任务 ID：`action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1`
-- 状态：`batch_c_completed_batch_d_pencil_ready`
+- 状态：`batch_d_pencil_completed_owner_review_required`
 - 功能设计：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](../features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准长期功能目标与首版设计边界：把战略层的动作梯度实现为规则层确定性资格，不让模型、客户端或人工批准直接授予执行能力；`tool_callable` 只复用既有 Workflow HTTP Tool 的人工确认只读 `GET`，`write_allowed_by_policy` 在 v1 始终不可达。
 
-本卡是唯一跨模块高风险实施入口。项目所有者已经分别批准并完成批次 A、B、C；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前不自动进入批次 D，也不修改 HTTP contract、Pencil 或 React。
+本卡是唯一跨模块高风险实施入口。项目所有者已经分别批准并完成批次 A、B、C，并批准执行批次 D Pencil；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。批次 D 设计已经完成但尚未获得人工视觉与边界批准；当前不修改 HTTP contract 或 React，也不自动进入批次 E。
 
 ## 完成目标
 
@@ -89,7 +89,7 @@
 
 ## 批次 D：完整 Pencil 与人工批准
 
-状态：`not_started`。
+状态：`pencil_completed_owner_review_required`。
 
 - 复用 Application Development Workspace、Workflow Workbench、Human Promotion、Controlled Test 与 Run / Evaluation Review，不建立 S11。
 - 完成 Builder、Reviewer、Tool plan / confirmation、Run History 的 Desktop 与不能直接推导的 Narrow。
@@ -98,6 +98,8 @@
 - 项目所有者必须人工审查并明确批准 Pencil；静态 QA、截图或自动检查不能替代人工批准。
 
 完成后只能推进为 `batch_d_pencil_approved_batch_e_ready`；批准不自动授权批次 E。
+
+当前证据：正式设计源 `docs/designs/radishmind-web-family-ui-v1.pen` 已新增 Builder Desktop `JtBu1` / write-blocked Narrow `EIWxV`、Candidate Review Desktop `l3dr1K` / policy-drift Narrow `wyqof`、Tool Plan & Confirmation Desktop `N0jBm` / confirmation-missing Narrow `CoI4i`、Run History Desktop `rHr7a` / legacy Narrow `XRRpD`，以及 R23 Decision `OvCRE`。设计覆盖六级 ladder、scope denied、Tool unavailable、confirmation missing、policy drift、write blocked、legacy no-snapshot、exact pre-dispatch recheck、零副作用 blocker 和 frozen history；R23 五维评分为 `2 / 1 / 2 / 2 / 2 = 9`。9 个根画板共 1055 个节点，Pencil 原生结构检查未发现 placeholder、布局裁切、未命名节点或缺失文字填充。本证据只证明设计完整性，不替代项目所有者人工批准。
 
 ## 批次 E：React strict consumer 与双数据库产品连续链
 
@@ -124,4 +126,4 @@
 
 ## 当前下一步
 
-只等待项目所有者单独批准批次 D。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_c_completed_batch_d_pencil_ready`：批次 C 的双数据库 snapshot 只存在既有 owner 内部持久化边界，不新增 HTTP 字段 / route，不开始 Pencil 或 React，不把 legacy 无 snapshot 记录按当前 policy 反算，也不打开 `write_allowed_by_policy`。
+只等待项目所有者人工审查并明确批准批次 D Pencil。当前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_completed_owner_review_required`：批次 C 的双数据库 snapshot 仍只存在既有 owner 内部持久化边界，批次 D 只新增设计证据；不新增 HTTP 字段 / route，不开始 React，不把 legacy 无 snapshot 记录按当前 policy 反算，也不打开 `write_allowed_by_policy`。人工批准后仍需单独授权批次 E。

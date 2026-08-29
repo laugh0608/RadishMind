@@ -2,7 +2,7 @@
 
 更新时间：2026-08-29
 
-状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_c_completed_batch_d_pencil_ready`
+状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_completed_owner_review_required`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 首版只负责候选动作的执行资格，不创建通用动作执行器。模型、客户端、Prompt、Profile、Workflow 草案、候选审查结果或人工批准都不能直接授予执行权限；确定性规则层必须在每个高风险检查点重读精确 authority，并把结果收口为 `requested_level / maximum_allowed_level / effective_level`。既有 Workflow HTTP Tool 是唯一可进入 `tool_callable` 的执行路径，而且仍必须经过其独立 action plan、人工 confirmation、原子 claim 与单次 allowlisted `GET`。
 
-项目所有者已分别批准并完成批次 A、B、C。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run projection 六个检查点。批次 C 又在既有 Agent assignment / event、Agent Run、Workflow HTTP Tool plan 与 Workflow Run owner 中加入同构、版本化、脱敏 snapshot；memory、SQLite 与 PostgreSQL 共用相同 projection contract，历史空三元组显式读取为 `not_recorded_legacy`，损坏、部分写入、未知 / 重复字段、digest 漂移和存储不可用都失败关闭且不按当前 policy 反算。现有 HTTP contract 未改变，Pencil 与 React 尚未开始；批次 D 仍需单独批准。
+项目所有者已分别批准并完成批次 A、B、C，并批准进入批次 D。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run projection 六个检查点。批次 C 又在既有 Agent assignment / event、Agent Run、Workflow HTTP Tool plan 与 Workflow Run owner 中加入同构、版本化、脱敏 snapshot；memory、SQLite 与 PostgreSQL 共用相同 projection contract，历史空三元组显式读取为 `not_recorded_legacy`，损坏、部分写入、未知 / 重复字段、digest 漂移和存储不可用都失败关闭且不按当前 policy 反算。批次 D 已在正式 Family UI 设计源完成 8 个功能画板和 R23 Decision Record，HTTP contract 与 React 仍未改变；当前只等待项目所有者人工审查 Pencil。
 
 ## 用户价值与目标用户
 
@@ -157,7 +157,7 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 - application / workspace / actor / source 切换用既有 generation + abort 清空 selection、confirmation、decision 与迟到响应。
 - URL、Web Storage、IndexedDB、Cache、cookie 和跨标签消息不得保存 decision payload、候选正文、Tool 参数或 confirmation 内容；跨标签只允许 metadata-only invalidation。
 
-完整 Pencil 必须覆盖 Desktop 与不能直接推导的 Narrow，以及 `answer_only`、`proposal_only`、`handoff_ready`、`tool_callable`、`write_blocked`、policy drift、confirmation missing 和 legacy no-snapshot。Pencil 与 Decision Record 必须先由项目所有者人工批准，之后才能进入 React。
+完整 Pencil 已覆盖 Desktop 与不能直接推导的 Narrow，以及 `answer_only`、`proposal_only`、`handoff_ready`、`tool_callable`、`write_blocked`、policy drift、confirmation missing、scope denied、Tool unavailable 和 legacy no-snapshot。Pencil 与 R23 Decision Record 仍必须先由项目所有者人工批准，之后才能单独评审批次 E React。
 
 ## 实施拆分
 
@@ -192,8 +192,12 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 
 ### 批次 D：完整 Pencil 与人工批准
 
-- 在现有产品面完成 Safety Ladder 的 Desktop / Narrow、关键状态与 Decision Record。
-- 未获项目所有者人工批准不得开始 React；批准不自动授权批次 E。
+状态：`pencil_completed_owner_review_required`。
+
+- 已在现有产品面完成 Builder、Candidate Review、Tool plan / confirmation、Run History 的 Desktop 与四个不能直接推导的 Narrow 关键状态，以及 R23 Decision Record。
+- Desktop Builder `JtBu1`、write-blocked Narrow `EIWxV`、Desktop Candidate Review `l3dr1K`、policy-drift Narrow `wyqof`、Desktop Tool `N0jBm`、confirmation-missing Narrow `CoI4i`、Desktop Run History `rHr7a`、legacy Narrow `XRRpD` 与 R23 `OvCRE` 均位于正式设计源 `docs/designs/radishmind-web-family-ui-v1.pen`。
+- R23 以 `2 / 1 / 2 / 2 / 2 = 9` 采用既有 Family UI 和 owner surface；9 个根画板、1055 个节点的 Pencil 原生静态 QA 对 placeholder、布局裁切、节点命名和文字填充检查均为 0 问题。
+- 当前仍未获项目所有者人工视觉与边界批准；不得开始 React，人工批准也不自动授权批次 E。
 
 ### 批次 E：React strict consumer 与双数据库产品连续链
 
@@ -203,7 +207,7 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 
 每个批次都需要项目所有者单独批准。唯一实施入口是[Action Safety Ladder 与候选动作执行资格 v1 高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)。
 
-当前下一步只评审批次 D 的完整 Pencil 与人工批准。批次 C 的完成不自动授权 Pencil、HTTP contract、React、产品服务或浏览器实现。
+当前下一步只由项目所有者人工审查批次 D 的 8 个功能画板与 R23 Decision Record。静态 QA 不替代人工批准；批准后也只推进为 `batch_d_pencil_approved_batch_e_ready`，不得自动开始 HTTP contract、React、产品服务或浏览器实现。
 
 ## 验收方式
 

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)为当前唯一活跃高风险产品任务卡，状态为 `batch_c_completed_batch_d_pencil_ready`。批次 A strict decision contract / compiler、批次 B 六个既有 owner checkpoint 与批次 C memory / SQLite / PostgreSQL 同构 snapshot 已完成；批次 D 仍需项目所有者单独批准，批准前不开始 Pencil、HTTP contract 或 React。`tool_callable` 只复用既有人工确认只读 GET，`write_allowed_by_policy` 在 v1 不可达。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)为当前唯一活跃高风险产品任务卡，状态为 `batch_d_pencil_completed_owner_review_required`。批次 A strict decision contract / compiler、批次 B 六个既有 owner checkpoint、批次 C memory / SQLite / PostgreSQL 同构 snapshot 与批次 D 的 8 个功能画板 + R23 Decision 已完成；当前只等待项目所有者人工审查 Pencil，批准前不开始 HTTP contract 或 React。`tool_callable` 只复用既有人工确认只读 GET，`write_allowed_by_policy` 在 v1 不可达。
 
 ## 当前外部阻塞任务
 
