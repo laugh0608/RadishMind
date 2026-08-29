@@ -3,14 +3,14 @@
 更新时间：2026-08-29
 
 - 任务 ID：`workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1`
-- 状态：`batch_c_pencil_approved_batch_d_ready`
+- 状态：`batch_d_react_completed_batch_e_ready`
 - 功能设计：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](../features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准该长期功能目标与首版方向。本卡是唯一跨模块高风险实施入口，负责 Definition exact source、工作区模板 catalog owner、人工 review / listing、跨应用目标资格与 Saved Draft 原子派生；不再创建平行 readiness、schema-only 或 UI-only 任务卡。
 
-项目所有者已明确批准并完成批次 A、批次 B，并批准进入和人工验收批次 C。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、SQLite / PostgreSQL durable repository、共享 backend factory、`0005` migration，以及正式 Pencil 源中的批次 C 代表面与 Decision 均已完成。2026-08-29 又按项目所有者授权完成 target binding authority 与 HTTP exact query 两项前置修正；当前停在批次 D React 单独授权前。
+项目所有者已明确批准并完成批次 A、批次 B，批准进入和人工验收批次 C，并于 2026-08-29 批准完成批次 D React strict consumer。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、SQLite / PostgreSQL durable repository、共享 backend factory、`0005` migration、正式 Pencil 源中的批次 C 代表面与 Decision，以及现有 Workflow Workbench 内的四任务 Web 产品面均已完成。下一步只等待批次 E 双数据库产品连续链与真实浏览器的单独授权。
 
 ## 完成目标
 
@@ -118,7 +118,7 @@
 
 ## 批次 D：React strict consumer
 
-状态：`ready_owner_approval_required`。
+状态：`completed`。
 
 - 在现有 Workflow 产品面接入单一 template catalog consumer，覆盖 catalog / candidate / version / listing / derive。
 - strict parser 拒绝 unknown field、scope drift、invalid digest / cursor、duplicate record 与敏感字段。
@@ -128,11 +128,19 @@
 
 完成门禁：Web 精准 / 全量测试、production build、Platform 相邻测试、源码敏感扫描、`git diff --check`、仓库 fast / full；本批不冒充真实数据库和浏览器产品链。
 
+当前证据：
+
+- 新增单一 `workflowTemplateCatalogConsumer`，严格消费十条 route 的 exact envelope、candidate / decision / version / lineage / listing event、cursor 与 Saved Draft `derivation_v2`；unknown / sensitive field、workspace / tenant / template / version drift、非法 digest / cursor 和重复记录均失败关闭。
+- 现有 Workflow Workbench 的 Human Promotion 接入 Catalog / Review / Listing / Derive 四任务面板，复用语义 token 与已批准的响应式结构，不建立 S11。offline source 零请求；target Application、unlist / derive confirmation、选择与 cursor 只留组件内存。
+- workspace / application / actor scope 使用 generation + `AbortController`；切换和卸载会中止旧请求、清空 selection / target / confirmation，并拒绝迟到响应。review / listing CAS 冲突只展示服务端 current version，不自动重试。
+- derive 成功只把服务端返回的 exact draft id / version / lifecycle authority 交给既有 Draft Designer，并将其标为已保存记录；Saved Draft consumer 已保真读取和再次保存互斥的 `derivation_v2`，不复制 Definition graph、不发送第二次 mutation 模拟原子性。
+- Web 专项 `9/9`、相邻 Saved Draft / Application Workspace `48/48`、全量 `407/407`、production build、Platform `go test ./internal/httpapi`、源码持久化通道扫描、`git diff --check` 与仓库 fast / full 门禁均已通过；本批未启动产品服务、数据库产品链或真实浏览器，相关证据仍由批次 E 承接。
+
 完成后只能推进为 `batch_d_react_completed_batch_e_ready`。
 
 ## 批次 E：双数据库产品连续链与收口
 
-状态：`blocked_by_batch_d`。
+状态：`ready_owner_approval_required`。
 
 - SQLite：exact Definition → candidate → approve → list → target application derive → Draft exact open / validate / save → service restart restore。
 - PostgreSQL configured Server：migration / runtime role、同构链、hard failure no-fallback、reconnect 后 exact reload 与历史不可变。
@@ -153,4 +161,4 @@
 
 ## 当前下一步
 
-批次 C Pencil 已完成人工批准，target binding authority 与 HTTP exact query 前置修正也已完成并通过验证；当前状态为 `batch_c_pencil_approved_batch_d_ready`。下一步由项目所有者单独批准批次 D React strict consumer；当前不创建 React、产品服务或真实浏览器记录。
+批次 D React strict consumer 已完成并通过专项 / 全量 Web、production build 与 Platform 相邻验证，当前状态为 `batch_d_react_completed_batch_e_ready`。下一步由项目所有者单独批准批次 E 双数据库产品连续链与真实浏览器收口；当前不启动产品服务、数据库或浏览器。

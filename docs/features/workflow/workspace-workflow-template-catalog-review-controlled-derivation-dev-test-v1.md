@@ -2,7 +2,7 @@
 
 更新时间：2026-08-29
 
-状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`
+状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_d_react_completed_batch_e_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 它把现有“个人草案派生”和“应用内 Definition 晋级”向工作区内部复用扩展，但不建立公开 Marketplace，不复制 Definition、Saved Draft、运行、评测、权限或应用真相源。模板目录只拥有工作区级模板候选、不可变模板版本、上架指针与对应 append-only 决定；模板内容来源和运行资格仍由既有 Definition 与 Draft owner 重新判定。
 
-本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。2026-08-29 已完成批次 D 前置修正：configured Server 复用 activated Provider Route snapshot 与当前 Bridge inventory 重验 exact Provider / Profile / resolved Model binding，十条 route 统一 exact query key / cardinality；当前停在批次 D React 单独授权前，不进入产品连续链。
+本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。2026-08-29 已完成批次 D 前置修正与获批的 React strict consumer：configured Server 复用 activated Provider Route snapshot 与当前 Bridge inventory 重验 exact Provider / Profile / resolved Model binding，十条 route 使用 exact query contract，现有 Workflow Workbench 已接入四任务产品面与 exact Saved Draft handoff。当前停在批次 E 单独授权前，不启动数据库产品链或真实浏览器。
 
 ## 用户与真实任务
 
@@ -226,9 +226,12 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ### 批次 D：React strict consumer
 
-- 前置：`completed`。exact target binding authority、十条 route exact query cardinality、相邻 Go / race / HTTP / no-side-effect 验证已完成；批次 D 当前只等待项目所有者单独授权。
+- 状态：`completed`。exact target binding authority、十条 route exact query cardinality、相邻 Go / race / HTTP / no-side-effect 验证已完成；单一 React strict consumer 与现有 Workflow Workbench 接线已完成。
 - 接入单一 workspace template catalog consumer、strict schema、cursor、CAS、scope generation、late-response guard 与 Draft Designer exact handoff。
 - offline 零请求，target application / confirmation 只存在组件内存；不在本批启动数据库产品服务或冒充真实浏览器证据。
+- Web 使用 exact envelope / record parser、敏感字段 guard、workspace / application / actor generation + abort，并在切换时清理 cursor、selection、target 与 confirmation；CAS 冲突不重试。
+- derive 成功只交接服务端 exact draft id / version / lifecycle authority，Draft Designer 与 Saved Draft consumer 保真读取和再次保存 `derivation_v2`，不会复制 Definition payload 或降级为 `derivation_v1`。
+- 专项 `9/9`、Web 全量 `407/407`、production build 与 Platform `go test ./internal/httpapi` 已通过；数据库连续链和真实浏览器仍由批次 E 承接。
 
 ### 批次 E：双数据库产品连续链与专题收口
 
@@ -261,4 +264,4 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ## 当前下一步
 
-批次 C Pencil 已完成人工批准，批次 D 前置代码反查修正也已完成并通过验证，当前状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`。下一步由项目所有者单独评审批次 D React strict consumer；未获批准前不创建 React、产品服务或真实浏览器记录。
+批次 D React strict consumer 已完成并通过专项 / 全量 Web、production build 与 Platform 相邻验证，当前状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_d_react_completed_batch_e_ready`。下一步由项目所有者单独评审批次 E 双数据库产品连续链与真实浏览器收口；未获批准前不启动产品服务、数据库或浏览器。

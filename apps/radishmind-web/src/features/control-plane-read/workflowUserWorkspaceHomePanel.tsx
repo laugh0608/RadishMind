@@ -230,6 +230,7 @@ export function WorkflowUserWorkspaceHomePanel({
               <option value="unversioned">unversioned</option>
               <option value="workflow_definition">workflow_definition</option>
               <option value="saved_draft_derivation">saved_draft_derivation</option>
+              <option value="workspace_template_derivation">workspace_template_derivation</option>
             </select>
           </label>
           <div className="saved-draft-library-filter-actions">

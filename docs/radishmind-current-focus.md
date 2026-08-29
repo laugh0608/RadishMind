@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`。项目所有者已批准并完成批次 A、B，并人工批准批次 C；正式 Pencil 源的 8 个功能画板与 R22 Decision 已通过 1049 节点、0 问题的原生静态 QA。2026-08-29 又完成批次 D 前置修正：configured Server 复用 activated Provider Route snapshot 与当前 Bridge inventory 重验 exact Provider / Profile / resolved Model binding，十条 route 统一 exact query key / cardinality；精准、相邻、race 与 Platform 验证通过，当前停止在批次 D React 单独授权前，不进入产品服务或真实浏览器。
+- 当前产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_d_react_completed_batch_e_ready`。项目所有者已批准完成批次 A、B、D，并人工批准批次 C；正式 Pencil 源的 8 个功能画板与 R22 Decision 已通过 1049 节点、0 问题的原生静态 QA。2026-08-29 完成批次 D 前置修正后，又在现有 Workflow Workbench 接入单一 React strict consumer，覆盖 Catalog / Review / Listing / Derive、generation + abort、CAS 失败关闭与 exact Saved Draft `derivation_v2` handoff；专项 `9/9`、Web 全量 `407/407`、production build 与 Platform 相邻测试通过。当前停止在批次 E 单独授权前，不启动数据库产品链或真实浏览器。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
 - 最近关闭产品顺位：[应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md) 状态为 `application_session_result_artifact_explicit_retention_dev_test_v1_completed`。批次 A 至 D 已完成五类 session profile、memory / SQLite / PostgreSQL 不可变 artifact 与独立 lifecycle、共享 strict Web consumer、三类 Session 接入、SQLite 服务重启页面恢复，以及 PostgreSQL 配置化 Server 保存 → 归档 → 关闭 no-fallback → 重启读取 → 解除归档产品链；永久 `DELETE` route 仍不存在。专题保持关闭，不派生批次 E、通用 result store 或 transcript。
@@ -44,7 +44,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)批次 C Pencil 与批次 D 前置 target binding authority / HTTP exact query 修正均已完成，当前等待项目所有者单独批准备批次 D React strict consumer；本地成员管理与账户安全保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)批次 D React strict consumer 已完成，当前等待项目所有者单独批准批次 E 双数据库产品连续链与真实浏览器收口；本地成员管理与账户安全保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -89,8 +89,8 @@
 1. 项目所有者明确批准同卡批次 D 前置修正。configured Server 已将 `strictWorkflowTemplateTargetBindingValidator` 替换为复用既有 activated Provider Route snapshot 与 Bridge inventory 的 canonical validator；目标 Application scope / lifecycle / kind 与 `profile:<id>` assignment、inventory binding、当前 inventory digest 均需精确一致。
 2. binding digest 覆盖 Provider、runtime profile、resolved model、capabilities、enabled 与脱敏 inventory 元数据；Provider / model / capability / enabled 漂移、missing / duplicate profile、static source、snapshot unavailable 均返回 `workflow_template_target_binding_unavailable`，Draft 写入为 0。不修改 `ApplicationCatalogRecord`，不创建新 owner、schema、migration 或 fallback。
 3. 四条 mutation route 已拒绝任意 query；六条 GET route 已采用逐 route allowlist 与 single-value cardinality，unknown / duplicate query 返回 `400 / workflow_template_payload_invalid`，既有非法 cursor 继续返回 `workflow_template_cursor_invalid`。十条 route 的 query 负向测试证明 candidate / listing / Draft owner 均无副作用。
-4. Workflow Template 精准测试、完整 `internal/config + internal/httpapi`、Provider Route / Template 定向 race、`go vet ./...` 与仓库 fast / full 门禁均已通过。当前状态推进为 `batch_c_pencil_approved_batch_d_ready`，仍未进入 React、CSS、产品服务或真实浏览器。
-5. 下一步由项目所有者单独评审批次 D React strict consumer。公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭。
+4. Workflow Template 精准测试、完整 `internal/config + internal/httpapi`、Provider Route / Template 定向 race、`go vet ./...` 与仓库 fast / full 门禁均已通过。随后项目所有者批准并完成批次 D：单一 strict consumer、四任务 Human Promotion 产品面、scope generation + abort、CAS 冲突与 exact `derivation_v2` Draft Designer handoff 均已落地。
+5. 批次 D 专项 `9/9`、Web 全量 `407/407`、production build 与 Platform `go test ./internal/httpapi` 已通过，状态推进为 `batch_d_react_completed_batch_e_ready`。下一步只单独评审批次 E；公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭。
 
 ## 2026-08-19 今日评审
 

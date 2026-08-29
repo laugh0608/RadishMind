@@ -1717,6 +1717,199 @@ h4 {
   }
 }
 
+.workflow-template-catalog {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-lg);
+  background: var(--rm-bg-surface);
+  box-shadow: var(--rm-shadow-panel);
+}
+
+.workflow-template-catalog__heading,
+.workflow-template-catalog__badges,
+.workflow-template-authority {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workflow-template-catalog__heading h3,
+.workflow-template-catalog__heading p,
+.workflow-template-catalog__status,
+.workflow-template-catalog__warning,
+.workflow-template-task h4,
+.workflow-template-task p {
+  margin: 0;
+}
+
+.workflow-template-catalog__badges {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.workflow-template-catalog__status,
+.workflow-template-catalog__warning {
+  padding: 10px 12px;
+  border-radius: var(--rm-radius-sm);
+  color: var(--rm-text-secondary);
+  background: var(--rm-state-info-soft);
+}
+
+.workflow-template-catalog__warning {
+  background: var(--rm-state-warning-soft);
+}
+
+.workflow-template-catalog__layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.workflow-template-catalog__tasks,
+.workflow-template-catalog__workspace,
+.workflow-template-task,
+.workflow-template-records,
+.workflow-template-records > div {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.workflow-template-catalog__tasks {
+  align-content: start;
+}
+
+.workflow-template-catalog__tasks button,
+.workflow-template-records button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  color: var(--rm-text-primary);
+  text-align: left;
+  background: var(--rm-bg-muted);
+}
+
+.workflow-template-catalog__tasks button[aria-current="page"],
+.workflow-template-records button[aria-pressed="true"] {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-soft);
+}
+
+.workflow-template-catalog__tasks small,
+.workflow-template-records small {
+  color: var(--rm-text-muted);
+}
+
+.workflow-template-task {
+  padding: 18px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-bg-muted);
+}
+
+.workflow-template-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-template-form label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--rm-text-secondary);
+  font-size: 0.86rem;
+}
+
+.workflow-template-form input,
+.workflow-template-form select,
+.workflow-template-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-sm);
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-surface);
+  font: inherit;
+}
+
+.workflow-template-form textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.workflow-template-form .span-2 {
+  grid-column: 1 / -1;
+}
+
+.workflow-template-records {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-template-authority {
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  background: var(--rm-bg-surface);
+}
+
+.workflow-template-authority code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--rm-text-muted);
+}
+
+.workflow-template-confirm {
+  display: flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: flex-start;
+}
+
+.workflow-template-confirm input {
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .workflow-template-catalog__layout,
+  .workflow-template-records {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-template-catalog__tasks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .workflow-template-catalog {
+    padding: 16px;
+  }
+
+  .workflow-template-catalog__heading,
+  .workflow-template-catalog__badges {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workflow-template-catalog__tasks,
+  .workflow-template-form {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-template-form .span-2 {
+    grid-column: auto;
+  }
+}
+
 @media (max-width: 620px) {
   .workflow-rag-local-import,
   .workflow-rag-submit-boundary,

@@ -28,6 +28,8 @@ const DESIGNER_LAYOUT_SOURCE = "workflow_node_designer";
 const DESIGNER_LAYOUT_PERSISTENCE = "saved_draft_metadata";
 const DERIVATION_METADATA_VERSION = 1;
 const DERIVATION_SOURCE_KIND = "saved_workflow_draft";
+const TEMPLATE_DERIVATION_METADATA_VERSION = 2;
+const TEMPLATE_DERIVATION_SOURCE_KIND = "workspace_workflow_template";
 const EXECUTOR_V0_METADATA_VERSION = "workflow_executor_v0";
 const MAX_DESIGNER_LAYOUT_COORDINATE = 10000;
 
@@ -44,7 +46,8 @@ export type WorkflowSavedDraftProvenanceKind =
   | ""
   | "unversioned"
   | "workflow_definition"
-  | "saved_draft_derivation";
+  | "saved_draft_derivation"
+  | "workspace_template_derivation";
 
 export type WorkflowSavedDraftLibraryFilters = {
   namePrefix: string;
@@ -316,6 +319,7 @@ type SavedWorkflowDraftPayload = {
 type SavedWorkflowDraftAdditionalFields = {
   designer_layout_v1?: SavedWorkflowDraftDesignerLayoutV1;
   derivation_v1?: SavedWorkflowDraftDerivationV1Metadata;
+  derivation_v2?: SavedWorkflowDraftDerivationV2Metadata;
   executor_v0?: SavedWorkflowDraftExecutorV0Metadata;
   rag_retrieval_v1?: SavedWorkflowDraftRAGRetrievalV1Metadata;
 } & Record<string, unknown>;
@@ -325,6 +329,17 @@ type SavedWorkflowDraftDerivationV1Metadata = {
   source_kind: typeof DERIVATION_SOURCE_KIND;
   source_draft_id: string;
   source_draft_version: number;
+};
+
+type SavedWorkflowDraftDerivationV2Metadata = {
+  version: typeof TEMPLATE_DERIVATION_METADATA_VERSION;
+  source_kind: typeof TEMPLATE_DERIVATION_SOURCE_KIND;
+  template_id: string;
+  template_version: number;
+  template_digest: string;
+  source_definition_id: string;
+  source_definition_version: number;
+  source_definition_digest: string;
 };
 
 type SavedWorkflowDraftExecutorV0Metadata = {
@@ -1204,12 +1219,23 @@ function toSavedWorkflowDraftAdditionalFields(
       side_effect_policy: "retrieval_and_provider_once",
     };
   }
-  if (draft.derivation) {
+  if (draft.derivation?.version === DERIVATION_METADATA_VERSION) {
     additionalFields.derivation_v1 = {
       version: DERIVATION_METADATA_VERSION,
       source_kind: DERIVATION_SOURCE_KIND,
       source_draft_id: draft.derivation.sourceDraftId,
       source_draft_version: draft.derivation.sourceDraftVersion,
+    };
+  } else if (draft.derivation?.version === TEMPLATE_DERIVATION_METADATA_VERSION) {
+    additionalFields.derivation_v2 = {
+      version: TEMPLATE_DERIVATION_METADATA_VERSION,
+      source_kind: TEMPLATE_DERIVATION_SOURCE_KIND,
+      template_id: draft.derivation.templateId,
+      template_version: draft.derivation.templateVersion,
+      template_digest: draft.derivation.templateDigest,
+      source_definition_id: draft.derivation.sourceDefinitionId,
+      source_definition_version: draft.derivation.sourceDefinitionVersion,
+      source_definition_digest: draft.derivation.sourceDefinitionDigest,
     };
   }
   return Object.keys(additionalFields).length > 0 ? additionalFields : undefined;
@@ -1272,10 +1298,9 @@ export function workflowDraftFromSavedWorkflowDraftDocument(
   const isRAGRetrievalV1 = isSavedWorkflowDraftRAGRetrievalV1Metadata(
     document.additional_fields?.rag_retrieval_v1,
   );
-  const derivation = savedWorkflowDraftDerivationFromMetadata(
-    document.additional_fields?.derivation_v1,
-    document.draft_id,
-  );
+  const derivation = document.additional_fields?.derivation_v2 === undefined
+    ? savedWorkflowDraftDerivationFromMetadata(document.additional_fields?.derivation_v1, document.draft_id)
+    : savedWorkflowTemplateDerivationFromMetadata(document.additional_fields.derivation_v2);
   return {
     draftId: document.draft_id,
     templateRef: document.source_definition_id || document.draft_id,
@@ -1360,6 +1385,46 @@ function savedWorkflowDraftDerivationFromMetadata(
     sourceKind: DERIVATION_SOURCE_KIND,
     sourceDraftId: candidate.source_draft_id,
     sourceDraftVersion: candidate.source_draft_version as number,
+  };
+}
+
+function savedWorkflowTemplateDerivationFromMetadata(
+  value: unknown,
+): WorkflowDraftDesignerDraft["derivation"] {
+  if (!hasExactKeys(value, [
+    "version",
+    "source_kind",
+    "template_id",
+    "template_version",
+    "template_digest",
+    "source_definition_id",
+    "source_definition_version",
+    "source_definition_digest",
+  ])) {
+    return undefined;
+  }
+  const candidate = value as SavedWorkflowDraftDerivationV2Metadata;
+  if (
+    candidate.version !== TEMPLATE_DERIVATION_METADATA_VERSION ||
+    candidate.source_kind !== TEMPLATE_DERIVATION_SOURCE_KIND ||
+    !isNonEmptyString(candidate.template_id) ||
+    !isPositiveInteger(candidate.template_version) ||
+    !isDigest(candidate.template_digest) ||
+    !isNonEmptyString(candidate.source_definition_id) ||
+    !isPositiveInteger(candidate.source_definition_version) ||
+    !isDigest(candidate.source_definition_digest)
+  ) {
+    return undefined;
+  }
+  return {
+    version: TEMPLATE_DERIVATION_METADATA_VERSION,
+    sourceKind: TEMPLATE_DERIVATION_SOURCE_KIND,
+    templateId: candidate.template_id,
+    templateVersion: candidate.template_version,
+    templateDigest: candidate.template_digest,
+    sourceDefinitionId: candidate.source_definition_id,
+    sourceDefinitionVersion: candidate.source_definition_version,
+    sourceDefinitionDigest: candidate.source_definition_digest,
   };
 }
 
@@ -1890,7 +1955,12 @@ function isWorkflowSavedDraftProvenanceKind(
   return (allowEmpty && value === "") ||
     value === "unversioned" ||
     value === "workflow_definition" ||
-    value === "saved_draft_derivation";
+    value === "saved_draft_derivation" ||
+    value === "workspace_template_derivation";
+}
+
+function isDigest(value: unknown): value is string {
+  return typeof value === "string" && /^sha256:[0-9a-f]{64}$/u.test(value);
 }
 
 function isArchivedAt(value: unknown, lifecycleState: WorkflowSavedDraftLifecycleState | undefined): boolean {

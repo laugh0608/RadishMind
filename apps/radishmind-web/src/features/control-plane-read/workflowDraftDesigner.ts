@@ -99,12 +99,23 @@ export type WorkflowDraftDesignerRouteMetadata = {
   auditRef: string;
 };
 
-export type WorkflowSavedDraftDerivation = {
-  version: 1;
-  sourceKind: "saved_workflow_draft";
-  sourceDraftId: string;
-  sourceDraftVersion: number;
-};
+export type WorkflowSavedDraftDerivation =
+  | {
+      version: 1;
+      sourceKind: "saved_workflow_draft";
+      sourceDraftId: string;
+      sourceDraftVersion: number;
+    }
+  | {
+      version: 2;
+      sourceKind: "workspace_workflow_template";
+      templateId: string;
+      templateVersion: number;
+      templateDigest: string;
+      sourceDefinitionId: string;
+      sourceDefinitionVersion: number;
+      sourceDefinitionDigest: string;
+    };
 
 export type WorkflowDraftDesignerDraft = {
   draftId: string;

@@ -81,6 +81,7 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     aliases: [
       "workflow-rag-promotion-review",
       "workflow-definition-promotion",
+      "workspace-workflow-template-catalog",
       "prompt-application-runtime-assignment",
       "agent-copilot-runtime-assignment",
     ],
