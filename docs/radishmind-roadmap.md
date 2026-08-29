@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)已完成批次 A 至 E，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。[唯一高风险任务卡](task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)已由 strict contract、三存储 owner、获批 Pencil、React strict consumer推进至双数据库 configured product chain、真实浏览器三视口、双标签 CAS、重启、隐私与零执行副作用收口，并已关闭。下一顺位回到功能索引选择新的长期产品目标，不从本专题派生批次 F；公开 Marketplace、跨 workspace、HTTP Tool / RAG 模板、自动执行或 production 能力继续关闭。[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入继续保持 `no_entry`。
+1. 产品线：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已获项目所有者批准，状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_design_approved_implementation_pending`。[唯一高风险任务卡](task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)当前只等待批次 A 单独批准。首版把回答、候选、人工 handoff、受控 Tool 与写入阻断统一为规则层 decision；不建立第二套 owner，`tool_callable` 只复用既有确认后只读 GET，`write_allowed_by_policy` 不可达。此前[工作区 Workflow 模板目录](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)已完成批次 A 至 E并关闭，不派生批次 F；[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入继续保持 `no_entry`。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。
@@ -81,5 +81,6 @@
 - 不继续派生“readiness 之后的 readiness”，不把历史 next dependency 恢复为当前开发顺位。
 - 不在上层项目没有真实挂载点时细化假想接线，不跨工作区修改 `RadishFlow`、`Radish` 或 `RadishCatalyst`。
 - 不让模型建议直接写入上层业务真相源，不启用 unrestricted tool、业务写回、自动确认提交或 replay。
+- 不让模型、客户端或人工批准直接授予 Action Safety 有效级别；v1 不实现 `write_allowed_by_policy`、写方法 Tool、通用动作执行器或新的 Confirmation / Run / Audit owner。
 - 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志或 committed 资产。
 - 不在缺少评测基线和明确运行窗口时下载模型、长跑真实模型、扩训练 JSONL、蒸馏或权重工作。

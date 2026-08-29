@@ -10,6 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
+- 当前产品顺位为[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)，状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_design_approved_implementation_pending`。项目所有者已批准功能方向与设计边界，唯一高风险任务卡已建立，但批次 A 尚未批准。首版由规则层计算 `requested_level / maximum_allowed_level / effective_level`，模型、客户端和人工批准都不能直接提升资格；`tool_callable` 只复用既有人工确认只读 HTTP `GET`，`write_allowed_by_policy` 在 v1 始终不可达。本轮没有修改 schema、runtime、数据库、HTTP、Pencil 或 React。
 - 最新关闭产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。批次 A 至 E 已完成 strict contract、三种 catalog owner、获人工批准的 Pencil、configured target binding、React strict consumer、双数据库连续链与真实浏览器；SQLite 页面贯通 approved Definition → reviewed/listed template → target Application derive → Draft validate/save → 重启恢复，PostgreSQL configured Server 覆盖 runtime role、no-fallback 与 reconnect。双标签 CAS、workspace / application scope、三视口、隐私与零执行副作用均已复验，唯一任务卡关闭，不派生批次 F。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
@@ -94,6 +95,7 @@
 6. 项目所有者随后明确批准批次 E。SQLite 产品链完成 approved Definition → candidate → approve → list → target Application derive → Draft exact open / validate / save → 同库服务重启恢复；PostgreSQL configured Server 完成同构链、runtime role DDL 拒绝、数据库关闭 no-fallback 与 reconnect authoritative reload。
 7. 真实浏览器完成 review / listing 双标签 stale CAS、workspace / application 切换、刷新 / 重启恢复与 `1440×900`、`720×900`、`390×844`；最终 fresh tab console warning / error 为 0，live URL / network 与源码持久化通道、响应 / SQLite 敏感材料审计通过，所有执行类副作用计数为 0。
 8. 产品链发现并修正空数组 JSON、approved-unlisted Operator 投影、launcher Bridge inventory、canonical 空 lifecycle actor、requested capabilities 保真与 Application Catalog workspace scope 六项一致性缺口。状态推进为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`，唯一任务卡关闭；不自动进入批次 F、公开 Marketplace、跨 workspace 或 production 能力。
+9. 完成下一产品顺位评审并获项目所有者批准，建立 Action Safety Ladder 功能专题与唯一高风险任务卡。设计固定六级安全状态、规则层确定性编译、六个重新验证检查点、既有 owner snapshot / ref、稳定失败码与副作用矩阵；批次 A 仍需单独批准，当前不修改 schema、runtime、数据库、HTTP、Pencil 或 React。
 
 ## 2026-08-19 今日评审
 
@@ -193,7 +195,9 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 ## 当前不要做
 
-- 未明确批准批次 C 前不修改 Workflow 模板 Pencil；Pencil 未人工批准前不进入 React、产品服务或真实浏览器记录。
+- 未单独批准 Action Safety Ladder 批次 A 前，不修改 canonical schema、runtime、数据库、HTTP、Pencil 或 React；各后续批次也不得由前一批批准自动解锁。
+- 不让模型、客户端、Profile、Workflow 草案、candidate decision、assignment、人工批准或页面状态自报或提升 effective level；`write_allowed_by_policy` 在 v1 始终不可达。
+- 不为 Safety Ladder 创建第二套 Action、Confirmation、Run、Audit、Result 或通用 decision owner，也不新增万能 execute permission 或通用动作执行 API。
 - 不把工作区模板目录扩成公开 Marketplace、跨作用域共享、推荐 / 评分、自动重绑定、自动运行或生产发布。
 - 不继续为普通只读展示页、evidence review、文案和布局逐项新增 task card / fixture / checker。
 - 不把 task card 当成功能长期设计文档。

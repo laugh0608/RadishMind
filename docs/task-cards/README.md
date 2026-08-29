@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)已完成批次 A 至 E 并关闭，状态为 `completed`。双数据库产品连续链、真实浏览器、双标签 CAS、重启恢复、隐私与零执行副作用均已收口；不派生批次 F 或平行 readiness 卡。当前没有活跃高风险产品任务卡。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)为当前唯一活跃高风险产品任务卡，状态为 `batch_a_owner_approval_required`。项目所有者已批准长期功能与设计边界，但尚未批准批次 A；批准前不修改 schema、runtime、数据库、HTTP、Pencil 或 React。`tool_callable` 只复用既有人工确认只读 GET，`write_allowed_by_policy` 在 v1 不可达。
 
 ## 当前外部阻塞任务
 
@@ -20,7 +20,7 @@
 
 ## 最近关闭任务
 
-最新关闭：[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)已完成批次 A 至 E 的三存储 session directory、exact / bulk revoke、credential rotation 原子链、strict HTTP、批准 Pencil、React consumer、双数据库产品链和浏览器审计；[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)、[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)与[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)保持关闭。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
+最新关闭：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)已完成批次 A 至 E 的 strict contract、三存储 owner、批准 Pencil、React strict consumer、双数据库产品链和真实浏览器并关闭；[本地账户凭证轮换与自助会话治理 v1 高风险任务卡](local-account-credential-rotation-self-service-session-governance-dev-test-v1-plan.md)、[本地用户、角色与工作区成员管理 v1 高风险任务卡](local-user-role-workspace-membership-administration-dev-test-v1-plan.md)、[应用结果资产库与受控导出 v1](application-result-artifact-library-controlled-export-dev-test-v1-plan.md)与[应用会话运行结果资产显式保存与恢复 v1](application-session-result-artifact-explicit-retention-dev-test-v1-plan.md)保持关闭。其它近期关闭专题保持各自任务卡状态，以下为较早关闭任务：
 
 1. [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](prompt-agent-application-regression-evaluation-release-review-dev-test-v1-plan.md)：Comparison v5 / v6、Case / Suite strict consumer、Agent 不兼容失败映射和 SQLite case → suite → `approved v1` 已完成，任务卡关闭。
 2. [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1-plan.md)：批次 A 至批次 E 已完成，状态为 `agent_copilot_application_profile_version_review_controlled_suggestion_dev_test_v1_completed`；任务卡关闭，不再派生同层续批。

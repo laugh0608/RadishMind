@@ -63,6 +63,7 @@
 - 结构化 JSON 优先，图像和附件作为 artifact 补充。
 - 默认 advisory mode，不做直接写回。
 - 所有高风险输出都必须带 `requires_confirmation`。
+- `requires_confirmation` 不是执行授权。Action Safety Ladder 必须由规则层从 exact source、当前 policy、membership、permission 与既有 owner authority 计算；模型、客户端和人工批准不能自报或提升 `effective_level`。
 - 兼容层只做翻译，不另起第二套真相源。
 - 上层项目只消费建议、解释、候选动作和审计信息，最终业务真相源仍由上层维护。
 - 用户端、管理端、模型网关和 workflow runtime 都必须复用同一套 canonical contract，不为每个产品面另起一套私有协议。
@@ -77,6 +78,7 @@
 - `RadishFlow` 和 `Radish` 的真实挂载点成熟度不作为 RadishMind 平台功能开发的阻塞条件。没有稳定 UI、command 或 API 承接入口时，本仓库先推进离线、只读、advisory-only、blocked capability 的产品面和协议边界；真实接入只在上层提供明确挂载点、确认流和审计落点后选择一个切片推进。
 - `P2 Session & Tooling Foundation` 当前只声明 close candidate / governance-only；negative regression governance suite、deny-by-default gates、negative coverage rollup、route negative coverage matrix、route smoke readiness rollup、short close readiness delta、readiness consistency rollup、enablement plan 和 stop-line manifest 都是治理证据链，不代表真实执行、持久化、结果读取、confirmation 接线或 replay 已启用。
 - [Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1](features/workflow/controlled-http-tool-human-confirmation-dev-test-v1.md) 的三个批次已完成。[唯一实施任务卡](task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md)保持通用 Tooling v1 blocked，以 Workflow-specific action plan / confirmation / audit 和 `workflow_run_record.v2` 版本化替代旧 run-bound confirmation 占位；开发 / 测试态 `/executions`、单次 allowlisted `GET`、SSRF 策略、原子 claim、outcome reconciliation 与 Web 执行链均已实现。该路由不是跨项目生产接入，不允许上层项目提供任意 URL、credential、业务写回或自动确认。
+- [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已完成设计批准、尚未进入实现。未来 `action_safety_decision.v1` 只作为 canonical internal decision 与既有 candidate / plan / Run snapshot / ref，不是上层项目可提交的授权令牌；`tool_callable` 只复用上述 Workflow HTTP Tool，`write_allowed_by_policy` 在 v1 不可达。没有真实上层 command owner 时，`handoff_ready` 也不得被解释为外部接入已就绪。
 - [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](features/workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) 已完成：应用知识快照作为显式提交的 RadishMind 运行资产，由精确版本、确定性 lexical profile、三种 store、独立 retrieval execution、Gateway 单次 handoff、metadata-only `workflow_run_record.v3`、Web 与双数据库浏览器纵向链承载；它不是上层业务真相，完整 answer 不进入 run / audit / 普通 history。`radish.docs.retrieval_context.v1` 继续保持 Session / Tooling contract-only，不启用 crawler、任意 URL、connector、向量数据库或 embedding provider。
 - Workflow RAG 质量与晋级链已经完成 synthetic-public 离线评测、应用作用域 durable dataset、baseline / candidate review、人工 promotion decision、不可变 binding、配置草案 v2 attach、发布候选 v2 重校验、SQLite / PostgreSQL 和 Web 连续链。dataset、review、promotion、binding、draft 与 publish candidate 之间只复制 exact ref / digest，不复制 query、fragment、指标、配置正文、prompt 或模型响应；approve 不自动 baseline、attach、release、publish 或执行。稳定操作与资源说明见 [Workflow RAG 开发测试态使用与资源治理指南](features/workflow/workflow-rag-dev-test-usage-governance-guide.md)。
 - [Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](features/workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)已实现 memory / SQLite / PostgreSQL current assignment、人工 `activate / replace / revoke`、API key `application_rag:invoke`、服务端完整 authority reload、candidate snapshot 的一次 lexical retrieval / Gateway、metadata-only `workflow_run_record.v4`、run execution source migration、v4 evaluation、Web 一次性交接与真实浏览器连续链；PostgreSQL `0012` migration / runtime 专项已真实通过。调用方只能提交有界输入；publish approve 与 API key 签发都不会自动激活。生产调用仍未实现。
@@ -142,6 +144,7 @@
 - [Control Plane Read-Side 契约](contracts/control-plane-read-side.md)：control plane / user workspace 的只读 summary、route、response fixture、negative contract、fake-store-backed handler implementation、auth/db preconditions、consumer contract、formal UI boundary/readiness、repository/read store transition readiness、`ControlPlaneReadRepository` interface + fake-store bridge、脱敏输出和停止线。
 - [会话记录契约](contracts/session.md)：`Conversation & Session` 的 `session_id / turn_id`、history policy、recovery record、northbound session metadata、metadata-only checkpoint read、promotion gate、readiness rollup、stop-line manifest、负向查询和 advisory-only audit 边界。
 - [工具框架契约](contracts/tooling.md)：`Tooling Framework` 的 tool definition、registry、policy/audit record、metadata-only result cache、negative regression governance suite、deny-by-default gates、result materialization policy、executor/storage 边界和不执行真实工具的 v1 停止线。
+- [Action Safety Ladder 与候选动作执行资格 v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)：六级安全状态、规则所有权、decision 边界、检查点、失败语义、副作用矩阵、实施拆分和 v1 写入不可达停止线。
 - [Production Secret Reference 契约](contracts/production-secret-reference.md)：provider profile 到 secret reference 的 reference-only manifest、脱敏字段、禁止字段和 production secret backend 未就绪停止线。
 - [Production Secret Audit Storage Adapter Metadata Contract 契约](contracts/production-secret-audit-storage-adapter-metadata-contract.md)：future audit store storage adapter 的 metadata-only input / result envelope、record identity、failure taxonomy、writer compatibility、positive / negative fixtures 和 backend product / runtime 停止线。
 - [训练 / 蒸馏样本契约](contracts/training-samples.md)：`CopilotTrainingSample`、训练集合治理、candidate record 转换、offline eval runner、本地模型 candidate wrapper 和 M4 builder/tooling 证据边界。
@@ -174,6 +177,7 @@
 - 不把 test-only fake resolver runtime、runtime event schema artifact entry review、metadata-only schema artifact、audit store runtime blocker matrix、durable backend selection readiness 或 writer runtime implementation entry review 写成 production resolver runtime、no secret leakage smoke runtime、credential handle creation、database connection、audit writer runtime、audit store runtime、delivery / idempotency runtime 或 repository mode ready。
 - 不把 Radish OIDC upstream evidence、token validation schema artifact、token validation / auth middleware runtime entry review 或 negative auth smoke matrix 写成真实 OIDC middleware、token validator、membership adapter、repository mode、production API 或可用登录态。
 - 不让模型输出直接写回上层项目。
+- 不让模型、客户端、人工批准或上层兼容协议字段直接授予 Action Safety 有效级别；不把 decision snapshot 当作通用 execution token，v1 不开放 `write_allowed_by_policy`。
 - 不把 checkpoint read route smoke 写成 durable checkpoint store、materialized result reader、executor ref reader、durable memory reader 或 replay executor。
 - 不把 P2 design gate 写成上层确认流接线、真实 executor、durable session/checkpoint/audit/result store、长期记忆、业务写回或完整负向回归已经完成。
 - 不在 `RadishCatalyst` 进入真实任务、adapter skeleton 和最小 eval sample 前扩 schema 枚举或 gateway route。

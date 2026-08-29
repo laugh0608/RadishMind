@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-29 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料、应用结果资产与[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)均已有可复验证据并关闭。模板目录批次 A 至 E 完成 memory / SQLite / PostgreSQL 同 domain owner、Pencil 人工批准、configured Server target binding、十条 exact route、React strict consumer、双数据库产品链、双标签 CAS、重启恢复与真实浏览器三视口，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。该专题只打开工作区内部人工 review / listing / derive，不改通用 executor；公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-29 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料、应用结果资产与工作区 Workflow 模板目录均已有可复验证据并关闭。新的[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)设计已获批准，状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_design_approved_implementation_pending`；唯一任务卡只等待批次 A 单独批准。它把回答、建议、人工 handoff、受控 Tool 与写入阻断收口为规则层 decision，不改通用 executor，不创建第二套 Action / Confirmation / Run / Audit owner；公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -157,7 +157,9 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)固定的 approved immutable Definition → workspace template candidate → human review → immutable template version → explicit listing → target Application authority / binding recheck → Saved Draft v1 连续链，已由[唯一高风险任务卡](../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)完成五批并关闭。下一步回到功能入口选择新的长期目标，不从本专题延伸批次 F。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已固定六级状态、现有 owner 重读、六个检查点、失败语义、副作用矩阵和五批拆分。下一步只评审[唯一高风险任务卡](../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)的批次 A：strict decision contract、compatibility / transition matrix 与纯函数 compiler；未获批准不进入实现。
+
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)已完成五批并关闭，不从该专题延伸批次 F。
 
 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成并保持关闭；connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置，不从模板专题旁路打开。
 
@@ -168,6 +170,7 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 - Saved Workflow Draft v1 consumer integration 批次：按选择补 dev-only route / web consumer / consumer contract / fixture / checker，至少运行 Go 单元测试、web build、workflow 聚合 checker 和 `./scripts/check-repo.sh --fast`。
 - 若实现批次改变阶段口径、治理入口、schema 真相源或高风险执行边界，补跑全量 `./scripts/check-repo.sh`。
 - confirmation 已由受控 HTTP Tool 专题完成设计；实现涉及新 API、schema 和高风险执行边界，必须由单一任务卡承接并补 scope、audit、SSRF、CAS / crash、side-effect 与全量仓库验证。writeback 与 replay 仍需未来独立设计。
+- Action Safety Ladder 只能由规则层和既有 owner authority 联合决定；人工 confirmation 是 `tool_callable` 的必要条件之一，不是提升到写入权限的充分条件，`write_allowed_by_policy` 在 v1 不可达。
 
 ## 停止线
 
