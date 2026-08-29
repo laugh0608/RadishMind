@@ -1,8 +1,8 @@
 # 工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1
 
-更新时间：2026-08-27
+更新时间：2026-08-29
 
-状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_preflight_required`
+状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 它把现有“个人草案派生”和“应用内 Definition 晋级”向工作区内部复用扩展，但不建立公开 Marketplace，不复制 Definition、Saved Draft、运行、评测、权限或应用真相源。模板目录只拥有工作区级模板候选、不可变模板版本、上架指针与对应 append-only 决定；模板内容来源和运行资格仍由既有 Definition 与 Draft owner 重新判定。
 
-本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。2026-08-27 日终代码反查发现 target binding authority 与 HTTP query cardinality 尚未达到专题原定边界，当前停在批次 D 前置修正授权前，不进入 React 或产品连续链。
+本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。2026-08-29 已完成批次 D 前置修正：configured Server 复用 activated Provider Route snapshot 与当前 Bridge inventory 重验 exact Provider / Profile / resolved Model binding，十条 route 统一 exact query key / cardinality；当前停在批次 D React 单独授权前，不进入产品连续链。
 
 ## 用户与真实任务
 
@@ -161,12 +161,12 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ### 已实现边界反查
 
-2026-08-27 对批次 A / B 当前代码逐项反查后，确认 durable owner、十条 route、strict JSON、组合 permission、CAS、cursor、no-fallback 与零执行副作用证据仍成立，但有两项必须在 React 前修正：
+2026-08-27 对批次 A / B 当前代码逐项反查后，确认 durable owner、十条 route、strict JSON、组合 permission、CAS、cursor、no-fallback 与零执行副作用证据仍成立，同时识别出 target binding authority 与 HTTP query cardinality 两项 React 前置缺口。2026-08-29 已在同一任务卡内完成修正：
 
-- 当前 configured Server 使用的 `strictWorkflowTemplateTargetBindingValidator` 只验证目标 Application 为 active `workflow_copilot`，并验证 Definition 中 `profile:` 引用的形状、去重和节点一致性。现有 `ApplicationCatalogRecord` 不包含 Provider / Profile / Model binding projection，测试中的 binding unavailable 强制拒绝来自注入 validator；因此当前代码尚不能证明同一精确引用在目标 Application 下真实可用，也不能把测试替身写成真实 binding owner。
-- request body 已拒绝 unknown / duplicate field，但 route query 仍通过 `URL.Query().Get` 读取，尚未统一拒绝 unknown key、重复值和 mutation query。批次 D 前必须让 GET query 采用 exact allowlist 与 single-value cardinality，并让四条 mutation route 拒绝任意 query，避免 Web strict consumer 建立在宽松 northbound 输入上。
+- configured Server 的 `configuredWorkflowTemplateTargetBindingValidator` 先重验 target Application 的 exact tenant / workspace / owner、active lifecycle、`workflow_copilot` kind 与 Definition provider ref 结构，再从既有 activated Provider Route snapshot 读取 `profile:<id>` 对应的 assignment / inventory binding，并以当前 Bridge inventory 重算包含 resolved model 的 binding digest。Provider、runtime profile、resolved model、capability、enabled、重复记录、environment / configuration scope 或 authority availability 任一漂移均返回 `workflow_template_target_binding_unavailable`，且不会调用 Draft owner。
+- 六条 GET route 只接受各自 allowlist 中的 single-value query，拒绝 unknown key 和 duplicate value；四条 mutation route 拒绝任意 query。query 拒绝统一返回 `400 / workflow_template_payload_invalid`，既有 cursor 解码失败继续返回 `workflow_template_cursor_invalid`。
 
-这两项不推翻批次 A 的 domain / memory 证据、批次 B 的 durable repository 证据或批次 C 的已批准设计，但会阻塞批次 D。修正必须继续留在本任务卡内，不新建平行 readiness 卡；实现范围和验证应由项目所有者单独批准。
+修正复用既有 `adminProviderRouteRepository`、`gatewayProviderRouteSnapshotProvider` 与 Bridge inventory，不向 `ApplicationCatalogRecord` 增加投影，不创建新 repository、schema、migration、binding owner 或 Provider fallback。精准 HTTP / authority、相邻 Config / Application / Definition / Saved Draft、定向 race、`go vet`、Platform 回归与仓库 fast / full 门禁均已通过；批次 D 前置已解除，但 React 仍需项目所有者单独授权。
 
 ## 失败与并发语义
 
@@ -226,7 +226,7 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ### 批次 D：React strict consumer
 
-- 前置：完成 target binding authority 与十条 route exact query cardinality 修正，并通过相邻 Go / race / HTTP / no-side-effect 验证；未完成不得开始 React。
+- 前置：`completed`。exact target binding authority、十条 route exact query cardinality、相邻 Go / race / HTTP / no-side-effect 验证已完成；批次 D 当前只等待项目所有者单独授权。
 - 接入单一 workspace template catalog consumer、strict schema、cursor、CAS、scope generation、late-response guard 与 Draft Designer exact handoff。
 - offline 零请求，target application / confirmation 只存在组件内存；不在本批启动数据库产品服务或冒充真实浏览器证据。
 
@@ -261,4 +261,4 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ## 当前下一步
 
-批次 C Pencil 已完成人工批准；日终代码反查将状态收紧为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_preflight_required`。下一步先由项目所有者批准同一任务卡内的 target binding authority 与 HTTP exact query 修正，完成并验证后再判断批次 D React 是否准入；当前不创建 React、产品服务或真实浏览器记录。
+批次 C Pencil 已完成人工批准，批次 D 前置代码反查修正也已完成并通过验证，当前状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_c_pencil_approved_batch_d_ready`。下一步由项目所有者单独评审批次 D React strict consumer；未获批准前不创建 React、产品服务或真实浏览器记录。

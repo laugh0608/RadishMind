@@ -99,7 +99,7 @@ func (server *Server) handleCreateWorkflowTemplateCandidate(writer http.Response
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateContext(request, trace, "candidate-create", "workflow_definitions:read", "workflow_definitions:write")
+	ctx, failure, status := server.workflowTemplateMutationContext(request, trace, "candidate-create", "workflow_definitions:read", "workflow_definitions:write")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -121,7 +121,7 @@ func (server *Server) handleListWorkflowTemplateCandidates(writer http.ResponseW
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "candidate-list", "workflow_definitions:read")
+	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "candidate-list", []string{"state", "limit", "cursor"}, "workflow_definitions:read")
 	if failure != "" {
 		writeWorkflowTemplateCandidateListWithStatus(writer, status, trace, ctx, WorkflowTemplateCandidateListResult{FailureCode: failure})
 		return
@@ -141,7 +141,7 @@ func (server *Server) handleReadWorkflowTemplateCandidate(writer http.ResponseWr
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "candidate-read", "workflow_definitions:read")
+	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "candidate-read", nil, "workflow_definitions:read")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -154,7 +154,7 @@ func (server *Server) handleDecideWorkflowTemplateCandidate(writer http.Response
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateContext(request, trace, "candidate-decision", "workflow_definitions:read", "workflow_definitions:review")
+	ctx, failure, status := server.workflowTemplateMutationContext(request, trace, "candidate-decision", "workflow_definitions:read", "workflow_definitions:review")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -173,7 +173,7 @@ func (server *Server) handleListWorkflowTemplates(writer http.ResponseWriter, re
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "template-list", "workflow_definitions:read")
+	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "template-list", []string{"limit", "cursor"}, "workflow_definitions:read")
 	if failure != "" {
 		writeWorkflowTemplateLineageListWithStatus(writer, status, trace, ctx, WorkflowTemplateLineageListResult{FailureCode: failure})
 		return
@@ -191,7 +191,7 @@ func (server *Server) handleReadWorkflowTemplate(writer http.ResponseWriter, req
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "template-read", "workflow_definitions:read")
+	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "template-read", nil, "workflow_definitions:read")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -204,7 +204,7 @@ func (server *Server) handleListWorkflowTemplateVersions(writer http.ResponseWri
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "version-list", "workflow_definitions:read")
+	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "version-list", []string{"limit", "cursor"}, "workflow_definitions:read")
 	templateID := request.PathValue("template_id")
 	if failure != "" {
 		writeWorkflowTemplateVersionListWithStatus(writer, status, trace, ctx, templateID, WorkflowTemplateVersionListResult{FailureCode: failure})
@@ -223,7 +223,7 @@ func (server *Server) handleReadWorkflowTemplateVersion(writer http.ResponseWrit
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "version-read", "workflow_definitions:read")
+	ctx, failure, status := server.workflowTemplateReadContext(request, trace, "version-read", nil, "workflow_definitions:read")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -241,7 +241,7 @@ func (server *Server) handleDecideWorkflowTemplateListing(writer http.ResponseWr
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateContext(request, trace, "listing-decision", "workflow_definitions:read", "workflow_definitions:activate")
+	ctx, failure, status := server.workflowTemplateMutationContext(request, trace, "listing-decision", "workflow_definitions:read", "workflow_definitions:activate")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -260,7 +260,7 @@ func (server *Server) handleDeriveWorkflowTemplate(writer http.ResponseWriter, r
 	if !server.allowWorkflowTemplateCatalogHTTP(writer, request, trace) {
 		return
 	}
-	ctx, failure, status := server.workflowTemplateContext(request, trace, "derive", "workflow_definitions:read", "workflow_drafts:write")
+	ctx, failure, status := server.workflowTemplateMutationContext(request, trace, "derive", "workflow_definitions:read", "workflow_drafts:write")
 	if failure != "" {
 		writeWorkflowTemplateResultWithStatus(writer, status, trace, ctx, WorkflowTemplateCatalogResult{FailureCode: failure})
 		return
@@ -297,15 +297,43 @@ func (server *Server) workflowTemplateContext(request *http.Request, trace reque
 	return ctx, "", http.StatusOK
 }
 
-func (server *Server) workflowTemplateReadContext(request *http.Request, trace requestTrace, auditSuffix string, permissions ...string) (WorkflowTemplateCatalogContext, string, int) {
+func (server *Server) workflowTemplateMutationContext(request *http.Request, trace requestTrace, auditSuffix string, permissions ...string) (WorkflowTemplateCatalogContext, string, int) {
 	ctx, failure, status := server.workflowTemplateContext(request, trace, auditSuffix, permissions...)
 	if failure != "" {
 		return ctx, failure, status
+	}
+	if !workflowTemplateStrictQueryAllowed(request.URL.Query()) {
+		return ctx, WorkflowTemplateFailurePayloadInvalid, http.StatusBadRequest
+	}
+	return ctx, "", http.StatusOK
+}
+
+func (server *Server) workflowTemplateReadContext(request *http.Request, trace requestTrace, auditSuffix string, optionalQueryKeys []string, permissions ...string) (WorkflowTemplateCatalogContext, string, int) {
+	ctx, failure, status := server.workflowTemplateContext(request, trace, auditSuffix, permissions...)
+	if failure != "" {
+		return ctx, failure, status
+	}
+	allowed := append([]string{"workspace_id"}, optionalQueryKeys...)
+	if !workflowTemplateStrictQueryAllowed(request.URL.Query(), allowed...) {
+		return ctx, WorkflowTemplateFailurePayloadInvalid, http.StatusBadRequest
 	}
 	if strings.TrimSpace(request.URL.Query().Get("workspace_id")) != ctx.WorkspaceID {
 		return ctx, WorkflowTemplateFailureScopeDenied, http.StatusForbidden
 	}
 	return ctx, "", http.StatusOK
+}
+
+func workflowTemplateStrictQueryAllowed(values map[string][]string, allowed ...string) bool {
+	allowlist := make(map[string]bool, len(allowed))
+	for _, key := range allowed {
+		allowlist[key] = true
+	}
+	for key, entries := range values {
+		if !allowlist[key] || len(entries) != 1 {
+			return false
+		}
+	}
+	return true
 }
 
 func (server *Server) workflowTemplateCatalogService() workflowTemplateCatalogService {

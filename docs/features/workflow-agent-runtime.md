@@ -1,6 +1,6 @@
 # Workflow / Agent Runtime 设计与开发文档
 
-更新时间：2026-08-27
+更新时间：2026-08-29
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-27 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料与应用结果资产均已有可复验证据并关闭。新的产品顺位是[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)：批次 A / B 已完成 memory / SQLite / PostgreSQL 同 domain owner、共享 workflow backend factory、Saved Draft migration family `0005` 与双数据库 live integration；批次 C 的 8 个 Pencil 功能画板与 R22 Decision 已获人工批准。日终代码反查后当前为 `batch_c_pencil_approved_batch_d_preflight_required`，先修正 target binding authority 与 HTTP exact query，再评审 React 准入。该专题复用 exact immutable Definition、workspace membership 与 Saved Draft owner，只打开工作区内部人工 review / listing / derive，不改通用 executor；公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-29 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料与应用结果资产均已有可复验证据并关闭。新的产品顺位是[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)：批次 A / B 已完成 memory / SQLite / PostgreSQL 同 domain owner、共享 workflow backend factory、Saved Draft migration family `0005` 与双数据库 live integration；批次 C 的 8 个 Pencil 功能画板与 R22 Decision 已获人工批准；configured Server target binding authority 与十条 route exact query 前置也已完成。当前为 `batch_c_pencil_approved_batch_d_ready`，下一步单独评审 React 准入。该专题复用 exact immutable Definition、workspace membership、activated Provider Route authority 与 Saved Draft owner，只打开工作区内部人工 review / listing / derive，不改通用 executor；公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 

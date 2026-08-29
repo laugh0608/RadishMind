@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-27
+更新时间：2026-08-29
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)是当前唯一活跃高风险任务卡，状态为 `batch_c_pencil_approved_batch_d_preflight_required`。批次 C 的 8 个功能画板与 R22 Decision 已获项目所有者人工批准；日终代码反查要求先在同卡修正 target binding authority 与 HTTP exact query，批次 D 被该前置阻塞，也不派生平行 readiness 卡。
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)是当前唯一活跃高风险任务卡，状态为 `batch_c_pencil_approved_batch_d_ready`。批次 C 的 8 个功能画板与 R22 Decision 已获项目所有者人工批准，target binding authority 与 HTTP exact query 前置也已完成；批次 D 仍需单独授权，不派生平行 readiness 卡。
 
 ## 当前外部阻塞任务
 

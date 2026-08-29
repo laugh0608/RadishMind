@@ -1,16 +1,16 @@
 # 工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-08-27
+更新时间：2026-08-29
 
 - 任务 ID：`workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1`
-- 状态：`batch_c_pencil_approved_batch_d_preflight_required`
+- 状态：`batch_c_pencil_approved_batch_d_ready`
 - 功能设计：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](../features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准该长期功能目标与首版方向。本卡是唯一跨模块高风险实施入口，负责 Definition exact source、工作区模板 catalog owner、人工 review / listing、跨应用目标资格与 Saved Draft 原子派生；不再创建平行 readiness、schema-only 或 UI-only 任务卡。
 
-项目所有者已明确批准并完成批次 A、批次 B，并批准进入和人工验收批次 C。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、SQLite / PostgreSQL durable repository、共享 backend factory、`0005` migration，以及正式 Pencil 源中的批次 C 代表面与 Decision 均已完成。2026-08-27 日终代码反查发现 target binding authority 与 HTTP exact query 两项前置缺口；当前停在同卡修正授权前，不进入 React。
+项目所有者已明确批准并完成批次 A、批次 B，并批准进入和人工验收批次 C。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、SQLite / PostgreSQL durable repository、共享 backend factory、`0005` migration，以及正式 Pencil 源中的批次 C 代表面与 Decision 均已完成。2026-08-29 又按项目所有者授权完成 target binding authority 与 HTTP exact query 两项前置修正；当前停在批次 D React 单独授权前。
 
 ## 完成目标
 
@@ -107,18 +107,18 @@
 
 ## 批次 D 前置代码反查修正
 
-状态：`approval_required`。
+状态：`completed`。
 
-- target binding：configured Server 当前只校验 target Application lifecycle / kind 与 Definition `profile:` ref 形状；`ApplicationCatalogRecord` 没有 Provider / Profile / Model binding projection，强制 unavailable 测试使用注入替身。必须先接入可证明 exact target binding 的既有 canonical authority，或在实现前经项目所有者明确收窄 v1 契约；不得用形状校验冒充真实可用性。
-- HTTP query：四条 mutation route 必须拒绝任意 query；六条 GET route 必须按各自契约只接受 allowlisted single-value query，拒绝 unknown key 和 duplicate value。cursor 解码失败继续稳定返回 `workflow_template_cursor_invalid`。
-- 验证：补精准 HTTP 与 target binding 测试、定向 race、相邻 config / Application / Definition / Saved Draft 回归、`git diff --check` 和仓库 fast；若修改阶段真相源或协议口径，补全量仓库门禁。
+- target binding：configured Server 已复用 activated Provider Route snapshot 与当前 Bridge inventory；`profile:<id>` 必须精确命中 assignment / inventory binding，当前重算 digest 必须与 activated binding 一致。该 digest 覆盖 Provider、runtime profile、resolved model、capabilities、enabled 和脱敏 inventory 元数据；缺失、重复、漂移、scope / environment / configuration 不一致或 authority 不可用全部在 Draft owner 前失败关闭。
+- HTTP query：四条 mutation route 已拒绝任意 query；六条 GET route 已按各自契约只接受 allowlisted single-value query，拒绝 unknown key 和 duplicate value。cursor 解码失败继续稳定返回 `workflow_template_cursor_invalid`。
+- 验证：精准 HTTP 覆盖六条 GET 的 unknown / duplicate query、四条 mutation query 和零 owner side effect；target binding 覆盖 exact success、Provider / resolved Model / capability / enabled drift、missing / duplicate profile、static source 与 active snapshot unavailable。相邻 config / HTTP API、定向 race、`go vet`、Platform 回归与仓库 fast / full 门禁均已通过。
 - 停止线：不在该修正中创建 React、CSS、新数据库、第二套 Application binding owner、Provider fallback、自动模型替换、产品服务或真实浏览器记录。
 
-完成后回到 `batch_c_pencil_approved_batch_d_ready`，仍需项目所有者单独批准批次 D。
+本批已推进为 `batch_c_pencil_approved_batch_d_ready`，仍需项目所有者单独批准批次 D。
 
 ## 批次 D：React strict consumer
 
-状态：`blocked_by_batch_d_preflight`。
+状态：`ready_owner_approval_required`。
 
 - 在现有 Workflow 产品面接入单一 template catalog consumer，覆盖 catalog / candidate / version / listing / derive。
 - strict parser 拒绝 unknown field、scope drift、invalid digest / cursor、duplicate record 与敏感字段。
@@ -153,4 +153,4 @@
 
 ## 当前下一步
 
-批次 C Pencil 已完成人工批准；日终代码反查后当前停在 `batch_c_pencil_approved_batch_d_preflight_required`。下一步先由项目所有者批准同卡的 target binding authority 与 HTTP exact query 修正；修正完成后仍需单独批准批次 D React strict consumer。当前不创建 React、产品服务或真实浏览器记录。
+批次 C Pencil 已完成人工批准，target binding authority 与 HTTP exact query 前置修正也已完成并通过验证；当前状态为 `batch_c_pencil_approved_batch_d_ready`。下一步由项目所有者单独批准批次 D React strict consumer；当前不创建 React、产品服务或真实浏览器记录。

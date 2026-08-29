@@ -87,17 +87,97 @@ type WorkflowTemplateVersionListResult struct {
 }
 
 type workflowTemplateTargetBindingValidator interface {
-	ValidateTargetBinding(ApplicationCatalogRecord, WorkflowDefinitionSnapshot) error
+	ValidateTargetBinding(WorkflowTemplateCatalogContext, ApplicationCatalogRecord, WorkflowDefinitionSnapshot) error
 }
 
 type strictWorkflowTemplateTargetBindingValidator struct{}
 
-func (strictWorkflowTemplateTargetBindingValidator) ValidateTargetBinding(application ApplicationCatalogRecord, snapshot WorkflowDefinitionSnapshot) error {
-	if application.LifecycleState != applicationCatalogLifecycleActive || application.ApplicationKind != "workflow_copilot" {
+func (strictWorkflowTemplateTargetBindingValidator) ValidateTargetBinding(ctx WorkflowTemplateCatalogContext, application ApplicationCatalogRecord, snapshot WorkflowDefinitionSnapshot) error {
+	if !validWorkflowTemplateContext(ctx) || application.TenantRef != ctx.TenantRef || application.WorkspaceID != ctx.WorkspaceID ||
+		application.OwnerSubjectRef != ctx.OwnerSubjectRef || application.LifecycleState != applicationCatalogLifecycleActive ||
+		application.ApplicationKind != "workflow_copilot" {
 		return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
 	}
 	if !validWorkflowTemplateProviderBindings(snapshot) {
 		return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+	}
+	return nil
+}
+
+type configuredWorkflowTemplateTargetBindingValidator struct {
+	providerRouteSource      string
+	providerRouteEnvironment string
+	providerRouteConfigID    string
+	snapshotProvider         gatewayProviderRouteSnapshotProvider
+	bridge                   bridgeClient
+}
+
+func (validator configuredWorkflowTemplateTargetBindingValidator) ValidateTargetBinding(
+	ctx WorkflowTemplateCatalogContext,
+	application ApplicationCatalogRecord,
+	snapshot WorkflowDefinitionSnapshot,
+) error {
+	if err := (strictWorkflowTemplateTargetBindingValidator{}).ValidateTargetBinding(ctx, application, snapshot); err != nil {
+		return err
+	}
+	if len(snapshot.ProviderRefs) == 0 {
+		return nil
+	}
+	environment := strings.TrimSpace(validator.providerRouteEnvironment)
+	configurationID := strings.TrimSpace(validator.providerRouteConfigID)
+	if strings.TrimSpace(validator.providerRouteSource) != "admin_snapshot_dev_test" ||
+		(environment != adminProviderRouteEnvironmentDevelopment && environment != adminProviderRouteEnvironmentTest) ||
+		!adminProviderRouteIdentifierPattern.MatchString(configurationID) || validator.snapshotProvider == nil || validator.bridge == nil {
+		return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+	}
+	active, found, err := validator.snapshotProvider.ReadActiveSnapshot(gatewayProviderRouteScope{
+		RequestContext: workflowTemplateRequestContext(ctx), RequestID: ctx.RequestID,
+		TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, Environment: environment,
+		ConfigurationID: configurationID, ActorRef: ctx.ActorRef,
+	})
+	if err != nil || !found || active.TenantRef != ctx.TenantRef || active.WorkspaceID != ctx.WorkspaceID ||
+		active.Environment != environment || active.ConfigurationID != configurationID {
+		return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+	}
+	inventory, err := validator.bridge.DescribeInventory(workflowTemplateRequestContext(ctx))
+	if err != nil {
+		return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+	}
+	for _, providerRef := range snapshot.ProviderRefs {
+		profileID := strings.TrimPrefix(providerRef, "profile:")
+		assignment, ok := gatewayProviderAttemptAssignment(active, profileID)
+		if !ok {
+			return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+		}
+		expected, ok := gatewayProviderRouteBinding(active.InventoryBindings, assignment.ProfileID)
+		if !ok || !expected.Enabled {
+			return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+		}
+		matchedProfile := -1
+		profileKey, ok := adminProviderRouteRuntimeProfileKey(environment, assignment.RuntimeProfileRef)
+		if !ok {
+			return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+		}
+		for index := range inventory.Profiles {
+			profile := inventory.Profiles[index]
+			if strings.TrimSpace(profile.ProviderID) != assignment.ProviderID || strings.TrimSpace(profile.Profile) != profileKey {
+				continue
+			}
+			if matchedProfile >= 0 {
+				return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+			}
+			matchedProfile = index
+		}
+		if matchedProfile < 0 {
+			return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+		}
+		current, bindingErr := adminProviderRouteInventoryBindingFromProfile(
+			environment, assignment.ProviderID, assignment.RuntimeProfileRef, inventory.Profiles[matchedProfile],
+		)
+		current.ProfileID = assignment.ProfileID
+		if bindingErr != nil || !gatewayProviderRouteBindingsEqual(expected, current) {
+			return errors.New(WorkflowTemplateFailureTargetBindingUnavailable)
+		}
 	}
 	return nil
 }
@@ -228,7 +308,7 @@ func (service workflowTemplateCatalogService) Derive(ctx WorkflowTemplateCatalog
 	if failure != "" {
 		return WorkflowTemplateCatalogResult{FailureCode: WorkflowTemplateFailureTargetApplicationUnavailable}
 	}
-	if service.targetBinding == nil || service.targetBinding.ValidateTargetBinding(target, definition.Snapshot) != nil {
+	if service.targetBinding == nil || service.targetBinding.ValidateTargetBinding(ctx, target, definition.Snapshot) != nil {
 		return WorkflowTemplateCatalogResult{FailureCode: WorkflowTemplateFailureTargetBindingUnavailable}
 	}
 	payload := workflowTemplateDraftPayload(ctx, input, version, definition)

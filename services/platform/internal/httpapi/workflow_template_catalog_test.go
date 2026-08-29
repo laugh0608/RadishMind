@@ -2,13 +2,16 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
 
+	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
 )
 
@@ -470,12 +473,10 @@ func TestWorkflowTemplateCatalogStrictHTTPAndDefaultGate(t *testing.T) {
 		t.Fatalf("template catalog route was not disabled by default: status=%d body=%s", disabledRecorder.Code, disabledRecorder.Body.String())
 	}
 
-	server := NewServer(config.Config{
-		ControlPlaneReadDevAuthEnabled: true, WorkflowSavedDraftDevHTTPEnabled: true, WorkflowSavedDraftDevWriteEnabled: true,
-		ApplicationCatalogDevHTTPEnabled: true, WorkflowDefinitionReleaseDevEnabled: true, WorkflowTemplateCatalogDevEnabled: true,
-	}, Options{BuildVersion: "test"})
+	server := NewServer(workflowTemplateHTTPTestConfig(), Options{BuildVersion: "test"})
 	defer server.Close()
 	seedWorkflowTemplateServerAuthorities(t, server)
+	seedWorkflowTemplateProviderAuthority(t, server)
 	created := performWorkflowTemplateRequest(t, server, http.MethodPost, "/v1/user-workspace/workflow-template-candidates", workflowTemplateCandidateCreateBodyFromInput(workflowTemplateCandidateTestInput()), "workflow_definitions:read,workflow_definitions:write")
 	if created.Candidate == nil || created.FailureCode != nil {
 		t.Fatalf("HTTP create candidate: %#v", created)
@@ -494,6 +495,7 @@ func TestWorkflowTemplateCatalogStrictHTTPAndDefaultGate(t *testing.T) {
 	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-templates/"+workflowTemplateTestTemplate+"?workspace_id=workspace_demo", workflowTemplateTestTemplate)
 	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-templates/"+workflowTemplateTestTemplate+"/versions?workspace_id=workspace_demo", `"version":1`)
 	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-templates/"+workflowTemplateTestTemplate+"/versions/1?workspace_id=workspace_demo", `"version":1`)
+	assertWorkflowTemplateGETFailure(t, server, "/v1/user-workspace/workflow-template-candidates?workspace_id=workspace_demo&cursor=invalid", WorkflowTemplateFailureCursorInvalid)
 	derived := performWorkflowTemplateRequest(t, server, http.MethodPost, "/v1/user-workspace/workflow-templates/"+workflowTemplateTestTemplate+"/derivations", workflowTemplateDerivationBody{ExpectedPointerVersion: 1, TemplateVersion: 1, TargetApplicationID: workflowTemplateTestTargetApplication, DraftID: "draft_http_template", Name: "HTTP 模板派生草案", Confirmed: true}, "workflow_definitions:read,workflow_drafts:write")
 	if derived.Draft == nil || derived.Draft.ProvenanceKind != string(SavedWorkflowDraftProvenanceTemplate) || derived.FailureCode != nil {
 		t.Fatalf("HTTP derive template: %#v", derived)
@@ -514,6 +516,166 @@ func TestWorkflowTemplateCatalogStrictHTTPAndDefaultGate(t *testing.T) {
 	if deniedRecorder.Code != http.StatusForbidden || !bytes.Contains(deniedRecorder.Body.Bytes(), []byte(WorkflowTemplateFailureScopeDenied)) {
 		t.Fatalf("missing combined permission reached template owner: status=%d body=%s", deniedRecorder.Code, deniedRecorder.Body.String())
 	}
+
+	readTargets := []string{
+		"/v1/user-workspace/workflow-template-candidates",
+		"/v1/user-workspace/workflow-template-candidates/" + workflowTemplateTestCandidate,
+		"/v1/user-workspace/workflow-templates",
+		"/v1/user-workspace/workflow-templates/" + workflowTemplateTestTemplate,
+		"/v1/user-workspace/workflow-templates/" + workflowTemplateTestTemplate + "/versions",
+		"/v1/user-workspace/workflow-templates/" + workflowTemplateTestTemplate + "/versions/1",
+	}
+	for _, target := range readTargets {
+		assertWorkflowTemplateQueryRejected(t, server, http.MethodGet, target+"?workspace_id=workspace_demo&unexpected=1", nil, "workflow_definitions:read")
+		assertWorkflowTemplateQueryRejected(t, server, http.MethodGet, target+"?workspace_id=workspace_demo&workspace_id=workspace_demo", nil, "workflow_definitions:read")
+	}
+
+	beforeDraftSideEffects := server.savedWorkflowDraftStore.SideEffects()
+	mutationCases := []struct {
+		target string
+		body   any
+		scopes string
+	}{
+		{
+			target: "/v1/user-workspace/workflow-template-candidates?unexpected=1",
+			body: workflowTemplateCandidateCreateBodyFromInput(WorkflowTemplateCandidateCreateInput{
+				CandidateID: "candidate_query_rejected", TemplateID: "template_query_rejected",
+				SourceApplicationID: workflowTemplateTestSourceApplication, SourceDefinitionID: workflowTemplateTestDefinition,
+				SourceDefinitionVersion: 1, Title: "拒绝 query 的候选", Summary: "不得进入模板 owner。", UsageNotes: "只验证 HTTP 边界。", Labels: []string{"query"},
+			}),
+			scopes: "workflow_definitions:read,workflow_definitions:write",
+		},
+		{
+			target: "/v1/user-workspace/workflow-template-candidates/" + workflowTemplateTestCandidate + "/decisions?unexpected=1",
+			body:   workflowTemplateCandidateDecisionBody{ExpectedReviewVersion: 1, Decision: "reject", Reason: "query 必须先失败关闭"},
+			scopes: "workflow_definitions:read,workflow_definitions:review",
+		},
+		{
+			target: "/v1/user-workspace/workflow-templates/" + workflowTemplateTestTemplate + "/listing-decisions?unexpected=1",
+			body:   workflowTemplateListingDecisionBody{ExpectedPointerVersion: 1, Decision: "unlist", Version: 1, Reason: "query 必须先失败关闭"},
+			scopes: "workflow_definitions:read,workflow_definitions:activate",
+		},
+		{
+			target: "/v1/user-workspace/workflow-templates/" + workflowTemplateTestTemplate + "/derivations?unexpected=1",
+			body:   workflowTemplateDerivationBody{ExpectedPointerVersion: 1, TemplateVersion: 1, TargetApplicationID: workflowTemplateTestTargetApplication, DraftID: "draft_query_rejected", Name: "query 拒绝草案", Confirmed: true},
+			scopes: "workflow_definitions:read,workflow_drafts:write",
+		},
+	}
+	for _, test := range mutationCases {
+		assertWorkflowTemplateQueryRejected(t, server, http.MethodPost, test.target, test.body, test.scopes)
+	}
+	if _, err := server.workflowTemplateCatalogRepository.ReadCandidate(WorkflowTemplateCatalogContext{TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", OwnerSubjectRef: "subject_demo_user"}, "candidate_query_rejected"); !errors.Is(err, errWorkflowTemplateCandidateNotFound) {
+		t.Fatalf("query-rejected candidate reached owner: %v", err)
+	}
+	lineage, err := server.workflowTemplateCatalogRepository.ReadLineage(WorkflowTemplateCatalogContext{TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", OwnerSubjectRef: "subject_demo_user"}, workflowTemplateTestTemplate)
+	if err != nil || lineage.PointerVersion != 1 || lineage.Lifecycle != workflowTemplateLineageListed {
+		t.Fatalf("query-rejected listing changed owner: lineage=%#v err=%v", lineage, err)
+	}
+	if after := server.savedWorkflowDraftStore.SideEffects(); after != beforeDraftSideEffects {
+		t.Fatalf("query-rejected mutation crossed draft owner: before=%#v after=%#v", beforeDraftSideEffects, after)
+	}
+}
+
+func TestWorkflowTemplateConfiguredTargetBindingAuthorityFailsClosed(t *testing.T) {
+	server := NewServer(workflowTemplateHTTPTestConfig(), Options{BuildVersion: "target-binding-test"})
+	defer server.Close()
+	testBridge := seedWorkflowTemplateProviderAuthority(t, server)
+	baseProfile := testBridge.inventory.Profiles[0]
+	baseValidator := server.workflowTemplateTargetBindingValidator
+
+	tests := []struct {
+		name      string
+		inventory bridge.ProviderInventory
+		validator workflowTemplateTargetBindingValidator
+		wantOK    bool
+	}{
+		{name: "exact activated binding", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{baseProfile}}, validator: baseValidator, wantOK: true},
+		{name: "resolved model drift", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{func() bridge.ProviderProfileDescription {
+			value := baseProfile
+			value.ResolvedModel = "drifted-model"
+			return value
+		}()}}, validator: baseValidator},
+		{name: "provider drift", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{func() bridge.ProviderProfileDescription {
+			value := baseProfile
+			value.ProviderID = "other-provider"
+			return value
+		}()}}, validator: baseValidator},
+		{name: "capability drift", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{func() bridge.ProviderProfileDescription {
+			value := baseProfile
+			value.Capabilities = map[string]any{"chat": true}
+			value.NorthboundProtocols = []string{"chat.completions"}
+			value.NorthboundRoutes = []string{"/v1/chat/completions"}
+			return value
+		}()}}, validator: baseValidator},
+		{name: "profile disabled", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{func() bridge.ProviderProfileDescription {
+			value := baseProfile
+			value.Enabled = false
+			return value
+		}()}}, validator: baseValidator},
+		{name: "profile missing", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{}}, validator: baseValidator},
+		{name: "profile ambiguous", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{baseProfile, baseProfile}}, validator: baseValidator},
+		{name: "static config has no canonical target authority", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{baseProfile}}, validator: configuredWorkflowTemplateTargetBindingValidator{
+			providerRouteSource: "static_config", providerRouteEnvironment: "test", providerRouteConfigID: "gateway-default",
+			snapshotProvider: server.providerRouteSnapshotProvider, bridge: testBridge,
+		}},
+		{name: "active snapshot unavailable", inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{baseProfile}}, validator: configuredWorkflowTemplateTargetBindingValidator{
+			providerRouteSource: "admin_snapshot_dev_test", providerRouteEnvironment: "test", providerRouteConfigID: "gateway-default",
+			snapshotProvider: &mutableGatewayProviderRouteSnapshotProvider{err: errGatewayProviderRouteSnapshotUnavailable}, bridge: testBridge,
+		}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			testBridge.inventory = test.inventory
+			fixture := newWorkflowTemplateTestFixture(t)
+			prepareListedWorkflowTemplate(t, fixture)
+			fixture.service.targetBinding = test.validator
+			result := fixture.service.Derive(fixture.ctx, workflowTemplateTestTemplate, WorkflowTemplateDerivationInput{
+				ExpectedPointerVersion: 1, TemplateVersion: 1, TargetApplicationID: workflowTemplateTestTargetApplication,
+				DraftID: "draft_exact_target_binding", Name: "精确目标绑定草案", Confirmed: true,
+			})
+			if test.wantOK {
+				if result.FailureCode != "" || result.Draft == nil || fixture.drafts.SideEffects().DraftWriteCount != 1 {
+					t.Fatalf("exact target binding was rejected: result=%#v side=%#v", result, fixture.drafts.SideEffects())
+				}
+				return
+			}
+			if result.FailureCode != WorkflowTemplateFailureTargetBindingUnavailable || result.Draft != nil || fixture.drafts.SideEffects().DraftWriteCount != 0 {
+				t.Fatalf("invalid target binding crossed draft owner: result=%#v side=%#v", result, fixture.drafts.SideEffects())
+			}
+		})
+	}
+}
+
+func workflowTemplateHTTPTestConfig() config.Config {
+	return config.Config{
+		ControlPlaneReadDevAuthEnabled: true, WorkflowSavedDraftDevHTTPEnabled: true, WorkflowSavedDraftDevWriteEnabled: true,
+		ApplicationCatalogDevHTTPEnabled: true, WorkflowDefinitionReleaseDevEnabled: true, WorkflowTemplateCatalogDevEnabled: true,
+		APIKeyLifecycleDevHTTPEnabled: true, APIKeyLifecycleDevWriteEnabled: true, GatewayRequestHistoryDevEnabled: true,
+		GatewayAuthMode: "api_key_dev_test", GatewayProviderRouteSource: "admin_snapshot_dev_test",
+		GatewayProviderRouteEnvironment: "test", GatewayProviderRouteConfigurationID: "gateway-default",
+	}
+}
+
+func assertWorkflowTemplateQueryRejected(t *testing.T, server *Server, method, target string, body any, scopes string) {
+	t.Helper()
+	var payload []byte
+	var err error
+	if body != nil {
+		payload, err = json.Marshal(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	request := httptest.NewRequest(method, target, bytes.NewReader(payload))
+	if body != nil {
+		request.Header.Set("Content-Type", "application/json")
+	}
+	setSavedWorkflowDraftDevHeaders(request, scopes)
+	recorder := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest || !bytes.Contains(recorder.Body.Bytes(), []byte(WorkflowTemplateFailurePayloadInvalid)) {
+		t.Fatalf("query was not rejected before owner: method=%s target=%s status=%d body=%s", method, target, recorder.Code, recorder.Body.String())
+	}
 }
 
 func assertWorkflowTemplateGET(t *testing.T, server *Server, target, expected string) {
@@ -527,9 +689,20 @@ func assertWorkflowTemplateGET(t *testing.T, server *Server, target, expected st
 	}
 }
 
+func assertWorkflowTemplateGETFailure(t *testing.T, server *Server, target, failure string) {
+	t.Helper()
+	request := httptest.NewRequest(http.MethodGet, target, nil)
+	setSavedWorkflowDraftDevHeaders(request, "workflow_definitions:read")
+	recorder := httptest.NewRecorder()
+	server.httpServer.Handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK || !bytes.Contains(recorder.Body.Bytes(), []byte(`"failure_code":"`+failure+`"`)) {
+		t.Fatalf("GET %s did not preserve failure %s: status=%d body=%s", target, failure, recorder.Code, recorder.Body.String())
+	}
+}
+
 type rejectingWorkflowTemplateBinding struct{}
 
-func (rejectingWorkflowTemplateBinding) ValidateTargetBinding(ApplicationCatalogRecord, WorkflowDefinitionSnapshot) error {
+func (rejectingWorkflowTemplateBinding) ValidateTargetBinding(WorkflowTemplateCatalogContext, ApplicationCatalogRecord, WorkflowDefinitionSnapshot) error {
 	return errWorkflowTemplateStoreUnavailable
 }
 
@@ -633,6 +806,65 @@ func seedWorkflowTemplateServerAuthorities(t *testing.T, server *Server) {
 	if _, version, err := server.workflowDefinitionReleaseRepository.Review(releaseCtx, candidate.CandidateID, 0, "approve", "批准 HTTP Definition 来源", candidate.SourceDraftDigest, time.Now().UTC()); err != nil || version == nil {
 		t.Fatalf("seed HTTP definition: version=%#v err=%v", version, err)
 	}
+}
+
+func seedWorkflowTemplateProviderAuthority(t *testing.T, server *Server) *fakeBridge {
+	t.Helper()
+	profile := bridge.ProviderProfileDescription{
+		Profile: "radishmind-default-workflow", NormalizedProfile: "radishmind-default-workflow", ProviderID: "mock",
+		ResolvedModel: "mock-workflow-model", APIStyle: "openai_compatible", HasBaseURL: true, HasAPIKey: true,
+		RequestTimeoutSeconds: 30, Active: true, Enabled: true,
+		Capabilities: map[string]any{"chat": true, "responses": true}, NorthboundProtocols: []string{"chat.completions", "responses"},
+		NorthboundRoutes: []string{"/v1/chat/completions", "/v1/responses"}, CredentialState: "configured",
+		DeploymentMode: "local", AuthMode: "test", Streaming: true,
+	}
+	testBridge := &fakeBridge{inventory: bridge.ProviderInventory{Profiles: []bridge.ProviderProfileDescription{profile}}}
+	server.bridge = testBridge
+	server.workflowTemplateTargetBindingValidator = configuredWorkflowTemplateTargetBindingValidator{
+		providerRouteSource: "admin_snapshot_dev_test", providerRouteEnvironment: "test", providerRouteConfigID: "gateway-default",
+		snapshotProvider: server.providerRouteSnapshotProvider, bridge: testBridge,
+	}
+	service := newAdminProviderRouteService(server.adminProviderRouteRepository, bridgeAdminProviderInventoryResolver{bridge: testBridge})
+	ctx := AdminProviderRouteContext{
+		RequestContext: context.Background(), RequestID: "request-template-provider-route", TenantRef: "tenant_demo",
+		WorkspaceID: "workspace_demo", Environment: "test", ActorRef: "subject_demo_user", AuditRef: "audit-template-provider-route",
+		ReadEnabled: true, DraftEnabled: true, ReviewEnabled: true, ActivateEnabled: true,
+	}
+	draft := service.PutDraft(ctx, AdminProviderRouteDraftInput{
+		ConfigurationID: "gateway-default", ExpectedRevision: 0, DisplayName: "Workflow template exact target authority",
+		ProviderProfiles: []AdminProviderProfileAssignment{{
+			ProfileID: "radishmind-default-workflow", DisplayName: "Workflow default", ProviderID: "mock",
+			RuntimeProfileRef: "ref:radishmind/test/provider-profiles/radishmind-default-workflow",
+			Capabilities:      []string{"chat_completions", "responses"},
+		}},
+		ModelRoutes: []AdminModelRouteDefinition{{
+			RouteID: "route-workflow-default", Protocol: "responses", ModelID: "mock-workflow-model",
+			ProviderProfileID: "radishmind-default-workflow",
+		}},
+	})
+	if draft.FailureCode != "" || draft.Draft == nil {
+		t.Fatalf("seed workflow template provider route draft: %#v", draft)
+	}
+	candidate := service.CreateCandidate(ctx, AdminProviderRouteCandidateInput{
+		ConfigurationID: "gateway-default", CandidateID: "candidate-template-provider-route", ExpectedDraftRevision: 1,
+	})
+	if candidate.FailureCode != "" || candidate.Candidate == nil {
+		t.Fatalf("seed workflow template provider route candidate: %#v", candidate)
+	}
+	reviewed := service.ReviewCandidate(ctx, "gateway-default", "candidate-template-provider-route", AdminProviderRouteReviewInput{
+		ExpectedReviewVersion: 0, Decision: "approve", Reason: "Approve exact workflow template provider authority.",
+	})
+	if reviewed.FailureCode != "" || reviewed.Candidate == nil {
+		t.Fatalf("review workflow template provider route candidate: %#v", reviewed)
+	}
+	activated := service.Activate(ctx, AdminProviderRouteActivationInput{
+		ConfigurationID: "gateway-default", CandidateID: "candidate-template-provider-route", ExpectedGeneration: 0,
+		Action: "activate", Reason: "Activate exact workflow template provider authority.",
+	})
+	if activated.FailureCode != "" || activated.Snapshot == nil {
+		t.Fatalf("activate workflow template provider route candidate: %#v", activated)
+	}
+	return testBridge
 }
 
 func workflowTemplateCandidateCreateBodyFromInput(input WorkflowTemplateCandidateCreateInput) workflowTemplateCandidateCreateBody {
