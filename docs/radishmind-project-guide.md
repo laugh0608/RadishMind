@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-08-11
+更新时间：2026-08-29
 
 ## 这份文档讲什么
 
@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-12 当前读法：Family UI `S1 R8` 至 `S8 R1` 的设计与 React 已审关闭，S9 / S10 功能与 Visual R3 已人工通过。[Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)、[Workflow RAG 本地知识材料导入、审查与快照构建](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)和 Provider 价格与应用成本专题均已完成。下一顺位先对照已批准 Visual R3 审计 S9 / S10 React；production membership / OIDC、production secret、production quota / billing、自动执行和自动发布仍未打开。
+2026-08-29 当前读法：Family UI `S1` 至 `S10`、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全，以及[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)均已关闭。[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)批次 A 至 C 与获人工批准的批次 D Pencil 已完成；当前只具备批次 E 方案评审入口，尚无 HTTP 或 React 接入。production membership / OIDC、production secret、production quota / billing、自动写入和自动发布仍未打开。
 
 ## 项目定位
 
@@ -63,7 +63,7 @@
 4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
 5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
 
-当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与 sanitized Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5 / v8、Application Interaction Session v1 / v4、durable Run History / Comparison / Evaluation 与 Application Operations；Admin verified identity、Tenant / Audit PostgreSQL read repository，以及 deterministic OIDC verifier。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式 dev/test gate 保护，不是公开 production API。
+当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与 sanitized Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5 / v8、工作区 Workflow Template Catalog / Review / Listing / Derive、Application Interaction Session v1 / v4、durable Run History / Comparison / Evaluation 与 Application Operations；Admin verified identity、Tenant / Audit PostgreSQL read repository，以及 deterministic OIDC verifier。Action Safety decision 当前只在六个服务端 checkpoint 与既有 owner 的 memory / SQLite / PostgreSQL snapshot 中存在，不是 HTTP contract 或可由客户端提交的授权令牌。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式 dev/test gate 保护，不是公开 production API。
 
 `Saved Workflow Draft v1` 已实现 platform Go domain service、memory / SQLite / PostgreSQL 开发测试态 repository、HTTP / Web consumer、严格 cursor、超过 `200` 条的 keyset 分页 / 组合筛选、内容版本与 lifecycle 版本分离、append-only lifecycle event、archive / unarchive 和相邻操作活动资格重读。Draft Designer 的 `version_conflict` 读法是保留当前本地 active draft、刷新当前 application 的 sanitized 活动草案列表、允许用户继续本地草案或显式打开当前 saved record，并把同一份 conflict review summary 交给 Review Handoff；它不自动覆盖、不自动合并。恢复不可变 revision 由独立历史面板承载，不与打开当前记录混用。当前仍不开放 production repository、真实 OIDC / membership、production secret、自动保存 / 合并、永久删除、批量生命周期、业务写回、replay / resume 或公开生产 API。
 
@@ -157,7 +157,7 @@ Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 co
 
 wrapper 默认使用 `local-product` 档，把十一组本地运行数据统一写入仓库根 `var/sqlite-dev/radishmind.db`，并开启既有开发门禁；配置摘要不会输出绝对路径。Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 投影复用共享 Workflow Run Store；Admin Provider / Route 与 application request quota 分别是第十和第十一个独立组件，但其管理写入与 quota enforcement 仍需显式 gate。需要执行 PostgreSQL 专项验收或组件故障注入时，Shell 使用 `--profile configured`，PowerShell 使用 `-Profile configured`，该档不自动注入聚合持久化配置。
 
-当前 Platform 除 `/healthz`、overview / local-smoke、models、三协议 northbound、session/tooling 与七条 Control Plane Read-Side route 外，还注册 Workflow Draft / Definition / Run / Evaluation、Workflow RAG、Application RAG、Application Session、Application Draft / Publish Candidate 和 Gateway Request History dev/test route。完整路由与 gate 见 [Platform README](../services/platform/README.md)；路由注册不等于默认开放。
+当前 Platform 除 `/healthz`、overview / local-smoke、models、三协议 northbound、session/tooling 与七条 Control Plane Read-Side route 外，还注册 Workflow Draft / Definition / Template / Run / Evaluation、Workflow RAG、Application RAG、Application Session、Application Draft / Publish Candidate 和 Gateway Request History dev/test route。Action Safety 仍只通过既有 owner 内部 projection 参与规则计算与持久化，没有独立 HTTP route。完整路由与 gate 见 [Platform README](../services/platform/README.md)；路由注册不等于默认开放。
 
 Control Plane Read-Side 支持 `dev_headers`、`signed_test_token` 和 `radish_oidc_integration_test` 三种显式开发测试 auth mode。`postgres_dev_test` 只承载 Tenant Summary / Audit；OIDC integration 下其余 workspace operation 返回 `workspace_membership_unavailable`，不会读取 fake repository。默认 disabled、非法组合、缺少 identity / permission / tenant binding 或 identity provider 不可用都 fail closed。
 
@@ -197,7 +197,7 @@ console 页面当前直接消费 `/v1/platform/overview` 与 `/v1/platform/local
 
 ### 3.7 运行产品 UI shell（开发测试态）
 
-正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft / Publish Review、Workflow RAG、Application RAG、Workflow Definition、Application Session、应用结果资产库、Prompt Application、Agent / Copilot 与 Application Operations。API 密钥原文、Gateway / Session / Prompt / Agent invocation 输入输出和 transcript 只在当前 React 内存中短暂存在；列表、详情、历史、比较、评测和观测仍只消费脱敏 metadata，结果资产正文只在用户显式保存后由独立 owner 持久化，并仅在 exact read / 校验后单文件下载中使用。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota 或 production repository ready。
+正式产品 UI 的当前实现位于 `apps/radishmind-web/`。它默认离线，显式 dev-only 模式可分别连接 Control Plane Read、Saved Draft / Executor、Gateway Playground / History、Application Catalog、Application Configuration Draft / Publish Review、Workflow RAG、Application RAG、Workflow Definition、Workflow Template Catalog / Review / Listing / Derive、Application Session、应用结果资产库、Prompt Application、Agent / Copilot 与 Application Operations。Action Safety 的批准 Pencil 尚未进入 Web。API 密钥原文、Gateway / Session / Prompt / Agent invocation 输入输出和 transcript 只在当前 React 内存中短暂存在；列表、详情、历史、比较、评测和观测仍只消费脱敏 metadata，结果资产正文只在用户显式保存后由独立 owner 持久化，并仅在 exact read / 校验后单文件下载中使用。RadishFlow Copilot 与 Radish Docs Assistant 的离线样例继续由统一 fixture 防止漂移；任何 dev/test live path 都不能解释为 production API consumer、正式 application 发布、生产 API key / quota 或 production repository ready。
 
 日常预览或前后端联调优先使用仓库根目录启动脚本，不再手动拼接环境变量：
 
@@ -212,7 +212,7 @@ Windows / PowerShell 使用：
 pwsh ./start.ps1 -Command web-live
 ```
 
-`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合基础组件参数，或直接选择 `--workflow-rag-application-local-product`、`--workflow-definition-local-product`、`--application-session-local-product`、`--prompt-application-local-product`、`--agent-copilot-local-product` 及各自 PostgreSQL 对应档；应用结果资产库的稳定 SQLite 复验由 Shell 的 `--application-result-artifact-library-local-product` 在 Session 产品档上追加幂等 fixture。launcher 会设置对应 HTTP/write gate、strict consumer source 和 migration status preflight。Agent 与结果资产库 fixture 产品档当前只由 Shell wrapper 提供。完整命令见 [Web README](../apps/radishmind-web/README.md)，受控运行顺序见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)、[Prompt Application 开发测试态使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)与[Agent / Copilot 开发测试态使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。它不是 production supervisor，不启用 production auth、自动 activation、quota enforcement、writeback 或 replay。
+`web-live` 会启动或复用 Platform 与产品 UI。按使用目标显式组合基础组件参数，或直接选择 `--workflow-rag-application-local-product`、`--workflow-definition-local-product`、`--workflow-template-local-product`、`--application-session-local-product`、`--prompt-application-local-product`、`--agent-copilot-local-product` 及各自 PostgreSQL 对应档；应用结果资产库的稳定 SQLite 复验由 Shell 的 `--application-result-artifact-library-local-product` 在 Session 产品档上追加幂等 fixture。Workflow Template、Agent 与结果资产库 fixture 产品档当前只由 Shell wrapper 提供；Workflow Template 的 PostgreSQL 对应档为 `--workflow-template-postgres-dev-test`。launcher 会设置对应 HTTP/write gate、strict consumer source 和 migration status preflight。完整命令见 [Web README](../apps/radishmind-web/README.md)，模板顺序见[工作区 Workflow 模板目录专题](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，其它受控运行顺序见[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)、[Prompt Application 开发测试态使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)与[Agent / Copilot 开发测试态使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。它不是 production supervisor，不启用 production auth、自动 activation、quota enforcement、writeback 或 replay。
 
 如果 macOS `Control Center` / AirPlay 占用了默认 backend 端口 `7000`，改用备用本地端口启动：
 

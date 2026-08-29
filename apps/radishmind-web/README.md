@@ -249,6 +249,20 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowDefinitionHTTP
 
 该档同时启用既有 Definition 与 HTTP Tool owner，并为 Web 配置来源特定权限。页面中的 candidate、review、activation、plan、confirmation、execution 与 v9 History 都是显式动作；应用或工作区切换会清除一次性输入与迟到响应，SQLite 中的 plan、decision、audit 和 run 仍可跨重启恢复。
 
+工作区 Workflow Template Catalog / Review / Listing / Derive 的完整 SQLite 产品连续链使用 Shell 专用入口：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-template-local-product
+```
+
+PostgreSQL configured Server 对应使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-template-postgres-dev-test
+```
+
+两档都会启用既有 Definition、Template Catalog、Saved Draft 与目标 Application authority，并让 Human Promotion strict consumer 形成 approved Definition → candidate review → listing → exact target binding → `derivation_v2` Saved Draft handoff。SQLite 档用于页面刷新与服务重启恢复，PostgreSQL 档启动前检查 marker 并保持 no-fallback；两者都不自动 review、上架、派生、activation 或 run，也不启用公开 Marketplace、跨 workspace、HTTP Tool / RAG 模板或 production 能力。当前 PowerShell Web wrapper 尚未提供这两个 Workflow Template 产品档参数；完整 owner、权限、失败语义与操作顺序见[工作区 Workflow 模板目录专题](../../docs/features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)。
+
 Application Interaction Session 的完整 SQLite 链使用：
 
 ```bash

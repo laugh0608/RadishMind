@@ -12,8 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) | 功能 / 跨 owner 高风险资格专题 | `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_completed_owner_review_required` | contract / compiler、六个检查点、既有 owner 双数据库 snapshot 与完整 Pencil 已完成，等待人工设计批准，v1 写入不可达 |
-| [Action Safety Ladder 与候选动作执行资格 v1 实施任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md) | 活跃高风险实现批次 | `batch_d_pencil_completed_owner_review_required` | 只等待项目所有者人工审查 Pencil，不创建平行任务卡或自动进入批次 E |
+| [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) | 功能 / 跨 owner 高风险资格专题 | `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_approved_batch_e_ready` | contract / compiler、六个检查点、既有 owner 双数据库 snapshot 与完整 Pencil 已完成并获人工批准，v1 写入不可达 |
+| [Action Safety Ladder 与候选动作执行资格 v1 实施任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md) | 活跃高风险实现批次 | `batch_d_pencil_approved_batch_e_ready` | 只评审批次 E 最小 HTTP read projection 与 owner 映射，不创建平行任务卡或自动进入 React |
 | [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md) | 功能 / 工作区内部复用与发布治理专题 | `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed` | 批次 A 至 E、双数据库产品链与真实浏览器已完成，专题关闭 |
 | [工作区 Workflow 模板目录、审查与受控派生 v1 实施任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `completed` | 不派生批次 F 或平行 readiness 卡 |
 | [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_completed` | 批次 A 至 D 已完成 profile、v3 Definition、action plan / decision v2、run v9、三种 store、React、SQLite 重启和真实浏览器三视口；专题关闭 |
@@ -180,7 +180,7 @@
 
 ## 当前下一步
 
-[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已完成[唯一高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)批次 A、B、C 与批次 D Pencil：strict decision contract / compiler、response / candidate / assignment / Tool plan / pre-dispatch / Run 六个检查点、既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot，以及 8 个功能画板 + R23 Decision 均已有证据。下一步只等待项目所有者人工审查 Pencil；未批准前不新增 HTTP contract 或 React。模型、客户端与人工批准不能直接提升资格，`tool_callable` 只复用既有只读 HTTP Tool，`write_allowed_by_policy` 的有效结果在 v1 不可达。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已完成[唯一高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)批次 A、B、C 与批次 D Pencil：strict decision contract / compiler、response / candidate / assignment / Tool plan / pre-dispatch / Run 六个检查点、既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot，以及 8 个功能画板 + R23 Decision 均已有证据，Pencil 已获项目所有者人工批准。下一步只评审批次 E 的最小 HTTP read projection、既有 owner 映射与验收矩阵；再次批准前不新增 HTTP contract 或 React。模型、客户端与人工批准不能直接提升资格，`tool_callable` 只复用既有只读 HTTP Tool，`write_allowed_by_policy` 的有效结果在 v1 不可达。
 
 [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)及其任务卡已完成批次 A 至 E 并关闭，不派生批次 F。公开 Marketplace、跨 workspace、HTTP Tool / RAG 模板、自动模型替换、自动上架 / 派生 / activation / run 与 production 能力仍关闭。
 
