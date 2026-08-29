@@ -135,6 +135,7 @@ export type WorkflowDraftDesignerDraft = {
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
   localOnlyInteraction: "inspect_only" | "local_edit";
   executionProfile?: "review_only" | "executor_v0" | "rag_retrieval_v1";
+  requestedCapabilities?: string[];
   derivation?: WorkflowSavedDraftDerivation;
 };
 

@@ -2,7 +2,7 @@
 
 更新时间：2026-08-29
 
-状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_d_react_completed_batch_e_ready`
+状态：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 它把现有“个人草案派生”和“应用内 Definition 晋级”向工作区内部复用扩展，但不建立公开 Marketplace，不复制 Definition、Saved Draft、运行、评测、权限或应用真相源。模板目录只拥有工作区级模板候选、不可变模板版本、上架指针与对应 append-only 决定；模板内容来源和运行资格仍由既有 Definition 与 Draft owner 重新判定。
 
-本专题只承载内部开发者预览下的开发 / 测试态能力。当前设计与批次 A、B 均已获项目所有者批准并完成；项目所有者随后明确批准进入并人工验收批次 C，已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)在正式 Pencil 源中完成 Catalog、Candidate Review、Version / Listing 与 Derive 的 Desktop / Narrow 代表面和关键危险 / 阻塞状态。2026-08-29 已完成批次 D 前置修正与获批的 React strict consumer：configured Server 复用 activated Provider Route snapshot 与当前 Bridge inventory 重验 exact Provider / Profile / resolved Model binding，十条 route 使用 exact query contract，现有 Workflow Workbench 已接入四任务产品面与 exact Saved Draft handoff。当前停在批次 E 单独授权前，不启动数据库产品链或真实浏览器。
+本专题只承载内部开发者预览下的开发 / 测试态能力。批次 A 至 E 已沿[唯一高风险任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)全部完成：strict contract、memory / SQLite / PostgreSQL catalog owner、获人工批准的 8 个 Pencil 功能画板、configured Server exact target binding、十条 exact route、React strict consumer、双数据库产品连续链与真实浏览器已经闭环。2026-08-29 的最终验收确认 approved Definition → human-reviewed template listing → target Application recheck → Saved Draft 派生、保存和重启恢复成立，专题关闭；不派生批次 F，也不打开公开 Marketplace、跨 workspace、自动执行或 production 能力。
 
 ## 用户与真实任务
 
@@ -235,10 +235,12 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ### 批次 E：双数据库产品连续链与专题收口
 
-- SQLite 完成 Definition → template candidate → approve → list → target application derive → exact Draft open / validate / save → restart restore。
-- PostgreSQL configured Server 完成 migration / runtime role、同构连续链、hard failure no-fallback 与 reconnect 后 authoritative reload。
-- 真实浏览器覆盖 `1440×900`、`720×900`、`390×844`、双标签 CAS、workspace / application 切换、URL / Storage / console / network 与敏感信息审计。
-- 同步专题、入口、当前焦点、路线图、能力矩阵和周志，确认完成后关闭唯一任务卡。
+- 状态：`completed`。SQLite 产品服务已完成 Definition → template candidate → approve → list → target Application derive → exact Draft open / validate / save → 同库服务重启恢复；派生草案保持 `workspace_template_derivation` 与 exact `derivation_v2`，模板、Definition 和既有草案均未被改写。
+- PostgreSQL configured Server 已由既有 migration role / runtime role 执行同构目录与派生连续链，覆盖 runtime role DDL 拒绝、数据库不可用时 no-fallback、pool reconnect 后 authoritative reload，以及模板、草案和历史证据恢复；测试容器与网络在验收后关闭，既有命名测试卷按标准脚本保留。
+- 真实浏览器完成双标签 review stale CAS `workflow_template_review_transition_invalid`、listing stale CAS `workflow_template_pointer_version_conflict`、workspace / application 切换清空易失状态、刷新与服务重启恢复，以及 `1440×900`、`720×900`、`390×844` 三视口复核；无横向溢出、控件裁切或 console warning / error。
+- 最终产品链发现并在既有 owner 内修正六个一致性缺口：空 decision / event 必须编码为 `[]`；Operator 需精确读取 approved-unlisted lineage；开发测试 launcher 必须提供可复验的 Bridge inventory authority；新建草案允许 canonical 空 lifecycle actor；派生草案必须原样保留服务端 requested capabilities；workspace 切换必须重建 Application Catalog scope。没有新增 schema、migration、owner 或 fallback。
+- 浏览器 live URL / network 只出现 exact workspace-scoped template route；源码持久化通道审计确认本面板不写 URL query、Web Storage 或 cookie，响应与 SQLite 敏感材料扫描为 0。Provider、tool、retrieval、confirmation、run、evaluation、writeback、retry / fallback 与 replay 副作用计数全部为 `0`。
+- Web 全量 `407/407`、production build、Platform `go test ./internal/httpapi`、Workflow Template / Application Catalog 定向 race 与双数据库产品测试已通过；仓库 fast / full 门禁作为最终提交门禁执行。唯一任务卡随专题关闭。
 
 ## 验收方式
 
@@ -264,4 +266,4 @@ lineage 不保存 Definition graph。listing pointer lifecycle 只允许 `unlist
 
 ## 当前下一步
 
-批次 D React strict consumer 已完成并通过专项 / 全量 Web、production build 与 Platform 相邻验证，当前状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_batch_d_react_completed_batch_e_ready`。下一步由项目所有者单独评审批次 E 双数据库产品连续链与真实浏览器收口；未获批准前不启动产品服务、数据库或浏览器。
+批次 A 至 E 已全部完成，当前状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。专题与唯一高风险任务卡关闭；下一步回到[功能设计文档入口](../README.md)选择新的长期产品目标，不从本专题派生批次 F、平行 owner 或 gate-only 续批。

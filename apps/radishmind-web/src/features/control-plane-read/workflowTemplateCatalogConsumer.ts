@@ -550,7 +550,7 @@ function isStrictTemplateDerivedDraft(
       !Array.isArray(draft.edges) || !draft.edges.every(isStrictSavedDraftEdge) || duplicateBy(draft.edges, "edge_id") ||
       !isStrictSavedDraftContract(draft.input_contract) || !isStrictSavedDraftContract(draft.output_contract) ||
       !stringArray(draft.provider_refs) || !stringArray(draft.tool_refs) || !stringArray(draft.rag_refs) || !stringArray(draft.requested_capabilities) ||
-      !timestamp(draft.library_updated_at) || !nonEmpty(draft.lifecycle_updated_by_actor_ref) || !timestamp(draft.created_at) || !timestamp(draft.updated_at) ||
+      !timestamp(draft.library_updated_at) || typeof draft.lifecycle_updated_by_actor_ref !== "string" || !timestamp(draft.created_at) || !timestamp(draft.updated_at) ||
       !nonEmpty(draft.created_by_actor_ref) || !nonEmpty(draft.updated_by_actor_ref) || !isStrictValidationSummary(draft.validation_summary) ||
       !Array.isArray(draft.blocked_capability_summary) || !draft.blocked_capability_summary.every(isStrictBlockedCapability) ||
       !isStrictAuditMetadata(draft.request_audit_metadata) || typeof draft.sample_or_unsaved_draft_status !== "string" ||

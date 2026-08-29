@@ -892,7 +892,9 @@ func cloneWorkflowTemplatePortability(value WorkflowTemplatePortabilitySummary) 
 func cloneWorkflowTemplateCandidate(value WorkflowTemplateCandidate) WorkflowTemplateCandidate {
 	value.Labels = cloneStringSlice(value.Labels)
 	value.Portability = cloneWorkflowTemplatePortability(value.Portability)
-	value.Decisions = append([]WorkflowTemplateReviewDecision(nil), value.Decisions...)
+	decisions := make([]WorkflowTemplateReviewDecision, len(value.Decisions))
+	copy(decisions, value.Decisions)
+	value.Decisions = decisions
 	return value
 }
 
@@ -908,6 +910,8 @@ func cloneWorkflowTemplateVersionPointer(value WorkflowTemplateVersion) *Workflo
 }
 
 func cloneWorkflowTemplateLineage(value WorkflowTemplateLineage) WorkflowTemplateLineage {
-	value.Events = append([]WorkflowTemplateListingEvent(nil), value.Events...)
+	events := make([]WorkflowTemplateListingEvent, len(value.Events))
+	copy(events, value.Events)
+	value.Events = events
 	return value
 }

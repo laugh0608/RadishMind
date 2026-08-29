@@ -136,6 +136,7 @@ test("derive validates exact v2 provenance and hands off server draft/version au
   assert.equal(result.draft?.derivation?.version, 2);
   assert.equal(result.draft?.derivation?.sourceKind, "workspace_workflow_template");
   assert.equal(result.draft?.localOnlyInteraction, "inspect_only");
+  assert.deepEqual(result.draft?.requestedCapabilities, []);
 });
 
 test("template-derived draft save preserves only strict derivation_v2 metadata", async () => {
@@ -164,6 +165,7 @@ test("template-derived draft save preserves only strict derivation_v2 metadata",
   await saveWorkflowDraftDevRecord(derived.draft, savedConfig, 1, 1);
   const payload = (savedBody?.draft ?? {}) as Record<string, unknown>;
   const additionalFields = (payload.additional_fields ?? {}) as Record<string, unknown>;
+  assert.deepEqual(payload.requested_capabilities, []);
   assert.equal(Object.hasOwn(additionalFields, "derivation_v1"), false);
   assert.deepEqual(additionalFields.derivation_v2, derivedDraftDocument().additional_fields.derivation_v2);
 });
@@ -258,7 +260,7 @@ function derivedDraftDocument() {
     provider_refs: ["profile:mock"], tool_refs: [], rag_refs: [], requested_capabilities: [],
     additional_fields: { derivation_v2: { version: 2, source_kind: "workspace_workflow_template", template_id: "template_support", template_version: 1, template_digest: digest, source_definition_id: "definition_support", source_definition_version: 1, source_definition_digest: definitionDigest } },
     draft_version: 1, lifecycle_state: "active", lifecycle_version: 1, archived_at: null, library_updated_at: "2026-08-29T09:03:00Z",
-    lifecycle_updated_by_actor_ref: "subject_demo_user", provenance_kind: "workspace_template_derivation", created_at: "2026-08-29T09:03:00Z",
+    lifecycle_updated_by_actor_ref: "", provenance_kind: "workspace_template_derivation", created_at: "2026-08-29T09:03:00Z",
     updated_at: "2026-08-29T09:03:00Z", created_by_actor_ref: "subject_demo_user", updated_by_actor_ref: "subject_demo_user",
     validation_summary: { validation_state: "valid_for_review", valid_for_review: true, findings: [] }, blocked_capability_summary: [],
     request_audit_metadata: { request_id: "request_derive", audit_ref: "audit_derive", actor_ref: "subject_demo_user" }, sample_or_unsaved_draft_status: "",

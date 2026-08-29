@@ -1352,6 +1352,7 @@ export function workflowDraftFromSavedWorkflowDraftDocument(
       auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_open",
     },
     localOnlyInteraction: "inspect_only",
+    requestedCapabilities: [...document.requested_capabilities],
     executionProfile: isSavedWorkflowDraftExecutorV0Metadata(document.additional_fields?.executor_v0)
       ? "executor_v0"
       : isRAGRetrievalV1

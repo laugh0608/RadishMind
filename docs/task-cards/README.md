@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)是当前唯一活跃高风险任务卡，状态为 `batch_d_react_completed_batch_e_ready`。批次 C 的 8 个功能画板与 R22 Decision 已获项目所有者人工批准，批次 D 的 target binding / HTTP 前置与 React strict consumer 已完成；批次 E 仍需单独授权，不派生平行 readiness 卡。
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1 实施任务卡](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md)已完成批次 A 至 E 并关闭，状态为 `completed`。双数据库产品连续链、真实浏览器、双标签 CAS、重启恢复、隐私与零执行副作用均已收口；不派生批次 F 或平行 readiness 卡。当前没有活跃高风险产品任务卡。
 
 ## 当前外部阻塞任务
 

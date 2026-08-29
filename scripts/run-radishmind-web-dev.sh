@@ -30,6 +30,8 @@ workflow_rag_promotion_local_product=0
 workflow_rag_application_local_product=0
 workflow_definition_local_product=0
 workflow_definition_postgres_dev_test=0
+workflow_template_local_product=0
+workflow_template_postgres_dev_test=0
 application_session_local_product=0
 application_session_postgres_dev_test=0
 application_result_artifact_library_local_product=0
@@ -99,6 +101,10 @@ Options:
   --workflow-definition-local-product
                            Enable the SQLite Saved Draft → candidate → review → activation → v5 run chain.
   --workflow-definition-postgres-dev-test
+                           Enable the same chain with PostgreSQL dev/test repositories.
+  --workflow-template-local-product
+                           Enable the SQLite Definition → template review/listing → Saved Draft derivation chain.
+  --workflow-template-postgres-dev-test
                            Enable the same chain with PostgreSQL dev/test repositories.
   --application-session-local-product
                            Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
@@ -238,6 +244,14 @@ while [[ $# -gt 0 ]]; do
       workflow_definition_postgres_dev_test=1
       shift
       ;;
+    --workflow-template-local-product)
+      workflow_template_local_product=1
+      shift
+      ;;
+    --workflow-template-postgres-dev-test)
+      workflow_template_postgres_dev_test=1
+      shift
+      ;;
     --application-session-local-product)
       application_session_local_product=1
       shift
@@ -310,6 +324,14 @@ if [[ "${workflow_definition_http_tool_local_product}" -eq 1 ]]; then
   workflow_http_tool_local_product=1
   workflow_definition_local_product=1
 fi
+if [[ "${workflow_template_local_product}" -eq 1 ]]; then
+  workflow_definition_local_product=1
+  admin_provider_route_local_product=1
+fi
+if [[ "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+  workflow_definition_postgres_dev_test=1
+  admin_provider_route_postgres_dev_test=1
+fi
 if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
   admin_provider_route_postgres_dev_test=1
 fi
@@ -362,6 +384,10 @@ workflow_definition_enabled=0
 if [[ "${workflow_definition_local_product}" -eq 1 || "${workflow_definition_postgres_dev_test}" -eq 1 ||
   "${application_evaluation_dev}" -eq 1 ]]; then
   workflow_definition_enabled=1
+fi
+workflow_template_enabled=0
+if [[ "${workflow_template_local_product}" -eq 1 || "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+  workflow_template_enabled=1
 fi
 application_session_enabled=0
 if [[ "${application_session_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ||
@@ -482,6 +508,14 @@ if [[ "${workflow_definition_enabled}" -eq 1 && "${mode}" != "dev-live" ]]; then
 fi
 if [[ "${workflow_definition_local_product}" -eq 1 && "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --workflow-definition-local-product or --workflow-definition-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${workflow_template_enabled}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "Workflow Template product mode requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_template_local_product}" -eq 1 && "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --workflow-template-local-product or --workflow-template-postgres-dev-test" >&2
   exit 2
 fi
 if [[ "${application_session_local_product}" -eq 1 && "${application_session_postgres_dev_test}" -eq 1 ]]; then
@@ -1058,6 +1092,42 @@ if document.get("failure_code") is not None or not isinstance(document.get("cand
 PY
 }
 
+probe_workflow_template_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" <<'PY'
+import json
+import sys
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+base_url, tenant, subject, workspace_id = sys.argv[1:]
+query = urlencode({"workspace_id": workspace_id, "limit": "1"})
+url = f"{base_url.rstrip('/')}/v1/user-workspace/workflow-templates?{query}"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "X-Request-Id": "dev-live-workflow-template-probe",
+    "X-RadishMind-Dev-Read-Identity": "dev-live-workflow-template-probe",
+    "X-RadishMind-Dev-Read-Tenant": tenant,
+    "X-RadishMind-Dev-Read-Subject": subject,
+    "X-RadishMind-Dev-Read-Scopes": "workflow_definitions:read",
+    "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_template_probe",
+    "X-RadishMind-Active-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_definitions:read",
+    "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+}, method="GET")
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None or not isinstance(document.get("templates"), list):
+    raise SystemExit("Workflow Template route did not return a successful templates[] envelope")
+PY
+}
+
 probe_application_session_route() {
   local base_url="$1"
   local tenant="$2"
@@ -1525,6 +1595,19 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
         fi
+        if [[ "${workflow_template_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV="1"
+          export RADISHMIND_MODEL_PROVIDER="openai-compatible"
+          export RADISHMIND_MODEL_PROFILE="radishmind-default-workflow"
+          export RADISHMIND_MODEL_PROFILE_FALLBACKS="radishmind-default-workflow"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_NAME="mock-workflow-model"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_BASE_URL="http://127.0.0.1:9/workflow-template-provider-disabled"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_API_KEY="workflow-template-dev-test-only"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_API_STYLE="openai-compatible"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID="openai-compatible"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE="radishmind-default-workflow"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID="mock-workflow-model"
+        fi
         if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV="1"
           export RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT="test"
@@ -1753,6 +1836,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
+        if [[ "${workflow_template_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_TEMPLATE_SOURCE="dev-workflow-template-http"
+          export VITE_RADISHMIND_WORKFLOW_TEMPLATE_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_TEMPLATE_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
         if [[ "${application_session_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_SESSION_SOURCE="dev-application-session-http"
           export VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL="${backend_url%/}"
@@ -1825,6 +1913,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_WORKSPACE_ID
+        unset VITE_RADISHMIND_WORKFLOW_TEMPLATE_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_TEMPLATE_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_TEMPLATE_WORKSPACE_ID
         unset VITE_RADISHMIND_APPLICATION_SESSION_SOURCE
         unset VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_SESSION_WORKSPACE_ID
@@ -1973,6 +2064,16 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "Workflow Definition promotion dev route probe failed"
     exit 1
   fi
+  if [[ "${workflow_template_enabled}" -eq 1 ]] && ! wait_until \
+    "Workflow Template Catalog dev route" \
+    probe_workflow_template_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}"; then
+    show_failure_help "Workflow Template Catalog dev route probe failed"
+    exit 1
+  fi
   if [[ "${application_session_enabled}" -eq 1 ]] && ! wait_until \
     "Application Session dev route" \
     probe_application_session_route \
@@ -2062,6 +2163,13 @@ if [[ "${mode}" == "dev-live" ]]; then
       definition_store="PostgreSQL dev/test"
     fi
     step "Workflow Definition ${definition_store} product chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; review, activation, execution, comparison, and evaluation remain explicit actions."
+  fi
+  if [[ "${workflow_template_enabled}" -eq 1 ]]; then
+    template_store="SQLite"
+    if [[ "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+      template_store="PostgreSQL dev/test"
+    fi
+    step "Workflow Template ${template_store} chain enabled for ${saved_draft_workspace_id}; Definition source, review, listing, target binding, and derivation remain explicit actions."
   fi
   if [[ "${application_session_enabled}" -eq 1 ]]; then
     session_store="SQLite"

@@ -2102,6 +2102,8 @@ function ProductApp() {
 
           <Suspense fallback={<div className="application-catalog-panel"><p>Loading application catalog management…</p></div>}>
             <ApplicationCatalogPanel
+              key={activeWorkspaceId}
+              workspaceId={activeWorkspaceId}
               selectedApplicationId={selectedApplicationRef}
               onSelectRecord={handleSelectApplicationCatalogRecord}
               onSnapshotChange={setApplicationCatalogSnapshot}

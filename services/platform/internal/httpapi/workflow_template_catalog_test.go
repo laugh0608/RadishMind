@@ -481,12 +481,14 @@ func TestWorkflowTemplateCatalogStrictHTTPAndDefaultGate(t *testing.T) {
 	if created.Candidate == nil || created.FailureCode != nil {
 		t.Fatalf("HTTP create candidate: %#v", created)
 	}
+	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-template-candidates?workspace_id=workspace_demo", `"decisions":[]`)
 	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-template-candidates?workspace_id=workspace_demo", workflowTemplateTestCandidate)
 	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-template-candidates/"+workflowTemplateTestCandidate+"?workspace_id=workspace_demo", workflowTemplateTestCandidate)
 	reviewed := performWorkflowTemplateRequest(t, server, http.MethodPost, "/v1/user-workspace/workflow-template-candidates/"+workflowTemplateTestCandidate+"/decisions", workflowTemplateCandidateDecisionBody{ExpectedReviewVersion: 0, Decision: "approve", Reason: "批准 HTTP 模板候选"}, "workflow_definitions:read,workflow_definitions:review")
 	if reviewed.Version == nil || reviewed.FailureCode != nil {
 		t.Fatalf("HTTP review candidate: %#v", reviewed)
 	}
+	assertWorkflowTemplateGET(t, server, "/v1/user-workspace/workflow-templates/"+workflowTemplateTestTemplate+"?workspace_id=workspace_demo", `"events":[]`)
 	listed := performWorkflowTemplateRequest(t, server, http.MethodPost, "/v1/user-workspace/workflow-templates/"+workflowTemplateTestTemplate+"/listing-decisions", workflowTemplateListingDecisionBody{ExpectedPointerVersion: 0, Decision: "list", Version: 1, Reason: "上架 HTTP 模板版本"}, "workflow_definitions:read,workflow_definitions:activate")
 	if listed.Lineage == nil || listed.FailureCode != nil {
 		t.Fatalf("HTTP list template: %#v", listed)

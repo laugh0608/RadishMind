@@ -3,14 +3,14 @@
 更新时间：2026-08-29
 
 - 任务 ID：`workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1`
-- 状态：`batch_d_react_completed_batch_e_ready`
+- 状态：`completed`
 - 功能设计：[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](../features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准该长期功能目标与首版方向。本卡是唯一跨模块高风险实施入口，负责 Definition exact source、工作区模板 catalog owner、人工 review / listing、跨应用目标资格与 Saved Draft 原子派生；不再创建平行 readiness、schema-only 或 UI-only 任务卡。
 
-项目所有者已明确批准并完成批次 A、批次 B，批准进入和人工验收批次 C，并于 2026-08-29 批准完成批次 D React strict consumer。strict contract、memory catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、SQLite / PostgreSQL durable repository、共享 backend factory、`0005` migration、正式 Pencil 源中的批次 C 代表面与 Decision，以及现有 Workflow Workbench 内的四任务 Web 产品面均已完成。下一步只等待批次 E 双数据库产品连续链与真实浏览器的单独授权。
+项目所有者已明确批准并完成批次 A 至 E。strict contract、memory / SQLite / PostgreSQL catalog owner、默认关闭的开发测试态 HTTP、Saved Draft `derivation_v2`、共享 backend factory、`0005` migration、获人工批准的 Pencil 代表面、现有 Workflow Workbench 四任务产品面、双数据库产品连续链与真实浏览器均已闭环。本卡已经关闭，不派生批次 F 或平行 readiness 卡。
 
 ## 完成目标
 
@@ -140,7 +140,7 @@
 
 ## 批次 E：双数据库产品连续链与收口
 
-状态：`ready_owner_approval_required`。
+状态：`completed`。
 
 - SQLite：exact Definition → candidate → approve → list → target application derive → Draft exact open / validate / save → service restart restore。
 - PostgreSQL configured Server：migration / runtime role、同构链、hard failure no-fallback、reconnect 后 exact reload 与历史不可变。
@@ -148,6 +148,16 @@
 - 浏览器覆盖 `1440×900`、`720×900`、`390×844`，复核横向溢出、console / network、URL、Storage、cookie 与响应 / 数据库敏感材料。
 - 证明模板动作没有 provider、tool、retrieval、confirmation、run、evaluation、writeback、retry / fallback 或 replay。
 - 同步功能专题、功能入口、Workflow 产品面、任务卡入口、当前焦点、路线图、能力矩阵和周志；清理所有测试服务、容器、数据库与临时文件。
+
+完成证据：
+
+- SQLite configured product 以同一数据库贯通 exact approved Definition、candidate create、人工 approve、显式 list、目标 Application derive、Draft exact open / validate / save 与服务重启恢复；`derivation_v2` 的 template / Definition ref、digest、draft version 与 lifecycle authority 保真。
+- PostgreSQL configured Server 贯通同构链，验证 migration / runtime role、数据库关闭 no-fallback、pool reconnect authoritative reload 与历史不可变；标准脚本已关闭临时容器和网络。
+- 双标签分别得到 review stale `workflow_template_review_transition_invalid` 与 listing stale `workflow_template_pointer_version_conflict`，未自动重试；workspace / application 切换后 catalog、target、draft handoff 与 confirmation 均按新 scope 重置。
+- 真实浏览器 `1440×900`、`720×900`、`390×844` 均无横向溢出或控件裁切，刷新和服务重启恢复 exact listing / route generation / draft provenance；最终 fresh tab console warning / error 为 0，live URL / network 只含 exact workspace-scoped template read。
+- 产品连续链发现并修正空数组 JSON、approved-unlisted Operator 投影、launcher Bridge inventory、canonical 空 lifecycle actor、requested capabilities 保真和 Application Catalog workspace scope 六项缺口；均在既有 contract / owner / Web scope 内收口，没有新增 schema、migration、repository 或 fallback。
+- 数据库副作用表中 Provider request、quota admission、Run、tool plan / confirmation / attempt、RAG、Evaluation、Agent / Prompt run 记录均为 0；SQLite 与响应敏感材料扫描为 0。源码持久化通道扫描确认模板面不写 URL query、Web Storage 或 cookie。
+- Web 全量 `407/407`、production build、Platform 全量包、Workflow Template / Application Catalog 定向 race、SQLite / PostgreSQL 产品测试通过；仓库 fast / full 门禁与 `git diff --check` 作为最终提交证据。
 
 完成锚点：`workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。完成后关闭本卡，不派生批次 F、公开 Marketplace、跨 workspace、推荐、计费或 production 续批。
 
@@ -161,4 +171,4 @@
 
 ## 当前下一步
 
-批次 D React strict consumer 已完成并通过专项 / 全量 Web、production build 与 Platform 相邻验证，当前状态为 `batch_d_react_completed_batch_e_ready`。下一步由项目所有者单独批准批次 E 双数据库产品连续链与真实浏览器收口；当前不启动产品服务、数据库或浏览器。
+批次 A 至 E 已完成，完成锚点为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。本卡关闭；下一步回到功能索引选择新的长期产品目标，不从本卡派生批次 F、公开 Marketplace、跨 workspace、推荐、计费或 production 续批。

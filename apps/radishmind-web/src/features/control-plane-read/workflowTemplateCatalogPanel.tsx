@@ -9,6 +9,7 @@ import {
   listWorkflowTemplateCandidates,
   listWorkflowTemplates,
   listWorkflowTemplateVersions,
+  readWorkflowTemplate,
   readWorkflowTemplateCatalogConfig,
   reviewWorkflowTemplateCandidate,
   type WorkflowTemplateCandidate,
@@ -93,11 +94,27 @@ export default function WorkflowTemplateCatalogPanel({
         listWorkflowTemplates(config, { limit: 50, signal: ticket.signal }),
       ]);
       if (!coordinatorRef.current.accepts(ticket)) return;
+      const catalogTemplateIds = new Set(lineagePage.records.map((lineage) => lineage.templateId));
+      const approvedUnlistedIds = [...new Set(candidatePage.records
+        .filter((candidate) => candidate.state === "approved" && !catalogTemplateIds.has(candidate.templateId))
+        .map((candidate) => candidate.templateId))];
+      const unlistedResults = await Promise.all(approvedUnlistedIds.map((templateId) =>
+        readWorkflowTemplate(config, templateId, ticket.signal)));
+      if (!coordinatorRef.current.accepts(ticket)) return;
+      const failedUnlisted = unlistedResults.find((result) => result.failureCode || !result.lineage);
+      if (failedUnlisted) {
+        setCandidates([]);
+        setLineages([]);
+        setStatus(`Catalog review load failed closed: ${failedUnlisted.failureCode ?? "workflow_template_store_unavailable"}.`);
+        return;
+      }
+      const reviewLineages = unlistedResults.map((result) => result.lineage as WorkflowTemplateLineage);
+      const allLineages = [...lineagePage.records, ...reviewLineages];
       setCandidates(candidatePage.records);
-      setLineages(lineagePage.records);
+      setLineages(allLineages);
       setStatus(candidatePage.failureCode || lineagePage.failureCode
         ? `Catalog load failed closed: ${candidatePage.failureCode ?? lineagePage.failureCode}`
-        : `Loaded ${candidatePage.records.length} candidates and ${lineagePage.records.length} template pointers.`);
+        : `Loaded ${candidatePage.records.length} candidates and ${allLineages.length} template pointers.`);
     } catch (error) {
       if (!coordinatorRef.current.accepts(ticket)) return;
       setStatus(error instanceof Error ? error.message : "Workflow template catalog load failed.");

@@ -16,7 +16,7 @@ import {
   type ApplicationCatalogRecord,
 } from "./applicationCatalogConsumer.ts";
 
-const config = readApplicationCatalogConfig();
+const defaultConfig = readApplicationCatalogConfig();
 const EMPTY_FIELDS: ApplicationCatalogMutableFields = {
   displayName: "",
   description: "",
@@ -31,15 +31,18 @@ export type ApplicationCatalogSnapshot = {
 };
 
 export function ApplicationCatalogPanel({
+  workspaceId,
   selectedApplicationId,
   onSelectRecord,
   onSnapshotChange,
 }: {
+  workspaceId: string;
   selectedApplicationId: string | null;
   onSelectRecord: (record: ApplicationCatalogRecord) => void;
   onSnapshotChange: (snapshot: ApplicationCatalogSnapshot) => void;
 }) {
-  const [snapshot, setSnapshot] = useState<ApplicationCatalogSnapshot>(() => initialSnapshot());
+  const config = useMemo(() => ({ ...defaultConfig, workspaceId }), [workspaceId]);
+  const [snapshot, setSnapshot] = useState<ApplicationCatalogSnapshot>(() => initialSnapshot(config.mode));
   const [filter, setFilter] = useState<ApplicationCatalogLifecycleState>("active");
   const [nextCursors, setNextCursors] = useState<Record<ApplicationCatalogLifecycleState, string>>({ active: "", archived: "" });
   const [selectedRecord, setSelectedRecord] = useState<ApplicationCatalogRecord | null>(null);
@@ -98,7 +101,7 @@ export function ApplicationCatalogPanel({
       setSnapshot({ status: "failed", records: [], failureCode: "application_catalog_store_unavailable", summary: "Application catalog failed without fallback." });
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [config]);
 
   const replaceRecord = (record: ApplicationCatalogRecord, summary: string) => {
     setSnapshot((current) => ({
@@ -379,8 +382,8 @@ function ApplicationFields({
   );
 }
 
-function initialSnapshot(): ApplicationCatalogSnapshot {
-  return config.mode === "offline"
+function initialSnapshot(mode: typeof defaultConfig.mode): ApplicationCatalogSnapshot {
+  return mode === "offline"
     ? { status: "offline", records: [], failureCode: "", summary: "Offline fixture mode sends no application catalog requests." }
     : { status: "loading", records: [], failureCode: "", summary: "Loading active and archived application catalog records." };
 }
