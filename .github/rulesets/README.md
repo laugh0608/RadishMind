@@ -6,7 +6,7 @@
 ## 建议流程
 
 1. 日常开发提交到 `dev` 或功能分支
-2. 功能、文档、规范类变更默认先合并到 `dev`
+2. 串行普通开发直接在 `dev` 推进；只有外部贡献、并行写入、风险隔离或明确评审需求才通过主题分支合入 `dev`
 3. 阶段性稳定后，再从 `dev` 发起到默认分支（当前为 `master`，如切换可适配 `main`）的 Pull Request
 4. 默认分支 PR 必须通过仓库检查
 5. PR 合并后，立即把最新默认分支回同步到 `dev`，再继续下一批开发
@@ -34,6 +34,7 @@
 - 当前阶段不启用 branch protection
 - `push -> dev` 不自动触发 `PR Checks`；目标为 `dev` 的 Pull Request 自动运行同一套检查，为其他开发者提供合并前反馈
 - `dev` 当前不启用 required checks 或 branch protection；完整强制门禁仍统一收口到 `pull_request -> master`
+- Agent 不因默认流程自动创建 `codex/*` 主题分支或额外 worktree
 - `master -> dev` 是每次阶段 PR 或 hotfix PR 合并后的必需回同步步骤，不是独立开发方向
 - 回同步可 fast-forward 时优先 fast-forward；如因 `rebase merge` 或 `dev` 后续提交无法 fast-forward，则普通 merge `master` 到 `dev`，不得重写 `dev` 历史
 - 纯拓扑回同步不重复完整门禁；冲突解决或实际内容变化必须先完成对应验证
