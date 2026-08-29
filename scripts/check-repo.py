@@ -565,6 +565,7 @@ def check_contract_schemas() -> None:
     contract_schema_paths = [
         REPO_ROOT / "contracts/copilot-request.schema.json",
         REPO_ROOT / "contracts/copilot-response.schema.json",
+        REPO_ROOT / "contracts/action-safety-decision.schema.json",
         REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json",
         REPO_ROOT / "contracts/copilot-training-sample.schema.json",
         REPO_ROOT / "contracts/tool.schema.json",

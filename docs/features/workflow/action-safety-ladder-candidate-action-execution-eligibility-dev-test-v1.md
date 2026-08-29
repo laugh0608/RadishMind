@@ -2,7 +2,7 @@
 
 更新时间：2026-08-29
 
-状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_design_approved_implementation_pending`
+状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_a_completed_batch_b_ready`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 首版只负责候选动作的执行资格，不创建通用动作执行器。模型、客户端、Prompt、Profile、Workflow 草案、候选审查结果或人工批准都不能直接授予执行权限；确定性规则层必须在每个高风险检查点重读精确 authority，并把结果收口为 `requested_level / maximum_allowed_level / effective_level`。既有 Workflow HTTP Tool 是唯一可进入 `tool_callable` 的执行路径，而且仍必须经过其独立 action plan、人工 confirmation、原子 claim 与单次 allowlisted `GET`。
 
-本专题状态已由项目所有者批准为“设计完成、实现待单独批准”。当前只建立功能专题与唯一高风险任务卡，不修改 canonical schema、Go runtime、数据库、HTTP、React 或 Pencil。
+项目所有者已批准并完成批次 A。仓库现已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`；compiler 只消费 caller 从既有 owner 重读的 metadata-only authority，不访问 store、HTTP、Provider、Tool、Confirmation 或 Run。当前尚未接入任何 owner checkpoint，也没有 migration、repository、route、Pencil、React 或运行副作用；批次 B 仍需单独批准。
 
 ## 用户价值与目标用户
 
@@ -163,12 +163,16 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 
 ### 批次 A：strict decision contract 与确定性 policy compiler
 
+状态：已完成。
+
 - 物化 `action_safety_decision.v1`、level / blocker / source compatibility matrix 与 canonical digest。
 - 实现纯函数 compiler、严格 codec、unknown / duplicate / ordering / drift 负向测试和 memory fixture。
 - 对照 canonical `CopilotResponse`、Agent Profile、Workflow Definition 与 HTTP Tool contract，证明没有第二套 task / action / permission registry。
 - 本批不注册 HTTP、不修改 owner record、不创建 migration、Pencil、React 或运行副作用。
 
 ### 批次 B：既有 owner 检查点与开发测试态 runtime 组合
+
+状态：待项目所有者单独批准。
 
 - 将 response normalization、candidate review、activation / assignment、Tool action plan 和 pre-dispatch 接入同一 compiler。
 - 版本化扩展现有 candidate / plan / run projection；不建立通用 decision mutation API 或新 store。

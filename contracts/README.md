@@ -114,6 +114,7 @@
 98. `workspace-workflow-template-listing-event.schema.json`
 99. `workspace-workflow-template-audit.schema.json`
 100. `saved-workflow-draft-template-derivation-v2.schema.json`
+101. `action-safety-decision.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -123,6 +124,8 @@
 4. `typescript/control-plane-read-api.ts`
 
 使用原则：
+
+- `action-safety-decision.schema.json` 冻结开发 / 测试态 Action Safety Ladder 的 metadata-only 规则决定：服务端从既有 canonical response、Agent / Copilot action 或 Workflow HTTP Tool plan 推导 `requested_level`，再结合 caller 从权威 owner 重读的 scope、source、policy、membership、permission 与 confirmation 事实计算 `maximum_allowed_level / effective_level`。决定不是授权令牌，不保存正文、Tool 参数、URL、header、credential 或业务载荷；`tool_callable` 只对应既有人工确认的单次只读 `GET`，`write_allowed_by_policy` 只能作为写入需求分类出现且 v1 的有效结果始终为 `write_blocked`。
 
 - `saved-workflow-draft-v2.schema.json`、`workflow-definition-release-candidate-v2.schema.json`、`workflow-definition-version-v2.schema.json`、`workflow-run-record-v8.schema.json` 与 `workflow-run-comparison-v7.schema.json` 共同冻结 Workflow Definition 结构化运行输入的独立兼容域；v2 合同只允许最多 `16` 个扁平强类型字段，Run v8 与 Comparison v7 只保留合同、字段名 / 类型、bytes、digest 和 authority metadata，不保存输入值，也不把 v1 自动迁移或 fallback 到 v2
 - `application-runtime-authority-v4.schema.json`、`application-session-v4.schema.json` 与 `application-session-turn-v4.schema.json` 把同一结构化输入合同接入 Application Session：authority v4 精确绑定 Definition v2 的 input contract，turn v4 只保存合同引用、字段名 / 类型与 Run v8 引用，不保存运行输入值、prompt、完整输出或模型原始响应；旧 workflow v1、RAG、Prompt 与 Agent profile 继续保留各自兼容域，不自动升级或 fallback

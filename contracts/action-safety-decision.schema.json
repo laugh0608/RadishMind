@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/action-safety-decision.schema.json",
+  "title": "ActionSafetyDecisionV1",
+  "description": "规则层对候选动作执行资格的不可变、metadata-only 决定。它不是授权令牌，也不拥有来源、确认、计划、运行或审计状态。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "decision_digest",
+    "tenant_ref",
+    "workspace_id",
+    "environment",
+    "application_id",
+    "source_kind",
+    "source_schema_version",
+    "source_id",
+    "source_version",
+    "source_digest",
+    "project",
+    "task",
+    "action_kind",
+    "risk_level",
+    "target_kind",
+    "method",
+    "requested_level",
+    "maximum_allowed_level",
+    "effective_level",
+    "requires_confirmation",
+    "confirmation_state",
+    "writes_business_truth",
+    "side_effect_budget",
+    "blockers",
+    "policy_version",
+    "policy_digest",
+    "actor_ref",
+    "request_id",
+    "audit_ref",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "action_safety_decision.v1"
+    },
+    "decision_id": {
+      "type": "string",
+      "pattern": "^asd_[a-z2-7]{16}$"
+    },
+    "decision_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "tenant_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "workspace_id": {
+      "$ref": "#/$defs/reference"
+    },
+    "environment": {
+      "enum": [
+        "development",
+        "test"
+      ]
+    },
+    "application_id": {
+      "type": "string",
+      "pattern": "^app_[a-z2-7]{16}$"
+    },
+    "source_kind": {
+      "enum": [
+        "copilot_response",
+        "agent_copilot_proposed_action",
+        "workflow_http_tool_action"
+      ]
+    },
+    "source_schema_version": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]*\\.v[0-9]+$",
+      "maxLength": 120
+    },
+    "source_id": {
+      "$ref": "#/$defs/reference"
+    },
+    "source_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "project": {
+      "enum": [
+        "radishflow",
+        "radish",
+        "radishmind"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{0,119}$"
+    },
+    "action_kind": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,119}$"
+    },
+    "risk_level": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "target_kind": {
+      "enum": [
+        "none",
+        "human_review_owner",
+        "workflow_http_tool",
+        "business_truth",
+        "shell",
+        "code",
+        "sandbox",
+        "agent_loop",
+        "connector_mutation",
+        "automatic_apply"
+      ]
+    },
+    "method": {
+      "enum": [
+        "none",
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    "requested_level": {
+      "$ref": "#/$defs/level"
+    },
+    "maximum_allowed_level": {
+      "$ref": "#/$defs/level"
+    },
+    "effective_level": {
+      "$ref": "#/$defs/level"
+    },
+    "requires_confirmation": {
+      "type": "boolean"
+    },
+    "confirmation_state": {
+      "enum": [
+        "not_required",
+        "pending",
+        "approved",
+        "rejected",
+        "changed"
+      ]
+    },
+    "writes_business_truth": {
+      "type": "boolean"
+    },
+    "side_effect_budget": {
+      "$ref": "#/$defs/side_effect_budget"
+    },
+    "blockers": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/blocker"
+      }
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]*\\.v[0-9]+$",
+      "maxLength": 120
+    },
+    "policy_digest": {
+      "$ref": "#/$defs/digest"
+    },
+    "actor_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "request_id": {
+      "$ref": "#/$defs/reference"
+    },
+    "audit_ref": {
+      "$ref": "#/$defs/reference"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "level": {
+      "enum": [
+        "answer_only",
+        "proposal_only",
+        "handoff_ready",
+        "tool_callable",
+        "write_blocked",
+        "write_allowed_by_policy"
+      ]
+    },
+    "blocker": {
+      "enum": [
+        "action_safety_scope_denied",
+        "action_safety_payload_invalid",
+        "action_safety_source_unavailable",
+        "action_safety_source_changed",
+        "action_safety_policy_unavailable",
+        "action_safety_policy_changed",
+        "action_safety_level_escalation_denied",
+        "action_safety_confirmation_required",
+        "action_safety_confirmation_changed",
+        "action_safety_tool_authority_unavailable",
+        "action_safety_write_blocked",
+        "action_safety_store_contract_mismatch"
+      ]
+    },
+    "side_effect_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_calls",
+        "handoff_refs",
+        "tool_network_calls",
+        "confirmation_consumptions",
+        "business_writes",
+        "replay_writes"
+      ],
+      "properties": {
+        "provider_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "handoff_refs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tool_network_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "confirmation_consumptions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "business_writes": {
+          "const": 0
+        },
+        "replay_writes": {
+          "const": 0
+        }
+      }
+    }
+  }
+}

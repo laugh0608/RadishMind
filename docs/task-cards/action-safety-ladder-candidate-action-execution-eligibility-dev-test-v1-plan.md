@@ -3,14 +3,14 @@
 更新时间：2026-08-29
 
 - 任务 ID：`action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1`
-- 状态：`batch_a_owner_approval_required`
+- 状态：`batch_a_completed_batch_b_ready`
 - 功能设计：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](../features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准长期功能目标与首版设计边界：把战略层的动作梯度实现为规则层确定性资格，不让模型、客户端或人工批准直接授予执行能力；`tool_callable` 只复用既有 Workflow HTTP Tool 的人工确认只读 `GET`，`write_allowed_by_policy` 在 v1 始终不可达。
 
-本卡是唯一跨模块高风险实施入口。当前只批准设计建档，不代表批次 A 已批准，不修改 canonical schema、runtime、数据库、HTTP、Pencil 或 React。A 至 E 每批必须单独取得项目所有者批准；不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。
+本卡是唯一跨模块高风险实施入口。项目所有者已经单独批准并完成批次 A；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前不自动进入批次 B，也不修改 owner record、数据库、HTTP、Pencil 或 React。
 
 ## 完成目标
 
@@ -31,7 +31,7 @@
 
 ## 批次 A：strict decision contract 与确定性 policy compiler
 
-状态：`owner_approval_required`。
+状态：`completed`。
 
 ### 允许实现
 
@@ -56,6 +56,8 @@
 - 不修改通用 Tooling v1 blocked 行为，不发送 provider / Tool / network 请求。
 
 完成后只能推进为 `batch_a_completed_batch_b_ready`，不得自动进入批次 B。
+
+完成证据：`contracts/action-safety-decision.schema.json` 已接入仓库 schema 元校验；Platform 新增 strict decision codec、显式 compatibility / transition matrix 与纯函数 `ActionSafetyPolicyCompiler`。精准测试覆盖五个可达结果、全部 v1 禁止写入类别、四种写方法、scope / source / policy drift、confirmation 缺失 / 漂移、unknown / duplicate / missing field、blocker ordering、digest drift、非法 transition、现有 task / action / risk / Tool registry 对齐和非授权人工状态；完整 `internal/httpapi` 回归、`go vet` 与仓库 fast baseline 已通过。没有 route、store、migration、Pencil、React 或网络副作用。
 
 ## 批次 B：既有 owner 检查点与开发测试态 runtime 组合
 
@@ -118,4 +120,4 @@
 
 ## 当前下一步
 
-只等待项目所有者单独批准批次 A。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_design_approved_implementation_pending`：不改 schema、runtime、数据库、HTTP、Pencil 或 React，不启动服务，也不打开 `write_allowed_by_policy`。
+只等待项目所有者单独批准批次 B。批准前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_a_completed_batch_b_ready`：contract / compiler 只供内存测试和后续 owner 组合，不接 response normalization、candidate、activation、plan、pre-dispatch 或 Run，不改数据库、HTTP、Pencil 或 React，也不打开 `write_allowed_by_policy`。

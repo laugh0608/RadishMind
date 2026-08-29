@@ -12,8 +12,8 @@
 
 | 专题 | 类型 | 状态 | 作用 |
 | --- | --- | --- | --- |
-| [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) | 功能 / 跨 owner 高风险资格专题 | `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_design_approved_implementation_pending` | 设计已获批准；规则层收口六级资格，复用既有 owner，v1 写入不可达 |
-| [Action Safety Ladder 与候选动作执行资格 v1 实施任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md) | 活跃高风险实现批次 | `batch_a_owner_approval_required` | 只等待批次 A 单独批准，不创建平行任务卡 |
+| [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) | 功能 / 跨 owner 高风险资格专题 | `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_a_completed_batch_b_ready` | strict contract / compiler 已完成；规则层收口六级资格，复用既有 owner，v1 写入不可达 |
+| [Action Safety Ladder 与候选动作执行资格 v1 实施任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md) | 活跃高风险实现批次 | `batch_a_completed_batch_b_ready` | 只等待批次 B 单独批准，不创建平行任务卡 |
 | [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md) | 功能 / 工作区内部复用与发布治理专题 | `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed` | 批次 A 至 E、双数据库产品链与真实浏览器已完成，专题关闭 |
 | [工作区 Workflow 模板目录、审查与受控派生 v1 实施任务卡](../../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `completed` | 不派生批次 F 或平行 readiness 卡 |
 | [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_completed` | 批次 A 至 D 已完成 profile、v3 Definition、action plan / decision v2、run v9、三种 store、React、SQLite 重启和真实浏览器三视口；专题关闭 |
@@ -180,7 +180,7 @@
 
 ## 当前下一步
 
-[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已获项目所有者批准并建立[唯一高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)。下一步只等待批次 A 单独批准：物化 strict decision contract、compatibility / transition matrix 与纯函数 policy compiler；未批准前不修改 schema、runtime、数据库、HTTP、Pencil 或 React。模型、客户端与人工批准不能直接提升资格，`tool_callable` 只复用既有只读 HTTP Tool，`write_allowed_by_policy` 在 v1 不可达。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已完成[唯一高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)批次 A：strict decision contract、compatibility / transition matrix、canonical digest 与纯函数 compiler 已形成代码和回归证据。下一步只等待批次 B 单独批准，把同一 compiler 接入既有 owner 的 memory runtime 组合；未批准前不修改数据库、HTTP、Pencil 或 React。模型、客户端与人工批准不能直接提升资格，`tool_callable` 只复用既有只读 HTTP Tool，`write_allowed_by_policy` 的有效结果在 v1 不可达。
 
 [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)及其任务卡已完成批次 A 至 E 并关闭，不派生批次 F。公开 Marketplace、跨 workspace、HTTP Tool / RAG 模板、自动模型替换、自动上架 / 派生 / activation / run 与 production 能力仍关闭。
 
