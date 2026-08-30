@@ -2,15 +2,15 @@
 
 更新时间：2026-08-30
 
-状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_design_reviewed_authorization_model_required`
+状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_a_completed_batch_b_awaiting_approval`
 
 ## 设计结论
 
-本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标，但当前只完成产品设计与实现准入评审，不创建任务卡、不进入代码实现。
+本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已经建立，Batch A 的 canonical schema、领域合同和 memory owner 已完成。
 
 现有 Application Evaluation Plan 已保存不可变测试 fixture，Campaign 已能顺序调用既有应用运行服务并生成 durable Run，Comparison、Case、Suite 与人工 decision 也已闭合。新的用户价值不在复制这些 owner，而在让内部应用开发者把一个 exact Plan version 配置为受限 UTC 周期，在无人停留页面时仍能形成可审查的 Campaign 证据。
 
-代码审计同时确认：现有 Campaign 只能在用户 HTTP 权限上下文中同步执行，API Key 必须属于当前 actor；Platform 没有后台 scheduler 生命周期、service principal、受限委托或 occurrence lease。后台进程若直接把创建者 `actor_ref` 填入请求，将构成隐式冒用。该授权模型属于新的跨模块高风险边界，必须由项目所有者明确选择后才能进入实现。
+代码审计同时确认：现有 Campaign 只能在用户 HTTP 权限上下文中同步执行，API Key 必须属于当前 actor；Platform 没有后台 scheduler 生命周期、service principal、受限委托或 occurrence lease。后台进程若直接把创建者 `actor_ref` 填入请求，将构成隐式冒用。获批模型因此明确分离 system actor 与 delegated user，禁止把用户 HTTP 身份上下文带入后台；Batch A 只冻结该合同，尚未启动 runner 或 Campaign。
 
 ## 用户任务
 
@@ -32,7 +32,7 @@
 | 受控在线知识源 | 后置 | 现有 HTTP Tool 只接受 `application/json`；在线 Markdown / HTML 需要新的 transport、解析与来源安全边界 |
 | 真实 Radish OIDC | 等待外部条件 | reviewed client registration、issuer / audience 与真实联调环境仍未成立 |
 | production secret / billing | 不进入 | production owner、资源与发布条件未满足 |
-| Prompt Application 定时回归 Campaign | 选中但实现待授权 | fixture、单次 Provider 调用、Run 与评测证据链已经存在，能形成最小可验证纵向闭环 |
+| Prompt Application 定时回归 Campaign | 选中，Batch A 已完成 | fixture、单次 Provider 调用、Run 与评测证据链已经存在；受限委托合同和 memory owner 已建立，HTTP、数据库与 runner 仍按批准入 |
 
 v1 只接受 `prompt_application_invocation_v1` Plan version。每个 item 最多产生一次 Prompt Provider attempt，最多 `20` 个 item；Workflow Definition、RAG、Agent、HTTP Tool、结构化多 LLM Definition 和其它 Profile 均不在首版范围内。该收窄让请求配额预算可以由 `item_count` 精确表达，不把估算成本或未知节点数写成授权事实。
 
@@ -115,20 +115,20 @@ due -> claimed -> campaign_created -> observing -> succeeded|failed|interrupted|
 - 当前 schedule 已有非终态 Campaign 时，新窗口记录 `skipped / overlap_blocked`。
 - schedule pause / archive、application archive、Plan drift、assignment drift、API Key revoke、membership deny、quota deny 或 store unavailable 均不调用 Provider。
 
-## 授权模型准入问题
+## 已批准的授权模型
 
-后台 occurrence 同时涉及“谁授权了周期执行”和“当前由谁执行”。现有 `ActorRef` 不能安全表达这两层身份。v1 实现前必须在以下边界上获得项目所有者批准：
+后台 occurrence 同时涉及“谁授权了周期执行”和“当前由谁执行”。现有 `ActorRef` 不能安全表达这两层身份。项目所有者已于 2026-08-30 批准以下边界，后续实现不得弱化：
 
-1. 是否允许建立 schedule-scoped、不可转移、非 bearer 的受限委托记录；
-2. system runner 是否使用独立 `system_actor_ref`，并另存 `delegated_by_user_ref`；
-3. 每次 occurrence 是否强制重读本地账户 active 状态、当前 workspace membership 和 `application_evaluations:execute + workflow_runs:execute`；
-4. API Key 是否必须继续属于委托用户，并在每次 occurrence 重新检查 active / expiry / application scope；
-5. 用户失去权限、账户停用、membership 撤销、API Key 轮换或 schedule version 变化时，委托是否立即失效；
-6. HTTP、领域上下文、audit 和 Run metadata 如何同时记录 system actor 与 delegated user，而不把委托伪装成用户交互请求。
+1. 只允许建立 schedule-scoped、不可转移、非 bearer 的受限委托记录；
+2. system runner 使用独立 `system_actor_ref`，并另存 `delegated_by_user_ref`；
+3. 每次 occurrence 强制重读本地账户 active 状态、当前 workspace membership 和 `application_evaluations:execute + workflow_runs:execute`；
+4. API Key 必须继续属于委托用户，并在每次 occurrence 重新检查 active / expiry / application scope；
+5. 用户失去权限、账户停用、membership 撤销、API Key 轮换或 schedule version 变化时，委托立即失效；
+6. HTTP、领域上下文、audit 和 Run metadata 必须同时记录 system actor 与 delegated user，不把委托伪装成用户交互请求。
 
 明确禁止的方案：持久化 Web Session / cookie / API Key token、后台直接冒用创建者 `actor_ref`、只检查激活时权限、把角色或 permission snapshot 当永久授权、引入可在其它资源复用的通用 execution token。
 
-在该问题获得批准前，Schedule schema、route、migration、repository、runner、Pencil 和 React 均不进入实现。
+Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`，并把两项 required permission、`every_occurrence`、`delegated_user_current_owner` 与 `fail_closed_immediate` 写入不可变 Schedule Version。该批准不等于 runner、HTTP、数据库、Pencil 或 React 已获实现批准。
 
 ## Runner 生命周期与失败语义
 
@@ -165,14 +165,16 @@ due -> claimed -> campaign_created -> observing -> succeeded|failed|interrupted|
 
 ### P0：授权模型决策
 
-- 项目所有者选择 system actor + schedule-scoped delegation 的边界，或明确拒绝后台委托。
-- 若拒绝，不把专题降级为“页面打开时自动运行”或伪 schedule；专题保持 blocked。
-- 只有 P0 通过后才创建唯一高风险任务卡。
+- 状态：`completed_owner_approved`。
+- 项目所有者已批准 system actor + schedule-scoped delegation，不把专题降级为“页面打开时自动运行”或伪 schedule。
+- 唯一高风险任务卡已经建立；后续仍按批次批准，不从 P0 推导全部实现授权。
 
 ### 批次 A：合同、领域与 memory owner
 
-- 冻结 schedule / version / occurrence schema、UTC 计算、digest、状态机与授权引用。
-- 实现单赢家 claim、missed / overlap、无 retry 和 memory repository。
+- 状态：`completed`。
+- 已冻结 schedule / version / occurrence schema、UTC 计算、digest、状态机与授权引用。
+- 已实现用户 / system actor 职责分离、单赢家 claim、missed / overlap、无 retry 和 memory repository。
+- 精准测试已覆盖 immutable version、CAS、错误 actor、secret-shaped ref、并发单胜者、terminal no-replay、corruption 与 no-fallback；没有 route、migration、runner、Provider、Pencil 或 React。
 
 ### 批次 B：strict HTTP 与双数据库
 
@@ -196,12 +198,12 @@ due -> claimed -> campaign_created -> observing -> succeeded|failed|interrupted|
 | 真实用户任务 | 满足：周期回归发现模型 / Profile 漂移 |
 | canonical Plan / Campaign / Run owner | 满足：现有链可复用 |
 | fixture 与 Provider attempt 预算 | 首版 Prompt-only 后满足 |
-| durable schedule / occurrence owner | 可设计，尚未实现 |
-| background service lifecycle | 设计可行，尚未实现 |
-| system actor / delegated authorization | **未满足，必须由项目所有者决定** |
-| implementation task card | blocked |
+| durable schedule / occurrence owner | Batch A memory owner 已完成；双数据库待 Batch B |
+| background service lifecycle | 设计可行，runner 待 Batch C |
+| system actor / delegated authorization | **P0 已批准，Batch A contract 已冻结** |
+| implementation task card | 已建立；状态 `batch_a_completed_batch_b_awaiting_approval` |
 
-当前状态保持 `design_reviewed_authorization_model_required`。下一步不是写代码，而是项目所有者审查 P0：是否允许开发测试态 system runner 使用 schedule-scoped、每次重验的受限委托。未经批准，不创建执行授权、任务卡或运行时。
+当前状态为 `batch_a_completed_batch_b_awaiting_approval`。下一步由项目所有者审查 Batch B strict HTTP 与 SQLite / PostgreSQL 方案；未批准前不启动 runner、不调用 Campaign / Provider、不修改 Pencil / React，也不声明定时回归可用。
 
 ## 停止线
 

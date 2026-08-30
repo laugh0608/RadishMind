@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-evaluation-schedule-version.schema.json",
+  "title": "ApplicationEvaluationScheduleVersionV1",
+  "description": "Immutable daily UTC schedule configuration and non-bearer, schedule-scoped delegation contract for Prompt Application regression evaluation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "schedule_id", "schedule_version", "previous_schedule_version", "schedule_digest",
+    "tenant_ref", "workspace_id", "environment", "application_id", "plan_id", "plan_version", "plan_digest",
+    "execution_profile", "quota_api_key_id", "schedule", "item_count", "max_provider_attempts",
+    "missed_window_policy", "overlap_policy", "authorization", "created_at", "created_by_actor_ref", "request_id", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": {"const": "application_evaluation_schedule_version.v1"},
+    "schedule_id": {"$ref": "#/$defs/schedule_id"},
+    "schedule_version": {"type": "integer", "minimum": 1},
+    "previous_schedule_version": {"type": "integer", "minimum": 0},
+    "schedule_digest": {"$ref": "#/$defs/digest"},
+    "tenant_ref": {"$ref": "#/$defs/reference"},
+    "workspace_id": {"$ref": "#/$defs/scoped_id"},
+    "environment": {"enum": ["development", "test"]},
+    "application_id": {"$ref": "#/$defs/scoped_id"},
+    "plan_id": {"$ref": "#/$defs/plan_id"},
+    "plan_version": {"type": "integer", "minimum": 1},
+    "plan_digest": {"$ref": "#/$defs/digest"},
+    "execution_profile": {"const": "prompt_application_invocation_v1"},
+    "quota_api_key_id": {"$ref": "#/$defs/api_key_id"},
+    "schedule": {"$ref": "#/$defs/daily_utc"},
+    "item_count": {"type": "integer", "minimum": 1, "maximum": 20},
+    "max_provider_attempts": {"type": "integer", "minimum": 1, "maximum": 20},
+    "missed_window_policy": {"const": "record_only_no_catch_up"},
+    "overlap_policy": {"const": "skip_while_campaign_non_terminal"},
+    "authorization": {"$ref": "#/$defs/authorization"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "#/$defs/reference"},
+    "request_id": {"$ref": "#/$defs/reference"},
+    "audit_ref": {"$ref": "#/$defs/reference"}
+  },
+  "$defs": {
+    "daily_utc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "hour", "minute"],
+      "properties": {
+        "rule": {"const": "daily_utc"},
+        "hour": {"type": "integer", "minimum": 0, "maximum": 23},
+        "minute": {"type": "integer", "minimum": 0, "maximum": 59}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model", "system_actor_ref", "delegated_by_user_ref", "required_permissions",
+        "revalidation_policy", "api_key_ownership_policy", "revocation_policy"
+      ],
+      "properties": {
+        "model": {"const": "system_actor_schedule_scoped_delegation_v1"},
+        "system_actor_ref": {"$ref": "#/$defs/reference"},
+        "delegated_by_user_ref": {"$ref": "#/$defs/reference"},
+        "required_permissions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {"const": "application_evaluations:execute"},
+            {"const": "workflow_runs:execute"}
+          ],
+          "items": false
+        },
+        "revalidation_policy": {"const": "every_occurrence"},
+        "api_key_ownership_policy": {"const": "delegated_user_current_owner"},
+        "revocation_policy": {"const": "fail_closed_immediate"}
+      }
+    },
+    "schedule_id": {"type": "string", "pattern": "^aesch_[a-z2-7]{16}$"},
+    "plan_id": {"type": "string", "pattern": "^aeplan_[a-z2-7]{16}$"},
+    "api_key_id": {"type": "string", "pattern": "^key_[a-z2-7]{16}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "reference": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"},
+    "scoped_id": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"}
+  }
+}

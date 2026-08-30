@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_design_reviewed_authorization_model_required`。专题已完成用户任务、owner、Prompt-only `daily_utc`、occurrence claim、无 catch-up / retry、Campaign handoff 与四批拟议边界；代码审计确认现有 Campaign 只有用户 HTTP actor，后台 system actor + schedule-scoped 受限委托尚未获项目所有者决定。P0 前不创建任务卡、schema、route、migration、runner、Pencil 或 React；Action Safety Ladder 保持完成关闭，不派生批次 F。
+- 当前产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_a_completed_batch_b_awaiting_approval`。项目所有者已批准非 bearer、schedule-scoped、每次 occurrence 重验的 system actor + delegated user；Batch A 已完成三份 canonical schema、Prompt-only `daily_utc` / exact attempt budget、Schedule / Version / Occurrence 合同、memory CAS、单赢家 claim、terminal no-replay 与负向门禁。下一步只审查 Batch B strict HTTP 与双数据库；runner、Campaign / Provider、Pencil 和 React 尚未进入。Action Safety Ladder 保持完成关闭，不派生批次 F。
 - 最新关闭产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。批次 A 至 E 已完成 strict contract、三种 catalog owner、获人工批准的 Pencil、configured target binding、React strict consumer、双数据库连续链与真实浏览器；SQLite 页面贯通 approved Definition → reviewed/listed template → target Application derive → Draft validate/save → 重启恢复，PostgreSQL configured Server 覆盖 runtime role、no-fallback 与 reconnect。双标签 CAS、workspace / application scope、三视口、隐私与零执行副作用均已复验，唯一任务卡关闭，不派生批次 F。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
@@ -45,7 +45,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：定时回归评测已完成设计准入并收窄到 exact Prompt Application Plan version；下一步只审查 P0 后台授权模型。若不批准受限委托，专题保持 blocked，不降级成页面打开时自动运行；若批准，再创建唯一高风险任务卡。联合登录批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：定时回归评测 P0 已批准，唯一高风险任务卡和 Batch A canonical / memory owner 已完成；下一步只审查 Batch B strict HTTP 与 SQLite / PostgreSQL，不提前启动 runner 或调用 Campaign / Provider。联合登录批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -99,8 +99,8 @@
 
 ## 2026-08-31 明日事项
 
-1. 项目所有者审查定时回归评测 P0：是否允许开发测试态 system runner 使用非 bearer、schedule-scoped、每次 occurrence 重验账户 / membership / permission / API Key / quota 的受限委托，并在 audit 中区分 system actor 与 delegated user。
-2. 未获 P0 批准前不创建任务卡或代码；不得冒用创建者 `actor_ref`、持久化 Session / token、只检查激活时权限，Action Safety Ladder 继续保持关闭。
+1. 项目所有者审查定时回归评测 Batch B：strict HTTP、激活时 exact Plan / authority / API Key 重读，以及 SQLite / PostgreSQL migration、CAS、唯一 occurrence、restart / reconnect 与 no-fallback。
+2. 未获 Batch B 批准前不实现 route 或数据库；不得启动 runner、调用 Campaign / Provider、修改 Pencil / React、冒用创建者 `actor_ref` 或持久化 Session / token，Action Safety Ladder 继续保持关闭。
 
 ## 2026-08-19 今日评审
 
@@ -128,7 +128,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 总入口与证据：
 
-当前产品入口：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。设计评审完成，P0 授权模型待项目所有者决定；当前没有实施任务卡。
+当前产品入口：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。P0 与 Batch A 已完成；[唯一实施任务卡](task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)等待 Batch B 批准。
 
 1. [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
 2. [Gateway Python Bridge Runtime v1](features/gateway/python-bridge-runtime-v1.md)
@@ -200,7 +200,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 ## 当前不要做
 
-- 定时回归评测 P0 未批准前不创建后台 runner、schema、route、migration、Pencil、React 或任务卡；不冒用用户 actor、不持久化 Session / token、不引入通用 execution token。Action Safety Ladder 继续关闭且不派生批次 F。
+- 定时回归评测 Batch A 只建立 canonical / memory owner；Batch B 未批准前不创建 route 或 migration，Batch C 前不启动 runner 或调用 Campaign / Provider，Batch D 前不修改 Pencil / React；始终不冒用用户 actor、不持久化 Session / token、不引入通用 execution token。Action Safety Ladder 继续关闭且不派生批次 F。
 - 不让模型、客户端、Profile、Workflow 草案、candidate decision、assignment、人工批准或页面状态自报或提升 effective level；`write_allowed_by_policy` 在 v1 始终不可达。
 - 不为 Safety Ladder 创建第二套 Action、Confirmation、Run、Audit、Result 或通用 decision owner，也不新增万能 execute permission 或通用动作执行 API。
 - 不把工作区模板目录扩成公开 Marketplace、跨作用域共享、推荐 / 评分、自动重绑定、自动运行或生产发布。

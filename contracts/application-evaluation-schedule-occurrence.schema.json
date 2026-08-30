@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-evaluation-schedule-occurrence.schema.json",
+  "title": "ApplicationEvaluationScheduleOccurrenceV1",
+  "description": "Sanitized schedule occurrence, atomic system claim, and exact Campaign handoff reference. It contains no fixture, input, output, provider response, session, token, or credential.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "record_version", "tenant_ref", "workspace_id", "environment", "application_id",
+    "schedule_id", "schedule_version", "schedule_digest", "scheduled_for_utc", "state", "client_campaign_key",
+    "campaign_id", "system_actor_ref", "delegated_by_user_ref", "claimed_at", "failure_code",
+    "created_at", "updated_at", "completed_at", "request_id", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": {"const": "application_evaluation_schedule_occurrence.v1"},
+    "record_version": {"type": "integer", "minimum": 1},
+    "tenant_ref": {"$ref": "#/$defs/reference"},
+    "workspace_id": {"$ref": "#/$defs/scoped_id"},
+    "environment": {"enum": ["development", "test"]},
+    "application_id": {"$ref": "#/$defs/scoped_id"},
+    "schedule_id": {"$ref": "#/$defs/schedule_id"},
+    "schedule_version": {"type": "integer", "minimum": 1},
+    "schedule_digest": {"$ref": "#/$defs/digest"},
+    "scheduled_for_utc": {"type": "string", "format": "date-time"},
+    "state": {"enum": ["due", "claimed", "campaign_created", "observing", "succeeded", "failed", "interrupted", "skipped"]},
+    "client_campaign_key": {"type": "string", "pattern": "^scheduled_campaign_[a-f0-9]{24}$"},
+    "campaign_id": {"oneOf": [{"$ref": "#/$defs/campaign_id"}, {"type": "null"}]},
+    "system_actor_ref": {"$ref": "#/$defs/reference"},
+    "delegated_by_user_ref": {"$ref": "#/$defs/reference"},
+    "claimed_at": {"oneOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "failure_code": {"oneOf": [{"$ref": "#/$defs/failure_code"}, {"type": "null"}]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"oneOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "request_id": {"$ref": "#/$defs/reference"},
+    "audit_ref": {"$ref": "#/$defs/reference"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "due"}}, "required": ["state"]},
+      "then": {"properties": {"record_version": {"const": 1}, "campaign_id": {"type": "null"}, "claimed_at": {"type": "null"}, "failure_code": {"type": "null"}, "completed_at": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"state": {"const": "claimed"}}, "required": ["state"]},
+      "then": {"properties": {"campaign_id": {"type": "null"}, "claimed_at": {"type": "string", "format": "date-time"}, "failure_code": {"type": "null"}, "completed_at": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"state": {"enum": ["campaign_created", "observing"]}}, "required": ["state"]},
+      "then": {"properties": {"campaign_id": {"$ref": "#/$defs/campaign_id"}, "claimed_at": {"type": "string", "format": "date-time"}, "failure_code": {"type": "null"}, "completed_at": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"state": {"const": "succeeded"}}, "required": ["state"]},
+      "then": {"properties": {"campaign_id": {"$ref": "#/$defs/campaign_id"}, "claimed_at": {"type": "string", "format": "date-time"}, "failure_code": {"type": "null"}, "completed_at": {"type": "string", "format": "date-time"}}}
+    },
+    {
+      "if": {"properties": {"state": {"enum": ["failed", "interrupted"]}}, "required": ["state"]},
+      "then": {"properties": {"claimed_at": {"type": "string", "format": "date-time"}, "failure_code": {"$ref": "#/$defs/failure_code"}, "completed_at": {"type": "string", "format": "date-time"}}}
+    },
+    {
+      "if": {"properties": {"state": {"const": "skipped"}}, "required": ["state"]},
+      "then": {"properties": {"campaign_id": {"type": "null"}, "claimed_at": {"type": "string", "format": "date-time"}, "failure_code": {"enum": ["application_evaluation_schedule_overlap_blocked", "application_evaluation_schedule_missed_window"]}, "completed_at": {"type": "string", "format": "date-time"}}}
+    }
+  ],
+  "$defs": {
+    "schedule_id": {"type": "string", "pattern": "^aesch_[a-z2-7]{16}$"},
+    "campaign_id": {"type": "string", "pattern": "^aecamp_[a-z2-7]{16}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "failure_code": {
+      "enum": [
+        "application_evaluation_schedule_authorization_unavailable",
+        "application_evaluation_schedule_membership_denied",
+        "application_evaluation_schedule_plan_changed",
+        "application_evaluation_schedule_authority_changed",
+        "application_evaluation_schedule_quota_consumer_invalid",
+        "application_evaluation_schedule_quota_denied",
+        "application_evaluation_schedule_overlap_blocked",
+        "application_evaluation_schedule_missed_window",
+        "application_evaluation_schedule_claim_conflict",
+        "application_evaluation_schedule_store_unavailable",
+        "application_evaluation_schedule_store_contract_mismatch"
+      ]
+    },
+    "reference": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"},
+    "scoped_id": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"}
+  }
+}

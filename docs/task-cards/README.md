@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)已完成并关闭，状态为 `completed`。批次 A 至 E 已完成 strict decision contract / compiler、六个既有 owner checkpoint、memory / SQLite / PostgreSQL 同构 snapshot、获人工批准的 Pencil、单一 HTTP read projection、React strict consumer 与双数据库产品证据。`tool_callable` 只复用既有人工确认只读 GET，`write_allowed_by_policy` 在 v1 不可达；当前没有活跃高风险产品任务卡，下一顺位先回到功能设计评审。
+[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1 实施任务卡](application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)是当前唯一高风险产品任务卡。项目所有者已批准 system actor + schedule-scoped delegation；Batch A 的三份 canonical schema、Schedule / Version / Occurrence 领域合同、UTC / digest、memory owner、CAS、单赢家 claim 与负向门禁已完成，状态为 `batch_a_completed_batch_b_awaiting_approval`。下一步只在项目所有者批准后进入 Batch B strict HTTP 与 SQLite / PostgreSQL，不提前启动 runner 或调用 Campaign / Provider。
 
 ## 当前外部阻塞任务
 
