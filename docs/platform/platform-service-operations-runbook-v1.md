@@ -1,6 +1,6 @@
 # 平台服务运行手册 v1
 
-更新时间：2026-08-23
+更新时间：2026-08-30
 
 ## 文档职责
 
@@ -60,7 +60,7 @@ pwsh ./scripts/run-platform-service.ps1 -Command diagnostics
 pwsh ./scripts/run-platform-service.ps1 -Command serve
 ```
 
-wrapper 默认使用 `local-product` 档：选择聚合 `sqlite_dev`、共享 SQLite 文件和十一组件 store 投影，并开启既有开发 gate。Prompt 与 Agent Runtime Assignment / Event、Session / Turn 和 Run 复用 Workflow Run Store 投影；Admin Provider / Route 管理写入和 application request quota 管理 / enforcement 仍需显式 gate。`configured` 档不注入 store、数据库连接或开发 gate，只消费调用方显式配置，供 PostgreSQL 集成和故障注入使用：
+wrapper 默认使用 `local-product` 档：选择聚合 `sqlite_dev`、共享 SQLite 文件和十一组件 store 投影，并开启既有开发 gate。Prompt 与 Agent Runtime Assignment / Event、Session / Turn、Run，以及 Application Evaluation Plan / Campaign / Schedule / Occurrence 复用 Workflow Run Store；Admin Provider / Route 管理写入、application request quota 管理 / enforcement 与 Schedule runner 仍需各自显式 gate。`configured` 档不注入 store、数据库连接或开发 gate，只消费调用方显式配置，供 PostgreSQL 集成和故障注入使用：
 
 ```bash
 ./scripts/run-platform-service.sh --profile configured config-check
@@ -116,6 +116,7 @@ go run ./services/platform/cmd/radishmind-platform diagnostics
 - Workflow 草案、运行、评测与执行 gate 见 [Workflow 专题](../features/workflow/README.md)。
 - Application Draft / Publish gate 见 [User Workspace 专题](../features/user-workspace/README.md)。
 - Prompt Template、Configuration Draft v3、Publish Candidate v3 与 Runtime Assignment 的配置、路由、权限、CAS 和故障处理见 [Prompt Application 开发测试态使用指南](../features/user-workspace/prompt-application-dev-test-usage-guide.md)；长期领域边界见 [Prompt Application 功能专题](../features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)。
+- Application Evaluation Schedule 的 strict HTTP、三存储、逐次受限委托重验与 runner 边界见[定时回归评测专题](../features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。`RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV=true` 只在 `RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV=true`、`RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 与有效认证模式 `local_session_dev_test` 同时成立时允许启动；默认档不隐式开启该 worker。固定 `30s` 单 worker 在关闭时先 cancel / join，再回收 bridge / store；失败不得回退 memory 或重放 Provider。
 - Control Plane auth / store / OIDC integration test 见 [Admin Control Plane 专题](../features/admin-control-plane/README.md)。
 - 本地注册、Web Session 与 browser OIDC 只在显式 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=true`、`RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 和 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 时启用；还必须配置 exact `RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN`。HTTPS 保持默认 `RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE=true`；loopback HTTP 开发测试必须显式设为 `false`。`RADISHMIND_LOCAL_IDENTITY_SESSION_TTL` 默认 `12h` 且不得超过 `30d`；`RADISHMIND_LOCAL_IDENTITY_STORE` 可选 `memory_dev | sqlite_dev | postgres_dev_test`，PostgreSQL 另需 `RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL` 和可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT`。OIDC 的 exact issuer、discovery、client、redirect、scope、algorithm、JWKS origin、transaction TTL 与首登准入开关见 [Platform Service README](../../services/platform/README.md)；这些开关只声明开发测试 session / OIDC，不声明真实 Radish 或 production auth。
 - 首个 workspace administrator 只通过 [Platform Service README 的显式 bootstrap 命令](../../services/platform/README.md#显式首管理员-bootstrap仅开发--测试态)建立：先注册并取得 exact active `user_id`，再明确提供 tenant、workspace 与 audit ref。SQLite 使用共享数据库路径；PostgreSQL 先由 migration identity 应用 `0003`，再由 runtime URL 写入。命令不接受 memory / production mode，不在 Server startup 或注册时运行，不提供 HTTP route；已有 active identity administrator、账户不可用、migration 不兼容或 repository 失败都不得回退。
@@ -194,7 +195,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 
 ## PostgreSQL 开发测试态验证
 
-兼容入口覆盖平台各产品 migration、独立 Prompt Template `0001`，以及当前直至 `0016` 的 Workflow PostgreSQL 开发测试态 repository：
+兼容入口覆盖平台各产品 migration、独立 Prompt Template `0001`，以及当前直至 `0029_application_evaluation_schedules / workflow_run_store_v29` 的 Workflow Run PostgreSQL 开发测试态 repository：
 
 ```bash
 ./scripts/run-workflow-saved-draft-postgres-dev-test.sh check
@@ -218,6 +219,7 @@ curl -sS http://127.0.0.1:7000/v1/chat/completions \
 ## 停止线
 
 - 本手册只覆盖本地开发和测试运行，不是 production deployment runbook。
+- Schedule runner 只属于显式 development / test 配置；不得据此启用任意 cron、queue、跨 Profile scheduler、自动 replay 或 production worker。
 - 不把 local smoke、deterministic OIDC integration test、SQLite / PostgreSQL dev-test、fake / mock provider 或本地 console 写成生产就绪。
 - 不在缺少 production secret backend、process supervisor、环境隔离、正式身份与发布复核时启用生产入口。
 - 不用历史 readiness 文档代替当前配置、协议、功能专题和可执行测试。

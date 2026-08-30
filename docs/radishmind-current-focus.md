@@ -85,22 +85,21 @@
 4. derive 在全部预检通过后只调用 Saved Draft owner 单次创建独立 v1 草案；既有 `derivation_v1` 兼容保留并与 `derivation_v2` 互斥。精准 / 相邻测试、race、`go vet` 与完整 Platform config / HTTP API 测试已通过，未创建数据库、Pencil、React、服务或浏览器证据。
 5. 2026-08-28 首先由项目所有者审查并批准同卡前置修正：让 configured Server 从既有 canonical authority 验证 exact target Provider / Profile / Model binding，并让十条 route 对 query key / cardinality fail closed；完成精准测试、race 与仓库门禁后，再单独决定是否进入批次 D React strict consumer。公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭；账户安全批次 F、S11 与真实 Radish 外部联调也不恢复。
 
-## 2026-08-29 今日推进
+## 2026-08-30 今日推进
 
-1. 项目所有者明确批准同卡批次 D 前置修正。configured Server 已将 `strictWorkflowTemplateTargetBindingValidator` 替换为复用既有 activated Provider Route snapshot 与 Bridge inventory 的 canonical validator；目标 Application scope / lifecycle / kind 与 `profile:<id>` assignment、inventory binding、当前 inventory digest 均需精确一致。
-2. binding digest 覆盖 Provider、runtime profile、resolved model、capabilities、enabled 与脱敏 inventory 元数据；Provider / model / capability / enabled 漂移、missing / duplicate profile、static source、snapshot unavailable 均返回 `workflow_template_target_binding_unavailable`，Draft 写入为 0。不修改 `ApplicationCatalogRecord`，不创建新 owner、schema、migration 或 fallback。
-3. 四条 mutation route 已拒绝任意 query；六条 GET route 已采用逐 route allowlist 与 single-value cardinality，unknown / duplicate query 返回 `400 / workflow_template_payload_invalid`，既有非法 cursor 继续返回 `workflow_template_cursor_invalid`。十条 route 的 query 负向测试证明 candidate / listing / Draft owner 均无副作用。
-4. Workflow Template 精准测试、完整 `internal/config + internal/httpapi`、Provider Route / Template 定向 race、`go vet ./...` 与仓库 fast / full 门禁均已通过。随后项目所有者批准并完成批次 D：单一 strict consumer、四任务 Human Promotion 产品面、scope generation + abort、CAS 冲突与 exact `derivation_v2` Draft Designer handoff 均已落地。
-5. 批次 D 专项 `9/9`、Web 全量 `407/407`、production build 与 Platform `go test ./internal/httpapi` 已通过，状态推进为 `batch_d_react_completed_batch_e_ready`。下一步只单独评审批次 E；公开 Marketplace、跨 workspace / tenant、HTTP Tool / RAG 模板、自动模型重绑定、自动上架 / 派生 / activation / run、评分推荐、计费和 production 能力继续关闭。
-6. 项目所有者随后明确批准批次 E。SQLite 产品链完成 approved Definition → candidate → approve → list → target Application derive → Draft exact open / validate / save → 同库服务重启恢复；PostgreSQL configured Server 完成同构链、runtime role DDL 拒绝、数据库关闭 no-fallback 与 reconnect authoritative reload。
-7. 真实浏览器完成 review / listing 双标签 stale CAS、workspace / application 切换、刷新 / 重启恢复与 `1440×900`、`720×900`、`390×844`；最终 fresh tab console warning / error 为 0，live URL / network 与源码持久化通道、响应 / SQLite 敏感材料审计通过，所有执行类副作用计数为 0。
-8. 产品链发现并修正空数组 JSON、approved-unlisted Operator 投影、launcher Bridge inventory、canonical 空 lifecycle actor、requested capabilities 保真与 Application Catalog workspace scope 六项一致性缺口。状态推进为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`，唯一任务卡关闭；不自动进入批次 F、公开 Marketplace、跨 workspace 或 production 能力。
-9. Action Safety Ladder 批次 E 已获批准并完成：单一 HTTP read projection 与 TypeScript strict consumer 映射到既有 Agent Session / Assignment、Workflow HTTP Tool plan / execution 与 Run History；SQLite 页面重启、legacy 不反算、authority drift、双标签 review CAS conflict，PostgreSQL migration / runtime role / reconnect / no-fallback，以及三视口、隐私与零副作用证据均成立。专题与唯一任务卡关闭，不派生批次 F。
+1. Action Safety Ladder 批次 E 已完成单一 HTTP read projection、TypeScript strict consumer、SQLite 页面重启 / legacy / authority drift / 双标签 CAS、PostgreSQL runtime role / reconnect / no-fallback 与三视口产品证据；专题和任务卡关闭，不派生批次 F。
+2. 四产品面重新排位后，选择 Prompt Application 定时回归评测作为新长期目标；项目所有者批准非 bearer、schedule-scoped、每次 occurrence 重验的 system actor + delegated user 模型，不采用用户 Session 持久化或页面打开时伪调度。
+3. Batch A 已完成 Schedule current / immutable version / Occurrence canonical schema、UTC 日周期、digest、状态机、memory owner、单赢家 claim、missed / overlap 与 no-replay 领域边界。
+4. Batch B 已完成十条 strict HTTP、激活时 exact Plan / assignment / API Key 重读、SQLite `0026`、PostgreSQL `0029 / workflow_run_store_v29`、并发、重启 / 重连、corruption 与 no-fallback。
+5. Batch C 已完成显式 dev/test gate、固定 `30s` 单 worker、cancel / join、逐次账户 / membership / permission / Plan / assignment / API Key / quota 重读、deterministic Campaign handoff、Run 双 actor metadata 与 crash no-replay；真实 PostgreSQL configured gate、race、vet 与仓库 fast / full 均通过。
+6. 日终反查今日五个提交后，已补齐 contracts 索引、Platform 路由 / runner 运维说明、Workflow Run Store 的 Action Safety `0025 / 0028` 与 Schedule `0026 / 0029` 迁移口径、共享 SQLite 生命周期、系统架构、项目总览和跨项目入口中的内部 persistence boundary；未发现需要修改根入口、Web README、脚本或部署边界的代码事实，Schedule 也没有新增任何上层外部执行协议。
 
 ## 2026-08-31 明日事项
 
-1. 项目所有者审查并批准定时回归评测 Batch D 的 `A / 完整 Pencil` 范围：复用 S10，覆盖 exact Plan / quota consumer / 双 actor / next due / lifecycle / Occurrence / Campaign handoff / revoke / restart，不建立 S11。
-2. 未获 Batch D 批准前不修改 Pencil 或 React，不启动产品服务 / 浏览器连续链，不调用真实 Provider，也不把 dev/test runner 扩成 production worker；Session / cookie / token / Provider credential 继续禁止持久化，Action Safety Ladder 保持关闭。
+1. 第一事项是项目所有者审查并明确批准定时回归评测 Batch D 的 `A / 完整 Pencil` 范围；复用 S10，不建立 S11，覆盖 exact Plan / quota consumer、system actor + delegated user、next due、activate / pause / resume / archive、Occurrence / Campaign handoff、权限撤销、missed / overlap 与服务重启。
+2. 若范围获批，先只修改正式 Pencil 设计源并完成 Desktop / Narrow、关键阻断态、原生静态 QA 与逐屏人工视觉 / 边界审查；Pencil 人工批准前不修改 React、CSS 或产品 launcher。
+3. 只有 Pencil 再次获得人工批准并单独确认实现范围后，才评估 strict consumer、scope generation + abort、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、三视口和隐私验收；明日不默认把设计批准推导为整批产品实现授权。
+4. 未获 Batch D 批准前不启动产品服务 / 浏览器连续链，不调用真实 Provider，也不把 dev/test runner 扩成 production worker；Session / cookie / token / Provider credential 继续禁止持久化，Action Safety Ladder 保持关闭且不派生批次 F。
 
 ## 2026-08-19 今日评审
 

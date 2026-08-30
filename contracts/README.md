@@ -115,6 +115,9 @@
 99. `workspace-workflow-template-audit.schema.json`
 100. `saved-workflow-draft-template-derivation-v2.schema.json`
 101. `action-safety-decision.schema.json`
+102. `application-evaluation-schedule.schema.json`
+103. `application-evaluation-schedule-version.schema.json`
+104. `application-evaluation-schedule-occurrence.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -124,6 +127,8 @@
 4. `typescript/control-plane-read-api.ts`
 
 使用原则：
+
+- `application-evaluation-schedule.schema.json`、`application-evaluation-schedule-version.schema.json` 与 `application-evaluation-schedule-occurrence.schema.json` 冻结 Prompt Application 定时回归的 current record、不可变版本与单次 occurrence：只保存 exact Plan / quota consumer / 授权引用、受限 `daily_utc` 规则、确定性 Campaign key 和脱敏终态，不保存 fixture 副本、API Key token、Provider credential、输入或输出。`workflow-run-record-v6.schema.json` 的可选 `schedule_execution` 只在 scheduled Run 上同时记录 exact Schedule、system actor 与 delegated user；普通交互 Run 不接受该投影。三份合同不构成通用 cron、queue、replay 或 production worker。
 
 - `action-safety-decision.schema.json` 冻结开发 / 测试态 Action Safety Ladder 的 metadata-only 规则决定：服务端从既有 canonical response、Agent / Copilot action 或 Workflow HTTP Tool plan 推导 `requested_level`，再结合 caller 从权威 owner 重读的 scope、source、policy、membership、permission 与 confirmation 事实计算 `maximum_allowed_level / effective_level`。决定不是授权令牌，不保存正文、Tool 参数、URL、header、credential 或业务载荷；`tool_callable` 只对应既有人工确认的单次只读 `GET`，`write_allowed_by_policy` 只能作为写入需求分类出现且 v1 的有效结果始终为 `write_blocked`。
 

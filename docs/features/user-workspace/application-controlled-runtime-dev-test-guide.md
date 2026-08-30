@@ -1,10 +1,10 @@
 # 应用受控运行开发测试态指南
 
-更新时间：2026-08-17
+更新时间：2026-08-30
 
 ## 适用范围
 
-本文说明如何在 `apps/radishmind-web/` 中使用 Application RAG、Workflow Definition、Application Interaction Session、应用结果资产库、Run History 与 Application Operations 的开发测试态连续链。
+本文说明如何在 `apps/radishmind-web/` 中使用 Application RAG、Workflow Definition、Application Interaction Session、应用结果资产库、Run History 与 Application Operations 的开发测试态连续链，并记录这些产品面与 Application Evaluation Plan / Campaign / Schedule 共用的 Workflow Run Store 运行边界。
 
 这是一份使用与排障说明，不是生产部署手册。所有能力都要求显式 dev/test gate、可信 application scope、对应作用域和可用 repository；默认离线产品 UI 不发出这些请求。
 
@@ -60,7 +60,17 @@ PostgreSQL 对应参数为 `--workflow-definition-postgres-dev-test` / `-Workflo
 
 该 Shell 专用入口会继承完整 Application Session SQLite 产品档，并显式加入幂等双 Session fixture。fixture 只用于开发测试态 application-scoped list / filter / exact read / export / lifecycle / restart 复验，不建立真实 Provider、Session 或 Run 执行事实，也不会在重启时覆盖已推进的 lifecycle。PowerShell wrapper 当前没有对称 fixture 参数；常规 Application Session 链继续使用上方双端入口。
 
-launcher 会组合必要的 Platform gate、Web source、workspace / application scope、共享 store 与 migration preflight。不要再手工组合不完整 selector；`configured` 档只用于显式 PostgreSQL组件组合和故障注入，缺失 marker、checksum、角色或连接时必须失败关闭。
+launcher 会组合必要的 Platform gate、Web source、workspace / application scope、共享 store 与 migration preflight。不要再手工组合不完整 selector；`configured` 档只用于显式 PostgreSQL 组件组合和故障注入，缺失 marker、checksum、角色或连接时必须失败关闭。
+
+## Application Evaluation 定时回归后端边界
+
+Application Evaluation Schedule 的 Batch A 至 C 已形成开发测试态后端能力，但尚未进入 React 产品面。本专题只允许 Prompt Application exact Plan version、受限 `daily_utc`、最多 `20` 个 item 和每个 occurrence 最多一次既有 Campaign handoff；Plan、Campaign、Run、quota、Comparison、Case、Suite 与 decision 继续由原 owner 持有真相。
+
+Schedule route 位于 `/v1/user-workspace/applications/{application_id}/evaluation-schedules*`，包含 create / list / exact read / revise / activate / pause / resume / archive、exact version read 与 occurrence read。它复用 Workflow Run Store 的 memory / SQLite / PostgreSQL selector，不新增数据库连接或 fallback。
+
+后台 worker 默认关闭。只有 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV=true`、既有 Campaign dev、本地身份 HTTP 与 `local_session_dev_test` 同时成立时才启动；固定 `30s` 单 worker 每批最多处理 `50` 条 due / open 投影，并在 Server 关闭时先 cancel / join。每个 occurrence 重新读取 delegated user 的账户、workspace membership、两项 permission、exact active Plan / assignment、actor-owned API Key 与 quota；任何漂移都在 Provider 前失败关闭。claim 后崩溃只观察 deterministic Campaign key，不重放 Provider。完整合同、失败语义和准入状态见[定时回归评测专题](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。
+
+当前没有 Schedule / Occurrence React consumer、Pencil 批准或产品 launcher。不要为了试用 worker 手工拼接缺失身份、Campaign、quota 或 store 前置条件；Batch D 获批前只允许按专题和测试验证后端边界。
 
 ## Application Development Workspace 使用方式
 
@@ -197,19 +207,20 @@ Application Operations 同时读取当前 application 的 Gateway Request Histor
 
 ## 持久化与隐私边界
 
-memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A 至 D 固定单份正文上限 `64 KiB`，session list 和 lifecycle event 只返回 metadata，共享 Web consumer 也只在精确 read 后把正文保留于当前组件内存，SQLite / PostgreSQL 仅由精确 artifact read 恢复正文。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Operations、日志或公开错误：
+memory、SQLite 与 PostgreSQL 的 Session、Turn、Run、Comparison、Case、Suite、Schedule、Occurrence 和 Operations 只持久化作用域、资源引用、版本 / CAS、digest、字段名 / 类型 / bytes、状态、时间、trace / usage availability 和 diagnostics 等 metadata。Application Result Artifact 是独立、显式 opt-in 的内容 owner，不改变上述契约；批次 A 至 D 固定单份正文上限 `64 KiB`，session list 和 lifecycle event 只返回 metadata，共享 Web consumer 也只在精确 read 后把正文保留于当前组件内存，SQLite / PostgreSQL 仅由精确 artifact read 恢复正文。Application Evaluation Plan v2 只持有用户显式保存并通过 secret / contract 校验的不可变 typed fixture，不从 Session 或 Run 反推输入；Schedule 只引用 exact Plan 与 quota consumer，不复制 fixture、输入或输出。以下运行时材料不得进入 Session、Turn、Run History、Comparison、Case、Suite、Schedule、Occurrence、Operations、日志或公开错误：
 
 - 原始 input、answer 或 transcript
 - prompt、provider raw response 或 fragment 正文
 - Authorization、API key、credential、token、cookie 或 header
 - provider secret、DSN 或异常原文
 
-SQLite 中 Application RAG、Workflow Definition release、definition execution 与 Application Session 基线依次为 `0009`、`0010`、`0011`、`0012`，结构化 Definition、Session 与 Evaluation 扩展为 `0017`、`0018`、`0019`，Definition HTTP Tool 来源 / 执行、结果资产、结果资产生命周期与 application history 索引依次为 `0020`、`0021`、`0022`、`0023`、`0024`；PostgreSQL 基线对应 `0012`、`0013`、`0014`、`0015`，结构化扩展对应 `0020`、`0021`、`0022`，Definition HTTP Tool 来源 / 执行、结果资产、生命周期与 application history 索引对应 `0023`、`0024`、`0025`、`0026`、`0027`。两个 application history migration 只增加同一 owner 的读取索引，不新增 export 表或 repository。运行角色只授予必要 DML，migration role 与 runtime role 不得互换；旧结果资产在生命周期迁移中只回填 active v1，不改写 artifact payload；旧 Session / Run 记录不自动迁移到 v2 / v4 / v8。
+SQLite 中 Application RAG、Workflow Definition release、definition execution 与 Application Session 基线依次为 `0009`、`0010`、`0011`、`0012`，结构化 Definition、Session 与 Evaluation 扩展为 `0017`、`0018`、`0019`，Definition HTTP Tool 来源 / 执行、结果资产、结果资产生命周期与 application history 索引依次为 `0020`、`0021`、`0022`、`0023`、`0024`，Action Safety snapshot 与 Application Evaluation Schedule 依次为 `0025`、`0026`；PostgreSQL 基线对应 `0012`、`0013`、`0014`、`0015`，结构化扩展对应 `0020`、`0021`、`0022`，Definition HTTP Tool 来源 / 执行、结果资产、生命周期与 application history 索引对应 `0023`、`0024`、`0025`、`0026`、`0027`，Action Safety snapshot 与 Schedule 对应 `0028`、`0029`。这些扩展继续复用 Workflow Run Store，不新增 export 表、独立数据库、DSN、pool 或 fallback。运行角色只授予必要 DML，migration role 与 runtime role 不得互换；旧 Action Safety 空三元组只读为 `not_recorded_legacy`，旧结果资产只回填 active v1，旧 Session / Run 不自动迁移到 v2 / v4 / v8，旧窗口也不由 Schedule runner catch up。
 
 ## 停止线
 
 - 不自动 review、activation、publish、assignment 或 profile 选择。
-- 不增加 schedule、retry / fallback、replay / resume、agent loop、长期记忆或后台任务。
+- 不把受限 Prompt Application 日周期扩成通用 scheduler、任意 cron、queue、跨 Profile 后台任务、retry / fallback、replay / resume、agent loop 或长期记忆。
+- Batch D 获批并完成 S10 Pencil 人工审查前，不实现 Schedule / Occurrence React consumer 或产品 launcher。
 - 不从 session transcript 派生持久记忆，不把 answer 写回上层业务真相源。
 - 不允许客户端事后上传 artifact content、digest 或 run ref，不从日志、缓存或 Provider 重建结果；memory artifact 不声明重启恢复，SQLite / PostgreSQL artifact 只声明开发测试态重启恢复。
 - 不把本地 SQLite、PostgreSQL dev/test、mock provider、真实浏览器验收或 launcher 连续链解释为 production ready。
