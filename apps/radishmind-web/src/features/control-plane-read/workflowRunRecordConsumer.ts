@@ -1,4 +1,5 @@
 import { parseWorkflowDefinitionHTTPToolRunRecord } from "./workflowDefinitionHTTPToolRunConsumer.ts";
+import type { ActionSafetyReadProjection } from "./actionSafetyConsumer.ts";
 
 export type WorkflowRunSchemaVersion =
   | "workflow_run_record.v0"
@@ -250,6 +251,7 @@ export type AgentCopilotRunAuthority = {
 };
 
 export type WorkflowRunRecord = {
+  actionSafety?: ActionSafetyReadProjection | null;
   schemaVersion: WorkflowRunSchemaVersion;
   recordVersion: number;
   runId: string;

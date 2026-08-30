@@ -1,8 +1,8 @@
 # Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1
 
-更新时间：2026-08-29
+更新时间：2026-08-30
 
-状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_approved_batch_e_ready`
+状态：`action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_completed`
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 首版只负责候选动作的执行资格，不创建通用动作执行器。模型、客户端、Prompt、Profile、Workflow 草案、候选审查结果或人工批准都不能直接授予执行权限；确定性规则层必须在每个高风险检查点重读精确 authority，并把结果收口为 `requested_level / maximum_allowed_level / effective_level`。既有 Workflow HTTP Tool 是唯一可进入 `tool_callable` 的执行路径，而且仍必须经过其独立 action plan、人工 confirmation、原子 claim 与单次 allowlisted `GET`。
 
-项目所有者已分别批准并完成批次 A、B、C，并于 2026-08-29 人工批准批次 D Pencil。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run projection 六个检查点。批次 C 又在既有 Agent assignment / event、Agent Run、Workflow HTTP Tool plan 与 Workflow Run owner 中加入同构、版本化、脱敏 snapshot；memory、SQLite 与 PostgreSQL 共用相同 projection contract，历史空三元组显式读取为 `not_recorded_legacy`，损坏、部分写入、未知 / 重复字段、digest 漂移和存储不可用都失败关闭且不按当前 policy 反算。批次 D 已在正式 Family UI 设计源完成 8 个功能画板和 R23 Decision Record，HTTP contract 与 React 仍未改变；当前只具备批次 E 方案评审入口，仍需单独批准后才实施。
+项目所有者已逐批批准并完成 A 至 E。仓库已物化 `action_safety_decision.v1` strict schema、Go 类型 / codec、显式 compatibility / transition matrix、稳定 blocker 顺序、RFC 8785 canonical digest 与纯函数 `ActionSafetyPolicyCompiler`，并把同一 compiler 接入 response normalization、易失 candidate review、既有 Runtime Assignment CAS、canonical Definition-bound HTTP Tool action plan、pre-dispatch 与 Workflow Run projection 六个检查点。既有 Agent assignment / event、Agent Run、Workflow HTTP Tool plan 与 Workflow Run owner 保存同构、版本化、脱敏 snapshot；memory、SQLite 与 PostgreSQL 共用相同 projection contract，历史空三元组显式读取为 `not_recorded_legacy`，损坏、部分写入、未知 / 重复字段、digest 漂移和存储不可用都失败关闭且不按当前 policy 反算。正式 Family UI 设计源的 8 个功能画板和 R23 Decision Record 已映射为单一 HTTP read projection、单一 TypeScript strict consumer 与既有四产品面；专题已完成并关闭，不派生批次 F。
 
 ## 用户价值与目标用户
 
@@ -157,7 +157,7 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 - application / workspace / actor / source 切换用既有 generation + abort 清空 selection、confirmation、decision 与迟到响应。
 - URL、Web Storage、IndexedDB、Cache、cookie 和跨标签消息不得保存 decision payload、候选正文、Tool 参数或 confirmation 内容；跨标签只允许 metadata-only invalidation。
 
-完整 Pencil 已覆盖 Desktop 与不能直接推导的 Narrow，以及 `answer_only`、`proposal_only`、`handoff_ready`、`tool_callable`、`write_blocked`、policy drift、confirmation missing、scope denied、Tool unavailable 和 legacy no-snapshot，并已于 2026-08-29 获项目所有者人工视觉与边界批准。该批准只冻结批次 D 设计，不授权 HTTP contract、React、产品服务或浏览器实现；批次 E 仍需单独评审和批准。
+完整 Pencil 已覆盖 Desktop 与不能直接推导的 Narrow，以及 `answer_only`、`proposal_only`、`handoff_ready`、`tool_callable`、`write_blocked`、policy drift、confirmation missing、scope denied、Tool unavailable 和 legacy no-snapshot，并已于 2026-08-29 获项目所有者人工视觉与边界批准。2026-08-30 完成的 React 映射继续复用既有 Family UI surface，并以 `1440×900`、`720×900`、`390×844` 真实浏览器复核无横向溢出；legacy 状态明确不按当前 policy 回填，页面不提供执行授权。
 
 ## 实施拆分
 
@@ -201,13 +201,19 @@ decision 不保存 input、answer、prompt、context、artifact content、Tool a
 
 ### 批次 E：React strict consumer 与双数据库产品连续链
 
+状态：已完成。
+
 - 实现单一 strict consumer 和 Builder → Reviewer → Controlled Tool / blocked write → Run History 连续链。
 - SQLite 页面链、PostgreSQL configured Server、双标签 CAS、服务重启、三视口、隐私与 side-effect audit 全部复验。
 - 关闭专题时同步真相源并清理服务、容器、数据库与临时材料；不自动派生批次 F。
 
 每个批次都需要项目所有者单独批准。唯一实施入口是[Action Safety Ladder 与候选动作执行资格 v1 高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)。
 
-当前状态为 `batch_d_pencil_approved_batch_e_ready`。下一步先单独评审批次 E 的最小 HTTP read projection 与 strict consumer 边界：只从既有 owner 读取版本化、脱敏 projection，不接受客户端提交 decision 或 authority，不建立新的 Action / Confirmation / Run / Audit owner。代表稿中的业务标签只作为设计数据；真实实现只能映射到仓库中已经存在且会重读 exact resource 的 owner surface。完成方案审查并再次获得项目所有者批准前，不开始 HTTP contract、React、产品服务、数据库产品链或浏览器实现。
+项目所有者已于 2026-08-30 批准批次 E 方案与实施。方案固定单一 `action_safety_read_projection.v1` 只读视图，只挂到既有 Agent turn、Agent Runtime Assignment、Workflow HTTP Tool plan 与 Workflow Run owner；视图只暴露 scope / source / policy / decision exact refs、三段 level、confirmation、canonical blocker、副作用预算、冻结 observed side effects 与 projection digest，不暴露 input、answer、prompt、context、候选正文、Tool 参数、URL、header、credential、provider raw response 或业务载荷。HTTP mutation 不接受 decision、effective level、authority、projection 或 execution token。
+
+Agent response 中的 candidate projection 仍是 canonical response owner 的易失、metadata-only 审查视图；仓库当前没有能够跨请求重读它的独立候选 owner，因此批次 E 不新增 review mutation、candidate store 或浏览器授权状态，也不把代表稿业务标签冒充真实 handoff。只有既有目标 owner 能通过 exact ref 自行重读并重新编译时才显示可继续动作；否则保持只读或阻断。历史 eligible owner 缺少 snapshot 时显式显示 `not_recorded_legacy`，corruption / partial tuple / digest drift 继续返回 `action_safety_store_contract_mismatch`，不得伪装成 legacy。
+
+完成事实：Go 以 `action_safety_read_projection.v1` 将 read-only、strict、metadata-only 投影嵌入既有 Agent turn / Runtime Assignment、Workflow HTTP Tool plan / execution 与 eligible Run read envelope，没有新增 route、mutation field 或 owner。Web 使用单一 strict consumer 拒绝 unknown / sensitive field、非法 exact ref、duplicate decision、blocker / digest / legacy 伪造，并在 Agent Session、Assignment、Tool plan、Tool execution 与 Run History 复用同一只读面板。SQLite 真实页面完成 legacy 明示、authority drift、服务重启精确回读与双标签 review CAS `v1 -> v2` / stale conflict；PostgreSQL 17 configured gate 完成 migration `0028_action_safety_snapshots`、runtime role、reconnect 与 no-fallback。三档浏览器无横向溢出，console 无 warning / error；服务端请求日志只记录 route、request id、status 与 latency，不含 payload。浏览器存储仍只允许既有 exact plan / run metadata ref，decision、候选正文、confirmation 与 Tool 参数不进入 URL 或 storage。回答 / 建议没有重复 provider，既有 Tool 上限仍为一次 allowlisted `GET`，business write / replay 为 0。
 
 ## 验收方式
 

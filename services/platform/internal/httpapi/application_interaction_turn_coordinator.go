@@ -54,6 +54,7 @@ type ApplicationInteractionTurnExecutionResult struct {
 	Answer                    *WorkflowRAGApplicationAnswer
 	PromptOutput              string
 	AgentResponse             *AgentCopilotResponse
+	ActionSafety              *ActionSafetyResponseProjectionV1
 	FailureCode               string
 	FailureSummary            string
 	IdempotentReplay          bool
@@ -207,6 +208,7 @@ func (coordinator applicationInteractionTurnCoordinator) executeAgentCopilotTurn
 	response.FailureCode, response.FailureSummary = failureCode, failureSummary
 	if completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
 		response.AgentResponse, response.FailureCode, response.FailureSummary = result.Response, "", ""
+		response.ActionSafety = result.ActionSafety
 	}
 	if input.SaveResult && response.AgentResponse != nil {
 		content, err := json.Marshal(response.AgentResponse)

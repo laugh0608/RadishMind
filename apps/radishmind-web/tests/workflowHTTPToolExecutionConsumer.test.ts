@@ -11,6 +11,7 @@ import type {
   WorkflowHTTPToolActionConsumerConfig,
   WorkflowHTTPToolActionPlan,
 } from "../src/features/control-plane-read/workflowHTTPToolActionConsumer.ts";
+import { recordedActionSafetyFixture } from "./actionSafetyFixture.ts";
 
 const baseConfig: WorkflowHTTPToolActionConsumerConfig = {
   mode: "dev_workflow_http_tool_http",
@@ -177,6 +178,7 @@ test("consumed Definition plan restores its exact v9 detail without another exec
       workspace_id: envelope.workspace_id,
       application_id: envelope.application_id,
       run: envelope.run,
+      action_safety: envelope.action_safety,
       failure_code: null,
       failure_summary: "",
       audit_ref: "audit_restore_v9",
@@ -390,6 +392,14 @@ function successEnvelope() {
         observed_at: "2026-07-17T02:05:02Z",
       },
     },
+    action_safety: recordedActionSafetyFixture({
+      ownerKind: "workflow_run",
+      ownerId: "run_0123456789abcdef",
+      ownerVersion: 2,
+      applicationId: "app_flow_copilot",
+      level: "tool_callable",
+      observed: true,
+    }),
     failure_code: null,
     failure_summary: "",
     audit_ref: "audit_workflow_tool_execution",
@@ -438,6 +448,14 @@ function definitionSuccessEnvelope() {
     application_id: plan.applicationId,
     action_plan: definitionActionPlanDocument(plan),
     run,
+    action_safety: recordedActionSafetyFixture({
+      ownerKind: "workflow_run",
+      ownerId: run.run_id,
+      ownerVersion: run.record_version,
+      applicationId: plan.applicationId,
+      level: "tool_callable",
+      observed: true,
+    }),
     failure_code: null,
     failure_summary: "",
     audit_ref: "audit_workflow_definition_http_execution",

@@ -1,16 +1,16 @@
 # Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-08-29
+更新时间：2026-08-30
 
 - 任务 ID：`action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1`
-- 状态：`batch_d_pencil_approved_batch_e_ready`
+- 状态：`completed`
 - 功能设计：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](../features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)
 
 ## 准入结论
 
 项目所有者已批准长期功能目标与首版设计边界：把战略层的动作梯度实现为规则层确定性资格，不让模型、客户端或人工批准直接授予执行能力；`tool_callable` 只复用既有 Workflow HTTP Tool 的人工确认只读 `GET`，`write_allowed_by_policy` 在 v1 始终不可达。
 
-本卡是唯一跨模块高风险实施入口。项目所有者已经分别批准并完成批次 A、B、C，并于 2026-08-29 人工批准批次 D Pencil；A 至 E 每批仍必须单独取得项目所有者批准，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡。当前只具备批次 E 方案评审入口，不修改 HTTP contract 或 React，也不自动进入批次 E 实现。
+本卡是唯一跨模块高风险实施入口。项目所有者已经逐批批准并完成 A 至 E，不得创建平行 schema-only、UI-only、readiness 或 gate-only 任务卡；本卡现已关闭，不派生批次 F。
 
 ## 完成目标
 
@@ -103,7 +103,9 @@
 
 ## 批次 E：React strict consumer 与双数据库产品连续链
 
-状态：`not_started_owner_approval_required`。
+状态：`completed`。
+
+项目所有者已于 2026-08-30 批准本批方案与实施。HTTP 只新增统一的 `action_safety_read_projection.v1` read projection，并嵌入既有 Agent turn、Agent Runtime Assignment、Workflow HTTP Tool plan 与 Workflow Run 响应；不注册 action safety route。projection 使用 owner exact ref、recorded / `not_recorded_legacy`、decision / source / policy digest、三段 level、confirmation、canonical blocker、副作用预算、observed side effects 与 projection digest 的严格 allowlist。Agent response candidate 没有跨请求可重读的独立 owner，本批只在当前 response owner 内易失展示，不增加 candidate mutation / store，不允许客户端提交 decision、authority 或 effective level。
 
 - 实现单一 strict consumer，拒绝 unknown / sensitive field、scope / source / policy drift、duplicate decision、非法 blocker 和 legacy 伪造。
 - application / workspace / actor / source 切换使用 generation + abort，清空 selection、decision、confirmation、handoff 与迟到响应。
@@ -114,6 +116,8 @@
 - 收口时同步专题、入口、当前焦点、路线图、能力矩阵、架构、集成契约、任务卡与周志，并清理服务、容器、数据库和临时文件。
 
 完成后关闭本卡，不派生批次 F、通用动作执行器、写入 policy 或 production 续批。
+
+完成证据：既有 HTTP envelope 新增单一 `action_safety_read_projection.v1` read projection，单一 TypeScript strict consumer 与共享面板接入 Agent Session / Assignment、Workflow HTTP Tool plan / execution 和 Run History；没有新增 route、mutation owner 或执行 token。Web 全量 `410/410`、production build、Go `internal/httpapi`、仓库 fast / full gate 均通过；PostgreSQL 17 configured gate 通过 migration `0028`、runtime role、reconnect 与 no-fallback。SQLite 真实页面覆盖重启精确回读、legacy 不反算、authority drift 与双标签 review CAS conflict；`1440×900`、`720×900`、`390×844` 无横向溢出，浏览器 console 无 warning / error。请求日志不含 payload，storage 只允许既有 exact plan / run metadata ref；provider 不重复，Tool 最多一次既有 GET，business write / replay 为 0。
 
 ## 验证矩阵
 
@@ -126,4 +130,4 @@
 
 ## 当前下一步
 
-批次 D 已获项目所有者人工批准，当前保持 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_approved_batch_e_ready`。批次 E 先审查最小 HTTP read projection：只暴露既有 owner 内版本化、脱敏的安全摘要与 exact refs，不接受客户端提交 decision / effective level，不创建通用 decision route、execution token 或第二套 owner；代表稿中的业务标签不得冒充真实外部 owner。方案与验收矩阵再次获得项目所有者批准前，不修改 HTTP 字段 / route，不开始 React，不把 legacy 无 snapshot 记录按当前 policy 反算，也不打开 `write_allowed_by_policy`。
+本卡已完成并关闭。下一步回到[当前推进焦点](../radishmind-current-focus.md)选择新的长期功能目标；不得从本卡派生批次 F、通用动作执行器、写入 policy、production 续批或平行 readiness 卡。

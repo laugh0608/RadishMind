@@ -62,6 +62,7 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 		server.httpServer.Handler.ServeHTTP(response, request)
 		created := decodeWorkflowHTTPToolActionEnvelope(t, response, http.StatusOK)
 		if created.FailureCode != nil || created.ActionPlan == nil ||
+			created.ActionSafety == nil || created.ActionSafety.Status != actionSafetyReadStatusLegacy ||
 			created.ActionPlan.SchemaVersion != workflowHTTPToolPlanSchemaV2 ||
 			created.ActionPlan.SourceKind != workflowHTTPToolSourceDefinition ||
 			created.ActionPlan.WorkflowDefinitionID != version.DefinitionID ||
@@ -90,7 +91,9 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 		server.httpServer.Handler.ServeHTTP(createResponse, createRequest)
 
 		created := decodeWorkflowHTTPToolActionEnvelope(t, createResponse, http.StatusOK)
-		if created.FailureCode != nil || created.ActionPlan == nil || created.ConfirmationDecision != nil {
+		if created.FailureCode != nil || created.ActionPlan == nil || created.ActionSafety == nil ||
+			created.ActionSafety.Status != actionSafetyReadStatusLegacy ||
+			created.ActionSafety.Owner.Kind != "workflow_http_tool_action_plan" || created.ConfirmationDecision != nil {
 			t.Fatalf("create plan should succeed without a decision: %#v", created)
 		}
 		if created.ActionPlan.DraftID != draft.DraftID || created.ActionPlan.DraftVersion != draft.DraftVersion ||
@@ -109,7 +112,8 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 		readResponse := httptest.NewRecorder()
 		server.httpServer.Handler.ServeHTTP(readResponse, readRequest)
 		read := decodeWorkflowHTTPToolActionEnvelope(t, readResponse, http.StatusOK)
-		if read.FailureCode != nil || read.ActionPlan == nil || read.ActionPlan.PlanID != created.ActionPlan.PlanID ||
+		if read.FailureCode != nil || read.ActionPlan == nil || read.ActionSafety == nil ||
+			read.ActionSafety.Owner.Version != read.ActionPlan.RecordVersion || read.ActionPlan.PlanID != created.ActionPlan.PlanID ||
 			read.ActionPlan.RecordVersion != 1 {
 			t.Fatalf("scoped plan read should succeed: %#v", read)
 		}
@@ -126,7 +130,8 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 		decisionResponse := httptest.NewRecorder()
 		server.httpServer.Handler.ServeHTTP(decisionResponse, decisionRequest)
 		approved := decodeWorkflowHTTPToolActionEnvelope(t, decisionResponse, http.StatusOK)
-		if approved.FailureCode != nil || approved.ActionPlan == nil || approved.ConfirmationDecision == nil ||
+		if approved.FailureCode != nil || approved.ActionPlan == nil || approved.ActionSafety == nil ||
+			approved.ActionSafety.Owner.Version != 2 || approved.ConfirmationDecision == nil ||
 			approved.ActionPlan.Status != WorkflowHTTPToolActionStatusApproved || approved.ActionPlan.RecordVersion != 2 ||
 			approved.ConfirmationDecision.Outcome != WorkflowHTTPToolConfirmationApprove {
 			t.Fatalf("approval should be persisted as a separate CAS decision: %#v", approved)
@@ -252,6 +257,8 @@ func TestWorkflowHTTPToolActionHTTPRoutes(t *testing.T) {
 
 		executed := decodeWorkflowHTTPToolExecutionEnvelope(t, response, http.StatusOK)
 		if executed.FailureCode != nil || executed.ActionPlan == nil || executed.Run == nil ||
+			executed.ActionSafety == nil || executed.ActionSafety.Status != actionSafetyReadStatusLegacy ||
+			executed.ActionSafety.Owner.Kind != "workflow_run" ||
 			executed.ActionPlan.Status != WorkflowHTTPToolActionStatusConsumed ||
 			executed.Run.SchemaVersion != workflowRunRecordToolSchemaVersion ||
 			executed.Run.Status != WorkflowRunStatusSucceeded ||

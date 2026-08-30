@@ -6,6 +6,10 @@ import {
   type WorkflowRunSchemaVersion,
   type WorkflowRunStatus,
 } from "./workflowRunRecordConsumer.ts";
+import {
+  parseActionSafetyReadProjection,
+  type ActionSafetyReadProjection,
+} from "./actionSafetyConsumer.ts";
 
 const DEV_RUN_HISTORY_SOURCE = "dev-workflow-run-history-http";
 const LEGACY_DEV_EXECUTOR_SOURCE = "dev-workflow-executor-http";
@@ -148,6 +152,7 @@ export type WorkflowRunHistorySummary = {
   retrievalContextBytes: number;
   retrievalFailureCategory: string;
   recommendedReviewAction: string;
+  actionSafety: ActionSafetyReadProjection | null;
   sideEffects: { retrievalCalls: number; providerCalls: number; toolCalls: number; confirmationCalls: number; businessWrites: number; replayWrites: number };
 };
 
@@ -245,6 +250,7 @@ type RunSummaryDocument = {
   retrieval_profile_version?: number; retrieval_profile_digest?: string; query_digest?: string; query_bytes?: number;
   candidate_count?: number; selected_fragments?: Array<{ fragment_ref: string; content_digest: string; rank: number; source_type: string; is_official: boolean; excerpt_truncated: boolean }>;
   citation_refs?: string[]; retrieval_latency_ms?: number; retrieval_context_bytes?: number; retrieval_failure_category?: string;
+  action_safety?: unknown;
   side_effects: { retrieval_calls?: number; provider_calls: number; tool_calls: number; confirmation_calls: number; business_writes: number; replay_writes: number };
 };
 
@@ -281,7 +287,7 @@ export async function listWorkflowRunHistory(
   const body: unknown = await response.json();
   if (!response.ok || !isRunHistoryEnvelope(body)) throw new Error(`workflow run history route failed with HTTP ${response.status}`);
   if (body.failure_code) return { status: "failed", runs: [], nextCursor: "", hasMore: false, requestId: body.request_id, auditRef: body.audit_ref, failureCode: body.failure_code, failureSummary: body.failure_summary };
-  const runs = body.runs.map(toSummary);
+  const runs = body.runs.map((run) => toSummary(run, config, applicationId));
   return { status: previousRuns.length + runs.length ? "ready" : "empty", runs: [...previousRuns, ...runs], nextCursor: body.next_cursor, hasMore: body.has_more, requestId: body.request_id, auditRef: body.audit_ref, failureCode: "", failureSummary: "" };
 }
 
@@ -308,7 +314,27 @@ export async function readWorkflowRunHistoryDetail(
   if (!isRAGFragmentPreviews(previews, record, includeRetrievalFragmentPreviews)) {
     throw new Error("workflow run detail contains incompatible retrieval previews");
   }
-  return { ...record, retrievalFragmentPreviews: previews.map((preview) => ({ fragmentRef: preview.fragment_ref, preview: preview.preview, truncated: preview.truncated })) };
+  const eligible = actionSafetyRunEligible(record.schemaVersion);
+  const actionSafety = body.action_safety === null
+    ? null
+    : parseActionSafetyReadProjection(body.action_safety, {
+        tenantRef: config.tenantRef,
+        workspaceId: config.workspaceId,
+        applicationId,
+        ownerKinds: ["workflow_run"],
+        ownerId: record.runId,
+        ownerVersion: record.recordVersion,
+      });
+  if ((eligible && !actionSafety) || (!eligible && body.action_safety !== null)) {
+    throw new Error("workflow run detail contains incompatible Action Safety evidence");
+  }
+  return {
+    ...record,
+    actionSafety,
+    retrievalFragmentPreviews: previews.map((preview) => ({
+      fragmentRef: preview.fragment_ref, preview: preview.preview, truncated: preview.truncated,
+    })),
+  };
 }
 
 function workflowRunHistoryHeaders(config: WorkflowExecutorConsumerConfig, applicationId: string, includeRetrievalFragmentPreviews = false): HeadersInit {
@@ -319,7 +345,11 @@ function normalizeBaseUrl(value: string): string {
   return value.trim().replace(/\/+$/u, "");
 }
 
-function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
+function toSummary(
+  value: RunSummaryDocument,
+  config: WorkflowExecutorConsumerConfig,
+  applicationId: string,
+): WorkflowRunHistorySummary {
   const sideEffects = value.side_effects;
   const toolRecord = value.schema_version === "workflow_run_record.v2" || value.schema_version === "workflow_run_record.v9";
   const retrievalRecord = value.schema_version === "workflow_run_record.v3" || value.schema_version === "workflow_run_record.v4";
@@ -329,6 +359,20 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     (retrievalRecord && ![0, 1].includes(sideEffects.retrieval_calls ?? -1)) ||
     (!retrievalRecord && (sideEffects.retrieval_calls ?? 0) !== 0)) {
     throw new Error("workflow run history contains an incompatible side effect count");
+  }
+  const eligible = actionSafetyRunEligible(value.schema_version);
+  const actionSafety = value.action_safety === undefined
+    ? null
+    : parseActionSafetyReadProjection(value.action_safety, {
+        tenantRef: config.tenantRef,
+        workspaceId: config.workspaceId,
+        applicationId,
+        ownerKinds: ["workflow_run"],
+        ownerId: value.run_id,
+        ownerVersion: value.record_version,
+      });
+  if ((eligible && !actionSafety) || (!eligible && value.action_safety !== undefined)) {
+    throw new Error("workflow run history contains incompatible Action Safety evidence");
   }
   return {
     schemaVersion: value.schema_version, runId: value.run_id, planId: value.plan_id ?? "",
@@ -360,6 +404,7 @@ function toSummary(value: RunSummaryDocument): WorkflowRunHistorySummary {
     failureBoundary: value.failure_boundary ?? "", failedNodeId: value.failed_node_id ?? "",
     lastCompletedNodeId: value.last_completed_node_id ?? "", gatewayFailureCategory: value.gateway_failure_category ?? "",
     toolFailureCategory: value.tool_failure_category ?? "", recommendedReviewAction: value.recommended_review_action ?? "",
+    actionSafety,
     snapshotId: value.snapshot_id ?? "", snapshotVersion: value.snapshot_version ?? 0, snapshotDigest: value.snapshot_digest ?? "", ragRef: value.rag_ref ?? "",
     retrievalNodeId: value.retrieval_node_id ?? "", retrievalAttemptStatus: value.retrieval_attempt_status ?? "", retrievalProfileId: value.retrieval_profile_id ?? "", retrievalProfileVersion: value.retrieval_profile_version ?? 0, retrievalProfileDigest: value.retrieval_profile_digest ?? "", queryDigest: value.query_digest ?? "", queryBytes: value.query_bytes ?? 0, candidateCount: value.candidate_count ?? 0,
     selectedFragments: (value.selected_fragments ?? []).map((fragment) => ({ fragmentRef: fragment.fragment_ref, contentDigest: fragment.content_digest, rank: fragment.rank, sourceType: fragment.source_type as WorkflowRAGRunSelectedFragment["sourceType"], isOfficial: fragment.is_official, excerptTruncated: fragment.excerpt_truncated })),
@@ -495,17 +540,23 @@ function isRAGRunSummary(item: Partial<RunSummaryDocument>): boolean {
   return new Set(item.citation_refs).size === item.citation_refs.length && item.citation_refs.every((citation) => selectedRefs.has(citation));
 }
 
-type RunDetailEnvelope = { request_id: string; workspace_id: string; application_id: string; run: unknown | null; failure_code: string | null; failure_summary: string; audit_ref: string; retrieval_fragment_previews?: Array<{ fragment_ref: string; preview: string; truncated: boolean }> };
+type RunDetailEnvelope = { request_id: string; workspace_id: string; application_id: string; run: unknown | null; action_safety: unknown | null; failure_code: string | null; failure_summary: string; audit_ref: string; retrieval_fragment_previews?: Array<{ fragment_ref: string; preview: string; truncated: boolean }> };
 
 function isRunDetailEnvelope(value: unknown, config: WorkflowExecutorConsumerConfig, applicationId: string): value is RunDetailEnvelope {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const item = value as Partial<RunDetailEnvelope>;
   const raw = value as Record<string, unknown>;
-  const allowed = new Set(["request_id", "workspace_id", "application_id", "run", "failure_code", "failure_summary", "audit_ref", "retrieval_fragment_previews"]);
+  const allowed = new Set(["request_id", "workspace_id", "application_id", "run", "action_safety", "failure_code", "failure_summary", "audit_ref", "retrieval_fragment_previews"]);
   return Object.keys(raw).every((key) => allowed.has(key)) && typeof item.request_id === "string" && item.workspace_id === config.workspaceId &&
     item.application_id === applicationId && (item.run === null || typeof item.run === "object") &&
+    Object.hasOwn(raw, "action_safety") && (item.action_safety === null || typeof item.action_safety === "object") &&
     (item.failure_code === null || typeof item.failure_code === "string") && typeof item.failure_summary === "string" &&
     typeof item.audit_ref === "string" && (item.retrieval_fragment_previews === undefined || Array.isArray(item.retrieval_fragment_previews));
+}
+
+function actionSafetyRunEligible(schemaVersion: WorkflowRunSchemaVersion): boolean {
+  return schemaVersion === "workflow_run_record.v2" || schemaVersion === "workflow_run_record.v7" ||
+    schemaVersion === "workflow_run_record.v9";
 }
 
 function isRAGFragmentPreviews(value: unknown, record: WorkflowRunRecord, requested: boolean): value is Array<{ fragment_ref: string; preview: string; truncated: boolean }> {

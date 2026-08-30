@@ -3,6 +3,10 @@ import type {
   WorkflowDraftDesignerDraft,
   WorkflowDraftDesignerNode,
 } from "./workflowDraftDesigner.ts";
+import {
+  parseActionSafetyReadProjection,
+  type ActionSafetyReadProjection,
+} from "./actionSafetyConsumer.ts";
 
 const DEV_WORKFLOW_HTTP_TOOL_SOURCE = "dev-workflow-http-tool-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -24,7 +28,7 @@ const EXECUTE_SCOPE_GRANTS = ["workflow_tool_actions:execute", "workflow_runs:ex
 const DEFINITION_EXECUTE_SCOPE_GRANTS = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_definitions:read"] as const;
 const DEFAULT_BATCH_A_SCOPE_GRANTS = [...PLAN_SCOPE_GRANTS, ...READ_SCOPE_GRANTS, ...CONFIRM_SCOPE_GRANTS];
 const ACTION_PLAN_ENVELOPE_KEYS = [
-  "request_id", "workspace_id", "application_id", "action_plan", "confirmation_decision",
+  "request_id", "workspace_id", "application_id", "action_plan", "action_safety", "confirmation_decision",
   "failure_code", "failure_summary", "audit_ref",
 ] as const;
 const ACTION_PLAN_KEYS = [
@@ -207,6 +211,7 @@ export type WorkflowHTTPToolActionConsumerState = {
   requestId: string;
   auditRef: string;
   actionPlan: WorkflowHTTPToolActionPlan | null;
+  actionSafety: ActionSafetyReadProjection | null;
   confirmationDecision: WorkflowHTTPToolConfirmationDecision | null;
 };
 
@@ -244,6 +249,7 @@ type ActionPlanEnvelopeDocument = {
   workspace_id: string;
   application_id: string;
   action_plan: ActionPlanDocument | null;
+  action_safety: unknown | null;
   confirmation_decision: ConfirmationDecisionDocument | null;
   failure_code: string | null;
   failure_summary: string;
@@ -406,6 +412,7 @@ export function initialWorkflowHTTPToolActionConsumerState(
       requestId: "workflow-http-tool-action-disabled",
       auditRef: "audit_workflow_http_tool_action_disabled",
       actionPlan: null,
+      actionSafety: null,
       confirmationDecision: null,
     };
   }
@@ -417,6 +424,7 @@ export function initialWorkflowHTTPToolActionConsumerState(
     requestId: "workflow-http-tool-action-idle",
     auditRef: "audit_workflow_http_tool_action_idle",
     actionPlan: null,
+    actionSafety: null,
     confirmationDecision: null,
   };
 }
@@ -852,6 +860,16 @@ function stateFromEnvelope(
   const confirmationDecision = envelope.confirmation_decision
     ? mapConfirmationDecision(envelope.confirmation_decision)
     : null;
+  const actionSafety = plan
+    ? parseActionSafetyReadProjection(envelope.action_safety, {
+        tenantRef: config.tenantRef,
+        workspaceId: config.workspaceId,
+        applicationId: plan.applicationId,
+        ownerKinds: ["workflow_http_tool_action_plan"],
+        ownerId: plan.planId,
+        ownerVersion: plan.recordVersion,
+      })
+    : null;
   if (envelope.failure_code || !plan) {
     return {
       status: "failed",
@@ -861,6 +879,7 @@ function stateFromEnvelope(
       requestId: envelope.request_id,
       auditRef: envelope.audit_ref,
       actionPlan: plan,
+      actionSafety,
       confirmationDecision: null,
     };
   }
@@ -877,6 +896,7 @@ function stateFromEnvelope(
     requestId: envelope.request_id,
     auditRef: envelope.audit_ref,
     actionPlan: plan,
+    actionSafety,
     confirmationDecision,
   };
 }
@@ -891,6 +911,16 @@ function isActionPlanEnvelope(
     !(value.failure_code === null || isNonEmptyString(value.failure_code)) || typeof value.failure_summary !== "string" ||
     !isNonEmptyString(value.audit_ref)) return false;
   if (!(value.action_plan === null || isActionPlanDocument(value.action_plan, config, applicationId))) return false;
+  if (value.action_plan === null) {
+    if (value.action_safety !== null) return false;
+  } else if (!parseActionSafetyReadProjection(value.action_safety, {
+    tenantRef: config.tenantRef,
+    workspaceId: config.workspaceId,
+    applicationId,
+    ownerKinds: ["workflow_http_tool_action_plan"],
+    ownerId: value.action_plan.plan_id,
+    ownerVersion: value.action_plan.record_version,
+  })) return false;
   if (!(value.confirmation_decision === null || isConfirmationDecisionDocument(value.confirmation_decision, config, applicationId))) return false;
   if (value.failure_code === null && value.action_plan === null) return false;
   if (value.failure_code !== null && (value.action_plan !== null || value.confirmation_decision !== null)) return false;
@@ -1103,6 +1133,7 @@ function failedState(
     requestId: "",
     auditRef: actionPlan?.auditRef ?? "",
     actionPlan,
+    actionSafety: null,
     confirmationDecision: null,
   };
 }

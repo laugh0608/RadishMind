@@ -98,6 +98,7 @@ type applicationInteractionTurnEnvelope struct {
 	Answer                    *WorkflowRAGApplicationAnswer     `json:"answer,omitempty"`
 	PromptOutput              string                            `json:"prompt_output,omitempty"`
 	AgentResponse             *AgentCopilotResponse             `json:"agent_response,omitempty"`
+	ActionSafety              *ActionSafetyReadProjectionV1     `json:"action_safety"`
 	FailureCode               *string                           `json:"failure_code"`
 	FailureSummary            string                            `json:"failure_summary"`
 	IdempotentReplay          bool                              `json:"idempotent_replay"`
@@ -414,8 +415,8 @@ func writeApplicationInteractionTurnResult(writer http.ResponseWriter, status in
 		SessionID: strings.TrimSpace(sessionID), Session: result.Session, Turn: result.Turn,
 		ResultArtifact: result.ResultArtifact, ResultArtifactFailureCode: optionalApplicationDraftFailure(result.ResultArtifactFailureCode),
 		AdvisoryOutput: result.AdvisoryOutput, Answer: result.Answer, PromptOutput: result.PromptOutput,
-		AgentResponse: result.AgentResponse,
-		FailureCode:   optionalApplicationDraftFailure(result.FailureCode), FailureSummary: result.FailureSummary,
+		AgentResponse: result.AgentResponse, ActionSafety: actionSafetyReadFromResponse(result.ActionSafety),
+		FailureCode: optionalApplicationDraftFailure(result.FailureCode), FailureSummary: result.FailureSummary,
 		IdempotentReplay: result.IdempotentReplay, AuditRef: ctx.AuditRef,
 	})
 }

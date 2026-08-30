@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
+import ActionSafetyReadPanel from "./ActionSafetyReadPanel.tsx";
 import {
   initialApplicationPublishListState,
   listApplicationPublishCandidates,
@@ -123,6 +124,7 @@ export default function AgentCopilotRuntimePanel({
           <div><dt>Updated</dt><dd>{runtime.assignment.updatedAt}</dd></div>
         </dl>
       ) : <p className="boundary-note">当前没有 assignment。请选择 approved v4 candidate 并显式 activate。</p>}
+      <ActionSafetyReadPanel projection={runtime.actionSafety} title="Assignment safety" />
       <label>Approved Agent candidate<select value={candidateId} onChange={(event) => setCandidateId(event.target.value)}><option value="">No candidate selected</option>{approved.map((candidate) => <option key={candidate.candidateId} value={candidate.candidateId}>{candidate.candidateId} · profile v{candidate.agentCopilotProfileRef?.profileVersion}</option>)}</select></label>
       <button type="button" onClick={() => void decide()} disabled={!enabled || busy || (action !== "revoke" && !candidateId)}>
         {action} with CAS v{runtime.currentAssignmentVersion}

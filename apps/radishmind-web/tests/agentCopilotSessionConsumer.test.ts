@@ -7,6 +7,7 @@ import {
   type AgentCopilotSession,
   type AgentCopilotSessionConfig,
 } from "../src/features/control-plane-read/agentCopilotSessionConsumer.ts";
+import { recordedActionSafetyFixture } from "./actionSafetyFixture.ts";
 
 const config: AgentCopilotSessionConfig = {
   mode: "dev_application_session_http",
@@ -58,6 +59,7 @@ test("Agent turn keeps context request-only and maps one transient advisory resp
   assert.equal(result.status, "succeeded");
   assert.equal(result.turn?.runId, "run_aaaaaaaaaaaaaaaa");
   assert.equal(result.response?.proposedActions[0]?.requiresConfirmation, true);
+  assert.equal(result.actionSafety?.status, "recorded");
   assert.equal(result.resultArtifact?.artifactId, "appres_aaaaaaaaaaaaaaaa");
   assert.match(capturedBody, /selected_unit_ids/u);
   assert.match(capturedBody, /"save_result":true/u);
@@ -68,7 +70,9 @@ test("Agent turn keeps context request-only and maps one transient advisory resp
 });
 
 test("Agent turn drops replay output and rejects safety relaxation or sensitive response material", async () => {
-  globalThis.fetch = async () => jsonResponse({ ...turnEnvelope(), idempotent_replay: true, agent_response: null });
+  globalThis.fetch = async () => jsonResponse({
+    ...turnEnvelope(), idempotent_replay: true, agent_response: null, action_safety: null,
+  });
   const replay = await executeAgentCopilotSessionTurn(config, session(), turnInput());
   assert.equal(replay.status, "replayed");
   assert.equal(replay.response, null);
@@ -185,6 +189,13 @@ function turnEnvelope(): Record<string, any> {
       risk_level: "medium",
       requires_confirmation: true,
     },
+    action_safety: recordedActionSafetyFixture({
+      ownerKind: "agent_copilot_response",
+      ownerId: "run_aaaaaaaaaaaaaaaa",
+      ownerVersion: 1,
+      applicationId,
+      level: "answer_only",
+    }),
     result_artifact: artifactSummary(),
     idempotent_replay: false,
     failure_code: null,

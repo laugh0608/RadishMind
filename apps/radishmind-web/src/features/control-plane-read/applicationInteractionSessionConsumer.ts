@@ -237,6 +237,7 @@ type TurnEnvelope = {
   session_id: string;
   session: unknown;
   turn: unknown;
+  action_safety: null;
   advisory_output?: string;
   answer?: unknown;
   result_artifact?: unknown;
@@ -630,11 +631,11 @@ function isTurnListEnvelope(value: unknown, config: ApplicationInteractionSessio
 
 function isTurnEnvelope(value: unknown, config: ApplicationInteractionSessionConfig, applicationId: string, sessionId: string): value is TurnEnvelope {
   if (!isRecord(value)) return false;
-  const allowed = new Set(["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "result_artifact", "result_artifact_failure_code", "advisory_output", "answer", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"]);
-  const required = ["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"];
+  const allowed = new Set(["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "action_safety", "result_artifact", "result_artifact_failure_code", "advisory_output", "answer", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"]);
+  const required = ["request_id", "tenant_ref", "workspace_id", "application_id", "session_id", "session", "turn", "action_safety", "failure_code", "failure_summary", "idempotent_replay", "audit_ref"];
   return required.every((key) => Object.hasOwn(value, key)) && Object.keys(value).every((key) => allowed.has(key)) &&
     !containsForbiddenFieldExceptAnswer(value) && envelopeScopeMatches(value, config, applicationId) && value.session_id === sessionId &&
-    (value.session === null || isRecord(value.session)) && (value.turn === null || isRecord(value.turn)) &&
+    (value.session === null || isRecord(value.session)) && (value.turn === null || isRecord(value.turn)) && value.action_safety === null &&
     (value.result_artifact === undefined || value.result_artifact === null || isRecord(value.result_artifact)) &&
     (value.result_artifact_failure_code === undefined || typeof value.result_artifact_failure_code === "string" && REF_PATTERN.test(value.result_artifact_failure_code)) &&
     (value.advisory_output === undefined || typeof value.advisory_output === "string") && (value.answer === undefined || value.answer === null || isRecord(value.answer)) &&

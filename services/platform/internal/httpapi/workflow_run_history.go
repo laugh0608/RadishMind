@@ -123,6 +123,7 @@ type WorkflowRunSummary struct {
 	RetrievalContextBytes    int                               `json:"retrieval_context_bytes,omitempty"`
 	RetrievalFailureCategory string                            `json:"retrieval_failure_category,omitempty"`
 	RecommendedReviewAction  WorkflowRunReviewAction           `json:"recommended_review_action"`
+	ActionSafety             *ActionSafetyReadProjectionV1     `json:"action_safety,omitempty"`
 	retrievalAttemptPresent  bool
 }
 
@@ -362,7 +363,7 @@ func summarizeWorkflowRun(record WorkflowRunRecord, now time.Time) WorkflowRunSu
 		SelectedProvider: record.SelectedProvider, SelectedProfile: record.SelectedProfile,
 		SelectedModel: record.SelectedModel, RequestID: record.RequestID, AuditRef: record.AuditRef,
 		InputContractID: record.InputContractID, InputContractDigest: record.InputContractDigest,
-		SideEffects:  record.SideEffects,
+		SideEffects: record.SideEffects, ActionSafety: actionSafetyReadFromRun(&record),
 		StaleRunning: record.Status == WorkflowRunStatusRunning && now.Sub(startedAt) > workflowExecutorDefaultMaxRuntime,
 	}
 	if record.ToolAttempt != nil {

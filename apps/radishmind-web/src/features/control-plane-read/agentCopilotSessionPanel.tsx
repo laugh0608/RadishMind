@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 import ApplicationResultArtifactPanel from "./applicationResultArtifactPanel.tsx";
+import ActionSafetyReadPanel from "./ActionSafetyReadPanel.tsx";
 import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   createAgentCopilotSession,
@@ -133,6 +134,7 @@ export default function AgentCopilotSessionPanel({
     setResult((current) => ({
       ...current,
       response: null,
+      actionSafety: null,
       resultArtifact: null,
       resultArtifactFailureCode: "",
       status: "blocked",
@@ -202,6 +204,7 @@ export default function AgentCopilotSessionPanel({
               ))}
             </>
           ) : null}
+          <ActionSafetyReadPanel projection={result.actionSafety} title="Current response safety" transient />
           {result.turn?.runId ? <button type="button" onClick={() => onOpenRun?.(result.turn?.runId ?? "")}>Open Run v7 evidence</button> : null}
           <p className="boundary-note">响应不会写入 URL 或 browser storage；离开 stage、应用 revision 变化或取消请求会清除当前输入与回答并拒绝迟到响应。</p>
         </article>

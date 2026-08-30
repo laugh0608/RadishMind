@@ -6,6 +6,7 @@ import {
   readAgentCopilotRuntime,
   type AgentCopilotRuntimeConfig,
 } from "../src/features/control-plane-read/agentCopilotRuntimeConsumer.ts";
+import { recordedActionSafetyFixture } from "./actionSafetyFixture.ts";
 
 const config: AgentCopilotRuntimeConfig = {
   mode: "dev_agent_copilot_http",
@@ -21,6 +22,7 @@ test("Agent runtime reads exact assignment lineage and append-only events", asyn
   const result = await readAgentCopilotRuntime(config, applicationId);
   assert.equal(result.status, "ready");
   assert.equal(result.assignment?.profile.profileVersion, 1);
+  assert.equal(result.actionSafety?.decisions[0]?.effectiveLevel, "handoff_ready");
   assert.equal(result.events[0]?.resultingAssignmentVersion, 1);
 });
 
@@ -33,6 +35,7 @@ test("Agent runtime decision sends only CAS fields and preserves a version confl
     return jsonResponse({
       ...runtimeEnvelope(),
       assignment: null,
+      action_safety: null,
       events: [],
       current_assignment_version: 2,
       current_state: "active",
@@ -73,6 +76,7 @@ test("Agent runtime rejects scope drift, broken event continuity, and sensitive 
 function runtimeEnvelope(): Record<string, any> {
   return {
     request_id: "agent-runtime-test",
+    tenant_ref: "tenant_demo",
     workspace_id: "workspace_demo",
     application_id: applicationId,
     assignment: {
@@ -98,6 +102,13 @@ function runtimeEnvelope(): Record<string, any> {
       updated_at: "2026-07-25T10:00:00Z",
       revoked_at: null,
     },
+    action_safety: recordedActionSafetyFixture({
+      ownerKind: "agent_copilot_runtime_assignment",
+      ownerId: "acra_aaaaaaaaaaaaaaaa",
+      ownerVersion: 1,
+      applicationId,
+      level: "handoff_ready",
+    }),
     events: [{
       schema_version: "agent_copilot_runtime_assignment_event.v1",
       event_id: "acrae_aaaaaaaaaaaaaaaa",

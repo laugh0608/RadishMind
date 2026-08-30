@@ -5670,6 +5670,14 @@ dd {
   font-size: 0.9rem;
 }
 
+.action-safety-read-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+}
+
 .workflow-executor-summary-grid p,
 .workflow-executor-state-card p,
 .workflow-executor-node-list p,

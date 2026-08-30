@@ -2,6 +2,10 @@ import {
   parseApplicationResultArtifactSummary,
   type ApplicationResultArtifactSummary,
 } from "./applicationResultArtifactConsumer.ts";
+import {
+  parseActionSafetyReadProjection,
+  type ActionSafetyReadProjection,
+} from "./actionSafetyConsumer.ts";
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const EXECUTION_PROFILE = "agent_copilot_suggestion_v1";
@@ -56,6 +60,7 @@ export type AgentCopilotSessionResult = {
   session: AgentCopilotSession | null;
   turn: AgentCopilotSessionTurn | null;
   response: AgentCopilotResponse | null;
+  actionSafety: ActionSafetyReadProjection | null;
   resultArtifact: ApplicationResultArtifactSummary | null;
   resultArtifactFailureCode: string;
   failureCode: string;
@@ -106,6 +111,7 @@ export function initialAgentCopilotSessionResult(
     session: null,
     turn: null,
     response: null,
+    actionSafety: null,
     resultArtifact: null,
     resultArtifactFailureCode: "",
     failureCode: config.mode === "offline" ? "application_session_http_disabled" : "",
@@ -205,12 +211,24 @@ async function requestSession(
     const agentResponse = !replay && isAgentResponse(value.agent_response)
       ? mapAgentResponse(value.agent_response)
       : null;
+    const actionSafety = !expectedSessionId || value.action_safety === null
+      ? null
+      : parseActionSafetyReadProjection(value.action_safety, {
+          tenantRef: config.tenantRef,
+          workspaceId: config.workspaceId,
+          applicationId,
+          ownerKinds: ["agent_copilot_response"],
+          ownerId: turn?.runId,
+          ownerVersion: 1,
+        });
     const resultArtifact = value.result_artifact === undefined || value.result_artifact === null
       ? null
       : parseApplicationResultArtifactSummary(value.result_artifact, config, applicationId, expectedSessionId ?? "");
     const resultArtifactFailureCode = nullableString(value.result_artifact_failure_code);
     if ((value.result_artifact !== undefined && value.result_artifact !== null && !resultArtifact) ||
       (resultArtifact && resultArtifactFailureCode) ||
+      (expectedSessionId !== null && value.action_safety !== null && !actionSafety) ||
+      (expectedSessionId !== null && Boolean(agentResponse) !== Boolean(actionSafety)) ||
       (resultArtifactFailureCode && (!turn || turn.status !== "succeeded" || Boolean(failureCode))) ||
       (resultArtifact && (!turn || resultArtifact.turnId !== turn.turnId || resultArtifact.runRef.runId !== turn.runId))) {
       return failed("application_session_response_invalid");
@@ -220,6 +238,7 @@ async function requestSession(
       session,
       turn,
       response: agentResponse,
+      actionSafety,
       resultArtifact,
       resultArtifactFailureCode,
       failureCode,
@@ -257,6 +276,7 @@ function isEnvelope(
   return value.session_id === expectedSessionId && value.session !== null &&
     (value.turn === null || isTurn(value.turn, config, applicationId, expectedSessionId)) &&
     (value.agent_response === undefined || value.agent_response === null || isAgentResponse(value.agent_response)) &&
+    Object.hasOwn(value, "action_safety") && (value.action_safety === null || isRecord(value.action_safety)) &&
     (value.result_artifact === undefined || value.result_artifact === null || isRecord(value.result_artifact)) &&
     (value.result_artifact_failure_code === undefined || typeof value.result_artifact_failure_code === "string" && /^[a-z][a-z0-9_]{2,127}$/u.test(value.result_artifact_failure_code)) &&
     value.prompt_output === undefined && value.answer === undefined && value.advisory_output === undefined &&
@@ -407,6 +427,7 @@ function failed(failureCode: string): AgentCopilotSessionResult {
     session: null,
     turn: null,
     response: null,
+    actionSafety: null,
     resultArtifact: null,
     resultArtifactFailureCode: "",
     failureCode,

@@ -16,16 +16,17 @@ type agentCopilotInvocationBody struct {
 }
 
 type agentCopilotInvocationEnvelope struct {
-	RequestID        string                   `json:"request_id"`
-	TenantRef        string                   `json:"tenant_ref"`
-	WorkspaceID      string                   `json:"workspace_id"`
-	ApplicationID    string                   `json:"application_id"`
-	Run              *AgentCopilotRunRecordV7 `json:"run"`
-	Response         *AgentCopilotResponse    `json:"response"`
-	FailureCode      *string                  `json:"failure_code"`
-	FailureSummary   string                   `json:"failure_summary"`
-	IdempotentReplay bool                     `json:"idempotent_replay"`
-	AuditRef         string                   `json:"audit_ref"`
+	RequestID        string                        `json:"request_id"`
+	TenantRef        string                        `json:"tenant_ref"`
+	WorkspaceID      string                        `json:"workspace_id"`
+	ApplicationID    string                        `json:"application_id"`
+	Run              *AgentCopilotRunRecordV7      `json:"run"`
+	Response         *AgentCopilotResponse         `json:"response"`
+	ActionSafety     *ActionSafetyReadProjectionV1 `json:"action_safety"`
+	FailureCode      *string                       `json:"failure_code"`
+	FailureSummary   string                        `json:"failure_summary"`
+	IdempotentReplay bool                          `json:"idempotent_replay"`
+	AuditRef         string                        `json:"audit_ref"`
 }
 
 func (server *Server) handleAgentCopilotInvocation(writer http.ResponseWriter, request *http.Request) {
@@ -73,9 +74,17 @@ func (server *Server) handleAgentCopilotInvocation(writer http.ResponseWriter, r
 	writeObservedJSON(writer, status, trace, agentCopilotInvocationEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, Run: run, Response: result.Response,
+		ActionSafety:   agentCopilotInvocationActionSafetyRead(result),
 		FailureCode:    optionalApplicationDraftFailure(strings.TrimSpace(result.FailureCode)),
 		FailureSummary: result.FailureSummary, IdempotentReplay: result.IdempotentReplay, AuditRef: ctx.AuditRef,
 	})
+}
+
+func agentCopilotInvocationActionSafetyRead(result AgentCopilotInvocationResult) *ActionSafetyReadProjectionV1 {
+	if view := actionSafetyReadFromResponse(result.ActionSafety); view != nil {
+		return view
+	}
+	return actionSafetyReadFromRun(result.Run)
 }
 
 func (server *Server) agentCopilotInvocationService() agentCopilotInvocationService {

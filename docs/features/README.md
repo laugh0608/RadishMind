@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-29 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全以及工作区 Workflow 模板目录均已关闭。[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_batch_d_pencil_approved_batch_e_ready`；批次 A strict contract / compiler、批次 B 六个既有 owner checkpoint、批次 C memory / SQLite / PostgreSQL 同构 snapshot 与批次 D 的 8 个功能画板 + R23 Decision 已完成，Pencil 已获项目所有者人工批准。当前不新增 HTTP contract 或 React，只评审批次 E 的最小 read projection 与 owner 映射。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入保持 `no_entry`；真实 Radish OIDC 批次 E 继续等待外部条件。
+2026-08-30 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、工作区 Workflow 模板目录以及[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)均已关闭。Action Safety 批次 A 至 E 已完成 strict contract / compiler、六个 owner checkpoint、memory / SQLite / PostgreSQL 同构 snapshot、获人工批准的 Pencil、单一 HTTP read projection、单一 Web strict consumer 与双数据库产品证据；不派生批次 F。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入保持 `no_entry`；真实 Radish OIDC 批次 E 继续等待外部条件。下一产品顺位尚未选择。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -43,7 +43,7 @@
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | Provider Attempt S5 Playground / Request History strict consumer 与产品连续链已完成；不启动全历史 summary、billing 或收件箱批次 B |
 | [管理控制面](admin-control-plane.md) | Provider / Route、quota、Pricing、本地账户、联合登录、workspace 成员管理与当前账户安全自助治理均已有开发测试态 canonical owner | 本地账户凭证轮换与自助会话治理批次 A 至 E 已关闭；下一入口回到功能索引选择新长期目标，不打开 production auth |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 E、Visual R1、React、双数据库、三协议和浏览器均已关闭；真实 Provider 与 production 继续关闭 |
-| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition HTTP Tool 与工作区模板目录均已关闭 | Action Safety Ladder 批次 A 至 D Pencil 已完成并获人工批准，下一步只评审批次 E 的最小 HTTP read projection 与 strict consumer；不放宽通用 executor 或业务写回 |
+| [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition HTTP Tool、工作区模板目录与 Action Safety Ladder 均已关闭 | 下一顺位回到功能设计评审；不从已关闭专题放宽通用 executor、写入 policy 或业务写回 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
 
 ## 细专题导航
@@ -99,8 +99,8 @@
 | [Workflow 受控 HTTP Tool 与人工确认执行 v1 实施任务卡](../task-cards/workflow-controlled-http-tool-human-confirmation-dev-test-v1-plan.md) | 高风险实现批次 | 三批完成，状态为 `workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed` |
 | [Workflow Definition 绑定受控 HTTP Tool v1](workflow/workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_completed`；批次 A 至 D 已完成 profile、v3 Definition、action plan / decision v2、run v9、三种 store、React、SQLite 重启和真实浏览器三视口；专题关闭 |
 | [Workflow Definition 绑定受控 HTTP Tool v1 实施任务卡](../task-cards/workflow-definition-http-tool-v1-plan.md) | 已归档高风险实现批次 | A / B / C / D 全部完成；不建立平行 confirmation、selector、数据库、批次 E 或 readiness 卡 |
-| [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) | 功能 / 跨 owner 高风险资格专题 | 批次 A contract / compiler、批次 B 六个 checkpoint、批次 C 双数据库 snapshot 与批次 D 完整 Pencil 已完成并获人工批准；`write_allowed_by_policy` 的有效结果在 v1 不可达 |
-| [Action Safety Ladder 与候选动作执行资格 v1 实施任务卡](../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md) | 活跃高风险实现批次 | `batch_d_pencil_approved_batch_e_ready`；批次 E 只进入方案评审，再次批准前不开始 HTTP contract 或 React |
+| [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) | 功能 / 跨 owner 高风险资格专题 | `completed`；批次 A 至 E、双数据库、React 与真实浏览器均完成，`write_allowed_by_policy` 的有效结果在 v1 不可达 |
+| [Action Safety Ladder 与候选动作执行资格 v1 实施任务卡](../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `completed`；不派生批次 F、通用动作执行器、写入 policy 或 production 续批 |
 | [工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md) | 功能 / 工作区内部复用与发布治理专题 | `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`；批次 A 至 E、双数据库产品链与真实浏览器已完成，专题关闭 |
 | [工作区 Workflow 模板目录、审查与受控派生 v1 实施任务卡](../task-cards/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `completed`；不派生批次 F 或平行 readiness 卡 |
 | [Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1](workflow/rag-retrieval-application-knowledge-snapshot-dev-test-v1.md) | 功能 / 检索执行专题 | 三批已完成；精确绑定、独立 execution、citation、metadata-only run v3、Web、三种 store、浏览器重启与 no-fallback 已通过 |
