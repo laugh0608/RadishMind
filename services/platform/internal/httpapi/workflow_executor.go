@@ -241,6 +241,8 @@ type WorkflowRunRecord struct {
 	ActorRef                  string                                 `json:"actor_ref"`
 	SideEffects               WorkflowRunSideEffects                 `json:"side_effects"`
 	Diagnostic                *WorkflowRunDiagnostic                 `json:"diagnostic,omitempty"`
+
+	ScheduleExecution *ApplicationEvaluationScheduleExecutionRef `json:"-"`
 }
 
 type WorkflowRunResult struct {

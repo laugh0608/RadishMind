@@ -76,6 +76,8 @@
         "application_evaluation_schedule_overlap_blocked",
         "application_evaluation_schedule_missed_window",
         "application_evaluation_schedule_claim_conflict",
+        "application_evaluation_schedule_campaign_failed",
+        "application_evaluation_schedule_campaign_interrupted",
         "application_evaluation_schedule_store_unavailable",
         "application_evaluation_schedule_store_contract_mismatch"
       ]

@@ -146,6 +146,7 @@ func promptApplicationEvaluationRuntimeContext(ctx ApplicationEvaluationContext)
 	return PromptApplicationRuntimeContext{
 		RequestContext: ctx.RequestContext, RequestID: ctx.RequestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
 		ApplicationID: ctx.ApplicationID, ActorRef: ctx.ActorRef, OwnerSubjectRef: ctx.ActorRef, AuditRef: ctx.AuditRef, WriteEnabled: ctx.WriteEnabled,
+		ScheduleExecution: cloneApplicationEvaluationScheduleExecutionRef(ctx.ScheduleExecution),
 	}
 }
 

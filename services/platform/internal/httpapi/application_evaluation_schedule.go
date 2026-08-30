@@ -55,6 +55,8 @@ const (
 	ApplicationEvaluationScheduleFailureOverlapBlocked           = "application_evaluation_schedule_overlap_blocked"
 	ApplicationEvaluationScheduleFailureMissedWindow             = "application_evaluation_schedule_missed_window"
 	ApplicationEvaluationScheduleFailureClaimConflict            = "application_evaluation_schedule_claim_conflict"
+	ApplicationEvaluationScheduleFailureCampaignFailed           = "application_evaluation_schedule_campaign_failed"
+	ApplicationEvaluationScheduleFailureCampaignInterrupted      = "application_evaluation_schedule_campaign_interrupted"
 	ApplicationEvaluationScheduleFailureStoreUnavailable         = "application_evaluation_schedule_store_unavailable"
 	ApplicationEvaluationScheduleFailureStoreContract            = "application_evaluation_schedule_store_contract_mismatch"
 	ApplicationEvaluationScheduleFailureNotFound                 = "application_evaluation_schedule_not_found"
@@ -170,6 +172,31 @@ type ApplicationEvaluationScheduleOccurrence struct {
 	CompletedAt        *string `json:"completed_at"`
 	RequestID          string  `json:"request_id"`
 	AuditRef           string  `json:"audit_ref"`
+}
+
+type ApplicationEvaluationScheduleExecutionRef struct {
+	AuthorizationModel string `json:"authorization_model"`
+	ScheduleID         string `json:"schedule_id"`
+	ScheduleVersion    int    `json:"schedule_version"`
+	ScheduleDigest     string `json:"schedule_digest"`
+	ScheduledForUTC    string `json:"scheduled_for_utc"`
+	ClientCampaignKey  string `json:"client_campaign_key"`
+	SystemActorRef     string `json:"system_actor_ref"`
+	DelegatedByUserRef string `json:"delegated_by_user_ref"`
+}
+
+func validateApplicationEvaluationScheduleExecutionRef(ref ApplicationEvaluationScheduleExecutionRef) error {
+	if ref.AuthorizationModel != applicationEvaluationScheduleAuthorizationModel ||
+		!applicationEvaluationScheduleIDPattern.MatchString(ref.ScheduleID) || ref.ScheduleVersion < 1 ||
+		!workflowRAGDigestPattern.MatchString(ref.ScheduleDigest) ||
+		ref.ClientCampaignKey != applicationEvaluationScheduleClientCampaignKey(ref.ScheduleID, ref.ScheduleVersion, ref.ScheduledForUTC) ||
+		!validApplicationEvaluationScheduleReference(ref.SystemActorRef) || !validApplicationEvaluationScheduleReference(ref.DelegatedByUserRef) {
+		return errApplicationEvaluationScheduleStoreContract
+	}
+	if _, ok := parseApplicationEvaluationScheduleUTCTimestamp(ref.ScheduledForUTC); !ok {
+		return errApplicationEvaluationScheduleStoreContract
+	}
+	return nil
 }
 
 func applicationEvaluationScheduleDigest(version ApplicationEvaluationScheduleVersion) (string, error) {
@@ -381,7 +408,8 @@ func validApplicationEvaluationScheduleFailure(value string) bool {
 		ApplicationEvaluationScheduleFailureQuotaConsumerInvalid, ApplicationEvaluationScheduleFailureQuotaDenied,
 		ApplicationEvaluationScheduleFailureOverlapBlocked, ApplicationEvaluationScheduleFailureMissedWindow,
 		ApplicationEvaluationScheduleFailureClaimConflict, ApplicationEvaluationScheduleFailureStoreUnavailable,
-		ApplicationEvaluationScheduleFailureStoreContract:
+		ApplicationEvaluationScheduleFailureStoreContract, ApplicationEvaluationScheduleFailureCampaignFailed,
+		ApplicationEvaluationScheduleFailureCampaignInterrupted:
 		return true
 	default:
 		return false
@@ -463,6 +491,21 @@ func cloneApplicationEvaluationScheduleOccurrence(value ApplicationEvaluationSch
 	value.FailureCode = cloneApplicationEvaluationScheduleString(value.FailureCode)
 	value.CompletedAt = cloneApplicationEvaluationScheduleString(value.CompletedAt)
 	return value
+}
+
+func cloneApplicationEvaluationScheduleExecutionRef(value *ApplicationEvaluationScheduleExecutionRef) *ApplicationEvaluationScheduleExecutionRef {
+	if value == nil {
+		return nil
+	}
+	clone := *value
+	return &clone
+}
+
+func sameApplicationEvaluationScheduleExecutionRef(left, right *ApplicationEvaluationScheduleExecutionRef) bool {
+	if left == nil || right == nil {
+		return left == right
+	}
+	return *left == *right
 }
 
 func cloneApplicationEvaluationScheduleString(value *string) *string {

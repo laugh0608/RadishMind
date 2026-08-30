@@ -516,6 +516,11 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	if applicationEvaluationErr != nil || !found || restoredOccurrence.RecordVersion != 2 || restoredOccurrence.State != applicationEvaluationScheduleOccurrenceStateClaimed {
 		t.Fatalf("restart application evaluation occurrence recovery failed: found=%v err=%v occurrence=%+v", found, applicationEvaluationErr, restoredOccurrence)
 	}
+	restoredOpenPage, applicationEvaluationErr := restartedApplicationEvaluationSchedules.ListOpenOccurrences(ctx, 1)
+	if applicationEvaluationErr != nil || len(restoredOpenPage.Occurrences) != 1 ||
+		restoredOpenPage.Occurrences[0].ClientCampaignKey != restoredOccurrence.ClientCampaignKey || restoredOpenPage.HasMore {
+		t.Fatalf("restart application evaluation open occurrence recovery failed: page=%+v err=%v", restoredOpenPage, applicationEvaluationErr)
+	}
 	restoredRAG := newWorkflowRAGSnapshotService(newPostgresWorkflowRAGSnapshotRepository(reopened)).Read(
 		workflowRAGTestContext(), "rags_aaaaaaaaaaaaaaaa", 2,
 	)
@@ -1095,6 +1100,10 @@ func runPostgresApplicationEvaluationScheduleRepositoryContract(
 	if active.RecordVersion != 2 || active.LifecycleState != applicationEvaluationScheduleStateActive {
 		t.Fatalf("activate PostgreSQL application evaluation schedule: %+v", active)
 	}
+	duePage, err := repository.ListDueSchedules(requestContext, "2026-08-30T09:30:00Z", 1)
+	if err != nil || len(duePage.Schedules) != 1 || duePage.Schedules[0].ScheduleID != schedule.ScheduleID || duePage.HasMore {
+		t.Fatalf("list PostgreSQL runner due schedules: page=%+v err=%v", duePage, err)
+	}
 	systemContext, due, claimed := applicationEvaluationScheduleOccurrenceTestRecords(userContext, version, "2026-08-30T09:30:00Z")
 	systemContext.RequestContext = requestContext
 	winners, conflicts, unexpected := 0, 0, 0
@@ -1120,6 +1129,10 @@ func runPostgresApplicationEvaluationScheduleRepositoryContract(
 	wait.Wait()
 	if winners != 1 || conflicts != 15 || unexpected != 0 {
 		t.Fatalf("PostgreSQL application evaluation claim did not have one winner: winners=%d conflicts=%d unexpected=%d", winners, conflicts, unexpected)
+	}
+	openPage, err := repository.ListOpenOccurrences(requestContext, 1)
+	if err != nil || len(openPage.Occurrences) != 1 || openPage.Occurrences[0].ClientCampaignKey != due.ClientCampaignKey || openPage.HasMore {
+		t.Fatalf("list PostgreSQL runner open occurrences: page=%+v err=%v", openPage, err)
 	}
 	page, err := repository.ListSchedules(userContext, ApplicationEvaluationScheduleListFilter{
 		LifecycleState: applicationEvaluationScheduleStateActive, Limit: 1,

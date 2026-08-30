@@ -228,6 +228,8 @@ type Config struct {
 	Temperature                              float64
 	ConfigFile                               string
 	FieldSources                             map[string]string
+
+	ApplicationEvaluationScheduleRunnerDevEnabled bool
 }
 
 type ConfigSummary struct {
@@ -343,6 +345,8 @@ type ConfigSummary struct {
 	ConfigFile                               ConfigFileSummary `json:"config_file"`
 	FieldSources                             map[string]string `json:"field_sources"`
 	Sanitized                                bool              `json:"sanitized"`
+
+	ApplicationEvaluationScheduleRunnerDevEnabled bool `json:"application_evaluation_schedule_runner_dev_enabled"`
 }
 
 type PythonBridge struct {
@@ -536,6 +540,7 @@ func defaultConfig() Config {
 			"workflow_rag_execution_dev":                   configSourceDefault,
 			"workflow_rag_evaluation_dev":                  configSourceDefault,
 			"application_evaluation_campaign_dev":          configSourceDefault,
+			"application_evaluation_schedule_runner_dev":   configSourceDefault,
 			"application_evaluation_campaign_environment":  configSourceDefault,
 			"workflow_rag_promotion_dev":                   configSourceDefault,
 			"workflow_http_tool_test_loopback":             configSourceDefault,
@@ -1169,6 +1174,14 @@ func applyEnvOverrides(cfg *Config) error {
 		cfg.ApplicationEvaluationCampaignDevEnabled = parsed
 		cfg.FieldSources["application_evaluation_campaign_dev"] = configSourceEnv
 	}
+	if value, ok := stringEnv("RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV"); ok {
+		parsed, err := parseBoolValue("RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV", value)
+		if err != nil {
+			return err
+		}
+		cfg.ApplicationEvaluationScheduleRunnerDevEnabled = parsed
+		cfg.FieldSources["application_evaluation_schedule_runner_dev"] = configSourceEnv
+	}
 	if value, ok := stringEnv("RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT"); ok {
 		cfg.ApplicationEvaluationCampaignEnvironment = strings.TrimSpace(value)
 		cfg.FieldSources["application_evaluation_campaign_environment"] = configSourceEnv
@@ -1673,6 +1686,10 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		requiredFields = appendRequiredConfigField(requiredFields, "api_key_lifecycle_dev_http")
 		requiredFields = appendRequiredConfigField(requiredFields, "gateway_request_quota_enforcement_dev")
 	}
+	if cfg.ApplicationEvaluationScheduleRunnerDevEnabled {
+		requiredFields = appendRequiredConfigField(requiredFields, "application_evaluation_campaign_dev")
+		requiredFields = appendRequiredConfigField(requiredFields, "local_identity_dev_http")
+	}
 	if cfg.WorkflowRAGPromotionDevEnabled {
 		requiredFields = appendRequiredConfigField(requiredFields, "control_plane_read_dev_auth")
 	}
@@ -1901,6 +1918,8 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 		},
 		FieldSources: sanitizedFieldSources(cfg.FieldSources),
 		Sanitized:    true,
+
+		ApplicationEvaluationScheduleRunnerDevEnabled: cfg.ApplicationEvaluationScheduleRunnerDevEnabled,
 	}
 }
 
@@ -2613,6 +2632,11 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 		}
 		if environment != strings.TrimSpace(cfg.GatewayRequestQuotaEnvironment) {
 			return fmt.Errorf("application evaluation campaign environment must match the Gateway quota environment")
+		}
+	}
+	if cfg.ApplicationEvaluationScheduleRunnerDevEnabled {
+		if !cfg.ApplicationEvaluationCampaignDevEnabled || !cfg.LocalIdentityDevHTTPEnabled || EffectiveControlPlaneReadAuthMode(cfg) != "local_session_dev_test" {
+			return fmt.Errorf("application evaluation schedule runner dev requires campaign dev, local identity HTTP, and local session auth")
 		}
 	}
 	if cfg.WorkflowRAGPromotionDevEnabled && !cfg.ControlPlaneReadDevAuthEnabled {

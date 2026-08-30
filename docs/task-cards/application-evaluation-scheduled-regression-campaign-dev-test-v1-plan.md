@@ -3,7 +3,7 @@
 更新时间：2026-08-30
 
 - 任务 ID：`application-evaluation-scheduled-regression-campaign-dev-test-v1`
-- 状态：`batch_b_completed_batch_c_awaiting_approval`
+- 状态：`batch_c_completed_batch_d_awaiting_design_approval`
 - 功能设计：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](../features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)
 
 ## 准入结论
@@ -68,12 +68,14 @@
 
 ## 批次 C：Runner 与既有 Campaign 交接
 
-状态：`pending_owner_approval`。
+状态：`completed`。
 
-- 增加显式 development / test gate、固定低频 poll、单 worker cancel / join 和“先停 worker、后关 store”的 Server 生命周期。
-- 每个 occurrence 以 system actor 执行，同时携带独立 delegated user；逐次重读账户、membership、permission、Plan / assignment、API Key 与 quota。
-- 只调用既有 `applicationEvaluationCampaignService.Execute` 一次，不调用 HTTP handler、不创建第二套 Campaign executor。
-- 覆盖 crash before / after Campaign create、exact-key reconciliation、pause / archive / revoke、missed / overlap、quota / authority drift、store reconnect 与零重复 Provider。
+- [x] 增加显式 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV` gate、固定 `30s` poll、单 worker cancel / join 和“先停 worker、后关 store”的 Server 生命周期。
+- [x] 每个 occurrence 以 system actor claim，同时携带独立 delegated user；逐次重读账户、membership、permission、Plan / assignment、API Key 与 quota。
+- [x] 只调用既有 `applicationEvaluationCampaignService.Execute` 一次，不调用 HTTP handler、不创建第二套 Campaign executor；Prompt Run v6 以可选 `schedule_execution` 保存 exact Schedule / occurrence 与双 actor。
+- [x] 覆盖 crash before / after Campaign create、exact-key reconciliation、pause / archive / revoke、missed / overlap、quota / authority drift、store recovery 与零重复 Provider。
+
+批次 C 退出条件已经满足：memory、SQLite 与 PostgreSQL 暴露同构的 due / open 内部投影；16 路 runner 仍只有一个 Provider path；claim 后任意恢复只观察 deterministic Campaign key，不存在即中断；store unavailable 停止 claim 且不回退 memory。runner 仍只属于显式 development / test gate，不构成产品 UI 或 production worker。
 
 ## 批次 D：完整 Pencil、React 与产品验收
 
@@ -95,4 +97,4 @@
 
 ## 当前下一步
 
-Batch B 已完成。下一步只在项目所有者批准 Batch C 后实现 runner 与既有 Campaign 交接；不得提前启动后台 worker、调用 Campaign / Provider、修改 Pencil / React 或声明定时回归可用。
+Batch C 已完成。下一步只在项目所有者批准 Batch D 后，复用 S10 Application Evaluation Workspace 完成 `A / 完整 Pencil` 与人工视觉 / 边界审查；不得提前修改 React、启动产品服务 / 浏览器验收、调用真实 Provider 或声明 production 能力。

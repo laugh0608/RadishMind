@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"reflect"
 	"sort"
 	"strconv"
@@ -21,16 +22,28 @@ type ApplicationEvaluationScheduleListPage struct {
 	HasMore   bool
 }
 
+type ApplicationEvaluationScheduleRunnerPage struct {
+	Schedules []ApplicationEvaluationSchedule
+	HasMore   bool
+}
+
+type ApplicationEvaluationOccurrenceRunnerPage struct {
+	Occurrences []ApplicationEvaluationScheduleOccurrence
+	HasMore     bool
+}
+
 type applicationEvaluationScheduleRepository interface {
 	CreateSchedule(ApplicationEvaluationContext, ApplicationEvaluationSchedule, ApplicationEvaluationScheduleVersion) error
 	ReviseSchedule(ApplicationEvaluationContext, int, ApplicationEvaluationSchedule, ApplicationEvaluationScheduleVersion) (ApplicationEvaluationSchedule, bool, error)
 	UpdateSchedule(ApplicationEvaluationContext, int, ApplicationEvaluationSchedule) (ApplicationEvaluationSchedule, bool, error)
 	ReadSchedule(ApplicationEvaluationContext, string) (ApplicationEvaluationSchedule, bool, error)
 	ListSchedules(ApplicationEvaluationContext, ApplicationEvaluationScheduleListFilter) (ApplicationEvaluationScheduleListPage, error)
+	ListDueSchedules(context.Context, string, int) (ApplicationEvaluationScheduleRunnerPage, error)
 	ReadScheduleVersion(ApplicationEvaluationContext, string, int) (ApplicationEvaluationScheduleVersion, bool, error)
 	ClaimOccurrence(ApplicationEvaluationContext, ApplicationEvaluationScheduleOccurrence, ApplicationEvaluationScheduleOccurrence) (ApplicationEvaluationScheduleOccurrence, bool, error)
 	UpdateOccurrence(ApplicationEvaluationContext, int, ApplicationEvaluationScheduleOccurrence) (ApplicationEvaluationScheduleOccurrence, bool, error)
 	ReadOccurrence(ApplicationEvaluationContext, string, int, string) (ApplicationEvaluationScheduleOccurrence, bool, error)
+	ListOpenOccurrences(context.Context, int) (ApplicationEvaluationOccurrenceRunnerPage, error)
 }
 
 type memoryApplicationEvaluationScheduleRepository struct {
@@ -245,6 +258,56 @@ func (repository *memoryApplicationEvaluationScheduleRepository) ListSchedules(
 	return ApplicationEvaluationScheduleListPage{Schedules: values, HasMore: hasMore}, nil
 }
 
+func (repository *memoryApplicationEvaluationScheduleRepository) ListDueSchedules(
+	requestContext context.Context,
+	dueThrough string,
+	limit int,
+) (ApplicationEvaluationScheduleRunnerPage, error) {
+	if requestContext == nil || limit < 1 {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	dueTime, ok := parseApplicationEvaluationScheduleUTCTimestamp(dueThrough)
+	if !ok {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	repository.mu.RLock()
+	defer repository.mu.RUnlock()
+	if repository.unavailable {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	values := make([]ApplicationEvaluationSchedule, 0)
+	for key, schedule := range repository.schedules {
+		if schedule.LifecycleState != applicationEvaluationScheduleStateActive {
+			continue
+		}
+		version, found := repository.versions[key][schedule.LatestScheduleVersion]
+		ctx := applicationEvaluationContextForSchedule(schedule)
+		if schedule.NextDueAt == nil || !found || validateApplicationEvaluationSchedule(ctx, schedule) != nil ||
+			validateApplicationEvaluationScheduleVersion(ctx, version) != nil || !applicationEvaluationScheduleMatchesVersion(schedule, version) {
+			return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+		}
+		nextDue, validDue := parseApplicationEvaluationScheduleUTCTimestamp(*schedule.NextDueAt)
+		if !validDue {
+			return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+		}
+		if nextDue.After(dueTime) {
+			continue
+		}
+		values = append(values, cloneApplicationEvaluationSchedule(schedule))
+	}
+	sort.Slice(values, func(i, j int) bool {
+		if *values[i].NextDueAt == *values[j].NextDueAt {
+			return values[i].ScheduleID < values[j].ScheduleID
+		}
+		return *values[i].NextDueAt < *values[j].NextDueAt
+	})
+	hasMore := len(values) > limit
+	if hasMore {
+		values = values[:limit]
+	}
+	return ApplicationEvaluationScheduleRunnerPage{Schedules: values, HasMore: hasMore}, nil
+}
+
 func (repository *memoryApplicationEvaluationScheduleRepository) ReadScheduleVersion(
 	ctx ApplicationEvaluationContext,
 	scheduleID string,
@@ -361,6 +424,44 @@ func (repository *memoryApplicationEvaluationScheduleRepository) ReadOccurrence(
 	return cloneApplicationEvaluationScheduleOccurrence(occurrence), true, nil
 }
 
+func (repository *memoryApplicationEvaluationScheduleRepository) ListOpenOccurrences(
+	requestContext context.Context,
+	limit int,
+) (ApplicationEvaluationOccurrenceRunnerPage, error) {
+	if requestContext == nil || limit < 1 {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	repository.mu.RLock()
+	defer repository.mu.RUnlock()
+	if repository.unavailable {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	values := make([]ApplicationEvaluationScheduleOccurrence, 0)
+	for _, occurrence := range repository.occurrences {
+		if occurrence.State != applicationEvaluationScheduleOccurrenceStateClaimed &&
+			occurrence.State != applicationEvaluationScheduleOccurrenceStateCampaignCreated &&
+			occurrence.State != applicationEvaluationScheduleOccurrenceStateObserving {
+			continue
+		}
+		ctx := applicationEvaluationContextForOccurrence(occurrence)
+		if validateApplicationEvaluationScheduleOccurrence(ctx, occurrence) != nil {
+			return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+		}
+		values = append(values, cloneApplicationEvaluationScheduleOccurrence(occurrence))
+	}
+	sort.Slice(values, func(i, j int) bool {
+		if values[i].UpdatedAt == values[j].UpdatedAt {
+			return values[i].ClientCampaignKey < values[j].ClientCampaignKey
+		}
+		return values[i].UpdatedAt < values[j].UpdatedAt
+	})
+	hasMore := len(values) > limit
+	if hasMore {
+		values = values[:limit]
+	}
+	return ApplicationEvaluationOccurrenceRunnerPage{Occurrences: values, HasMore: hasMore}, nil
+}
+
 func sameApplicationEvaluationScheduleIdentity(current, next ApplicationEvaluationSchedule) bool {
 	return current.ScheduleID == next.ScheduleID && current.TenantRef == next.TenantRef && current.WorkspaceID == next.WorkspaceID &&
 		current.Environment == next.Environment && current.ApplicationID == next.ApplicationID && current.AuthorizationModel == next.AuthorizationModel &&
@@ -419,7 +520,7 @@ func applicationEvaluationScheduleProjectionIsExact(
 	if !currentDueOK || !nextUpdatedOK || nextUpdated.Before(currentDue) || nextDueAt == nil {
 		return false
 	}
-	expected, err := applicationEvaluationScheduleNextDue(currentDue, rule)
+	expected, err := applicationEvaluationScheduleNextDue(nextUpdated, rule)
 	return err == nil && *nextDueAt == expected.Format(time.RFC3339Nano)
 }
 

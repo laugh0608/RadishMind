@@ -336,7 +336,8 @@ func newPromptApplicationRunRecord(
 		PromptDiagnostic: &PromptApplicationRunDiagnosticV6{
 			TerminalWriteState: "pending", GatewayFailureCategory: "none", ObservedAt: workflowRunTimestamp(startedAt),
 		},
-		RequestID: ctx.RequestID, AuditRef: ctx.AuditRef, ActorRef: ctx.ActorRef,
+		ScheduleExecution: cloneApplicationEvaluationScheduleExecutionRef(ctx.ScheduleExecution),
+		RequestID:         ctx.RequestID, AuditRef: ctx.AuditRef, ActorRef: ctx.ActorRef,
 	}
 }
 

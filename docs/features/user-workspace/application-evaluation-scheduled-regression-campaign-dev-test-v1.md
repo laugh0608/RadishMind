@@ -2,7 +2,7 @@
 
 更新时间：2026-08-30
 
-状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_b_completed_batch_c_awaiting_approval`
+状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_c_completed_batch_d_awaiting_design_approval`
 
 ## 设计结论
 
@@ -128,11 +128,11 @@ due -> claimed -> campaign_created -> observing -> succeeded|failed|interrupted|
 
 明确禁止的方案：持久化 Web Session / cookie / API Key token、后台直接冒用创建者 `actor_ref`、只检查激活时权限、把角色或 permission snapshot 当永久授权、引入可在其它资源复用的通用 execution token。
 
-Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`，并把两项 required permission、`every_occurrence`、`delegated_user_current_owner` 与 `fail_closed_immediate` 写入不可变 Schedule Version；Batch B 已在 strict HTTP 与三种 store 中保持该合同。当前仍不等于 runner、Campaign / Provider、Pencil 或 React 已获实现批准。
+Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`，并把两项 required permission、`every_occurrence`、`delegated_user_current_owner` 与 `fail_closed_immediate` 写入不可变 Schedule Version；Batch B 已在 strict HTTP 与三种 store 中保持该合同；Batch C 已让 runner 在每次 occurrence 重读本地账户、membership、权限、Plan / assignment、API Key 与 quota，并把 system actor、delegated user 和 exact occurrence 写入 Run metadata。当前仍不等于 Pencil、React、真实 Provider 或 production worker 已获实现批准。
 
 ## Runner 生命周期与失败语义
 
-若授权模型获批，runner 仍须满足：
+Batch C runner 已满足：
 
 - 只在显式开发测试 gate 下启动；默认关闭，`production` 永远拒绝。
 - 启动顺序为 store / migration preflight → runner；关闭顺序为停止接收 claim → cancel / join worker → 关闭 store / bridge。
@@ -159,7 +159,7 @@ Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`
 
 本专题若进入实现，应复用 S10 Application Evaluation Workspace，在现有 Plan / Campaign / Handoff 任务模型中增加 schedule owner，而不建立 S11。
 
-五维预评估为 `1 / 2 / 2 / 1 / 2 = 8`，达到 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；需要表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。Pencil 必须在 React 前由项目所有者人工批准；当前仍停在 Batch C 之前，不修改设计源。
+五维预评估为 `1 / 2 / 2 / 1 / 2 = 8`，达到 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；需要表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。Pencil 必须在 React 前由项目所有者人工批准；当前停在 Batch D 设计批准线之前，不修改设计源。
 
 ## 拟议实施顺序
 
@@ -186,8 +186,12 @@ Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`
 
 ### 批次 C：runner 与既有 Campaign 交接
 
-- 实现 cancel / join 生命周期、低频 poll、当前授权重读和 deterministic Campaign key。
-- 覆盖 crash before / after Campaign create、reconnect、quota / authority drift 和零重复 Provider 调用。
+- 状态：`completed`。
+- 已增加显式 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV` gate；只在 Campaign dev、local identity HTTP 与 `local_session_dev_test` 同时成立时启动，Campaign environment 继续把 production 拒绝在外。
+- 已实现固定 `30s` poll、单 worker cancel / join、每批最多 `50` 条的 due / open 投影，以及“先停 worker、后关 bridge / store”的 Server 生命周期。
+- 每个 occurrence 使用 system actor claim，并以 delegated user 调用既有 Campaign service；Run v6 的可选 `schedule_execution` 同时记录授权模型、exact Schedule / occurrence、system actor 与 delegated user，普通交互 Run 不接受该投影混入。
+- 当前账户、workspace membership、两项 required permission、exact active Schedule / Plan、Prompt assignment authority、actor-owned API Key 与 quota 均逐次重读；pause / archive、revoke、missed、overlap、authority / API Key / quota 漂移全部失败关闭。
+- claim 后崩溃只按 deterministic `client_campaign_key` 观察既有 Campaign；不存在即 `interrupted`，已存在则接回或 reconcile，均不重放 Provider。memory / SQLite / PostgreSQL 使用同一 due / open 投影与 no-fallback 语义，多 runner 仍由 repository claim 收敛为单赢家。
 
 ### 批次 D：Pencil、React 与产品验收
 
@@ -202,11 +206,11 @@ Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`
 | canonical Plan / Campaign / Run owner | 满足：现有链可复用 |
 | fixture 与 Provider attempt 预算 | 首版 Prompt-only 后满足 |
 | durable schedule / occurrence owner | 满足：memory、SQLite 与 PostgreSQL 同构，迁移、CAS、单赢家和重启 / 重连已验证 |
-| background service lifecycle | 设计可行，runner 待 Batch C |
-| system actor / delegated authorization | **P0 已批准，Batch A contract 与 Batch B control plane / durable owner 已落实** |
-| implementation task card | 已建立；状态 `batch_b_completed_batch_c_awaiting_approval` |
+| background service lifecycle | 满足：显式 dev/test gate、单 worker、固定低频 poll、cancel / join 与先停 worker 后关 store 已落实 |
+| system actor / delegated authorization | **P0 已批准，Batch A contract、Batch B control plane / durable owner 与 Batch C 每次重验 / Run metadata 已落实** |
+| implementation task card | 已建立；状态 `batch_c_completed_batch_d_awaiting_design_approval` |
 
-当前状态为 `batch_b_completed_batch_c_awaiting_approval`。下一步由项目所有者审查 Batch C runner 与既有 Campaign 交接方案；未批准前不启动 runner、不调用 Campaign / Provider、不修改 Pencil / React，也不声明定时回归可用。
+当前状态为 `batch_c_completed_batch_d_awaiting_design_approval`。下一步只由项目所有者批准 Batch D 的 S10 完整 Pencil 范围；未批准前不修改设计源或 React，不启动产品验收，也不把开发测试态 runner 写成 production worker。
 
 ## 停止线
 

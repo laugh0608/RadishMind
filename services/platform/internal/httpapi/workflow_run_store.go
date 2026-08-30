@@ -417,6 +417,7 @@ func cloneWorkflowRunRecord(record WorkflowRunRecord) WorkflowRunRecord {
 		authority := *record.AgentCopilotAuthority
 		cloned.AgentCopilotAuthority = &authority
 	}
+	cloned.ScheduleExecution = cloneApplicationEvaluationScheduleExecutionRef(record.ScheduleExecution)
 	cloned.ActionSafety = cloneActionSafetyRunProjection(record.ActionSafety)
 	cloned.VariableNames = append([]string(nil), record.VariableNames...)
 	if record.PromptDiagnostic != nil {

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"time"
@@ -239,6 +240,47 @@ ORDER BY schedules.updated_at DESC,schedules.schedule_id DESC LIMIT $8`,
 	return ApplicationEvaluationScheduleListPage{Schedules: values, HasMore: hasMore}, nil
 }
 
+func (repository *postgresApplicationEvaluationScheduleRepository) ListDueSchedules(
+	requestContext context.Context,
+	dueThrough string,
+	limit int,
+) (ApplicationEvaluationScheduleRunnerPage, error) {
+	if repository == nil || repository.pool == nil || requestContext == nil || limit < 1 {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	dueTime, ok := parseApplicationEvaluationScheduleUTCTimestamp(dueThrough)
+	if !ok {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	rows, err := repository.pool.Query(requestContext, `SELECT schedules.sanitized_schedule_record,versions.sanitized_schedule_version_record
+FROM application_evaluation_schedules schedules JOIN application_evaluation_schedule_versions versions
+ON versions.tenant_ref=schedules.tenant_ref AND versions.workspace_id=schedules.workspace_id AND versions.environment=schedules.environment
+AND versions.application_id=schedules.application_id AND versions.schedule_id=schedules.schedule_id AND versions.schedule_version=schedules.latest_schedule_version
+WHERE schedules.lifecycle_state=$1 AND schedules.next_due_at<=$2
+ORDER BY schedules.next_due_at ASC,schedules.schedule_id ASC LIMIT $3`,
+		applicationEvaluationScheduleStateActive, dueTime, limit+1)
+	if err != nil {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	defer rows.Close()
+	values := make([]ApplicationEvaluationSchedule, 0, limit+1)
+	for rows.Next() {
+		schedule, version, scanErr := scanApplicationEvaluationScheduleRunnerPair(rows)
+		if scanErr != nil || !applicationEvaluationScheduleMatchesVersion(schedule, version) {
+			return ApplicationEvaluationScheduleRunnerPage{}, firstApplicationEvaluationScheduleStoreError(scanErr)
+		}
+		values = append(values, schedule)
+	}
+	if rows.Err() != nil {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	hasMore := len(values) > limit
+	if hasMore {
+		values = values[:limit]
+	}
+	return ApplicationEvaluationScheduleRunnerPage{Schedules: values, HasMore: hasMore}, nil
+}
+
 func (repository *postgresApplicationEvaluationScheduleRepository) ReadScheduleVersion(
 	ctx ApplicationEvaluationContext,
 	scheduleID string,
@@ -375,6 +417,43 @@ func (repository *postgresApplicationEvaluationScheduleRepository) ReadOccurrenc
 		return ApplicationEvaluationScheduleOccurrence{}, false, firstApplicationEvaluationScheduleStoreError(err)
 	}
 	return occurrence, true, nil
+}
+
+func (repository *postgresApplicationEvaluationScheduleRepository) ListOpenOccurrences(
+	requestContext context.Context,
+	limit int,
+) (ApplicationEvaluationOccurrenceRunnerPage, error) {
+	if repository == nil || repository.pool == nil || requestContext == nil || limit < 1 {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	rows, err := repository.pool.Query(requestContext, `SELECT sanitized_occurrence_record
+FROM application_evaluation_schedule_occurrences
+WHERE occurrence_state=ANY($1::text[])
+ORDER BY updated_at ASC,client_campaign_key ASC LIMIT $2`, []string{
+		applicationEvaluationScheduleOccurrenceStateClaimed,
+		applicationEvaluationScheduleOccurrenceStateCampaignCreated,
+		applicationEvaluationScheduleOccurrenceStateObserving,
+	}, limit+1)
+	if err != nil {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	defer rows.Close()
+	values := make([]ApplicationEvaluationScheduleOccurrence, 0, limit+1)
+	for rows.Next() {
+		occurrence, scanErr := scanApplicationEvaluationScheduleRunnerOccurrence(rows)
+		if scanErr != nil {
+			return ApplicationEvaluationOccurrenceRunnerPage{}, scanErr
+		}
+		values = append(values, occurrence)
+	}
+	if rows.Err() != nil {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	hasMore := len(values) > limit
+	if hasMore {
+		values = values[:limit]
+	}
+	return ApplicationEvaluationOccurrenceRunnerPage{Occurrences: values, HasMore: hasMore}, nil
 }
 
 func encodePostgresApplicationEvaluationSchedule(schedule ApplicationEvaluationSchedule) ([]byte, time.Time, *time.Time, error) {

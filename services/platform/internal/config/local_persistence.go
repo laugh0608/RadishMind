@@ -25,6 +25,11 @@ func ValidateServerStart(cfg Config) error {
 			return errors.New("application evaluation campaign environment must match the Gateway quota environment")
 		}
 	}
+	if cfg.ApplicationEvaluationScheduleRunnerDevEnabled {
+		if !cfg.ApplicationEvaluationCampaignDevEnabled || !cfg.LocalIdentityDevHTTPEnabled || EffectiveControlPlaneReadAuthMode(cfg) != "local_session_dev_test" {
+			return errors.New("application evaluation schedule runner dev requires campaign dev, local identity HTTP, and local session auth")
+		}
+	}
 	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return errors.New("prompt application template dev HTTP requires control plane read dev auth")
 	}

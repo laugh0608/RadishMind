@@ -71,11 +71,13 @@ type Server struct {
 	workflowEvaluationSuiteStore            workflowEvaluationSuiteStore
 	applicationEvaluationRepository         applicationEvaluationRepository
 	applicationEvaluationScheduleRepository applicationEvaluationScheduleRepository
+	applicationEvaluationScheduleRunner     *applicationEvaluationScheduleRunner
 	gatewayRequestHistoryStore              gatewayRequestStore
 	gatewayRequestHistoryStoreMode          string
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
 	gatewayModelPricingRepository           GatewayModelPricingRepository
 	localIdentityHTTPService                *localIdentityHTTPService
+	localIdentityRepository                 localIdentityRepository
 	localIdentityAdministrationService      *localIdentityAdministrationService
 	localIdentitySelfServiceSecurityService *localIdentitySelfServiceSecurityService
 	closeSavedWorkflowDraftStore            func()
@@ -389,6 +391,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
 		gatewayModelPricingRepository:           gatewayModelPricingRepository,
 		localIdentityHTTPService:                localIdentityHTTPService,
+		localIdentityRepository:                 localIdentityRepository,
 		localIdentityAdministrationService:      localIdentityAdministrationService,
 		localIdentitySelfServiceSecurityService: localIdentitySelfServiceSecurityService,
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
@@ -607,6 +610,17 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		ReadHeaderTimeout: runtimeConfig.ReadHeaderTimeout,
 		WriteTimeout:      runtimeConfig.WriteTimeout,
 	}
+	if runtimeConfig.ApplicationEvaluationScheduleRunnerDevEnabled {
+		server.applicationEvaluationScheduleRunner = newApplicationEvaluationScheduleRunner(
+			server.applicationEvaluationScheduleRepository,
+			server.applicationEvaluationCampaignService(),
+			server.revalidateApplicationEvaluationScheduleOccurrence,
+		)
+		if err := server.applicationEvaluationScheduleRunner.Start(context.Background()); err != nil {
+			server.Close()
+			return nil, fmt.Errorf("start application evaluation schedule runner: %w", err)
+		}
+	}
 	return server, nil
 }
 
@@ -666,6 +680,9 @@ func (s *Server) Close() {
 		return
 	}
 	s.closeOnce.Do(func() {
+		if s.applicationEvaluationScheduleRunner != nil {
+			s.applicationEvaluationScheduleRunner.Stop()
+		}
 		if closer, ok := s.bridge.(interface{ Close() }); ok {
 			closer.Close()
 		}

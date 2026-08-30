@@ -662,6 +662,44 @@ func TestApplicationEvaluationCampaignDevGateRequiresOwnersAndBoundEnvironment(t
 	}
 }
 
+func TestApplicationEvaluationScheduleRunnerDevGateRequiresLocalDelegationOwner(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV", "1")
+	envConfig := defaultConfig()
+	if err := applyEnvOverrides(&envConfig); err != nil || !envConfig.ApplicationEvaluationScheduleRunnerDevEnabled ||
+		envConfig.FieldSources["application_evaluation_schedule_runner_dev"] != configSourceEnv {
+		t.Fatalf("load schedule runner env gate: config=%#v err=%v", envConfig.SanitizedSummary(), err)
+	}
+	cfg := defaultConfig()
+	cfg.ApplicationEvaluationScheduleRunnerDevEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "schedule runner dev requires") {
+		t.Fatalf("schedule runner accepted missing campaign and local identity owner: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ControlPlaneReadAuthMode = "local_session_dev_test"
+	cfg.LocalIdentityDevHTTPEnabled = true
+	cfg.LocalIdentityAllowedOrigin = "http://127.0.0.1:4000"
+	cfg.LocalIdentityCookieSecure = false
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.WorkflowRAGEvaluationDevEnabled = true
+	cfg.APIKeyLifecycleDevHTTPEnabled = true
+	cfg.GatewayRequestQuotaEnforcementDevEnabled = true
+	cfg.GatewayRequestQuotaEnvironment = "test"
+	cfg.ApplicationEvaluationCampaignDevEnabled = true
+	cfg.ApplicationEvaluationCampaignEnvironment = "test"
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("schedule runner rejected complete local delegation owner: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.ApplicationEvaluationScheduleRunnerDevEnabled {
+		t.Fatalf("schedule runner gate missing from sanitized summary: %#v", summary)
+	}
+	cfg.ControlPlaneReadAuthMode = "dev_headers"
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "local_session_dev_test") {
+		t.Fatalf("schedule runner accepted non-local delegated identity: %v", err)
+	}
+}
+
 func TestWorkflowRAGPromotionDevGateIsIndependentAndRequiresVerifiedAuth(t *testing.T) {
 	clearPlatformEnv(t)
 	t.Setenv("RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV", "1")
@@ -1925,6 +1963,9 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV",
+		"RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV",
+		"RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT",
+		"RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV",
 		"RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
@@ -1948,6 +1989,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT",
 		"RADISHMIND_LOCAL_PERSISTENCE_MODE",
+		"RADISHMIND_LOCAL_IDENTITY_DEV_HTTP",
 		"RADISHMIND_SQLITE_DEV_DATABASE_PATH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",

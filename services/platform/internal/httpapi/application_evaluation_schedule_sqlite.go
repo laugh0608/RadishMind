@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -236,6 +237,47 @@ ORDER BY schedules.updated_at_unix_nano DESC,schedules.schedule_id DESC LIMIT ?`
 	return ApplicationEvaluationScheduleListPage{Schedules: values, HasMore: hasMore}, nil
 }
 
+func (repository *sqliteApplicationEvaluationScheduleRepository) ListDueSchedules(
+	requestContext context.Context,
+	dueThrough string,
+	limit int,
+) (ApplicationEvaluationScheduleRunnerPage, error) {
+	if repository == nil || repository.database == nil || requestContext == nil || limit < 1 {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	dueTime, ok := parseApplicationEvaluationScheduleUTCTimestamp(dueThrough)
+	if !ok {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	rows, err := repository.database.QueryContext(requestContext, `SELECT schedules.sanitized_schedule_record,versions.sanitized_schedule_version_record
+FROM application_evaluation_schedules schedules JOIN application_evaluation_schedule_versions versions
+ON versions.tenant_ref=schedules.tenant_ref AND versions.workspace_id=schedules.workspace_id AND versions.environment=schedules.environment
+AND versions.application_id=schedules.application_id AND versions.schedule_id=schedules.schedule_id AND versions.schedule_version=schedules.latest_schedule_version
+WHERE schedules.lifecycle_state=? AND schedules.next_due_at_unix_nano<=?
+ORDER BY schedules.next_due_at_unix_nano ASC,schedules.schedule_id ASC LIMIT ?`,
+		applicationEvaluationScheduleStateActive, dueTime.UnixNano(), limit+1)
+	if err != nil {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	defer rows.Close()
+	values := make([]ApplicationEvaluationSchedule, 0, limit+1)
+	for rows.Next() {
+		schedule, version, scanErr := scanApplicationEvaluationScheduleRunnerPair(rows)
+		if scanErr != nil || !applicationEvaluationScheduleMatchesVersion(schedule, version) {
+			return ApplicationEvaluationScheduleRunnerPage{}, firstApplicationEvaluationScheduleStoreError(scanErr)
+		}
+		values = append(values, schedule)
+	}
+	if rows.Err() != nil {
+		return ApplicationEvaluationScheduleRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	hasMore := len(values) > limit
+	if hasMore {
+		values = values[:limit]
+	}
+	return ApplicationEvaluationScheduleRunnerPage{Schedules: values, HasMore: hasMore}, nil
+}
+
 func (repository *sqliteApplicationEvaluationScheduleRepository) ReadScheduleVersion(
 	ctx ApplicationEvaluationContext,
 	scheduleID string,
@@ -383,6 +425,41 @@ func (repository *sqliteApplicationEvaluationScheduleRepository) ReadOccurrence(
 	return occurrence, true, nil
 }
 
+func (repository *sqliteApplicationEvaluationScheduleRepository) ListOpenOccurrences(
+	requestContext context.Context,
+	limit int,
+) (ApplicationEvaluationOccurrenceRunnerPage, error) {
+	if repository == nil || repository.database == nil || requestContext == nil || limit < 1 {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	rows, err := repository.database.QueryContext(requestContext, `SELECT sanitized_occurrence_record
+FROM application_evaluation_schedule_occurrences
+WHERE occurrence_state IN (?,?,?)
+ORDER BY updated_at_unix_nano ASC,client_campaign_key ASC LIMIT ?`,
+		applicationEvaluationScheduleOccurrenceStateClaimed, applicationEvaluationScheduleOccurrenceStateCampaignCreated,
+		applicationEvaluationScheduleOccurrenceStateObserving, limit+1)
+	if err != nil {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	defer rows.Close()
+	values := make([]ApplicationEvaluationScheduleOccurrence, 0, limit+1)
+	for rows.Next() {
+		occurrence, scanErr := scanApplicationEvaluationScheduleRunnerOccurrence(rows)
+		if scanErr != nil {
+			return ApplicationEvaluationOccurrenceRunnerPage{}, scanErr
+		}
+		values = append(values, occurrence)
+	}
+	if rows.Err() != nil {
+		return ApplicationEvaluationOccurrenceRunnerPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	hasMore := len(values) > limit
+	if hasMore {
+		values = values[:limit]
+	}
+	return ApplicationEvaluationOccurrenceRunnerPage{Occurrences: values, HasMore: hasMore}, nil
+}
+
 func encodeSQLiteApplicationEvaluationSchedule(schedule ApplicationEvaluationSchedule) ([]byte, int64, any, error) {
 	payload, err := json.Marshal(schedule)
 	if err != nil {
@@ -485,6 +562,36 @@ func scanSQLiteApplicationEvaluationSchedulePair(ctx ApplicationEvaluationContex
 		return ApplicationEvaluationSchedule{}, ApplicationEvaluationScheduleVersion{}, errApplicationEvaluationScheduleStoreContract
 	}
 	return cloneApplicationEvaluationSchedule(schedule), cloneApplicationEvaluationScheduleVersion(version), nil
+}
+
+func scanApplicationEvaluationScheduleRunnerPair(row applicationEvaluationScheduleSQLScanner) (ApplicationEvaluationSchedule, ApplicationEvaluationScheduleVersion, error) {
+	var schedulePayload, versionPayload []byte
+	if err := row.Scan(&schedulePayload, &versionPayload); err != nil {
+		return ApplicationEvaluationSchedule{}, ApplicationEvaluationScheduleVersion{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	var schedule ApplicationEvaluationSchedule
+	var version ApplicationEvaluationScheduleVersion
+	if decodeStrictApplicationEvaluationJSON(schedulePayload, &schedule) != nil || decodeStrictApplicationEvaluationJSON(versionPayload, &version) != nil {
+		return ApplicationEvaluationSchedule{}, ApplicationEvaluationScheduleVersion{}, errApplicationEvaluationScheduleStoreContract
+	}
+	ctx := applicationEvaluationContextForSchedule(schedule)
+	if validateApplicationEvaluationSchedule(ctx, schedule) != nil || validateApplicationEvaluationScheduleVersion(ctx, version) != nil {
+		return ApplicationEvaluationSchedule{}, ApplicationEvaluationScheduleVersion{}, errApplicationEvaluationScheduleStoreContract
+	}
+	return cloneApplicationEvaluationSchedule(schedule), cloneApplicationEvaluationScheduleVersion(version), nil
+}
+
+func scanApplicationEvaluationScheduleRunnerOccurrence(row applicationEvaluationScheduleSQLScanner) (ApplicationEvaluationScheduleOccurrence, error) {
+	var payload []byte
+	if err := row.Scan(&payload); err != nil {
+		return ApplicationEvaluationScheduleOccurrence{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	var occurrence ApplicationEvaluationScheduleOccurrence
+	if decodeStrictApplicationEvaluationJSON(payload, &occurrence) != nil ||
+		validateApplicationEvaluationScheduleOccurrence(applicationEvaluationContextForOccurrence(occurrence), occurrence) != nil {
+		return ApplicationEvaluationScheduleOccurrence{}, errApplicationEvaluationScheduleStoreContract
+	}
+	return cloneApplicationEvaluationScheduleOccurrence(occurrence), nil
 }
 
 func optionalApplicationEvaluationScheduleUnixNano(value string) (any, error) {

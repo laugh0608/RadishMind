@@ -365,6 +365,9 @@ func applicationEvaluationRunMatchesCampaign(ctx ApplicationEvaluationContext, c
 	if run.RunID == "" || run.TenantRef != "" && run.TenantRef != ctx.TenantRef || run.WorkspaceID != ctx.WorkspaceID || run.ApplicationID != ctx.ApplicationID || campaign.Authority == nil {
 		return false
 	}
+	if !sameApplicationEvaluationScheduleExecutionRef(run.ScheduleExecution, ctx.ScheduleExecution) {
+		return false
+	}
 	switch campaign.ExecutionProfile {
 	case applicationInteractionProfileWorkflow:
 		var snapshot ApplicationInteractionAuthoritySnapshot

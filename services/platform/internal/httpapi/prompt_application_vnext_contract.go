@@ -281,6 +281,8 @@ type PromptApplicationRunRecordV6 struct {
 	RequestID              string                              `json:"request_id"`
 	AuditRef               string                              `json:"audit_ref"`
 	ActorRef               string                              `json:"actor_ref"`
+
+	ScheduleExecution *ApplicationEvaluationScheduleExecutionRef `json:"schedule_execution,omitempty"`
 }
 
 func decodePromptApplicationVNextContract(schemaVersion string, payload []byte) (any, error) {
@@ -457,6 +459,10 @@ func validatePromptApplicationRunRecordV6(contract PromptApplicationRunRecordV6)
 		!validPromptApplicationRunStatus(contract.Status) || len(contract.FailureSummary) > 256 || parsePromptApplicationTemplateTimestamp(contract.StartedAt) == nil || contract.Output != "" ||
 		!validPromptApplicationRunUsage(contract.Usage) || !validPromptApplicationRunSideEffects(contract.SideEffects) || !validPromptApplicationRunDiagnostic(contract.Diagnostic, terminal) ||
 		!validPromptApplicationAuditRefs(contract.ActorRef, contract.ActorRef, contract.RequestID, contract.AuditRef) {
+		return errPromptApplicationVNextContract
+	}
+	if contract.ScheduleExecution != nil &&
+		(validateApplicationEvaluationScheduleExecutionRef(*contract.ScheduleExecution) != nil || contract.ActorRef != contract.ScheduleExecution.DelegatedByUserRef) {
 		return errPromptApplicationVNextContract
 	}
 	if terminal && parsePromptApplicationTemplateTimestamp(contract.CompletedAt) == nil || !terminal && contract.CompletedAt != "" {

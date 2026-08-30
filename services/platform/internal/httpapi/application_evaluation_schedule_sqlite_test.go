@@ -31,6 +31,11 @@ func TestSQLiteApplicationEvaluationScheduleRestartSingleWinnerAndNoFallback(t *
 		_ = runtime.Close()
 		t.Fatalf("activate SQLite schedule: %+v", active)
 	}
+	duePage, err := repository.ListDueSchedules(context.Background(), "2026-08-30T09:30:00Z", 1)
+	if err != nil || len(duePage.Schedules) != 1 || duePage.Schedules[0].ScheduleID != schedule.ScheduleID || duePage.HasMore {
+		_ = runtime.Close()
+		t.Fatalf("list SQLite runner due schedules: page=%+v err=%v", duePage, err)
+	}
 
 	systemCtx, due, claimed := applicationEvaluationScheduleOccurrenceTestRecords(ctx, version, "2026-08-30T09:30:00Z")
 	if !validApplicationEvaluationScheduleClaim(systemCtx, due, claimed) {
@@ -68,6 +73,11 @@ func TestSQLiteApplicationEvaluationScheduleRestartSingleWinnerAndNoFallback(t *
 		_ = runtime.Close()
 		t.Fatalf("SQLite occurrence claim must have one winner: winners=%d unexpected=%d first_error=%v rows=%d payload=%s", winners.Load(), unexpected.Load(), firstUnexpected, occurrenceCount, rawOccurrence)
 	}
+	openPage, err := repository.ListOpenOccurrences(context.Background(), 1)
+	if err != nil || len(openPage.Occurrences) != 1 || openPage.Occurrences[0].ClientCampaignKey != due.ClientCampaignKey || openPage.HasMore {
+		_ = runtime.Close()
+		t.Fatalf("list SQLite runner open occurrences: page=%+v err=%v", openPage, err)
+	}
 	if err = runtime.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -94,6 +104,11 @@ func TestSQLiteApplicationEvaluationScheduleRestartSingleWinnerAndNoFallback(t *
 	if err != nil || !found || storedOccurrence.State != applicationEvaluationScheduleOccurrenceStateClaimed || storedOccurrence.RecordVersion != 2 {
 		_ = restarted.Close()
 		t.Fatalf("read restarted SQLite occurrence: found=%v value=%+v err=%v", found, storedOccurrence, err)
+	}
+	restartedOpenPage, err := restartedRepository.ListOpenOccurrences(context.Background(), 1)
+	if err != nil || len(restartedOpenPage.Occurrences) != 1 || restartedOpenPage.Occurrences[0].ClientCampaignKey != due.ClientCampaignKey || restartedOpenPage.HasMore {
+		_ = restarted.Close()
+		t.Fatalf("list restarted SQLite runner open occurrences: page=%+v err=%v", restartedOpenPage, err)
 	}
 
 	if _, err = restarted.DB().ExecContext(context.Background(), `UPDATE application_evaluation_schedule_versions
