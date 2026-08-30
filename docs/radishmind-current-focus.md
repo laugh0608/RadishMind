@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-08-29
+更新时间：2026-08-30
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 最新关闭产品顺位为[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)，状态为 `action_safety_ladder_candidate_action_execution_eligibility_dev_test_v1_completed`。项目所有者已逐批批准并完成 A 至 E：strict decision contract / compiler、六个 owner checkpoint、SQLite `0025` / PostgreSQL `0028` 同构 snapshot、8 个获人工批准的 Family UI 画板、单一 `action_safety_read_projection.v1` HTTP read projection、单一 TypeScript strict consumer 与既有 Agent / Tool / Run 产品面均已闭合。SQLite 页面完成 legacy 明示、authority drift、双标签 CAS 与服务重启恢复；PostgreSQL configured gate、Web `410/410`、三视口、console / URL / storage allowlist 与零越权副作用审计均通过。当前没有活跃实施批次；下一步回到功能设计入口选择新的长期产品目标，不从本专题派生批次 F。
+- 当前产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_design_reviewed_authorization_model_required`。专题已完成用户任务、owner、Prompt-only `daily_utc`、occurrence claim、无 catch-up / retry、Campaign handoff 与四批拟议边界；代码审计确认现有 Campaign 只有用户 HTTP actor，后台 system actor + schedule-scoped 受限委托尚未获项目所有者决定。P0 前不创建任务卡、schema、route、migration、runner、Pencil 或 React；Action Safety Ladder 保持完成关闭，不派生批次 F。
 - 最新关闭产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。批次 A 至 E 已完成 strict contract、三种 catalog owner、获人工批准的 Pencil、configured target binding、React strict consumer、双数据库连续链与真实浏览器；SQLite 页面贯通 approved Definition → reviewed/listed template → target Application derive → Draft validate/save → 重启恢复，PostgreSQL configured Server 覆盖 runtime role、no-fallback 与 reconnect。双标签 CAS、workspace / application scope、三视口、隐私与零执行副作用均已复验，唯一任务卡关闭，不派生批次 F。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
@@ -45,7 +45,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：工作区 Workflow 模板目录批次 A 至 E 已完成并关闭，当前没有自动延续的产品批次。下一步回到[功能设计文档入口](features/README.md)按真实用户闭环、canonical owner、现有事实与外部依赖选择新的长期目标；本地成员管理与账户安全保持关闭，[联合登录专题](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：定时回归评测已完成设计准入并收窄到 exact Prompt Application Plan version；下一步只审查 P0 后台授权模型。若不批准受限委托，专题保持 blocked，不降级成页面打开时自动运行；若批准，再创建唯一高风险任务卡。联合登录批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -99,8 +99,8 @@
 
 ## 2026-08-31 明日事项
 
-1. 从[功能设计文档入口](features/README.md)重新审查未关闭的长期产品目标，只选择有真实用户任务、明确 owner、可验证纵向链且不会复制既有能力的下一顺位；先建或更新功能专题，再申请实施授权。
-2. Action Safety Ladder 保持关闭：只做缺陷修复与回归维护，不派生批次 F、通用动作执行器、写入 policy、上位 execution token、平行 readiness 卡或 production 续批。
+1. 项目所有者审查定时回归评测 P0：是否允许开发测试态 system runner 使用非 bearer、schedule-scoped、每次 occurrence 重验账户 / membership / permission / API Key / quota 的受限委托，并在 audit 中区分 system actor 与 delegated user。
+2. 未获 P0 批准前不创建任务卡或代码；不得冒用创建者 `actor_ref`、持久化 Session / token、只检查激活时权限，Action Safety Ladder 继续保持关闭。
 
 ## 2026-08-19 今日评审
 
@@ -128,7 +128,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 总入口与证据：
 
-最近完成产品入口：[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)及其[已关闭唯一高风险任务卡](task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)。新的产品入口尚未选择。
+当前产品入口：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。设计评审完成，P0 授权模型待项目所有者决定；当前没有实施任务卡。
 
 1. [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
 2. [Gateway Python Bridge Runtime v1](features/gateway/python-bridge-runtime-v1.md)
@@ -200,7 +200,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 ## 当前不要做
 
-- Action Safety Ladder 已完成并关闭；不从既有 read projection、strict consumer 或产品面原地扩批次 F、通用动作执行器、写入 policy、production route 或平行 readiness 卡。
+- 定时回归评测 P0 未批准前不创建后台 runner、schema、route、migration、Pencil、React 或任务卡；不冒用用户 actor、不持久化 Session / token、不引入通用 execution token。Action Safety Ladder 继续关闭且不派生批次 F。
 - 不让模型、客户端、Profile、Workflow 草案、candidate decision、assignment、人工批准或页面状态自报或提升 effective level；`write_allowed_by_policy` 在 v1 始终不可达。
 - 不为 Safety Ladder 创建第二套 Action、Confirmation、Run、Audit、Result 或通用 decision owner，也不新增万能 execute permission 或通用动作执行 API。
 - 不把工作区模板目录扩成公开 Marketplace、跨作用域共享、推荐 / 评分、自动重绑定、自动运行或生产发布。

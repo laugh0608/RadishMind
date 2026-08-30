@@ -6,6 +6,7 @@
 
 ## 当前专题
 
+- [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_design_reviewed_authorization_model_required`。首版只拟绑定 Prompt Application exact Plan version 与受限 UTC 日周期；现有 Campaign 为用户 HTTP actor 同步执行，后台 system actor、schedule-scoped 受限委托、occurrence claim 与 runner lifecycle 尚未获准，因此不创建任务卡或代码。
 - [应用结果资产库与受控导出（开发 / 测试态）v1](application-result-artifact-library-controlled-export-dev-test-v1.md)：状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`；批次 A 至 C 的 application-scoped 严格列表、过滤 cursor、canonical export、独立 export 权限、双数据库索引、strict Web consumer、三视口页面与双数据库产品连续链已完成，专题关闭且不复制 artifact / lifecycle owner。
 - [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](application-session-result-artifact-explicit-retention-dev-test-v1.md)：批次 A 至 D 已完成并关闭；默认关闭的显式保存、三存储不可变 artifact、版本化 lifecycle、共享 strict Web consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已成立，不改变 Run History / Session metadata-only 契约，也不派生批次 E、通用 result store 或 transcript。
 - [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到 S1–S8 八个产品面，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
@@ -34,6 +35,7 @@
 
 ## 下一步
 
+- 定时回归评测专题下一步只进行 P0 授权模型决策：是否允许开发测试态 system runner 使用非 bearer、schedule-scoped、每次 occurrence 重新检查账户 / membership / permission / API Key / quota 的受限委托。未经项目所有者明确批准，不建立后台 runner、schema、route、migration、Pencil、React 或执行任务卡；不得用创建者 `actor_ref` 冒充交互式请求。
 - 应用运行观测后续准入已评审完成，真实页面也已贯通“受控调用或 Session → Application Operations → 结果保存 → Result Workspace → exact Run detail / Comparison”。既有 owner 的 exact Run 目标交接、缺失 evidence 说明和 authority drift 恢复引导已经完成；有效 Run 直接打开详情，缺失 Run 失败关闭，Session reload 不自动切换、创建或重试。下一顺位回到上级功能设计入口，不为该普通 UI / 使用性修正启动服务端投影、新专题、Pencil 或专项门禁。
 - 应用会话运行结果资产显式保存与恢复 v1 已完成批次 A 至 D 并关闭。下一产品顺位回到上级功能设计文档入口选择新的长期目标；不从已关闭 Session / Result Artifact 专题扩永久 purge、transcript、长期记忆、replay / resume 或 agent loop。
 - S9 / S10 功能实现、SQLite 重启复验、Visual R3 人工复核、React 迁移与三视口浏览器证据已完成；旧 R1 与 Visual R2 仍只保留为退回历史。Provider 价格与应用成本专题的 S7 / S5 Visual R1、React strict consumer 和产品连续链也已完成。下一顺位回到功能设计入口选择新的真实产品阻塞，不从已关闭专题派生同层页面、自动执行或生产能力。

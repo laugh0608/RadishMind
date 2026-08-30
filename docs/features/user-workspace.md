@@ -1,6 +1,6 @@
 # 用户工作区设计与开发文档
 
-更新时间：2026-08-19
+更新时间：2026-08-30
 
 ## 功能定位
 
@@ -20,6 +20,7 @@
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md) 已完成并关闭：受限模板、不可变版本、Configuration Draft v3、Publish Candidate v3、Runtime Assignment、API key / Session v2、Run v6 与下游审查链均已接入；SQLite / PostgreSQL 连续链、重启恢复、CAS / authority drift / cancel 负向验收和浏览器隐私复验均已通过。
 - [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) 已完成批次 A 至批次 E：strict contracts、policy compiler、三种 Profile owner、Configuration / Candidate v4、assignment、`agent_copilot:invoke`、Session / Turn v3、Run v7、类型专属 Web 与双数据库真实验收均已落地，专题关闭。
 - [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) 已完成：Prompt v6 / Comparison v5 与 Agent v7 / Comparison v6 已严格接入既有 Evaluation Case、Suite 和人工 decision；SQLite 真实浏览器完成 Agent case → suite → `approved v1`，没有新增评测 owner 或自动发布能力。
+- [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) 已选为下一长期目标并完成设计准入评审。首版只拟让 Prompt Application exact Plan version 按受限 UTC 日周期产生既有 Campaign；现有服务缺少可区分 system actor / delegated user 的后台授权模型，P0 未批准前不创建任务卡、schema、route、runner、Pencil 或 React。
 - [工作区运营收件箱（开发 / 测试态）v1](user-workspace/workspace-operations-inbox-dev-test-v1.md) 批次 A 已完成：active workspace 下的 Applications、API Keys、Workflow Definitions 与 Runs 首分页脱敏快照可投影为确定性关注队列，显式标记 partial / unavailable coverage，并跳转既有审查 surface；不新增 incident、notification、remediation 或 quota 真相源。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) 已完成设计、全量 mutation inventory、唯一任务卡及批次 A 至 E；verified identity、active workspace、单项 / 原子组合与资源条件 membership permission、resource owner、稳定拒绝与副作用顺序已进入全部 47 条人类交互式 mutation，专题关闭。
 - 工作区首页和工作流定义已支持创建本地工作流草案并进入草案设计器；草案保存复用仅开发的已保存草案消费端，不代表生产持久化已成立。
@@ -67,7 +68,7 @@
 
 ## 下一批开发方向
 
-1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级，以及 `S1 R8` 至 `S10 Visual R3` 的设计、React 和严格浏览器验收均已完成。后续 UI 工作只由新的功能专题和真实使用证据产生，不建立 S11 或同层迁移续批。[Provider 价格策略版本与应用成本审查](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)已完成；用户工作区只在 Application Operations 审查当前 Gateway 窗口中的成本证据，不创建全历史聚合或 billing owner。Saved Draft Library 继续保持 `B` 级唯一列表 owner。
+1. `user_workspace_real_path_ui_coherence_v1` 已完成并关闭。[RadishMind Family UI 产品化设计与迁移 v1](user-workspace/radishmind-family-ui-productization-v1.md) 已对齐 family-ui `v26.7.3` 通用参考基线，并由 RadishMind 主动选择 Workbench Profile、原样 token 镜像和项目语义别名；差异附录、[27 张参考图映射](user-workspace/radishmind-family-ui-reference-mapping-v1.md)、Pencil 分级，以及 `S1 R8` 至 `S10 Visual R3` 的设计、React 和严格浏览器验收均已完成。定时回归评测若通过 P0 授权模型审查，将复用 S10 并先做 `A / 完整 Pencil`，不建立 S11；当前未批准 system actor / delegation，不操作设计源。[Provider 价格策略版本与应用成本审查](gateway/provider-pricing-policy-version-application-cost-review-dev-test-v1.md)已完成；用户工作区只审查当前窗口成本证据，不创建全历史聚合或 billing owner。
 2. 后续批次继续要求跨 tenant / subject、非成员、过期 identity / membership、workspace mismatch、permission denied 在业务 repository 查询或副作用前失败关闭。dev header 与 signed-test assertion 只能用于开发测试，不能成为 production OIDC 授权来源。
 3. 工作区运营收件箱批次 A 已完成。只有真实需要跨全部分页窗口，且四类 owner 的统一稳定 cursor 契约成立时才评审批次 B；不为扩展示例数量或页面计数启动服务端投影。
 4. Prompt / Agent 继续复用 canonical Run、Comparison、Evaluation Case / Suite 与 decision owner；不复制评测算法，不把人工 `approved` 接成自动 candidate、assignment、release 或 deploy。Agent / Copilot 仍复用 canonical `CopilotRequest / CopilotResponse`，不扩 agent loop、工具执行或业务写回。
