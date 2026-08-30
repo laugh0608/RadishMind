@@ -483,6 +483,7 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 		t.Fatal("PostgreSQL runtime role mutated append-only workflow RAG snapshot audits")
 	}
 	applicationEvaluationEvidence := runPostgresApplicationEvaluationRepositoryContract(t, ctx, runtimePool)
+	applicationEvaluationScheduleEvidence := runPostgresApplicationEvaluationScheduleRepositoryContract(t, ctx, runtimePool)
 	runtimePool.Close()
 	reopened, err := workflowrunmigrations.OpenPool(ctx, runtimeDatabaseURL)
 	if err != nil {
@@ -500,6 +501,20 @@ func TestPostgresWorkflowRunStoreIntegration(t *testing.T) {
 	restoredApplicationEvaluationCampaign, found, applicationEvaluationErr := restartedApplicationEvaluation.ReadCampaign(applicationEvaluationEvidence.Context, applicationEvaluationEvidence.CampaignID)
 	if applicationEvaluationErr != nil || !found || restoredApplicationEvaluationCampaign.RecordVersion != 4 || restoredApplicationEvaluationCampaign.Handoff == nil || len(restoredApplicationEvaluationCampaign.Handoff.CaseRefs) != 1 {
 		t.Fatalf("restart application evaluation campaign recovery failed: found=%v err=%v campaign=%+v", found, applicationEvaluationErr, restoredApplicationEvaluationCampaign)
+	}
+	restartedApplicationEvaluationSchedules := newPostgresApplicationEvaluationScheduleRepository(reopened)
+	restoredSchedule, found, applicationEvaluationErr := restartedApplicationEvaluationSchedules.ReadSchedule(
+		applicationEvaluationScheduleEvidence.Context, applicationEvaluationScheduleEvidence.ScheduleID,
+	)
+	if applicationEvaluationErr != nil || !found || restoredSchedule.RecordVersion != 2 || restoredSchedule.LifecycleState != applicationEvaluationScheduleStateActive {
+		t.Fatalf("restart application evaluation schedule recovery failed: found=%v err=%v schedule=%+v", found, applicationEvaluationErr, restoredSchedule)
+	}
+	restoredOccurrence, found, applicationEvaluationErr := restartedApplicationEvaluationSchedules.ReadOccurrence(
+		applicationEvaluationScheduleEvidence.SystemContext, applicationEvaluationScheduleEvidence.ScheduleID, 1,
+		applicationEvaluationScheduleEvidence.ScheduledForUTC,
+	)
+	if applicationEvaluationErr != nil || !found || restoredOccurrence.RecordVersion != 2 || restoredOccurrence.State != applicationEvaluationScheduleOccurrenceStateClaimed {
+		t.Fatalf("restart application evaluation occurrence recovery failed: found=%v err=%v occurrence=%+v", found, applicationEvaluationErr, restoredOccurrence)
 	}
 	restoredRAG := newWorkflowRAGSnapshotService(newPostgresWorkflowRAGSnapshotRepository(reopened)).Read(
 		workflowRAGTestContext(), "rags_aaaaaaaaaaaaaaaa", 2,
@@ -972,6 +987,13 @@ type postgresApplicationEvaluationEvidence struct {
 	CampaignID string
 }
 
+type postgresApplicationEvaluationScheduleEvidence struct {
+	Context         ApplicationEvaluationContext
+	SystemContext   ApplicationEvaluationContext
+	ScheduleID      string
+	ScheduledForUTC string
+}
+
 func runPostgresApplicationEvaluationRepositoryContract(t *testing.T, requestContext context.Context, pool *pgxpool.Pool) postgresApplicationEvaluationEvidence {
 	t.Helper()
 	planService, evaluationContext := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
@@ -1057,8 +1079,88 @@ func runPostgresApplicationEvaluationRepositoryContract(t *testing.T, requestCon
 	return postgresApplicationEvaluationEvidence{Context: evaluationContext, PlanID: created.Plan.PlanID, CampaignID: campaign.CampaignID}
 }
 
+func runPostgresApplicationEvaluationScheduleRepositoryContract(
+	t *testing.T,
+	requestContext context.Context,
+	pool *pgxpool.Pool,
+) postgresApplicationEvaluationScheduleEvidence {
+	t.Helper()
+	userContext, schedule, version := applicationEvaluationScheduleTestRecords(t)
+	userContext.RequestContext = requestContext
+	repository := newPostgresApplicationEvaluationScheduleRepository(pool)
+	if err := repository.CreateSchedule(userContext, schedule, version); err != nil {
+		t.Fatalf("create PostgreSQL application evaluation schedule: %v", err)
+	}
+	active := applicationEvaluationActivateScheduleRepository(t, repository, userContext, schedule, "2026-08-30T09:30:00Z")
+	if active.RecordVersion != 2 || active.LifecycleState != applicationEvaluationScheduleStateActive {
+		t.Fatalf("activate PostgreSQL application evaluation schedule: %+v", active)
+	}
+	systemContext, due, claimed := applicationEvaluationScheduleOccurrenceTestRecords(userContext, version, "2026-08-30T09:30:00Z")
+	systemContext.RequestContext = requestContext
+	winners, conflicts, unexpected := 0, 0, 0
+	var mutex sync.Mutex
+	var wait sync.WaitGroup
+	for range 16 {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			_, won, claimErr := repository.ClaimOccurrence(systemContext, due, claimed)
+			mutex.Lock()
+			defer mutex.Unlock()
+			switch {
+			case claimErr == nil && won:
+				winners++
+			case errors.Is(claimErr, errApplicationEvaluationScheduleClaimConflict) && !won:
+				conflicts++
+			default:
+				unexpected++
+			}
+		}()
+	}
+	wait.Wait()
+	if winners != 1 || conflicts != 15 || unexpected != 0 {
+		t.Fatalf("PostgreSQL application evaluation claim did not have one winner: winners=%d conflicts=%d unexpected=%d", winners, conflicts, unexpected)
+	}
+	page, err := repository.ListSchedules(userContext, ApplicationEvaluationScheduleListFilter{
+		LifecycleState: applicationEvaluationScheduleStateActive, Limit: 1,
+	})
+	if err != nil || len(page.Schedules) != 1 || page.Schedules[0].ScheduleID != schedule.ScheduleID || page.HasMore {
+		t.Fatalf("list PostgreSQL application evaluation schedules: page=%+v err=%v", page, err)
+	}
+	if _, err = pool.Exec(requestContext, `UPDATE application_evaluation_schedule_versions
+		SET schedule_version=schedule_version+1 WHERE schedule_id=$1`, schedule.ScheduleID); err == nil {
+		t.Fatal("PostgreSQL runtime role mutated an immutable application evaluation schedule version")
+	}
+
+	corruptedVersion := version
+	corruptedVersion.ScheduleID = "aesch_bbbbbbbbbbbbbbbb"
+	corruptedVersion.ScheduleDigest, _ = applicationEvaluationScheduleDigest(corruptedVersion)
+	corruptedSchedule := schedule
+	corruptedSchedule.ScheduleID = corruptedVersion.ScheduleID
+	corruptedSchedule.LatestScheduleDigest = corruptedVersion.ScheduleDigest
+	if err = repository.CreateSchedule(userContext, corruptedSchedule, corruptedVersion); err != nil {
+		t.Fatalf("create PostgreSQL corruption probe schedule: %v", err)
+	}
+	applicationEvaluationActivateScheduleRepository(t, repository, userContext, corruptedSchedule, "2026-08-30T09:30:00Z")
+	if _, err = pool.Exec(requestContext, `UPDATE application_evaluation_schedules
+		SET record_version=record_version+1,
+		    sanitized_schedule_record=jsonb_set(sanitized_schedule_record,'{record_version}',to_jsonb(record_version+1)) || '{"unexpected":true}'::jsonb
+		WHERE schedule_id=$1`, corruptedSchedule.ScheduleID); err != nil {
+		t.Fatalf("inject PostgreSQL schedule corruption: %v", err)
+	}
+	if _, found, readErr := repository.ReadSchedule(userContext, corruptedSchedule.ScheduleID); found || !errors.Is(readErr, errApplicationEvaluationScheduleStoreContract) {
+		t.Fatalf("corrupted PostgreSQL schedule did not fail closed: found=%v err=%v", found, readErr)
+	}
+	return postgresApplicationEvaluationScheduleEvidence{
+		Context: userContext, SystemContext: systemContext, ScheduleID: schedule.ScheduleID, ScheduledForUTC: due.ScheduledForUTC,
+	}
+}
+
 func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS application_evaluation_schedule_occurrences, application_evaluation_schedule_versions, application_evaluation_schedules`); err != nil {
+		t.Fatalf("reset application evaluation schedule tables: %v", err)
+	}
 	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS application_result_artifact_lifecycle_events, application_result_artifact_lifecycles, application_result_artifacts, application_evaluation_campaigns, application_evaluation_plan_versions, application_evaluation_plans, agent_copilot_run_records, agent_copilot_session_turns, agent_copilot_sessions, agent_copilot_runtime_assignment_events, agent_copilot_runtime_assignments, prompt_application_run_records, prompt_application_session_turns, prompt_application_sessions, prompt_application_runtime_assignment_events, prompt_application_runtime_assignments, application_interaction_session_turns, application_interaction_sessions, workflow_definition_release_audits, workflow_definition_activation_events, workflow_definition_activations, workflow_definition_versions, workflow_definition_release_decisions, workflow_definition_release_candidates, workflow_rag_application_runtime_audits, workflow_rag_application_runtime_events, workflow_rag_application_runtime_assignments, workflow_rag_knowledge_promotion_audits, workflow_rag_application_bindings, workflow_rag_knowledge_promotion_decisions, workflow_rag_knowledge_promotion_candidates, workflow_rag_evaluation_audits, workflow_rag_candidate_snapshot_reviews, workflow_rag_evaluation_dataset_versions, workflow_rag_evaluation_dataset_resources, workflow_rag_execution_audits, workflow_rag_snapshot_fragments, workflow_rag_snapshot_versions, workflow_rag_snapshot_resources, workflow_http_tool_execution_attempts, workflow_http_tool_confirmation_decisions, workflow_http_tool_execution_audits, workflow_http_tool_action_plans, workflow_evaluation_suite_decisions, workflow_evaluation_suites, workflow_evaluation_case_revisions, workflow_evaluation_cases, workflow_run_records`); err != nil {
 		t.Fatalf("reset workflow run integration tables: %v", err)
 	}
@@ -1085,6 +1187,9 @@ func resetPostgresWorkflowRunSchema(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_mutation(), enforce_application_evaluation_campaign_update(), enforce_application_evaluation_plan_update()`); err != nil {
 		t.Fatalf("reset application evaluation guards: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_schedule_mutation(), enforce_application_evaluation_schedule_occurrence_update(), enforce_application_evaluation_schedule_update()`); err != nil {
+		t.Fatalf("reset application evaluation schedule guards: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_result_artifact_mutation()`); err != nil {
 		t.Fatalf("reset application result artifact guard: %v", err)

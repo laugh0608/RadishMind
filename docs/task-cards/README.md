@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1 实施任务卡](application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)是当前唯一高风险产品任务卡。项目所有者已批准 system actor + schedule-scoped delegation；Batch A 的三份 canonical schema、Schedule / Version / Occurrence 领域合同、UTC / digest、memory owner、CAS、单赢家 claim 与负向门禁已完成，状态为 `batch_a_completed_batch_b_awaiting_approval`。下一步只在项目所有者批准后进入 Batch B strict HTTP 与 SQLite / PostgreSQL，不提前启动 runner 或调用 Campaign / Provider。
+[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1 实施任务卡](application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)是当前唯一高风险产品任务卡。项目所有者已批准 system actor + schedule-scoped delegation；Batch A canonical / memory owner 与 Batch B strict HTTP / SQLite / PostgreSQL durable owner 已完成，状态为 `batch_b_completed_batch_c_awaiting_approval`。下一步只在项目所有者批准后进入 Batch C runner 与既有 Campaign 交接，不提前启动 worker、调用 Campaign / Provider 或修改 Pencil / React。
 
 ## 当前外部阻塞任务
 

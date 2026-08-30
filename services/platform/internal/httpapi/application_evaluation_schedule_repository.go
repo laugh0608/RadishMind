@@ -2,16 +2,31 @@ package httpapi
 
 import (
 	"reflect"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
+
+type ApplicationEvaluationScheduleListFilter struct {
+	LifecycleState   string
+	BeforeUpdatedAt  string
+	BeforeScheduleID string
+	Limit            int
+}
+
+type ApplicationEvaluationScheduleListPage struct {
+	Schedules []ApplicationEvaluationSchedule
+	HasMore   bool
+}
 
 type applicationEvaluationScheduleRepository interface {
 	CreateSchedule(ApplicationEvaluationContext, ApplicationEvaluationSchedule, ApplicationEvaluationScheduleVersion) error
 	ReviseSchedule(ApplicationEvaluationContext, int, ApplicationEvaluationSchedule, ApplicationEvaluationScheduleVersion) (ApplicationEvaluationSchedule, bool, error)
 	UpdateSchedule(ApplicationEvaluationContext, int, ApplicationEvaluationSchedule) (ApplicationEvaluationSchedule, bool, error)
 	ReadSchedule(ApplicationEvaluationContext, string) (ApplicationEvaluationSchedule, bool, error)
+	ListSchedules(ApplicationEvaluationContext, ApplicationEvaluationScheduleListFilter) (ApplicationEvaluationScheduleListPage, error)
 	ReadScheduleVersion(ApplicationEvaluationContext, string, int) (ApplicationEvaluationScheduleVersion, bool, error)
 	ClaimOccurrence(ApplicationEvaluationContext, ApplicationEvaluationScheduleOccurrence, ApplicationEvaluationScheduleOccurrence) (ApplicationEvaluationScheduleOccurrence, bool, error)
 	UpdateOccurrence(ApplicationEvaluationContext, int, ApplicationEvaluationScheduleOccurrence) (ApplicationEvaluationScheduleOccurrence, bool, error)
@@ -187,6 +202,47 @@ func (repository *memoryApplicationEvaluationScheduleRepository) ReadSchedule(
 		return ApplicationEvaluationSchedule{}, false, errApplicationEvaluationScheduleStoreContract
 	}
 	return cloneApplicationEvaluationSchedule(schedule), true, nil
+}
+
+func (repository *memoryApplicationEvaluationScheduleRepository) ListSchedules(
+	ctx ApplicationEvaluationContext,
+	filter ApplicationEvaluationScheduleListFilter,
+) (ApplicationEvaluationScheduleListPage, error) {
+	if !validApplicationEvaluationContext(ctx) || !validApplicationEvaluationScheduleState(filter.LifecycleState) || filter.Limit < 1 {
+		return ApplicationEvaluationScheduleListPage{}, errApplicationEvaluationScheduleStoreContract
+	}
+	repository.mu.RLock()
+	defer repository.mu.RUnlock()
+	if repository.unavailable {
+		return ApplicationEvaluationScheduleListPage{}, errApplicationEvaluationScheduleStoreUnavailable
+	}
+	values := make([]ApplicationEvaluationSchedule, 0)
+	for key, schedule := range repository.schedules {
+		if !strings.HasPrefix(key, applicationEvaluationScopeKey(ctx)+"\x1f") || schedule.LifecycleState != filter.LifecycleState {
+			continue
+		}
+		version, found := repository.versions[key][schedule.LatestScheduleVersion]
+		if !found || validateApplicationEvaluationSchedule(ctx, schedule) != nil ||
+			validateApplicationEvaluationScheduleVersion(ctx, version) != nil || !applicationEvaluationScheduleMatchesVersion(schedule, version) {
+			return ApplicationEvaluationScheduleListPage{}, errApplicationEvaluationScheduleStoreContract
+		}
+		if filter.BeforeUpdatedAt != "" && (schedule.UpdatedAt > filter.BeforeUpdatedAt ||
+			(schedule.UpdatedAt == filter.BeforeUpdatedAt && schedule.ScheduleID >= filter.BeforeScheduleID)) {
+			continue
+		}
+		values = append(values, cloneApplicationEvaluationSchedule(schedule))
+	}
+	sort.Slice(values, func(i, j int) bool {
+		if values[i].UpdatedAt == values[j].UpdatedAt {
+			return values[i].ScheduleID > values[j].ScheduleID
+		}
+		return values[i].UpdatedAt > values[j].UpdatedAt
+	})
+	hasMore := len(values) > filter.Limit
+	if hasMore {
+		values = values[:filter.Limit]
+	}
+	return ApplicationEvaluationScheduleListPage{Schedules: values, HasMore: hasMore}, nil
 }
 
 func (repository *memoryApplicationEvaluationScheduleRepository) ReadScheduleVersion(

@@ -3,7 +3,7 @@
 更新时间：2026-08-30
 
 - 任务 ID：`application-evaluation-scheduled-regression-campaign-dev-test-v1`
-- 状态：`batch_a_completed_batch_b_awaiting_approval`
+- 状态：`batch_b_completed_batch_c_awaiting_approval`
 - 功能设计：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](../features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)
 
 ## 准入结论
@@ -56,19 +56,19 @@
 
 ## 批次 B：strict HTTP 与双数据库
 
-状态：`pending_owner_approval`。
+状态：`completed`。
 
-- 实现 create / revise / activate / pause / resume / archive / list / exact version read 与 Occurrence read；body 拒绝 unknown / duplicate field，query 使用严格 allowlist，mutation 使用 CAS。
-- 激活必须重新读取 exact active Prompt Plan version、digest、item count、Prompt assignment authority 与 actor-owned API Key，并显式确认周期 Provider 消耗。
-- 增加 SQLite / PostgreSQL migration、marker / checksum、runtime role、transaction、唯一 occurrence、并发 claim、restart / reconnect、corruption 与 no-fallback。
-- 复用既有数据库连接、selector 和 migration family；不新增 DSN、pool、database file 或跨 store join。
-- 本批仍不启动 runner、不调用 Campaign / Provider、不修改 Pencil / React。
+- [x] 实现 create / revise / activate / pause / resume / archive / list / exact version read 与 Occurrence read；body 拒绝 unknown / duplicate field，query 使用严格 allowlist，mutation 使用 CAS。
+- [x] 激活与恢复重新读取 exact active Prompt Plan version、digest、item count、Prompt assignment authority 与 actor-owned API Key，并要求显式确认周期 Provider 消耗。
+- [x] 增加 SQLite `0026` 与 PostgreSQL `0029` migration、marker / checksum、runtime role、transaction、唯一 occurrence、并发 claim、restart / reconnect、corruption 与 no-fallback。
+- [x] 复用既有 Workflow Run SQLite database / PostgreSQL pool、selector 和 migration family；没有新增 DSN、pool、database file 或跨 store join。
+- [x] 本批没有启动 runner、调用 Campaign / Provider 或修改 Pencil / React。
 
-批次 B 退出条件：HTTP 与三种 store 行为同构；错误 scope、environment、permission、Plan、authority、API Key、CAS、migration 和 store 状态全部失败关闭。
+批次 B 退出条件已经满足：HTTP 与三种 store 行为同构；错误 scope、environment、permission、Plan、authority、API Key、CAS、migration 和 store 状态全部失败关闭。SQLite 文件库覆盖 16 路并发单赢家、重启、损坏与关闭后 no-fallback；PostgreSQL 17 configured gate 覆盖受限 runtime role、16 路并发单赢家、损坏、断开 / 重连和 `workflow_run_store_v29` 迁移链。
 
 ## 批次 C：Runner 与既有 Campaign 交接
 
-状态：`pending`。
+状态：`pending_owner_approval`。
 
 - 增加显式 development / test gate、固定低频 poll、单 worker cancel / join 和“先停 worker、后关 store”的 Server 生命周期。
 - 每个 occurrence 以 system actor 执行，同时携带独立 delegated user；逐次重读账户、membership、permission、Plan / assignment、API Key 与 quota。
@@ -95,4 +95,4 @@
 
 ## 当前下一步
 
-Batch A 已完成。下一步只在项目所有者批准 Batch B 后进入 strict HTTP 与 SQLite / PostgreSQL；不得提前启动后台 runner、调用 Campaign / Provider、修改 Pencil / React 或声明定时回归可用。
+Batch B 已完成。下一步只在项目所有者批准 Batch C 后实现 runner 与既有 Campaign 交接；不得提前启动后台 worker、调用 Campaign / Provider、修改 Pencil / React 或声明定时回归可用。

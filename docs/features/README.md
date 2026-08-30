@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-08-30 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、工作区 Workflow 模板目录以及[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)均已关闭。当前长期目标为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `batch_a_completed_batch_b_awaiting_approval`：P0 受限委托已批准，Prompt Application exact Plan version、UTC 日周期、canonical schema、memory CAS 与单赢家 claim 已完成；HTTP、双数据库与 runner 尚未进入。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入保持 `no_entry`；真实 Radish OIDC 批次 E 继续等待外部条件。
+2026-08-30 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、工作区 Workflow 模板目录以及[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)均已关闭。当前长期目标为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `batch_b_completed_batch_c_awaiting_approval`：P0 受限委托、Batch A canonical / memory owner 与 Batch B strict HTTP / SQLite / PostgreSQL 已完成；runner 与 Campaign / Provider 交接尚未进入。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入保持 `no_entry`；真实 Radish OIDC 批次 E 继续等待外部条件。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -40,7 +40,7 @@
 
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
-| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | 定时回归评测专题已完成设计评审；下一步只审查 P0 后台授权模型，不启动运行时、全历史 summary、billing 或收件箱批次 B |
+| [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | 定时回归评测专题 Batch B 已完成；下一步只审查 Batch C runner 与 Campaign 交接，不启动未批准运行时、全历史 summary、billing 或收件箱批次 B |
 | [管理控制面](admin-control-plane.md) | Provider / Route、quota、Pricing、本地账户、联合登录、workspace 成员管理与当前账户安全自助治理均已有开发测试态 canonical owner | 本地账户凭证轮换与自助会话治理批次 A 至 E 已关闭；下一入口回到功能索引选择新长期目标，不打开 production auth |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 E、Visual R1、React、双数据库、三协议和浏览器均已关闭；真实 Provider 与 production 继续关闭 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition HTTP Tool、工作区模板目录与 Action Safety Ladder 均已关闭 | 下一顺位回到功能设计评审；不从已关闭专题放宽通用 executor、写入 policy 或业务写回 |
@@ -67,7 +67,7 @@
 | [Agent / Copilot 应用档案版本审查与受控建议（开发 / 测试态）v1](user-workspace/agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md) | 功能 / 策略版本与受控建议专题 | 批次 A 至批次 E 已完成，专题关闭 |
 | [Prompt / Agent 应用回归评测与发布审查（开发 / 测试态）v1](user-workspace/prompt-agent-application-regression-evaluation-release-review-dev-test-v1.md) | 功能 / 回归评测与人工发布审查专题 | Comparison v5 / v6、Case、Suite 与 decision 兼容和 SQLite 真实浏览器链已完成，专题关闭 |
 | [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) | 功能 / 高风险受控执行专题 | 后端 A 至 D、S10 Visual R3 React / strict consumer、memory / SQLite exact handoff、重启恢复和三视口浏览器复核已完成；结构化输入专题批次 D 已在原 owner 上补齐第五个 Definition v2 Profile |
-| [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) | 功能 / 后台受控执行准入专题 | P0 受限委托已批准，Batch A canonical schema、领域合同、memory CAS 与单赢家 claim 已完成；等待 Batch B strict HTTP 与双数据库批准，runner 尚未进入 |
+| [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) | 功能 / 后台受控执行准入专题 | P0、Batch A 与 Batch B 已完成；strict HTTP、三种 store、激活 / 恢复重验、CAS、单赢家和 restart / reconnect 已成立，等待 Batch C runner 与既有 Campaign 交接批准 |
 | [Prompt / Agent / Copilot 类型工作区产品化 v1](user-workspace/prompt-agent-copilot-type-workspace-productization-v1.md) | 功能 / 类型工作区产品化专题 | S8 Pencil、七 / 八任务单 owner React 工作区、Web / build 与真实浏览器验收已完成；不扩生产认证、自动 assignment、自动发布或 agent loop |
 | [Admin Control Plane 细专题入口](admin-control-plane/README.md) | 功能专题目录 | 承接 authenticated read、permission binding、repository transition 与后续管理端真实使用路径 |
 | [Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1](admin-control-plane/provider-profile-model-route-controlled-activation-dev-test-v1.md) | 功能 / 高风险管理动作专题 | 批次 A 至 E 已完成并关闭，覆盖领域、三模式 repository、Admin API / Web、Gateway snapshot consumer、请求历史谱系与双数据库产品验证 |

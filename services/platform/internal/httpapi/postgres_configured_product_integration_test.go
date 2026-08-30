@@ -534,6 +534,9 @@ func runConfiguredPostgresMigrationGate(
 
 func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
+	if _, err := pool.Exec(ctx, `DROP TABLE IF EXISTS application_evaluation_schedule_occurrences, application_evaluation_schedule_versions, application_evaluation_schedules`); err != nil {
+		t.Fatalf("reset configured PostgreSQL application evaluation schedule tables: %v", err)
+	}
 	_, err := pool.Exec(ctx, `DROP TABLE IF EXISTS
 		application_result_artifact_lifecycle_events,
 		application_result_artifact_lifecycles,
@@ -637,6 +640,9 @@ func resetConfiguredPostgresSchemas(t *testing.T, ctx context.Context, pool *pgx
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_mutation(), enforce_application_evaluation_campaign_update(), enforce_application_evaluation_plan_update()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL application evaluation guards: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_evaluation_schedule_mutation(), enforce_application_evaluation_schedule_occurrence_update(), enforce_application_evaluation_schedule_update()`); err != nil {
+		t.Fatalf("reset configured PostgreSQL application evaluation schedule guards: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `DROP FUNCTION IF EXISTS reject_application_result_artifact_mutation()`); err != nil {
 		t.Fatalf("reset configured PostgreSQL application result artifact guard: %v", err)

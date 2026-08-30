@@ -70,6 +70,7 @@ type Server struct {
 	workflowEvaluationStore                 workflowEvaluationStore
 	workflowEvaluationSuiteStore            workflowEvaluationSuiteStore
 	applicationEvaluationRepository         applicationEvaluationRepository
+	applicationEvaluationScheduleRepository applicationEvaluationScheduleRepository
 	gatewayRequestHistoryStore              gatewayRequestStore
 	gatewayRequestHistoryStoreMode          string
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
@@ -179,6 +180,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	if runtimeConfig.ApplicationEvaluationCampaignDevEnabled && applicationEvaluationRepository == nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, fmt.Errorf("application evaluation campaign requires a supported workflow runtime backend")
+	}
+	applicationEvaluationScheduleRepository, err := newApplicationEvaluationScheduleRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
 	}
 	applicationInteractionSessionRepository, err := newApplicationInteractionSessionRepositoryForRunStore(workflowRunStore)
 	if err != nil {
@@ -377,6 +383,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:            newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
 		applicationEvaluationRepository:         applicationEvaluationRepository,
+		applicationEvaluationScheduleRepository: applicationEvaluationScheduleRepository,
 		gatewayRequestHistoryStore:              gatewayRequestStore,
 		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
@@ -576,6 +583,16 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationEvaluationCampaignListRoute, server.handleListApplicationEvaluationCampaigns)
 	mux.HandleFunc(applicationEvaluationCampaignReadRoute, server.handleReadApplicationEvaluationCampaign)
 	mux.HandleFunc(applicationEvaluationCampaignReconcileRoute, server.handleReconcileApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationScheduleCreateRoute, server.handleCreateApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleListRoute, server.handleListApplicationEvaluationSchedules)
+	mux.HandleFunc(applicationEvaluationScheduleReadRoute, server.handleReadApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleReviseRoute, server.handleReviseApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleActivateRoute, server.handleActivateApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationSchedulePauseRoute, server.handlePauseApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleResumeRoute, server.handleResumeApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleArchiveRoute, server.handleArchiveApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleVersionReadRoute, server.handleReadApplicationEvaluationScheduleVersion)
+	mux.HandleFunc(applicationEvaluationScheduleOccurrenceReadRoute, server.handleReadApplicationEvaluationScheduleOccurrence)
 	mux.HandleFunc(applicationEvaluationPairPreviewRoute, server.handlePreviewApplicationEvaluationCampaignPair)
 	mux.HandleFunc(applicationEvaluationHandoffRoute, server.handleMaterializeApplicationEvaluationHandoff)
 	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)

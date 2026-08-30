@@ -2,15 +2,15 @@
 
 更新时间：2026-08-30
 
-状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_a_completed_batch_b_awaiting_approval`
+状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_b_completed_batch_c_awaiting_approval`
 
 ## 设计结论
 
-本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已经建立，Batch A 的 canonical schema、领域合同和 memory owner 已完成。
+本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已经建立，Batch A 的 canonical schema、领域合同和 memory owner，以及 Batch B 的 strict HTTP、SQLite / PostgreSQL durable owner 均已完成。
 
 现有 Application Evaluation Plan 已保存不可变测试 fixture，Campaign 已能顺序调用既有应用运行服务并生成 durable Run，Comparison、Case、Suite 与人工 decision 也已闭合。新的用户价值不在复制这些 owner，而在让内部应用开发者把一个 exact Plan version 配置为受限 UTC 周期，在无人停留页面时仍能形成可审查的 Campaign 证据。
 
-代码审计同时确认：现有 Campaign 只能在用户 HTTP 权限上下文中同步执行，API Key 必须属于当前 actor；Platform 没有后台 scheduler 生命周期、service principal、受限委托或 occurrence lease。后台进程若直接把创建者 `actor_ref` 填入请求，将构成隐式冒用。获批模型因此明确分离 system actor 与 delegated user，禁止把用户 HTTP 身份上下文带入后台；Batch A 只冻结该合同，尚未启动 runner 或 Campaign。
+代码审计同时确认：现有 Campaign 只能在用户 HTTP 权限上下文中同步执行，API Key 必须属于当前 actor；Platform 还没有后台 scheduler 生命周期。后台进程若直接把创建者 `actor_ref` 填入请求，将构成隐式冒用。获批模型因此明确分离 system actor 与 delegated user，禁止把用户 HTTP 身份上下文带入后台；Batch B 只完成控制面与 durable claim，没有启动 runner 或 Campaign。
 
 ## 用户任务
 
@@ -32,7 +32,7 @@
 | 受控在线知识源 | 后置 | 现有 HTTP Tool 只接受 `application/json`；在线 Markdown / HTML 需要新的 transport、解析与来源安全边界 |
 | 真实 Radish OIDC | 等待外部条件 | reviewed client registration、issuer / audience 与真实联调环境仍未成立 |
 | production secret / billing | 不进入 | production owner、资源与发布条件未满足 |
-| Prompt Application 定时回归 Campaign | 选中，Batch A 已完成 | fixture、单次 Provider 调用、Run 与评测证据链已经存在；受限委托合同和 memory owner 已建立，HTTP、数据库与 runner 仍按批准入 |
+| Prompt Application 定时回归 Campaign | 选中，Batch B 已完成 | fixture、单次 Provider 调用、Run 与评测证据链已经存在；受限委托合同、strict HTTP 与三种 store owner 已建立，runner 仍按批批准 |
 
 v1 只接受 `prompt_application_invocation_v1` Plan version。每个 item 最多产生一次 Prompt Provider attempt，最多 `20` 个 item；Workflow Definition、RAG、Agent、HTTP Tool、结构化多 LLM Definition 和其它 Profile 均不在首版范围内。该收窄让请求配额预算可以由 `item_count` 精确表达，不把估算成本或未知节点数写成授权事实。
 
@@ -128,7 +128,7 @@ due -> claimed -> campaign_created -> observing -> succeeded|failed|interrupted|
 
 明确禁止的方案：持久化 Web Session / cookie / API Key token、后台直接冒用创建者 `actor_ref`、只检查激活时权限、把角色或 permission snapshot 当永久授权、引入可在其它资源复用的通用 execution token。
 
-Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`，并把两项 required permission、`every_occurrence`、`delegated_user_current_owner` 与 `fail_closed_immediate` 写入不可变 Schedule Version。该批准不等于 runner、HTTP、数据库、Pencil 或 React 已获实现批准。
+Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`，并把两项 required permission、`every_occurrence`、`delegated_user_current_owner` 与 `fail_closed_immediate` 写入不可变 Schedule Version；Batch B 已在 strict HTTP 与三种 store 中保持该合同。当前仍不等于 runner、Campaign / Provider、Pencil 或 React 已获实现批准。
 
 ## Runner 生命周期与失败语义
 
@@ -159,7 +159,7 @@ Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`
 
 本专题若进入实现，应复用 S10 Application Evaluation Workspace，在现有 Plan / Campaign / Handoff 任务模型中增加 schedule owner，而不建立 S11。
 
-五维预评估为 `1 / 2 / 2 / 1 / 2 = 8`，达到 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；需要表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。Pencil 必须在 React 前由项目所有者人工批准，但当前授权模型未批准，因此暂不修改设计源。
+五维预评估为 `1 / 2 / 2 / 1 / 2 = 8`，达到 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；需要表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。Pencil 必须在 React 前由项目所有者人工批准；当前仍停在 Batch C 之前，不修改设计源。
 
 ## 拟议实施顺序
 
@@ -178,8 +178,11 @@ Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`
 
 ### 批次 B：strict HTTP 与双数据库
 
-- 实现 create / revise / activate / pause / archive / list / exact read 与 occurrence read。
-- 增加 SQLite / PostgreSQL migration、CAS、唯一 occurrence、restart、multi-runner claim 和 no-fallback。
+- 状态：`completed`。
+- 已实现 create / revise / activate / pause / resume / archive / list / exact version read 与 occurrence read，mutation 使用 CAS，body / query 严格拒绝 unknown、duplicate 和未允许字段。
+- 激活与恢复重新读取 exact active Prompt Plan、digest、item count、Prompt assignment authority 与 actor-owned active API Key。
+- SQLite `0026` 与 PostgreSQL `0029` 复用既有 Workflow Run database / pool，覆盖受限 runtime role、唯一 occurrence、16 路并发单赢家、restart / reconnect、corruption 与 no-fallback。
+- 没有启动 runner、调用 Campaign / Provider 或修改 Pencil / React。
 
 ### 批次 C：runner 与既有 Campaign 交接
 
@@ -198,12 +201,12 @@ Batch A 已把批准结果冻结为 `system_actor_schedule_scoped_delegation_v1`
 | 真实用户任务 | 满足：周期回归发现模型 / Profile 漂移 |
 | canonical Plan / Campaign / Run owner | 满足：现有链可复用 |
 | fixture 与 Provider attempt 预算 | 首版 Prompt-only 后满足 |
-| durable schedule / occurrence owner | Batch A memory owner 已完成；双数据库待 Batch B |
+| durable schedule / occurrence owner | 满足：memory、SQLite 与 PostgreSQL 同构，迁移、CAS、单赢家和重启 / 重连已验证 |
 | background service lifecycle | 设计可行，runner 待 Batch C |
-| system actor / delegated authorization | **P0 已批准，Batch A contract 已冻结** |
-| implementation task card | 已建立；状态 `batch_a_completed_batch_b_awaiting_approval` |
+| system actor / delegated authorization | **P0 已批准，Batch A contract 与 Batch B control plane / durable owner 已落实** |
+| implementation task card | 已建立；状态 `batch_b_completed_batch_c_awaiting_approval` |
 
-当前状态为 `batch_a_completed_batch_b_awaiting_approval`。下一步由项目所有者审查 Batch B strict HTTP 与 SQLite / PostgreSQL 方案；未批准前不启动 runner、不调用 Campaign / Provider、不修改 Pencil / React，也不声明定时回归可用。
+当前状态为 `batch_b_completed_batch_c_awaiting_approval`。下一步由项目所有者审查 Batch C runner 与既有 Campaign 交接方案；未批准前不启动 runner、不调用 Campaign / Provider、不修改 Pencil / React，也不声明定时回归可用。
 
 ## 停止线
 
