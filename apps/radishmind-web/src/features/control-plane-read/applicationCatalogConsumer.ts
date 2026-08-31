@@ -30,7 +30,7 @@ const FORBIDDEN_RESPONSE_FIELDS = new Set([
 export type ApplicationCatalogMode = "offline" | "dev_application_catalog_http";
 export type ApplicationCatalogLifecycleState = "active" | "archived";
 export type ApplicationCatalogKind = typeof APPLICATION_KINDS[number];
-export type ApplicationCatalogAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
+export type ApplicationCatalogAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test" | "local_session_dev_test";
 
 export type ApplicationCatalogConfig = {
   mode: ApplicationCatalogMode;
@@ -195,6 +195,7 @@ export async function listApplicationCatalogRecords(
   try {
     const response = await fetch(`${config.baseUrl}${APPLICATION_CATALOG_COLLECTION_PATH}?${query}`, {
       headers: applicationCatalogHeaders(config, requestId, "read"),
+      ...applicationCatalogRequestPolicy(config),
     });
     const body: unknown = await response.json();
     if (!isApplicationCatalogListEnvelope(body, config, lifecycleState)) {
@@ -245,7 +246,7 @@ export async function readApplicationCatalogRecord(
   try {
     const response = await fetch(
       `${config.baseUrl}${APPLICATION_CATALOG_COLLECTION_PATH}/${encodeURIComponent(applicationId)}?workspace_id=${encodeURIComponent(config.workspaceId)}`,
-      { headers: applicationCatalogHeaders(config, requestId, "read") },
+      { headers: applicationCatalogHeaders(config, requestId, "read"), ...applicationCatalogRequestPolicy(config) },
     );
     const body: unknown = await response.json();
     return mapOperationEnvelope(body, config, "loaded");
@@ -337,6 +338,7 @@ async function writeApplicationCatalogRecord(
       method,
       headers: { ...applicationCatalogHeaders(config, requestId, operation), "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      ...applicationCatalogRequestPolicy(config),
     });
     const document: unknown = await response.json();
     return mapOperationEnvelope(document, config, successStatus);
@@ -496,6 +498,13 @@ function applicationCatalogHeaders(
   const mutationPermission = operation === "unarchive"
     ? "applications:archive,applications:write"
     : operation === "archive" ? "applications:archive" : "applications:write";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+    };
+  }
   if (config.authMode !== "dev_headers") {
     const tokenProvider = config.authMode === "signed_test_token"
       ? (globalThis as typeof globalThis & { __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string })
@@ -574,7 +583,16 @@ function normalizeBaseUrl(value: string): string {
 
 function normalizeAuthMode(value: string | undefined): ApplicationCatalogAuthMode {
   const normalized = value?.trim();
-  return normalized === "signed_test_token" || normalized === "radish_oidc_integration_test" ? normalized : "dev_headers";
+  return normalized === "signed_test_token" || normalized === "radish_oidc_integration_test" || normalized === "local_session_dev_test"
+    ? normalized
+    : "dev_headers";
+}
+
+function applicationCatalogRequestPolicy(config: ApplicationCatalogConfig): Pick<RequestInit, "credentials" | "cache"> {
+  return {
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
+  };
 }
 
 function createRequestId(prefix: string): string {

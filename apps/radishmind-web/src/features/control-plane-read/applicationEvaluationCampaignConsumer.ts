@@ -103,6 +103,7 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
 
 export type ApplicationEvaluationConfig = {
   mode: "offline" | "dev_application_evaluation_http";
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -341,6 +342,9 @@ export function readApplicationEvaluationConfig(context: {
     environment: configuredEnvironment === "development" ? "development" : "test",
     applicationId: context.applicationId.trim(),
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || "subject_demo_user",
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -628,6 +632,8 @@ async function request<T>(
     `${config.baseUrl}/v1/user-workspace/applications/${encodeURIComponent(config.applicationId)}/${suffix}`,
     {
       method,
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
       headers: evaluationHeaders(config, requestId, permissions, body !== null),
       body: body === null ? undefined : JSON.stringify(body),
     },
@@ -654,6 +660,17 @@ function evaluationHeaders(
   includeBody: boolean,
 ): Record<string, string> {
   const scopes = [...new Set(permissions)].sort().join(",");
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      ...(includeBody ? { "Content-Type": "application/json" } : {}),
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": config.applicationId,
+      "X-RadishMind-Dev-Application-Evaluation-Environment": config.environment,
+    };
+  }
   return {
     Accept: "application/json",
     ...(includeBody ? { "Content-Type": "application/json" } : {}),
@@ -1165,7 +1182,8 @@ function offlineScope(config: ApplicationEvaluationConfig): ScopeEnvelope {
 function assertConfig(config: ApplicationEvaluationConfig) {
   if (!IDENTIFIER.test(config.tenantRef) || !WORKSPACE_IDENTIFIER.test(config.workspaceId) ||
     !IDENTIFIER.test(config.applicationId) || !IDENTIFIER.test(config.subjectRef) ||
-    (config.environment !== "development" && config.environment !== "test")) {
+    (config.environment !== "development" && config.environment !== "test") ||
+    (config.authMode !== undefined && config.authMode !== "dev_headers" && config.authMode !== "local_session_dev_test")) {
     throw new Error("Application evaluation scope is invalid.");
   }
 }

@@ -154,6 +154,33 @@ test("signed issue selects the active workspace without dev membership proof", a
   }
 });
 
+test("local Session API key transport includes cookies and no dev or bearer proof", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedHeaders = new Headers();
+  let capturedCredentials: RequestCredentials | undefined;
+  globalThis.fetch = async (_input, init) => {
+    capturedHeaders = new Headers(init?.headers);
+    capturedCredentials = init?.credentials;
+    return jsonResponse(issueEnvelope(), 201, { "Cache-Control": "private, no-store" });
+  };
+  try {
+    const result = await issueAPIKey({ ...live, authMode: "local_session_dev_test" }, issueInput());
+    assert.equal(result.status, "issued");
+    assert.equal(capturedCredentials, "include");
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(capturedHeaders.has("Authorization"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Identity"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Tenant"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Subject"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Scopes"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Audit"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("strict response validation rejects unknown fields, scope drift, and sensitive output", async () => {
   const originalFetch = globalThis.fetch;
   try {

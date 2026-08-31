@@ -99,6 +99,44 @@ test("Control Plane read consumer sends active workspace and dev membership only
   }
 });
 
+test("Control Plane local Session transport includes cookies without any dev identity proof", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ url: string; headers: Headers; credentials: RequestCredentials | undefined }> = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({ url: String(input), headers: new Headers(init?.headers), credentials: init?.credentials });
+    return new Response(JSON.stringify({
+      request_id: "request-local-session",
+      tenant_ref: "tenant_demo",
+      items: [],
+      next_cursor: null,
+      failure_code: null,
+      audit_ref: "audit-local-session",
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  try {
+    await loadControlPlaneReadDevLiveCollections({
+      ...live,
+      authMode: "local_session_dev_test",
+      workspaceId: "workspace_browser",
+    });
+    assert.equal(requests.length, 7);
+    assert.equal(requests.every(({ credentials }) => credentials === "include"), true);
+    assert.equal(requests.every(({ headers }) =>
+      !headers.has("Authorization") &&
+      !headers.has("X-RadishMind-Dev-Read-Identity") &&
+      !headers.has("X-RadishMind-Dev-Read-Tenant") &&
+      !headers.has("X-RadishMind-Dev-Read-Subject") &&
+      !headers.has("X-RadishMind-Dev-Read-Scopes") &&
+      !headers.has("X-RadishMind-Dev-Read-Audit") &&
+      !headers.has("X-RadishMind-Dev-Read-Membership-Workspace") &&
+      !headers.has("X-RadishMind-Dev-Read-Membership-Permissions")), true);
+    assert.equal(requests.filter(({ url }) => url.includes("/v1/user-workspace/"))
+      .every(({ headers }) => headers.get("X-RadishMind-Active-Workspace") === "workspace_browser"), true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Audit pagination sends only the reviewed cursor, limit, and sort query", async () => {
   const originalFetch = globalThis.fetch;
   let capturedUrl = "";

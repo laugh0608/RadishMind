@@ -10942,6 +10942,493 @@ dd {
   }
 }
 
+.application-evaluation-stage-shell {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+}
+
+.application-evaluation-path {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-bg-muted);
+}
+
+.application-evaluation-path > span,
+.application-evaluation-schedule-context span,
+.application-evaluation-schedule-main > header span,
+.application-evaluation-schedule-editor label > span,
+.application-evaluation-schedule-rule strong,
+.application-evaluation-schedule-rail span,
+.application-evaluation-occurrence-surface > header span,
+.application-evaluation-occurrence-reader label > span,
+.application-evaluation-occurrence-result span {
+  color: var(--rm-text-muted);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.application-evaluation-path .application-evaluation-task-switcher {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+}
+
+.application-evaluation-path .application-evaluation-task-switcher button {
+  width: 100%;
+  min-height: 60px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--rm-radius-panel);
+}
+
+.application-evaluation-path .application-evaluation-task-switcher button[aria-selected="true"] {
+  box-shadow: inset 3px 0 0 var(--rm-action-primary);
+}
+
+.application-evaluation-path > p {
+  display: grid;
+  gap: 5px;
+  margin: 4px 0 0;
+  padding: 11px;
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-attention-soft);
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.application-evaluation-path > p strong {
+  color: var(--rm-attention-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.application-evaluation-stage-owner,
+.application-evaluation-schedule-owner {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.application-evaluation-stage-owner > .application-evaluation-owner {
+  min-width: 0;
+}
+
+.application-evaluation-schedule-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--rm-action-primary);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-action-soft);
+}
+
+.application-evaluation-schedule-context > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.application-evaluation-schedule-context > div:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.application-evaluation-schedule-context label,
+.application-evaluation-schedule-context select {
+  width: 100%;
+  min-width: 0;
+}
+
+.application-evaluation-schedule-context select {
+  min-height: 34px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-control);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font-weight: 700;
+}
+
+.application-evaluation-schedule-context small {
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+}
+
+.application-evaluation-schedule-context button {
+  min-height: 0;
+  padding: 6px 8px;
+}
+
+.application-evaluation-schedule-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.34fr);
+  gap: 12px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.application-evaluation-schedule-main,
+.application-evaluation-schedule-rail,
+.application-evaluation-occurrence-surface {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-bg-surface);
+}
+
+.application-evaluation-schedule-main,
+.application-evaluation-occurrence-surface {
+  overflow: hidden;
+}
+
+.application-evaluation-schedule-main > header,
+.application-evaluation-occurrence-surface > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-schedule-main > header > div,
+.application-evaluation-occurrence-surface > header > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.application-evaluation-schedule-main h4,
+.application-evaluation-occurrence-surface h4 {
+  margin: 0;
+}
+
+.application-evaluation-schedule-main > header code {
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+}
+
+.application-evaluation-schedule-metrics,
+.application-evaluation-occurrence-metrics {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.4fr) repeat(3, minmax(72px, 0.5fr));
+  gap: 1px;
+  margin: -12px 0 0;
+  background: var(--rm-border-soft);
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-schedule-metrics > div,
+.application-evaluation-occurrence-metrics > div {
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-height: 86px;
+  padding: 12px 14px;
+  background: var(--rm-bg-muted);
+}
+
+.application-evaluation-schedule-metrics strong,
+.application-evaluation-occurrence-metrics strong {
+  color: var(--rm-text-primary);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.application-evaluation-schedule-metrics span,
+.application-evaluation-occurrence-metrics span {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+}
+
+.application-evaluation-schedule-details,
+.application-evaluation-occurrence-details {
+  display: grid;
+  margin: 0 16px;
+  border-top: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-schedule-details > div,
+.application-evaluation-occurrence-details > div {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.32fr) minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-schedule-details dt,
+.application-evaluation-occurrence-details dt {
+  color: var(--rm-text-muted);
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.application-evaluation-schedule-details dd,
+.application-evaluation-occurrence-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--rm-text-primary);
+  font-family: var(--rm-font-mono);
+  font-size: 8px;
+}
+
+.application-evaluation-schedule-editor,
+.application-evaluation-occurrence-reader {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0 16px;
+}
+
+.application-evaluation-schedule-editor label,
+.application-evaluation-occurrence-reader label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.application-evaluation-schedule-editor input,
+.application-evaluation-schedule-editor select,
+.application-evaluation-occurrence-reader input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-control);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+
+.application-evaluation-schedule-rule {
+  display: grid;
+  gap: 5px;
+  margin: 0 16px 16px;
+  padding: 12px;
+  background: var(--rm-bg-muted);
+}
+
+.application-evaluation-schedule-rule p {
+  margin: 0;
+  color: var(--rm-text-secondary);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.application-evaluation-schedule-rail {
+  padding: 14px;
+  background: var(--rm-bg-subtle);
+}
+
+.application-evaluation-schedule-rail > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-schedule-rail > header em {
+  color: var(--rm-state-success);
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.application-evaluation-schedule-rail > strong {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.application-evaluation-schedule-rail > small,
+.application-evaluation-schedule-rail > div small {
+  color: var(--rm-text-secondary);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.application-evaluation-schedule-rail > div:not(.application-evaluation-confirmation):not(.application-evaluation-schedule-actions) {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border-radius: var(--rm-radius-panel);
+  background: var(--rm-action-soft);
+}
+
+.application-evaluation-schedule-rail > div.is-attention {
+  background: var(--rm-attention-soft);
+}
+
+.application-evaluation-schedule-actions {
+  display: grid;
+  gap: 7px;
+}
+
+.application-evaluation-schedule-actions button {
+  width: 100%;
+}
+
+.application-evaluation-occurrence-surface > header em {
+  color: var(--rm-state-success);
+  font-family: var(--rm-font-mono);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.application-evaluation-occurrence-reader {
+  grid-template-columns: minmax(110px, 0.35fr) minmax(210px, 1fr) auto;
+  align-items: end;
+  margin-bottom: 2px;
+}
+
+.application-evaluation-occurrence-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--rm-border-soft);
+}
+
+.application-evaluation-occurrence-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 16px 16px;
+  padding: 12px;
+  background: var(--rm-bg-muted);
+}
+
+.application-evaluation-occurrence-result > div {
+  display: grid;
+  gap: 5px;
+}
+
+.application-evaluation-occurrence-result > span {
+  max-width: 520px;
+  color: var(--rm-text-secondary);
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.application-evaluation-occurrence-result.is-failed,
+.application-evaluation-occurrence-result.is-interrupted,
+.application-evaluation-occurrence-result.is-skipped {
+  background: var(--rm-attention-soft);
+}
+
+.application-evaluation-occurrence-surface > .application-evaluation-pair-empty {
+  margin: 0 16px 16px;
+}
+
+@media (max-width: 1180px) {
+  .application-evaluation-stage-shell {
+    grid-template-columns: 164px minmax(0, 1fr);
+  }
+
+  .application-evaluation-schedule-surface {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .application-evaluation-stage-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-evaluation-path .application-evaluation-task-switcher {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .application-evaluation-path {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-evaluation-path > p {
+    display: none;
+  }
+
+  .application-evaluation-path .application-evaluation-task-switcher button[aria-selected="true"] {
+    box-shadow: inset 0 -3px 0 var(--rm-action-primary);
+  }
+}
+
+@media (max-width: 760px) {
+  .application-evaluation-path {
+    padding: 10px;
+  }
+
+  .application-evaluation-path .application-evaluation-task-switcher {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .application-evaluation-path .application-evaluation-task-switcher button {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 4px;
+    min-height: 62px;
+    padding: 8px 4px;
+    text-align: center;
+  }
+
+  .application-evaluation-path .application-evaluation-task-switcher small {
+    display: none;
+  }
+
+  .application-evaluation-schedule-context,
+  .application-evaluation-schedule-main > header,
+  .application-evaluation-occurrence-surface > header,
+  .application-evaluation-occurrence-result {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .application-evaluation-schedule-context > div:last-child {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .application-evaluation-schedule-metrics,
+  .application-evaluation-occurrence-metrics,
+  .application-evaluation-schedule-editor,
+  .application-evaluation-occurrence-reader {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .application-evaluation-occurrence-reader button {
+    grid-column: 1 / -1;
+  }
+
+  .application-evaluation-schedule-details > div,
+  .application-evaluation-occurrence-details > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
 .prompt-agent-type-workspace {
   background: var(--rm-bg-surface);
   border: 1px solid var(--rm-border-soft);

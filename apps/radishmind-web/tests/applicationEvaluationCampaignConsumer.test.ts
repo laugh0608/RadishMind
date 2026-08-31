@@ -74,6 +74,29 @@ test("Application Evaluation reads exact Plan scope, version, and permission hea
   }
 });
 
+test("Application Evaluation local Session transport includes cookies and omits every dev identity proof", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_input, init) => {
+    captured = init;
+    return jsonResponse(planListEnvelope());
+  };
+  try {
+    await listApplicationEvaluationPlans({ ...config, authMode: "local_session_dev_test" });
+    const headers = new Headers(captured?.headers);
+    assert.equal(captured?.credentials, "include");
+    assert.equal(captured?.cache, "no-store");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Tenant"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Subject"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Scopes"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Application Evaluation create and revision send strict fixture bodies and CAS", async () => {
   const originalFetch = globalThis.fetch;
   const requests: Array<{ url: URL; headers: Headers; body: Record<string, unknown> }> = [];

@@ -24,7 +24,7 @@ const WORKSPACE_ROUTE_IDS = new Set<ControlPlaneReadRouteId>([
 ]);
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
-export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
+export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test" | "local_session_dev_test";
 export type ControlPlaneReadStoreMode = "fake_store_dev" | "postgres_dev_test";
 
 export type ControlPlaneReadDevLiveConfig = {
@@ -145,6 +145,8 @@ async function fetchDevLiveEnvelope(
   const response = await fetch(devLiveRouteUrl(routeId, config, pageRequest), {
     method: "GET",
     headers: devLiveHeaders(routeId, config),
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
   });
   const body: unknown = await response.json();
   if (!isControlPlaneReadEnvelope(body)) {
@@ -201,6 +203,13 @@ function auditPageQuery(
 
 function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneReadDevLiveConfig): HeadersInit {
   const workspaceHeaders = devLiveWorkspaceHeaders(routeId, config);
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": `dev-live-${routeId}`,
+      ...workspaceHeaders,
+    };
+  }
   if (config.authMode === "radish_oidc_integration_test") {
     const tokenProvider = (
       globalThis as typeof globalThis & {
@@ -276,7 +285,7 @@ export function normalizeActiveWorkspaceId(value: string): string | null {
 
 function normalizeAuthMode(value: string | undefined): ControlPlaneReadAuthMode {
   const normalized = value?.trim();
-  if (normalized === "signed_test_token" || normalized === "radish_oidc_integration_test") {
+  if (normalized === "signed_test_token" || normalized === "radish_oidc_integration_test" || normalized === "local_session_dev_test") {
     return normalized;
   }
   return "dev_headers";

@@ -42,6 +42,7 @@ agent_copilot_local_product=0
 agent_copilot_postgres_dev_test=0
 application_evaluation_dev=0
 application_evaluation_local_product=0
+application_evaluation_schedule_local_product=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -124,6 +125,8 @@ Options:
                            Enable the memory-dev Application Evaluation Plan → Campaign → Pair → Handoff chain.
   --application-evaluation-local-product
                            Enable the same Application Evaluation chain with the shared SQLite local-product runtime.
+  --application-evaluation-schedule-local-product
+                           Enable the SQLite Schedule / Occurrence product chain with local Web Session auth and the explicit dev/test runner.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -288,6 +291,10 @@ while [[ $# -gt 0 ]]; do
       application_evaluation_local_product=1
       shift
       ;;
+    --application-evaluation-schedule-local-product)
+      application_evaluation_schedule_local_product=1
+      shift
+      ;;
     --verify-only)
       verify_only=1
       shift
@@ -371,6 +378,9 @@ if [[ "${agent_copilot_postgres_dev_test}" -eq 1 ]]; then
 fi
 if [[ "${application_evaluation_dev}" -eq 1 ]]; then
   saved_draft_dev=1
+fi
+if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+  application_evaluation_local_product=1
 fi
 if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
   api_key_local_product=1
@@ -1402,6 +1412,79 @@ if '<div id="root">' not in body:
 PY
 }
 
+probe_local_identity_cors() {
+  local base_url="$1"
+  local origin="$2"
+  "${python_bin}" - "$base_url" "$origin" <<'PY'
+import sys
+from urllib.request import Request, urlopen
+
+base_url, origin = sys.argv[1:]
+url = f"{base_url.rstrip('/')}/v1/auth/session"
+request = Request(url, headers={
+    "Origin": origin,
+    "Access-Control-Request-Method": "GET",
+    "Access-Control-Request-Headers": ", ".join([
+        "Content-Type",
+        "X-Request-Id",
+        "X-RadishMind-Active-Workspace",
+        "X-RadishMind-Dev-Workflow-Workspace",
+        "X-RadishMind-Dev-Workflow-Application",
+        "X-RadishMind-Dev-Application-Evaluation-Environment",
+    ]),
+}, method="OPTIONS")
+with urlopen(request, timeout=5) as response:
+    if response.status != 204:
+        raise SystemExit(f"Unexpected local identity CORS status {response.status} from {url}")
+    if response.headers.get("Access-Control-Allow-Origin") != origin:
+        raise SystemExit("Local identity CORS did not preserve the exact frontend origin")
+    if response.headers.get("Access-Control-Allow-Credentials") != "true":
+        raise SystemExit("Local identity CORS did not allow credentialed requests")
+    allowed_headers = response.headers.get("Access-Control-Allow-Headers", "").lower()
+    for required in [
+        "content-type",
+        "x-request-id",
+        "x-radishmind-active-workspace",
+        "x-radishmind-dev-workflow-workspace",
+        "x-radishmind-dev-workflow-application",
+        "x-radishmind-dev-application-evaluation-environment",
+    ]:
+        if required not in allowed_headers:
+            raise SystemExit(f"Local identity CORS did not allow {required}")
+PY
+}
+
+probe_local_identity_session_boundary() {
+  local base_url="$1"
+  local origin="$2"
+  "${python_bin}" - "$base_url" "$origin" <<'PY'
+import json
+import sys
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+
+base_url, origin = sys.argv[1:]
+url = f"{base_url.rstrip('/')}/v1/auth/session"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "Origin": origin,
+    "X-Request-Id": "dev-live-local-session-boundary-probe",
+}, method="GET")
+try:
+    with urlopen(request, timeout=5) as response:
+        raise SystemExit(f"Unauthenticated local Session probe unexpectedly returned {response.status}")
+except HTTPError as error:
+    if error.code != 401:
+        raise SystemExit(f"Unexpected local Session boundary status {error.code}")
+    document = json.loads(error.read().decode("utf-8"))
+error_document = document.get("error") if isinstance(document, dict) else None
+if not isinstance(error_document, dict) or error_document.get("code") != "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED":
+    raise SystemExit("Local Session boundary did not return its sanitized authentication-required envelope")
+if error_document.get("failure_boundary") != "local_identity":
+    raise SystemExit("Local Session boundary response drifted")
+PY
+}
+
 wait_until() {
   local name="$1"
   shift
@@ -1552,6 +1635,13 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+        if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+          export RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE="local_session_dev_test"
+          export RADISHMIND_LOCAL_IDENTITY_DEV_HTTP="1"
+          export RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN="${frontend_origin}"
+          export RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE="false"
+          export RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV="true"
+        fi
         if [[ "${workflow_rag_snapshot_enabled}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV="1"
         fi
@@ -1765,6 +1855,13 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
+        if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+          export VITE_RADISHMIND_READ_AUTH_MODE="local_session_dev_test"
+          export VITE_RADISHMIND_LOCAL_IDENTITY_MODE="local_identity_dev"
+          export VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL="${backend_url%/}"
+        else
+          export VITE_RADISHMIND_READ_AUTH_MODE="dev_headers"
+        fi
         if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
           export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
@@ -1903,6 +2000,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
       else
         unset VITE_RADISHMIND_READ_SOURCE
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
+        unset VITE_RADISHMIND_READ_AUTH_MODE
+        unset VITE_RADISHMIND_LOCAL_IDENTITY_MODE
+        unset VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE
@@ -1998,14 +2098,24 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "backend healthz probe failed"
     exit 1
   fi
-  if ! wait_until "dev-live read route CORS" probe_cors "${tenant_summary_url}" "${frontend_origin}"; then
-    show_failure_help "dev-live read route CORS probe failed"
-    exit 1
-  fi
-  if ! wait_until "dev-live read routes" probe_control_plane_read_routes "${backend_url}" "${tenant_ref}" "${subject_ref}"; then
-    show_failure_help "dev-live read route probe failed"
-    exit 1
-  fi
+  if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+    if ! wait_until "local identity credentialed CORS" probe_local_identity_cors "${backend_url}" "${frontend_origin}"; then
+      show_failure_help "local identity credentialed CORS probe failed"
+      exit 1
+    fi
+    if ! wait_until "local Session authentication boundary" probe_local_identity_session_boundary "${backend_url}" "${frontend_origin}"; then
+      show_failure_help "local Session authentication boundary probe failed"
+      exit 1
+    fi
+  else
+    if ! wait_until "dev-live read route CORS" probe_cors "${tenant_summary_url}" "${frontend_origin}"; then
+      show_failure_help "dev-live read route CORS probe failed"
+      exit 1
+    fi
+    if ! wait_until "dev-live read routes" probe_control_plane_read_routes "${backend_url}" "${tenant_ref}" "${subject_ref}"; then
+      show_failure_help "dev-live read route probe failed"
+      exit 1
+    fi
   if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 || "${application_evaluation_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
     show_failure_help "Gateway api_key_dev_test mode probe failed"
     exit 1
@@ -2107,6 +2217,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "Agent Copilot dev route probe failed"
     exit 1
   fi
+  fi
 fi
 
 if ! wait_until "frontend web" probe_page "${frontend_url}"; then
@@ -2200,7 +2311,12 @@ if [[ "${mode}" == "dev-live" ]]; then
     if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
       evaluation_store="SQLite local-product"
     fi
-    step "Application Evaluation ${evaluation_store} chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; Plan, Campaign, Pair, and Handoff remain explicit development/test actions."
+    if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+      step "Application Evaluation ${evaluation_store} Schedule chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; local Session login, administrator bootstrap, lifecycle confirmation, Occurrence inspection, and exact Campaign handoff remain explicit development/test actions."
+      step "The bounded Schedule runner is enabled for this dedicated mode only; it performs no retry, replay, catch-up, automatic release, or production work."
+    else
+      step "Application Evaluation ${evaluation_store} chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; Plan, Campaign, Pair, and Handoff remain explicit development/test actions."
+    fi
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."

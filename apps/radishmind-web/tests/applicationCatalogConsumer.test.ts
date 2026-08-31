@@ -169,6 +169,36 @@ test("signed mutation selects the active workspace without dev membership proof"
   }
 });
 
+test("local Session catalog transport includes cookies and no dev or bearer proof", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedHeaders = new Headers();
+  let capturedCredentials: RequestCredentials | undefined;
+  globalThis.fetch = async (_input, init) => {
+    capturedHeaders = new Headers(init?.headers);
+    capturedCredentials = init?.credentials;
+    return jsonResponse(operationEnvelope());
+  };
+  try {
+    const result = await createApplicationCatalogRecord(
+      { ...config, authMode: "local_session_dev_test" },
+      fields(),
+    );
+    assert.equal(result.status, "created");
+    assert.equal(capturedCredentials, "include");
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(capturedHeaders.has("Authorization"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Identity"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Tenant"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Subject"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Scopes"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Audit"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("strict response validation rejects unknown fields, scope drift, and secret material", async () => {
   const originalFetch = globalThis.fetch;
   try {
