@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-08-31 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter 与 Admin Provider Profile / Model Route 专题均已完成并保持稳定。Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、身份与成员管理、工作区 Workflow 模板目录与 Action Safety Ladder 均已关闭。当前“应用定时回归评测与受控 Campaign 调度”的受限委托 P0 与 Batch A 至 C 已完成：Prompt-only `daily_utc`、三份 canonical schema、strict HTTP、Schedule / Version / Occurrence 三种 store owner、逐次授权重验、显式 dev/test runner、cancel / join、deterministic Campaign 交接与 crash no-replay 已成立；Batch D 完整 Pencil 已完成并等待人工视觉 / 边界审查，React 与产品验收尚未进入。应用运行观测后续准入为 `no_entry`；真实 Radish OIDC 继续等待外部条件。
+2026-08-31 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter 与 Admin Provider Profile / Model Route 专题均已完成并保持稳定。Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、身份与成员管理、工作区 Workflow 模板目录与 Action Safety Ladder 均已关闭。当前“应用定时回归评测与受控 Campaign 调度”的受限委托 P0 与 Batch A 至 C 已完成：Prompt-only `daily_utc`、三份 canonical schema、strict HTTP、Schedule / Version / Occurrence 三种 store owner、逐次授权重验、显式 dev/test runner、cancel / join、deterministic Campaign 交接与 crash no-replay 已成立；Batch D 完整 Pencil 已获人工批准，React strict consumer 与开发 / 测试态产品验收已获单独授权并进入实施。应用运行观测后续准入为 `no_entry`；真实 Radish OIDC 继续等待外部条件。
 
 `RadishFlow` / `Radish` 暂无稳定挂载点不阻塞 RadishMind 平台本体开发，也不等于可以细化假想接线或声明真实集成就绪。
 

@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_d_pencil_completed_owner_review_required`。项目所有者已批准非 bearer、schedule-scoped、每次 occurrence 重验的 system actor + delegated user；Batch A 至 C 的 canonical owner、strict HTTP、双数据库、显式 dev/test runner、逐次授权重读、deterministic Campaign 交接、Run 双 actor metadata 与 crash no-replay 继续成立。2026-08-31 又批准并完成 Batch D 的 S10 `A / 完整 Pencil`：六个功能画板与 R24 Decision 共 `784` 个节点，覆盖 exact Plan / quota consumer、双 actor、next due、生命周期、Occurrence / Campaign handoff、authorization revoke、missed / overlap 与 restart reconciliation，原生静态 QA 为零问题。下一步只做项目所有者人工视觉与边界审查；Pencil 未获人工批准前不修改 React，不启动产品验收、真实 Provider 或 production worker。Action Safety Ladder 保持完成关闭，不派生批次 F。
+- 当前产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_d_pencil_approved_react_product_validation_authorized`。项目所有者已批准非 bearer、schedule-scoped、每次 occurrence 重验的 system actor + delegated user；Batch A 至 C 的 canonical owner、strict HTTP、双数据库、显式 dev/test runner、逐次授权重读、deterministic Campaign 交接、Run 双 actor metadata 与 crash no-replay 继续成立。2026-08-31 已完成 Batch D 的 S10 `A / 完整 Pencil`、784 节点原生静态 QA、Desktop 步骤高亮宽度修正和项目所有者人工视觉 / 边界批准；项目所有者随后明确要求继续下一步，React strict consumer 与开发 / 测试态产品验收已获得单独授权。下一步实现 Schedule / Version / Occurrence、生命周期确认、exact Campaign handoff 与完整失败态，并验证双数据库、三视口、CAS、重启 / 重连和隐私；真实 Provider、production worker 与 production capability 继续关闭。Action Safety Ladder 保持完成关闭，不派生批次 F。
 - 最新关闭产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。批次 A 至 E 已完成 strict contract、三种 catalog owner、获人工批准的 Pencil、configured target binding、React strict consumer、双数据库连续链与真实浏览器；SQLite 页面贯通 approved Definition → reviewed/listed template → target Application derive → Draft validate/save → 重启恢复，PostgreSQL configured Server 覆盖 runtime role、no-fallback 与 reconnect。双标签 CAS、workspace / application scope、三视口、隐私与零执行副作用均已复验，唯一任务卡关闭，不派生批次 F。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。
 - 最新关闭产品顺位：[应用结果资产库与受控导出（开发 / 测试态）v1](features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md) 状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`。批次 A 至 C 已在唯一 artifact / lifecycle owner 上完成 application-scoped 严格列表、filter-bound cursor、canonical export、独立 export 权限、双数据库读取索引、strict Web consumer、S5 单一 Result Workspace，以及共享双 Session fixture 下的 SQLite 页面重启链与 PostgreSQL configured Server no-fallback / 重启链。专题关闭，不派生批次 D / E、通用 result store、transcript、public share、永久 purge、业务写回或 production 能力。
@@ -45,7 +45,7 @@
 
 当前最多两条在制主线：
 
-1. 产品线：定时回归评测 P0 与 Batch A 至 C 已完成；runner 只在显式 dev/test gate 下复用既有 Campaign，并以逐次受限委托、deterministic key 和 no-replay 失败关闭。Batch D S10 完整 Pencil 已完成并等待项目所有者人工视觉 / 边界审查；不提前修改 React、启动产品验收或扩大 production worker。联合登录批次 E 继续等待 reviewed 真实 Radish 注册条件。
+1. 产品线：定时回归评测 P0 与 Batch A 至 C 已完成；runner 只在显式 dev/test gate 下复用既有 Campaign，并以逐次受限委托、deterministic key 和 no-replay 失败关闭。Batch D S10 完整 Pencil 已获人工批准，React strict consumer 与开发 / 测试态产品验收已获单独授权并进入实施；不扩大真实 Provider 或 production worker。联合登录批次 E 继续等待 reviewed 真实 Radish 注册条件。
 2. 工程线：R2 至 R6 均已关闭，当前没有独立整改批次。后续只在真实功能实现中复用或替代对应门禁；没有等价行为证据的 Provider、Production Ops 与 formal UI 检查继续保留，不按数量清理，也不新建同层治理入口。
 
 ## 2026-08-23 今日完成
@@ -98,8 +98,8 @@
 
 1. 项目所有者已明确批准定时回归评测 Batch D 的 `A / 完整 Pencil` 范围；正式设计源复用 S10，没有建立 S11。
 2. 已完成 Scheduled Regression Desktop `mLwFB` / Narrow `kpVvO`、Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE`。七个根画板共 `784` 个节点，布局裁切、placeholder、缺失命名、缺失文字内容 / fill 和硬编码 fill / stroke 均为 `0` 问题。
-3. 下一步只由项目所有者逐屏完成人工视觉与边界审查。静态 QA 不替代人工批准；Pencil 批准也不自动授权 React、CSS、产品 launcher、产品服务或浏览器验收。
-4. 只有 Pencil 人工批准并单独确认实现范围后，才评估 strict consumer、scope generation + abort、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、三视口和隐私验收。真实 Provider、production worker、Session / cookie / token / Provider credential 持久化继续关闭，Action Safety Ladder 不派生批次 F。
+3. 项目所有者已逐屏完成人工视觉与边界审查并批准；随后明确要求继续下一步，单独授权 React strict consumer 与开发 / 测试态产品验收。
+4. 当前先审计并实现 strict consumer、scope generation + abort、生命周期确认和 exact Campaign handoff，再完成双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、三视口和隐私验收。真实 Provider、production worker、Session / cookie / token / Provider credential 持久化继续关闭，Action Safety Ladder 不派生批次 F。
 
 ## 2026-08-19 今日评审
 
@@ -127,7 +127,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 总入口与证据：
 
-当前产品入口：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。P0 与 Batch A 至 C 已完成；[唯一实施任务卡](task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)的 Batch D 完整 Pencil 已完成，等待项目所有者人工视觉与边界审查。
+当前产品入口：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。P0 与 Batch A 至 C 已完成；[唯一实施任务卡](task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)的 Batch D 完整 Pencil 已获人工批准，React strict consumer 与开发 / 测试态产品验收已获单独授权并进入实施。
 
 1. [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)
 2. [Gateway Python Bridge Runtime v1](features/gateway/python-bridge-runtime-v1.md)
@@ -199,7 +199,7 @@ R3 与 [工作流草案 PostgreSQL 开发测试态存储库 v1](features/workflo
 
 ## 当前不要做
 
-- 定时回归评测 Batch A 至 C 与 Batch D Pencil 静态设计已经完成；Pencil 未获项目所有者人工视觉与边界批准前不修改 React，不启动产品验收、真实 Provider 或 production worker。即使 Pencil 获批，也需单独确认 strict consumer 与产品验收范围；始终不冒用用户 actor、不持久化 Session / token、不引入通用 execution token。Action Safety Ladder 继续关闭且不派生批次 F。
+- 定时回归评测 Batch A 至 C 已完成，Batch D Pencil 已获人工批准，React strict consumer 与开发 / 测试态产品验收已获单独授权；当前不得越界启动真实 Provider、production worker、通用 scheduler、cron / queue、retry / replay 或 production capability。始终不冒用用户 actor、不持久化 Session / token、不引入通用 execution token。Action Safety Ladder 继续关闭且不派生批次 F。
 - 不让模型、客户端、Profile、Workflow 草案、candidate decision、assignment、人工批准或页面状态自报或提升 effective level；`write_allowed_by_policy` 在 v1 始终不可达。
 - 不为 Safety Ladder 创建第二套 Action、Confirmation、Run、Audit、Result 或通用 decision owner，也不新增万能 execute permission 或通用动作执行 API。
 - 不把工作区模板目录扩成公开 Marketplace、跨作用域共享、推荐 / 评分、自动重绑定、自动运行或生产发布。
