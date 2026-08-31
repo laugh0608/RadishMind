@@ -84,6 +84,7 @@
 - [x] 项目所有者于 2026-08-31 批准 `A / 完整 Pencil` 范围；复用 S10 Application Evaluation Workspace，不建立 S11。
 - [x] 正式设计源新增 Scheduled Regression Desktop `mLwFB`、Narrow `kpVvO`、Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE`。
 - [x] 七个根画板共 `784` 个节点；Pencil 原生静态 QA 的布局裁切、placeholder、缺失命名、缺失文字内容 / fill 与硬编码 fill / stroke 均为 `0` 问题。
+- [x] 根据首轮人工审查修正三个 Desktop 画板的左侧步骤选中态：`S10 Path Items` 与四个步骤统一使用 `fill_container`，选中高亮占满 `182px` 轨道可用宽度；布局与截图复核通过。
 - [ ] 项目所有者人工视觉与边界审查。
 - [ ] 人工批准后另行确认 Schedule / Version / Occurrence strict consumer、生命周期确认、Campaign handoff 和完整失败态的 React 实现范围。
 - [ ] 完成三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、console / URL / storage / cookie / database 隐私与副作用审计。
