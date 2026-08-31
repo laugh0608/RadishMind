@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-08-30
+更新时间：2026-08-31
 
 ## 这份文档讲什么
 
@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-08-30 当前读法：Family UI `S1` 至 `S10`、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)以及[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)均已关闭。Action Safety 已完成批次 A 至 E 的 contract / compiler、owner snapshot、Pencil、HTTP read projection、React strict consumer 与双数据库产品证据。当前长期目标为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：受限委托 P0 与 Batch A 至 C 的 canonical contract、strict HTTP、三存储、显式 runner、逐次授权重验和 crash no-replay 已完成，Batch D 完整 Pencil 尚待批准。production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
+2026-08-31 当前读法：Family UI `S1` 至 `S10`、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)以及[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)均已关闭。Action Safety 已完成批次 A 至 E 的 contract / compiler、owner snapshot、Pencil、HTTP read projection、React strict consumer 与双数据库产品证据。当前长期目标为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：受限委托 P0 与 Batch A 至 C 的 canonical contract、strict HTTP、三存储、显式 runner、逐次授权重验和 crash no-replay 已完成，Batch D 完整 Pencil 已完成并等待项目所有者人工视觉 / 边界审查。production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
 
 ## 项目定位
 

@@ -1,12 +1,12 @@
 # 应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1
 
-更新时间：2026-08-30
+更新时间：2026-08-31
 
-状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_c_completed_batch_d_awaiting_design_approval`
+状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_d_pencil_completed_owner_review_required`
 
 ## 设计结论
 
-本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已经建立，Batch A 的 canonical schema、领域合同和 memory owner，以及 Batch B 的 strict HTTP、SQLite / PostgreSQL durable owner 均已完成。
+本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已经建立，Batch A 至 C 的 canonical schema、领域合同、strict HTTP、三种 durable owner、显式 dev/test runner 与既有 Campaign 交接均已完成。项目所有者又于 2026-08-31 批准 Batch D 的 `A / 完整 Pencil` 范围；七个正式画板与 R24 决策记录已经落入设计源并通过原生静态 QA，当前等待人工视觉与边界审查，不构成 React 实现授权。
 
 现有 Application Evaluation Plan 已保存不可变测试 fixture，Campaign 已能顺序调用既有应用运行服务并生成 durable Run，Comparison、Case、Suite 与人工 decision 也已闭合。新的用户价值不在复制这些 owner，而在让内部应用开发者把一个 exact Plan version 配置为受限 UTC 周期，在无人停留页面时仍能形成可审查的 Campaign 证据。
 
@@ -157,9 +157,9 @@ Batch C runner 已满足：
 
 ## Web 与设计覆盖
 
-本专题若进入实现，应复用 S10 Application Evaluation Workspace，在现有 Plan / Campaign / Handoff 任务模型中增加 schedule owner，而不建立 S11。
+本专题复用 S10 Application Evaluation Workspace，在现有 Plan / Campaign / Handoff 任务模型中增加 schedule owner，没有建立 S11。
 
-五维预评估为 `1 / 2 / 2 / 1 / 2 = 8`，达到 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；需要表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。Pencil 必须在 React 前由项目所有者人工批准；当前停在 Batch D 设计批准线之前，不修改设计源。
+五维评估为 `1 / 2 / 2 / 1 / 2 = 8`，采用 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；设计必须表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。2026-08-31 已完成 Scheduled Regression Desktop `mLwFB`、Narrow `kpVvO`、Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE`。七个根画板共 `784` 个节点；Pencil 原生静态 QA 对布局裁切、placeholder、节点命名、文字内容 / fill 和硬编码 fill / stroke 均为 `0` 问题。该静态证据不能替代项目所有者人工视觉与边界批准，批准前不修改 React。
 
 ## 拟议实施顺序
 
@@ -195,8 +195,10 @@ Batch C runner 已满足：
 
 ### 批次 D：Pencil、React 与产品验收
 
-- 先完成人工批准的 S10 完整设计，再实现单一 strict consumer。
-- 验证三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、console / URL / storage 隐私与零自动 release。
+- 状态：`pencil_completed_owner_review_required`。
+- S10 完整设计已覆盖 selected Schedule、exact Plan / quota consumer、双 actor、next due、activate / pause、Occurrence / Campaign handoff、authorization revoke、missed / overlap、restart reconciliation 与 no-replay 边界。
+- 当前只等待项目所有者人工视觉与边界审查；人工批准后仍需单独授权 React strict consumer 与产品验收。
+- 后续若获批准，才验证三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、console / URL / storage 隐私与零自动 release。
 
 ## 当前准入结论
 
@@ -208,9 +210,9 @@ Batch C runner 已满足：
 | durable schedule / occurrence owner | 满足：memory、SQLite 与 PostgreSQL 同构，迁移、CAS、单赢家和重启 / 重连已验证 |
 | background service lifecycle | 满足：显式 dev/test gate、单 worker、固定低频 poll、cancel / join 与先停 worker 后关 store 已落实 |
 | system actor / delegated authorization | **P0 已批准，Batch A contract、Batch B control plane / durable owner 与 Batch C 每次重验 / Run metadata 已落实** |
-| implementation task card | 已建立；状态 `batch_c_completed_batch_d_awaiting_design_approval` |
+| implementation task card | 已建立；状态 `batch_d_pencil_completed_owner_review_required` |
 
-当前状态为 `batch_c_completed_batch_d_awaiting_design_approval`。下一步只由项目所有者批准 Batch D 的 S10 完整 Pencil 范围；未批准前不修改设计源或 React，不启动产品验收，也不把开发测试态 runner 写成 production worker。
+当前状态为 `batch_d_pencil_completed_owner_review_required`。下一步只由项目所有者人工审查七个 S10 Batch D 画板与 R24 边界；未批准前不修改 React，不启动产品验收，也不把开发测试态 runner 写成 production worker。即使 Pencil 获批，也必须单独确认 strict consumer 与产品验收范围。
 
 ## 停止线
 

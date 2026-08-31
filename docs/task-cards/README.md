@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-08-29
+更新时间：2026-08-31
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1 实施任务卡](application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)是当前唯一高风险产品任务卡。项目所有者已批准 system actor + schedule-scoped delegation；Batch A 至 C 已完成 canonical / 三存储 owner、strict HTTP、显式 dev/test runner、逐次授权重验、既有 Campaign 交接和 crash no-replay，状态为 `batch_c_completed_batch_d_awaiting_design_approval`。下一步只在项目所有者批准后进入 Batch D 完整 Pencil，不提前修改 React、启动产品验收或扩大 production worker。
+[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1 实施任务卡](application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)是当前唯一高风险产品任务卡。项目所有者已批准 system actor + schedule-scoped delegation；Batch A 至 C 已完成 canonical / 三存储 owner、strict HTTP、显式 dev/test runner、逐次授权重验、既有 Campaign 交接和 crash no-replay，Batch D S10 完整 Pencil 已完成，状态为 `batch_d_pencil_completed_owner_review_required`。下一步只做项目所有者人工视觉 / 边界审查，不提前修改 React、启动产品验收或扩大 production worker。
 
 ## 当前外部阻塞任务
 
