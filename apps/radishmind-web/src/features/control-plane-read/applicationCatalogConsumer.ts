@@ -5,6 +5,7 @@ const APPLICATION_CATALOG_COLLECTION_PATH = CONTROL_PLANE_READ_ROUTES.applicatio
 const DEV_SOURCE = "dev-application-catalog-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const APPLICATION_ID_PATTERN = /^app_[a-z0-9]{16}$/u;
+const LOCAL_USER_ACTOR_PATTERN = /^user:usr_[a-f0-9]{32}$/u;
 const SCOPE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/u;
 const APPLICATION_KINDS = ["workflow_copilot", "docs_qa", "agent", "prompt_application"] as const;
 const RECORD_KEYS = [
@@ -416,7 +417,7 @@ function isApplicationCatalogListEnvelope(
 function isApplicationCatalogRecordDocument(value: unknown, config: ApplicationCatalogConfig): value is ApplicationCatalogRecordDocument {
   return isRecord(value) && hasOnlyKeys(value, RECORD_KEYS) && value.schema_version === APPLICATION_CATALOG_SCHEMA_VERSION &&
     APPLICATION_ID_PATTERN.test(String(value.application_id)) && value.tenant_ref === config.tenantRef &&
-    value.workspace_id === config.workspaceId && value.owner_subject_ref === config.subjectRef &&
+    value.workspace_id === config.workspaceId && matchesOwnerSubject(value.owner_subject_ref, config) &&
     isApplicationCatalogMutableDocument(value) && isLifecycleState(value.lifecycle_state) &&
     typeof value.record_version === "number" && Number.isInteger(value.record_version) && value.record_version > 0 && isTimestamp(value.created_at) &&
     isTimestamp(value.updated_at) && isArchivedAt(value.archived_at, value.lifecycle_state) &&
@@ -430,7 +431,7 @@ function isApplicationCatalogSummaryDocument(
   lifecycleState: ApplicationCatalogLifecycleState,
 ): value is ApplicationCatalogSummaryDocument {
   return isRecord(value) && hasOnlyKeys(value, SUMMARY_KEYS) && APPLICATION_ID_PATTERN.test(String(value.application_ref)) &&
-    value.tenant_ref === config.tenantRef && value.workspace_id === config.workspaceId && value.owner_subject_ref === config.subjectRef &&
+    value.tenant_ref === config.tenantRef && value.workspace_id === config.workspaceId && matchesOwnerSubject(value.owner_subject_ref, config) &&
     isApplicationCatalogMutableDocument(value) && value.lifecycle_state === lifecycleState && typeof value.record_version === "number" && Number.isInteger(value.record_version) &&
     value.record_version > 0 && isTimestamp(value.created_at) && isTimestamp(value.updated_at) &&
     isArchivedAt(value.archived_at, value.lifecycle_state) && value.latest_workflow_definition_ref === "" &&
@@ -502,7 +503,8 @@ function applicationCatalogHeaders(
     return {
       Accept: "application/json",
       "X-Request-Id": requestId,
-      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(operation === "read" ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
     };
   }
   if (config.authMode !== "dev_headers") {
@@ -625,6 +627,12 @@ function isLifecycleState(value: unknown): value is ApplicationCatalogLifecycleS
 
 function isScopeIdentifier(value: unknown): value is string {
   return typeof value === "string" && SCOPE_ID_PATTERN.test(value);
+}
+
+function matchesOwnerSubject(value: unknown, config: ApplicationCatalogConfig): value is string {
+  return typeof value === "string" && (config.authMode === "local_session_dev_test"
+    ? LOCAL_USER_ACTOR_PATTERN.test(value)
+    : value === config.subjectRef);
 }
 
 function isTimestamp(value: unknown): value is string {

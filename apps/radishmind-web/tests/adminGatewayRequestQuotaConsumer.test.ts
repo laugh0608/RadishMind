@@ -89,6 +89,32 @@ test("Admin Gateway quota PUT sends positive integer CAS and preserves a conflic
   }
 });
 
+test("Admin Gateway quota local Session transport carries only scope and product bindings", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_input, init) => {
+    captured = init;
+    return jsonResponse(successEnvelope());
+  };
+  try {
+    const local = { ...config, authMode: "local_session_dev_test" as const };
+    const envelope = await putAdminGatewayRequestQuota(local, 3, 140);
+    assert.equal(envelope.policy?.recordVersion, 3);
+    assert.equal(captured?.credentials, "include");
+    assert.equal(captured?.cache, "no-store");
+    const headers = new Headers(captured?.headers);
+    assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+    assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(headers.get("X-RadishMind-Dev-Gateway-Quota-Environment"), "test");
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Scopes"), false);
+    assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+    assert.equal(headers.has("Authorization"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Admin Gateway quota consumer preserves fail-closed management states", async () => {
   const originalFetch = globalThis.fetch;
   try {

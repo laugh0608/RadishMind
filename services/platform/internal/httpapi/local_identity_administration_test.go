@@ -14,7 +14,7 @@ import (
 
 func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
 	catalog := LocalIdentityBuiltInRoleCatalog()
-	if catalog.DefinitionDigest != "sha256:d784ef5d5595f4fa3ed96f32c86f3fd12edbd4098da46668366f97ce42e2d4d0" {
+	if catalog.DefinitionDigest != "sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae" {
 		t.Fatalf("role catalog changed without an explicit catalog version decision: %s", catalog.DefinitionDigest)
 	}
 	if catalog.SchemaVersion != localIdentityRoleCatalogSchemaVersion ||
@@ -45,6 +45,11 @@ func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
 	builder := byKey[localIdentityRoleWorkspaceBuilder]
 	reviewer := byKey[localIdentityRoleWorkspaceReviewer]
 	administrator := byKey[localIdentityRoleWorkspaceAdmin]
+	for _, permission := range []string{"application_publish_candidates:read", "prompt_application_runtime:read"} {
+		if !slices.Contains(reader.PermissionGrants, permission) {
+			t.Fatalf("workspace_reader must cover owner read permission %s", permission)
+		}
+	}
 	if !localIdentityGrantSubset(reader.PermissionGrants, builder.PermissionGrants) ||
 		!localIdentityGrantSubset(builder.PermissionGrants, reviewer.PermissionGrants) ||
 		!localIdentityGrantSubset(reviewer.PermissionGrants, administrator.PermissionGrants) {

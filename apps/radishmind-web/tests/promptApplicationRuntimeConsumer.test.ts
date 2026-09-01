@@ -74,6 +74,29 @@ test("Prompt runtime decision sends only CAS fields and preserves conflict state
   assert.equal(result.currentAssignmentVersion, 3);
 });
 
+test("Prompt runtime local Session transport keeps exact runtime binding without dev identity headers", async () => {
+  const localConfig = { ...config, authMode: "local_session_dev_test" as const };
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_url, init) => {
+    captured = init;
+    return jsonResponse(runtimeEnvelope());
+  };
+
+  assert.equal(
+    (await decidePromptApplicationRuntime(localConfig, applicationId, 0, "activate", "candidate-prompt-v1")).status,
+    "ready",
+  );
+  const headers = new Headers(captured?.headers);
+  assert.equal(captured?.credentials, "include");
+  assert.equal(captured?.cache, "no-store");
+  assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+  assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Prompt-Runtime-Application"), applicationId);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+  assert.equal(headers.has("Authorization"), false);
+});
+
 test("Prompt runtime rejects scope drift and broken event continuity", async () => {
   const drift = runtimeEnvelope();
   drift.application_id = "app_bbbbbbbbbbbbbbbb";

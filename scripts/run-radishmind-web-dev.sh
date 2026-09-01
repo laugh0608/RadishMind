@@ -381,6 +381,7 @@ if [[ "${application_evaluation_dev}" -eq 1 ]]; then
 fi
 if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
   application_evaluation_local_product=1
+  prompt_application_local_product=1
 fi
 if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
   api_key_local_product=1
@@ -1856,6 +1857,7 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
         if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+          export VITE_RADISHMIND_READ_SOURCE="offline-fixture"
           export VITE_RADISHMIND_READ_AUTH_MODE="local_session_dev_test"
           export VITE_RADISHMIND_LOCAL_IDENTITY_MODE="local_identity_dev"
           export VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL="${backend_url%/}"
@@ -2083,7 +2085,7 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE
         unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID
       fi
-      exec npm run dev
+      exec npm run dev -- --host "${frontend_host}" --port "${frontend_port}"
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
     spawned_pids+=("$!")
   fi

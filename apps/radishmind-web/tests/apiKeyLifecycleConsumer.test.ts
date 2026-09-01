@@ -156,18 +156,32 @@ test("signed issue selects the active workspace without dev membership proof", a
 
 test("local Session API key transport includes cookies and no dev or bearer proof", async () => {
   const originalFetch = globalThis.fetch;
-  let capturedHeaders = new Headers();
-  let capturedCredentials: RequestCredentials | undefined;
+  const requests: Array<{ method: string; headers: Headers; credentials: RequestCredentials | undefined }> = [];
   globalThis.fetch = async (_input, init) => {
-    capturedHeaders = new Headers(init?.headers);
-    capturedCredentials = init?.credentials;
-    return jsonResponse(issueEnvelope(), 201, { "Cache-Control": "private, no-store" });
+    const method = init?.method ?? "GET";
+    requests.push({ method, headers: new Headers(init?.headers), credentials: init?.credentials });
+    const document = method === "GET" ? listEnvelope() : issueEnvelope();
+    const localActor = "user:usr_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    if ("items" in document) document.items[0]!.owner_subject_ref = localActor;
+    if ("record" in document) {
+      document.record.owner_subject_ref = localActor;
+      document.record.created_by_actor_ref = localActor;
+    }
+    return method === "GET"
+      ? jsonResponse(document)
+      : jsonResponse(document, 201, { "Cache-Control": "private, no-store" });
   };
   try {
     const result = await issueAPIKey({ ...live, authMode: "local_session_dev_test" }, issueInput());
+    const listed = await listAPIKeyRecords({ ...live, authMode: "local_session_dev_test" }, "app_aaaaaaaaaaaaaaaa");
+    const capturedHeaders = requests[0]?.headers ?? new Headers();
     assert.equal(result.status, "issued");
-    assert.equal(capturedCredentials, "include");
+    assert.equal(listed.status, "ready");
+    assert.equal(requests.every(({ credentials }) => credentials === "include"), true);
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Tenant"), "tenant_demo");
     assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(requests[1]?.headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+    assert.equal(requests[1]?.headers.has("X-RadishMind-Active-Workspace"), false);
     assert.equal(capturedHeaders.has("Authorization"), false);
     assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Identity"), false);
     assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Tenant"), false);

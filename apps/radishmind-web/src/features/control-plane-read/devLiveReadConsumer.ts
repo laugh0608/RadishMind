@@ -207,6 +207,7 @@ function devLiveHeaders(routeId: ControlPlaneReadRouteId, config: ControlPlaneRe
     return {
       Accept: "application/json",
       "X-Request-Id": `dev-live-${routeId}`,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
       ...workspaceHeaders,
     };
   }

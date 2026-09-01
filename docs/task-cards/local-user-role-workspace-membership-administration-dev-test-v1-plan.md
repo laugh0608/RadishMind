@@ -36,7 +36,7 @@
 
 完成证据：
 
-- `local_identity_builtin_roles_v1` 与固定 catalog digest 已落地；四角色 exact grants、完整 allowlist 覆盖、唯一 identity-management capability 和 immutable copy 均有测试。
+- `local_identity_builtin_roles_v1` 已作为首版冻结；2026-09-01 为恢复既有 Publish Candidate / Prompt Runtime 只读 owner 的最小角色可达性，目录显式推进为 `local_identity_builtin_roles_v2`，固定 digest 为 `sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae`。只新增 `application_publish_candidates:read` 与 `prompt_application_runtime:read`，历史 v1 assignment 不被改写；四角色 exact grants、完整 allowlist 覆盖、唯一 identity-management capability 和 immutable copy 均有测试。
 - summary / detail / filter-bound cursor、memory administration repository / service、catalog-derived assignment、原子 membership revoke、十分钟 recent-auth、CAS、self / last-admin protection 与 one-shot bootstrap 已落地。
 - memory 覆盖 `121` 条同时间戳三页、cursor 篡改、catalog drift、重新加入不恢复 grants、并发单胜者、bootstrap 单胜者、repository 锁内授权重读和稳定失败码；完整 `internal/httpapi/...` 与 PostgreSQL tagged compile 已通过。
 - 停止线保持：没有 HTTP / config / migration / durable administration owner / Pencil / Web 改动；通用 assignment 入口拒绝四项管理权限，避免在批次 B 前绕开 canonical durable 写入。

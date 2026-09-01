@@ -69,7 +69,7 @@
 
 所有 grants 使用已有 canonical permission 名称。Batch A 必须一次性枚举并测试初始四个角色的 exact grant matrix；不能在 handler、Web fixture 或测试中重复维护第二份 grants。`workspace_admin` 是首版唯一可包含本功能四项管理权限的角色，最后管理员保护以 `can_manage_local_identity` 与有效 assignment 决策，不以 display name 或前端标签判断。
 
-批次 A 已将目录冻结为 `local_identity_builtin_roles_v1`，catalog digest 为 `sha256:d784ef5d5595f4fa3ed96f32c86f3fd12edbd4098da46668366f97ce42e2d4d0`。四角色按 reader → builder → reviewer → administrator 累积既有 canonical grants；`workspace_admin` 覆盖完整 workspace permission allowlist，并且只有它包含四项本地身份管理权限。catalog、角色 definition digest、allowlist 完整覆盖和不可变复制均由 Go 测试固定；后续 grant 变化必须显式评估 catalog version，而不能静默改写历史 assignment。
+批次 A 首次冻结的目录为 `local_identity_builtin_roles_v1`。2026-09-01 在 Prompt Application 定时回归产品链验收中确认，`workspace_reader` 缺少既有 `application_publish_candidates:read` 与 `prompt_application_runtime:read`，会导致已经存在的 Publish Candidate / Runtime Assignment owner 无法由最小只读角色到达。目录因此显式推进为 `local_identity_builtin_roles_v2`，catalog digest 为 `sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae`；只向 reader 及其累积角色增加这两项 canonical read grant，不增加 mutation、review、activation 或执行权限，也不静默改写历史 v1 assignment。四角色仍按 reader → builder → reviewer → administrator 累积既有 canonical grants；`workspace_admin` 覆盖完整 workspace permission allowlist，并且只有它包含四项本地身份管理权限。catalog、角色 definition digest、allowlist 完整覆盖和不可变复制均由 Go 测试固定；后续 grant 变化仍必须显式评估 catalog version。
 
 ## 目录、详情与 cursor
 

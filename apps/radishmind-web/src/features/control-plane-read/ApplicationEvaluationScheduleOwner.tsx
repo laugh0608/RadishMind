@@ -114,23 +114,31 @@ export default function ApplicationEvaluationScheduleOwner({
   const loadScheduleOwner = useCallback(async (preferredScheduleId = "") => {
     const generation = ++requestGeneration.current;
     const controller = beginRequest();
+    setPending(null);
     setLoading(config.mode !== "offline");
     setFailureCode(null);
     setMessage("");
     setOccurrence(null);
     try {
-      const envelope = await listApplicationEvaluationSchedules(config, controller.signal);
+      const lifecycleStates = ["draft", "active", "paused", "archived"] as const;
+      const envelopes = await Promise.all(lifecycleStates.map((lifecycleState) => (
+        listApplicationEvaluationSchedules(config, controller.signal, lifecycleState)
+      )));
       if (generation !== requestGeneration.current) return;
-      if (envelope.failureCode) {
+      const failedEnvelope = envelopes.find((envelope) => envelope.failureCode);
+      if (failedEnvelope) {
         setSchedules([]);
         setSelectedScheduleId("");
         setVersion(null);
-        setFailureCode(envelope.failureCode);
-        setMessage(envelope.failureSummary);
+        setFailureCode(failedEnvelope.failureCode);
+        setMessage(failedEnvelope.failureSummary);
         return;
       }
-      setSchedules(envelope.schedules);
-      const schedule = envelope.schedules.find((candidate) => candidate.scheduleId === preferredScheduleId) ?? envelope.schedules[0] ?? null;
+      const availableSchedules = envelopes
+        .flatMap((envelope) => envelope.schedules)
+        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt) || right.scheduleId.localeCompare(left.scheduleId));
+      setSchedules(availableSchedules);
+      const schedule = availableSchedules.find((candidate) => candidate.scheduleId === preferredScheduleId) ?? availableSchedules[0] ?? null;
       if (!schedule) {
         setSelectedScheduleId("");
         setVersion(null);

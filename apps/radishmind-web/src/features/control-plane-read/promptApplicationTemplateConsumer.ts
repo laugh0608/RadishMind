@@ -5,6 +5,7 @@ const DRAFT_SCHEMA = "prompt_application_template_draft.v1";
 const VERSION_SCHEMA = "prompt_application_template_version.v1";
 const TEMPLATE_ID = /^ptpl_[a-z2-7]{16}$/u;
 const APPLICATION_ID = /^app_[a-z2-7]{16}$/u;
+const LOCAL_USER_ACTOR_PATTERN = /^user:usr_[a-f0-9]{32}$/u;
 const REFERENCE = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$/u;
 const DIGEST = /^sha256:[a-f0-9]{64}$/u;
 const VARIABLE_NAME = /^[A-Za-z][A-Za-z0-9_]{0,63}$/u;
@@ -144,6 +145,7 @@ export type PromptTemplateConfig = {
   tenantRef: string;
   workspaceId: string;
   subjectRef: string;
+  authMode?: "dev_headers" | "local_session_dev_test";
 };
 export type PromptTemplateOperation = {
   status: "offline" | "idle" | "valid" | "invalid" | "saved" | "restored" | "versioned" | "version_conflict" | "scope_denied" | "failed";
@@ -202,6 +204,9 @@ export function readPromptTemplateConfig(): PromptTemplateConfig {
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || "tenant_demo",
     workspaceId: env.VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID?.trim() || "workspace_demo",
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || "subject_demo_user",
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -375,6 +380,7 @@ export async function listPromptTemplateDrafts(
   if (config.mode === "offline") return offlineList();
   try {
     const value = await fetchDocument(`${config.baseUrl}${TEMPLATE_PATH}?${templateQuery(config, applicationId)}`, {
+      ...templateRequestInit(config),
       headers: templateHeaders(config, applicationId, ["prompt_application_templates:read"], "list"),
     });
     if (!isDraftListEnvelope(value, config, applicationId)) return failedList();
@@ -429,7 +435,10 @@ export async function listPromptTemplateVersions(
   try {
     const value = await fetchDocument(
       `${config.baseUrl}${TEMPLATE_PATH}/${encodeURIComponent(templateId)}/versions?${templateQuery(config, applicationId)}`,
-      { headers: templateHeaders(config, applicationId, ["prompt_application_templates:read"], "version-list") },
+      {
+        ...templateRequestInit(config),
+        headers: templateHeaders(config, applicationId, ["prompt_application_templates:read"], "version-list"),
+      },
     );
     if (!isVersionListEnvelope(value, config, applicationId, templateId)) return failedVersionList();
     const failureCode = nullableString(value.failure_code);
@@ -457,6 +466,7 @@ async function writeTemplate(
   if (config.mode === "offline") return offlineOperation();
   try {
     const value = await fetchDocument(`${config.baseUrl}${path}`, {
+      ...templateRequestInit(config),
       method: "POST",
       headers: { ...templateHeaders(config, applicationId, scopes, success), "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -476,6 +486,7 @@ async function readTemplate(
   if (config.mode === "offline") return offlineOperation();
   try {
     const value = await fetchDocument(`${config.baseUrl}${path}`, {
+      ...templateRequestInit(config),
       headers: templateHeaders(config, applicationId, ["prompt_application_templates:read_source"], success),
     });
     return mapEnvelope(value, config, applicationId, success);
@@ -552,7 +563,7 @@ function isVersionListEnvelope(
 
 function isDraft(value: unknown, config: PromptTemplateConfig, applicationId: string): value is Document {
   return isRecord(value) && hasExactKeys(value, DRAFT_KEYS) && value.schema_version === DRAFT_SCHEMA &&
-    value.tenant_ref === config.tenantRef && value.owner_subject_ref === config.subjectRef &&
+    value.tenant_ref === config.tenantRef && matchesPromptTemplateOwner(value.owner_subject_ref, config) &&
     value.workspace_id === config.workspaceId && value.application_id === applicationId &&
     isDraftInput(value, config, applicationId) && integer(value.draft_version, 1) &&
     isDigest(value.template_digest) && isValidation(value.validation_summary) &&
@@ -564,7 +575,7 @@ function isDraft(value: unknown, config: PromptTemplateConfig, applicationId: st
 
 function isVersion(value: unknown, config: PromptTemplateConfig, applicationId: string): value is Document {
   return isRecord(value) && hasExactKeys(value, VERSION_KEYS) && value.schema_version === VERSION_SCHEMA &&
-    value.tenant_ref === config.tenantRef && value.owner_subject_ref === config.subjectRef &&
+    value.tenant_ref === config.tenantRef && matchesPromptTemplateOwner(value.owner_subject_ref, config) &&
     value.workspace_id === config.workspaceId && value.application_id === applicationId &&
     TEMPLATE_ID.test(String(value.template_id)) && integer(value.template_version, 1) &&
     integer(value.source_draft_version, 1) && validTemplateMetadata(value) &&
@@ -814,6 +825,16 @@ function templateHeaders(
   const mutationPermissions = scopes.filter((scope) =>
     scope === "prompt_application_templates:write" || scope === "prompt_application_templates:version"
   );
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutationPermissions.length === 0 ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
+      "X-RadishMind-Dev-Prompt-Template-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Prompt-Template-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,
@@ -830,6 +851,19 @@ function templateHeaders(
     "X-RadishMind-Dev-Prompt-Template-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Prompt-Template-Application": applicationId,
   };
+}
+
+function templateRequestInit(config: PromptTemplateConfig): Pick<RequestInit, "credentials" | "cache"> {
+  return {
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
+  };
+}
+
+function matchesPromptTemplateOwner(value: unknown, config: PromptTemplateConfig): value is string {
+  return typeof value === "string" && (config.authMode === "local_session_dev_test"
+    ? LOCAL_USER_ACTOR_PATTERN.test(value)
+    : value === config.subjectRef);
 }
 
 function templateQuery(config: PromptTemplateConfig, applicationId: string): string {

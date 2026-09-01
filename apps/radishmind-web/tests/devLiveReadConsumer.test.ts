@@ -122,6 +122,8 @@ test("Control Plane local Session transport includes cookies without any dev ide
     assert.equal(requests.length, 7);
     assert.equal(requests.every(({ credentials }) => credentials === "include"), true);
     assert.equal(requests.every(({ headers }) =>
+      headers.get("X-RadishMind-Active-Tenant") === "tenant_demo"), true);
+    assert.equal(requests.every(({ headers }) =>
       !headers.has("Authorization") &&
       !headers.has("X-RadishMind-Dev-Read-Identity") &&
       !headers.has("X-RadishMind-Dev-Read-Tenant") &&

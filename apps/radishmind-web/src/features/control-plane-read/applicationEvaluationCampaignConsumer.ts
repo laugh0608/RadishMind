@@ -665,6 +665,7 @@ function evaluationHeaders(
       Accept: "application/json",
       ...(includeBody ? { "Content-Type": "application/json" } : {}),
       "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
       "X-RadishMind-Active-Workspace": config.workspaceId,
       "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
       "X-RadishMind-Dev-Workflow-Application": config.applicationId,

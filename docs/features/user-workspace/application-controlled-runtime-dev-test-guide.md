@@ -1,6 +1,6 @@
 # 应用受控运行开发测试态指南
 
-更新时间：2026-08-31
+更新时间：2026-09-01
 
 ## 适用范围
 
@@ -220,7 +220,7 @@ SQLite 中 Application RAG、Workflow Definition release、definition execution 
 
 - 不自动 review、activation、publish、assignment 或 profile 选择。
 - 不把受限 Prompt Application 日周期扩成通用 scheduler、任意 cron、queue、跨 Profile 后台任务、retry / fallback、replay / resume、agent loop 或长期记忆。
-- Batch D S10 Pencil 静态设计已经完成；项目所有者完成人工视觉 / 边界审查并单独批准 React 范围前，不实现 Schedule / Occurrence React consumer 或产品 launcher。
+- Batch D S10 Pencil、React strict consumer 与开发 / 测试态产品验收已完成；专题已关闭，不从该指南派生 Batch E，也不把产品 launcher 扩成真实 Provider、production worker 或通用 scheduler。
 - 不从 session transcript 派生持久记忆，不把 answer 写回上层业务真相源。
 - 不允许客户端事后上传 artifact content、digest 或 run ref，不从日志、缓存或 Provider 重建结果；memory artifact 不声明重启恢复，SQLite / PostgreSQL artifact 只声明开发测试态重启恢复。
 - 不把本地 SQLite、PostgreSQL dev/test、mock provider、真实浏览器验收或 launcher 连续链解释为 production ready。

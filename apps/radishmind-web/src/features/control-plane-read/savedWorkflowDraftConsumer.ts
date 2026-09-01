@@ -68,6 +68,7 @@ export type WorkflowSavedDraftConsumerConfig = {
   workspaceId: string;
   tenantRef: string;
   subjectRef: string;
+  authMode?: "dev_headers" | "local_session_dev_test";
 };
 
 export type WorkflowSavedDraftConsumerStatus =
@@ -437,6 +438,9 @@ export function readWorkflowSavedDraftConsumerConfig(): WorkflowSavedDraftConsum
     workspaceId: env.VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_WORKSPACE_ID?.trim() || DEFAULT_WORKSPACE_ID,
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -1019,6 +1023,7 @@ async function requestSavedWorkflowDraftEnvelopeForApplication(
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
+    ...savedWorkflowDraftRequestInit(config),
     headers: savedWorkflowDraftHeadersForApplication(
       config,
       applicationRef,
@@ -1050,6 +1055,7 @@ async function requestSavedWorkflowDraftListEnvelope(
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
     method: "GET",
+    ...savedWorkflowDraftRequestInit(config),
     headers: savedWorkflowDraftHeadersForApplication(
       config,
       applicationRef,
@@ -1083,6 +1089,7 @@ async function requestSavedWorkflowDraftLifecycleEnvelope(
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
     ...init,
+    ...savedWorkflowDraftRequestInit(config),
     headers: savedWorkflowDraftHeadersForApplication(config, applicationRef, requestId, "archive"),
   });
   const body: unknown = await response.json();
@@ -1115,6 +1122,17 @@ export function savedWorkflowDraftHeadersForApplication(
     : access === "write"
       ? "workflow_drafts:read,workflow_drafts:write"
       : "workflow_drafts:read";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationRef,
+    };
+  }
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -1129,6 +1147,15 @@ export function savedWorkflowDraftHeadersForApplication(
     "X-RadishMind-Dev-Read-Membership-Permissions": membershipPermissions,
     "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Workflow-Application": applicationRef,
+  };
+}
+
+function savedWorkflowDraftRequestInit(
+  config: WorkflowSavedDraftConsumerConfig,
+): Pick<RequestInit, "credentials" | "cache"> {
+  return {
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
   };
 }
 

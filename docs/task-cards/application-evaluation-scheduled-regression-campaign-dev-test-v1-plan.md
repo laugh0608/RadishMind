@@ -1,9 +1,9 @@
 # 应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1 实施任务卡
 
-更新时间：2026-08-31
+更新时间：2026-09-01
 
 - 任务 ID：`application-evaluation-scheduled-regression-campaign-dev-test-v1`
-- 状态：`batch_d_pencil_approved_react_product_validation_authorized`
+- 状态：`completed`
 - 功能设计：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](../features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)
 
 ## 准入结论
@@ -79,7 +79,7 @@
 
 ## 批次 D：完整 Pencil、React 与产品验收
 
-状态：`pencil_approved_react_product_validation_authorized`。
+状态：`completed`。
 
 - [x] 项目所有者于 2026-08-31 批准 `A / 完整 Pencil` 范围；复用 S10 Application Evaluation Workspace，不建立 S11。
 - [x] 正式设计源新增 Scheduled Regression Desktop `mLwFB`、Narrow `kpVvO`、Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE`。
@@ -87,8 +87,10 @@
 - [x] 根据首轮人工审查修正三个 Desktop 画板的左侧步骤选中态：`S10 Path Items` 与四个步骤统一使用 `fill_container`，选中高亮占满 `182px` 轨道可用宽度；布局与截图复核通过。
 - [x] 项目所有者于 2026-08-31 完成人工视觉与边界审查并明确批准。
 - [x] 项目所有者随后要求继续下一步，单独授权 Schedule / Version / Occurrence strict consumer、生命周期确认、exact Campaign handoff 和完整失败态的 React 实现范围。
-- [ ] 实现单一 React strict consumer，不复制 Plan、Campaign、Run、quota、fixture、credential 或 audit owner。
-- [ ] 完成三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、console / URL / storage / cookie / database 隐私与副作用审计。
+- [x] 实现单一 React strict consumer，不复制 Plan、Campaign、Run、quota、fixture、credential 或 audit owner；Plan / Schedule / Occurrence / Campaign 四步共用既有 S10 workspace，写入动作均有显式确认，exact Occurrence 只允许 canonical identity 读取，Campaign handoff 只打开既有 ref。
+- [x] 完成三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、console / URL / storage / cookie / database 隐私与副作用审计。`1440×900`、`720×900`、`390×844` 均无横向溢出；Desktop 选中步骤与 `160px` 轨道同宽，Tablet / Mobile 选中项精确占满四等分 grid track。
+
+开发 / 测试态产品连续链已由真实 Local Session 完成：Prompt Template v1 → Application Draft v2 → Publish Candidate v3 review → Runtime Assignment v1 activation → Evaluation Plan v2 → quota policy → Schedule v5。`2026-09-01T13:16:00Z` exact Occurrence 只创建一个 deterministic Campaign，Campaign 只产生一个 durable Prompt Run，终态 `succeeded` 且 retry / replay 为 `0`；归档后同一 SQLite 文件重启仍恢复 exact Schedule / Occurrence / Campaign。验收同时修复了 quota owner 与 Saved Draft 的 local Session transport、专用 launcher 的无关通用读请求、Prompt owner 两项最小 read grant，以及 invocation 未返回 Run 时 Campaign item 没有同步关闭的终态不一致。
 
 ## 验证矩阵
 
@@ -100,6 +102,6 @@
 - Web / Product：strict consumer、Pencil approval、three viewports、two-tab stale、privacy、exact Campaign / Run refs。
 - Repository：每批精准测试、`go test -race`、`go vet`、`git diff --check`、fast baseline；新增 schema / migration / 阶段边界时补全量 baseline。
 
-## 当前下一步
+## 关闭结论
 
-Batch D Pencil 已完成人工视觉与边界批准，React strict consumer 与开发 / 测试态产品验收也已获得单独授权。下一步先审计现有 S10 consumer 与十条 strict HTTP，再实现 Schedule / Version / Occurrence、生命周期确认、exact Campaign handoff 和失败态；随后完成三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect 与隐私验收。真实 Provider、production worker、通用 scheduler 和 production capability 继续关闭。
+P0 与 Batch A 至 D 已完成，本任务卡关闭。React strict consumer、生命周期确认、exact Campaign handoff、完整失败态、双标签 CAS、SQLite 重启、PostgreSQL configured gate、三视口和隐私证据均与既有 canonical owner 一致；没有创建第二套 Plan、Campaign、Run、quota 或 audit owner。真实 Provider、production worker、通用 scheduler、cron / queue、retry / replay、自动 baseline / decision / release、业务写回和 production capability 继续关闭；后续新需求必须重新经过功能设计与准入，不从本卡派生 Batch E。

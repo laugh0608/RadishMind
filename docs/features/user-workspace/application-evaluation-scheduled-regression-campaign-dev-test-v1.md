@@ -1,12 +1,12 @@
 # 应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1
 
-更新时间：2026-08-31
+更新时间：2026-09-01
 
-状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_batch_d_pencil_approved_react_product_validation_authorized`
+状态：`application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`
 
 ## 设计结论
 
-本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已经建立，Batch A 至 C 的 canonical schema、领域合同、strict HTTP、三种 durable owner、显式 dev/test runner 与既有 Campaign 交接均已完成。项目所有者又于 2026-08-31 批准 Batch D 的 `A / 完整 Pencil` 范围；七个正式画板与 R24 决策记录已经落入设计源并通过原生静态 QA。项目所有者在修正 Desktop 步骤高亮宽度后完成人工视觉与边界审查并明确批准，同时要求继续下一步；该指令单独授权 Batch D 的 React strict consumer 与开发 / 测试态产品验收，不扩大真实 Provider、production worker 或通用 scheduler。
+本专题选择“定时回归评测”作为 Action Safety Ladder 关闭后的下一条长期产品目标。项目所有者已于 2026-08-30 批准非 bearer、schedule-scoped、每次 occurrence 重验的 `system actor + delegated user` 模型；[唯一实施任务卡](../../task-cards/application-evaluation-scheduled-regression-campaign-dev-test-v1-plan.md)已完成并关闭，Batch A 至 C 的 canonical schema、领域合同、strict HTTP、三种 durable owner、显式 dev/test runner 与既有 Campaign 交接均已完成。项目所有者又于 2026-08-31 批准 Batch D 的 `A / 完整 Pencil` 范围；七个正式画板与 R24 决策记录已经落入设计源并通过原生静态 QA，Desktop 步骤高亮宽度修正后也通过人工视觉与边界审查。2026-09-01 已完成 Batch D 的 React strict consumer、双数据库产品链、CAS、重启 / 重连、三视口与隐私验收；该完成不扩大真实 Provider、production worker 或通用 scheduler。
 
 现有 Application Evaluation Plan 已保存不可变测试 fixture，Campaign 已能顺序调用既有应用运行服务并生成 durable Run，Comparison、Case、Suite 与人工 decision 也已闭合。新的用户价值不在复制这些 owner，而在让内部应用开发者把一个 exact Plan version 配置为受限 UTC 周期，在无人停留页面时仍能形成可审查的 Campaign 证据。
 
@@ -159,7 +159,7 @@ Batch C runner 已满足：
 
 本专题复用 S10 Application Evaluation Workspace，在现有 Plan / Campaign / Handoff 任务模型中增加 schedule owner，没有建立 S11。
 
-五维评估为 `1 / 2 / 2 / 1 / 2 = 8`，采用 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；设计必须表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。2026-08-31 已完成 Scheduled Regression Desktop `mLwFB`、Narrow `kpVvO`、Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE`。七个根画板共 `784` 个节点；Pencil 原生静态 QA 对布局裁切、placeholder、节点命名、文字内容 / fill 和硬编码 fill / stroke 均为 `0` 问题。首轮人工审查指出三个 Desktop 画板的步骤选中高亮未占满左侧轨道，现已把 `S10 Path Items` 及四个步骤统一设为 `fill_container`，每行精确占满 `182px` 可用宽度并重新通过布局与截图复核；项目所有者随后完成人工视觉与边界审查并明确批准。React strict consumer 与开发 / 测试态产品验收已获得单独授权，尚未完成前不得写成产品闭环。
+五维评估为 `1 / 2 / 2 / 1 / 2 = 8`，采用 `A / 完整 Pencil`：周期启用属于持续 Provider 副作用授权；设计必须表达 exact Plan、quota consumer、授权主体、下次触发、暂停 / 归档、occurrence / Campaign handoff、权限失效和服务重启状态。2026-08-31 已完成 Scheduled Regression Desktop `mLwFB`、Narrow `kpVvO`、Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE`。七个根画板共 `784` 个节点；Pencil 原生静态 QA 对布局裁切、placeholder、节点命名、文字内容 / fill 和硬编码 fill / stroke 均为 `0` 问题。首轮人工审查指出三个 Desktop 画板的步骤选中高亮未占满左侧轨道，现已把 `S10 Path Items` 及四个步骤统一设为 `fill_container`，每行精确占满 `182px` 可用宽度并重新通过布局与截图复核；项目所有者随后完成人工视觉与边界审查并明确批准。2026-09-01 已完成 React strict consumer 与开发 / 测试态双数据库、三视口、CAS、重启和隐私验收，产品闭环只在显式 development / test gate 内成立。
 
 ## 拟议实施顺序
 
@@ -195,10 +195,13 @@ Batch C runner 已满足：
 
 ### 批次 D：Pencil、React 与产品验收
 
-- 状态：`pencil_completed_owner_review_required`。
+- 状态：`completed`。
 - S10 完整设计已覆盖 selected Schedule、exact Plan / quota consumer、双 actor、next due、activate / pause、Occurrence / Campaign handoff、authorization revoke、missed / overlap、restart reconciliation 与 no-replay 边界。
 - 项目所有者已于 2026-08-31 完成人工视觉与边界审查并明确批准；随后要求继续下一步，单独授权 Schedule / Version / Occurrence strict consumer、生命周期确认、exact Campaign handoff 与完整失败态的 React 实现。
-- 当前进入 React 与开发 / 测试态产品验收；继续验证三视口、双标签 CAS、SQLite 重启、PostgreSQL no-fallback / reconnect、console / URL / storage 隐私与零自动 release。
+- 单一 React strict consumer 已完成 Schedule / Version / Occurrence、显式生命周期确认、exact Campaign handoff 与完整失败态；local Session 请求只携带 tenant / workspace / product binding，不混入 dev identity、permission 或 bearer proof。
+- SQLite 产品链已完成 Prompt owner、Plan v2、quota policy、Schedule v5、成功 Occurrence / Campaign / durable Run、归档与同库重启；双标签 stale CAS、零 retry / replay / catch-up 与数据库敏感字段扫描通过。
+- PostgreSQL 17 标准 configured gate 已通过完整 integration、`0029_application_evaluation_schedules / workflow_run_store_v29`、runtime role、restart / reconnect、corruption 与 no-fallback，并在验收后停止容器和网络。
+- `1440×900`、`720×900`、`390×844` 页面均无横向溢出；Desktop selected step 与 `160px` 轨道同宽，Tablet / Mobile selected step 占满对应 grid track。干净重启标签 console warning / error 为 `0 / 0`，产品链请求均为 `200`。
 
 ## 当前准入结论
 
@@ -210,9 +213,9 @@ Batch C runner 已满足：
 | durable schedule / occurrence owner | 满足：memory、SQLite 与 PostgreSQL 同构，迁移、CAS、单赢家和重启 / 重连已验证 |
 | background service lifecycle | 满足：显式 dev/test gate、单 worker、固定低频 poll、cancel / join 与先停 worker 后关 store 已落实 |
 | system actor / delegated authorization | **P0 已批准，Batch A contract、Batch B control plane / durable owner 与 Batch C 每次重验 / Run metadata 已落实** |
-| implementation task card | 已建立；状态 `batch_d_pencil_approved_react_product_validation_authorized` |
+| implementation task card | 已完成并关闭；状态 `completed` |
 
-当前状态为 `batch_d_pencil_approved_react_product_validation_authorized`。下一步在既有 S10 owner 上实现单一 React strict consumer，并按任务卡完成开发 / 测试态双数据库与三视口产品验收；不得把授权扩大为真实 Provider、production worker、通用 scheduler 或 production capability。
+当前状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。P0 与 Batch A 至 D 已完成并关闭，不派生 Batch E；后续回到功能设计入口重新选择长期目标。该完成只属于显式 development / test gate，不得解释为真实 Provider、production worker、通用 scheduler、production authentication、quota / billing 或 production capability 已就绪。
 
 ## 停止线
 

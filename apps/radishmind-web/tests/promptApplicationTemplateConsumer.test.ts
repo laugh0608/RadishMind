@@ -92,6 +92,28 @@ test("Prompt Template save sends exact source and CAS scope", async () => {
   assert.equal("template_digest" in captured!.body.template, false);
 });
 
+test("Prompt Template local Session transport keeps product binding and accepts the authenticated owner", async () => {
+  const localConfig = { ...config, authMode: "local_session_dev_test" as const };
+  const envelope = versionEnvelope();
+  envelope.version.owner_subject_ref = "user:usr_6f18e9a408a2ae7ec3f637b331eb5a98";
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_url, init) => {
+    captured = init;
+    return jsonResponse(envelope);
+  };
+
+  const result = await readPromptTemplateVersion(localConfig, applicationId, templateId, 1);
+  const headers = new Headers(captured?.headers);
+  assert.equal(result.status, "versioned");
+  assert.equal(captured?.credentials, "include");
+  assert.equal(captured?.cache, "no-store");
+  assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Prompt-Template-Application"), applicationId);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+  assert.equal(headers.has("Authorization"), false);
+});
+
 test("Prompt Template validation preserves the persisted CAS lineage", () => {
   const current = {
     ...emptyOperation(),

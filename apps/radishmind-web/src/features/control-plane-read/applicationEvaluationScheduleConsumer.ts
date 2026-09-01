@@ -205,10 +205,29 @@ type Document = Record<string, unknown>;
 export async function listApplicationEvaluationSchedules(
   config: ApplicationEvaluationConfig,
   signal?: AbortSignal,
+  lifecycleState: ApplicationEvaluationScheduleState = "active",
 ): Promise<ApplicationEvaluationScheduleListEnvelope> {
   if (config.mode === "offline") return offlineScheduleList(config);
-  const query = new URLSearchParams({ workspace_id: config.workspaceId, environment: config.environment, limit: "100" });
-  return request(config, `evaluation-schedules?${query}`, "GET", null, ["application_evaluations:read"], decodeScheduleListEnvelope, signal);
+  if (!isScheduleState(lifecycleState)) throw new Error("Schedule lifecycle filter is invalid.");
+  const query = new URLSearchParams({
+    workspace_id: config.workspaceId,
+    environment: config.environment,
+    lifecycle_state: lifecycleState,
+    limit: "100",
+  });
+  const envelope = await request(
+    config,
+    `evaluation-schedules?${query}`,
+    "GET",
+    null,
+    ["application_evaluations:read"],
+    decodeScheduleListEnvelope,
+    signal,
+  );
+  if (envelope.schedules.some((schedule) => schedule.lifecycleState !== lifecycleState)) {
+    throw new Error("Schedule lifecycle projection does not match its requested owner.");
+  }
+  return envelope;
 }
 
 export async function readApplicationEvaluationSchedule(
@@ -368,6 +387,7 @@ function evaluationHeaders(
       Accept: "application/json",
       ...(includeBody ? { "Content-Type": "application/json" } : {}),
       "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
       "X-RadishMind-Active-Workspace": config.workspaceId,
       "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
       "X-RadishMind-Dev-Workflow-Application": config.applicationId,

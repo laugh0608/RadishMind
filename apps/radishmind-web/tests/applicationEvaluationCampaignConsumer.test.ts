@@ -86,6 +86,7 @@ test("Application Evaluation local Session transport includes cookies and omits 
     const headers = new Headers(captured?.headers);
     assert.equal(captured?.credentials, "include");
     assert.equal(captured?.cache, "no-store");
+    assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
     assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
     assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
     assert.equal(headers.has("X-RadishMind-Dev-Read-Tenant"), false);

@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-08-31
+更新时间：2026-09-01
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)的 system actor + schedule-scoped 受限委托已获批准；Batch A 至 C 已完成 Prompt-only canonical contract、strict HTTP、memory / SQLite / PostgreSQL、逐次账户 / membership / permission / Plan / assignment / API Key / quota 重读、显式 dev/test runner、cancel / join、deterministic Campaign 交接、Run 双 actor metadata 与 crash no-replay。Batch D S10 完整 Pencil与 R24 Decision 已获人工批准，React strict consumer 与开发 / 测试态产品验收已获单独授权并进入实施；真实 Provider 和 production worker 尚未进入。Action Safety Ladder 保持关闭，不派生批次 F。
+1. 产品线：[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)已完成并关闭。P0 与 Batch A 至 D 已完成 Prompt-only canonical contract、strict HTTP、memory / SQLite / PostgreSQL、逐次账户 / membership / permission / Plan / assignment / API Key / quota 重读、显式 dev/test runner、cancel / join、deterministic Campaign / Run 交接、crash no-replay、完整 Pencil、React strict consumer、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；不派生 Batch E。下一产品顺位回到功能设计入口，真实 Provider 和 production worker 尚未进入；Action Safety Ladder 保持关闭，不派生批次 F。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。

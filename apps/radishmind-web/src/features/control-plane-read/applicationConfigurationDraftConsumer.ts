@@ -24,6 +24,7 @@ export type ApplicationConfigurationDraftConfig = {
   tenantRef: string;
   workspaceId: string;
   subjectRef: string;
+  authMode?: "dev_headers" | "local_session_dev_test";
 };
 
 export type ApplicationConfigurationBaseline = {
@@ -177,6 +178,9 @@ export function readApplicationConfigurationDraftConfig(): ApplicationConfigurat
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || "tenant_demo",
     workspaceId: env.VITE_RADISHMIND_APPLICATION_DRAFT_WORKSPACE_ID?.trim() || "workspace_demo",
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || "subject_demo_user",
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -290,7 +294,7 @@ export async function listApplicationConfigurationDrafts(config: ApplicationConf
   if (config.mode !== "dev_application_draft_http") return initialApplicationConfigurationDraftListState(config);
   const requestId = createRequestId("app-draft-list");
   try {
-    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-drafts?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { headers: draftHeaders(config, applicationId, requestId, "read") });
+    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-drafts?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { ...draftRequestInit(config), headers: draftHeaders(config, applicationId, requestId, "read") });
     const document: unknown = await response.json();
     if (!response.ok || !isDraftListEnvelope(document, config, applicationId)) throw new Error("invalid application draft list response");
     if (document.failure_code) return { status: "failed", summaries: [], failureCode: document.failure_code, summary: "Saved application drafts could not be loaded." };
@@ -305,7 +309,7 @@ export async function readApplicationConfigurationDraft(config: ApplicationConfi
   if (config.mode !== "dev_application_draft_http") return { draft: null, state: initialApplicationConfigurationDraftState(config) };
   const requestId = createRequestId("app-draft-read");
   try {
-    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-drafts/${encodeURIComponent(draftId)}?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { headers: draftHeaders(config, applicationId, requestId, "read") });
+    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-drafts/${encodeURIComponent(draftId)}?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { ...draftRequestInit(config), headers: draftHeaders(config, applicationId, requestId, "read") });
     const document: unknown = await response.json();
     if (!response.ok || !isDraftEnvelope(document, config, applicationId)) throw new Error("invalid application draft response");
     if (document.failure_code || !document.draft) return { draft: null, state: operationStateFromEnvelope(document, "store_failure") };
@@ -331,6 +335,7 @@ export async function bindApplicationConfigurationDraftPromptTemplate(
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/application-configuration-drafts/${encodeURIComponent(draftId)}/prompt-template-binding`,
       {
+        ...draftRequestInit(config),
         method: "POST",
         headers: {
           ...draftHeaders(config, applicationId, requestId, "prompt-bind"),
@@ -372,6 +377,7 @@ export async function bindApplicationConfigurationDraftAgentCopilotProfile(
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/application-configuration-drafts/${encodeURIComponent(draftId)}/agent-copilot-profile-binding`,
       {
+        ...draftRequestInit(config),
         method: "POST",
         headers: {
           ...draftHeaders(config, applicationId, requestId, "agent-bind"),
@@ -401,7 +407,7 @@ async function writeDraftRequest(config: ApplicationConfigurationDraftConfig, dr
   if (config.mode !== "dev_application_draft_http") return initialApplicationConfigurationDraftState(config);
   const requestId = createRequestId("app-draft-write");
   try {
-    const response = await fetch(`${config.baseUrl}${path}`, { method: "POST", headers: { ...draftHeaders(config, draft.applicationId, requestId, draft.workflowRAGBindingRef ? "bind" : "write"), "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const response = await fetch(`${config.baseUrl}${path}`, { ...draftRequestInit(config), method: "POST", headers: { ...draftHeaders(config, draft.applicationId, requestId, draft.workflowRAGBindingRef ? "bind" : "write"), "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const document: unknown = await response.json();
     if (!response.ok || !isDraftEnvelope(document, config, draft.applicationId)) throw new Error("invalid application draft response");
     return operationStateFromEnvelope(document, successStatus);
@@ -444,6 +450,16 @@ function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId
       : operation === "agent-bind"
         ? "application_drafts:write,agent_copilot_profiles:bind"
         : "application_drafts:write";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(operation === "read" ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
+      "X-RadishMind-Dev-Application-Draft-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Application-Draft-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-draft",
@@ -458,6 +474,13 @@ function draftHeaders(config: ApplicationConfigurationDraftConfig, applicationId
     }),
     "X-RadishMind-Dev-Application-Draft-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Application-Draft-Application": applicationId,
+  };
+}
+
+function draftRequestInit(config: ApplicationConfigurationDraftConfig): Pick<RequestInit, "credentials" | "cache"> {
+  return {
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
   };
 }
 

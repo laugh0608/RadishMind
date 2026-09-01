@@ -10,7 +10,7 @@ import (
 
 const (
 	localIdentityRoleCatalogSchemaVersion = "local_identity_role_catalog.v1"
-	localIdentityRoleCatalogVersion       = "local_identity_builtin_roles_v1"
+	localIdentityRoleCatalogVersion       = "local_identity_builtin_roles_v2"
 
 	localIdentityRoleWorkspaceReader   = "workspace_reader"
 	localIdentityRoleWorkspaceBuilder  = "workspace_builder"
@@ -70,9 +70,11 @@ func buildLocalIdentityRoleCatalog() LocalIdentityRoleCatalog {
 		"api_keys:read",
 		"application_drafts:read",
 		"application_evaluations:read",
+		"application_publish_candidates:read",
 		"application_sessions:read",
 		"agent_copilot_profiles:read",
 		"prompt_application_templates:read",
+		"prompt_application_runtime:read",
 		"runs:read",
 		"usage:read",
 		"workflow_definitions:read",

@@ -61,6 +61,7 @@ test("Application Evaluation Schedule reads strict list and exact version with r
     assert.equal(exact.version?.authorization.revalidationPolicy, "every_occurrence");
     assert.equal(exact.version?.maxProviderAttempts, 1);
     assert.equal(requests[0]?.url.searchParams.get("limit"), "100");
+    assert.equal(requests[0]?.url.searchParams.get("lifecycle_state"), "active");
     assert.equal(requests[1]?.url.pathname, `/v1/user-workspace/applications/app_flow_copilot/evaluation-schedules/${scheduleId}/versions/3`);
     for (const request of requests) {
       assert.equal(request.headers.get("X-RadishMind-Dev-Read-Scopes"), "application_evaluations:read");
@@ -84,6 +85,7 @@ test("Application Evaluation Schedule local Session transport is credentialed an
     const headers = new Headers(captured?.headers);
     assert.equal(captured?.credentials, "include");
     assert.equal(captured?.cache, "no-store");
+    assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
     assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
     assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
     assert.equal(headers.has("X-RadishMind-Dev-Read-Tenant"), false);
