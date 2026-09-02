@@ -2,7 +2,7 @@
 
 更新时间：2026-09-02
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_completed`
 
 对应功能设计：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](../features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
 
@@ -44,11 +44,13 @@
 
 批次 A 完成条件：
 
-- [ ] canonical schema、domain validation、API-safe projection、cursor 与 failure mapping 落地。
-- [ ] memory create / list / revoke / preview / claim 正向、负向、并发与原子性测试通过。
-- [ ] 原始 code / secret digest 未进入 canonical projection、错误、日志、audit、fixture 或快照。
-- [ ] 精准 Go / contract 测试、Platform 普通测试、race 与仓库快速门禁通过。
-- [ ] 回写功能专题、任务卡、当前焦点与 W36 周志后提交；批次 B 仍等待下一次明确推进。
+- [x] canonical schema、domain validation、API-safe projection、cursor 与 failure mapping 落地。
+- [x] memory create / list / revoke / preview / claim 正向、负向、并发与原子性测试通过。
+- [x] 原始 code / secret digest 未进入 canonical projection、错误、日志、audit、fixture 或快照。
+- [x] 精准 Go / contract 测试、Platform 普通测试、race 与仓库快速门禁通过。
+- [x] 回写功能专题、任务卡、当前焦点与 W36 周志后提交；批次 B 仍等待下一次明确推进。
+
+批次 A 证据：新增 contract、service 与 memory repository capability，没有注册 HTTP 或修改 durable store。`go test ./internal/httpapi/... -count=1` 通过（`19.446s`），`go test -race ./internal/httpapi/... -count=1` 通过（`420.728s`）；快速门禁结论为 `repository fast baseline checks passed`。并发测试以 `24` 个 claimant 同时提交同一 code，结果固定为一个 membership、一个 role assignment、一个 claimed invitation，其他请求稳定失败且无部分写入。
 
 ## 批次 B：SQLite / PostgreSQL durable owner
 
@@ -128,7 +130,7 @@ npm --prefix apps/radishmind-web run build
 - [x] owner、用户流程、数据边界、原子语义、批次与停止线已形成正式功能设计。
 - [x] 项目所有者已批准设计与批次 A 进入代码。
 - [x] 唯一高风险任务卡已建立。
-- [ ] 批次 A：canonical contract、secret policy 与 memory 原子链。
+- [x] 批次 A：canonical contract、secret policy 与 memory 原子链。
 - [ ] 批次 B：SQLite / PostgreSQL durable owner。
 - [ ] 批次 C：strict HTTP 与 local Session 安全边界。
 - [ ] 批次 D：完整 Pencil 与人工批准。

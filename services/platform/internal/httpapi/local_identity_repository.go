@@ -61,6 +61,7 @@ type memoryLocalIdentityRepository struct {
 	activeRoleByScope             map[string]string
 	memberships                   map[string]WorkspaceMembership
 	activeMembershipByScope       map[string]string
+	workspaceInvitations          map[string]memoryWorkspaceInvitation
 }
 
 func newMemoryLocalIdentityRepository() *memoryLocalIdentityRepository {
@@ -73,6 +74,7 @@ func newMemoryLocalIdentityRepository() *memoryLocalIdentityRepository {
 		sessions:                      make(map[string]WebSession), sessionByCredentialDigest: make(map[string]string),
 		roleAssignments: make(map[string]LocalRoleAssignment), activeRoleByScope: make(map[string]string),
 		memberships: make(map[string]WorkspaceMembership), activeMembershipByScope: make(map[string]string),
+		workspaceInvitations: make(map[string]memoryWorkspaceInvitation),
 	}
 }
 

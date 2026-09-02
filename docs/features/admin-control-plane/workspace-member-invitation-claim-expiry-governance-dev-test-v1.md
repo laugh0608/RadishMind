@@ -1,6 +1,6 @@
 # 工作区成员邀请、认领与到期治理（开发 / 测试态）v1
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_completed`
 
 更新时间：2026-09-02
 
@@ -8,7 +8,7 @@
 
 本专题是应用定时回归评测关闭后，从四个一级产品面重新评审选出的下一项长期开发目标。它补齐现有本地成员管理的真实断点：管理员目前必须先在线下获得一个已有 active 本地账户的 exact `user_id`，再分别创建 `WorkspaceMembership` 和角色 assignment；产品没有“管理员预先表达准入意图，成员登录后自行认领”的安全闭环。
 
-项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，下一步只进入批次 A；它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
+项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 已完成；它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
 
 首版最重要的边界是：邀请只保存待认领授权意图，`WorkspaceMembership` 继续是 workspace 访问的唯一 owner，`LocalRoleAssignment` 继续是角色与冻结 grants 的唯一 owner。邀请码不是 membership、Session、API Key 或可复用授权 token；只有在服务端单事务认领成功后，成员与角色权限才生效。
 
@@ -202,6 +202,8 @@ Claimant surface 至少固定：
 
 停止线：不注册 HTTP，不改 config / migration / Pencil / Web，不创建第二套 membership 或 role owner。
 
+批次 A 完成事实：`workspace_invitation.v1`、current / preview / mutation projection、四态 effective expiry、固定 `as_of` cursor 与 stable failure mapping 已落地；邀请码使用完整 locator 与 256-bit CSPRNG secret，repository 只保存 domain-separated digest，未知 locator 同样执行 dummy digest constant-time comparison。既有 memory local identity repository 在同一写锁内完成 claimant account / tenant、catalog、membership / assignment invariant 重读，再一次提交新 membership、catalog-derived assignment 与 claimed invitation。测试覆盖三种允许角色、禁止 `workspace_admin`、四档 TTL、catalog drift、expired / revoked / claimed、已撤销 membership 重新加入、未撤销过期 membership 与孤立 active assignment 冲突、cursor tamper、repository corruption、重放和 `24` 路并发单胜者；所有失败路径均保持零部分写入。批次 A 未注册 route，未修改 config、migration、Pencil、React、CSS、launcher、fixture 或专项 checker。
+
 ### 批次 B：SQLite / PostgreSQL durable owner
 
 - 评审并新增最小 invitation table / index / migration；secret digest 使用 repository-only 列，不进入 canonical JSON projection。
@@ -254,4 +256,4 @@ Claimant surface 至少固定：
 
 ## 下一实现入口
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`。下一步只实施批次 A 的 canonical contract、secret policy 与 memory 原子链；不得并行抢跑 migration、HTTP、Pencil、React 或产品联调。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_completed`。下一步停在批次 B 准入前；只有项目所有者再次明确推进后才能评审 SQLite / PostgreSQL durable owner，当前不得抢跑 migration、HTTP、Pencil、React 或产品联调。
