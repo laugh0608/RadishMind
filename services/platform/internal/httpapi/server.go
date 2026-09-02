@@ -80,6 +80,7 @@ type Server struct {
 	localIdentityRepository                 localIdentityRepository
 	localIdentityAdministrationService      *localIdentityAdministrationService
 	localIdentitySelfServiceSecurityService *localIdentitySelfServiceSecurityService
+	workspaceInvitationService              *workspaceInvitationService
 	closeSavedWorkflowDraftStore            func()
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
@@ -329,6 +330,12 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		return nil, errors.New("local identity self-service security repository is unavailable")
 	}
 	localIdentitySelfServiceSecurityService := newLocalIdentitySelfServiceSecurityService(localIdentitySelfServiceSecurityRepository)
+	workspaceInvitationRepository, ok := localIdentityRepository.(workspaceInvitationRepository)
+	if !ok {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
+		return nil, errors.New("workspace invitation repository is unavailable")
+	}
+	workspaceInvitationService := newWorkspaceInvitationService(workspaceInvitationRepository)
 	if err := localIdentityHTTPService.configureOIDC(context.Background(), runtimeConfig); err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
 		return nil, err
@@ -394,6 +401,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		localIdentityRepository:                 localIdentityRepository,
 		localIdentityAdministrationService:      localIdentityAdministrationService,
 		localIdentitySelfServiceSecurityService: localIdentitySelfServiceSecurityService,
+		workspaceInvitationService:              workspaceInvitationService,
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,

@@ -1,6 +1,6 @@
 # 工作区成员邀请、认领与到期治理（开发 / 测试态）v1
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`
 
 更新时间：2026-09-02
 
@@ -8,7 +8,7 @@
 
 本专题是应用定时回归评测关闭后，从四个一级产品面重新评审选出的下一项长期开发目标。它补齐现有本地成员管理的真实断点：管理员目前必须先在线下获得一个已有 active 本地账户的 exact `user_id`，再分别创建 `WorkspaceMembership` 和角色 assignment；产品没有“管理员预先表达准入意图，成员登录后自行认领”的安全闭环。
 
-项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 与 B 已完成；它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
+项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 至 C 已完成；它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
 
 首版最重要的边界是：邀请只保存待认领授权意图，`WorkspaceMembership` 继续是 workspace 访问的唯一 owner，`LocalRoleAssignment` 继续是角色与冻结 grants 的唯一 owner。邀请码不是 membership、Session、API Key 或可复用授权 token；只有在服务端单事务认领成功后，成员与角色权限才生效。
 
@@ -222,6 +222,8 @@ Claimant surface 至少固定：
 
 停止线：不改 Pencil / React，不增加 production rate limit、邮件、全局目录或真实 OIDC。
 
+批次 C 完成事实：正式 Server 已装配单一 invitation service，并注册 workspace-scoped list / create / revoke 与 claimant preview / claim 五条 strict route。Admin route 要求单值 active tenant / workspace header、active membership、精确的 read 或 write 组合权限与 recent auth；create / revoke 复用同源 Origin、CSRF、确认、strict JSON 与 canonical request / audit refs。claimant route 只接受 active `local_session_dev_test`，从 invitation secret 验证后的 record 取得目标 scope，不预先要求目标 workspace membership，也不采信 active workspace header；claim 继续执行 Origin / CSRF 与原子 membership + assignment + terminal invitation。创建、preview 与 claim 成功响应均为 `no-store`，客户端 request id 在 invitation route 上不会进入 trace / log，invalid format / locator / secret 统一失败且不公开 scope。测试覆盖五 route 连续链、权限即时生效、revoke、枚举、重放、CAS、tenant、recent auth、Bearer / dev header / signed-test / resource-server OIDC fallback、Origin / CSRF、method / query / body strictness、组合权限、稳定 recovery 和敏感字段禁入；没有修改 Pencil、React、config、migration 或 production 能力。
+
 ### 批次 D：完整 Pencil 与人工批准
 
 - 在既有 S7 / Authentication Gateway 页面族冻结 Admin directory / create handoff、claim preview / confirm、terminal state 和 Narrow 顺序。
@@ -258,4 +260,4 @@ Claimant surface 至少固定：
 
 ## 下一实现入口
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`。下一步停在批次 C 准入前；只有项目所有者再次明确推进后才能注册 strict HTTP 与本地 Session 安全边界，当前不得抢跑 HTTP、Pencil、React 或产品联调。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`。下一步停在批次 D 准入前；只有项目所有者再次明确推进后才能读取或修改完整 Pencil，当前不得抢跑 Pencil、React 或产品联调。

@@ -68,7 +68,7 @@ func TestServerWiresLocalIdentityHTTPModeAndCredentialedCORS(t *testing.T) {
 	server.httpServer.Handler.ServeHTTP(registerResponse, register)
 	if registerResponse.Code != http.StatusCreated || server.localIdentityHTTPService == nil ||
 		server.localIdentityAdministrationService == nil || server.localIdentitySelfServiceSecurityService == nil ||
-		server.workspaceMembershipProvider == nil {
+		server.workspaceInvitationService == nil || server.workspaceMembershipProvider == nil {
 		t.Fatalf("server local identity wiring failed: status=%d body=%s", registerResponse.Code, registerResponse.Body.String())
 	}
 }
@@ -108,9 +108,15 @@ func newLocalIdentityHTTPTestFixture(repository localIdentityRepository, now tim
 		selfServiceSecurity = newLocalIdentitySelfServiceSecurityService(selfServiceRepository)
 		selfServiceSecurity.now = func() time.Time { return now }
 	}
+	var workspaceInvitations *workspaceInvitationService
+	if workspaceInvitationRepository, ok := repository.(workspaceInvitationRepository); ok {
+		workspaceInvitations = newWorkspaceInvitationService(workspaceInvitationRepository)
+		workspaceInvitations.now = func() time.Time { return now }
+	}
 	server := &Server{
 		config: cfg, localIdentityHTTPService: service, localIdentityAdministrationService: administration,
 		localIdentitySelfServiceSecurityService: selfServiceSecurity,
+		workspaceInvitationService:              workspaceInvitations,
 		workspaceMembershipProvider:             newLocalWorkspaceMembershipProvider(repository),
 	}
 	mux := http.NewServeMux()
@@ -130,6 +136,9 @@ func (fixture *localIdentityHTTPTestFixture) setNow(now time.Time) {
 	}
 	if fixture.server.localIdentitySelfServiceSecurityService != nil {
 		fixture.server.localIdentitySelfServiceSecurityService.now = func() time.Time { return *fixture.now }
+	}
+	if fixture.server.workspaceInvitationService != nil {
+		fixture.server.workspaceInvitationService.now = func() time.Time { return *fixture.now }
 	}
 }
 

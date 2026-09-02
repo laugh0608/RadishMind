@@ -180,6 +180,7 @@ func registerLocalIdentityHTTPRoutes(mux *http.ServeMux, server *Server) {
 	registerLocalIdentitySelfServiceSecurityHTTPRoutes(mux, server)
 	registerLocalIdentityOIDCHTTPRoutes(mux, server)
 	registerLocalIdentityAdministrationHTTPRoutes(mux, server)
+	registerWorkspaceInvitationHTTPRoutes(mux, server)
 }
 
 func withLocalIdentitySessionAuthentication(next http.Handler, service *localIdentityHTTPService) http.Handler {

@@ -2,7 +2,7 @@
 
 更新时间：2026-09-02
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`
 
 对应功能设计：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](../features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
 
@@ -14,14 +14,14 @@
 
 ## 已批准前提
 
-- 项目所有者已于 2026-09-02 批准功能设计、owner、非定向邀请码、禁止邀请 `workspace_admin`、四档 TTL、一次性 secret、preview → claim、原子 membership + assignment、五批实施顺序与 `A / 完整 Pencil` 边界，并已分别授权批次 A、B 进入代码。
+- 项目所有者已于 2026-09-02 批准功能设计、owner、非定向邀请码、禁止邀请 `workspace_admin`、四档 TTL、一次性 secret、preview → claim、原子 membership + assignment、五批实施顺序与 `A / 完整 Pencil` 边界，并已分别授权批次 A、B、C 进入代码。
 - [本地用户、角色与工作区成员管理 v1](../features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)保持完成关闭；本任务是新的独立功能，不是其 Batch F。
 - `UserAccount`、`WebSession`、`WorkspaceMembership`、`LocalRoleAssignment`、内建角色目录与三种 local identity repository 继续是 canonical owner。
 - invitation 不绑定 email、login identifier、display name、OIDC identity 或预先已知 `user_id`；任意 active 同 tenant 本地账户只有持有有效 code 并通过 claim 才能成为认领者。
 - v1 只允许 `workspace_reader`、`workspace_builder`、`workspace_reviewer`；`workspace_admin` 仍必须在成员身份明确后通过现有 exact member role assignment 流程授予。
 - TTL 只允许 `1h / 24h / 72h / 7d`。服务端使用 UTC clock 计算 `expires_at`，不接受客户端任意时间戳或无限期。
 - 邀请码使用 locator + 至少 256-bit CSPRNG secret。创建响应只返回一次原文，持久层只存 digest；格式合法但 locator 不存在时仍完成固定 dummy digest 的等价比较。
-- 批次 B 的明确授权只开放 durable migration / repository 与对应验证，不提前开放 HTTP、Pencil、React、真实产品链或 production 能力。
+- 批次 C 的明确授权在已完成 durable owner 上只开放 strict HTTP、本地 Session 安全边界与对应验证，不提前开放 Pencil、React、真实产品链或 production 能力。
 
 ## 批次 A：canonical contract、secret policy 与 memory 原子链
 
@@ -83,6 +83,16 @@
 
 停止线：不修改 Pencil / React，不增加邮件、全局目录、真实 Radish、production auth / IAM 或速率限制声明。
 
+批次 C 完成条件：
+
+- [x] 三条 Admin 与两条 claimant route 注册到正式 Server；create / list / revoke / preview / claim 只调用单一 canonical invitation service。
+- [x] Admin exact scope、read / write 组合权限、active membership、recent auth、Origin / CSRF 与 strict JSON 逐请求重读；claimant 不要求目标 workspace membership但必须通过 active local Session、tenant、recent auth、secret 与 invitation 校验。
+- [x] Bearer、dev header、signed-test 与 resource-server OIDC fallback 全部拒绝；invalid format / locator / secret 统一失败，客户端 request id 不进入 invitation trace / log。
+- [x] `no-store`、method / query / body strictness、revoke / claim CAS、枚举、重放、权限即时生效、稳定 recovery 与敏感字段禁入测试通过。
+- [x] 精准 HTTP 测试、专项 race、Platform 普通测试、完整 race 与仓库门禁通过后回写真相源并提交。
+
+批次 C 证据：memory HTTP 连续链完成 Admin create → pending directory → 无目标 membership claimant preview → confirmed claim → existing permission 立即生效 → replay 拒绝 → claimed directory，并独立覆盖 revoke。安全负向覆盖 missing / wrong tenant、active workspace header 不采信、invalid / unknown / wrong-secret 等价失败、stale CAS 零消费、recent auth、Origin / CSRF、client scope / grants 注入、重复字段、多 JSON 文档、未知 query、错误 method 与精确组合权限。邀请 route 使用服务端生成 request id，日志只记录 route template、状态、稳定 code 与 failure boundary；原 code 仅在 create response 返回一次。
+
 ## 批次 D：完整 Pencil 与人工批准
 
 实施范围：
@@ -142,6 +152,6 @@ npm --prefix apps/radishmind-web run build
 - [x] 唯一高风险任务卡已建立。
 - [x] 批次 A：canonical contract、secret policy 与 memory 原子链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
-- [ ] 批次 C：strict HTTP 与 local Session 安全边界。
+- [x] 批次 C：strict HTTP 与 local Session 安全边界。
 - [ ] 批次 D：完整 Pencil 与人工批准。
 - [ ] 批次 E：React strict consumer、双数据库产品链与专题收口。
