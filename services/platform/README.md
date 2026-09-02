@@ -62,7 +62,7 @@ go run ./cmd/radishmind-local-identity-bootstrap \
   --audit-ref audit:bootstrap-workspace-admin
 ```
 
-PostgreSQL 必须先由 migration identity 显式应用当前 `0004_local_identity_self_service_sessions`，再用受限 runtime URL 执行 bootstrap：
+PostgreSQL 必须先由 migration identity 显式应用当前 `0005_workspace_invitations`，再用受限 runtime URL 执行 bootstrap：
 
 ```bash
 RADISHMIND_LOCAL_IDENTITY_DEV_TEST_MIGRATION_DATABASE_URL='<migration-url>' \

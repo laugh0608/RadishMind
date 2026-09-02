@@ -2,7 +2,7 @@
 
 更新时间：2026-09-02
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_completed`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`
 
 对应功能设计：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](../features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
 
@@ -14,14 +14,14 @@
 
 ## 已批准前提
 
-- 项目所有者已于 2026-09-02 批准功能设计、owner、非定向邀请码、禁止邀请 `workspace_admin`、四档 TTL、一次性 secret、preview → claim、原子 membership + assignment、五批实施顺序与 `A / 完整 Pencil` 边界，并授权批次 A 进入代码。
+- 项目所有者已于 2026-09-02 批准功能设计、owner、非定向邀请码、禁止邀请 `workspace_admin`、四档 TTL、一次性 secret、preview → claim、原子 membership + assignment、五批实施顺序与 `A / 完整 Pencil` 边界，并已分别授权批次 A、B 进入代码。
 - [本地用户、角色与工作区成员管理 v1](../features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)保持完成关闭；本任务是新的独立功能，不是其 Batch F。
 - `UserAccount`、`WebSession`、`WorkspaceMembership`、`LocalRoleAssignment`、内建角色目录与三种 local identity repository 继续是 canonical owner。
 - invitation 不绑定 email、login identifier、display name、OIDC identity 或预先已知 `user_id`；任意 active 同 tenant 本地账户只有持有有效 code 并通过 claim 才能成为认领者。
 - v1 只允许 `workspace_reader`、`workspace_builder`、`workspace_reviewer`；`workspace_admin` 仍必须在成员身份明确后通过现有 exact member role assignment 流程授予。
 - TTL 只允许 `1h / 24h / 72h / 7d`。服务端使用 UTC clock 计算 `expires_at`，不接受客户端任意时间戳或无限期。
 - 邀请码使用 locator + 至少 256-bit CSPRNG secret。创建响应只返回一次原文，持久层只存 digest；格式合法但 locator 不存在时仍完成固定 dummy digest 的等价比较。
-- 设计批准不提前开放批次 B 以后的 migration、HTTP、Pencil、React、真实产品链或 production 能力。
+- 批次 B 的明确授权只开放 durable migration / repository 与对应验证，不提前开放 HTTP、Pencil、React、真实产品链或 production 能力。
 
 ## 批次 A：canonical contract、secret policy 与 memory 原子链
 
@@ -61,6 +61,16 @@
 - 覆盖 migration / rollback / reapply、受限 runtime role、并发 claim、重启恢复、损坏载荷、database unavailable 与 no-fallback。
 
 停止线：不自动迁移 production，不注册 HTTP，不启动 Web，不引入新数据库或 ORM。
+
+批次 B 完成条件：
+
+- [x] SQLite / PostgreSQL 追加 `0005_workspace_invitations` / `local_identity_records_store_v5`，digest 仅位于 repository-private 列。
+- [x] 双库 create / list / revoke / preview / claim、scope lock、CAS、cursor `as_of` 与 membership + assignment + terminal invitation 原子提交同构落地。
+- [x] SQLite v4 → v5 / reapply、PostgreSQL v4 → v5 / rollback / reapply、受限 runtime role 与 ordered query plan 通过。
+- [x] `16` 路并发 claim 固定单胜者；重启、损坏载荷、database unavailable、关闭后 no-fallback 与零部分写入通过。
+- [x] 精准测试、邀请专项 race、Platform 普通测试、PostgreSQL 17 聚合集成和完整仓库门禁通过后回写真相源并提交。
+
+批次 B 证据：SQLite durable contract 覆盖同时间戳稳定分页、首请求 `as_of`、到期投影、revoke、preview / claim、权限即时生效与服务重启；PostgreSQL 聚合集成在受限 runtime 角色下完成同构链、v4 升级、DDL 拒绝、损坏载荷、关闭 pool 失败关闭、rollback / reapply 与重连。`0005` 目录 / pending-expiry index 分别由 SQLite `EXPLAIN QUERY PLAN` 与 PostgreSQL `ANALYZE + EXPLAIN` 验证。Platform 普通测试耗时 `18.788s`，完整 race 耗时 `433.976s`，PostgreSQL 17 最终聚合集成耗时 `29.663s`；验证用回环 PostgreSQL 容器已关闭，没有注册 HTTP、启动 Web 或新增生产能力。
 
 ## 批次 C：strict HTTP 与本地 Session 安全边界
 
@@ -131,7 +141,7 @@ npm --prefix apps/radishmind-web run build
 - [x] 项目所有者已批准设计与批次 A 进入代码。
 - [x] 唯一高风险任务卡已建立。
 - [x] 批次 A：canonical contract、secret policy 与 memory 原子链。
-- [ ] 批次 B：SQLite / PostgreSQL durable owner。
+- [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [ ] 批次 C：strict HTTP 与 local Session 安全边界。
 - [ ] 批次 D：完整 Pencil 与人工批准。
 - [ ] 批次 E：React strict consumer、双数据库产品链与专题收口。

@@ -1,6 +1,6 @@
 # 工作区成员邀请、认领与到期治理（开发 / 测试态）v1
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_completed`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`
 
 更新时间：2026-09-02
 
@@ -8,7 +8,7 @@
 
 本专题是应用定时回归评测关闭后，从四个一级产品面重新评审选出的下一项长期开发目标。它补齐现有本地成员管理的真实断点：管理员目前必须先在线下获得一个已有 active 本地账户的 exact `user_id`，再分别创建 `WorkspaceMembership` 和角色 assignment；产品没有“管理员预先表达准入意图，成员登录后自行认领”的安全闭环。
 
-项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 已完成；它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
+项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 与 B 已完成；它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
 
 首版最重要的边界是：邀请只保存待认领授权意图，`WorkspaceMembership` 继续是 workspace 访问的唯一 owner，`LocalRoleAssignment` 继续是角色与冻结 grants 的唯一 owner。邀请码不是 membership、Session、API Key 或可复用授权 token；只有在服务端单事务认领成功后，成员与角色权限才生效。
 
@@ -212,6 +212,8 @@ Claimant surface 至少固定：
 
 停止线：不注册 HTTP，不自动迁移 production，不启动外部服务或引入新数据库 / ORM。
 
+批次 B 完成事实：SQLite 与 PostgreSQL 在既有 `local_identity_records` migration 链追加 `0005_workspace_invitations` / `local_identity_records_store_v5`，物化 repository-only digest、scope / lifecycle / expiry 与稳定目录索引，没有建立新数据库、DSN、pool 或 ORM。两种 owner 与 memory 共用同一 canonical service：SQLite 使用 `BEGIN IMMEDIATE`，PostgreSQL 使用既有 workspace advisory lock 与行锁；claim 在同一事务内重读 invitation、claimant account、catalog 和 membership / assignment invariant，再创建既有 membership、catalog-derived assignment 并 CAS 写入 claimed terminal refs。SQLite 文件库与 PostgreSQL 17 受限 runtime 已覆盖 stable cursor `as_of`、create / list / revoke / preview / claim、`16` 路并发单胜者、v4 → v5、query plan、重启、损坏载荷、关闭数据库失败关闭、rollback / reapply 与 no-fallback；测试用回环 PostgreSQL 服务已在验证后关闭。批次 B 没有注册 HTTP、修改 config / Server startup、Pencil、React、CSS 或打开 production 自动迁移。
+
 ### 批次 C：strict HTTP 与本地 Session 安全边界
 
 - 注册三条 Admin 与两条 claimant route，复用 local Session、recent auth、Origin、CSRF、request / audit ref 和 strict JSON。
@@ -256,4 +258,4 @@ Claimant surface 至少固定：
 
 ## 下一实现入口
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_completed`。下一步停在批次 B 准入前；只有项目所有者再次明确推进后才能评审 SQLite / PostgreSQL durable owner，当前不得抢跑 migration、HTTP、Pencil、React 或产品联调。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`。下一步停在批次 C 准入前；只有项目所有者再次明确推进后才能注册 strict HTTP 与本地 Session 安全边界，当前不得抢跑 HTTP、Pencil、React 或产品联调。

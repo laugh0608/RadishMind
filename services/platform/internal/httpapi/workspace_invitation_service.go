@@ -120,6 +120,7 @@ func (service *workspaceInvitationService) List(
 	query.EffectiveState = strings.TrimSpace(query.EffectiveState)
 	query.Cursor = strings.TrimSpace(query.Cursor)
 	query.asOf = now
+	query.authorizedAt = now
 	page, err := service.repository.ListWorkspaceInvitations(ctx, actor.UserID, query)
 	if err != nil {
 		return WorkspaceInvitationPage{}, normalizeWorkspaceInvitationAdminError(err)

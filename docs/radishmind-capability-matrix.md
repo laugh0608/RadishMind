@@ -12,7 +12,7 @@
 
 如果你要推进具体产品能力，先读 [功能设计文档入口](features/README.md)。2026-06-14 起，长期功能设计不再默认塞进 task card；task card、fixture 和 checker 只服务具体实现批次、前置条件或高风险边界。
 
-2026-09-02 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter、身份与成员管理均已完成并保持稳定。四产品面评审后选择的[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已获设计批准并建立唯一高风险任务卡，当前为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`；下一步只进入一次性 code 的 canonical contract、secret policy 与 memory 原子链。应用运行观测后续准入保持 `no_entry`，真实 Radish OIDC 继续等待外部条件。
+2026-09-02 覆盖：既有 Workflow、Gateway、用户工作区、Prompt / Agent、回归评测、Image Adapter、身份与成员管理均已完成并保持稳定。四产品面评审后选择的[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已获设计批准并建立唯一高风险任务卡，当前为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`；一次性 code 的 canonical / memory 与 SQLite / PostgreSQL durable owner 已完成，下一步等待 strict HTTP 独立授权。应用运行观测后续准入保持 `no_entry`，真实 Radish OIDC 继续等待外部条件。
 
 `RadishFlow` / `Radish` 暂无稳定挂载点不阻塞 RadishMind 平台本体开发，也不等于可以细化假想接线或声明真实集成就绪。
 

@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`。项目所有者已批准一次性非定向邀请码、禁止邀请 `workspace_admin`、四档 TTL、登录后 preview / claim、原子 membership + assignment 与 `A / 完整 Pencil` 边界；下一步只进入批次 A 的 canonical contract、secret policy 与 memory 原子链，不并行打开 migration、HTTP、Pencil 或 Web。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_b_completed`。批次 A / B 已完成 canonical、memory 与 SQLite / PostgreSQL durable owner；下一步等待批次 C strict HTTP 独立授权，不并行打开 Pencil、React 或产品联调。
 
 ## 当前外部阻塞任务
 

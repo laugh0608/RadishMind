@@ -76,7 +76,7 @@ func (repository *memoryLocalIdentityRepository) ListWorkspaceInvitations(
 		strings.TrimSpace(actorUserID),
 		filter.TenantRef,
 		filter.WorkspaceID,
-		filter.asOf,
+		filter.authorizedAt,
 		localIdentityPermissionMembersRead,
 		localIdentityPermissionRolesRead,
 	); err != nil {
@@ -444,6 +444,10 @@ func normalizeWorkspaceInvitationListQuery(
 	query.EffectiveState = strings.TrimSpace(query.EffectiveState)
 	query.Cursor = strings.TrimSpace(query.Cursor)
 	query.asOf = query.asOf.UTC()
+	query.authorizedAt = query.authorizedAt.UTC()
+	if query.authorizedAt.IsZero() {
+		query.authorizedAt = query.asOf
+	}
 	if query.EffectiveState == "" {
 		query.EffectiveState = workspaceInvitationEffectivePending
 	}

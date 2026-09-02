@@ -33,6 +33,15 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 			t.Fatalf("self-service migration missing %q", fragment)
 		}
 	}
+	for _, fragment := range []string{
+		"CREATE TABLE local_workspace_invitations", "secret_digest bytea NOT NULL", "workspace_reader",
+		"local_workspace_invitations_directory_idx", "updated_at DESC", "invitation_id DESC",
+		"local_workspace_invitations_pending_expiry_idx", "expires_at",
+	} {
+		if !strings.Contains(workspaceInvitationUpSQL, fragment) {
+			t.Fatalf("workspace invitation migration missing %q", fragment)
+		}
+	}
 	for _, table := range []string{
 		"local_workspace_memberships", "local_role_assignments", "local_web_sessions",
 		"external_identity_bindings", "local_credentials", "local_user_accounts",
@@ -50,6 +59,9 @@ func TestLocalIdentityMigrationContract(t *testing.T) {
 	}
 	if !strings.Contains(selfServiceDownSQL, "DROP INDEX IF EXISTS local_web_sessions_self_service_list_idx") {
 		t.Fatal("self-service down migration does not remove its index")
+	}
+	if !strings.Contains(workspaceInvitationDownSQL, "DROP TABLE IF EXISTS local_workspace_invitations") {
+		t.Fatal("workspace invitation down migration does not remove its table")
 	}
 	if !strings.HasPrefix(ExpectedChecksum(), "sha256:") || len(ExpectedChecksum()) != 71 {
 		t.Fatalf("unexpected migration checksum: %s", ExpectedChecksum())

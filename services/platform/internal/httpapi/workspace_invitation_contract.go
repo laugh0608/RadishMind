@@ -178,6 +178,7 @@ type WorkspaceInvitationListQuery struct {
 	Limit          int
 	Cursor         string
 	asOf           time.Time
+	authorizedAt   time.Time
 }
 
 type WorkspaceInvitationRevokeInput struct {

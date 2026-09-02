@@ -309,6 +309,36 @@ func TestMemoryWorkspaceInvitationCursorBindsFilterAndAsOf(t *testing.T) {
 	}
 }
 
+func TestMemoryWorkspaceInvitationCursorDoesNotFreezeAdministratorAuthorization(t *testing.T) {
+	fixture := newWorkspaceInvitationTestFixture(t)
+	for index := 0; index < 2; index++ {
+		createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+	}
+	first, err := fixture.service.List(context.Background(), fixture.admin, WorkspaceInvitationListQuery{
+		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
+		EffectiveState: workspaceInvitationEffectivePending, Limit: 1,
+	})
+	if err != nil || first.NextCursor == "" {
+		t.Fatalf("create authorization freshness cursor: page=%#v err=%v", first, err)
+	}
+	fixture.repository.mu.Lock()
+	for assignmentID, assignment := range fixture.repository.roleAssignments {
+		if assignment.UserID == fixture.admin.UserID && assignment.RoleKey == localIdentityRoleWorkspaceAdmin {
+			expiresAt := fixture.clock.read().Add(time.Hour)
+			assignment.ExpiresAt = &expiresAt
+			fixture.repository.roleAssignments[assignmentID] = assignment
+		}
+	}
+	fixture.repository.mu.Unlock()
+	fixture.clock.set(fixture.clock.read().Add(2 * time.Hour))
+	if _, err := fixture.service.List(context.Background(), fixture.admin, WorkspaceInvitationListQuery{
+		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
+		EffectiveState: workspaceInvitationEffectivePending, Limit: 1, Cursor: first.NextCursor,
+	}); !errors.Is(err, errLocalIdentityPermissionDenied) {
+		t.Fatalf("cursor as_of froze expired administrator authorization: %v", err)
+	}
+}
+
 func TestMemoryWorkspaceInvitationClaimCreatesExistingAuthorizationOwners(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
 	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceBuilder, workspaceInvitationTTL24Hours)
