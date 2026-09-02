@@ -1,6 +1,6 @@
 # RadishMind 文档入口
 
-更新时间：2026-09-01
+更新时间：2026-09-02
 
 ## 阅读原则
 
@@ -31,7 +31,7 @@
 - UI 产品线已进入 [RadishMind Family UI 产品化设计与迁移 v1](features/user-workspace/radishmind-family-ui-productization-v1.md)：通用参考基线已对齐 RadishX family-ui `v26.7.3`，RadishMind 主动选择 `Workbench` Profile、上游 token 原样镜像和“灰玉身份、墨蓝操作、玉色正向、雅紫类型、胭脂注意”的项目语义。`S1 R8` 至 `S8 R1` 的设计与 React 已审关闭；S9 / S10 功能实现与 Pencil Visual R3 已人工通过，后续 React 逐项采用仍按独立迁移批次验证。
 - 最近关闭专题是 [Workflow Definition 结构化运行输入（开发 / 测试态）v1](features/workflow/workflow-definition-structured-runtime-inputs-dev-test-v1.md)。批次 A 至 E、Definition Run / Session / Campaign、三存储连续链、SQLite 产品浏览器、重启、隐私与 v1 历史均已闭合。
 - 最近关闭专题是 [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](features/workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md)：局部 Pencil、单一结构化 fragment owner、SQLite create / version / CAS / 重启、隐私和三视口均已完成。
-- 最新关闭长期目标为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。P0 与 Batch A 至 D 已完成 canonical / 三存储 owner、strict HTTP、逐次授权重验、显式 dev/test runner、既有 Campaign / Run 交接、完整 Pencil、单一 React strict consumer、双数据库产品验收、CAS、重启 / 重连、三视口与隐私审计；当前回到[功能设计文档入口](features/README.md)重新选择长期目标。
+- 下一长期目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，设计与唯一高风险任务卡已经批准，当前状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`；下一步只进入 canonical contract、secret policy 与 memory 原子链。最近关闭的[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)继续保持 P0 与 Batch A 至 D 完成、不派生 Batch E。
 - R2 至 R6、Workspace-scoped Read / Mutation Authorization、Workflow Draft Review Loop、三种开发测试态 repository、受控 Workflow Executor、版本化 Workflow / RAG / Prompt / Agent、Run / Evaluation 与 Gateway Request History 均已完成。当前进入[本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)：RadishMind 拥有本地账户、角色和 workspace membership，Radish 只提供可选 OIDC 外部认证。production membership、真实 OIDC、production secret、production quota / billing、业务写回和 replay 继续关闭。
 - `RadishMind` 已正式从“模型实验 / 接入准备仓库”的狭义口径，收口为 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台。
 - 当前仓库主线不再只是等待其他项目真实接入；长期按四个一级产品面和五条工程主线组织。四个产品面是 `User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`；`Image Generation / Artifact Return` 作为横切适配能力保留。五条工程主线是 `Runtime Service`、`Conversation & Session`、`Tooling Framework`、`Evaluation & Governance`、`Model Adaptation`。

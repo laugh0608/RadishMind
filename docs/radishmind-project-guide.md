@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-09-01
+更新时间：2026-09-02
 
 ## 这份文档讲什么
 
@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-09-01 当前读法：Family UI `S1` 至 `S10`、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)、[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)以及[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)均已关闭。定时回归评测 P0 与 Batch A 至 D 已完成 canonical contract、strict HTTP、三存储、显式 runner、逐次授权重验、crash no-replay、完整 Pencil、React strict consumer、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；当前回到功能设计入口重新选择长期目标。production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
+2026-09-02 当前读法：Family UI `S1` 至 `S10`、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)、[Action Safety Ladder](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)和[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)均已关闭。下一长期目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，设计与唯一任务卡已批准，下一步只进入批次 A；production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
 
 ## 项目定位
 

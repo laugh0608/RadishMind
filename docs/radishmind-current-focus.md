@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-09-01
+更新时间：2026-09-02
 
 ## 文档目的
 
@@ -10,6 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
+- 下一长期目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`。项目所有者已批准不绑定 email / login / `user_id` 的一次性高熵邀请码、禁止邀请 `workspace_admin`、四档 TTL、登录后 preview / claim、原子 membership + assignment、五批实施顺序与 `A / 完整 Pencil`；[唯一高风险任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立。下一步只进入批次 A 的 canonical contract、secret policy 与 memory 原子链，不并行打开 migration、HTTP、Pencil、React 或产品联调；邮件交付、全局账户搜索、自动准入、真实 Radish 和 production IAM 继续关闭。
 - 最新关闭产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。P0 与 Batch A 至 D 已完成 canonical / 三存储 owner、strict HTTP、显式 dev/test runner、逐次授权重验、deterministic Campaign / durable Run 交接、完整 Pencil、单一 React strict consumer、SQLite 产品链与重启、PostgreSQL configured gate、双标签 CAS、三视口和隐私审计；任务卡关闭，不派生 Batch E。下一产品顺位回到[功能设计文档入口](features/README.md)，按四产品面真实阻塞重新选择长期目标。真实 Provider、production worker、通用 scheduler、retry / replay、自动 release、业务写回与 production capability 继续关闭。Action Safety Ladder 保持完成关闭，不派生批次 F。
 - 最新关闭产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。批次 A 至 E 已完成 strict contract、三种 catalog owner、获人工批准的 Pencil、configured target binding、React strict consumer、双数据库连续链与真实浏览器；SQLite 页面贯通 approved Definition → reviewed/listed template → target Application derive → Draft validate/save → 重启恢复，PostgreSQL configured Server 覆盖 runtime role、no-fallback 与 reconnect。双标签 CAS、workspace / application scope、三视口、隐私与零执行副作用均已复验，唯一任务卡关闭，不派生批次 F。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。

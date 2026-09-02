@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-09-01
+更新时间：2026-09-02
 
 ## 文档目的
 
@@ -21,7 +21,7 @@
 
 ## 当前口径
 
-2026-09-01 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、工作区 Workflow 模板目录、[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)以及[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)均已关闭。定时回归评测状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`：P0 与 Batch A 至 D 已完成显式 dev/test runner、逐次授权重验、既有 Campaign / Run 交接、完整 Pencil、React strict consumer、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；当前回到本入口按四产品面真实阻塞重新选择长期目标。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入保持 `no_entry`；真实 Radish OIDC 批次 E 继续等待外部条件。
+2026-09-02 当前执行口径：Family UI S1–S10、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、工作区 Workflow 模板目录、[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)以及[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)均已关闭。四产品面评审后选择的[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已获设计批准并建立唯一高风险任务卡，当前状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`；下一步只进入 canonical contract、secret policy 与 memory 原子链。[应用运行观测与用量归因 v1](user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入保持 `no_entry`；真实 Radish OIDC 批次 E 继续等待外部条件。
 
 - 产品面大方向专题描述长期目标、现有能力、下一批方向和停止线。
 - 功能专题描述一个可持续推进的产品能力，必须写清目标用户、核心流程、数据边界、当前实现、下一批开发和验收方式。
@@ -41,7 +41,7 @@
 | 功能文档 | 当前作用 | 下一步默认入口 |
 | --- | --- | --- |
 | [用户工作区](user-workspace.md) | 用户端 AI 应用、API 密钥、用量、运行记录和审查入口；工作区运营收件箱批次 A 已把四类授权读快照组织为确定性关注队列 | 定时回归评测专题 P0 与 Batch A 至 D 已完成并关闭；下一步回到功能设计入口，不从已关闭专题派生 Batch E、全历史 summary、billing 或收件箱批次 B |
-| [管理控制面](admin-control-plane.md) | Provider / Route、quota、Pricing、本地账户、联合登录、workspace 成员管理与当前账户安全自助治理均已有开发测试态 canonical owner | 本地账户凭证轮换与自助会话治理批次 A 至 E 已关闭；下一入口回到功能索引选择新长期目标，不打开 production auth |
+| [管理控制面](admin-control-plane.md) | Provider / Route、quota、Pricing、本地账户、联合登录、workspace 成员管理与当前账户安全自助治理均已有开发测试态 canonical owner | 工作区成员邀请、认领与到期治理设计已批准；下一步只进入批次 A，不打开 production auth |
 | [模型网关 / API 分发](model-gateway-api-distribution.md) | 上行 API、模型服务路由、密钥 / 配额、reported usage、价格快照、追踪和审计均已有开发测试态主体 | Provider Attempt 批次 A 至 E、Visual R1、React、双数据库、三协议和浏览器均已关闭；真实 Provider 与 production 继续关闭 |
 | [工作流 / Agent 运行时](workflow-agent-runtime.md) | 已覆盖草案、持久化、受控执行、运行历史、失败 / 比较 / 评测审查；Definition HTTP Tool、工作区模板目录与 Action Safety Ladder 均已关闭 | 下一顺位回到功能设计评审；不从已关闭专题放宽通用 executor、写入 policy 或业务写回 |
 | [图片生成 / 产物返回](image-generation-artifact-return.md) | 批次 A 至 E 已完成受控 handoff、本机私有 storage、reference-only profile、test-only fixture client 与一次性交付协调，开发测试态 v1 关闭 | 如需真实 backend、resolver 或公开交付，先建立独立功能 / 集成设计 |
@@ -76,6 +76,7 @@
 | [Radish OIDC Integration Test v1](admin-control-plane/radish-oidc-integration-test-v1.md) | 功能 / 集成专题 | deterministic discovery / JWKS / JWT verifier、两条 Admin auth boundary、五条 workspace membership fail-closed 与 Web 内存 token consumer 已完成；真实 Radish 联调为 `real_radish_integration_deferred`，未来按 application/client registration 恢复 |
 | [RadishMind 本地账户与 Radish OIDC 联合登录 v1](admin-control-plane/local-account-radish-oidc-federated-login-v1.md) | 功能 / 高风险身份专题 | 批次 A 至 D 已完成六类 identity owner、三种 repository、原子注册、Web Session、CSRF / Origin、确定性 Authorization Code + PKCE、当前账户 / 解绑 HTTP、完整 Pencil、strict Web、S7 本地 owner 与浏览器链；批次 E 等待真实 Radish 外部条件 |
 | [本地用户、角色与工作区成员管理（开发 / 测试态）v1](admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md) | 功能 / 本地授权管理专题 | 批次 A 至 E 已完成 workspace-scoped 合同、canonical 四角色、三存储管理链、显式 bootstrap CLI、七条 strict Admin HTTP、批准 Pencil、React strict consumer、SQLite / PostgreSQL 产品链、重启 / no-fallback、三视口、双标签与隐私审计；专题关闭，不开放全局搜索、客户端 grants、自定义角色或 production IAM |
+| [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) | 功能 / 高风险邀请与授权专题 | 设计与唯一高风险任务卡已批准，批次 A 可进入：一次性 code 只表达 pending 意图，claim 原子创建既有 membership + role assignment；禁止邀请 `workspace_admin`，不做 email、全局搜索、自动准入或 production IAM |
 | [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md) | 功能 / 已关闭身份安全专题 | 批次 A 至 E 已完成三存储 session directory、exact / bulk revoke、credential rotation 原子链、ordered index、并发、重启 / no-fallback、四条 strict HTTP、批准 Pencil、单一 React strict consumer、双数据库产品链、三视口、双标签与隐私审计；专题关闭 |
 | [Workspace-scoped Read Transition / 工作区选择与成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-read-transition-dev-test-v1.md) | 功能 / 授权与读投影专题 | 批次 A、B 已完成并关闭：共享 membership provider、五条 route 授权、durable owner 投影、workspace-wide Run cursor、非持久化 Web selector 与 quota fail-closed 已成立；本地 membership owner 已由联合身份专题承接，不恢复 legacy Radish membership adapter |
 | [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](user-workspace/workspace-scoped-mutation-authorization-dev-test-v1.md) | 功能 / 写入与执行授权专题 | 批次 A 至 E 共 47 条 mutation 已完成共享授权、原子组合 / 条件权限、稳定 failure mapping、零业务 / 外部副作用和三模式 / 双数据库 / Web 证据；专题关闭 |

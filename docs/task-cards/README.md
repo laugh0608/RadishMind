@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-09-01
+更新时间：2026-09-02
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有本地可直接实施的高风险产品任务卡。下一产品顺位回到功能设计入口重新选择长期目标；不得从已关闭任务卡直接派生续批。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_a_ready`。项目所有者已批准一次性非定向邀请码、禁止邀请 `workspace_admin`、四档 TTL、登录后 preview / claim、原子 membership + assignment 与 `A / 完整 Pencil` 边界；下一步只进入批次 A 的 canonical contract、secret policy 与 memory 原子链，不并行打开 migration、HTTP、Pencil 或 Web。
 
 ## 当前外部阻塞任务
 
