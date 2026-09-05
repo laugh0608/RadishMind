@@ -1,6 +1,6 @@
 # Admin Control Plane 设计与开发文档
 
-更新时间：2026-08-25
+更新时间：2026-09-05
 
 ## 功能定位
 
@@ -14,7 +14,7 @@
 - 当前已有本地账户 / Web Session owner、开发测试态 session HTTP、deterministic Radish OIDC resource-server verifier，以及独立 browser Authorization Code + PKCE Relying Party；reviewed Radish client registration、真实 integration evidence、production token / session、secret resolver、deployment preflight 和 production admin 操作仍未完成。
 - [本地用户、角色与工作区成员管理（开发 / 测试态）v1](admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)已完成批次 A 至 E 并关闭。它复用既有 local identity repository，在 exact tenant / workspace 内提供成员目录、内建角色目录、三存储受控 mutation、显式 bootstrap CLI、七条 strict Admin HTTP、批准 Pencil、S7 User / Role React strict consumer、双数据库产品链、三视口、双标签与隐私审计；HTTP bootstrap、全局账户搜索、客户端 grants、自定义角色、账户安全 mutation 与 production IAM 继续关闭。
 - [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)已完成并关闭批次 A 至 E。现有 `UserAccount`、`LocalCredential` 与 `WebSession` 三存储 owner 已提供当前账户 session directory、exact revoke、revoke others、credential replacement + source-bound local-password session revoke 原子链、四条 local-session-only strict HTTP、批准 Pencil、单一 React strict consumer、双数据库产品链、三视口、双标签和隐私审计；不派生批次 F 或 production auth。
-- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成批次 A 至 C 的 canonical、memory、SQLite / PostgreSQL durable owner 与 local Session strict HTTP。invitation aggregate 只保存 pending 授权意图：管理员一次性创建 code，active 本地账户登录后 preview / claim，成功时才在同一 repository transaction 中创建既有 membership 与非管理员 built-in role assignment。邀请码、email、全局目录、自动准入与 production IAM 都不成为新 owner；下一步等待批次 D 完整 Pencil 独立授权。
+- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成批次 A 至 C 的 canonical、memory、SQLite / PostgreSQL durable owner 与 local Session strict HTTP，并完成批次 D 的 S7 / Authentication R1 / R25 Pencil 代表面与原生静态 QA。invitation aggregate 只保存 pending 授权意图：管理员一次性创建 code，active 本地账户登录后 preview / claim，成功时才在同一 repository transaction 中创建既有 membership 与非管理员 built-in role assignment。邀请码、email、全局目录、自动准入与 production IAM 都不成为新 owner；下一步只等待项目所有者人工视觉与安全边界审查。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。
 - [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成两条 Admin operation 的 schema、manual migration、read-only role、routed selector、分页、no-fallback、真实 PostgreSQL、HTTP/Web 与浏览器验收。

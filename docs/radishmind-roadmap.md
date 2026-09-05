@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-09-02
+更新时间：2026-09-05
 
 ## 文档职责
 
@@ -55,7 +55,7 @@
 
 ## 当前执行顺位
 
-1. 产品线：四产品面评审后选择的[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已获设计批准并建立唯一高风险任务卡，当前为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`。canonical / memory、SQLite / PostgreSQL durable owner 与 local Session strict HTTP 已完成，下一步等待批次 D 完整 Pencil 的独立授权，不并行打开 React 或 Web 产品联调。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实 Provider、production worker、真实 Radish 和 production IAM 尚未进入。
+1. 产品线：四产品面评审后选择的[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已获设计批准并建立唯一高风险任务卡，当前为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`。canonical / 三存储、local Session strict HTTP 与 S7 / Authentication 五块 R1 / R25 Pencil 代表面已完成；下一步只进行项目所有者人工视觉与安全边界审查，批准前不进入 React 或批次 E。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实 Provider、production worker、真实 Radish 和 production IAM 尚未进入。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。

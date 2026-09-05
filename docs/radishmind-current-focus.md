@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-09-02
+更新时间：2026-09-05
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 下一长期目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`。批次 A / B 已完成 canonical、一次性 256-bit secret policy、memory 与 SQLite / PostgreSQL durable owner；批次 C 已注册三条 Admin 与两条 claimant strict HTTP，仅接受 active `local_session_dev_test`，逐请求重读 exact scope / 组合权限 / recent auth，并在 mutation 上执行 Origin / CSRF。无目标 workspace membership 的同 tenant claimant 只能由有效 code 取得 preview，claim 成功后仍由既有 membership + catalog-derived role assignment 立即授权；Bearer、dev header、signed-test 与 resource-server OIDC 不回退。下一步停在批次 D 完整 Pencil 准入前，未经项目所有者再次明确推进不得读取或修改 Pencil，也不得抢跑 React、产品联调、邮件 / 目录搜索、`workspace_admin` 邀请或 production 能力。
+- 下一长期目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`。批次 A / B 已完成 canonical、一次性 256-bit secret policy、memory 与 SQLite / PostgreSQL durable owner；批次 C 已完成三条 Admin 与两条 claimant strict HTTP。批次 D 又在既有 S7 / Authentication Gateway 新增 `q4s4X`、`L2SJt`、`MsAm1`、`HSfOp` 与 R25 `RY0Xx`，五块根画板共 `630` 个节点，原生裁切、placeholder、命名、文字 fill、语义 token、原始 code 与微缩文字检查均为零问题。下一步只由项目所有者人工审查视觉与安全边界；批准前不得进入 React、产品联调或批次 E，邮件 / 目录搜索、`workspace_admin` 邀请和 production 能力继续关闭。
 - 最新关闭产品顺位为[应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)，状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。P0 与 Batch A 至 D 已完成 canonical / 三存储 owner、strict HTTP、显式 dev/test runner、逐次授权重验、deterministic Campaign / durable Run 交接、完整 Pencil、单一 React strict consumer、SQLite 产品链与重启、PostgreSQL configured gate、双标签 CAS、三视口和隐私审计；任务卡关闭，不派生 Batch E。下一产品顺位回到[功能设计文档入口](features/README.md)，按四产品面真实阻塞重新选择长期目标。真实 Provider、production worker、通用 scheduler、retry / replay、自动 release、业务写回与 production capability 继续关闭。Action Safety Ladder 保持完成关闭，不派生批次 F。
 - 最新关闭产品顺位为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，状态为 `workspace_workflow_template_catalog_review_controlled_derivation_dev_test_v1_completed`。批次 A 至 E 已完成 strict contract、三种 catalog owner、获人工批准的 Pencil、configured target binding、React strict consumer、双数据库连续链与真实浏览器；SQLite 页面贯通 approved Definition → reviewed/listed template → target Application derive → Draft validate/save → 重启恢复，PostgreSQL configured Server 覆盖 runtime role、no-fallback 与 reconnect。双标签 CAS、workspace / application scope、三视口、隐私与零执行副作用均已复验，唯一任务卡关闭，不派生批次 F。
 - 2026-08-19 已完成[应用运行观测与用量归因 v1](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续准入评审，状态为 `application_operations_observability_usage_attribution_v1_followup_reviewed_no_entry`。仓库没有首分页窗口阻塞真实任务的证据，Gateway Request 与 Workflow Run 仍是独立 owner / cursor，也没有统一 snapshot、时间桶、数据规模、性能预算或正式 billing ledger；因此不启动服务端 summary，不创建 aggregate table、materialized view、跨 store join、API、schema、migration、任务卡或 checker。批次 A 的当前窗口审查与 reported usage 完成事实保持不变。

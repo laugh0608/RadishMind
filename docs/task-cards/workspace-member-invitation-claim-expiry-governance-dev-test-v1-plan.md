@@ -1,8 +1,8 @@
 # 工作区成员邀请、认领与到期治理 v1 高风险任务卡
 
-更新时间：2026-09-02
+更新时间：2026-09-05
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`
 
 对应功能设计：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](../features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
 
@@ -21,7 +21,7 @@
 - v1 只允许 `workspace_reader`、`workspace_builder`、`workspace_reviewer`；`workspace_admin` 仍必须在成员身份明确后通过现有 exact member role assignment 流程授予。
 - TTL 只允许 `1h / 24h / 72h / 7d`。服务端使用 UTC clock 计算 `expires_at`，不接受客户端任意时间戳或无限期。
 - 邀请码使用 locator + 至少 256-bit CSPRNG secret。创建响应只返回一次原文，持久层只存 digest；格式合法但 locator 不存在时仍完成固定 dummy digest 的等价比较。
-- 批次 C 的明确授权在已完成 durable owner 上只开放 strict HTTP、本地 Session 安全边界与对应验证，不提前开放 Pencil、React、真实产品链或 production 能力。
+- 批次 C 的明确授权在已完成 durable owner 上只开放 strict HTTP、本地 Session 安全边界与对应验证；项目所有者随后明确授权批次 D 只进入完整 Pencil，不提前开放 React、真实产品链或 production 能力。
 
 ## 批次 A：canonical contract、secret policy 与 memory 原子链
 
@@ -104,6 +104,14 @@
 
 停止线：Pencil 批准前不实施 React；设计不复制完整 S7 / Authentication 页面，也不把代表数据写成运行时事实。
 
+当前完成证据（2026-09-05）：
+
+- [x] 正确设计源新增 S7 Admin Desktop `q4s4X`、S7 one-time handoff Narrow `L2SJt`、Authentication Claim Desktop `MsAm1`、invalid / terminal Narrow `HSfOp` 与 R25 Decision `RY0Xx`，只复用既有 S7 / Authentication 页面族，没有建立 S11。
+- [x] Admin 代表面覆盖 invitation directory、selection 与 effective state 分离、role / TTL review、一次性 code handoff、copy / done / clear 和不可恢复边界；设计源没有保存示例邀请码。
+- [x] Claim 代表面覆盖组件内存 code、server preview、explicit confirmation、atomic membership + assignment + claimed transition、CAS、不自动选择 workspace、invalid 枚举保护与 verified terminal recovery。
+- [x] 五块根画板共 `630` 个节点；裁切 / 越界、placeholder、缺失命名、缺失文字内容 / fill、硬编码 fill / stroke、原始 `rmi_` code 和小于 `7px` 文字检查均为 `0` 问题。
+- [ ] 项目所有者人工视觉与安全边界审查；R25 当前明确标记 `OWNER REVIEW REQUIRED`。
+
 ## 批次 E：React strict consumer、双数据库产品链与收口
 
 实施范围：
@@ -153,5 +161,9 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 A：canonical contract、secret policy 与 memory 原子链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：strict HTTP 与 local Session 安全边界。
-- [ ] 批次 D：完整 Pencil 与人工批准。
+- [ ] 批次 D：完整 Pencil 与原生静态 QA 已完成；人工批准待完成。
 - [ ] 批次 E：React strict consumer、双数据库产品链与专题收口。
+
+## 当前下一步
+
+批次 D 的五块 Pencil 根画板已完成并通过原生静态 QA。下一步只由项目所有者进行人工视觉与安全边界审查；批准前不得修改 React、启动产品服务 / 浏览器验收或进入批次 E。Pencil 批准也不自动授权 strict consumer 与双数据库产品验收。

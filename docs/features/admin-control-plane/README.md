@@ -1,12 +1,12 @@
 # Admin Control Plane 细专题入口
 
-更新时间：2026-09-02
+更新时间：2026-09-05
 
 本目录承接 `Admin Control Plane` 中需要跨身份、权限、repository 和管理端使用路径推进的功能专题。产品面长期边界继续以 [Admin Control Plane 设计与开发文档](../admin-control-plane.md) 为准。
 
 ## 当前专题
 
-- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)：四产品面评审后选定的下一长期目标，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`。一次性非定向邀请码、三个非管理员内建角色、四档 TTL、登录后 preview / claim 与原子 membership + role assignment 已完成 canonical / memory、SQLite / PostgreSQL durable owner 和 local Session strict HTTP；下一步等待批次 D 完整 Pencil 独立授权。
+- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)：四产品面评审后选定的下一长期目标，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`。一次性非定向邀请码、三个非管理员内建角色、四档 TTL、登录后 preview / claim 与原子 membership + role assignment 已完成 canonical / 三存储和 local Session strict HTTP；S7 / Authentication 的五块 R1 / R25 Pencil 代表面已通过原生静态 QA，下一步只等待项目所有者人工审查。
 - [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)：状态为 `local_account_credential_rotation_self_service_session_governance_dev_test_v1_completed`。批次 A 至 E 已在唯一 local identity owner 上完成 memory / SQLite / PostgreSQL session directory、exact / bulk revoke、credential rotation 原子链、ordered index、并发、重启 / no-fallback、四条 local-session-only strict HTTP、批准 Pencil、单一 React strict consumer、双数据库产品链、三视口、双标签与隐私审计；专题关闭，不派生批次 F。
 - [本地用户、角色与工作区成员管理（开发 / 测试态）v1](local-user-role-workspace-membership-administration-dev-test-v1.md)：状态为 `local_user_role_workspace_membership_administration_dev_test_v1_completed`。批次 A 至 E 已在唯一 local identity owner 上完成 canonical role catalog、三存储目录 / mutation、显式 one-shot bootstrap CLI、七条 local-session-only strict Admin HTTP、批准 Pencil、React strict consumer、SQLite / PostgreSQL configured Server 产品连续链、三视口、双标签与隐私审计；专题关闭，不依赖或打开真实 Radish 与 production IAM。
 - [RadishMind 本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)：批次 A 至 D 已完成六类本地身份 owner、三种 repository、原子注册、Web Session、CSRF / Origin、确定性 Authorization Code + PKCE、当前账户 / external identity revoke HTTP、完整 Pencil、strict Web、S7 当前账户 owner、no-fallback 与真实浏览器连续链。批次 E 等待真实 Radish 注册条件，不提前声明 production auth。

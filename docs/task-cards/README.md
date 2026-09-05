@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-09-02
+更新时间：2026-09-05
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_c_completed`。批次 A 至 C 已完成 canonical、memory、SQLite / PostgreSQL durable owner 与 local Session strict HTTP；下一步等待批次 D 完整 Pencil 独立授权，不并行打开 React 或产品联调。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`。批次 A 至 C 已完成 canonical、三存储与 local Session strict HTTP；批次 D 的五块 R1 / R25 Pencil 代表面已完成并通过原生静态 QA，下一步只进行项目所有者人工视觉与安全边界审查，不并行打开 React 或产品联调。
 
 ## 当前外部阻塞任务
 
