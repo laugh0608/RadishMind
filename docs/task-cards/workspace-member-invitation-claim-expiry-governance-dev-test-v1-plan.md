@@ -2,7 +2,7 @@
 
 更新时间：2026-09-05
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`
 
 对应功能设计：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](../features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
 
@@ -110,7 +110,7 @@
 - [x] Admin 代表面覆盖 invitation directory、selection 与 effective state 分离、role / TTL review、一次性 code handoff、copy / done / clear 和不可恢复边界；设计源没有保存示例邀请码。
 - [x] Claim 代表面覆盖组件内存 code、server preview、explicit confirmation、atomic membership + assignment + claimed transition、CAS、不自动选择 workspace、invalid 枚举保护与 verified terminal recovery。
 - [x] 五块根画板共 `630` 个节点；裁切 / 越界、placeholder、缺失命名、缺失文字内容 / fill、硬编码 fill / stroke、原始 `rmi_` code 和小于 `7px` 文字检查均为 `0` 问题。
-- [ ] 项目所有者人工视觉与安全边界审查；R25 当前明确标记 `OWNER REVIEW REQUIRED`。
+- [x] 项目所有者于 2026-09-05 完成人工视觉与安全边界审查并明确批准；R25 已标记 `OWNER APPROVED · 2026-09-05`。
 
 ## 批次 E：React strict consumer、双数据库产品链与收口
 
@@ -161,9 +161,9 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 A：canonical contract、secret policy 与 memory 原子链。
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：strict HTTP 与 local Session 安全边界。
-- [ ] 批次 D：完整 Pencil 与原生静态 QA 已完成；人工批准待完成。
+- [x] 批次 D：完整 Pencil、原生静态 QA 与项目所有者人工批准。
 - [ ] 批次 E：React strict consumer、双数据库产品链与专题收口。
 
 ## 当前下一步
 
-批次 D 的五块 Pencil 根画板已完成并通过原生静态 QA。下一步只由项目所有者进行人工视觉与安全边界审查；批准前不得修改 React、启动产品服务 / 浏览器验收或进入批次 E。Pencil 批准也不自动授权 strict consumer 与双数据库产品验收。
+批次 D 的五块 Pencil 根画板已完成原生静态 QA，并于 2026-09-05 获项目所有者人工视觉与安全边界批准。下一步停在批次 E 独立授权线；未经项目所有者再次明确授权，不得修改 React、启动产品服务 / 浏览器验收或实施 strict consumer 与双数据库产品验收。

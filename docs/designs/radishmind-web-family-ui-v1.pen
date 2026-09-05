@@ -116692,9 +116692,9 @@
                 {
                   "type": "text",
                   "id": "nxHqc",
-                  "name": "R25 Coverage Score",
+                  "name": "R25 Coverage Score — Approved",
                   "fill": "$warning",
-                  "content": "8 POINTS · REVIEW REQUIRED",
+                  "content": "8 POINTS · OWNER APPROVED",
                   "fontFamily": "$font-mono",
                   "fontSize": 8,
                   "fontWeight": "700"
@@ -117901,11 +117901,11 @@
                     {
                       "type": "text",
                       "id": "uCGZQ",
-                      "name": "R25 Stop Lines Copy",
+                      "name": "R25 Stop Lines Copy — Approved",
                       "fill": "$text-secondary",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "No React before owner approval. No email, directory search, workspace_admin invitation, account creation, production auth or delivery.",
+                      "content": "React requires separate Batch E authorization. No email, directory search, workspace_admin invitation, account creation, production auth or delivery.",
                       "lineHeight": 1.35,
                       "fontFamily": "$font-sans",
                       "fontSize": 8,
@@ -117956,11 +117956,11 @@
                 {
                   "type": "text",
                   "id": "kWqn5",
-                  "name": "R25 Human Gate Text",
+                  "name": "R25 Human Approval Text",
                   "fill": "$text-primary",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Five representative surfaces and native static QA are ready. React, product integration and Batch E remain blocked until the project owner approves the visual and safety expression.",
+                  "content": "The project owner approved all five representative surfaces and their visual and safety expression on 2026-09-05. React, product integration and Batch E remain blocked pending separate authorization.",
                   "fontFamily": "$font-sans",
                   "fontSize": 10,
                   "fontWeight": "650"
@@ -117983,9 +117983,9 @@
                 {
                   "type": "text",
                   "id": "JV46t",
-                  "name": "R25 Review Status Label",
+                  "name": "R25 Approval Status Label",
                   "fill": "$warning",
-                  "content": "OWNER REVIEW REQUIRED",
+                  "content": "OWNER APPROVED · 2026-09-05",
                   "fontFamily": "$font-mono",
                   "fontSize": 8,
                   "fontWeight": "700"

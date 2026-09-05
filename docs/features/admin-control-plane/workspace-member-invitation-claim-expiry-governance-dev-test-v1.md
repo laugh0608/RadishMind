@@ -1,6 +1,6 @@
 # 工作区成员邀请、认领与到期治理（开发 / 测试态）v1
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`
 
 更新时间：2026-09-05
 
@@ -8,7 +8,7 @@
 
 本专题是应用定时回归评测关闭后，从四个一级产品面重新评审选出的下一项长期开发目标。它补齐现有本地成员管理的真实断点：管理员目前必须先在线下获得一个已有 active 本地账户的 exact `user_id`，再分别创建 `WorkspaceMembership` 和角色 assignment；产品没有“管理员预先表达准入意图，成员登录后自行认领”的安全闭环。
 
-项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 至 C 已完成；批次 D 的五块正式 Pencil 代表面也已完成原生静态 QA，当前等待项目所有者人工视觉与安全边界审查。它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
+项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 至 C 已完成；批次 D 的五块正式 Pencil 代表面也已完成原生静态 QA，并于 2026-09-05 获项目所有者人工视觉与安全边界批准。它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
 
 首版最重要的边界是：邀请只保存待认领授权意图，`WorkspaceMembership` 继续是 workspace 访问的唯一 owner，`LocalRoleAssignment` 继续是角色与冻结 grants 的唯一 owner。邀请码不是 membership、Session、API Key 或可复用授权 token；只有在服务端单事务认领成功后，成员与角色权限才生效。
 
@@ -189,7 +189,7 @@ Claimant surface 至少固定：
 - 普通 invitation 状态与当前 selection 分离；只有驱动 detail / confirmation 的当前 invitation 使用选中语义，expired、revoked、claimed 使用独立文字、图标与语义状态。
 - workspace、actor、Session 或 route 变化会清除 code、preview、selection、confirmation、cursor 与迟到响应；Admin create / revoke 和 claimant claim 成功后同样失效旧状态。
 
-五维评分固定为 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`：复用 S7 与 Authentication Gateway，不建立 S11；但一次性凭据交接、双 actor、preview → claim、terminal 状态与窄屏顺序存在不可从旧页面安全推导的新决策。2026-09-05 已完成 S7 Admin Desktop `q4s4X`、S7 one-time handoff Narrow `L2SJt`、Authentication Claim Desktop `MsAm1`、invalid / terminal Narrow `HSfOp` 与 R25 Decision `RY0Xx`。五块根画板共 `630` 个节点；Pencil 原生检查对裁切 / 越界、placeholder、节点命名、文字内容 / fill、硬编码 fill / stroke、原始 `rmi_` code 和小于 `7px` 文字均为 `0` 问题。R25 保持 `OWNER REVIEW REQUIRED`；项目所有者人工批准前不实施 React。
+五维评分固定为 `1 / 2 / 2 / 2 / 1 = 8`，采用 `A / 完整 Pencil`：复用 S7 与 Authentication Gateway，不建立 S11；但一次性凭据交接、双 actor、preview → claim、terminal 状态与窄屏顺序存在不可从旧页面安全推导的新决策。2026-09-05 已完成 S7 Admin Desktop `q4s4X`、S7 one-time handoff Narrow `L2SJt`、Authentication Claim Desktop `MsAm1`、invalid / terminal Narrow `HSfOp` 与 R25 Decision `RY0Xx`。五块根画板共 `630` 个节点；Pencil 原生检查对裁切 / 越界、placeholder、节点命名、文字内容 / fill、硬编码 fill / stroke、原始 `rmi_` code 和小于 `7px` 文字均为 `0` 问题。项目所有者同日完成人工视觉与安全边界审查并批准；R25 已更新为 `OWNER APPROVED · 2026-09-05`。该批准不自动授权 React 或批次 E。
 
 ## 已批准的实施拆分
 
@@ -236,7 +236,7 @@ Pencil 完成证据（2026-09-05）：
 - S7 Narrow `L2SJt` 固定 `workspace context → Create task → role / TTL review → one-time code → clear / access boundary`，设计源不保存示例 code。
 - Authentication Desktop `MsAm1` 固定 `code memory → server preview → explicit confirmation → atomic claim`，并说明 preview 不授权、CAS 不预占、失败零部分写入以及成功后只 reload 可用 workspace、不自动选择。
 - Authentication Narrow `HSfOp` 以统一 `workspace_invitation_invalid` 承接非法格式、未知 locator 与 secret mismatch；只有 secret 已验证后才区分 claimed / revoked / expired / role drift，并给出创建新邀请而非恢复 secret 的恢复路径。
-- R25 `RY0Xx` 固定双 actor、owner、四态 effective projection、invalid 枚举边界、scope / actor / Session / route 失效、敏感材料禁入与全部停止线。五块画板共 `630` 个节点，原生静态 QA 全部为零问题；当前仍等待项目所有者人工视觉与安全边界批准。
+- R25 `RY0Xx` 固定双 actor、owner、四态 effective projection、invalid 枚举边界、scope / actor / Session / route 失效、敏感材料禁入与全部停止线。五块画板共 `630` 个节点，原生静态 QA 全部为零问题；项目所有者已于 2026-09-05 完成人工视觉与安全边界审查并批准。
 
 ### 批次 E：React strict consumer、双数据库产品链与收口
 
@@ -268,4 +268,4 @@ Pencil 完成证据（2026-09-05）：
 
 ## 下一实现入口
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`。下一步只由项目所有者人工审查五块 R1 / R25 代表面；批准前不得修改 React、启动产品联调或进入批次 E。即使 Pencil 获批，也必须另行明确授权 strict consumer 与双数据库产品验收。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`。批次 D 已获项目所有者人工批准；下一步停在批次 E 独立授权线，未经再次明确授权不得修改 React、启动产品联调或实施 strict consumer 与双数据库产品验收。

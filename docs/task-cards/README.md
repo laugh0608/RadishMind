@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_completed_owner_review_required`。批次 A 至 C 已完成 canonical、三存储与 local Session strict HTTP；批次 D 的五块 R1 / R25 Pencil 代表面已完成并通过原生静态 QA，下一步只进行项目所有者人工视觉与安全边界审查，不并行打开 React 或产品联调。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`。批次 A 至 C 已完成 canonical、三存储与 local Session strict HTTP；批次 D 的五块 R1 / R25 Pencil 代表面已完成原生静态 QA，并于 2026-09-05 获项目所有者人工批准。下一步停在批次 E 独立授权线，不并行打开 React 或产品联调。
 
 ## 当前外部阻塞任务
 
