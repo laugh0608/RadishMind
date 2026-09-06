@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-09-05
+更新时间：2026-09-06
 
 ## 文档职责
 
@@ -16,12 +16,16 @@
 
 1. `User Workspace`：应用、Prompt、Workflow、Agent / Copilot、RAG、API key、调用量、运行记录和成本摘要。
 2. `Admin Control Plane`：本地注册、用户、会话、角色、权限、租户、provider/profile、模型路由、quota、price、secret backend、审计和部署状态；以本地账户为 owner，并可作为 OIDC client 接入 `Radish`。
-3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API 分发，多 provider / profile / model 路由，以及后续 quota、限流、成本、trace、受控 fallback 和 health。
-4. `Workflow / Agent Runtime`：Prompt、LLM、condition、output，以及后续受控 HTTP tool、RAG retrieval 和 agent loop；高风险动作默认要求确认。
+3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API 分发、多 provider / profile / model 路由，以及开发测试态 quota、价格快照、trace 与受控 fallback；生产限流、billing 与真实 health 分别后置验收。
+4. `Workflow / Agent Runtime`：Prompt、LLM、condition、output，以及独立开发测试态 HTTP Tool 与 RAG 执行档案；高风险动作默认要求确认，通用 agent loop 继续后置。
 
 图片输入理解与图片生成是横切适配能力，不是第五个一级产品面。图片像素生成继续由独立 `RadishMind-Image Adapter` 与 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图。
 
-## 阶段顺序
+四个产品面共同服务“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”。后续优先级由该流程的真实阻塞、维护风险和使用证据决定，不以新增功能、批次或画板数量衡量产品成熟度。
+
+## 能力建设顺序
+
+以下是职责与依赖顺序，不是仍待从头实施的清单；已完成事实见[能力矩阵](radishmind-capability-matrix.md)。
 
 ### 1. 平台与协议基座
 
@@ -60,6 +64,20 @@
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
+
+## 邀请闭环后的决策顺序
+
+2026-09-06 审阅建议已纳入文档规划，尚未启动下表的代码、依赖、CI、服务或外部操作。邀请批次 E 的独立授权线继续有效；R2 至 R6 保持关闭。
+
+| 顺序 | 工作方向 | 进入条件与验收 |
+| --- | --- | --- |
+| 1 | 用户主流程阻塞修正 | 在既有专题记录谁执行什么任务、卡在哪里、已有证据与修复后的可重复成功路径 |
+| 2 | 前端状态与后端领域职责收敛 | 先选一个范围明确的工作区或领域，列出依赖与迁移边界；以作用域、并发、恢复和旧行为验证验收 |
+| 3 | 自动浏览器回归 | 选择少量已实现的关键流程，明确环境、数据隔离、启动清理与 CI 成本；不把人工记录改写为自动覆盖 |
+| 4 | 内部真实任务试用 | 先确认用户、输入、模型 / Provider 与运行窗口，建立任务完成率、耗时、求助点和输出质量基线 |
+| 5 | 有明确窗口的接入与交付 | 依据试用结论与外部条件选择功能扩展、真实集成或生产验收，不从历史 readiness 尾链自动续批 |
+
+具体建议与验证边界集中在[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。保持一条产品线、必要时一条工程线；候选顺序不代表同时开工或已批准架构变更。
 
 ## 权威入口
 
