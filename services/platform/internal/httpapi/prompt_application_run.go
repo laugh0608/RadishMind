@@ -31,7 +31,8 @@ func promptApplicationRunDocument(record WorkflowRunRecord) (PromptApplicationRu
 		Status: string(record.Status), FailureCode: string(record.FailureCode), FailureSummary: record.FailureSummary,
 		StartedAt: record.StartedAt, CompletedAt: record.CompletedAt, Output: record.Output,
 		Usage: record.PromptUsage, SideEffects: record.SideEffects, Diagnostic: *record.PromptDiagnostic,
-		RequestID: record.RequestID, AuditRef: record.AuditRef, ActorRef: record.ActorRef,
+		ScheduleExecution: cloneApplicationEvaluationScheduleExecutionRef(record.ScheduleExecution),
+		RequestID:         record.RequestID, AuditRef: record.AuditRef, ActorRef: record.ActorRef,
 	}, nil
 }
 
@@ -57,7 +58,8 @@ func workflowRunRecordFromPromptApplicationDocument(document PromptApplicationRu
 		Status: WorkflowRunStatus(document.Status), FailureCode: WorkflowRunFailureCode(document.FailureCode),
 		FailureSummary: document.FailureSummary, StartedAt: document.StartedAt, CompletedAt: document.CompletedAt,
 		Output: document.Output, PromptUsage: document.Usage, SideEffects: document.SideEffects,
-		PromptDiagnostic: &diagnostic, RequestID: document.RequestID, AuditRef: document.AuditRef, ActorRef: document.ActorRef,
+		ScheduleExecution: cloneApplicationEvaluationScheduleExecutionRef(document.ScheduleExecution),
+		PromptDiagnostic:  &diagnostic, RequestID: document.RequestID, AuditRef: document.AuditRef, ActorRef: document.ActorRef,
 	}
 }
 

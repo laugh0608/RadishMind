@@ -15,6 +15,7 @@ import {
   type WorkflowHTTPToolActionPlan,
 } from "../src/features/control-plane-read/workflowHTTPToolActionConsumer.ts";
 import type { WorkflowDraftDesignerDraft } from "../src/features/control-plane-read/workflowDraftDesigner.ts";
+import { recordedActionSafetyFixture } from "./actionSafetyFixture.ts";
 
 const config = {
   mode: "dev_workflow_http_tool_http" as const,
@@ -593,11 +594,19 @@ function confirmationDecisionDocument() {
 }
 
 function successEnvelope(actionPlan: object, confirmationDecision: object | null = null) {
+  const plan = actionPlan as Record<string, any>;
   return {
     request_id: "request_workflow_tool_action",
     workspace_id: "workspace_demo",
     application_id: "app_flow_copilot",
     action_plan: actionPlan,
+    action_safety: recordedActionSafetyFixture({
+      ownerKind: "workflow_http_tool_action_plan",
+      ownerId: plan.plan_id,
+      ownerVersion: plan.record_version,
+      applicationId: "app_flow_copilot",
+      level: "tool_callable",
+    }),
     confirmation_decision: confirmationDecision,
     failure_code: null,
     failure_summary: "",
@@ -611,6 +620,7 @@ function failureEnvelope(failureCode: string) {
     workspace_id: "workspace_demo",
     application_id: "app_flow_copilot",
     action_plan: null,
+    action_safety: null,
     confirmation_decision: null,
     failure_code: failureCode,
     failure_summary: "The displayed plan version is stale.",

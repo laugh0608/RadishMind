@@ -39,6 +39,7 @@ type WorkflowHTTPToolExecutionRequest struct {
 type WorkflowHTTPToolExecutionResult struct {
 	ActionPlan     *WorkflowHTTPToolActionPlan
 	Record         *WorkflowRunRecord
+	ActionSafety   *ActionSafetyDecision `json:"-"`
 	FailureCode    WorkflowRunFailureCode
 	FailureSummary string
 }
@@ -127,6 +128,16 @@ func (service workflowHTTPToolExecutionService) Execute(
 	}
 	if planResult.ActionPlan == nil || planResult.ActionPlan.RecordVersion != normalized.ExpectedRecordVersion ||
 		planResult.ActionPlan.Status != WorkflowHTTPToolActionStatusApproved {
+		if planResult.ActionPlan != nil && planResult.ActionPlan.ActionSafety != nil && service.actions.actionSafety != nil &&
+			planResult.ActionPlan.RecordVersion == normalized.ExpectedRecordVersion {
+			decision, safetyFailure := service.actions.actionSafety.RevalidateToolPreDispatch(
+				ctx, *planResult.ActionPlan, nil, service.actions.registry, true,
+				workflowHTTPToolExecutionSourceScopeAllowed(ctx.ScopeGrants, *planResult.ActionPlan), true,
+			)
+			return workflowHTTPToolExecutionFailureWithSafety(
+				WorkflowRunFailureToolConfirmation, "Workflow HTTP tool approval is not eligible for execution.", decision, safetyFailure,
+			)
+		}
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolConfirmation, "Workflow HTTP tool approval is not eligible for execution.")
 	}
 	approvedPlan := cloneWorkflowHTTPToolActionPlan(*planResult.ActionPlan)
@@ -135,6 +146,15 @@ func (service workflowHTTPToolExecutionService) Execute(
 		return workflowHTTPToolExecutionStoreFailure(err)
 	}
 	if !found || !workflowHTTPToolApprovalMatchesPlan(confirmation, approvedPlan) {
+		if approvedPlan.ActionSafety != nil && service.actions.actionSafety != nil {
+			decision, safetyFailure := service.actions.actionSafety.RevalidateToolPreDispatch(
+				ctx, approvedPlan, nil, service.actions.registry, true,
+				workflowHTTPToolExecutionSourceScopeAllowed(ctx.ScopeGrants, approvedPlan), true,
+			)
+			return workflowHTTPToolExecutionFailureWithSafety(
+				WorkflowRunFailureToolConfirmation, "Workflow HTTP tool approval could not be matched to the approved plan.", decision, safetyFailure,
+			)
+		}
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolConfirmation, "Workflow HTTP tool approval could not be matched to the approved plan.")
 	}
 
@@ -157,6 +177,19 @@ func (service workflowHTTPToolExecutionService) Execute(
 		service.transport.allowTestOnlyLoopback,
 	); err != nil {
 		return workflowHTTPToolExecutionFailure(WorkflowRunFailureToolPolicy, "Workflow HTTP tool policy no longer matches the approved plan.")
+	}
+	var safetyDecision *ActionSafetyDecision
+	if approvedPlan.ActionSafety != nil && service.actions.actionSafety != nil {
+		decision, safetyFailure := service.actions.actionSafety.RevalidateToolPreDispatch(
+			ctx, approvedPlan, &confirmation, service.actions.registry, true,
+			workflowHTTPToolExecutionSourceScopeAllowed(ctx.ScopeGrants, approvedPlan), true,
+		)
+		if safetyFailure != "" {
+			return workflowHTTPToolExecutionFailureWithSafety(
+				workflowHTTPToolSafetyFailureCode(safetyFailure), "Workflow HTTP tool safety authority changed before dispatch.", decision, safetyFailure,
+			)
+		}
+		safetyDecision = &decision
 	}
 	promptPacket := buildWorkflowPromptPacket(executionPlan.nodes[executionPlan.rootNodeID], normalized.InputText)
 	if len([]byte(promptPacket)) > workflowExecutorMaxPacketBytes {
@@ -188,6 +221,18 @@ func (service workflowHTTPToolExecutionService) Execute(
 		attempt,
 		claimedAt,
 	)
+	if safetyDecision != nil {
+		projection, projectionErr := service.actions.actionSafety.ProjectRun(
+			"pre_dispatch", []ActionSafetyDecision{*safetyDecision}, run.SideEffects,
+		)
+		if projectionErr != nil {
+			return workflowHTTPToolExecutionFailureWithSafety(
+				WorkflowRunFailureToolPolicy, "Workflow HTTP tool safety Run projection is incompatible.", *safetyDecision,
+				ActionSafetyFailureStoreContractMismatch,
+			)
+		}
+		run.ActionSafety = &projection
+	}
 	consumedPlan := cloneWorkflowHTTPToolActionPlan(approvedPlan)
 	consumedPlan.Status = WorkflowHTTPToolActionStatusConsumed
 	consumedPlan.RecordVersion++
@@ -208,6 +253,7 @@ func (service workflowHTTPToolExecutionService) Execute(
 		promptPacket,
 	)
 	result.ActionPlan = workflowHTTPToolActionPlanPointer(consumedPlan)
+	result.ActionSafety = safetyDecision
 	return result
 }
 
@@ -252,6 +298,7 @@ func (service workflowHTTPToolExecutionService) ReconcileStale(
 	run.FailureSummary = "Workflow HTTP tool execution exceeded the claimed runtime budget and requires manual review."
 	run.CompletedAt = workflowRunTimestamp(observedAt)
 	run.ToolAttempt = &attempt
+	service.refreshActionSafetyRunProjection(&run, "terminal")
 	setWorkflowRunFailureDiagnostic(&run, WorkflowRunFailureToolOutcomeUnknown, attempt.NodeID, WorkflowRunGatewayFailureNone)
 	if run.Diagnostic != nil {
 		run.Diagnostic.ToolFailureCategory = WorkflowHTTPToolFailureOutcomeUnknown
@@ -473,6 +520,7 @@ func (service workflowHTTPToolExecutionService) completeClaimedFailure(
 		run.Diagnostic.ObservedAt = run.CompletedAt
 	}
 	run.ToolAttempt = attempt
+	service.refreshActionSafetyRunProjection(run, "terminal")
 	return service.commitClaimedTerminal(ctx, *attempt, *run, networkAttempts)
 }
 
@@ -500,6 +548,7 @@ func (service workflowHTTPToolExecutionService) completeClaimedOutcomeUnknown(
 		run.Diagnostic.ObservedAt = run.CompletedAt
 	}
 	run.ToolAttempt = attempt
+	service.refreshActionSafetyRunProjection(run, "terminal")
 	return service.commitClaimedTerminal(ctx, *attempt, *run, networkAttempts)
 }
 
@@ -509,6 +558,7 @@ func (service workflowHTTPToolExecutionService) commitClaimedTerminal(
 	run WorkflowRunRecord,
 	networkAttempts int,
 ) WorkflowHTTPToolExecutionResult {
+	service.refreshActionSafetyRunProjection(&run, "terminal")
 	auditID, err := service.newID("wtae_")
 	if err != nil {
 		return service.workflowHTTPToolOutcomeUnknownAfterTerminalWrite(run)
@@ -527,6 +577,7 @@ func (service workflowHTTPToolExecutionService) workflowHTTPToolOutcomeUnknownAf
 	if run.ToolAttempt == nil {
 		run.ToolAttempt = &WorkflowHTTPToolExecutionAttempt{OutputProjection: map[string]any{}}
 	}
+	service.refreshActionSafetyRunProjection(&run, "terminal")
 	run.Status = WorkflowRunStatusOutcomeUnknown
 	run.FailureCode = WorkflowRunFailureToolOutcomeUnknown
 	run.FailureSummary = "Workflow HTTP tool terminal state could not be stored; reconciliation is required."
@@ -856,6 +907,42 @@ func workflowHTTPToolExecutionFailure(
 	summary string,
 ) WorkflowHTTPToolExecutionResult {
 	return WorkflowHTTPToolExecutionResult{FailureCode: code, FailureSummary: summary}
+}
+
+func workflowHTTPToolExecutionFailureWithSafety(
+	code WorkflowRunFailureCode,
+	summary string,
+	decision ActionSafetyDecision,
+	safetyFailure ActionSafetyFailureCode,
+) WorkflowHTTPToolExecutionResult {
+	result := workflowHTTPToolExecutionFailure(code, summary)
+	if decision.SchemaVersion == actionSafetyDecisionSchemaVersion {
+		result.ActionSafety = &decision
+	}
+	if safetyFailure != "" && result.FailureSummary == "" {
+		result.FailureSummary = string(safetyFailure)
+	}
+	return result
+}
+
+func workflowHTTPToolSafetyFailureCode(code ActionSafetyFailureCode) WorkflowRunFailureCode {
+	if code == ActionSafetyFailureConfirmationRequired || code == ActionSafetyFailureConfirmationChanged {
+		return WorkflowRunFailureToolConfirmation
+	}
+	if code == ActionSafetyFailureScopeDenied {
+		return WorkflowRunFailureScopeDenied
+	}
+	return WorkflowRunFailureToolPolicy
+}
+
+func (service workflowHTTPToolExecutionService) refreshActionSafetyRunProjection(run *WorkflowRunRecord, checkpoint string) {
+	if run == nil || run.ActionSafety == nil || service.actions.actionSafety == nil {
+		return
+	}
+	projection, err := service.actions.actionSafety.ProjectRun(checkpoint, run.ActionSafety.Decisions, run.SideEffects)
+	if err == nil {
+		run.ActionSafety = &projection
+	}
 }
 
 func workflowHTTPToolExecutionFailureForAction(result WorkflowHTTPToolActionResult) WorkflowHTTPToolExecutionResult {

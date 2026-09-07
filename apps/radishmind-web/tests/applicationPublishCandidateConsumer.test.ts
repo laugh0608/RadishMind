@@ -50,6 +50,34 @@ test("candidate create sends only binding fields and exact application scope", a
   assert.equal("configuration" in captured!.body, false);
 });
 
+test("publish candidate local Session mutation carries tenant, workspace, and product binding only", async () => {
+  const localConfig = { ...devConfig, authMode: "local_session_dev_test" as const };
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_url, init) => {
+    captured = init;
+    return jsonResponse(candidateEnvelope());
+  };
+
+  const result = await createApplicationPublishCandidate(
+    localConfig,
+    "app_flow_copilot",
+    "candidate-app-flow-v1",
+    "app-config-app-flow",
+    3,
+    [],
+  );
+  const headers = new Headers(captured?.headers);
+  assert.equal(result.state.status, "created");
+  assert.equal(captured?.credentials, "include");
+  assert.equal(captured?.cache, "no-store");
+  assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+  assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Application-Publish-Application"), "app_flow_copilot");
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+  assert.equal(headers.has("Authorization"), false);
+});
+
 test("review maps CAS conflict and keeps current review metadata", async () => {
   globalThis.fetch = async () => jsonResponse({ ...candidateEnvelope(), candidate: null, failure_code: "publish_candidate_review_version_conflict", current_review_version: 2, current_candidate_state: "approved" });
   const result = await reviewApplicationPublishCandidate(devConfig, "app_flow_copilot", "candidate-app-flow-v1", 1, "reject", "Stale review must not overwrite approval.");

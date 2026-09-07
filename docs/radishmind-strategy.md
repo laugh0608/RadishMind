@@ -1,6 +1,6 @@
 # RadishMind 战略定义
 
-更新时间：2026-05-26
+更新时间：2026-09-06
 
 ## 这份文档回答什么
 
@@ -206,10 +206,12 @@ Provider capability、health 和 selection 必须分层理解：
 - `provider-capability-matrix-v1`：说明 provider 声明了什么能力。
 - `provider-health-smoke-v1`：说明 mock runtime 与 config-level inventory 在离线 fast baseline 下可检查。
 - `provider-selection-policy-v1`：说明请求侧如何选择 profile / provider / concrete model，以及未知 model/profile、credential missing、unsupported capability、timeout 和 no implicit fallback 如何分类。
-- `provider-retry-fallback-policy-v1`：说明当前调用策略审计 metadata 固定为 `retry_policy=caller-managed` 与 `fallback_policy=disabled`，失败路径不自动重试、不隐式 fallback。
+- `provider-retry-fallback-policy-v1`：说明默认调用策略审计 metadata 为 `retry_policy=caller-managed` 与 `fallback_policy=disabled`，缺省失败路径不自动重试、不隐式 fallback；后续独立开发测试态受控 fallback 按对应功能 gate 验收。
 - `provider-runtime-docs-refresh`：说明入口文档、说明书和任务卡必须共同维护这些边界。
 
 当前不把 optional live health、retry/fallback execution、production secret backend 或 production readiness 纳入默认完成声明。它们只能作为独立任务，在输入、输出、停止线和验证窗口明确后重开。
+
+已完成的[Gateway Provider Attempt 开发测试态专题](features/gateway/provider-attempt-controlled-retry-fallback-execution-dev-test-v1.md)允许受限 API Key unary fallback，不开放真实 Provider、stream、非 API Key 或 production fallback；默认策略与显式能力分别读取。
 
 ## Service Mode Tiers
 
@@ -307,15 +309,13 @@ Provider capability、health 和 selection 必须分层理解：
 
 ## 当前最该做什么
 
-基于上面的定义，当前最高优先级不是继续扩旧实验，也不是继续补假想接线，而是先把模型网关、runtime、ops 和治理骨架补到可执行，再进入正式用户端 / 管理端 / workflow builder。到 2026-05-26，以下骨架已经阶段性落地：
+当前已经具备丰富的开发测试态产品链，成熟度保持内部开发者预览。具体执行顺位只由[当前推进焦点](radishmind-current-focus.md)维护；本战略不再保留 2026-05 的 Provider 或 secret readiness 下一依赖。
 
-1. 正式 `provider registry`
-2. `protocol compatibility layer` 的第一版 northbound bridge
-3. northbound `/v1/chat/completions`、`/v1/responses`、`/v1/messages` 与 `/v1/models`
-4. southbound `HuggingFace`、`Ollama`、OpenAI-compatible、Gemini native 和 Anthropic messages 分流
-5. capability matrix、health smoke、selection policy、provider-retry-fallback-policy-v1、compatibility smoke 和 governance gate
+下一阶段围绕内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证，优先完成已选择的用户闭环。随后按真实阻塞逐项收敛公共模块职责、补齐关键自动浏览器回归，并在明确窗口内积累内部使用与输出质量证据。
 
-下一步不应继续在同层无限补 provider 小切片，而应先把产品定位文档、路线图和架构对齐到“用户端 + 管理端 + workflow + model gateway”，再按独立任务推进正式模型网关能力、控制面前置设计、工作流 v1，或在已完成 `config-secret-ref-readiness`、`provider-profile-secret-binding`、`secret-resolver-interface-disabled` 与 `operator-runbook-and-negative-gates` 后继续评审 rotation / audit policy，或 test fixture strategy / fake resolver implementation 是否打开。
+模型适配继续后置。任务集应区分结构合规、事实正确、建议有用、人工修改量、延迟与可信用量；raw、guided、builder、repaired 分别报告。新能力假设、代表性任务和运行窗口不足时，不由小规模修复通过率推导训练或生产准入。
+
+上述方向见[路线图](radishmind-roadmap.md)与[工程健康专题](platform/engineering-health-productization-remediation-v1.md)，不自动启动新实现、依赖安装、真实 Provider、生产化或外部工作区写入。
 
 ## 判断标准
 

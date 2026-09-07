@@ -8,9 +8,10 @@
 - 承载 Model Gateway、User Workspace、Admin Control Plane、Workflow / Agent Runtime 的 HTTP 边界。
 - 将 OpenAI-compatible、Responses 与 Messages 请求翻译到 canonical `CopilotGatewayEnvelope`，通过受控 Python bridge 调用 runtime。
 - 为 RadishMind 自有运行数据提供 `memory_dev`、聚合 `sqlite_dev` 与显式 `postgres_dev_test` repository 选择，并保持 migration、作用域和 no-fallback 约束。
+- 在显式开发测试 gate 下管理单一低频 Application Evaluation Schedule worker，并保证关闭时先 cancel / join worker，再回收 bridge 与 store。
 - 输出结构化 diagnostics、request observability、本地 overview 和 local smoke 摘要。
 
-本服务已提供 RadishMind 自有本地账户、外部身份绑定、Web Session、角色和工作区成员关系的领域契约与 memory / SQLite / PostgreSQL dev/test repository；SQLite migration 进入 shared runtime，PostgreSQL 只通过 `radishmind-local-identity-migrate` 显式执行。显式 `local_session_dev_test` 模式已提供本地注册、登录、当前 session、logout / revoke、安全 cookie、CSRF / Origin 和 session actor → local membership 链；browser OIDC callback 仍未开放。服务不复制 `Radish` 的身份数据库、组织成员关系或业务数据真相源，也不绕过 `contracts/` 自定义第二套协议。
+本服务已提供 RadishMind 自有本地账户、外部身份绑定、Web Session、角色、工作区成员关系与一次性 OIDC authorization transaction 的领域契约及 memory / SQLite / PostgreSQL dev/test repository；SQLite migration 进入 shared runtime，PostgreSQL 只通过 `radishmind-local-identity-migrate` 显式执行。显式 `local_session_dev_test` 模式已提供本地注册 / 登录、browser Authorization Code + PKCE、当前账户、当前账户 session directory、exact / bulk session revoke、credential rotation、session actor → local membership，以及 workspace member / role administration strict HTTP；身份与管理 mutation 继续要求对应的 exact scope / permission、CSRF / Origin、近期认证和显式确认，版本化 exact mutation 另要求 expected version。服务不复制 `Radish` 的身份数据库、组织成员关系或业务数据真相源，也不绕过 `contracts/` 自定义第二套协议。
 
 ## 路由分类
 
@@ -19,12 +20,64 @@
 | 服务状态与本地运维 | `/healthz`、`/v1/platform/*` | [平台服务运行手册](../../docs/platform/platform-service-operations-runbook-v1.md) |
 | Model Gateway / API Distribution | `/v1/models*`、`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/model-gateway/requests*` | [服务 API 契约](../../docs/contracts/service-api.md)、[Gateway 功能专题](../../docs/features/gateway/README.md) |
 | Session / Tooling metadata shell | `/v1/session/*`、`/v1/tools/*` | [Session 契约](../../docs/contracts/session.md)、[Tooling 契约](../../docs/contracts/tooling.md) |
-| 本地身份（开发 / 测试态） | `/v1/auth/local/*`、`/v1/auth/session`、`/v1/auth/logout`、`/v1/auth/sessions/*` | [本地账户与 Radish OIDC 联合登录 v1](../../docs/features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md) |
+| 本地身份（开发 / 测试态） | `/v1/auth/local/*`、`/v1/auth/oidc/*`、`/v1/auth/session`、`/v1/auth/account`、`/v1/auth/logout`、`/v1/auth/sessions`、`/v1/auth/sessions/*`、`/v1/auth/external-identities/*`、`/v1/admin/local-identity/*` | [本地账户与 Radish OIDC 联合登录 v1](../../docs/features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)、[本地账户凭证轮换与自助会话治理 v1](../../docs/features/admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)、[本地用户、角色与工作区成员管理 v1](../../docs/features/admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md) |
 | Admin Control Plane | `/v1/control-plane/*` | [Control Plane read-side 契约](../../docs/contracts/control-plane-read-side.md)、[Admin Control Plane 专题](../../docs/features/admin-control-plane/README.md) |
-| User Workspace | `/v1/user-workspace/applications*`、`/v1/user-workspace/application-sessions*`（包含 Session-scoped 结果资产 list / read / archive / unarchive）、`/v1/user-workspace/applications/{application_id}/result-artifacts*`（application-scoped list / export）、`/v1/user-workspace/api-keys*`、`/v1/user-workspace/application-configuration-drafts*`、`/v1/user-workspace/application-publish-candidates*`、`/v1/user-workspace/prompt-application-templates*`、`/v1/user-workspace/agent-copilot-profiles*`、两类 `/v1/user-workspace/applications/{application_id}/*-runtime-assignment*` | [User Workspace 专题](../../docs/features/user-workspace/README.md)、[应用结果资产专题](../../docs/features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)、[应用结果资产库专题](../../docs/features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)、[Prompt Application 使用指南](../../docs/features/user-workspace/prompt-application-dev-test-usage-guide.md)、[Agent / Copilot 使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md) |
-| Workflow / Agent Runtime | `/v1/user-workspace/workflow-drafts*`、`/v1/user-workspace/workflow-runs*`、`/v1/user-workspace/workflow-definition-*`、`/v1/user-workspace/workflow-definitions*`、`/v1/user-workspace/workflow-evaluation-*`、`/v1/user-workspace/workflow-retrieval-snapshots*`、`/v1/user-workspace/workflow-rag-*`、`/v1/application-rag/invocations`、`/v1/agent-copilot/invocations` | [Workflow 专题](../../docs/features/workflow/README.md)、[Workflow RAG 开发测试态指南](../../docs/features/workflow/workflow-rag-dev-test-usage-governance-guide.md)、[Agent / Copilot 使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md) |
+| User Workspace | `/v1/user-workspace/applications*`、`/v1/user-workspace/application-sessions*`（包含 Session-scoped 结果资产 list / read / archive / unarchive）、`/v1/user-workspace/applications/{application_id}/result-artifacts*`（application-scoped list / export）、`/v1/user-workspace/applications/{application_id}/evaluation-plans*`、`/v1/user-workspace/applications/{application_id}/evaluation-campaigns*`、`/v1/user-workspace/applications/{application_id}/evaluation-schedules*`、`/v1/user-workspace/api-keys*`、`/v1/user-workspace/application-configuration-drafts*`、`/v1/user-workspace/application-publish-candidates*`、`/v1/user-workspace/prompt-application-templates*`、`/v1/user-workspace/agent-copilot-profiles*`、两类 `/v1/user-workspace/applications/{application_id}/*-runtime-assignment*` | [User Workspace 专题](../../docs/features/user-workspace/README.md)、[定时回归评测专题](../../docs/features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[应用结果资产专题](../../docs/features/user-workspace/application-session-result-artifact-explicit-retention-dev-test-v1.md)、[应用结果资产库专题](../../docs/features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)、[Prompt Application 使用指南](../../docs/features/user-workspace/prompt-application-dev-test-usage-guide.md)、[Agent / Copilot 使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md) |
+| Workflow / Agent Runtime | `/v1/user-workspace/workflow-drafts*`、`/v1/user-workspace/workflow-runs*`、`/v1/user-workspace/workflow-definition-*`、`/v1/user-workspace/workflow-definitions*`、`/v1/user-workspace/workflow-template-candidates*`、`/v1/user-workspace/workflow-templates*`、`/v1/user-workspace/workflow-evaluation-*`、`/v1/user-workspace/workflow-retrieval-snapshots*`、`/v1/user-workspace/workflow-rag-*`、`/v1/application-rag/invocations`、`/v1/agent-copilot/invocations` | [Workflow 专题](../../docs/features/workflow/README.md)、[工作区 Workflow 模板目录专题](../../docs/features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)、[Workflow RAG 开发测试态指南](../../docs/features/workflow/workflow-rag-dev-test-usage-governance-guide.md)、[Agent / Copilot 使用指南](../../docs/features/user-workspace/agent-copilot-dev-test-usage-guide.md) |
 
-精确路由、核心配置、启动命令、smoke 和故障处理统一维护在[平台服务运行手册](../../docs/platform/platform-service-operations-runbook-v1.md)。schema、字段与失败 envelope 以 `contracts/` 和对应功能专题为准；README 不重复保存逐批 readiness 状态。
+精确路由、核心配置、启动命令、smoke 和故障处理统一维护在[平台服务运行手册](../../docs/platform/platform-service-operations-runbook-v1.md)。schema、字段与失败 envelope 以 `contracts/` 和对应功能专题为准；README 不重复保存逐批 readiness 状态。Action Safety 没有独立 HTTP route：规则结果在 response、candidate、assignment、Tool plan、pre-dispatch 与 Run 的服务端 checkpoint 中计算，并作为版本化、脱敏 snapshot 进入既有 owner；单一 `action_safety_read_projection.v1` 只嵌入既有 Agent turn / assignment、Tool plan / execution 与 eligible Run read response。客户端不能提交 decision、authority、effective level，或把 snapshot 当作 execution token。
+
+Application Evaluation Schedule route 使用既有 Plan、Campaign、Run、quota 与 Workflow Run Store owner。后台 runner 默认关闭；只有显式设置 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV=true`，且 Campaign dev、本地身份 HTTP 与 `local_session_dev_test` 同时成立时才启动。runner 固定低频轮询，每次 occurrence 重新读取 delegated user 的账户、membership、permission、Plan、assignment、API Key 与 quota；崩溃恢复只观察确定性 Campaign key，不重放 Provider。该 gate 不启用通用 scheduler 或 production worker。
+
+## Browser OIDC 开发测试配置
+
+browser OIDC 只在 `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 与 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 已成立时允许显式开启。当前使用 public client + PKCE，不接收 client secret；若真实 Radish 要求 confidential client，必须留到批次 E 单独评审 secret ref、部署与泄漏响应。
+
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_DEV=true`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_ISSUER`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_DISCOVERY_URL`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_CLIENT_ID`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_REDIRECT_URI`，必须等于 allowed origin 下的 `/v1/auth/oidc/callback`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_SCOPES`，逗号分隔且必须包含 `openid`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_ALGORITHMS`，只允许显式 `RS* / ES*` allowlist
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_JWKS_ORIGIN`，必须等于 issuer origin
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_TRANSACTION_TTL`，默认 `5m`，最大 `15m`
+- `RADISHMIND_LOCAL_IDENTITY_OIDC_FIRST_LOGIN=true` 仅表示显式开发测试首登准入，默认关闭
+
+服务启动会先执行 bounded discovery / JWKS preflight；配置漂移、provider 不可用或 policy 不匹配都会阻止 OIDC client 初始化，不回退本地管理员、dev header 或旧缓存身份。
+
+## 显式首管理员 bootstrap（仅开发 / 测试态）
+
+`radishmind-local-identity-bootstrap` 只对已经存在且 active 的 exact `user_id` 建立首个 workspace membership 与 canonical `workspace_admin` assignment。它只接受 `sqlite_dev | postgres_dev_test`，同一 tenant / workspace 已存在 active identity administrator 时失败关闭；不会由注册或 Server 启动自动执行，也没有 HTTP route。数据库位置只从环境变量读取，不通过 argv 或 JSON 输出。
+
+SQLite 使用共享本地产品数据库：
+
+```bash
+RADISHMIND_SQLITE_DEV_DATABASE_PATH=/absolute/path/to/radishmind.db \
+go run ./cmd/radishmind-local-identity-bootstrap \
+  --store sqlite_dev \
+  --tenant-ref tenant_demo \
+  --workspace-id workspace_demo \
+  --user-id usr_0000000000000001 \
+  --audit-ref audit:bootstrap-workspace-admin
+```
+
+PostgreSQL 必须先由 migration identity 显式应用当前 `0005_workspace_invitations`，再用受限 runtime URL 执行 bootstrap：
+
+```bash
+RADISHMIND_LOCAL_IDENTITY_DEV_TEST_MIGRATION_DATABASE_URL='<migration-url>' \
+go run ./cmd/radishmind-local-identity-migrate up
+
+RADISHMIND_LOCAL_IDENTITY_DEV_TEST_DATABASE_URL='<runtime-url>' \
+go run ./cmd/radishmind-local-identity-bootstrap \
+  --store postgres_dev_test \
+  --tenant-ref tenant_demo \
+  --workspace-id workspace_demo \
+  --user-id usr_0000000000000001 \
+  --audit-ref audit:bootstrap-workspace-admin
+```
+
+可选 `RADISHMIND_LOCAL_IDENTITY_DATABASE_TIMEOUT` 使用 Go duration，默认 `30s`。命令只输出脱敏 JSON 中的 store、scope、stable membership / assignment id、role catalog metadata 与 audit ref；不输出数据库路径、URL、credential、session 或账户登录标识。重复执行不会返回既有记录，而是以 `local_identity_admin_bootstrap_denied` 拒绝。
 
 ## 启动入口
 
@@ -55,6 +108,7 @@ wrapper 默认使用 `local-product` 档；显式组件配置、PostgreSQL 专�
 | 职责 | 入口 |
 | --- | --- |
 | 命令与服务生命周期 | `cmd/radishmind-platform/` |
+| 本地身份迁移与显式首管理员 bootstrap | `cmd/radishmind-local-identity-migrate/`、`cmd/radishmind-local-identity-bootstrap/` |
 | 配置 | `internal/config/` |
 | HTTP 与 northbound 协议适配 | `internal/httpapi/` |
 | Python bridge 与 worker pool | `internal/bridge/` |
@@ -76,6 +130,7 @@ wrapper 默认使用 `local-product` 档；显式组件配置、PostgreSQL 专�
 - [应用受控运行开发测试态指南](../../docs/features/user-workspace/application-controlled-runtime-dev-test-guide.md)
 - [API 密钥生命周期与 Gateway 开发测试态认证 v1](../../docs/features/user-workspace/api-key-lifecycle-gateway-dev-test-auth-v1.md)
 - [应用交互会话与受控运行编排（开发 / 测试态）v1](../../docs/features/user-workspace/application-interaction-session-controlled-runtime-orchestration-dev-test-v1.md)
+- [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](../../docs/features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)
 - [应用结果资产库与受控导出（开发 / 测试态）v1](../../docs/features/user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)
 - [提示词应用模板版本审查与受控调用（开发 / 测试态）v1](../../docs/features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)
 - [Prompt Application 开发测试态使用指南](../../docs/features/user-workspace/prompt-application-dev-test-usage-guide.md)

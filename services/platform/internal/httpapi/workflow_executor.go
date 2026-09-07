@@ -234,12 +234,15 @@ type WorkflowRunRecord struct {
 	AgentCitationCount        int                                    `json:"-"`
 	AgentRiskLevel            string                                 `json:"-"`
 	AgentRequiresConfirmation bool                                   `json:"-"`
+	ActionSafety              *ActionSafetyRunProjectionV1           `json:"-"`
 	Output                    string                                 `json:"output"`
 	RequestID                 string                                 `json:"request_id"`
 	AuditRef                  string                                 `json:"audit_ref"`
 	ActorRef                  string                                 `json:"actor_ref"`
 	SideEffects               WorkflowRunSideEffects                 `json:"side_effects"`
 	Diagnostic                *WorkflowRunDiagnostic                 `json:"diagnostic,omitempty"`
+
+	ScheduleExecution *ApplicationEvaluationScheduleExecutionRef `json:"-"`
 }
 
 type WorkflowRunResult struct {

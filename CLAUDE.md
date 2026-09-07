@@ -96,7 +96,10 @@
 
 ## Git 约束
 
-- 当前常态开发分支为 `dev`；`master` 仅作为稳定主线并只通过 Pull Request 合并。
+- `dev` 是常态开发与集成分支；串行推进的普通任务直接在 `dev` 开发和提交，不要求主题分支、Pull Request 或额外 worktree。
+- 只有项目所有者明确要求、外部贡献、并行写入、确有隔离价值的高风险改动或 hotfix 才创建主题分支；Agent 不自动创建 `codex/*` 等临时分支。
+- `dev` 当前不启用 branch protection，普通 push 不自动触发 `PR Checks`；直接开发按改动范围完成本地验证，需要评审或隔离时再通过 Pull Request 合入 `dev`。
+- `master` 仅作为稳定主线并只通过 Pull Request 合并。
 - 分支拓扑、合并策略和 `master -> dev` 回同步方式以分支与 PR 治理 ADR 为准；共享 `dev` 历史禁止 rebase、reset 或 force push。
 - 提交信息使用简洁明确的 Conventional Commits；复杂提交补充少量要点。
 - 使用当前用户 Git 身份，不添加 AI 协作者署名。

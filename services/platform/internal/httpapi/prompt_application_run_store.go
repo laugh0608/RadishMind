@@ -179,6 +179,11 @@ func (store *sqlitePromptApplicationRunStore) UpsertRun(ctx WorkflowRunContext, 
 	if err != nil {
 		return err
 	}
+	safety, err := encodeActionSafetyRunSnapshot(next.ActionSafety)
+	if err != nil {
+		return errWorkflowRunStoreContract
+	}
+	safetySchema, safetyDigest, safetyPayload := safety.sqliteColumnValues()
 	startedUnix, err := workflowRunUnixNano(startedAt)
 	if err != nil {
 		return errWorkflowRunStoreContract
@@ -188,7 +193,25 @@ func (store *sqlitePromptApplicationRunStore) UpsertRun(ctx WorkflowRunContext, 
 		return errWorkflowRunStoreContract
 	}
 	var storedPayload string
-	if record.RecordVersion == 0 {
+	var storedSafetySchema, storedSafetyDigest sql.NullString
+	var storedSafetyPayload []byte
+	if store.hasActionSafetySnapshot() && record.RecordVersion == 0 {
+		err = store.database.QueryRowContext(ctx.RequestContext, store.statement(`INSERT INTO prompt_application_run_records
+(tenant_ref,workspace_id,application_id,run_id,record_version,run_status,template_id,template_version,authority_digest,started_at_unix_nano,completed_at_unix_nano,sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+VALUES(?,?,?,?,1,?,?,?,?,?,?,?,?,?,?) RETURNING sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot`),
+			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, next.RunID, next.Status,
+			next.ExecutionSource.ID, next.ExecutionSource.Version, applicationProjectionRunAuthorityDigest(next),
+			startedUnix, completedUnix, string(payload), safetySchema, safetyDigest, safetyPayload,
+		).Scan(&storedPayload, &storedSafetySchema, &storedSafetyDigest, &storedSafetyPayload)
+	} else if store.hasActionSafetySnapshot() {
+		err = store.database.QueryRowContext(ctx.RequestContext, store.statement(`UPDATE prompt_application_run_records SET
+record_version=record_version+1,run_status=?,completed_at_unix_nano=?,sanitized_run_payload=?,action_safety_schema_version=?,action_safety_projection_digest=?,sanitized_action_safety_snapshot=?
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=? AND record_version=? AND run_status='running'
+RETURNING sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot`),
+			next.Status, completedUnix, string(payload), safetySchema, safetyDigest, safetyPayload,
+			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, next.RunID, record.RecordVersion,
+		).Scan(&storedPayload, &storedSafetySchema, &storedSafetyDigest, &storedSafetyPayload)
+	} else if record.RecordVersion == 0 {
 		err = store.database.QueryRowContext(ctx.RequestContext, store.statement(`INSERT INTO prompt_application_run_records
 (tenant_ref,workspace_id,application_id,run_id,record_version,run_status,template_id,template_version,authority_digest,started_at_unix_nano,completed_at_unix_nano,sanitized_run_payload)
 VALUES(?,?,?,?,1,?,?,?,?,?,?,?) RETURNING sanitized_run_payload`),
@@ -209,7 +232,9 @@ RETURNING sanitized_run_payload`),
 	if err != nil {
 		return errWorkflowRunStoreUnavailable
 	}
-	stored, err := decodeWorkflowRunStorageRecord(ctx, []byte(storedPayload))
+	stored, err := decodeWorkflowRunStorageRecordWithActionSafety(ctx, []byte(storedPayload), actionSafetyStorageSnapshot{
+		SchemaVersion: storedSafetySchema.String, ProjectionDigest: storedSafetyDigest.String, Payload: storedSafetyPayload,
+	})
 	if err != nil {
 		return err
 	}
@@ -222,16 +247,30 @@ func (store *sqlitePromptApplicationRunStore) ReadRun(ctx WorkflowRunContext, ru
 		return WorkflowRunRecord{}, false, errWorkflowRunStoreContract
 	}
 	var payload string
-	err := store.database.QueryRowContext(ctx.RequestContext, store.statement(`SELECT sanitized_run_payload FROM prompt_application_run_records
-WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?`),
-		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, runID).Scan(&payload)
+	var safetySchema, safetyDigest sql.NullString
+	var safetyPayload []byte
+	query := `SELECT sanitized_run_payload FROM prompt_application_run_records
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?`
+	if store.hasActionSafetySnapshot() {
+		query = `SELECT sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM prompt_application_run_records
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? AND run_id=?`
+	}
+	row := store.database.QueryRowContext(ctx.RequestContext, store.statement(query), ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, runID)
+	var err error
+	if store.hasActionSafetySnapshot() {
+		err = row.Scan(&payload, &safetySchema, &safetyDigest, &safetyPayload)
+	} else {
+		err = row.Scan(&payload)
+	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return WorkflowRunRecord{}, false, nil
 	}
 	if err != nil {
 		return WorkflowRunRecord{}, false, errWorkflowRunStoreUnavailable
 	}
-	record, err := decodeWorkflowRunStorageRecord(ctx, []byte(payload))
+	record, err := decodeWorkflowRunStorageRecordWithActionSafety(ctx, []byte(payload), actionSafetyStorageSnapshot{
+		SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+	})
 	return record, err == nil, err
 }
 
@@ -239,22 +278,35 @@ func (store *sqlitePromptApplicationRunStore) ListRuns(ctx WorkflowRunContext, f
 	if store == nil || store.database == nil || ctx.RequestContext == nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
-	rows, err := store.database.QueryContext(ctx.RequestContext, store.statement(`SELECT sanitized_run_payload FROM prompt_application_run_records
-WHERE tenant_ref=? AND workspace_id=? AND application_id=? ORDER BY started_at_unix_nano DESC,run_id DESC`),
+	query := `SELECT sanitized_run_payload FROM prompt_application_run_records
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? ORDER BY started_at_unix_nano DESC,run_id DESC`
+	if store.hasActionSafetySnapshot() {
+		query = `SELECT sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM prompt_application_run_records
+WHERE tenant_ref=? AND workspace_id=? AND application_id=? ORDER BY started_at_unix_nano DESC,run_id DESC`
+	}
+	rows, err := store.database.QueryContext(ctx.RequestContext, store.statement(query),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID)
 	if err != nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 	}
 	defer rows.Close()
-	return collectPromptApplicationRuns(ctx, filter, func() ([]byte, bool, error) {
+	return collectPromptApplicationRuns(ctx, filter, func() ([]byte, actionSafetyStorageSnapshot, bool, error) {
 		if !rows.Next() {
-			return nil, false, rows.Err()
+			return nil, actionSafetyStorageSnapshot{}, false, rows.Err()
 		}
 		var payload string
-		if scanErr := rows.Scan(&payload); scanErr != nil {
-			return nil, false, scanErr
+		var safetySchema, safetyDigest sql.NullString
+		var safetyPayload []byte
+		var scanErr error
+		if store.hasActionSafetySnapshot() {
+			scanErr = rows.Scan(&payload, &safetySchema, &safetyDigest, &safetyPayload)
+		} else {
+			scanErr = rows.Scan(&payload)
 		}
-		return []byte(payload), true, nil
+		if scanErr != nil {
+			return nil, actionSafetyStorageSnapshot{}, false, scanErr
+		}
+		return []byte(payload), actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload}, true, nil
 	})
 }
 
@@ -269,26 +321,42 @@ func (store *sqlitePromptApplicationRunStore) ListWorkspaceRuns(
 	if err != nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
-	rows, err := store.database.QueryContext(ctx.RequestContext, store.statement(`SELECT application_id,sanitized_run_payload FROM prompt_application_run_records
+	query := `SELECT application_id,sanitized_run_payload FROM prompt_application_run_records
 WHERE tenant_ref=? AND workspace_id=? AND (?='' OR application_id=?)
 AND (? IS NULL OR started_at_unix_nano < ? OR
     (started_at_unix_nano = ? AND (run_id < ? OR (run_id = ? AND application_id < ?))))
-ORDER BY started_at_unix_nano DESC,run_id DESC,application_id DESC`),
+ORDER BY started_at_unix_nano DESC,run_id DESC,application_id DESC`
+	if store.hasActionSafetySnapshot() {
+		query = `SELECT application_id,sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM prompt_application_run_records
+WHERE tenant_ref=? AND workspace_id=? AND (?='' OR application_id=?)
+AND (? IS NULL OR started_at_unix_nano < ? OR
+    (started_at_unix_nano = ? AND (run_id < ? OR (run_id = ? AND application_id < ?))))
+ORDER BY started_at_unix_nano DESC,run_id DESC,application_id DESC`
+	}
+	rows, err := store.database.QueryContext(ctx.RequestContext, store.statement(query),
 		ctx.TenantRef, ctx.WorkspaceID, filter.ApplicationID, filter.ApplicationID,
 		beforeTime, beforeTime, beforeTime, filter.BeforeRunID, filter.BeforeRunID, filter.BeforeApplicationID)
 	if err != nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 	}
 	defer rows.Close()
-	return collectWorkspaceApplicationProjectionRuns(ctx, filter, store.expectedSchema(), func() (string, []byte, bool, error) {
+	return collectWorkspaceApplicationProjectionRuns(ctx, filter, store.expectedSchema(), func() (string, []byte, actionSafetyStorageSnapshot, bool, error) {
 		if !rows.Next() {
-			return "", nil, false, rows.Err()
+			return "", nil, actionSafetyStorageSnapshot{}, false, rows.Err()
 		}
 		var applicationID, payload string
-		if scanErr := rows.Scan(&applicationID, &payload); scanErr != nil {
-			return "", nil, false, scanErr
+		var safetySchema, safetyDigest sql.NullString
+		var safetyPayload []byte
+		var scanErr error
+		if store.hasActionSafetySnapshot() {
+			scanErr = rows.Scan(&applicationID, &payload, &safetySchema, &safetyDigest, &safetyPayload)
+		} else {
+			scanErr = rows.Scan(&applicationID, &payload)
 		}
-		return applicationID, []byte(payload), true, nil
+		if scanErr != nil {
+			return "", nil, actionSafetyStorageSnapshot{}, false, scanErr
+		}
+		return applicationID, []byte(payload), actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload}, true, nil
 	})
 }
 
@@ -312,8 +380,31 @@ func (store *postgresPromptApplicationRunStore) UpsertRun(ctx WorkflowRunContext
 	if err != nil {
 		return err
 	}
-	var storedPayload []byte
-	if record.RecordVersion == 0 {
+	safety, err := encodeActionSafetyRunSnapshot(next.ActionSafety)
+	if err != nil {
+		return errWorkflowRunStoreContract
+	}
+	safetySchema, safetyDigest, safetyPayload := safety.columnValues()
+	var storedPayload, storedSafetyPayload []byte
+	var storedSafetySchema, storedSafetyDigest sql.NullString
+	if store.hasActionSafetySnapshot() && record.RecordVersion == 0 {
+		err = store.pool.QueryRow(ctx.RequestContext, store.statement(`INSERT INTO prompt_application_run_records
+(tenant_ref,workspace_id,application_id,run_id,record_version,run_status,template_id,template_version,authority_digest,started_at,completed_at,sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+VALUES($1,$2,$3,$4,1,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) ON CONFLICT DO NOTHING
+RETURNING sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot`),
+			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, next.RunID, next.Status,
+			next.ExecutionSource.ID, next.ExecutionSource.Version, applicationProjectionRunAuthorityDigest(next),
+			startedAt, completedAt, payload, safetySchema, safetyDigest, safetyPayload,
+		).Scan(&storedPayload, &storedSafetySchema, &storedSafetyDigest, &storedSafetyPayload)
+	} else if store.hasActionSafetySnapshot() {
+		err = store.pool.QueryRow(ctx.RequestContext, store.statement(`UPDATE prompt_application_run_records SET
+record_version=record_version+1,run_status=$1,completed_at=$2,sanitized_run_payload=$3,action_safety_schema_version=$4,action_safety_projection_digest=$5,sanitized_action_safety_snapshot=$6
+WHERE tenant_ref=$7 AND workspace_id=$8 AND application_id=$9 AND run_id=$10 AND record_version=$11 AND run_status='running'
+RETURNING sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot`),
+			next.Status, completedAt, payload, safetySchema, safetyDigest, safetyPayload,
+			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, next.RunID, record.RecordVersion,
+		).Scan(&storedPayload, &storedSafetySchema, &storedSafetyDigest, &storedSafetyPayload)
+	} else if record.RecordVersion == 0 {
 		err = store.pool.QueryRow(ctx.RequestContext, store.statement(`INSERT INTO prompt_application_run_records
 (tenant_ref,workspace_id,application_id,run_id,record_version,run_status,template_id,template_version,authority_digest,started_at,completed_at,sanitized_run_payload)
 VALUES($1,$2,$3,$4,1,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT DO NOTHING RETURNING sanitized_run_payload`),
@@ -334,7 +425,9 @@ RETURNING sanitized_run_payload`),
 	if err != nil {
 		return errWorkflowRunStoreUnavailable
 	}
-	stored, err := decodeWorkflowRunStorageRecord(ctx, storedPayload)
+	stored, err := decodeWorkflowRunStorageRecordWithActionSafety(ctx, storedPayload, actionSafetyStorageSnapshot{
+		SchemaVersion: storedSafetySchema.String, ProjectionDigest: storedSafetyDigest.String, Payload: storedSafetyPayload,
+	})
 	if err != nil {
 		return err
 	}
@@ -346,17 +439,30 @@ func (store *postgresPromptApplicationRunStore) ReadRun(ctx WorkflowRunContext, 
 	if store == nil || store.pool == nil || ctx.RequestContext == nil {
 		return WorkflowRunRecord{}, false, errWorkflowRunStoreContract
 	}
-	var payload []byte
-	err := store.pool.QueryRow(ctx.RequestContext, store.statement(`SELECT sanitized_run_payload FROM prompt_application_run_records
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND run_id=$4`),
-		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, runID).Scan(&payload)
+	var payload, safetyPayload []byte
+	var safetySchema, safetyDigest sql.NullString
+	query := `SELECT sanitized_run_payload FROM prompt_application_run_records
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND run_id=$4`
+	if store.hasActionSafetySnapshot() {
+		query = `SELECT sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM prompt_application_run_records
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND run_id=$4`
+	}
+	row := store.pool.QueryRow(ctx.RequestContext, store.statement(query), ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, runID)
+	var err error
+	if store.hasActionSafetySnapshot() {
+		err = row.Scan(&payload, &safetySchema, &safetyDigest, &safetyPayload)
+	} else {
+		err = row.Scan(&payload)
+	}
 	if errors.Is(err, pgx.ErrNoRows) {
 		return WorkflowRunRecord{}, false, nil
 	}
 	if err != nil {
 		return WorkflowRunRecord{}, false, errWorkflowRunStoreUnavailable
 	}
-	record, err := decodeWorkflowRunStorageRecord(ctx, payload)
+	record, err := decodeWorkflowRunStorageRecordWithActionSafety(ctx, payload, actionSafetyStorageSnapshot{
+		SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+	})
 	return record, err == nil, err
 }
 
@@ -364,22 +470,34 @@ func (store *postgresPromptApplicationRunStore) ListRuns(ctx WorkflowRunContext,
 	if store == nil || store.pool == nil || ctx.RequestContext == nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
-	rows, err := store.pool.Query(ctx.RequestContext, store.statement(`SELECT sanitized_run_payload FROM prompt_application_run_records
-WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 ORDER BY started_at DESC,run_id DESC`),
+	query := `SELECT sanitized_run_payload FROM prompt_application_run_records
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 ORDER BY started_at DESC,run_id DESC`
+	if store.hasActionSafetySnapshot() {
+		query = `SELECT sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM prompt_application_run_records
+WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 ORDER BY started_at DESC,run_id DESC`
+	}
+	rows, err := store.pool.Query(ctx.RequestContext, store.statement(query),
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID)
 	if err != nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 	}
 	defer rows.Close()
-	return collectPromptApplicationRuns(ctx, filter, func() ([]byte, bool, error) {
+	return collectPromptApplicationRuns(ctx, filter, func() ([]byte, actionSafetyStorageSnapshot, bool, error) {
 		if !rows.Next() {
-			return nil, false, rows.Err()
+			return nil, actionSafetyStorageSnapshot{}, false, rows.Err()
 		}
-		var payload []byte
-		if scanErr := rows.Scan(&payload); scanErr != nil {
-			return nil, false, scanErr
+		var payload, safetyPayload []byte
+		var safetySchema, safetyDigest sql.NullString
+		var scanErr error
+		if store.hasActionSafetySnapshot() {
+			scanErr = rows.Scan(&payload, &safetySchema, &safetyDigest, &safetyPayload)
+		} else {
+			scanErr = rows.Scan(&payload)
 		}
-		return payload, true, nil
+		if scanErr != nil {
+			return nil, actionSafetyStorageSnapshot{}, false, scanErr
+		}
+		return payload, actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload}, true, nil
 	})
 }
 
@@ -390,40 +508,54 @@ func (store *postgresPromptApplicationRunStore) ListWorkspaceRuns(
 	if store == nil || store.pool == nil || !validWorkflowWorkspaceRunListContext(ctx) {
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
-	rows, err := store.pool.Query(ctx.RequestContext, store.statement(`SELECT application_id,sanitized_run_payload FROM prompt_application_run_records
+	query := `SELECT application_id,sanitized_run_payload FROM prompt_application_run_records
 WHERE tenant_ref=$1 AND workspace_id=$2 AND ($3='' OR application_id=$3)
 AND ($4::timestamptz IS NULL OR (started_at,run_id,application_id) < ($4,$5,$6))
-ORDER BY started_at DESC,run_id DESC,application_id DESC`),
+ORDER BY started_at DESC,run_id DESC,application_id DESC`
+	if store.hasActionSafetySnapshot() {
+		query = `SELECT application_id,sanitized_run_payload,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM prompt_application_run_records
+WHERE tenant_ref=$1 AND workspace_id=$2 AND ($3='' OR application_id=$3)
+AND ($4::timestamptz IS NULL OR (started_at,run_id,application_id) < ($4,$5,$6))
+ORDER BY started_at DESC,run_id DESC,application_id DESC`
+	}
+	rows, err := store.pool.Query(ctx.RequestContext, store.statement(query),
 		ctx.TenantRef, ctx.WorkspaceID, filter.ApplicationID,
 		filter.BeforeTime, filter.BeforeRunID, filter.BeforeApplicationID)
 	if err != nil {
 		return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 	}
 	defer rows.Close()
-	return collectWorkspaceApplicationProjectionRuns(ctx, filter, store.expectedSchema(), func() (string, []byte, bool, error) {
+	return collectWorkspaceApplicationProjectionRuns(ctx, filter, store.expectedSchema(), func() (string, []byte, actionSafetyStorageSnapshot, bool, error) {
 		if !rows.Next() {
-			return "", nil, false, rows.Err()
+			return "", nil, actionSafetyStorageSnapshot{}, false, rows.Err()
 		}
 		var applicationID string
-		var payload []byte
-		if scanErr := rows.Scan(&applicationID, &payload); scanErr != nil {
-			return "", nil, false, scanErr
+		var payload, safetyPayload []byte
+		var safetySchema, safetyDigest sql.NullString
+		var scanErr error
+		if store.hasActionSafetySnapshot() {
+			scanErr = rows.Scan(&applicationID, &payload, &safetySchema, &safetyDigest, &safetyPayload)
+		} else {
+			scanErr = rows.Scan(&applicationID, &payload)
 		}
-		return applicationID, payload, true, nil
+		if scanErr != nil {
+			return "", nil, actionSafetyStorageSnapshot{}, false, scanErr
+		}
+		return applicationID, payload, actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload}, true, nil
 	})
 }
 
-func collectPromptApplicationRuns(ctx WorkflowRunContext, filter WorkflowRunListFilter, next func() ([]byte, bool, error)) (WorkflowRunListPage, error) {
+func collectPromptApplicationRuns(ctx WorkflowRunContext, filter WorkflowRunListFilter, next func() ([]byte, actionSafetyStorageSnapshot, bool, error)) (WorkflowRunListPage, error) {
 	records := make([]WorkflowRunRecord, 0)
 	for {
-		payload, ok, err := next()
+		payload, safetySnapshot, ok, err := next()
 		if err != nil {
 			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 		}
 		if !ok {
 			break
 		}
-		record, err := decodeWorkflowRunStorageRecord(ctx, payload)
+		record, err := decodeWorkflowRunStorageRecordWithActionSafety(ctx, payload, safetySnapshot)
 		if err != nil {
 			return WorkflowRunListPage{}, err
 		}
@@ -443,22 +575,22 @@ func collectWorkspaceApplicationProjectionRuns(
 	ctx WorkflowWorkspaceRunListContext,
 	filter WorkflowWorkspaceRunListFilter,
 	expectedSchema string,
-	next func() (string, []byte, bool, error),
+	next func() (string, []byte, actionSafetyStorageSnapshot, bool, error),
 ) (WorkflowRunListPage, error) {
 	limit := workflowRunStoreListLimit(filter.Limit)
 	records := make([]WorkflowRunRecord, 0, limit+1)
 	for len(records) <= limit {
-		applicationID, payload, ok, err := next()
+		applicationID, payload, safetySnapshot, ok, err := next()
 		if err != nil {
 			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 		}
 		if !ok {
 			break
 		}
-		record, decodeErr := decodeWorkflowRunStorageRecord(WorkflowRunContext{
+		record, decodeErr := decodeWorkflowRunStorageRecordWithActionSafety(WorkflowRunContext{
 			RequestContext: ctx.RequestContext, TenantRef: ctx.TenantRef,
 			WorkspaceID: ctx.WorkspaceID, ApplicationID: applicationID,
-		}, payload)
+		}, payload, safetySnapshot)
 		if decodeErr != nil {
 			return WorkflowRunListPage{}, decodeErr
 		}
@@ -484,6 +616,10 @@ func (store *sqlitePromptApplicationRunStore) expectedSchema() string {
 	return workflowRunRecordPromptSchemaVersion
 }
 
+func (store *sqlitePromptApplicationRunStore) hasActionSafetySnapshot() bool {
+	return store.expectedSchema() == agentCopilotRunV7Schema
+}
+
 func (store *sqlitePromptApplicationRunStore) statement(query string) string {
 	table := store.table
 	if table == "" {
@@ -497,6 +633,10 @@ func (store *postgresPromptApplicationRunStore) expectedSchema() string {
 		return store.schema
 	}
 	return workflowRunRecordPromptSchemaVersion
+}
+
+func (store *postgresPromptApplicationRunStore) hasActionSafetySnapshot() bool {
+	return store.expectedSchema() == agentCopilotRunV7Schema
 }
 
 func (store *postgresPromptApplicationRunStore) statement(query string) string {

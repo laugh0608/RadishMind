@@ -20,11 +20,13 @@ import (
 )
 
 const (
-	localIdentityRegisterRoute       = "/v1/auth/local/register"
-	localIdentityLoginRoute          = "/v1/auth/local/login"
-	localIdentityCurrentSessionRoute = "/v1/auth/session"
-	localIdentityLogoutRoute         = "/v1/auth/logout"
-	localIdentitySessionRevokeRoute  = "/v1/auth/sessions/{session_id}/revoke"
+	localIdentityRegisterRoute                  = "/v1/auth/local/register"
+	localIdentityLoginRoute                     = "/v1/auth/local/login"
+	localIdentityCurrentSessionRoute            = "/v1/auth/session"
+	localIdentityCurrentAccountRoute            = "/v1/auth/account"
+	localIdentityLogoutRoute                    = "/v1/auth/logout"
+	localIdentityExternalIdentityRevokeRoute    = "/v1/auth/external-identities/{binding_id}/revoke"
+	localIdentityLinkRecentAuthenticationMaxAge = 10 * time.Minute
 
 	localIdentityActiveTenantHeader = "X-RadishMind-Active-Tenant"
 	localIdentityCSRFHeader         = "X-RadishMind-CSRF-Token"
@@ -33,21 +35,25 @@ const (
 )
 
 const (
-	localIdentityHTTPDisabled           = "LOCAL_IDENTITY_HTTP_DISABLED"
-	localIdentityOriginForbidden        = "LOCAL_IDENTITY_ORIGIN_FORBIDDEN"
-	localIdentityCSRFInvalid            = "LOCAL_IDENTITY_CSRF_INVALID"
-	localIdentityPayloadInvalid         = "LOCAL_IDENTITY_PAYLOAD_INVALID"
-	localIdentityReturnTargetInvalid    = "LOCAL_IDENTITY_RETURN_TARGET_INVALID"
-	localIdentityAccountConflict        = "LOCAL_IDENTITY_ACCOUNT_CONFLICT"
-	localIdentityAuthenticationFailed   = "LOCAL_IDENTITY_AUTHENTICATION_FAILED"
-	localIdentityAuthenticationRequired = "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED"
-	localIdentityAlreadyAuthenticated   = "LOCAL_IDENTITY_ALREADY_AUTHENTICATED"
-	localIdentitySessionOwnershipDenied = "LOCAL_IDENTITY_SESSION_OWNERSHIP_DENIED"
-	localIdentityServiceUnavailable     = "LOCAL_IDENTITY_SERVICE_UNAVAILABLE"
+	localIdentityHTTPDisabled            = "LOCAL_IDENTITY_HTTP_DISABLED"
+	localIdentityOriginForbidden         = "LOCAL_IDENTITY_ORIGIN_FORBIDDEN"
+	localIdentityCSRFInvalid             = "LOCAL_IDENTITY_CSRF_INVALID"
+	localIdentityPayloadInvalid          = "LOCAL_IDENTITY_PAYLOAD_INVALID"
+	localIdentityReturnTargetInvalid     = "LOCAL_IDENTITY_RETURN_TARGET_INVALID"
+	localIdentityAccountConflict         = "LOCAL_IDENTITY_ACCOUNT_CONFLICT"
+	localIdentityAuthenticationFailed    = "LOCAL_IDENTITY_AUTHENTICATION_FAILED"
+	localIdentityAuthenticationRequired  = "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED"
+	localIdentityAlreadyAuthenticated    = "LOCAL_IDENTITY_ALREADY_AUTHENTICATED"
+	localIdentityBindingOwnershipDenied  = "LOCAL_IDENTITY_EXTERNAL_IDENTITY_OWNERSHIP_DENIED"
+	localIdentityLastLoginMethodDenied   = "LOCAL_IDENTITY_LAST_LOGIN_METHOD_REMOVAL_DENIED"
+	localIdentityBindingVersionConflict  = "LOCAL_IDENTITY_EXTERNAL_IDENTITY_VERSION_CONFLICT"
+	localIdentityAccountRecentAuthNeeded = "LOCAL_IDENTITY_ACCOUNT_CHANGE_REQUIRES_RECENT_AUTHENTICATION"
+	localIdentityServiceUnavailable      = "LOCAL_IDENTITY_SERVICE_UNAVAILABLE"
 )
 
 type localIdentityHTTPService struct {
 	repository    localIdentityRepository
+	oidcClient    *localIdentityOIDCClient
 	enabled       bool
 	allowedOrigin string
 	cookieSecure  bool
@@ -62,6 +68,7 @@ type localIdentityRequestSession struct {
 	displayName          string
 	accountLifecycle     string
 	authenticationMethod string
+	lastVerifiedAt       time.Time
 	expiresAt            time.Time
 	csrfToken            string
 	csrfCookieValid      bool
@@ -101,6 +108,56 @@ type localIdentityAuthenticationDocument struct {
 	ReturnTo string                       `json:"return_to,omitempty"`
 }
 
+type localIdentityExternalIdentityDocument struct {
+	BindingID      string     `json:"binding_id"`
+	ProviderRef    string     `json:"provider_ref"`
+	LifecycleState string     `json:"lifecycle_state"`
+	RecordVersion  int        `json:"record_version"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
+	RevokedAt      *time.Time `json:"revoked_at,omitempty"`
+	CanRevoke      bool       `json:"can_revoke"`
+}
+
+type localIdentityRoleAssignmentDocument struct {
+	AssignmentID     string     `json:"assignment_id"`
+	TenantRef        string     `json:"tenant_ref"`
+	WorkspaceID      string     `json:"workspace_id,omitempty"`
+	RoleKey          string     `json:"role_key"`
+	PermissionGrants []string   `json:"permission_grants"`
+	LifecycleState   string     `json:"lifecycle_state"`
+	RecordVersion    int        `json:"record_version"`
+	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
+}
+
+type localIdentityWorkspaceMembershipDocument struct {
+	MembershipID   string     `json:"membership_id"`
+	TenantRef      string     `json:"tenant_ref"`
+	WorkspaceID    string     `json:"workspace_id"`
+	LifecycleState string     `json:"lifecycle_state"`
+	RecordVersion  int        `json:"record_version"`
+	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
+}
+
+type localIdentityAccountCapabilitiesDocument struct {
+	OIDCEnabled              bool `json:"oidc_enabled"`
+	RecentAuthentication     bool `json:"recent_authentication"`
+	HasActiveLocalCredential bool `json:"has_active_local_credential"`
+}
+
+type localIdentityAccountProfileDocument struct {
+	Account              localIdentityAccountDocument               `json:"account"`
+	Session              localIdentitySessionDocument               `json:"session"`
+	ExternalIdentities   []localIdentityExternalIdentityDocument    `json:"external_identities"`
+	RoleAssignments      []localIdentityRoleAssignmentDocument      `json:"role_assignments"`
+	WorkspaceMemberships []localIdentityWorkspaceMembershipDocument `json:"workspace_memberships"`
+	Capabilities         localIdentityAccountCapabilitiesDocument   `json:"capabilities"`
+}
+
+type localIdentityBindingRevokeRequest struct {
+	ExpectedRecordVersion int `json:"expected_record_version"`
+}
+
 func newLocalIdentityHTTPService(cfg config.Config, repository localIdentityRepository) *localIdentityHTTPService {
 	ttl := cfg.LocalIdentitySessionTTL
 	if ttl <= 0 {
@@ -117,8 +174,13 @@ func registerLocalIdentityHTTPRoutes(mux *http.ServeMux, server *Server) {
 	mux.HandleFunc("POST "+localIdentityRegisterRoute, server.handleLocalIdentityRegister)
 	mux.HandleFunc("POST "+localIdentityLoginRoute, server.handleLocalIdentityLogin)
 	mux.HandleFunc("GET "+localIdentityCurrentSessionRoute, server.handleLocalIdentityCurrentSession)
+	mux.HandleFunc("GET "+localIdentityCurrentAccountRoute, server.handleLocalIdentityCurrentAccount)
 	mux.HandleFunc("POST "+localIdentityLogoutRoute, server.handleLocalIdentityLogout)
-	mux.HandleFunc("POST "+localIdentitySessionRevokeRoute, server.handleLocalIdentitySessionRevoke)
+	mux.HandleFunc("POST "+localIdentityExternalIdentityRevokeRoute, server.handleLocalIdentityExternalIdentityRevoke)
+	registerLocalIdentitySelfServiceSecurityHTTPRoutes(mux, server)
+	registerLocalIdentityOIDCHTTPRoutes(mux, server)
+	registerLocalIdentityAdministrationHTTPRoutes(mux, server)
+	registerWorkspaceInvitationHTTPRoutes(mux, server)
 }
 
 func withLocalIdentitySessionAuthentication(next http.Handler, service *localIdentityHTTPService) http.Handler {
@@ -199,7 +261,8 @@ func (service *localIdentityHTTPService) authenticateRequest(request *http.Reque
 	return localIdentityRequestSession{
 		sessionID: session.SessionID, sessionVersion: session.RecordVersion, userID: account.UserID,
 		displayName: account.DisplayName, accountLifecycle: account.LifecycleState,
-		authenticationMethod: session.AuthenticationMethod, expiresAt: session.ExpiresAt,
+		authenticationMethod: session.AuthenticationMethod, lastVerifiedAt: session.LastVerifiedAt,
+		expiresAt:       session.ExpiresAt,
 		csrfToken:       csrfToken,
 		csrfCookieValid: csrfCookieFound && subtle.ConstantTimeCompare([]byte(csrfCookie), []byte(csrfToken)) == 1,
 	}, auth
@@ -296,26 +359,104 @@ func (server *Server) handleLocalIdentityCurrentSession(writer http.ResponseWrit
 	})
 }
 
+func (server *Server) handleLocalIdentityCurrentAccount(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, localIdentityCurrentAccountRoute)
+	service, ok := server.requireLocalIdentityHTTP(writer, trace)
+	if !ok {
+		return
+	}
+	requestSession, ok := requireLocalIdentityRequestSession(request)
+	if !ok {
+		server.writeLocalIdentityError(writer, trace, localIdentityAuthenticationRequired)
+		return
+	}
+	profile, err := service.repository.ReadAccountAccessProfile(request.Context(), requestSession.userID)
+	if err != nil {
+		if errors.Is(err, errLocalIdentityNotFound) || errors.Is(err, errLocalIdentityAccountInactive) {
+			server.writeLocalIdentityError(writer, trace, localIdentityAuthenticationRequired)
+			return
+		}
+		server.writeLocalIdentityError(writer, trace, localIdentityServiceUnavailable)
+		return
+	}
+	service.setCSRFCookie(writer, requestSession.csrfToken, requestSession.expiresAt)
+	writeObservedJSON(writer, http.StatusOK, trace, localIdentityAccountProfileResponse(profile, requestSession, service))
+}
+
+func (server *Server) handleLocalIdentityExternalIdentityRevoke(writer http.ResponseWriter, request *http.Request) {
+	trace := newRequestTrace(request, localIdentityExternalIdentityRevokeRoute)
+	service, ok := server.requireLocalIdentityHTTP(writer, trace)
+	if !ok {
+		return
+	}
+	requestSession, ok := requireLocalIdentityRequestSession(request)
+	if !ok {
+		server.writeLocalIdentityError(writer, trace, localIdentityAuthenticationRequired)
+		return
+	}
+	if !service.requireAuthenticatedWriteRequest(writer, request, trace, requestSession.csrfToken, requestSession.csrfCookieValid) {
+		return
+	}
+	if !localIdentitySessionAuthenticationIsRecent(requestSession.lastVerifiedAt, service.nowUTC()) {
+		server.writeLocalIdentityError(writer, trace, localIdentityAccountRecentAuthNeeded)
+		return
+	}
+	var input localIdentityBindingRevokeRequest
+	if !server.decodeJSONRequestBody(writer, request, trace, &input, jsonRequestBodyOptions{
+		maxBytes: 4096, rejectUnknownFields: true, rejectDuplicateFields: true,
+	}) {
+		return
+	}
+	if input.ExpectedRecordVersion < 1 {
+		server.writeLocalIdentityError(writer, trace, localIdentityPayloadInvalid)
+		return
+	}
+	bindingID := strings.TrimSpace(request.PathValue("binding_id"))
+	profile, err := service.repository.ReadAccountAccessProfile(request.Context(), requestSession.userID)
+	if err != nil {
+		server.writeLocalIdentityError(writer, trace, localIdentityServiceUnavailable)
+		return
+	}
+	owned := false
+	for _, binding := range profile.ExternalIdentities {
+		if binding.BindingID == bindingID {
+			owned = true
+			break
+		}
+	}
+	if !owned {
+		server.writeLocalIdentityError(writer, trace, localIdentityBindingOwnershipDenied)
+		return
+	}
+	auditRef := "auth:external-identity-revoke:" + trace.requestID
+	_, err = service.repository.RevokeExternalIdentity(
+		request.Context(), bindingID, input.ExpectedRecordVersion, service.nowUTC(), auditRef,
+	)
+	switch {
+	case err == nil:
+		writeTraceHeaders(writer, trace)
+		writer.WriteHeader(http.StatusNoContent)
+		logRequestTrace(trace, http.StatusNoContent, "", "")
+	case errors.Is(err, errLocalIdentityLastLoginMethodRemoval):
+		server.writeLocalIdentityError(writer, trace, localIdentityLastLoginMethodDenied)
+	case errors.Is(err, errLocalIdentityVersionConflict):
+		server.writeLocalIdentityError(writer, trace, localIdentityBindingVersionConflict)
+	case errors.Is(err, errLocalIdentityNotFound):
+		server.writeLocalIdentityError(writer, trace, localIdentityBindingOwnershipDenied)
+	default:
+		server.writeLocalIdentityError(writer, trace, localIdentityServiceUnavailable)
+	}
+}
+
 func (server *Server) handleLocalIdentityLogout(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityLogoutRoute)
-	server.revokeCurrentLocalIdentitySession(writer, request, trace, "logout")
+	server.revokeCurrentLocalIdentitySession(writer, request, trace)
 }
 
-func (server *Server) handleLocalIdentitySessionRevoke(writer http.ResponseWriter, request *http.Request) {
-	trace := newRequestTrace(request, localIdentitySessionRevokeRoute)
-	server.revokeTargetLocalIdentitySession(writer, request, trace, "revoke", strings.TrimSpace(request.PathValue("session_id")))
-}
-
-func (server *Server) revokeCurrentLocalIdentitySession(writer http.ResponseWriter, request *http.Request, trace requestTrace, action string) {
-	server.revokeTargetLocalIdentitySession(writer, request, trace, action, "")
-}
-
-func (server *Server) revokeTargetLocalIdentitySession(
+func (server *Server) revokeCurrentLocalIdentitySession(
 	writer http.ResponseWriter,
 	request *http.Request,
 	trace requestTrace,
-	action string,
-	targetSessionID string,
 ) {
 	service, ok := server.requireLocalIdentityHTTP(writer, trace)
 	if !ok {
@@ -329,17 +470,13 @@ func (server *Server) revokeTargetLocalIdentitySession(
 	if !service.requireAuthenticatedWriteRequest(writer, request, trace, requestSession.csrfToken, requestSession.csrfCookieValid) {
 		return
 	}
-	if targetSessionID != "" && targetSessionID != requestSession.sessionID {
-		server.writeLocalIdentityError(writer, trace, localIdentitySessionOwnershipDenied)
-		return
-	}
 	var input struct{}
 	if !server.decodeJSONRequestBody(writer, request, trace, &input, jsonRequestBodyOptions{
 		maxBytes: 1024, rejectUnknownFields: true, rejectDuplicateFields: true,
 	}) {
 		return
 	}
-	auditRef := "auth:" + action + ":" + trace.requestID
+	auditRef := "auth:logout:" + trace.requestID
 	_, err := service.repository.RevokeWebSession(request.Context(), requestSession.sessionID, requestSession.sessionVersion, service.nowUTC(), auditRef)
 	if err != nil && !errors.Is(err, errLocalIdentityVersionConflict) {
 		server.writeLocalIdentityError(writer, trace, localIdentityServiceUnavailable)
@@ -536,6 +673,62 @@ func localIdentityAuthenticationResponse(account UserAccount, session WebSession
 	}
 }
 
+func localIdentityAccountProfileResponse(
+	profile LocalIdentityAccountAccessProfile,
+	requestSession localIdentityRequestSession,
+	service *localIdentityHTTPService,
+) localIdentityAccountProfileDocument {
+	activeBindingCount := 0
+	for _, binding := range profile.ExternalIdentities {
+		if binding.LifecycleState == localIdentityStateActive {
+			activeBindingCount++
+		}
+	}
+	canRemoveActiveBinding := profile.HasActiveLocalCredential || activeBindingCount > 1
+	externalIdentities := make([]localIdentityExternalIdentityDocument, 0, len(profile.ExternalIdentities))
+	for _, binding := range profile.ExternalIdentities {
+		externalIdentities = append(externalIdentities, localIdentityExternalIdentityDocument{
+			BindingID: binding.BindingID, ProviderRef: "radish_oidc", LifecycleState: binding.LifecycleState,
+			RecordVersion: binding.RecordVersion, CreatedAt: binding.CreatedAt, UpdatedAt: binding.UpdatedAt,
+			RevokedAt: cloneTimePointer(binding.RevokedAt),
+			CanRevoke: binding.LifecycleState == localIdentityStateActive && canRemoveActiveBinding,
+		})
+	}
+	assignments := make([]localIdentityRoleAssignmentDocument, 0, len(profile.RoleAssignments))
+	for _, assignment := range profile.RoleAssignments {
+		assignments = append(assignments, localIdentityRoleAssignmentDocument{
+			AssignmentID: assignment.AssignmentID, TenantRef: assignment.TenantRef, WorkspaceID: assignment.WorkspaceID,
+			RoleKey: assignment.RoleKey, PermissionGrants: append([]string(nil), assignment.PermissionGrants...),
+			LifecycleState: assignment.LifecycleState, RecordVersion: assignment.RecordVersion,
+			ExpiresAt: cloneTimePointer(assignment.ExpiresAt),
+		})
+	}
+	memberships := make([]localIdentityWorkspaceMembershipDocument, 0, len(profile.WorkspaceMemberships))
+	for _, membership := range profile.WorkspaceMemberships {
+		memberships = append(memberships, localIdentityWorkspaceMembershipDocument{
+			MembershipID: membership.MembershipID, TenantRef: membership.TenantRef, WorkspaceID: membership.WorkspaceID,
+			LifecycleState: membership.LifecycleState, RecordVersion: membership.RecordVersion,
+			ExpiresAt: cloneTimePointer(membership.ExpiresAt),
+		})
+	}
+	now := service.nowUTC()
+	return localIdentityAccountProfileDocument{
+		Account: localIdentityAccountDocument{
+			UserID: profile.Account.UserID, DisplayName: profile.Account.DisplayName, LifecycleState: profile.Account.LifecycleState,
+		},
+		Session: localIdentitySessionDocument{
+			SessionID: requestSession.sessionID, AuthenticationMethod: requestSession.authenticationMethod,
+			ExpiresAt: requestSession.expiresAt,
+		},
+		ExternalIdentities: externalIdentities, RoleAssignments: assignments, WorkspaceMemberships: memberships,
+		Capabilities: localIdentityAccountCapabilitiesDocument{
+			OIDCEnabled:              service.oidcClient != nil,
+			RecentAuthentication:     localIdentitySessionAuthenticationIsRecent(requestSession.lastVerifiedAt, now),
+			HasActiveLocalCredential: profile.HasActiveLocalCredential,
+		},
+	}
+}
+
 func normalizeLocalIdentityReturnTarget(raw string) (string, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
@@ -665,8 +858,34 @@ func localIdentityHTTPErrorDefinition(code string) (int, string, string) {
 		return http.StatusUnauthorized, "authentication_error", "an active local session is required"
 	case localIdentityAlreadyAuthenticated:
 		return http.StatusConflict, "authentication_error", "the request already has an active local session"
-	case localIdentitySessionOwnershipDenied:
-		return http.StatusForbidden, "permission_error", "the session cannot be revoked by this actor"
+	case localIdentityBindingOwnershipDenied:
+		return http.StatusForbidden, "permission_error", "the external identity cannot be changed by this actor"
+	case localIdentityLastLoginMethodDenied:
+		return http.StatusConflict, "authentication_error", "the account must retain at least one active login method"
+	case localIdentityBindingVersionConflict:
+		return http.StatusConflict, "invalid_request_error", "the external identity record changed before this request"
+	case localIdentityAccountRecentAuthNeeded:
+		return http.StatusUnauthorized, "authentication_error", "changing account login methods requires recent authentication"
+	case localIdentityOIDCDisabled:
+		return http.StatusForbidden, "configuration_error", "local identity OIDC is disabled"
+	case localIdentityOIDCStateInvalid:
+		return http.StatusBadRequest, "authentication_error", "OIDC authorization state is invalid or expired"
+	case localIdentityOIDCCallbackMismatch:
+		return http.StatusBadRequest, "authentication_error", "OIDC callback does not match the reviewed client contract"
+	case localIdentityOIDCTokenExchangeFailed:
+		return http.StatusBadGateway, "authentication_error", "OIDC token exchange failed"
+	case localIdentityOIDCIdentityMismatch:
+		return http.StatusUnauthorized, "authentication_error", "OIDC identity could not be verified"
+	case localIdentityOIDCProviderUnavailable:
+		return http.StatusServiceUnavailable, "service_unavailable_error", "OIDC provider is unavailable"
+	case localIdentityExternalIdentityUnbound:
+		return http.StatusForbidden, "authentication_error", "external identity is not admitted to a local account"
+	case localIdentityExternalIdentityConflict:
+		return http.StatusConflict, "authentication_error", "external identity is already bound to another account"
+	case localIdentityOIDCAdmissionDenied:
+		return http.StatusForbidden, "authentication_error", "OIDC first-login admission is disabled"
+	case localIdentityLinkRecentAuthRequired:
+		return http.StatusUnauthorized, "authentication_error", "linking an external identity requires recent authentication"
 	default:
 		return http.StatusServiceUnavailable, "service_unavailable_error", "local identity service is unavailable"
 	}

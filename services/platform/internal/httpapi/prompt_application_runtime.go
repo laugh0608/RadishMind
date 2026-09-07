@@ -41,6 +41,8 @@ type PromptApplicationRuntimeContext struct {
 	OwnerSubjectRef string
 	AuditRef        string
 	WriteEnabled    bool
+
+	ScheduleExecution *ApplicationEvaluationScheduleExecutionRef
 }
 
 type PromptApplicationRuntimeDecisionInput struct {

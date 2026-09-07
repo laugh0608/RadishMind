@@ -9,6 +9,7 @@ export type PromptApplicationRuntimeConfig = {
   tenantRef: string;
   workspaceId: string;
   subjectRef: string;
+  authMode?: "dev_headers" | "local_session_dev_test";
 };
 
 export type PromptApplicationRuntimeAction = "activate" | "replace" | "revoke";
@@ -138,6 +139,9 @@ export function readPromptApplicationRuntimeConfig(): PromptApplicationRuntimeCo
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || "tenant_demo",
     workspaceId: env.VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID?.trim() || "workspace_demo",
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || "subject_demo_user",
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -206,23 +210,30 @@ async function requestRuntime(
   const requestId = createRequestId("prompt-runtime");
   try {
     const response = await fetch(`${config.baseUrl}${path}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
       method,
       headers: {
         Accept: "application/json",
         ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
         "X-Request-Id": requestId,
-        "X-RadishMind-Dev-Read-Identity": "radishmind-web-prompt-runtime-dev",
-        "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
-        "X-RadishMind-Dev-Read-Subject": config.subjectRef,
-        "X-RadishMind-Dev-Read-Scopes": method === "POST"
-          ? "prompt_application_runtime:read,prompt_application_runtime:write"
-          : "prompt_application_runtime:read",
-        "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
-        ...(method === "POST" ? {
-          "X-RadishMind-Active-Workspace": config.workspaceId,
-          "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
-          "X-RadishMind-Dev-Read-Membership-Permissions": "prompt_application_runtime:write",
-        } : {}),
+        ...(config.authMode === "local_session_dev_test" ? {
+          "X-RadishMind-Active-Tenant": config.tenantRef,
+          ...(method === "POST" ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+        } : {
+          "X-RadishMind-Dev-Read-Identity": "radishmind-web-prompt-runtime-dev",
+          "X-RadishMind-Dev-Read-Tenant": config.tenantRef,
+          "X-RadishMind-Dev-Read-Subject": config.subjectRef,
+          "X-RadishMind-Dev-Read-Scopes": method === "POST"
+            ? "prompt_application_runtime:read,prompt_application_runtime:write"
+            : "prompt_application_runtime:read",
+          "X-RadishMind-Dev-Read-Audit": `audit-${requestId}`,
+          ...(method === "POST" ? {
+            "X-RadishMind-Active-Workspace": config.workspaceId,
+            "X-RadishMind-Dev-Read-Membership-Workspace": config.workspaceId,
+            "X-RadishMind-Dev-Read-Membership-Permissions": "prompt_application_runtime:write",
+          } : {}),
+        }),
         "X-RadishMind-Dev-Prompt-Runtime-Workspace": config.workspaceId,
         "X-RadishMind-Dev-Prompt-Runtime-Application": applicationId,
       },

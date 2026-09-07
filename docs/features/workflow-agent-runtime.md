@@ -1,6 +1,6 @@
 # Workflow / Agent Runtime 设计与开发文档
 
-更新时间：2026-08-17
+更新时间：2026-08-29
 
 ## 功能定位
 
@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-2026-08-17 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行与 RAG 本地材料导入均已有可复验证据并关闭。Workflow Definition 绑定受控 HTTP Tool v1 的 React strict consumer、SQLite 本地产品链和 PostgreSQL 重启链也已完成，不再派生批次 E。用户工作区的[应用结果资产库与受控导出 v1](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)现也已完成批次 A 至 C 并关闭；Workflow 侧继续只提供既有 Run lineage handoff，不改通用 executor，不打开自动执行、业务写回、agent loop、外部 connector 或 production enablement。下一顺位回到功能设计入口依据真实使用证据选择新的长期功能，以下 production durable-store readiness 只保留为历史兼容锚点。
+2026-08-30 当前结论：Saved Draft、结构化输入、Run History、Failure Review、Comparison、Evaluation、HTTP Tool、RAG、不可变 Definition 受控运行、RAG 本地材料、应用结果资产、工作区 Workflow 模板目录与[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)均已有可复验证据并关闭。Action Safety 批次 A 至 E 已完成 strict contract / compiler、六个 canonical checkpoint、既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot、获人工批准的 8 个功能画板与 R23、单一 HTTP read projection、React strict consumer、双数据库与真实浏览器证据；legacy / corruption / CAS / no-fallback 均失败关闭。公开 Marketplace、自动执行、业务写回、agent loop、外部 connector 或 production enablement 继续关闭。以下 production durable-store readiness 只保留为历史兼容锚点。
 
 2026-06-29 Production Secret Backend audit store runtime blocker matrix 及其后续 storage adapter readiness / review 链只作为历史静态锚点保留，不再定义当前顺位，也不影响已经完成的 Workflow memory / SQLite / PostgreSQL 开发测试态存储。production secret、production audit store、production repository mode 与公开生产 API 仍未启用。
 
@@ -157,7 +157,11 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 
 ## 下一批开发方向
 
-[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成纯 TypeScript 严格 UTF-8 Markdown / Text reader、确定性 sectioner、局部 Pencil、单一结构化 fragment editor、来源 / fragment 审查以及 SQLite create / version / CAS / 重启和隐私复验，状态为 `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed`。最终仍只把用户显式确认的 replacement 交给既有 snapshot create / version owner；原始文件与 staging 不持久化，没有新增 API、schema、migration、repository、permission、task card、fixture 或 checker。connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置。
+[Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已固定六级状态、现有 owner 重读、六个检查点、失败语义、副作用矩阵和五批拆分，并完成[唯一高风险任务卡](../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)批次 A 至 E：strict decision contract / compiler、既有 owner runtime 组合、SQLite / PostgreSQL 同构 snapshot、获人工批准的 Pencil、HTTP read projection、React strict consumer 与产品连续证据全部成立。专题关闭，不派生批次 F。
+
+[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)已完成五批并关闭，不从该专题延伸批次 F。
+
+[Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow/workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) 已完成并保持关闭；connector、在线搜索、embedding、reranker、schedule、replay、业务写回和生产能力继续后置，不从模板专题旁路打开。
 
 ## 验收方式
 
@@ -166,6 +170,7 @@ Saved Workflow Draft v1 采用 fail-closed 语义。建议固定以下失败码�
 - Saved Workflow Draft v1 consumer integration 批次：按选择补 dev-only route / web consumer / consumer contract / fixture / checker，至少运行 Go 单元测试、web build、workflow 聚合 checker 和 `./scripts/check-repo.sh --fast`。
 - 若实现批次改变阶段口径、治理入口、schema 真相源或高风险执行边界，补跑全量 `./scripts/check-repo.sh`。
 - confirmation 已由受控 HTTP Tool 专题完成设计；实现涉及新 API、schema 和高风险执行边界，必须由单一任务卡承接并补 scope、audit、SSRF、CAS / crash、side-effect 与全量仓库验证。writeback 与 replay 仍需未来独立设计。
+- Action Safety Ladder 只能由规则层和既有 owner authority 联合决定；人工 confirmation 是 `tool_callable` 的必要条件之一，不是提升到写入权限的充分条件，`write_allowed_by_policy` 在 v1 不可达。
 
 ## 停止线
 

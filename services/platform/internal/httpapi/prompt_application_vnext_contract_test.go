@@ -94,6 +94,36 @@ func TestPromptApplicationVNextContractsRemainMetadataOnly(t *testing.T) {
 	}
 }
 
+func TestPromptApplicationRunV6ScheduledExecutionMetadataIsExplicitAndStrict(t *testing.T) {
+	run := promptApplicationVNextContractFixtures(t)[promptApplicationRunV6Schema].(PromptApplicationRunRecordV6)
+	scheduleID := "aesch_cccccccccccccccc"
+	scheduledFor := "2026-08-30T09:30:00Z"
+	run.ScheduleExecution = &ApplicationEvaluationScheduleExecutionRef{
+		AuthorizationModel: applicationEvaluationScheduleAuthorizationModel,
+		ScheduleID:         scheduleID,
+		ScheduleVersion:    1,
+		ScheduleDigest:     promptApplicationContractTestDigest,
+		ScheduledForUTC:    scheduledFor,
+		ClientCampaignKey:  applicationEvaluationScheduleClientCampaignKey(scheduleID, 1, scheduledFor),
+		SystemActorRef:     applicationEvaluationScheduleSystemActorRef,
+		DelegatedByUserRef: run.ActorRef,
+	}
+	if err := validatePromptApplicationRunRecordV6(run); err != nil {
+		t.Fatalf("validate explicit scheduled execution metadata: %v", err)
+	}
+	payload, err := json.Marshal(run)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = decodePromptApplicationVNextContract(promptApplicationRunV6Schema, payload); err != nil {
+		t.Fatalf("strict decode scheduled Run v6: %v", err)
+	}
+	run.ScheduleExecution.DelegatedByUserRef = "actor:other"
+	if err = validatePromptApplicationRunRecordV6(run); err == nil {
+		t.Fatal("scheduled Run must bind delegated user to actor_ref")
+	}
+}
+
 func TestPromptApplicationBatchCActivatesConfigurationAndPublishOwnersOnly(t *testing.T) {
 	for _, schemaVersion := range []string{applicationConfigurationDraftSchemaVersionV1, applicationConfigurationDraftSchemaVersionV2} {
 		if !applicationConfigurationDraftSchemaSupported(schemaVersion) {

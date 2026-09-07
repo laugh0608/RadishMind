@@ -17,6 +17,7 @@ const AgentCopilotProfilePanel = lazy(() => import("./agentCopilotProfilePanel.t
 const AgentCopilotRuntimePanel = lazy(() => import("./agentCopilotRuntimePanel.tsx"));
 const AgentCopilotSessionPanel = lazy(() => import("./agentCopilotSessionPanel.tsx"));
 const ApplicationConfigurationDraftPanel = lazy(() => import("./applicationConfigurationDraftPanel.tsx"));
+const ApplicationEvaluationCampaignPanel = lazy(() => import("./applicationEvaluationCampaignPanel.tsx"));
 const ApplicationPublishCandidatePanel = lazy(() => import("./applicationPublishCandidatePanel.tsx"));
 const PromptApplicationInvocationPanel = lazy(() => import("./promptApplicationInvocationPanel.tsx"));
 const PromptApplicationRuntimePanel = lazy(() => import("./promptApplicationRuntimePanel.tsx"));
@@ -224,7 +225,15 @@ export default function PromptAgentTypeWorkspace({
                   onOpenRun={onOpenRun}
                 />
               ) : null}
-              {activeSurface === "evaluation" ? <EvaluationHandoff typeLabel={typeLabel} runProfile={runProfile} /> : null}
+              {activeSurface === "evaluation" ? (
+                <ApplicationEvaluationCampaignPanel
+                  applicationId={context.applicationId}
+                  applicationName={context.displayName}
+                  applicationKind={context.applicationKind}
+                  workspaceId={context.workspaceId}
+                  applicationActive={context.applicationActive}
+                />
+              ) : null}
             </Suspense>
           )}
         </main>
@@ -239,25 +248,6 @@ function BlockedTypeOwner({ typeLabel }: { typeLabel: string }) {
       <p className="eyebrow">Lifecycle enforcement</p>
       <h4>{typeLabel} controlled use is blocked</h4>
       <p>Archived applications retain sanitized source and run evidence, but cannot start an invocation, Session, or provider side effect.</p>
-    </article>
-  );
-}
-
-function EvaluationHandoff({ typeLabel, runProfile }: { typeLabel: string; runProfile: string }) {
-  return (
-    <article className="prompt-agent-type-evaluation-handoff">
-      <div>
-        <p className="eyebrow">Existing S6 owner</p>
-        <h4>{typeLabel} run and evaluation handoff</h4>
-        <p>{runProfile} is already supported by Runs, Compare, Cases, and Release below. S8 does not mount a second review owner.</p>
-      </div>
-      <dl>
-        <div><dt>Run window</dt><dd>Current cursor window</dd></div>
-        <div><dt>Comparison</dt><dd>Not persisted</dd></div>
-        <div><dt>Decision</dt><dd>Append-only evidence</dd></div>
-        <div><dt>Automation</dt><dd>Closed</dd></div>
-      </dl>
-      <p className="prompt-agent-type-boundary"><span aria-hidden="true">!</span> Approved does not create a candidate, assignment, release, deploy, retry, replay, or resume action.</p>
     </article>
   );
 }

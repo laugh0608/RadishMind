@@ -92,6 +92,8 @@ type ApplicationEvaluationContext struct {
 	ActorRef       string
 	AuditRef       string
 	WriteEnabled   bool
+
+	ScheduleExecution *ApplicationEvaluationScheduleExecutionRef
 }
 
 type ApplicationEvaluationDefinitionTarget struct {

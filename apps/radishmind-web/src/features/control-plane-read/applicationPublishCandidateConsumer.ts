@@ -17,6 +17,7 @@ export type ApplicationPublishCandidateConfig = {
   tenantRef: string;
   workspaceId: string;
   subjectRef: string;
+  authMode?: "dev_headers" | "local_session_dev_test";
 };
 
 export type ApplicationPublishConfiguration = {
@@ -211,6 +212,9 @@ export function readApplicationPublishCandidateConfig(): ApplicationPublishCandi
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || "tenant_demo",
     workspaceId: env.VITE_RADISHMIND_APPLICATION_PUBLISH_WORKSPACE_ID?.trim() || "workspace_demo",
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || "subject_demo_user",
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -284,7 +288,7 @@ export async function readApplicationPublishCandidate(
   if (config.mode === "offline") return { candidate: null, state: initialApplicationPublishOperationState(config) };
   const requestId = createRequestId("app-publish-read");
   try {
-    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-publish-candidates/${encodeURIComponent(candidateId)}?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { headers: candidateHeaders(config, applicationId, requestId, "read") });
+    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-publish-candidates/${encodeURIComponent(candidateId)}?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { ...candidateRequestInit(config), headers: candidateHeaders(config, applicationId, requestId, "read") });
     const document: unknown = await response.json();
     if (!response.ok || !isCandidateEnvelope(document, config, applicationId)) throw new Error("invalid publish candidate response");
     return mapCandidateEnvelope(document, "loaded");
@@ -297,7 +301,7 @@ export async function listApplicationPublishCandidates(config: ApplicationPublis
   if (config.mode === "offline") return initialApplicationPublishListState(config);
   const requestId = createRequestId("app-publish-list");
   try {
-    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-publish-candidates?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { headers: candidateHeaders(config, applicationId, requestId, "read") });
+    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-publish-candidates?workspace_id=${encodeURIComponent(config.workspaceId)}&application_id=${encodeURIComponent(applicationId)}`, { ...candidateRequestInit(config), headers: candidateHeaders(config, applicationId, requestId, "read") });
     const document: unknown = await response.json();
     if (!response.ok || !isCandidateListEnvelope(document, config, applicationId)) throw new Error("invalid publish candidate list response");
     if (document.failure_code) return { status: "failed", summaries: [], failureCode: document.failure_code, summary: "Publish candidates could not be loaded." };
@@ -318,7 +322,7 @@ async function writeCandidate(
 ): Promise<{ candidate: ApplicationPublishCandidate | null; state: ApplicationPublishOperationState }> {
   const requestId = createRequestId("app-publish-write");
   try {
-    const response = await fetch(`${config.baseUrl}${path}`, { method: "POST", headers: { ...candidateHeaders(config, applicationId, requestId, operation), "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const response = await fetch(`${config.baseUrl}${path}`, { ...candidateRequestInit(config), method: "POST", headers: { ...candidateHeaders(config, applicationId, requestId, operation), "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const document: unknown = await response.json();
     if (!response.ok || !isCandidateEnvelope(document, config, applicationId)) throw new Error("invalid publish candidate response");
     return mapCandidateEnvelope(document, successStatus);
@@ -360,6 +364,16 @@ function failedCandidateOperation(failureCode: string) {
 function candidateHeaders(config: ApplicationPublishCandidateConfig, applicationId: string, requestId: string, operation: "read" | "write" | "review"): Record<string, string> {
   const scope = `${operation === "read" ? "application_publish_candidates:read" : operation === "review" ? "application_publish_candidates:review" : "application_publish_candidates:write"},workflow_rag_promotions:read,prompt_application_templates:read_source,agent_copilot_profiles:read_source`;
   const mutationPermissions = operation === "read" ? "" : scope;
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(operation === "read" ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
+      "X-RadishMind-Dev-Application-Publish-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Application-Publish-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "radishmind-web-application-publish-dev",
@@ -374,6 +388,13 @@ function candidateHeaders(config: ApplicationPublishCandidateConfig, application
     } : {}),
     "X-RadishMind-Dev-Application-Publish-Workspace": config.workspaceId,
     "X-RadishMind-Dev-Application-Publish-Application": applicationId,
+  };
+}
+
+function candidateRequestInit(config: ApplicationPublishCandidateConfig): Pick<RequestInit, "credentials" | "cache"> {
+  return {
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
   };
 }
 

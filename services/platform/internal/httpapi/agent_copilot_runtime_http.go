@@ -27,6 +27,7 @@ type agentCopilotRuntimeEnvelope struct {
 	WorkspaceID              string                                 `json:"workspace_id"`
 	ApplicationID            string                                 `json:"application_id"`
 	Assignment               *AgentCopilotRuntimeAssignmentV1       `json:"assignment"`
+	ActionSafety             *ActionSafetyReadProjectionV1          `json:"action_safety"`
 	Events                   []AgentCopilotRuntimeAssignmentEventV1 `json:"events"`
 	FailureCode              *string                                `json:"failure_code"`
 	CurrentAssignmentVersion int                                    `json:"current_assignment_version"`
@@ -187,7 +188,8 @@ func writeAgentCopilotRuntimeResultWithStatus(
 	}
 	writeObservedJSON(writer, status, trace, agentCopilotRuntimeEnvelope{
 		RequestID: trace.requestID, TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID,
-		ApplicationID: ctx.ApplicationID, Assignment: result.Assignment, Events: events,
+		ApplicationID: ctx.ApplicationID, Assignment: result.Assignment,
+		ActionSafety: actionSafetyReadFromAssignment(result.Assignment), Events: events,
 		FailureCode:              optionalApplicationDraftFailure(result.FailureCode),
 		CurrentAssignmentVersion: result.CurrentAssignmentVersion,
 		CurrentState:             result.CurrentState, AuditRef: ctx.AuditRef,

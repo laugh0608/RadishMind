@@ -9,10 +9,14 @@ import {
   type WorkflowRunRecord,
 } from "./workflowRunRecordConsumer.ts";
 import { readWorkflowRunHistoryDetail } from "./workflowRunHistoryConsumer.ts";
+import {
+  parseActionSafetyReadProjection,
+  type ActionSafetyReadProjection,
+} from "./actionSafetyConsumer.ts";
 
 const EXECUTION_ENVELOPE_KEYS = [
   "request_id", "workspace_id", "application_id", "action_plan", "run",
-  "failure_code", "failure_summary", "audit_ref",
+  "action_safety", "failure_code", "failure_summary", "audit_ref",
 ] as const;
 const EXECUTION_SCOPES = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_drafts:read"] as const;
 const DEFINITION_EXECUTION_SCOPES = ["workflow_tool_actions:execute", "workflow_runs:execute", "workflow_definitions:read"] as const;
@@ -30,6 +34,7 @@ export type WorkflowHTTPToolExecutionState = {
   auditRef: string;
   actionPlan: WorkflowHTTPToolActionPlan | null;
   run: WorkflowRunRecord | null;
+  actionSafety: ActionSafetyReadProjection | null;
 };
 
 type WorkflowHTTPToolExecutionEnvelopeDocument = {
@@ -38,6 +43,7 @@ type WorkflowHTTPToolExecutionEnvelopeDocument = {
   application_id: string;
   action_plan: unknown | null;
   run: unknown | null;
+  action_safety: unknown | null;
   failure_code: string | null;
   failure_summary: string;
   audit_ref: string;
@@ -55,6 +61,7 @@ export function initialWorkflowHTTPToolExecutionState(
         auditRef: "audit_workflow_http_tool_execution_idle",
         actionPlan: null,
         run: null,
+        actionSafety: null,
       }
     : {
         status: "disabled",
@@ -64,6 +71,7 @@ export function initialWorkflowHTTPToolExecutionState(
         auditRef: "audit_workflow_http_tool_execution_disabled",
         actionPlan: null,
         run: null,
+        actionSafety: null,
       };
 }
 
@@ -109,6 +117,29 @@ export async function executeWorkflowHTTPToolActionPlan(
       ? parseWorkflowHTTPToolActionPlanDocument(body.action_plan, config, plan.applicationId)
       : null;
     const run = body.run ? parseWorkflowRunRecordDocument(body.run) : null;
+    const actionSafety = run
+      ? parseActionSafetyReadProjection(body.action_safety, {
+          tenantRef: run.tenantRef,
+          workspaceId: config.workspaceId,
+          applicationId: plan.applicationId,
+          ownerKinds: ["workflow_run"],
+          ownerId: run.runId,
+          ownerVersion: run.recordVersion,
+        })
+      : consumedPlan
+        ? parseActionSafetyReadProjection(body.action_safety, {
+            tenantRef: config.tenantRef,
+            workspaceId: config.workspaceId,
+            applicationId: plan.applicationId,
+            ownerKinds: ["workflow_http_tool_action_plan"],
+            ownerId: consumedPlan.planId,
+            ownerVersion: consumedPlan.recordVersion,
+          })
+        : null;
+    if ((body.action_safety !== null && !actionSafety) ||
+      ((run !== null || consumedPlan !== null) && !actionSafety)) {
+      return failureState("workflow_tool_store_contract_mismatch", "The execution route returned invalid Action Safety evidence.", plan);
+    }
     if (body.failure_code && !run) {
       return {
         status: "failed",
@@ -118,6 +149,7 @@ export async function executeWorkflowHTTPToolActionPlan(
         auditRef: body.audit_ref,
         actionPlan: consumedPlan ?? plan,
         run: null,
+        actionSafety,
       };
     }
     const expectedRunSchema = plan.sourceKind === "workflow_definition" ? "workflow_run_record.v9" : "workflow_run_record.v2";
@@ -128,7 +160,7 @@ export async function executeWorkflowHTTPToolActionPlan(
       run.sideEffects.businessWrites !== 0 || run.sideEffects.replayWrites !== 0 || !workflowHTTPToolRunMatchesPlan(run, plan)) {
       return failureState("workflow_tool_store_contract_mismatch", "The execution result did not match the approved durable plan.", plan);
     }
-    return completedState(consumedPlan, run, body.request_id, body.audit_ref, body.failure_code ?? run.failureCode, body.failure_summary);
+    return completedState(consumedPlan, run, actionSafety, body.request_id, body.audit_ref, body.failure_code ?? run.failureCode, body.failure_summary);
   } catch {
     return failureState("workflow_tool_store_unavailable", "The execution route is unavailable; no automatic retry was attempted.", plan);
   }
@@ -154,7 +186,7 @@ export async function restoreWorkflowHTTPToolExecutionState(
     if (!run || !workflowHTTPToolRunMatchesPlan(run, plan)) {
       return failureState("workflow_tool_store_contract_mismatch", "The durable run no longer matches the consumed plan authority.", plan);
     }
-    return completedState(plan, run, run.requestId, run.auditRef, run.failureCode, run.failureSummary);
+    return completedState(plan, run, run.actionSafety ?? null, run.requestId, run.auditRef, run.failureCode, run.failureSummary);
   } catch {
     return failureState("workflow_tool_store_unavailable", "The durable run could not be restored; no retry was attempted.", plan);
   }
@@ -168,7 +200,8 @@ function isExecutionEnvelope(
   if (!isRecord(value) || !hasExactKeys(value, EXECUTION_ENVELOPE_KEYS) || containsForbiddenExecutionField(value)) return false;
   return typeof value.request_id === "string" && value.workspace_id === config.workspaceId &&
     value.application_id === applicationId && (value.action_plan === null || isRecord(value.action_plan)) &&
-    (value.run === null || isRecord(value.run)) && (value.failure_code === null || typeof value.failure_code === "string") &&
+    (value.run === null || isRecord(value.run)) && (value.action_safety === null || isRecord(value.action_safety)) &&
+    (value.failure_code === null || typeof value.failure_code === "string") &&
     typeof value.failure_summary === "string" && typeof value.audit_ref === "string" &&
     !(value.failure_code === null && value.run === null);
 }
@@ -236,6 +269,7 @@ function workflowHTTPToolRunMatchesPlan(run: WorkflowRunRecord, plan: WorkflowHT
 function completedState(
   plan: WorkflowHTTPToolActionPlan,
   run: WorkflowRunRecord,
+  actionSafety: ActionSafetyReadProjection | null,
   requestId: string,
   auditRef: string,
   failureCode: string,
@@ -255,6 +289,7 @@ function completedState(
     auditRef,
     actionPlan: plan,
     run,
+    actionSafety,
   };
 }
 
@@ -263,7 +298,10 @@ function failureState(
   summary: string,
   actionPlan: WorkflowHTTPToolActionPlan | null,
 ): WorkflowHTTPToolExecutionState {
-  return { status: "failed", summary, failureCode, requestId: "", auditRef: actionPlan?.auditRef ?? "", actionPlan, run: null };
+  return {
+    status: "failed", summary, failureCode, requestId: "", auditRef: actionPlan?.auditRef ?? "",
+    actionPlan, run: null, actionSafety: null,
+  };
 }
 
 function containsForbiddenExecutionField(value: unknown): boolean {

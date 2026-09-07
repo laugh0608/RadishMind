@@ -78,6 +78,8 @@ test("opens owner review for exact child anchors without treating stage anchors 
     "#application-api-integration",
     "#workspace-api-keys",
     "#prompt-application-invocation",
+    "#application-evaluation-schedule",
+    "#application-evaluation-occurrence",
   ]) {
     assert.equal(applicationDevelopmentHashTargetsOwnerSurface(anchor), true);
   }
@@ -168,6 +170,8 @@ test("existing panel and handoff anchors resolve to their owning stages", () => 
   assert.equal(applicationDevelopmentStageForHash("#workspace-api-keys"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-playground"), "controlled_test");
   assert.equal(applicationDevelopmentStageForHash("#workflow-rag-evaluation-panel"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#application-evaluation-schedule"), "evidence_review");
+  assert.equal(applicationDevelopmentStageForHash("#application-evaluation-occurrence"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#application-operations"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#application-result-artifact-library"), "evidence_review");
   assert.equal(applicationDevelopmentStageForHash("#model-gateway-request-history"), "evidence_review");

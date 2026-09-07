@@ -39,7 +39,8 @@
 ## 分支、提交与 Pull Request
 
 - `master` 是受保护的稳定主线，`dev` 是日常集成分支。
-- 普通贡献从 `feature/*`、`fix/*`、`docs/*`、`chore/*` 或 `experiment/*` 向 `dev` 发起 PR。
+- 项目所有者或已授权维护者串行推进普通任务时直接在 `dev` 开发和提交；外部贡献、并行写入、确有隔离价值的高风险改动或明确需要评审时，从主题分支向 `dev` 发起 PR。
+- 需要主题分支时，使用 `feature/*`、`fix/*`、`docs/*`、`chore/*` 或 `experiment/*`；Agent 不因默认流程自动创建 `codex/*` 分支或额外 worktree。
 - 只有阶段性 `dev` 晋级或明确的 `hotfix/*` 才向 `master` 发起 PR；不直接 push 到 `master`，不 force push 共享分支。
 - `dev -> master` 合并后必须在下一批开发前将 `master` 回同步到 `dev`。完整规则见 [ADR 0001](docs/adr/0001-branch-and-pr-governance.md)。
 - 提交遵循 Conventional Commits，例如 `feat(gateway): 增加受控 Provider 路由`、`fix(auth): 拒绝跨工作区 Session`、`docs(governance): 完善贡献规范`。

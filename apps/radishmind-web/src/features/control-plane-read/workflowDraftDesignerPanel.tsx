@@ -389,8 +389,12 @@ export function WorkflowDraftDesignerPanel({
           {selectedDraft.derivation ? (
             <WorkflowDraftFact
               label="派生来源"
-              value={selectedDraft.derivation.sourceDraftId}
-              detail={`saved version ${selectedDraft.derivation.sourceDraftVersion} · direct parent only`}
+              value={selectedDraft.derivation.version === 1
+                ? selectedDraft.derivation.sourceDraftId
+                : selectedDraft.derivation.templateId}
+              detail={selectedDraft.derivation.version === 1
+                ? `saved version ${selectedDraft.derivation.sourceDraftVersion} · direct parent only`
+                : `template version ${selectedDraft.derivation.templateVersion} · ${selectedDraft.derivation.templateDigest}`}
             />
           ) : null}
         </div>

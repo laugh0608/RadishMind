@@ -192,53 +192,55 @@ type AgentCopilotPublishCandidateV4 struct {
 }
 
 type AgentCopilotRuntimeAssignmentV1 struct {
-	SchemaVersion          string                 `json:"schema_version"`
-	AssignmentID           string                 `json:"assignment_id"`
-	TenantRef              string                 `json:"tenant_ref"`
-	WorkspaceID            string                 `json:"workspace_id"`
-	ApplicationID          string                 `json:"application_id"`
-	OwnerSubjectRef        string                 `json:"owner_subject_ref"`
-	AssignmentVersion      int                    `json:"assignment_version"`
-	State                  string                 `json:"state"`
-	CandidateID            string                 `json:"candidate_id"`
-	CandidateReviewVersion int                    `json:"candidate_review_version"`
-	DraftID                string                 `json:"draft_id"`
-	DraftVersion           int                    `json:"draft_version"`
-	DraftDigest            string                 `json:"draft_digest"`
-	AgentCopilotProfileRef AgentCopilotProfileRef `json:"agent_copilot_profile_ref"`
-	AssignmentDigest       string                 `json:"assignment_digest"`
-	ActivatedAt            string                 `json:"activated_at"`
-	UpdatedAt              string                 `json:"updated_at"`
-	RevokedAt              *string                `json:"revoked_at"`
-	ActivatedByActorRef    string                 `json:"activated_by_actor_ref"`
-	UpdatedByActorRef      string                 `json:"updated_by_actor_ref"`
-	RequestID              string                 `json:"request_id"`
-	AuditRef               string                 `json:"audit_ref"`
+	SchemaVersion          string                              `json:"schema_version"`
+	AssignmentID           string                              `json:"assignment_id"`
+	TenantRef              string                              `json:"tenant_ref"`
+	WorkspaceID            string                              `json:"workspace_id"`
+	ApplicationID          string                              `json:"application_id"`
+	OwnerSubjectRef        string                              `json:"owner_subject_ref"`
+	AssignmentVersion      int                                 `json:"assignment_version"`
+	State                  string                              `json:"state"`
+	CandidateID            string                              `json:"candidate_id"`
+	CandidateReviewVersion int                                 `json:"candidate_review_version"`
+	DraftID                string                              `json:"draft_id"`
+	DraftVersion           int                                 `json:"draft_version"`
+	DraftDigest            string                              `json:"draft_digest"`
+	AgentCopilotProfileRef AgentCopilotProfileRef              `json:"agent_copilot_profile_ref"`
+	AssignmentDigest       string                              `json:"assignment_digest"`
+	ActivatedAt            string                              `json:"activated_at"`
+	UpdatedAt              string                              `json:"updated_at"`
+	RevokedAt              *string                             `json:"revoked_at"`
+	ActivatedByActorRef    string                              `json:"activated_by_actor_ref"`
+	UpdatedByActorRef      string                              `json:"updated_by_actor_ref"`
+	RequestID              string                              `json:"request_id"`
+	AuditRef               string                              `json:"audit_ref"`
+	ActionSafety           *ActionSafetyAssignmentProjectionV1 `json:"-"`
 }
 
 type AgentCopilotRuntimeAssignmentEventV1 struct {
-	SchemaVersion              string                 `json:"schema_version"`
-	EventID                    string                 `json:"event_id"`
-	AssignmentID               string                 `json:"assignment_id"`
-	TenantRef                  string                 `json:"tenant_ref"`
-	WorkspaceID                string                 `json:"workspace_id"`
-	ApplicationID              string                 `json:"application_id"`
-	OwnerSubjectRef            string                 `json:"owner_subject_ref"`
-	EventSequence              int                    `json:"event_sequence"`
-	Action                     string                 `json:"action"`
-	ExpectedAssignmentVersion  int                    `json:"expected_assignment_version"`
-	ResultingAssignmentVersion int                    `json:"resulting_assignment_version"`
-	CandidateID                string                 `json:"candidate_id"`
-	CandidateReviewVersion     int                    `json:"candidate_review_version"`
-	DraftID                    string                 `json:"draft_id"`
-	DraftVersion               int                    `json:"draft_version"`
-	DraftDigest                string                 `json:"draft_digest"`
-	AgentCopilotProfileRef     AgentCopilotProfileRef `json:"agent_copilot_profile_ref"`
-	AssignmentDigest           string                 `json:"assignment_digest"`
-	OccurredAt                 string                 `json:"occurred_at"`
-	ActorRef                   string                 `json:"actor_ref"`
-	RequestID                  string                 `json:"request_id"`
-	AuditRef                   string                 `json:"audit_ref"`
+	SchemaVersion              string                              `json:"schema_version"`
+	EventID                    string                              `json:"event_id"`
+	AssignmentID               string                              `json:"assignment_id"`
+	TenantRef                  string                              `json:"tenant_ref"`
+	WorkspaceID                string                              `json:"workspace_id"`
+	ApplicationID              string                              `json:"application_id"`
+	OwnerSubjectRef            string                              `json:"owner_subject_ref"`
+	EventSequence              int                                 `json:"event_sequence"`
+	Action                     string                              `json:"action"`
+	ExpectedAssignmentVersion  int                                 `json:"expected_assignment_version"`
+	ResultingAssignmentVersion int                                 `json:"resulting_assignment_version"`
+	CandidateID                string                              `json:"candidate_id"`
+	CandidateReviewVersion     int                                 `json:"candidate_review_version"`
+	DraftID                    string                              `json:"draft_id"`
+	DraftVersion               int                                 `json:"draft_version"`
+	DraftDigest                string                              `json:"draft_digest"`
+	AgentCopilotProfileRef     AgentCopilotProfileRef              `json:"agent_copilot_profile_ref"`
+	AssignmentDigest           string                              `json:"assignment_digest"`
+	OccurredAt                 string                              `json:"occurred_at"`
+	ActorRef                   string                              `json:"actor_ref"`
+	RequestID                  string                              `json:"request_id"`
+	AuditRef                   string                              `json:"audit_ref"`
+	ActionSafety               *ActionSafetyAssignmentProjectionV1 `json:"-"`
 }
 
 type AgentCopilotAuthorityV3 struct {
@@ -510,6 +512,10 @@ func validateAgentCopilotRuntimeAssignment(value AgentCopilotRuntimeAssignmentV1
 	if value.State == "active" && value.RevokedAt != nil || value.State == "revoked" && (value.RevokedAt == nil || !validPromptApplicationTimestampOrder(value.ActivatedAt, *value.RevokedAt) || !validPromptApplicationTimestampOrder(*value.RevokedAt, value.UpdatedAt)) {
 		return errAgentCopilotContract
 	}
+	if value.ActionSafety != nil && (validateActionSafetyAssignmentProjection(*value.ActionSafety) != nil ||
+		value.ActionSafety.AssignmentVersion != value.AssignmentVersion) {
+		return errAgentCopilotContract
+	}
 	return nil
 }
 
@@ -523,6 +529,10 @@ func validateAgentCopilotRuntimeAssignmentEvent(value AgentCopilotRuntimeAssignm
 		return errAgentCopilotContract
 	}
 	if value.Action == "activate" && value.ExpectedAssignmentVersion != 0 || value.Action != "activate" && value.ExpectedAssignmentVersion < 1 {
+		return errAgentCopilotContract
+	}
+	if value.ActionSafety != nil && (validateActionSafetyAssignmentProjection(*value.ActionSafety) != nil ||
+		value.ActionSafety.AssignmentVersion != value.ResultingAssignmentVersion) {
 		return errAgentCopilotContract
 	}
 	return nil

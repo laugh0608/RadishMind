@@ -1,6 +1,6 @@
 # RadishMind 统一契约文件
 
-更新时间：2026-08-15
+更新时间：2026-08-27
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 
@@ -107,6 +107,17 @@
 91. `application-result-artifact.schema.json`
 92. `application-result-artifact-summary.schema.json`
 93. `application-result-artifact-export.schema.json`
+94. `workspace-workflow-template-candidate.schema.json`
+95. `workspace-workflow-template-decision.schema.json`
+96. `workspace-workflow-template-version.schema.json`
+97. `workspace-workflow-template-lineage.schema.json`
+98. `workspace-workflow-template-listing-event.schema.json`
+99. `workspace-workflow-template-audit.schema.json`
+100. `saved-workflow-draft-template-derivation-v2.schema.json`
+101. `action-safety-decision.schema.json`
+102. `application-evaluation-schedule.schema.json`
+103. `application-evaluation-schedule-version.schema.json`
+104. `application-evaluation-schedule-occurrence.schema.json`
 
 当前 TypeScript 消费契约：
 
@@ -117,9 +128,14 @@
 
 使用原则：
 
+- `application-evaluation-schedule.schema.json`、`application-evaluation-schedule-version.schema.json` 与 `application-evaluation-schedule-occurrence.schema.json` 冻结 Prompt Application 定时回归的 current record、不可变版本与单次 occurrence：只保存 exact Plan / quota consumer / 授权引用、受限 `daily_utc` 规则、确定性 Campaign key 和脱敏终态，不保存 fixture 副本、API Key token、Provider credential、输入或输出。`workflow-run-record-v6.schema.json` 的可选 `schedule_execution` 只在 scheduled Run 上同时记录 exact Schedule、system actor 与 delegated user；普通交互 Run 不接受该投影。三份合同不构成通用 cron、queue、replay 或 production worker。
+
+- `action-safety-decision.schema.json` 冻结开发 / 测试态 Action Safety Ladder 的 metadata-only 规则决定：服务端从既有 canonical response、Agent / Copilot action 或 Workflow HTTP Tool plan 推导 `requested_level`，再结合 caller 从权威 owner 重读的 scope、source、policy、membership、permission 与 confirmation 事实计算 `maximum_allowed_level / effective_level`。决定不是授权令牌，不保存正文、Tool 参数、URL、header、credential 或业务载荷；`tool_callable` 只对应既有人工确认的单次只读 `GET`，`write_allowed_by_policy` 只能作为写入需求分类出现且 v1 的有效结果始终为 `write_blocked`。
+
 - `saved-workflow-draft-v2.schema.json`、`workflow-definition-release-candidate-v2.schema.json`、`workflow-definition-version-v2.schema.json`、`workflow-run-record-v8.schema.json` 与 `workflow-run-comparison-v7.schema.json` 共同冻结 Workflow Definition 结构化运行输入的独立兼容域；v2 合同只允许最多 `16` 个扁平强类型字段，Run v8 与 Comparison v7 只保留合同、字段名 / 类型、bytes、digest 和 authority metadata，不保存输入值，也不把 v1 自动迁移或 fallback 到 v2
 - `application-runtime-authority-v4.schema.json`、`application-session-v4.schema.json` 与 `application-session-turn-v4.schema.json` 把同一结构化输入合同接入 Application Session：authority v4 精确绑定 Definition v2 的 input contract，turn v4 只保存合同引用、字段名 / 类型与 Run v8 引用，不保存运行输入值、prompt、完整输出或模型原始响应；旧 workflow v1、RAG、Prompt 与 Agent profile 继续保留各自兼容域，不自动升级或 fallback
 - `application-result-artifact.schema.json`、`application-result-artifact-summary.schema.json` 与 `application-result-artifact-export.schema.json` 冻结用户显式保存的应用会话运行结果：正文只能由服务端从同一次成功 terminal turn 的 canonical result 捕获，精确绑定 application / owner / session / turn / run；summary v2 不含 content，export v1 只即时绑定单一 artifact、当前 lifecycle、请求 / audit lineage 与 export digest，不持久化 export history，也不形成公开分享。单份正文最多 `64 KiB`；memory 保持易失，双数据库只声明开发测试态重启恢复，不改变 Run / Session / Turn 的 metadata-only 契约，也不声明 transcript、replay 或 production 能力。
+- 六份 `workspace-workflow-template-*.schema.json` 与一份 `saved-workflow-draft-template-derivation-v2.schema.json` 冻结同一工作区内部模板目录的候选、人工决定、不可变版本、上架指针 / 事件、metadata-only audit 与直接派生 provenance。模板版本只引用 exact immutable Definition，不保存 graph 副本；`derivation_v2` 与既有草案父链 `derivation_v1` 互斥。当前只实现 memory owner 与默认关闭的开发测试 HTTP，不声明 SQLite、PostgreSQL、公开 Marketplace、跨工作区分发或 production capability。
 
 - 文档说明以 [docs/radishmind-integration-contracts.md](../docs/radishmind-integration-contracts.md) 为语义说明入口；分主题契约说明位于 [docs/contracts/](../docs/contracts/README.md)
 - `contracts/` 中的 schema 是程序化校验入口

@@ -314,7 +314,41 @@ func TestApplicationEvaluationCampaignStopsOnAuthorityDriftAndQuotaFailure(t *te
 			if result.Campaign == nil || result.Campaign.State != applicationEvaluationCampaignStateFailed || result.FailureCode != testCase.failureCode || invokeCalls != 1 {
 				t.Fatalf("campaign must stop with exact failure: result=%+v invokes=%d", result, invokeCalls)
 			}
+			if result.Campaign.Items[0].State != applicationEvaluationCampaignItemFailed ||
+				result.Campaign.Items[0].FailureCode != testCase.failureCode || result.Campaign.FailedItems != 1 {
+				t.Fatalf("terminal campaign retained a non-terminal item: %+v", result.Campaign.Items[0])
+			}
 		})
+	}
+}
+
+func TestApplicationEvaluationCampaignClosesRunningItemWhenInvocationReturnsNoRun(t *testing.T) {
+	planService, ctx := newApplicationEvaluationPlanTestService(t, "workflow_copilot")
+	created := planService.Create(ctx, applicationEvaluationWorkflowPlanInput("Invocation rejected"))
+	authority := applicationEvaluationWorkflowAuthority(t, ctx)
+	service := newApplicationEvaluationCampaignService(
+		planService.repository,
+		func(ApplicationEvaluationContext, ApplicationEvaluationPlanVersion) (ApplicationEvaluationCampaignAuthority, string) {
+			return authority, ""
+		},
+		func(ApplicationEvaluationContext, ApplicationEvaluationPlanVersion, ApplicationEvaluationPlanItem, string) (*WorkflowRunRecord, string, string) {
+			return nil, PromptApplicationInvocationFailureInputInvalid, "fixture input was rejected before a durable run was created"
+		},
+		func(ApplicationEvaluationContext, string) (WorkflowRunRecord, bool, error) {
+			return WorkflowRunRecord{}, false, nil
+		},
+	)
+	result := service.Execute(ctx, ApplicationEvaluationCampaignExecuteInput{
+		PlanID: created.Plan.PlanID, PlanVersion: created.Version.PlanVersion, PlanDigest: created.Version.PlanDigest,
+		ExpectedPlanRecordVersion: created.Plan.RecordVersion, ClientCampaignKey: "campaign_no_run",
+		QuotaAPIKeyID: "key_aaaaaaaaaaaaaaaa", AcknowledgeSequentialExecution: true, AcknowledgeQuotaConsumption: true,
+	})
+	if result.Campaign == nil || result.Campaign.State != applicationEvaluationCampaignStateFailed ||
+		result.Campaign.Items[0].State != applicationEvaluationCampaignItemFailed || result.Campaign.FailedItems != 1 ||
+		result.Campaign.Items[0].FailureCode != PromptApplicationInvocationFailureInputInvalid ||
+		result.Campaign.Items[0].RunSchemaVersion != workflowRunRecordDefinitionSchemaVersion ||
+		result.Campaign.Items[0].FailureBoundary != "campaign" {
+		t.Fatalf("no-run failure did not close the running item: %+v", result)
 	}
 }
 

@@ -28,6 +28,7 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"workflow_drafts:archive":                  {},
 	"application_drafts:read":                  {},
 	"application_drafts:write":                 {},
+	"application_publish_candidates:read":      {},
 	"application_publish_candidates:write":     {},
 	"application_publish_candidates:review":    {},
 	"workflow_definitions:write":               {},
@@ -46,6 +47,7 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"prompt_application_templates:write":       {},
 	"prompt_application_templates:version":     {},
 	"prompt_application_templates:bind":        {},
+	"prompt_application_runtime:read":          {},
 	"agent_copilot_profiles:read":              {},
 	"agent_copilot_profiles:read_source":       {},
 	"agent_copilot_profiles:write":             {},
@@ -77,6 +79,10 @@ var workspacePermissionAllowlist = map[string]struct{}{
 	"admin_gateway_quotas:write":               {},
 	"admin_gateway_pricing:read":               {},
 	"admin_gateway_pricing:write":              {},
+	localIdentityPermissionMembersRead:         {},
+	localIdentityPermissionMembershipsWrite:    {},
+	localIdentityPermissionRolesRead:           {},
+	localIdentityPermissionRolesAssign:         {},
 }
 
 type VerifiedWorkspaceMembershipAssertion struct {

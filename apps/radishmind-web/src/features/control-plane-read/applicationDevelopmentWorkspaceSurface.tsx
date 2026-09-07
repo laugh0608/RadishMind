@@ -21,6 +21,7 @@ const PromptAgentTypeWorkspace = lazy(() => import("./promptAgentTypeWorkspace.t
 const ApplicationRAGInvocationPanel = lazy(() => import("./workflowRAGApplicationRuntimePanel.tsx"));
 const WorkflowRAGEvaluationDatasetPanel = lazy(() => import("./workflowRAGEvaluationDatasetPanel.tsx"));
 const WorkflowDefinitionPromotionPanel = lazy(() => import("./workflowDefinitionPromotionPanel.tsx"));
+const WorkflowTemplateCatalogPanel = lazy(() => import("./workflowTemplateCatalogPanel.tsx"));
 const WorkflowRAGPromotionPanel = lazy(() => import("./workflowRAGPromotionPanel.tsx"));
 const WorkflowRAGSnapshotPanel = lazy(() => import("./workflowRAGSnapshotPanel.tsx"));
 
@@ -37,6 +38,16 @@ type Props = {
   savedDraftLifecycleState: "active" | "archived" | "unknown";
   nextDerivedDraftNumber: number;
   onDerivedDraft: (draft: WorkflowDraftDesignerDraft) => void;
+  onTemplateDerivedDraft: (
+    draft: WorkflowDraftDesignerDraft,
+    authority: {
+      draftId: string;
+      draftVersion: number;
+      lifecycleVersion: number;
+      lifecycleState: "active";
+      targetApplicationId: string;
+    },
+  ) => void;
   onRunRecorded: () => void;
 };
 
@@ -53,6 +64,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   savedDraftLifecycleState,
   nextDerivedDraftNumber,
   onDerivedDraft,
+  onTemplateDerivedDraft,
   onRunRecorded,
 }: Props) {
   const baseline = {
@@ -230,6 +242,18 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           )}
+          {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
+            <Suspense fallback={<StageFallback label="Workflow Template Catalog" />}>
+              <WorkflowTemplateCatalogPanel
+                key={`${context.generationKey}:workflow-template-catalog`}
+                workspaceId={context.workspaceId}
+                applicationId={context.applicationId}
+                applicationName={context.displayName}
+                applicationActive={context.applicationActive}
+                onDerivedDraft={onTemplateDerivedDraft}
+              />
+            </Suspense>
+          ) : null}
           {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
             <Suspense fallback={<StageFallback label="Workflow Definition promotion" />}>
               <WorkflowDefinitionPromotionPanel

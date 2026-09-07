@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
@@ -32,27 +33,35 @@ func (store *postgresWorkflowRunStore) UpsertRun(runContext WorkflowRunContext, 
 		return err
 	}
 	inputContractID, inputContractDigest := workflowRunStructuredInputProjection(next)
+	safety, err := encodeActionSafetyRunSnapshot(next.ActionSafety)
+	if err != nil {
+		return errWorkflowRunStoreContract
+	}
+	safetySchema, safetyDigest, safetyPayload := safety.columnValues()
 	var storedVersion int
 	if record.RecordVersion == 0 {
 		err = store.pool.QueryRow(runContext.RequestContext, `INSERT INTO workflow_run_records
- (tenant_ref,workspace_id,application_id,run_id,execution_source_kind,execution_source_id,execution_source_version,record_version,schema_version,run_status,started_at,completed_at,actor_ref,request_id,audit_ref,failure_code,failure_boundary,selected_provider,selected_model,input_contract_id,input_contract_digest,sanitized_run_record)
- VALUES ($1,$2,$3,$4,$5,$6,$7,1,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+		 (tenant_ref,workspace_id,application_id,run_id,execution_source_kind,execution_source_id,execution_source_version,record_version,schema_version,run_status,started_at,completed_at,actor_ref,request_id,audit_ref,failure_code,failure_boundary,selected_provider,selected_model,input_contract_id,input_contract_digest,sanitized_run_record,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+		 VALUES ($1,$2,$3,$4,$5,$6,$7,1,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
  ON CONFLICT DO NOTHING RETURNING record_version`,
 			runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, next.RunID, sourceKind,
 			sourceID, sourceVersion, next.SchemaVersion, next.Status, startedAt, completedAt, next.ActorRef,
 			next.RequestID, next.AuditRef, next.FailureCode, workflowRunRecordFailureBoundary(next), next.SelectedProvider,
-			next.SelectedModel, inputContractID, inputContractDigest, payload).Scan(&storedVersion)
+			next.SelectedModel, inputContractID, inputContractDigest, payload,
+			safetySchema, safetyDigest, safetyPayload).Scan(&storedVersion)
 	} else {
 		err = store.pool.QueryRow(runContext.RequestContext, `UPDATE workflow_run_records SET
 			execution_source_kind=$1,execution_source_id=$2,execution_source_version=$3,
 			record_version=record_version+1,schema_version=$4,run_status=$5,
 			completed_at=$6,actor_ref=$7,request_id=$8,audit_ref=$9,failure_code=$10,failure_boundary=$11,
-			selected_provider=$12,selected_model=$13,input_contract_id=$14,input_contract_digest=$15,sanitized_run_record=$16
- WHERE tenant_ref=$17 AND workspace_id=$18 AND application_id=$19 AND run_id=$20
-  AND record_version=$21 AND run_status='running' RETURNING record_version`,
+			selected_provider=$12,selected_model=$13,input_contract_id=$14,input_contract_digest=$15,sanitized_run_record=$16,
+			action_safety_schema_version=$17,action_safety_projection_digest=$18,sanitized_action_safety_snapshot=$19
+ WHERE tenant_ref=$20 AND workspace_id=$21 AND application_id=$22 AND run_id=$23
+  AND record_version=$24 AND run_status='running' RETURNING record_version`,
 			sourceKind, sourceID, sourceVersion, next.SchemaVersion, next.Status, completedAt, next.ActorRef,
 			next.RequestID, next.AuditRef, next.FailureCode, workflowRunRecordFailureBoundary(next), next.SelectedProvider,
-			next.SelectedModel, inputContractID, inputContractDigest, payload, runContext.TenantRef, runContext.WorkspaceID,
+			next.SelectedModel, inputContractID, inputContractDigest, payload,
+			safetySchema, safetyDigest, safetyPayload, runContext.TenantRef, runContext.WorkspaceID,
 			runContext.ApplicationID, next.RunID, record.RecordVersion).Scan(&storedVersion)
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -71,15 +80,17 @@ func (store *postgresWorkflowRunStore) ReadRun(runContext WorkflowRunContext, ru
 	}
 	var sourceKind, sourceID, inputContractID, inputContractDigest string
 	var sourceVersion int
-	var payload []byte
-	err := store.pool.QueryRow(runContext.RequestContext, `SELECT execution_source_kind,execution_source_id,execution_source_version,input_contract_id,input_contract_digest,sanitized_run_record FROM workflow_run_records WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND run_id=$4`, runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, runID).Scan(&sourceKind, &sourceID, &sourceVersion, &inputContractID, &inputContractDigest, &payload)
+	var payload, safetyPayload []byte
+	var safetySchema, safetyDigest sql.NullString
+	err := store.pool.QueryRow(runContext.RequestContext, `SELECT execution_source_kind,execution_source_id,execution_source_version,input_contract_id,input_contract_digest,sanitized_run_record,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM workflow_run_records WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND run_id=$4`, runContext.TenantRef, runContext.WorkspaceID, runContext.ApplicationID, runID).Scan(&sourceKind, &sourceID, &sourceVersion, &inputContractID, &inputContractDigest, &payload, &safetySchema, &safetyDigest, &safetyPayload)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return WorkflowRunRecord{}, false, nil
 	}
 	if err != nil {
 		return WorkflowRunRecord{}, false, errWorkflowRunStoreUnavailable
 	}
-	record, err := decodePostgresWorkflowRunStorageProjection(runContext, sourceKind, sourceID, sourceVersion, inputContractID, inputContractDigest, payload)
+	record, err := decodePostgresWorkflowRunStorageProjection(runContext, sourceKind, sourceID, sourceVersion, inputContractID, inputContractDigest, payload,
+		actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload})
 	if err != nil {
 		return WorkflowRunRecord{}, false, err
 	}
@@ -91,7 +102,7 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
 	limit := workflowRunStoreListLimit(filter.Limit)
-	rows, err := store.pool.Query(runContext.RequestContext, `SELECT execution_source_kind,execution_source_id,execution_source_version,input_contract_id,input_contract_digest,sanitized_run_record FROM workflow_run_records
+	rows, err := store.pool.Query(runContext.RequestContext, `SELECT execution_source_kind,execution_source_id,execution_source_version,input_contract_id,input_contract_digest,sanitized_run_record,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot FROM workflow_run_records
  WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3
 	AND ($4='' OR run_status=$4)
 	AND ($5='' OR (execution_source_kind='workflow_draft' AND execution_source_id=$5))
@@ -115,11 +126,13 @@ func (store *postgresWorkflowRunStore) ListRuns(runContext WorkflowRunContext, f
 	for rows.Next() {
 		var sourceKind, sourceID, inputContractID, inputContractDigest string
 		var sourceVersion int
-		var payload []byte
-		if err = rows.Scan(&sourceKind, &sourceID, &sourceVersion, &inputContractID, &inputContractDigest, &payload); err != nil {
+		var payload, safetyPayload []byte
+		var safetySchema, safetyDigest sql.NullString
+		if err = rows.Scan(&sourceKind, &sourceID, &sourceVersion, &inputContractID, &inputContractDigest, &payload, &safetySchema, &safetyDigest, &safetyPayload); err != nil {
 			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 		}
-		record, decodeErr := decodePostgresWorkflowRunStorageProjection(runContext, sourceKind, sourceID, sourceVersion, inputContractID, inputContractDigest, payload)
+		record, decodeErr := decodePostgresWorkflowRunStorageProjection(runContext, sourceKind, sourceID, sourceVersion, inputContractID, inputContractDigest, payload,
+			actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload})
 		if decodeErr != nil {
 			return WorkflowRunListPage{}, decodeErr
 		}
@@ -143,7 +156,7 @@ func (store *postgresWorkflowRunStore) ListWorkspaceRuns(
 		return WorkflowRunListPage{}, errWorkflowRunStoreContract
 	}
 	limit := workflowRunStoreListLimit(filter.Limit)
-	rows, err := store.pool.Query(runContext.RequestContext, `SELECT application_id,execution_source_kind,execution_source_id,execution_source_version,input_contract_id,input_contract_digest,sanitized_run_record
+	rows, err := store.pool.Query(runContext.RequestContext, `SELECT application_id,execution_source_kind,execution_source_id,execution_source_version,input_contract_id,input_contract_digest,sanitized_run_record,action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
  FROM workflow_run_records
  WHERE tenant_ref=$1 AND workspace_id=$2 AND actor_ref=$3
 	AND ($4='' OR application_id=$4)
@@ -170,8 +183,9 @@ func (store *postgresWorkflowRunStore) ListWorkspaceRuns(
 	for rows.Next() {
 		var applicationID, sourceKind, sourceID, inputContractID, inputContractDigest string
 		var sourceVersion int
-		var payload []byte
-		if err = rows.Scan(&applicationID, &sourceKind, &sourceID, &sourceVersion, &inputContractID, &inputContractDigest, &payload); err != nil {
+		var payload, safetyPayload []byte
+		var safetySchema, safetyDigest sql.NullString
+		if err = rows.Scan(&applicationID, &sourceKind, &sourceID, &sourceVersion, &inputContractID, &inputContractDigest, &payload, &safetySchema, &safetyDigest, &safetyPayload); err != nil {
 			return WorkflowRunListPage{}, errWorkflowRunStoreUnavailable
 		}
 		record, decodeErr := decodePostgresWorkflowRunStorageProjection(WorkflowRunContext{
@@ -179,7 +193,8 @@ func (store *postgresWorkflowRunStore) ListWorkspaceRuns(
 			TenantRef:      runContext.TenantRef,
 			WorkspaceID:    runContext.WorkspaceID,
 			ApplicationID:  applicationID,
-		}, sourceKind, sourceID, sourceVersion, inputContractID, inputContractDigest, payload)
+		}, sourceKind, sourceID, sourceVersion, inputContractID, inputContractDigest, payload,
+			actionSafetyStorageSnapshot{SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload})
 		if decodeErr != nil || record.ActorRef != runContext.OwnerSubjectRef {
 			return WorkflowRunListPage{}, errWorkflowRunStoreContract
 		}
@@ -195,7 +210,7 @@ func (store *postgresWorkflowRunStore) ListWorkspaceRuns(
 	return WorkflowRunListPage{Records: records, HasMore: hasMore}, nil
 }
 
-func decodePostgresWorkflowRunStorageProjection(runContext WorkflowRunContext, sourceKind, sourceID string, sourceVersion int, inputContractID, inputContractDigest string, payload []byte) (WorkflowRunRecord, error) {
+func decodePostgresWorkflowRunStorageProjection(runContext WorkflowRunContext, sourceKind, sourceID string, sourceVersion int, inputContractID, inputContractDigest string, payload []byte, safetySnapshot actionSafetyStorageSnapshot) (WorkflowRunRecord, error) {
 	record, err := decodeWorkflowRunStorageRecord(runContext, payload)
 	if err != nil {
 		return WorkflowRunRecord{}, err
@@ -206,6 +221,10 @@ func decodePostgresWorkflowRunStorageProjection(runContext WorkflowRunContext, s
 	}
 	decodedInputContractID, decodedInputContractDigest := workflowRunStructuredInputProjection(record)
 	if inputContractID != decodedInputContractID || inputContractDigest != decodedInputContractDigest {
+		return WorkflowRunRecord{}, errWorkflowRunStoreContract
+	}
+	record.ActionSafety, err = decodeActionSafetyRunSnapshot(safetySnapshot)
+	if err != nil || validateWorkflowRunStoreRecord(runContext, &record) != nil {
 		return WorkflowRunRecord{}, errWorkflowRunStoreContract
 	}
 	return record, nil

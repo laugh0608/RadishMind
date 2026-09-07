@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   APPLICATION_EVALUATION_PROFILES,
@@ -33,18 +33,25 @@ import {
   type StructuredRuntimeInputValues,
 } from "./structuredRuntimeInput.ts";
 
-type EvaluationTask = "plan" | "campaign" | "pair" | "handoff";
+type EvaluationTask = "plan" | "schedule" | "occurrence" | "campaign" | "pair" | "handoff";
 type LoadState = "offline" | "loading" | "ready" | "empty" | "failed";
 type PendingPlanOperation =
   | { kind: "create" | "revise"; draft: ApplicationEvaluationPlanDraft }
   | { kind: "archive"; draft: null };
 
 const TASKS: Array<{ id: EvaluationTask; number: string; label: string; summary: string; anchor: string }> = [
-  { id: "plan", number: "01", label: "Plan", summary: "Immutable version and fixtures", anchor: "application-evaluation-plan" },
-  { id: "campaign", number: "02", label: "Campaign", summary: "Sequential durable Runs", anchor: "application-evaluation-campaign" },
-  { id: "pair", number: "03", label: "Pair Review", summary: "Exact compatible Run refs", anchor: "application-evaluation-pair" },
-  { id: "handoff", number: "04", label: "Handoff", summary: "Case and Suite evidence", anchor: "application-evaluation-handoff" },
+  { id: "plan", number: "01", label: "Plan", summary: "Exact version", anchor: "application-evaluation-plan" },
+  { id: "schedule", number: "02", label: "Schedule", summary: "Daily UTC", anchor: "application-evaluation-schedule" },
+  { id: "occurrence", number: "03", label: "Occurrence", summary: "Claim and observe", anchor: "application-evaluation-occurrence" },
+  { id: "campaign", number: "04", label: "Campaign", summary: "Exact handoff", anchor: "application-evaluation-campaign" },
 ];
+const TASK_ROUTES: Array<{ id: EvaluationTask; anchor: string }> = [
+  ...TASKS,
+  { id: "pair", anchor: "application-evaluation-pair" },
+  { id: "handoff", anchor: "application-evaluation-handoff" },
+];
+const ApplicationEvaluationScheduleOwner = lazy(() => import("./ApplicationEvaluationScheduleOwner.tsx"));
+const ApplicationEvaluationPairHandoffOwner = lazy(() => import("./ApplicationEvaluationPairHandoffOwner.tsx"));
 
 export default function ApplicationEvaluationCampaignPanel({
   applicationId,
@@ -178,7 +185,7 @@ export default function ApplicationEvaluationCampaignPanel({
     function synchronizeTask() {
       const task = taskForHash(window.location.hash);
       setActiveTask(task);
-      if (TASKS.some((candidate) => `#${candidate.anchor}` === window.location.hash)) {
+      if (TASK_ROUTES.some((candidate) => `#${candidate.anchor}` === window.location.hash)) {
         window.requestAnimationFrame(() => {
           document.querySelector<HTMLElement>(".application-evaluation-workspace")?.scrollIntoView({ block: "start" });
         });
@@ -190,10 +197,16 @@ export default function ApplicationEvaluationCampaignPanel({
   }, []);
 
   function chooseTask(task: EvaluationTask) {
-    const target = TASKS.find((candidate) => candidate.id === task);
+    const target = TASK_ROUTES.find((candidate) => candidate.id === task);
     if (!target) return;
     setActiveTask(task);
     window.location.hash = target.anchor;
+  }
+
+  async function openExactScheduledCampaign(campaignId: string, planId: string) {
+    await loadExactPlan(planId);
+    setSelectedCampaignId(campaignId);
+    chooseTask("campaign");
   }
 
   function applyTemplate(nextProfile: ApplicationEvaluationProfile) {
@@ -383,9 +396,9 @@ export default function ApplicationEvaluationCampaignPanel({
     >
       <header className="application-evaluation-heading">
         <div>
-          <p className="eyebrow">S10 · Application evaluation campaign</p>
-          <h3 id="application-evaluation-title">Application Evaluation</h3>
-          <p>Freeze a reviewed plan, produce sequential durable Runs, compare exact campaigns, then explicitly materialize existing Case and Suite evidence.</p>
+          <p className="eyebrow">S10 · Scheduled regression evaluation</p>
+          <h3 id="application-evaluation-title">Scheduled regression campaign</h3>
+          <p>Run one exact Prompt plan on a guarded UTC cadence, inspect each occurrence, and hand off only an existing exact Campaign.</p>
         </div>
         <div className="application-evaluation-boundaries">
           <span className="status-badge neutral">{config.environment}</span>
@@ -402,76 +415,73 @@ export default function ApplicationEvaluationCampaignPanel({
         <div><dt>Application</dt><dd>{applicationId}</dd></div>
       </dl>
 
-      <div className="application-evaluation-task-switcher" role="tablist" aria-label="Evaluation campaign tasks">
-        {TASKS.map((task) => (
-          <button
-            key={task.id}
-            type="button"
-            role="tab"
-            aria-selected={activeTask === task.id}
-            onClick={() => chooseTask(task.id)}
-          >
-            <b>{task.number}</b><span><strong>{task.label}</strong><small>{task.summary}</small></span>
-          </button>
-        ))}
-      </div>
-
-      <div className="application-evaluation-workbench">
-        <aside className="application-evaluation-plan-list" aria-label="Immutable evaluation plans">
-          <header>
-            <span>Immutable plans</span>
-            <strong>{plans.length} active</strong>
-          </header>
-          <div role="listbox" aria-label="Evaluation plans for the selected application">
-            {plans.map((plan) => (
+      <div className="application-evaluation-stage-shell">
+        <aside className="application-evaluation-path">
+          <span>Schedule owner</span>
+          <div className="application-evaluation-task-switcher" role="tablist" aria-label="Scheduled evaluation path">
+            {TASKS.map((task) => (
               <button
-                key={plan.planId}
+                key={task.id}
                 type="button"
-                role="option"
-                aria-selected={selectedPlanId === plan.planId}
-                className={selectedPlanId === plan.planId ? "is-selected" : ""}
-                onClick={() => void loadExactPlan(plan.planId)}
+                role="tab"
+                aria-selected={activeTask === task.id || task.id === "campaign" && (activeTask === "pair" || activeTask === "handoff")}
+                onClick={() => chooseTask(task.id)}
               >
-                <i aria-hidden="true" />
-                <span>
-                  <strong>{plan.name}</strong>
-                  <small>{plan.executionProfile}</small>
-                  <small>{plan.itemCount} items · v{plan.latestPlanVersion}</small>
-                </span>
-                <em>{plan.lifecycleState}</em>
+                <b>{task.number}</b><span><strong>{task.label}</strong><small>{task.summary}</small></span>
               </button>
             ))}
-            {loadState === "loading" ? <p className="application-evaluation-empty">Loading the Plan owner…</p> : null}
-            {loadState === "empty" ? <p className="application-evaluation-empty">No active evaluation plans exist for this application.</p> : null}
-            {loadState === "offline" ? <p className="application-evaluation-empty">HTTP source disabled. No request was sent.</p> : null}
           </div>
-          <p className="application-evaluation-selection-note">Only the plan driving this owner receives the ink-blue selection track. Lifecycle and campaign state stay separate.</p>
+          <p><strong>DEV / TEST ONLY</strong><span>No cron, replay, catch-up or production worker.</span></p>
         </aside>
 
-        <main className="application-evaluation-owner">
-          {activeTask === "plan" ? (
-            <PlanOwner
-              profile={profile}
-              planName={planName}
-              targetJSON={targetJSON}
-              itemsJSON={itemsJSON}
-              selectedPlan={selectedPlan}
-              selectedVersion={selectedVersion}
-              pending={pendingPlanOperation}
-              writeBlocked={writeBlocked}
-              operationPending={operationPending}
-              onProfileChange={applyTemplate}
-              onPlanNameChange={setPlanName}
-              onTargetJSONChange={setTargetJSON}
-              onItemsJSONChange={setItemsJSON}
-              onLoadVersion={loadVersionIntoEditor}
-              onReview={reviewPlan}
-              onReviewArchive={() => setPendingPlanOperation({ kind: "archive", draft: null })}
-              onCancel={() => setPendingPlanOperation(null)}
-              onConfirm={() => void confirmPlanOperation()}
+        <div className="application-evaluation-stage-owner">
+          {activeTask === "plan" ? <div className="application-evaluation-workbench">
+            <PlanList
+              plans={plans}
+              selectedPlanId={selectedPlanId}
+              loadState={loadState}
+              onSelect={(planId) => void loadExactPlan(planId)}
             />
+            <main className="application-evaluation-owner">
+              <PlanOwner
+                profile={profile}
+                planName={planName}
+                targetJSON={targetJSON}
+                itemsJSON={itemsJSON}
+                selectedPlan={selectedPlan}
+                selectedVersion={selectedVersion}
+                pending={pendingPlanOperation}
+                writeBlocked={writeBlocked}
+                operationPending={operationPending}
+                onProfileChange={applyTemplate}
+                onPlanNameChange={setPlanName}
+                onTargetJSONChange={setTargetJSON}
+                onItemsJSONChange={setItemsJSON}
+                onLoadVersion={loadVersionIntoEditor}
+                onReview={reviewPlan}
+                onReviewArchive={() => setPendingPlanOperation({ kind: "archive", draft: null })}
+                onCancel={() => setPendingPlanOperation(null)}
+                onConfirm={() => void confirmPlanOperation()}
+              />
+            </main>
+          </div> : null}
+
+          {activeTask === "schedule" || activeTask === "occurrence" ? (
+            <Suspense fallback={<div className="application-evaluation-pair-empty"><strong>Loading Schedule owner…</strong><span>The owner remains read-only until its strict consumer is ready.</span></div>}>
+              <ApplicationEvaluationScheduleOwner
+                config={config}
+                view={activeTask}
+                plans={plans}
+                selectedPlan={selectedPlan}
+                selectedPlanVersion={selectedVersion}
+                applicationActive={applicationActive}
+                onSelectPlan={(planId) => void loadExactPlan(planId)}
+                onOpenCampaign={(campaignId, planId) => void openExactScheduledCampaign(campaignId, planId)}
+              />
+            </Suspense>
           ) : null}
-          {activeTask === "campaign" ? (
+
+          {activeTask === "campaign" ? <main className="application-evaluation-owner">
             <CampaignOwner
               plan={selectedPlan}
               version={selectedVersion}
@@ -496,26 +506,29 @@ export default function ApplicationEvaluationCampaignPanel({
               onReconcile={() => void reconcileCampaign()}
               onOpenHandoff={() => chooseTask("handoff")}
             />
-          ) : null}
-          {activeTask === "pair" || activeTask === "handoff" ? (
-            <PairHandoffOwner
-              task={activeTask}
-              campaigns={terminalCampaigns}
-              baselineCampaignId={baselineCampaignId}
-              candidateCampaignId={candidateCampaignId}
-              envelope={pairEnvelope}
-              confirmed={handoffConfirmation}
-              writeBlocked={writeBlocked}
-              operationPending={operationPending}
-              onBaselineChange={(value) => { setBaselineCampaignId(value); setPairEnvelope(null); setHandoffConfirmation(false); }}
-              onCandidateChange={(value) => { setCandidateCampaignId(value); setPairEnvelope(null); setHandoffConfirmation(false); }}
-              onPreview={() => void previewPair()}
-              onReviewHandoff={() => setHandoffConfirmation(true)}
-              onCancelHandoff={() => setHandoffConfirmation(false)}
-              onConfirmHandoff={() => void confirmHandoff()}
-            />
-          ) : null}
-        </main>
+          </main> : null}
+
+          {activeTask === "pair" || activeTask === "handoff" ? <main className="application-evaluation-owner">
+            <Suspense fallback={<div className="application-evaluation-pair-empty"><strong>Loading Campaign evidence…</strong><span>Exact Run references remain unchanged.</span></div>}>
+              <ApplicationEvaluationPairHandoffOwner
+                task={activeTask}
+                campaigns={terminalCampaigns}
+                baselineCampaignId={baselineCampaignId}
+                candidateCampaignId={candidateCampaignId}
+                envelope={pairEnvelope}
+                confirmed={handoffConfirmation}
+                writeBlocked={writeBlocked}
+                operationPending={operationPending}
+                onBaselineChange={(value) => { setBaselineCampaignId(value); setPairEnvelope(null); setHandoffConfirmation(false); }}
+                onCandidateChange={(value) => { setCandidateCampaignId(value); setPairEnvelope(null); setHandoffConfirmation(false); }}
+                onPreview={() => void previewPair()}
+                onReviewHandoff={() => setHandoffConfirmation(true)}
+                onCancelHandoff={() => setHandoffConfirmation(false)}
+                onConfirmHandoff={() => void confirmHandoff()}
+              />
+            </Suspense>
+          </main> : null}
+        </div>
       </div>
 
       {failureCode || message ? (
@@ -534,6 +547,40 @@ export default function ApplicationEvaluationCampaignPanel({
       </p>
     </section>
   );
+}
+
+function PlanList({
+  plans,
+  selectedPlanId,
+  loadState,
+  onSelect,
+}: {
+  plans: ApplicationEvaluationPlan[];
+  selectedPlanId: string;
+  loadState: LoadState;
+  onSelect: (planId: string) => void;
+}) {
+  return <aside className="application-evaluation-plan-list" aria-label="Immutable evaluation plans">
+    <header><span>Immutable plans</span><strong>{plans.length} active</strong></header>
+    <div role="listbox" aria-label="Evaluation plans for the selected application">
+      {plans.map((plan) => <button
+        key={plan.planId}
+        type="button"
+        role="option"
+        aria-selected={selectedPlanId === plan.planId}
+        className={selectedPlanId === plan.planId ? "is-selected" : ""}
+        onClick={() => onSelect(plan.planId)}
+      >
+        <i aria-hidden="true" />
+        <span><strong>{plan.name}</strong><small>{plan.executionProfile}</small><small>{plan.itemCount} items · v{plan.latestPlanVersion}</small></span>
+        <em>{plan.lifecycleState}</em>
+      </button>)}
+      {loadState === "loading" ? <p className="application-evaluation-empty">Loading the Plan owner…</p> : null}
+      {loadState === "empty" ? <p className="application-evaluation-empty">No active evaluation plans exist for this application.</p> : null}
+      {loadState === "offline" ? <p className="application-evaluation-empty">HTTP source disabled. No request was sent.</p> : null}
+    </div>
+    <p className="application-evaluation-selection-note">Only the plan driving this owner receives the ink-blue selection track. Lifecycle and campaign state stay separate.</p>
+  </aside>;
 }
 
 function PlanOwner({
@@ -888,73 +935,6 @@ function CampaignItems({ campaign }: { campaign: ApplicationEvaluationCampaign }
   );
 }
 
-function PairHandoffOwner({
-  task,
-  campaigns,
-  baselineCampaignId,
-  candidateCampaignId,
-  envelope,
-  confirmed,
-  writeBlocked,
-  operationPending,
-  onBaselineChange,
-  onCandidateChange,
-  onPreview,
-  onReviewHandoff,
-  onCancelHandoff,
-  onConfirmHandoff,
-}: {
-  task: "pair" | "handoff";
-  campaigns: ApplicationEvaluationCampaign[];
-  baselineCampaignId: string;
-  candidateCampaignId: string;
-  envelope: ApplicationEvaluationPairEnvelope | null;
-  confirmed: boolean;
-  writeBlocked: boolean;
-  operationPending: boolean;
-  onBaselineChange: (value: string) => void;
-  onCandidateChange: (value: string) => void;
-  onPreview: () => void;
-  onReviewHandoff: () => void;
-  onCancelHandoff: () => void;
-  onConfirmHandoff: () => void;
-}) {
-  const review = envelope?.review ?? null;
-  const handoff = envelope?.handoff ?? review?.existingHandoff ?? null;
-  return (
-    <section className="application-evaluation-pair-owner" id={task === "pair" ? "application-evaluation-pair" : "application-evaluation-handoff"}>
-      <header>
-        <div><p className="eyebrow">Current owner · {task === "pair" ? "Pair Review" : "Handoff"}</p><h4>{task === "pair" ? "Exact campaign pair" : "Case and Suite evidence handoff"}</h4><p>{task === "pair" ? "Compare two succeeded campaigns from the same immutable plan version." : "Materialize exact Case versions first, then one Suite; partial evidence remains append-only."}</p></div>
-        <span className={`status-badge ${handoff?.state === "complete" ? "good" : "neutral"}`}>{handoff?.state ?? (review ? "preview ready" : "selection required")}</span>
-      </header>
-      <div className="application-evaluation-pair-selectors">
-        <label><span>Baseline campaign</span><select value={baselineCampaignId} onChange={(event) => onBaselineChange(event.target.value)} disabled={operationPending}><option value="">Choose baseline</option>{campaigns.map((campaign) => <option key={campaign.campaignId} value={campaign.campaignId}>{campaign.clientCampaignKey} · {campaign.campaignId}</option>)}</select></label>
-        <label><span>Candidate campaign</span><select value={candidateCampaignId} onChange={(event) => onCandidateChange(event.target.value)} disabled={operationPending}><option value="">Choose candidate</option>{campaigns.map((campaign) => <option key={campaign.campaignId} value={campaign.campaignId}>{campaign.clientCampaignKey} · {campaign.campaignId}</option>)}</select></label>
-        <button type="button" onClick={onPreview} disabled={operationPending || !baselineCampaignId || !candidateCampaignId || baselineCampaignId === candidateCampaignId}>Preview exact pair</button>
-      </div>
-      {review ? (
-        <>
-          <div className="application-evaluation-pair-summary"><div><span>Plan</span><strong>{review.planName} · v{review.planVersion}</strong></div><div><span>Expected matches</span><strong>{review.expectedMatches}</strong></div><div><span>Mismatches</span><strong>{review.expectedMismatches}</strong></div><div><span>Profile</span><strong>{review.executionProfile}</strong></div></div>
-          <div className="application-evaluation-pair-items">
-            {review.items.map((item) => <article key={item.itemKey} className={item.expectationMatched ? "is-match" : "is-mismatch"}><header><strong>{item.name}</strong><span>{item.expectationMatched ? "expected" : "mismatch"}</span></header><p><code>{item.baselineRunId}</code><span>→</span><code>{item.candidateRunId}</code></p><dl><div><dt>Expected</dt><dd>{item.expectedClassification}</dd></div><div><dt>Actual</dt><dd>{item.actualClassification}</dd></div><div><dt>Comparison</dt><dd>{item.comparison?.comparisonState ?? "unavailable"}</dd></div></dl></article>)}
-          </div>
-          {task === "handoff" ? (
-            handoff ? <HandoffEvidence handoff={handoff} /> : !confirmed ? (
-              <div className="application-evaluation-handoff-gate"><div><span>EXPLICIT HANDOFF</span><strong>Materialize exact Case versions and one Suite</strong><p>No candidate is approved, activated, released or deployed by this action.</p></div><button type="button" onClick={onReviewHandoff} disabled={writeBlocked}>Review handoff</button></div>
-            ) : (
-              <div className="application-evaluation-confirmation"><span>CONFIRM EVIDENCE MATERIALIZATION</span><strong>{review.items.length} exact campaign pairs</strong><p>Expected baseline record version {envelope?.currentBaselineRecordVersion}; candidate version {envelope?.currentCandidateRecordVersion}. Every completed Case is checkpointed before Suite creation.</p><p>Partial success remains durable and is not deleted or automatically retried.</p><div><button type="button" className="secondary-action" onClick={onCancelHandoff}>Cancel</button><button type="button" onClick={onConfirmHandoff} disabled={writeBlocked}>Confirm handoff</button></div></div>
-            )
-          ) : <p className="application-evaluation-pair-boundary">Pair Preview is read-only. Open Handoff for explicit Case / Suite evidence materialization.</p>}
-        </>
-      ) : <div className="application-evaluation-pair-empty"><strong>{campaigns.length < 2 ? "Two succeeded campaigns are required" : "Preview the selected pair"}</strong><span>Only exact Run references are compared. No execution, replay or release occurs.</span></div>}
-    </section>
-  );
-}
-
-function HandoffEvidence({ handoff }: { handoff: NonNullable<ApplicationEvaluationPairEnvelope["handoff"]> }) {
-  return <div className={`application-evaluation-handoff-evidence ${handoff.state}`}><header><div><span>HANDOFF {handoff.state.toUpperCase()}</span><strong>{handoff.caseRefs.length} exact Case refs</strong></div><em>{handoff.suiteId || "Suite pending"}</em></header><div>{handoff.caseRefs.map((ref) => <code key={`${ref.caseId}:${ref.version}`}>{ref.caseId} · v{ref.version}</code>)}</div><p>Candidate campaign remains the single durable handoff anchor. Existing evidence is append-only.</p></div>;
-}
-
 function profileForKind(kind: string): ApplicationEvaluationProfile {
   if (kind === "prompt_application") return "prompt_application_invocation_v1";
   if (kind === "agent") return "agent_copilot_suggestion_v1";
@@ -964,7 +944,7 @@ function profileForKind(kind: string): ApplicationEvaluationProfile {
 
 function taskForHash(hash: string): EvaluationTask {
   const normalized = hash.trim().replace(/^#/u, "");
-  return TASKS.find((task) => task.anchor === normalized)?.id ?? "plan";
+  return TASK_ROUTES.find((task) => task.anchor === normalized)?.id ?? "schedule";
 }
 
 function newCampaignKey(applicationId: string): string {

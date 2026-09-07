@@ -1,11 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-08-19
+更新时间：2026-09-01
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
+- [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。受限委托 P0 与 Batch A 至 D 已完成 canonical / 三存储 owner、strict HTTP、逐次授权重验、显式 dev/test runner、既有 Campaign / Run 交接、crash no-replay、完整 Pencil、单一 React strict consumer、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；任务卡关闭，不派生 Batch E。
 - [应用结果资产库与受控导出（开发 / 测试态）v1](application-result-artifact-library-controlled-export-dev-test-v1.md)：状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`；批次 A 至 C 的 application-scoped 严格列表、过滤 cursor、canonical export、独立 export 权限、双数据库索引、strict Web consumer、三视口页面与双数据库产品连续链已完成，专题关闭且不复制 artifact / lifecycle owner。
 - [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](application-session-result-artifact-explicit-retention-dev-test-v1.md)：批次 A 至 D 已完成并关闭；默认关闭的显式保存、三存储不可变 artifact、版本化 lifecycle、共享 strict Web consumer、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已成立，不改变 Run History / Session metadata-only 契约，也不派生批次 E、通用 result store 或 transcript。
 - [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到 S1–S8 八个产品面，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
@@ -34,12 +35,13 @@
 
 ## 下一步
 
+- 定时回归评测专题 P0 与 Batch A 至 D 已完成并关闭，完整 Pencil 与 React 产品面继续复用 S10 表达 exact Plan / quota consumer / system actor + delegated user / next due / lifecycle / Occurrence / Campaign handoff / revoke / restart，没有建立 S11。真实 Provider 与 production worker 仍关闭，始终不得用创建者 `actor_ref` 冒充交互式请求。
 - 应用运行观测后续准入已评审完成，真实页面也已贯通“受控调用或 Session → Application Operations → 结果保存 → Result Workspace → exact Run detail / Comparison”。既有 owner 的 exact Run 目标交接、缺失 evidence 说明和 authority drift 恢复引导已经完成；有效 Run 直接打开详情，缺失 Run 失败关闭，Session reload 不自动切换、创建或重试。下一顺位回到上级功能设计入口，不为该普通 UI / 使用性修正启动服务端投影、新专题、Pencil 或专项门禁。
 - 应用会话运行结果资产显式保存与恢复 v1 已完成批次 A 至 D 并关闭。下一产品顺位回到上级功能设计文档入口选择新的长期目标；不从已关闭 Session / Result Artifact 专题扩永久 purge、transcript、长期记忆、replay / resume 或 agent loop。
 - S9 / S10 功能实现、SQLite 重启复验、Visual R3 人工复核、React 迁移与三视口浏览器证据已完成；旧 R1 与 Visual R2 仍只保留为退回历史。Provider 价格与应用成本专题的 S7 / S5 Visual R1、React strict consumer 和产品连续链也已完成。下一顺位回到功能设计入口选择新的真实产品阻塞，不从已关闭专题派生同层页面、自动执行或生产能力。
 - API 密钥引导式轮换与验证后退役已完成并关闭。下一轮先依据用户工作区与 Workflow 的真实使用证据更新对应功能设计；不从本专题扩自动轮换、持久 rotation owner 或生产凭据能力。
 - 工作区运营收件箱批次 A 已完成；先以真实开发测试使用反馈判断是否需要跨全部分页窗口的服务端 read projection。没有需求与统一 owner cursor 契约前不启动批次 B。
-- Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成并关闭。历史条件式批次 C 只指 legacy Radish resource-server membership adapter；本地 membership owner 与 Web Session actor 已由联合身份专题批次 A、B 承接，不从本专题恢复该 adapter。
+- Workspace-scoped Read Transition 开发 / 测试态批次 A、B 已完成并关闭。历史条件式批次 C 只指 legacy Radish resource-server membership adapter；本地 membership owner、Web Session actor、确定性 browser OIDC 与当前账户 Web owner 已由联合身份专题批次 A 至 D 承接，S7 workspace 成员 / 角色管理已由独立本地成员管理专题批次 A 至 E 承接，不从本专题恢复该 adapter。
 - Workspace-scoped Mutation Authorization 批次 A 至 E 已完成并关闭；后续生产 membership adapter 和真实 OIDC 只在 reviewed 上游契约齐备后独立恢复，不从本专题派生同层 gate-only 批次。
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层 readiness、refresh 或 gate-only 批次。
 - Prompt Application 批次 A 至 E 已完成并关闭：memory / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / drift / cancel 和敏感信息复验均已通过。

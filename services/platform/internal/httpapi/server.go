@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -55,6 +56,8 @@ type Server struct {
 	workflowRunStore                        workflowRunStore
 	applicationRunStore                     workflowRunStore
 	workflowDefinitionReleaseRepository     workflowDefinitionReleaseRepository
+	workflowTemplateCatalogRepository       workflowTemplateCatalogRepository
+	workflowTemplateTargetBindingValidator  workflowTemplateTargetBindingValidator
 	workflowRAGSnapshotRepository           workflowRAGSnapshotRepository
 	workflowRAGEvaluationDatasetRepository  workflowRAGEvaluationDatasetRepository
 	workflowRAGPromotionRepository          workflowRAGPromotionRepository
@@ -67,11 +70,17 @@ type Server struct {
 	workflowEvaluationStore                 workflowEvaluationStore
 	workflowEvaluationSuiteStore            workflowEvaluationSuiteStore
 	applicationEvaluationRepository         applicationEvaluationRepository
+	applicationEvaluationScheduleRepository applicationEvaluationScheduleRepository
+	applicationEvaluationScheduleRunner     *applicationEvaluationScheduleRunner
 	gatewayRequestHistoryStore              gatewayRequestStore
 	gatewayRequestHistoryStoreMode          string
 	gatewayRequestQuotaRepository           GatewayRequestQuotaRepository
 	gatewayModelPricingRepository           GatewayModelPricingRepository
 	localIdentityHTTPService                *localIdentityHTTPService
+	localIdentityRepository                 localIdentityRepository
+	localIdentityAdministrationService      *localIdentityAdministrationService
+	localIdentitySelfServiceSecurityService *localIdentitySelfServiceSecurityService
+	workspaceInvitationService              *workspaceInvitationService
 	closeSavedWorkflowDraftStore            func()
 	closeApplicationDraftStore              func()
 	closeApplicationPublishStore            func()
@@ -175,6 +184,11 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
 		return nil, fmt.Errorf("application evaluation campaign requires a supported workflow runtime backend")
 	}
+	applicationEvaluationScheduleRepository, err := newApplicationEvaluationScheduleRepositoryForRunStore(workflowRunStore)
+	if err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+		return nil, err
+	}
 	applicationInteractionSessionRepository, err := newApplicationInteractionSessionRepositoryForRunStore(workflowRunStore)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
@@ -206,6 +220,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 			return nil, err
 		}
 		controlPlaneReadRepository = liveWorkflowDefinitionControlPlaneReadRepository{ControlPlaneReadRepository: controlPlaneReadRepository, definitions: workflowDefinitionReleaseRepository}
+	}
+	var workflowTemplateCatalogRepository workflowTemplateCatalogRepository
+	if runtimeConfig.WorkflowTemplateCatalogDevEnabled {
+		workflowTemplateCatalogRepository, err = newWorkflowTemplateCatalogRepositoryForSavedDraftStore(savedWorkflowDraftStore)
+		if err != nil {
+			closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore)
+			return nil, err
+		}
 	}
 	workflowRAGSnapshotRepository, err := newWorkflowRAGSnapshotRepositoryForRunStore(workflowRunStore)
 	if err != nil {
@@ -295,6 +317,29 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore)
 		return nil, err
 	}
+	localIdentityHTTPService := newLocalIdentityHTTPService(runtimeConfig, localIdentityRepository)
+	localIdentityAdministrationRepository, ok := localIdentityRepository.(localIdentityAdministrationRepository)
+	if !ok {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
+		return nil, errors.New("local identity administration repository is unavailable")
+	}
+	localIdentityAdministrationService := newLocalIdentityAdministrationService(localIdentityAdministrationRepository)
+	localIdentitySelfServiceSecurityRepository, ok := localIdentityRepository.(localIdentitySelfServiceSecurityRepository)
+	if !ok {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
+		return nil, errors.New("local identity self-service security repository is unavailable")
+	}
+	localIdentitySelfServiceSecurityService := newLocalIdentitySelfServiceSecurityService(localIdentitySelfServiceSecurityRepository)
+	workspaceInvitationRepository, ok := localIdentityRepository.(workspaceInvitationRepository)
+	if !ok {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
+		return nil, errors.New("workspace invitation repository is unavailable")
+	}
+	workspaceInvitationService := newWorkspaceInvitationService(workspaceInvitationRepository)
+	if err := localIdentityHTTPService.configureOIDC(context.Background(), runtimeConfig); err != nil {
+		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
+		return nil, err
+	}
 	rawPlatformBridge, err := newPlatformBridgeClient(runtimeConfig)
 	if err != nil {
 		closeServerStartupResources(closeControlPlaneReadRepository, closeLocalPersistenceRuntime, closeSavedWorkflowDraftStore, closeApplicationDraftStore, closeApplicationPublishStore, closeApplicationCatalogStore, closeAPIKeyStore, closeWorkflowRunStore, closeGatewayRequestStore, closePromptApplicationTemplateStore, closeAgentCopilotProfileStore, closeAdminProviderRouteStore, closeGatewayRequestQuotaStore, closeGatewayModelPricingStore, closeLocalIdentityRepository)
@@ -328,6 +373,14 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowRunStore:                        workflowRunStore,
 		applicationRunStore:                     combinedRunStore,
 		workflowDefinitionReleaseRepository:     workflowDefinitionReleaseRepository,
+		workflowTemplateCatalogRepository:       workflowTemplateCatalogRepository,
+		workflowTemplateTargetBindingValidator: configuredWorkflowTemplateTargetBindingValidator{
+			providerRouteSource:      config.EffectiveGatewayProviderRouteSource(runtimeConfig),
+			providerRouteEnvironment: runtimeConfig.GatewayProviderRouteEnvironment,
+			providerRouteConfigID:    runtimeConfig.GatewayProviderRouteConfigurationID,
+			snapshotProvider:         adminProviderRouteSnapshotProvider{repository: adminProviderRouteRepository},
+			bridge:                   platformBridge,
+		},
 		workflowRAGSnapshotRepository:           workflowRAGSnapshotRepository,
 		workflowRAGEvaluationDatasetRepository:  workflowRAGEvaluationDatasetRepository,
 		workflowRAGPromotionRepository:          workflowRAGPromotionRepository,
@@ -339,11 +392,16 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		workflowEvaluationStore:                 newWorkflowEvaluationStoreForRunStore(workflowRunStore),
 		workflowEvaluationSuiteStore:            newWorkflowEvaluationSuiteStoreForRunStore(workflowRunStore),
 		applicationEvaluationRepository:         applicationEvaluationRepository,
+		applicationEvaluationScheduleRepository: applicationEvaluationScheduleRepository,
 		gatewayRequestHistoryStore:              gatewayRequestStore,
 		gatewayRequestHistoryStoreMode:          gatewayRequestStoreMode,
 		gatewayRequestQuotaRepository:           gatewayRequestQuotaRepository,
 		gatewayModelPricingRepository:           gatewayModelPricingRepository,
-		localIdentityHTTPService:                newLocalIdentityHTTPService(runtimeConfig, localIdentityRepository),
+		localIdentityHTTPService:                localIdentityHTTPService,
+		localIdentityRepository:                 localIdentityRepository,
+		localIdentityAdministrationService:      localIdentityAdministrationService,
+		localIdentitySelfServiceSecurityService: localIdentitySelfServiceSecurityService,
+		workspaceInvitationService:              workspaceInvitationService,
 		closeSavedWorkflowDraftStore:            closeSavedWorkflowDraftStore,
 		closeApplicationDraftStore:              closeApplicationDraftStore,
 		closeApplicationPublishStore:            closeApplicationPublishStore,
@@ -470,6 +528,16 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(workflowDefinitionActivationReadRoute, server.handleReadWorkflowDefinitionActivation)
 	mux.HandleFunc(workflowDefinitionActivationDecisionRoute, server.handleDecideWorkflowDefinitionActivation)
 	mux.HandleFunc(workflowDefinitionRunCreateRoute, server.handleStartWorkflowDefinitionRun)
+	mux.HandleFunc(workflowTemplateCandidateCreateRoute, server.handleCreateWorkflowTemplateCandidate)
+	mux.HandleFunc(workflowTemplateCandidateListRoute, server.handleListWorkflowTemplateCandidates)
+	mux.HandleFunc(workflowTemplateCandidateReadRoute, server.handleReadWorkflowTemplateCandidate)
+	mux.HandleFunc(workflowTemplateCandidateDecisionRoute, server.handleDecideWorkflowTemplateCandidate)
+	mux.HandleFunc(workflowTemplateListRoute, server.handleListWorkflowTemplates)
+	mux.HandleFunc(workflowTemplateReadRoute, server.handleReadWorkflowTemplate)
+	mux.HandleFunc(workflowTemplateVersionListRoute, server.handleListWorkflowTemplateVersions)
+	mux.HandleFunc(workflowTemplateVersionReadRoute, server.handleReadWorkflowTemplateVersion)
+	mux.HandleFunc(workflowTemplateListingDecisionRoute, server.handleDecideWorkflowTemplateListing)
+	mux.HandleFunc(workflowTemplateDerivationRoute, server.handleDeriveWorkflowTemplate)
 	mux.HandleFunc(workflowExecutorStartRoute, server.handleStartWorkflowRun)
 	mux.HandleFunc("POST "+workflowRAGExecutionRoute, server.handleWorkflowRAGExecution)
 	mux.HandleFunc(workflowRAGSnapshotCreateRoute, server.handleCreateWorkflowRAGSnapshot)
@@ -526,6 +594,16 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(applicationEvaluationCampaignListRoute, server.handleListApplicationEvaluationCampaigns)
 	mux.HandleFunc(applicationEvaluationCampaignReadRoute, server.handleReadApplicationEvaluationCampaign)
 	mux.HandleFunc(applicationEvaluationCampaignReconcileRoute, server.handleReconcileApplicationEvaluationCampaign)
+	mux.HandleFunc(applicationEvaluationScheduleCreateRoute, server.handleCreateApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleListRoute, server.handleListApplicationEvaluationSchedules)
+	mux.HandleFunc(applicationEvaluationScheduleReadRoute, server.handleReadApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleReviseRoute, server.handleReviseApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleActivateRoute, server.handleActivateApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationSchedulePauseRoute, server.handlePauseApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleResumeRoute, server.handleResumeApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleArchiveRoute, server.handleArchiveApplicationEvaluationSchedule)
+	mux.HandleFunc(applicationEvaluationScheduleVersionReadRoute, server.handleReadApplicationEvaluationScheduleVersion)
+	mux.HandleFunc(applicationEvaluationScheduleOccurrenceReadRoute, server.handleReadApplicationEvaluationScheduleOccurrence)
 	mux.HandleFunc(applicationEvaluationPairPreviewRoute, server.handlePreviewApplicationEvaluationCampaignPair)
 	mux.HandleFunc(applicationEvaluationHandoffRoute, server.handleMaterializeApplicationEvaluationHandoff)
 	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)
@@ -539,6 +617,17 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		),
 		ReadHeaderTimeout: runtimeConfig.ReadHeaderTimeout,
 		WriteTimeout:      runtimeConfig.WriteTimeout,
+	}
+	if runtimeConfig.ApplicationEvaluationScheduleRunnerDevEnabled {
+		server.applicationEvaluationScheduleRunner = newApplicationEvaluationScheduleRunner(
+			server.applicationEvaluationScheduleRepository,
+			server.applicationEvaluationCampaignService(),
+			server.revalidateApplicationEvaluationScheduleOccurrence,
+		)
+		if err := server.applicationEvaluationScheduleRunner.Start(context.Background()); err != nil {
+			server.Close()
+			return nil, fmt.Errorf("start application evaluation schedule runner: %w", err)
+		}
 	}
 	return server, nil
 }
@@ -599,6 +688,9 @@ func (s *Server) Close() {
 		return
 	}
 	s.closeOnce.Do(func() {
+		if s.applicationEvaluationScheduleRunner != nil {
+			s.applicationEvaluationScheduleRunner.Stop()
+		}
 		if closer, ok := s.bridge.(interface{ Close() }); ok {
 			closer.Close()
 		}

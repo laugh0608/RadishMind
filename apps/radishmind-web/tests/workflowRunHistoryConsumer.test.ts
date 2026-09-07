@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { legacyActionSafetyFixture } from "./actionSafetyFixture.ts";
 
 import {
   EMPTY_WORKFLOW_RUN_HISTORY_FILTER,
@@ -123,6 +124,7 @@ test("workflow run history maps v2 confirmation, attempt, and outcome evidence",
       failure_boundary: "tool_transport", failed_node_id: "node_http_tool",
       last_completed_node_id: "node_prompt", gateway_failure_category: "none",
       tool_failure_category: "outcome_unknown", recommended_review_action: "review_tool_outcome",
+      action_safety: legacyActionSafetyFixture("workflow_run", "run_0123456789abcdef", 2),
       side_effects: { provider_calls: 0, tool_calls: 1, confirmation_calls: 1, business_writes: 0, replay_writes: 0 },
     }],
     next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_tool_history",
@@ -221,6 +223,7 @@ test("workflow run history and detail recognize v9 as side-effectful Definition 
       audit_ref: "audit_definition_tool_run", stale_running: false, failure_boundary: "",
       failed_node_id: "", last_completed_node_id: "node_output", gateway_failure_category: "none",
       tool_failure_category: "none", recommended_review_action: "",
+      action_safety: legacyActionSafetyFixture("workflow_run", "run_0123456789abcdef", 2),
       side_effects: { provider_calls: 1, tool_calls: 1, confirmation_calls: 1, business_writes: 0, replay_writes: 0 } }],
     next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_definition_tool_history",
   }), { status: 200 });
@@ -325,6 +328,7 @@ test("workflow run history and detail recognize strict metadata-only Agent Copil
         started_at: "2026-07-25T10:00:00Z", completed_at: "2026-07-25T10:00:01Z", duration_ms: 1000,
         selected_provider: "mock", selected_profile: "default", selected_model: "profile:local-dev",
         request_id: "request_agent_run", audit_ref: "audit_agent_run", stale_running: false,
+        action_safety: legacyActionSafetyFixture("workflow_run", "run_agent_history", 2),
         side_effects: { provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 },
       }],
       next_cursor: "", has_more: false, failure_code: null, failure_summary: "", audit_ref: "audit_agent_history",

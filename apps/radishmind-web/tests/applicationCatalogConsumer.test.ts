@@ -169,6 +169,52 @@ test("signed mutation selects the active workspace without dev membership proof"
   }
 });
 
+test("local Session catalog transport includes cookies and no dev or bearer proof", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ method: string; headers: Headers; credentials: RequestCredentials | undefined }> = [];
+  globalThis.fetch = async (_input, init) => {
+    const method = init?.method ?? "GET";
+    requests.push({ method, headers: new Headers(init?.headers), credentials: init?.credentials });
+    const document = method === "GET" ? listEnvelope("active") : operationEnvelope();
+    const localActor = "user:usr_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    if ("items" in document) document.items[0]!.owner_subject_ref = localActor;
+    if ("record" in document) {
+      document.record.owner_subject_ref = localActor;
+      document.record.created_by_actor_ref = localActor;
+      document.record.updated_by_actor_ref = localActor;
+    }
+    return jsonResponse(document);
+  };
+  try {
+    const result = await createApplicationCatalogRecord(
+      { ...config, authMode: "local_session_dev_test" },
+      fields(),
+    );
+    const listed = await listApplicationCatalogRecords(
+      { ...config, authMode: "local_session_dev_test" },
+      "active",
+    );
+    const capturedHeaders = requests[0]?.headers ?? new Headers();
+    assert.equal(result.status, "created");
+    assert.equal(listed.status, "ready");
+    assert.equal(requests.every(({ credentials }) => credentials === "include"), true);
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+    assert.equal(capturedHeaders.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+    assert.equal(requests[1]?.headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+    assert.equal(requests[1]?.headers.has("X-RadishMind-Active-Workspace"), false);
+    assert.equal(capturedHeaders.has("Authorization"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Identity"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Tenant"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Subject"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Scopes"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Audit"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+    assert.equal(capturedHeaders.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("strict response validation rejects unknown fields, scope drift, and secret material", async () => {
   const originalFetch = globalThis.fetch;
   try {

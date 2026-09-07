@@ -8,13 +8,15 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	modernsqlite "modernc.org/sqlite"
 )
 
 type sqliteLocalIdentityRepository struct {
-	database *sql.DB
+	database      *sql.DB
+	oidcConsumeMu sync.Mutex
 }
 
 type localIdentitySQLRow interface {
@@ -300,15 +302,34 @@ func (repository *sqliteLocalIdentityRepository) RevokeExternalIdentity(ctx cont
 	}
 	revokedAtUnixNano, _ := localIdentityUnixNano(revokedAt)
 	binding, err := scanSQLiteExternalIdentityBinding(repository.database.QueryRowContext(identityContext(ctx), `UPDATE external_identity_bindings SET
-        lifecycle_state='revoked', record_version=record_version+1, updated_at_unix_nano=?, revoked_at_unix_nano=?, audit_ref=?
-        WHERE binding_id=? AND record_version=? AND lifecycle_state='active' RETURNING
-        schema_version, binding_id, user_id, issuer, subject_value, lifecycle_state, record_version,
-        created_at_unix_nano, updated_at_unix_nano, revoked_at_unix_nano, audit_ref`, revokedAtUnixNano,
+		lifecycle_state='revoked', record_version=record_version+1, updated_at_unix_nano=?, revoked_at_unix_nano=?, audit_ref=?
+		WHERE binding_id=? AND record_version=? AND lifecycle_state='active'
+		AND (
+			EXISTS (SELECT 1 FROM local_credentials WHERE user_id=external_identity_bindings.user_id AND lifecycle_state='active')
+			OR (SELECT COUNT(*) FROM external_identity_bindings AS active_bindings
+				WHERE active_bindings.user_id=external_identity_bindings.user_id AND active_bindings.lifecycle_state='active') > 1
+		) RETURNING
+		schema_version, binding_id, user_id, issuer, subject_value, lifecycle_state, record_version,
+		created_at_unix_nano, updated_at_unix_nano, revoked_at_unix_nano, audit_ref`, revokedAtUnixNano,
 		revokedAtUnixNano, auditRef, bindingID, expectedVersion))
-	if err != nil {
-		return ExternalIdentityBinding{}, classifySQLiteMutationFailure(err)
+	if !errors.Is(err, errLocalIdentityNotFound) {
+		if err != nil {
+			return ExternalIdentityBinding{}, classifySQLiteMutationFailure(err)
+		}
+		return binding, nil
 	}
-	return binding, nil
+	var userID, lifecycleState string
+	var currentVersion int
+	if readErr := repository.database.QueryRowContext(identityContext(ctx), `SELECT user_id, record_version, lifecycle_state
+		FROM external_identity_bindings WHERE binding_id=?`, bindingID).Scan(&userID, &currentVersion, &lifecycleState); errors.Is(readErr, sql.ErrNoRows) {
+		return ExternalIdentityBinding{}, errLocalIdentityVersionConflict
+	} else if readErr != nil {
+		return ExternalIdentityBinding{}, errLocalIdentityStoreUnavailable
+	}
+	if currentVersion == expectedVersion && lifecycleState == localIdentityStateActive {
+		return ExternalIdentityBinding{}, errLocalIdentityLastLoginMethodRemoval
+	}
+	return ExternalIdentityBinding{}, errLocalIdentityVersionConflict
 }
 
 func (repository *sqliteLocalIdentityRepository) CreateWebSession(ctx context.Context, session WebSession) error {
@@ -384,6 +405,29 @@ func (repository *sqliteLocalIdentityRepository) ResolveWebSession(ctx context.C
 	return session, account, nil
 }
 
+func (repository *sqliteLocalIdentityRepository) ReadWebSession(ctx context.Context, sessionID string, now time.Time) (WebSession, UserAccount, error) {
+	if repository == nil || repository.database == nil {
+		return WebSession{}, UserAccount{}, errLocalIdentityStoreUnavailable
+	}
+	now = now.UTC()
+	session, err := scanSQLiteWebSession(repository.database.QueryRowContext(identityContext(ctx), sqliteSessionSelect+`
+		WHERE session_id=?`, strings.TrimSpace(sessionID)))
+	if errors.Is(err, errLocalIdentityNotFound) || err == nil && session.LifecycleState != localIdentityStateActive {
+		return WebSession{}, UserAccount{}, errLocalIdentitySessionInvalid
+	}
+	if err != nil {
+		return WebSession{}, UserAccount{}, err
+	}
+	if !session.ExpiresAt.After(now) {
+		return WebSession{}, UserAccount{}, errLocalIdentitySessionExpired
+	}
+	account, err := repository.ReadAccount(ctx, session.UserID)
+	if err != nil || account.LifecycleState != localIdentityStateActive {
+		return WebSession{}, UserAccount{}, errLocalIdentityAccountInactive
+	}
+	return session, account, nil
+}
+
 func (repository *sqliteLocalIdentityRepository) RevokeWebSession(ctx context.Context, sessionID string, expectedVersion int, revokedAt time.Time, auditRef string) (WebSession, error) {
 	if repository == nil || repository.database == nil {
 		return WebSession{}, errLocalIdentityStoreUnavailable
@@ -412,7 +456,9 @@ func (repository *sqliteLocalIdentityRepository) CreateRoleAssignment(ctx contex
 	if repository == nil || repository.database == nil {
 		return errLocalIdentityStoreUnavailable
 	}
-	if !ok || !validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
+	if !ok || assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" ||
+		localIdentityContainsManagementPermission(grants) ||
+		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}
 	if err := repository.requireActiveSQLiteAccount(ctx, assignment.UserID); err != nil {
@@ -423,12 +469,13 @@ func (repository *sqliteLocalIdentityRepository) CreateRoleAssignment(ctx contex
 	updatedAt, _ := localIdentityUnixNano(assignment.UpdatedAt)
 	expiresAt, _ := optionalLocalIdentityUnixNano(assignment.ExpiresAt)
 	_, err := repository.database.ExecContext(identityContext(ctx), `INSERT INTO local_role_assignments
-        (assignment_id, user_id, schema_version, tenant_ref, workspace_id, role_key, permission_grants_json,
+        (assignment_id, user_id, schema_version, tenant_ref, workspace_id, role_key, role_catalog_version,
+         role_definition_digest, permission_grants_json,
          lifecycle_state, record_version, created_at_unix_nano, updated_at_unix_nano, expires_at_unix_nano,
-         revoked_at_unix_nano, audit_ref) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, assignment.AssignmentID,
+         revoked_at_unix_nano, audit_ref) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, assignment.AssignmentID,
 		assignment.UserID, assignment.SchemaVersion, assignment.TenantRef, assignment.WorkspaceID, assignment.RoleKey,
-		string(grantsJSON), assignment.LifecycleState, assignment.RecordVersion, createdAt, updatedAt, expiresAt, nil,
-		assignment.AuditRef)
+		nullableLocalIdentityString(assignment.RoleCatalogVersion), nullableLocalIdentityString(assignment.RoleDefinitionDigest),
+		string(grantsJSON), assignment.LifecycleState, assignment.RecordVersion, createdAt, updatedAt, expiresAt, nil, assignment.AuditRef)
 	if err != nil {
 		return sqliteConflictOrUnavailable(err, errLocalIdentityIdentifierConflict)
 	}
@@ -446,8 +493,10 @@ func (repository *sqliteLocalIdentityRepository) RevokeRoleAssignment(ctx contex
 	revokedAtUnixNano, _ := localIdentityUnixNano(revokedAt)
 	assignment, err := scanSQLiteLocalRoleAssignment(repository.database.QueryRowContext(identityContext(ctx), `UPDATE local_role_assignments SET
         lifecycle_state='revoked', record_version=record_version+1, updated_at_unix_nano=?, revoked_at_unix_nano=?, audit_ref=?
-        WHERE assignment_id=? AND record_version=? AND lifecycle_state='active' RETURNING
-        schema_version, assignment_id, user_id, tenant_ref, workspace_id, role_key, permission_grants_json,
+		WHERE assignment_id=? AND record_version=? AND lifecycle_state='active'
+		AND role_catalog_version IS NULL AND role_definition_digest IS NULL RETURNING
+        schema_version, assignment_id, user_id, tenant_ref, workspace_id, role_key, role_catalog_version,
+        role_definition_digest, permission_grants_json,
         lifecycle_state, record_version, created_at_unix_nano, updated_at_unix_nano, expires_at_unix_nano,
         revoked_at_unix_nano, audit_ref`, revokedAtUnixNano, revokedAtUnixNano, auditRef, assignmentID, expectedVersion))
 	if err != nil {
@@ -492,7 +541,14 @@ func (repository *sqliteLocalIdentityRepository) RevokeWorkspaceMembership(ctx c
 	revokedAtUnixNano, _ := localIdentityUnixNano(revokedAt)
 	membership, err := scanSQLiteWorkspaceMembership(repository.database.QueryRowContext(identityContext(ctx), `UPDATE local_workspace_memberships SET
         lifecycle_state='revoked', record_version=record_version+1, updated_at_unix_nano=?, revoked_at_unix_nano=?, audit_ref=?
-        WHERE membership_id=? AND record_version=? AND lifecycle_state='active' RETURNING
+		WHERE membership_id=? AND record_version=? AND lifecycle_state='active'
+		AND NOT EXISTS (
+			SELECT 1 FROM local_role_assignments r
+			WHERE r.user_id=local_workspace_memberships.user_id
+			AND r.tenant_ref=local_workspace_memberships.tenant_ref
+			AND r.workspace_id=local_workspace_memberships.workspace_id
+			AND r.lifecycle_state='active'
+		) RETURNING
         schema_version, membership_id, user_id, tenant_ref, workspace_id, lifecycle_state, record_version,
         created_at_unix_nano, updated_at_unix_nano, expires_at_unix_nano, revoked_at_unix_nano, audit_ref`,
 		revokedAtUnixNano, revokedAtUnixNano, auditRef, membershipID, expectedVersion))
@@ -578,7 +634,8 @@ const sqliteSessionSelect = `SELECT schema_version, session_id, user_id, credent
     FROM local_web_sessions`
 
 const sqliteRoleAssignmentSelect = `SELECT schema_version, assignment_id, user_id, tenant_ref, workspace_id,
-    role_key, permission_grants_json, lifecycle_state, record_version, created_at_unix_nano,
+    role_key, role_catalog_version, role_definition_digest, permission_grants_json, lifecycle_state,
+    record_version, created_at_unix_nano,
     updated_at_unix_nano, expires_at_unix_nano, revoked_at_unix_nano, audit_ref FROM local_role_assignments`
 
 const sqliteMembershipSelect = `SELECT schema_version, membership_id, user_id, tenant_ref, workspace_id,
@@ -664,10 +721,11 @@ func scanSQLiteWebSession(row localIdentitySQLRow) (WebSession, error) {
 func scanSQLiteLocalRoleAssignment(row localIdentitySQLRow) (LocalRoleAssignment, error) {
 	var assignment LocalRoleAssignment
 	var grantsJSON string
+	var roleCatalogVersion, roleDefinitionDigest sql.NullString
 	var createdAt, updatedAt int64
 	var expiresAt, revokedAt sql.NullInt64
 	err := row.Scan(&assignment.SchemaVersion, &assignment.AssignmentID, &assignment.UserID, &assignment.TenantRef,
-		&assignment.WorkspaceID, &assignment.RoleKey, &grantsJSON, &assignment.LifecycleState,
+		&assignment.WorkspaceID, &assignment.RoleKey, &roleCatalogVersion, &roleDefinitionDigest, &grantsJSON, &assignment.LifecycleState,
 		&assignment.RecordVersion, &createdAt, &updatedAt, &expiresAt, &revokedAt, &assignment.AuditRef)
 	if err != nil {
 		return LocalRoleAssignment{}, normalizeSQLiteReadError(err)
@@ -675,6 +733,8 @@ func scanSQLiteLocalRoleAssignment(row localIdentitySQLRow) (LocalRoleAssignment
 	if err := json.Unmarshal([]byte(grantsJSON), &assignment.PermissionGrants); err != nil {
 		return LocalRoleAssignment{}, errLocalIdentityStoreUnavailable
 	}
+	assignment.RoleCatalogVersion = roleCatalogVersion.String
+	assignment.RoleDefinitionDigest = roleDefinitionDigest.String
 	assignment.CreatedAt = time.Unix(0, createdAt).UTC()
 	assignment.UpdatedAt = time.Unix(0, updatedAt).UTC()
 	assignment.ExpiresAt = sqliteOptionalTime(expiresAt)
@@ -763,6 +823,14 @@ func sqliteOptionalTime(value sql.NullInt64) *time.Time {
 	}
 	parsed := time.Unix(0, value.Int64).UTC()
 	return &parsed
+}
+
+func nullableLocalIdentityString(value string) any {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	return value
 }
 
 func buildLocalWorkspaceAuthorization(

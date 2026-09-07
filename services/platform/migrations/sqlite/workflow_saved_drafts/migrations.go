@@ -8,7 +8,7 @@ import (
 
 const (
 	Component          = "workflow_saved_drafts"
-	MigrationID        = "0004_saved_workflow_draft_structured_inputs"
+	MigrationID        = "0005_workspace_workflow_template_catalog"
 	StoreSchemaVersion = "saved_workflow_drafts_store_v1"
 )
 
@@ -23,6 +23,9 @@ var libraryUpSQL string
 
 //go:embed 0004_saved_workflow_draft_structured_inputs.up.sql
 var structuredInputUpSQL string
+
+//go:embed 0005_workspace_workflow_template_catalog.up.sql
+var workflowTemplateCatalogUpSQL string
 
 func Migrations() []sqlitedev.Migration {
 	return []sqlitedev.Migration{
@@ -46,9 +49,15 @@ func Migrations() []sqlitedev.Migration {
 		},
 		{
 			Component:          Component,
-			ID:                 MigrationID,
+			ID:                 "0004_saved_workflow_draft_structured_inputs",
 			StoreSchemaVersion: StoreSchemaVersion,
 			UpSQL:              structuredInputUpSQL,
+		},
+		{
+			Component:          Component,
+			ID:                 MigrationID,
+			StoreSchemaVersion: StoreSchemaVersion,
+			UpSQL:              workflowTemplateCatalogUpSQL,
 		},
 	}
 }

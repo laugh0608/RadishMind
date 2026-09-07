@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/application-evaluation-schedule.schema.json",
+  "title": "ApplicationEvaluationScheduleV1",
+  "description": "Current development/test Prompt Application regression schedule. It stores identity references and an API key id, never a session, bearer token, API key token, credential, fixture, input, output, or provider response.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "schedule_id", "record_version", "latest_schedule_version", "latest_schedule_digest",
+    "tenant_ref", "workspace_id", "environment", "application_id", "plan_id", "plan_version", "plan_digest",
+    "execution_profile", "quota_api_key_id", "authorization_model", "system_actor_ref", "delegated_by_user_ref",
+    "lifecycle_state", "next_due_at", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref",
+    "request_id", "audit_ref"
+  ],
+  "properties": {
+    "schema_version": {"const": "application_evaluation_schedule.v1"},
+    "schedule_id": {"$ref": "#/$defs/schedule_id"},
+    "record_version": {"type": "integer", "minimum": 1},
+    "latest_schedule_version": {"type": "integer", "minimum": 1},
+    "latest_schedule_digest": {"$ref": "#/$defs/digest"},
+    "tenant_ref": {"$ref": "#/$defs/reference"},
+    "workspace_id": {"$ref": "#/$defs/scoped_id"},
+    "environment": {"enum": ["development", "test"]},
+    "application_id": {"$ref": "#/$defs/scoped_id"},
+    "plan_id": {"$ref": "#/$defs/plan_id"},
+    "plan_version": {"type": "integer", "minimum": 1},
+    "plan_digest": {"$ref": "#/$defs/digest"},
+    "execution_profile": {"const": "prompt_application_invocation_v1"},
+    "quota_api_key_id": {"$ref": "#/$defs/api_key_id"},
+    "authorization_model": {"const": "system_actor_schedule_scoped_delegation_v1"},
+    "system_actor_ref": {"$ref": "#/$defs/reference"},
+    "delegated_by_user_ref": {"$ref": "#/$defs/reference"},
+    "lifecycle_state": {"enum": ["draft", "active", "paused", "archived"]},
+    "next_due_at": {"oneOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"$ref": "#/$defs/reference"},
+    "updated_by_actor_ref": {"$ref": "#/$defs/reference"},
+    "request_id": {"$ref": "#/$defs/reference"},
+    "audit_ref": {"$ref": "#/$defs/reference"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"lifecycle_state": {"const": "active"}}, "required": ["lifecycle_state"]},
+      "then": {"properties": {"next_due_at": {"type": "string", "format": "date-time"}}},
+      "else": {"properties": {"next_due_at": {"type": "null"}}}
+    }
+  ],
+  "$defs": {
+    "schedule_id": {"type": "string", "pattern": "^aesch_[a-z2-7]{16}$"},
+    "plan_id": {"type": "string", "pattern": "^aeplan_[a-z2-7]{16}$"},
+    "api_key_id": {"type": "string", "pattern": "^key_[a-z2-7]{16}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "reference": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"},
+    "scoped_id": {"type": "string", "minLength": 3, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"}
+  }
+}

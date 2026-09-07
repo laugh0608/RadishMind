@@ -40,6 +40,7 @@
     "usage": {"$ref": "#/$defs/usage"},
     "side_effects": {"$ref": "#/$defs/sideEffects"},
     "diagnostic": {"$ref": "#/$defs/diagnostic"},
+    "schedule_execution": {"$ref": "#/$defs/scheduleExecution"},
     "request_id": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
     "audit_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
     "actor_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"}
@@ -50,6 +51,21 @@
     {"if": {"properties": {"status": {"enum": ["failed", "canceled", "outcome_unknown"]}}}, "then": {"properties": {"completed_at": {"type": "string", "format": "date-time"}, "failure_code": {"type": "string", "minLength": 1, "maxLength": 160}}}}
   ],
   "$defs": {
+    "scheduleExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization_model", "schedule_id", "schedule_version", "schedule_digest", "scheduled_for_utc", "client_campaign_key", "system_actor_ref", "delegated_by_user_ref"],
+      "properties": {
+        "authorization_model": {"const": "system_actor_schedule_scoped_delegation_v1"},
+        "schedule_id": {"type": "string", "pattern": "^aesch_[a-z2-7]{16}$"},
+        "schedule_version": {"type": "integer", "minimum": 1},
+        "schedule_digest": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/digest"},
+        "scheduled_for_utc": {"type": "string", "format": "date-time"},
+        "client_campaign_key": {"type": "string", "pattern": "^scheduled_campaign_[a-f0-9]{24}$"},
+        "system_actor_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"},
+        "delegated_by_user_ref": {"$ref": "application-configuration-draft-v3.schema.json#/$defs/ref"}
+      }
+    },
     "usage": {
       "type": "object",
       "additionalProperties": false,

@@ -6,6 +6,7 @@ const DEV_SOURCE = "dev-api-key-lifecycle-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const API_KEY_ID_PATTERN = /^key_[a-z2-7]{16}$/u;
 const APPLICATION_ID_PATTERN = /^app_[a-z0-9]{16}$/u;
+const LOCAL_USER_ACTOR_PATTERN = /^user:usr_[a-f0-9]{32}$/u;
 const TOKEN_PATTERN = /^rmd_dev_key_[a-z2-7]{16}\.[A-Za-z0-9_-]{43}$/u;
 const SCOPE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$/u;
 const ALLOWED_SCOPES = ["models:read", "chat:invoke", "responses:invoke", "messages:invoke", "application_rag:invoke", "prompt_application:invoke", "agent_copilot:invoke"] as const;
@@ -34,7 +35,7 @@ const FORBIDDEN_RESPONSE_FIELDS = new Set([
 ]);
 
 export type APIKeyLifecycleMode = "offline" | "dev_api_key_lifecycle_http";
-export type APIKeyLifecycleAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test";
+export type APIKeyLifecycleAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test" | "local_session_dev_test";
 export type APIKeyScope = typeof ALLOWED_SCOPES[number];
 export type APIKeyEffectiveState = typeof EFFECTIVE_STATES[number];
 
@@ -217,6 +218,7 @@ export async function listAPIKeyRecords(
   try {
     const response = await fetch(`${config.baseUrl}${API_KEY_COLLECTION_PATH}?${query}`, {
       headers: apiKeyManagementHeaders(config, requestId, "read"),
+      ...apiKeyRequestPolicy(config),
     });
     const document: unknown = await response.json();
     if (!isAPIKeyListEnvelope(document, config, applicationId)) return failedListResult("api_key_store_unavailable");
@@ -255,6 +257,7 @@ export async function issueAPIKey(
         scopes: [...input.scopes].sort(),
         expires_in_days: input.expiresInDays,
       }),
+      ...apiKeyRequestPolicy(config),
     });
     const document: unknown = await response.json();
     const cacheControl = response.headers.get("Cache-Control")?.toLowerCase() ?? "";
@@ -274,7 +277,7 @@ export async function readAPIKeyRecord(
   try {
     const response = await fetch(
       `${config.baseUrl}${API_KEY_COLLECTION_PATH}/${encodeURIComponent(apiKeyId)}?workspace_id=${encodeURIComponent(config.workspaceId)}`,
-      { headers: apiKeyManagementHeaders(config, requestId, "read") },
+      { headers: apiKeyManagementHeaders(config, requestId, "read"), ...apiKeyRequestPolicy(config) },
     );
     return mapOperationEnvelope(await response.json(), config, "loaded", false, false);
   } catch {
@@ -297,6 +300,7 @@ export async function revokeAPIKey(
       method: "POST",
       headers: { ...apiKeyManagementHeaders(config, requestId, "revoke"), "Content-Type": "application/json" },
       body: JSON.stringify({ workspace_id: config.workspaceId, expected_version: expectedVersion }),
+      ...apiKeyRequestPolicy(config),
     });
     return mapOperationEnvelope(await response.json(), config, "revoked", false, false);
   } catch {
@@ -398,7 +402,7 @@ function isAPIKeySharedDocument(value: Record<string, unknown>, config: APIKeyLi
   const revokedAt = value.revoked_at;
   return API_KEY_ID_PATTERN.test(String(value.api_key_id)) && value.tenant_ref === config.tenantRef &&
     value.workspace_id === config.workspaceId && APPLICATION_ID_PATTERN.test(String(value.application_id)) &&
-    value.owner_subject_ref === config.subjectRef && typeof value.display_name === "string" &&
+    matchesOwnerSubject(value.owner_subject_ref, config) && typeof value.display_name === "string" &&
     value.display_name.trim().length >= 2 && value.display_name.trim().length <= 80 && !containsSensitiveText(value.display_name) &&
     Array.isArray(scopes) && scopes.length > 0 && scopes.every((scope) => typeof scope === "string" && ALLOWED_SCOPES.includes(scope as APIKeyScope)) &&
     new Set(scopes).size === scopes.length && (lifecycleState === "active" || lifecycleState === "revoked") &&
@@ -462,6 +466,14 @@ function apiKeyManagementHeaders(
   requestId: string,
   operation: "read" | "issue" | "revoke",
 ): Record<string, string> {
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(operation === "read" ? {} : { "X-RadishMind-Active-Workspace": config.workspaceId }),
+    };
+  }
   if (config.authMode !== "dev_headers") {
     const tokenProvider = config.authMode === "signed_test_token"
       ? (globalThis as typeof globalThis & { __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string })
@@ -541,7 +553,16 @@ function normalizeBaseUrl(value: string): string {
 
 function normalizeAuthMode(value: string | undefined): APIKeyLifecycleAuthMode {
   const normalized = value?.trim();
-  return normalized === "signed_test_token" || normalized === "radish_oidc_integration_test" ? normalized : "dev_headers";
+  return normalized === "signed_test_token" || normalized === "radish_oidc_integration_test" || normalized === "local_session_dev_test"
+    ? normalized
+    : "dev_headers";
+}
+
+function apiKeyRequestPolicy(config: APIKeyLifecycleConfig): Pick<RequestInit, "credentials" | "cache"> {
+  return {
+    credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+    cache: "no-store",
+  };
 }
 
 function createRequestId(prefix: string): string {
@@ -582,6 +603,12 @@ function isPositiveOrZeroInteger(value: unknown): value is number {
 
 function isScopeIdentifier(value: unknown): value is string {
   return typeof value === "string" && SCOPE_ID_PATTERN.test(value);
+}
+
+function matchesOwnerSubject(value: unknown, config: APIKeyLifecycleConfig): value is string {
+  return typeof value === "string" && (config.authMode === "local_session_dev_test"
+    ? LOCAL_USER_ACTOR_PATTERN.test(value)
+    : value === config.subjectRef);
 }
 
 function isNonEmptyString(value: unknown): value is string {

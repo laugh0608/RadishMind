@@ -17,6 +17,9 @@ const (
 	savedWorkflowDraftDerivationAdditionalField     = "derivation_v1"
 	savedWorkflowDraftDerivationSourceKind          = "saved_workflow_draft"
 	savedWorkflowDraftDerivationVersion             = 1
+	savedWorkflowTemplateDerivationAdditionalField  = "derivation_v2"
+	savedWorkflowTemplateDerivationSourceKind       = "workspace_workflow_template"
+	savedWorkflowTemplateDerivationVersion          = 2
 
 	maxSavedWorkflowDraftNodes            = 50
 	maxSavedWorkflowDraftEdges            = 120
@@ -648,6 +651,12 @@ func (service savedWorkflowDraftService) validatePayload(
 		}
 		return normalizeSavedWorkflowDraftPayload(payload), result
 	}
+	if !validSavedWorkflowDraftProvenanceUnion(payload.AdditionalFields) {
+		return normalizeSavedWorkflowDraftPayload(payload), savedWorkflowDraftFailure(
+			SavedWorkflowDraftFailurePayloadInvalid,
+			savedWorkflowDraftAuditMetadata(context),
+		)
+	}
 
 	normalized := normalizeSavedWorkflowDraftPayload(payload)
 	auditMetadata := savedWorkflowDraftAuditMetadata(context)
@@ -866,6 +875,13 @@ func normalizeSavedWorkflowDraftAdditionalFields(
 	} else {
 		delete(normalized, savedWorkflowDraftDerivationAdditionalField)
 	}
+	if derivation, found := normalizeSavedWorkflowTemplateDerivation(
+		normalized[savedWorkflowTemplateDerivationAdditionalField],
+	); found {
+		normalized[savedWorkflowTemplateDerivationAdditionalField] = derivation
+	} else {
+		delete(normalized, savedWorkflowTemplateDerivationAdditionalField)
+	}
 	if len(normalized) == 0 {
 		return nil
 	}
@@ -902,6 +918,54 @@ func normalizeSavedWorkflowDraftDerivation(
 		"source_draft_id":      sourceDraftID,
 		"source_draft_version": int(sourceDraftVersion),
 	}, true
+}
+
+func normalizeSavedWorkflowTemplateDerivation(value any) (map[string]any, bool) {
+	derivation, ok := value.(map[string]any)
+	if !ok || len(derivation) != 8 {
+		return nil, false
+	}
+	version, versionOK := savedWorkflowDraftAdditionalNumber(derivation["version"])
+	templateVersion, templateVersionOK := savedWorkflowDraftAdditionalNumber(derivation["template_version"])
+	definitionVersion, definitionVersionOK := savedWorkflowDraftAdditionalNumber(derivation["source_definition_version"])
+	templateID := savedWorkflowDraftAdditionalString(derivation["template_id"])
+	definitionID := savedWorkflowDraftAdditionalString(derivation["source_definition_id"])
+	templateDigest := savedWorkflowDraftAdditionalString(derivation["template_digest"])
+	definitionDigest := savedWorkflowDraftAdditionalString(derivation["source_definition_digest"])
+	if !versionOK || version != savedWorkflowTemplateDerivationVersion ||
+		savedWorkflowDraftAdditionalString(derivation["source_kind"]) != savedWorkflowTemplateDerivationSourceKind ||
+		!applicationDraftIdentifierPattern.MatchString(templateID) || !applicationDraftIdentifierPattern.MatchString(definitionID) ||
+		!templateVersionOK || templateVersion < 1 || math.Trunc(templateVersion) != templateVersion ||
+		!definitionVersionOK || definitionVersion < 1 || math.Trunc(definitionVersion) != definitionVersion ||
+		!workflowRAGDigestPattern.MatchString(templateDigest) || !workflowRAGDigestPattern.MatchString(definitionDigest) {
+		return nil, false
+	}
+	return map[string]any{
+		"version":                   savedWorkflowTemplateDerivationVersion,
+		"source_kind":               savedWorkflowTemplateDerivationSourceKind,
+		"template_id":               templateID,
+		"template_version":          int(templateVersion),
+		"template_digest":           templateDigest,
+		"source_definition_id":      definitionID,
+		"source_definition_version": int(definitionVersion),
+		"source_definition_digest":  definitionDigest,
+	}, true
+}
+
+func validSavedWorkflowDraftProvenanceUnion(fields map[string]any) bool {
+	if len(fields) == 0 {
+		return true
+	}
+	_, hasDraftDerivation := fields[savedWorkflowDraftDerivationAdditionalField]
+	value, hasTemplateDerivation := fields[savedWorkflowTemplateDerivationAdditionalField]
+	if hasDraftDerivation && hasTemplateDerivation {
+		return false
+	}
+	if hasTemplateDerivation {
+		_, valid := normalizeSavedWorkflowTemplateDerivation(value)
+		return valid
+	}
+	return true
 }
 
 func normalizeSavedWorkflowDraftDesignerLayout(

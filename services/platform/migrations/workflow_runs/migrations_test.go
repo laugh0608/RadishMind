@@ -100,11 +100,22 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"CREATE TABLE application_result_artifacts",
 		"application_result_artifacts_session_history_idx",
 		"application_result_artifacts_application_history_idx",
+		"action_safety_assignment_projection.v1",
+		"action_safety_plan_projection.v1",
+		"action_safety_run_projection.v1",
+		"num_nonnulls(action_safety_schema_version, action_safety_projection_digest, sanitized_action_safety_snapshot) = 3",
+		"workflow_runs_action_safety_snapshot_check",
 		"application_result_artifacts_append_only",
 		"CREATE TABLE application_result_artifact_lifecycles",
 		"CREATE TABLE application_result_artifact_lifecycle_events",
 		"application_result_artifact_lifecycles_controlled_mutation",
 		"application_result_artifact_lifecycle_events_append_only",
+		"CREATE TABLE application_evaluation_schedules",
+		"CREATE TABLE application_evaluation_schedule_versions",
+		"CREATE TABLE application_evaluation_schedule_occurrences",
+		"application_evaluation_schedules_due_idx",
+		"application_evaluation_schedule_versions_no_update",
+		"application_evaluation_schedule_occurrences_controlled_update",
 	} {
 		if !strings.Contains(upSQL, required) {
 			t.Fatalf("workflow run up migration is missing %q", required)
@@ -161,6 +172,11 @@ func TestEmbeddedWorkflowRunMigration(t *testing.T) {
 		"DROP FUNCTION IF EXISTS validate_application_result_artifact_lifecycle_mutation",
 		"DROP FUNCTION IF EXISTS reject_application_result_artifact_lifecycle_event_mutation",
 		"DROP INDEX IF EXISTS application_result_artifacts_application_history_idx",
+		"DROP CONSTRAINT workflow_runs_action_safety_snapshot_check",
+		"DROP TABLE IF EXISTS application_evaluation_schedule_occurrences",
+		"DROP TABLE IF EXISTS application_evaluation_schedule_versions",
+		"DROP TABLE IF EXISTS application_evaluation_schedules",
+		"DROP FUNCTION IF EXISTS reject_application_evaluation_schedule_mutation",
 	} {
 		if !strings.Contains(downSQL, required) {
 			t.Fatalf("workflow run down migration is missing %q", required)
@@ -216,6 +232,8 @@ func TestWorkflowRunPendingMigrationPaths(t *testing.T) {
 		{name: "v24", migrationID: definitionHTTPToolExecutionMigrationID, requiredFragment: "CREATE TABLE application_result_artifacts", forbiddenFragment: "workflow_run_record.v9"},
 		{name: "v25", migrationID: resultArtifactMigrationID, requiredFragment: "CREATE TABLE application_result_artifact_lifecycles", forbiddenFragment: "CREATE TABLE application_result_artifacts"},
 		{name: "v26", migrationID: resultArtifactLifecycleMigrationID, requiredFragment: "application_result_artifacts_application_history_idx", forbiddenFragment: "CREATE TABLE application_result_artifact_lifecycles"},
+		{name: "v27", migrationID: resultArtifactApplicationHistoryMigrationID, requiredFragment: "action_safety_run_projection.v1", forbiddenFragment: "application_result_artifacts_application_history_idx"},
+		{name: "v28", migrationID: actionSafetyMigrationID, requiredFragment: "CREATE TABLE application_evaluation_schedules", forbiddenFragment: "action_safety_run_projection.v1"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -331,6 +349,14 @@ func TestWorkflowRunPendingRollbackPathsDoNotDropUnappliedTables(t *testing.T) {
 	resultArtifactLifecycleRollback := rollbackSQLThrough(resultArtifactLifecycleMigrationID)
 	if !strings.Contains(resultArtifactLifecycleRollback, "application_result_artifact_lifecycles") || strings.Contains(resultArtifactLifecycleRollback, "application_result_artifacts_application_history_idx") {
 		t.Fatalf("v26 rollback must remove lifecycle tables without removing unapplied v27 index: %s", resultArtifactLifecycleRollback)
+	}
+	resultArtifactHistoryRollback := rollbackSQLThrough(resultArtifactApplicationHistoryMigrationID)
+	if !strings.Contains(resultArtifactHistoryRollback, "application_result_artifacts_application_history_idx") || strings.Contains(resultArtifactHistoryRollback, "workflow_runs_action_safety_snapshot_check") {
+		t.Fatalf("v27 rollback must remove application history without removing unapplied v28 Action Safety columns: %s", resultArtifactHistoryRollback)
+	}
+	actionSafetyRollback := rollbackSQLThrough(actionSafetyMigrationID)
+	if !strings.Contains(actionSafetyRollback, "workflow_runs_action_safety_snapshot_check") || strings.Contains(actionSafetyRollback, "application_evaluation_schedules") {
+		t.Fatalf("v28 rollback must remove Action Safety without removing unapplied v29 schedules: %s", actionSafetyRollback)
 	}
 	if rollbackSQLThrough("0000_unknown") != "" {
 		t.Fatal("unknown pending rollback must fail closed")

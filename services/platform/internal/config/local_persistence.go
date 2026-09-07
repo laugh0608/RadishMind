@@ -25,6 +25,11 @@ func ValidateServerStart(cfg Config) error {
 			return errors.New("application evaluation campaign environment must match the Gateway quota environment")
 		}
 	}
+	if cfg.ApplicationEvaluationScheduleRunnerDevEnabled {
+		if !cfg.ApplicationEvaluationCampaignDevEnabled || !cfg.LocalIdentityDevHTTPEnabled || EffectiveControlPlaneReadAuthMode(cfg) != "local_session_dev_test" {
+			return errors.New("application evaluation schedule runner dev requires campaign dev, local identity HTTP, and local session auth")
+		}
+	}
 	if cfg.PromptTemplateDevHTTPEnabled && !cfg.ControlPlaneReadDevAuthEnabled {
 		return errors.New("prompt application template dev HTTP requires control plane read dev auth")
 	}
@@ -52,6 +57,10 @@ func ValidateServerStart(cfg Config) error {
 	}
 	if cfg.WorkflowDefinitionReleaseDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled) {
 		return errors.New("workflow definition release dev requires control plane auth and saved workflow draft HTTP/write gates")
+	}
+	if cfg.WorkflowTemplateCatalogDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.WorkflowDefinitionReleaseDevEnabled ||
+		!cfg.WorkflowSavedDraftDevHTTPEnabled || !cfg.WorkflowSavedDraftDevWriteEnabled || !cfg.ApplicationCatalogDevHTTPEnabled) {
+		return errors.New("workflow template catalog dev requires control plane auth, workflow definition release, application catalog HTTP, and saved workflow draft HTTP/write gates")
 	}
 	if cfg.ApplicationSessionDevEnabled && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.ApplicationCatalogDevHTTPEnabled ||
 		(!cfg.WorkflowDefinitionReleaseDevEnabled && !cfg.WorkflowRAGAppInvocationDevEnabled &&

@@ -72,6 +72,35 @@ test("saved draft library list sends the exact query and maps lifecycle paginati
   assert.equal(state.filters.namePrefix, "Review");
 });
 
+test("saved draft local Session list carries only tenant, workspace, and product bindings", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_input, init) => {
+    captured = init;
+    return jsonResponse(listEnvelope([]));
+  };
+
+  const state = await listWorkflowDraftDevRecords("app_demo", {
+    ...config,
+    authMode: "local_session_dev_test",
+  });
+
+  assert.equal(state.status, "empty");
+  assert.equal(captured?.credentials, "include");
+  assert.equal(captured?.cache, "no-store");
+  const headers = new Headers(captured?.headers);
+  assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+  assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Workflow-Application"), "app_demo");
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Scopes"), false);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Permissions"), false);
+  assert.equal(headers.has("Authorization"), false);
+});
+
 test("saved draft library parser rejects unknown keys and inconsistent cursor state", async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => {

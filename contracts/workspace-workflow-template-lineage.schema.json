@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workspace-workflow-template-lineage.schema.json",
+  "title": "Workspace Workflow Template Lineage v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "template_id", "tenant_ref", "workspace_id", "pointer_version", "lifecycle", "listed_version", "listed_digest", "events", "created_at", "updated_at", "created_by_actor_ref", "updated_by_actor_ref", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workspace_workflow_template_lineage.v1"},
+    "template_id": {"$ref": "#/$defs/id"},
+    "tenant_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "workspace_id": {"$ref": "#/$defs/id"},
+    "pointer_version": {"type": "integer", "minimum": 0},
+    "lifecycle": {"enum": ["unlisted", "listed"]},
+    "listed_version": {"type": "integer", "minimum": 0},
+    "listed_digest": {"type": "string", "pattern": "^(|sha256:[0-9a-f]{64})$"},
+    "events": {"type": "array", "items": {"$ref": "workspace-workflow-template-listing-event.schema.json"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by_actor_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "updated_by_actor_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "audit_ref": {"type": "string", "minLength": 1, "maxLength": 240}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"lifecycle": {"const": "listed"}}, "required": ["lifecycle"]},
+      "then": {
+        "properties": {
+          "listed_version": {"type": "integer", "minimum": 1},
+          "listed_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"lifecycle": {"const": "unlisted"}}, "required": ["lifecycle"]},
+      "then": {
+        "properties": {
+          "listed_version": {"const": 0},
+          "listed_digest": {"const": ""}
+        }
+      }
+    }
+  ],
+  "$defs": {"id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"}}
+}

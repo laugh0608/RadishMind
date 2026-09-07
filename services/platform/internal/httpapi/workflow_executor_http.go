@@ -24,16 +24,17 @@ type workflowRunStartHTTPBody struct {
 }
 
 type workflowRunEnvelope struct {
-	RequestID                 string                       `json:"request_id"`
-	WorkspaceID               string                       `json:"workspace_id"`
-	ApplicationID             string                       `json:"application_id"`
-	Run                       *WorkflowRunRecord           `json:"run"`
-	RetrievalAnswer           *WorkflowRAGAnswer           `json:"retrieval_answer,omitempty"`
-	AdvisoryOutput            string                       `json:"advisory_output,omitempty"`
-	FailureCode               *string                      `json:"failure_code"`
-	FailureSummary            string                       `json:"failure_summary"`
-	AuditRef                  string                       `json:"audit_ref"`
-	RetrievalFragmentPreviews []WorkflowRAGFragmentPreview `json:"retrieval_fragment_previews,omitempty"`
+	RequestID                 string                        `json:"request_id"`
+	WorkspaceID               string                        `json:"workspace_id"`
+	ApplicationID             string                        `json:"application_id"`
+	Run                       *WorkflowRunRecord            `json:"run"`
+	ActionSafety              *ActionSafetyReadProjectionV1 `json:"action_safety"`
+	RetrievalAnswer           *WorkflowRAGAnswer            `json:"retrieval_answer,omitempty"`
+	AdvisoryOutput            string                        `json:"advisory_output,omitempty"`
+	FailureCode               *string                       `json:"failure_code"`
+	FailureSummary            string                        `json:"failure_summary"`
+	AuditRef                  string                        `json:"audit_ref"`
+	RetrievalFragmentPreviews []WorkflowRAGFragmentPreview  `json:"retrieval_fragment_previews,omitempty"`
 }
 
 type workflowRunListEnvelope struct {
@@ -362,6 +363,7 @@ func writeWorkflowRunResultWithStatus(
 		WorkspaceID:     runContext.WorkspaceID,
 		ApplicationID:   runContext.ApplicationID,
 		Run:             result.Record,
+		ActionSafety:    actionSafetyReadFromRun(result.Record),
 		RetrievalAnswer: result.RetrievalAnswer,
 		AdvisoryOutput:  result.AdvisoryOutput,
 		FailureCode:     workflowRunFailureCodePointer(result.FailureCode),
@@ -379,7 +381,8 @@ func writeWorkflowRunHistoryResult(
 ) {
 	writeObservedJSON(writer, http.StatusOK, trace, workflowRunEnvelope{
 		RequestID: trace.requestID, WorkspaceID: runContext.WorkspaceID, ApplicationID: runContext.ApplicationID,
-		Run: result.Record, FailureCode: workflowRunFailureCodePointer(result.FailureCode),
+		Run: result.Record, ActionSafety: actionSafetyReadFromRun(result.Record),
+		FailureCode:    workflowRunFailureCodePointer(result.FailureCode),
 		FailureSummary: result.FailureSummary, AuditRef: runContext.AuditRef, RetrievalFragmentPreviews: previews,
 	})
 }

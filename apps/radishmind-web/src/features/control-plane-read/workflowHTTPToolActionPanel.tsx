@@ -1,4 +1,5 @@
 import type { FormEvent } from "react";
+import ActionSafetyReadPanel from "./ActionSafetyReadPanel.tsx";
 
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
 import {
@@ -221,6 +222,8 @@ export function WorkflowHTTPToolActionPanel({
           ) : null}
         </article>
       ) : null}
+
+      <ActionSafetyReadPanel projection={consumerState.actionSafety} title="Plan execution eligibility" />
 
       {consumerState.confirmationDecision ? (
         <article className="workflow-executor-state-card" aria-label="Latest confirmation decision">

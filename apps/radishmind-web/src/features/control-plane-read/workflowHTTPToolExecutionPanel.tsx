@@ -1,5 +1,6 @@
 import type { WorkflowHTTPToolActionPermissions, WorkflowHTTPToolActionPlan } from "./workflowHTTPToolActionConsumer.ts";
 import type { WorkflowHTTPToolExecutionState } from "./workflowHTTPToolExecutionConsumer.ts";
+import ActionSafetyReadPanel from "./ActionSafetyReadPanel.tsx";
 
 export function WorkflowHTTPToolExecutionPanel({
   plan,
@@ -101,6 +102,7 @@ export function WorkflowHTTPToolExecutionPanel({
           {run.status === "outcome_unknown" ? <p className="failure-summary">The remote outcome is uncertain. Review metadata and create a new plan only after human assessment; do not retry this plan.</p> : null}
         </article>
       ) : null}
+      <ActionSafetyReadPanel projection={state.actionSafety} title="Run safety evidence" />
     </section>
   );
 }

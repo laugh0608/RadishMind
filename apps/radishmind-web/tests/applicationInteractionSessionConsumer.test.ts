@@ -508,7 +508,7 @@ function turnListEnvelope(items: unknown[]) {
 function turnEnvelope(session: unknown, turn: unknown, overrides: Record<string, unknown> = {}) {
   return {
     request_id: "application-session-turn-0001", tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: applicationId,
-    session_id: sessionId, session, turn, advisory_output: "Review this bounded advisory recommendation.", failure_code: null,
+    session_id: sessionId, session, turn, action_safety: null, advisory_output: "Review this bounded advisory recommendation.", failure_code: null,
     failure_summary: "", idempotent_replay: false, audit_ref: "audit_application-session-turn-0001", ...overrides,
   };
 }

@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	Component           = "workflow_saved_drafts"
-	MigrationID         = "0004_saved_workflow_draft_structured_inputs"
-	StoreSchemaVersion  = "saved_workflow_drafts_store_v1"
-	legacyMigrationID   = "0001_saved_workflow_drafts"
-	revisionMigrationID = "0002_saved_workflow_draft_revisions"
-	libraryMigrationID  = "0003_saved_workflow_draft_library"
+	Component                  = "workflow_saved_drafts"
+	MigrationID                = "0005_workspace_workflow_template_catalog"
+	StoreSchemaVersion         = "saved_workflow_drafts_store_v1"
+	legacyMigrationID          = "0001_saved_workflow_drafts"
+	revisionMigrationID        = "0002_saved_workflow_draft_revisions"
+	libraryMigrationID         = "0003_saved_workflow_draft_library"
+	structuredInputMigrationID = "0004_saved_workflow_draft_structured_inputs"
 
 	MigrationStateApplied    = "applied"
 	MigrationStateNotApplied = "not_applied"
@@ -61,6 +62,12 @@ var structuredInputUpMigrationSQL string
 
 //go:embed 0004_saved_workflow_draft_structured_inputs.down.sql
 var structuredInputDownMigrationSQL string
+
+//go:embed 0005_workspace_workflow_template_catalog.up.sql
+var workflowTemplateCatalogUpMigrationSQL string
+
+//go:embed 0005_workspace_workflow_template_catalog.down.sql
+var workflowTemplateCatalogDownMigrationSQL string
 
 type State struct {
 	MigrationState     string
@@ -103,7 +110,7 @@ func ExpectedChecksum() string {
 	return fmt.Sprintf(
 		"sha256:%x",
 		sha256.Sum256([]byte(
-			initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL+"\n"+structuredInputUpMigrationSQL,
+			initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL+"\n"+structuredInputUpMigrationSQL+"\n"+workflowTemplateCatalogUpMigrationSQL,
 		)),
 	)
 }
@@ -123,6 +130,13 @@ func libraryExpectedChecksum() string {
 	return fmt.Sprintf(
 		"sha256:%x",
 		sha256.Sum256([]byte(initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL)),
+	)
+}
+
+func structuredInputExpectedChecksum() string {
+	return fmt.Sprintf(
+		"sha256:%x",
+		sha256.Sum256([]byte(initialUpMigrationSQL+"\n"+revisionUpMigrationSQL+"\n"+libraryUpMigrationSQL+"\n"+structuredInputUpMigrationSQL)),
 	)
 }
 
@@ -177,7 +191,7 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		return State{}, errors.New("saved workflow draft migration marker does not match the embedded migration")
 	}
 
-	if state.MigrationID == legacyMigrationID || state.MigrationID == revisionMigrationID || state.MigrationID == libraryMigrationID {
+	if state.MigrationID == legacyMigrationID || state.MigrationID == revisionMigrationID || state.MigrationID == libraryMigrationID || state.MigrationID == structuredInputMigrationID {
 		if state.MigrationID == legacyMigrationID {
 			if _, err := transaction.Exec(ctx, revisionUpMigrationSQL); err != nil {
 				return State{}, safeDatabaseError("apply saved workflow draft revision migration", err)
@@ -188,8 +202,13 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 				return State{}, safeDatabaseError("apply saved workflow draft library migration", err)
 			}
 		}
-		if _, err := transaction.Exec(ctx, structuredInputUpMigrationSQL); err != nil {
-			return State{}, safeDatabaseError("apply saved workflow draft structured input migration", err)
+		if state.MigrationID != structuredInputMigrationID {
+			if _, err := transaction.Exec(ctx, structuredInputUpMigrationSQL); err != nil {
+				return State{}, safeDatabaseError("apply saved workflow draft structured input migration", err)
+			}
+		}
+		if _, err := transaction.Exec(ctx, workflowTemplateCatalogUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply workspace workflow template catalog migration", err)
 		}
 		if _, err := transaction.Exec(
 			ctx,
@@ -218,6 +237,9 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) (State, error) {
 		}
 		if _, err := transaction.Exec(ctx, structuredInputUpMigrationSQL); err != nil {
 			return State{}, safeDatabaseError("apply saved workflow draft structured input migration", err)
+		}
+		if _, err := transaction.Exec(ctx, workflowTemplateCatalogUpMigrationSQL); err != nil {
+			return State{}, safeDatabaseError("apply workspace workflow template catalog migration", err)
 		}
 		if _, err := transaction.Exec(
 			ctx,
@@ -288,6 +310,9 @@ func RollbackForDevTest(ctx context.Context, pool *pgxpool.Pool) (State, error) 
 	if state.MigrationState != MigrationStateApplied {
 		return State{}, errors.New("saved workflow draft rollback requires the matching applied migration")
 	}
+	if _, err := transaction.Exec(ctx, workflowTemplateCatalogDownMigrationSQL); err != nil {
+		return State{}, safeDatabaseError("rollback workspace workflow template catalog migration", err)
+	}
 	if _, err := transaction.Exec(ctx, structuredInputDownMigrationSQL); err != nil {
 		return State{}, safeDatabaseError("rollback saved workflow draft structured input migration", err)
 	}
@@ -354,14 +379,27 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 	var draftTableExists bool
 	var revisionTableExists bool
 	var lifecycleEventTableExists bool
+	var templateCandidateTableExists bool
+	var templateDecisionTableExists bool
+	var templateVersionTableExists bool
+	var templateLineageTableExists bool
+	var templateEventTableExists bool
+	var templateAuditTableExists bool
 	var payloadSchemaConstraintCount int
+	var templateProvenanceConstraintCurrent bool
 	if err := query.QueryRow(
 		ctx,
 		`SELECT
 		    to_regclass('public.saved_workflow_drafts') IS NOT NULL,
 		    to_regclass('public.saved_workflow_draft_revisions') IS NOT NULL,
-		    to_regclass('public.saved_workflow_draft_lifecycle_events') IS NOT NULL`,
-	).Scan(&draftTableExists, &revisionTableExists, &lifecycleEventTableExists); err != nil {
+		    to_regclass('public.saved_workflow_draft_lifecycle_events') IS NOT NULL,
+		    to_regclass('public.workflow_template_candidates') IS NOT NULL,
+		    to_regclass('public.workflow_template_decisions') IS NOT NULL,
+		    to_regclass('public.workflow_template_versions') IS NOT NULL,
+		    to_regclass('public.workflow_template_lineages') IS NOT NULL,
+		    to_regclass('public.workflow_template_listing_events') IS NOT NULL,
+		    to_regclass('public.workflow_template_audits') IS NOT NULL`,
+	).Scan(&draftTableExists, &revisionTableExists, &lifecycleEventTableExists, &templateCandidateTableExists, &templateDecisionTableExists, &templateVersionTableExists, &templateLineageTableExists, &templateEventTableExists, &templateAuditTableExists); err != nil {
 		return State{}, safeDatabaseError("inspect saved workflow draft tables", err)
 	}
 	if draftTableExists {
@@ -373,6 +411,15 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 			    AND conname='saved_workflow_drafts_payload_schema_check'`,
 		).Scan(&payloadSchemaConstraintCount); err != nil {
 			return State{}, safeDatabaseError("inspect saved workflow draft payload schema constraint", err)
+		}
+		if err := query.QueryRow(
+			ctx,
+			`SELECT COALESCE(bool_or(pg_get_constraintdef(oid) LIKE '%workspace_template_derivation%'), false)
+			   FROM pg_constraint
+			  WHERE conrelid='public.saved_workflow_drafts'::regclass
+			    AND conname='saved_workflow_drafts_provenance_kind_check'`,
+		).Scan(&templateProvenanceConstraintCurrent); err != nil {
+			return State{}, safeDatabaseError("inspect saved workflow draft provenance constraint", err)
 		}
 	}
 	if state.MigrationID == legacyMigrationID &&
@@ -402,13 +449,27 @@ func inspectWithQuery(ctx context.Context, query rowQuerier) (State, error) {
 		state.MigrationState = MigrationStateNotApplied
 		return state, nil
 	}
+	if state.MigrationID == structuredInputMigrationID &&
+		state.StoreSchemaVersion == StoreSchemaVersion &&
+		state.MigrationChecksum == structuredInputExpectedChecksum() &&
+		draftTableExists && revisionTableExists && lifecycleEventTableExists &&
+		payloadSchemaConstraintCount == 1 &&
+		!templateProvenanceConstraintCurrent &&
+		!templateCandidateTableExists && !templateDecisionTableExists && !templateVersionTableExists &&
+		!templateLineageTableExists && !templateEventTableExists && !templateAuditTableExists {
+		state.MigrationState = MigrationStateNotApplied
+		return state, nil
+	}
 	if state.MigrationID != MigrationID ||
 		state.StoreSchemaVersion != StoreSchemaVersion ||
 		state.MigrationChecksum != ExpectedChecksum() ||
 		!draftTableExists ||
 		!revisionTableExists ||
 		!lifecycleEventTableExists ||
-		payloadSchemaConstraintCount != 1 {
+		payloadSchemaConstraintCount != 1 ||
+		!templateProvenanceConstraintCurrent ||
+		!templateCandidateTableExists || !templateDecisionTableExists || !templateVersionTableExists ||
+		!templateLineageTableExists || !templateEventTableExists || !templateAuditTableExists {
 		state.MigrationState = MigrationStateMismatch
 		return state, nil
 	}

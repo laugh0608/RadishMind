@@ -81,6 +81,7 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     aliases: [
       "workflow-rag-promotion-review",
       "workflow-definition-promotion",
+      "workspace-workflow-template-catalog",
       "prompt-application-runtime-assignment",
       "agent-copilot-runtime-assignment",
     ],
@@ -108,6 +109,8 @@ const STAGE_DEFINITIONS: ReadonlyArray<ApplicationDevelopmentStageDefinition> = 
     anchor: "workspace-run-history",
     aliases: [
       "application-evaluation-plan",
+      "application-evaluation-schedule",
+      "application-evaluation-occurrence",
       "application-evaluation-campaign",
       "application-evaluation-pair",
       "application-evaluation-handoff",

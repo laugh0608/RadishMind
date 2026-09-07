@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS local_web_sessions_self_service_list_idx;

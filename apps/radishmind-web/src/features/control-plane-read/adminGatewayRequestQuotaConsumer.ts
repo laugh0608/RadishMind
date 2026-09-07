@@ -100,6 +100,7 @@ export type AdminGatewayRequestQuotaConfig = {
   environment: AdminGatewayRequestQuotaEnvironment;
   applicationId: string;
   subjectRef: string;
+  authMode?: "dev_headers" | "local_session_dev_test";
 };
 
 export type AdminGatewayRequestQuotaPolicy = {
@@ -169,6 +170,9 @@ export function readAdminGatewayRequestQuotaConfig(
     environment: configuredEnvironment === "development" ? "development" : "test",
     applicationId: context.applicationId.trim(),
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || "subject_demo_user",
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test"
+      ? "local_session_dev_test"
+      : "dev_headers",
   };
 }
 
@@ -212,6 +216,8 @@ async function requestAdminGatewayRequestQuota(
       method,
       headers: quotaHeaders(config, requestId, method),
       body: body === null ? undefined : JSON.stringify(body),
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
     },
   );
   let value: unknown;
@@ -233,6 +239,16 @@ function quotaHeaders(
   method: "GET" | "PUT",
 ): Record<string, string> {
   const permission = method === "GET" ? "admin_gateway_quotas:read" : "admin_gateway_quotas:write";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      ...(method === "PUT" ? { "Content-Type": "application/json" } : {}),
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Gateway-Quota-Environment": config.environment,
+    };
+  }
   return {
     Accept: "application/json",
     ...(method === "PUT" ? { "Content-Type": "application/json" } : {}),

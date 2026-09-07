@@ -14,8 +14,8 @@ test("Admin Control Plane exposes nine exact resource tasks without merging inde
   );
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "tenant")?.scope, "tenant:read");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "audit")?.scope, "audit:read");
-  assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "user")?.scope, "Radish owner");
-  assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "role")?.scope, "policy mapping");
+  assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "user")?.scope, "local identity");
+  assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "role")?.scope, "local grants");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "quota")?.scope, "UTC daily CAS");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "pricing")?.scope, "USD / 1M CAS");
 });

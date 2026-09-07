@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -66,7 +67,8 @@ func TestServerWiresLocalIdentityHTTPModeAndCredentialedCORS(t *testing.T) {
 	registerResponse := httptest.NewRecorder()
 	server.httpServer.Handler.ServeHTTP(registerResponse, register)
 	if registerResponse.Code != http.StatusCreated || server.localIdentityHTTPService == nil ||
-		server.workspaceMembershipProvider == nil {
+		server.localIdentityAdministrationService == nil || server.localIdentitySelfServiceSecurityService == nil ||
+		server.workspaceInvitationService == nil || server.workspaceMembershipProvider == nil {
 		t.Fatalf("server local identity wiring failed: status=%d body=%s", registerResponse.Code, registerResponse.Body.String())
 	}
 }
@@ -96,9 +98,26 @@ func newLocalIdentityHTTPTestFixture(repository localIdentityRepository, now tim
 	}
 	service := newLocalIdentityHTTPService(cfg, repository)
 	service.now = func() time.Time { return now }
+	var administration *localIdentityAdministrationService
+	if administrationRepository, ok := repository.(localIdentityAdministrationRepository); ok {
+		administration = newLocalIdentityAdministrationService(administrationRepository)
+		administration.now = func() time.Time { return now }
+	}
+	var selfServiceSecurity *localIdentitySelfServiceSecurityService
+	if selfServiceRepository, ok := repository.(localIdentitySelfServiceSecurityRepository); ok {
+		selfServiceSecurity = newLocalIdentitySelfServiceSecurityService(selfServiceRepository)
+		selfServiceSecurity.now = func() time.Time { return now }
+	}
+	var workspaceInvitations *workspaceInvitationService
+	if workspaceInvitationRepository, ok := repository.(workspaceInvitationRepository); ok {
+		workspaceInvitations = newWorkspaceInvitationService(workspaceInvitationRepository)
+		workspaceInvitations.now = func() time.Time { return now }
+	}
 	server := &Server{
-		config: cfg, localIdentityHTTPService: service,
-		workspaceMembershipProvider: newLocalWorkspaceMembershipProvider(repository),
+		config: cfg, localIdentityHTTPService: service, localIdentityAdministrationService: administration,
+		localIdentitySelfServiceSecurityService: selfServiceSecurity,
+		workspaceInvitationService:              workspaceInvitations,
+		workspaceMembershipProvider:             newLocalWorkspaceMembershipProvider(repository),
 	}
 	mux := http.NewServeMux()
 	registerLocalIdentityHTTPRoutes(mux, server)
@@ -112,6 +131,15 @@ func newLocalIdentityHTTPTestFixture(repository localIdentityRepository, now tim
 func (fixture *localIdentityHTTPTestFixture) setNow(now time.Time) {
 	*fixture.now = now
 	fixture.service.now = func() time.Time { return *fixture.now }
+	if fixture.server.localIdentityAdministrationService != nil {
+		fixture.server.localIdentityAdministrationService.now = func() time.Time { return *fixture.now }
+	}
+	if fixture.server.localIdentitySelfServiceSecurityService != nil {
+		fixture.server.localIdentitySelfServiceSecurityService.now = func() time.Time { return *fixture.now }
+	}
+	if fixture.server.workspaceInvitationService != nil {
+		fixture.server.workspaceInvitationService.now = func() time.Time { return *fixture.now }
+	}
 }
 
 func TestLocalIdentityHTTPRegisterCurrentLogoutAndRelogin(t *testing.T) {
@@ -226,11 +254,13 @@ func TestLocalIdentityHTTPNegativeSecurityMatrix(t *testing.T) {
 	fixture.handler.ServeHTTP(missingMutationCSRFResponse, missingMutationCSRF)
 	assertLocalIdentityError(t, missingMutationCSRFResponse, http.StatusForbidden, localIdentityCSRFInvalid)
 
-	wrongSessionRevoke := localIdentityHTTPJSONRequest(t, http.MethodPost, "/v1/auth/sessions/ses_0000000000000000/revoke", map[string]any{}, cookies)
+	wrongSessionRevoke := localIdentityHTTPJSONRequest(t, http.MethodPost, "/v1/auth/sessions/ses_0000000000000000/revoke", map[string]any{
+		"expected_record_version": 1, "confirmed": true,
+	}, cookies)
 	wrongSessionRevoke.Header.Set(localIdentityCSRFHeader, csrf)
 	wrongSessionRevokeResponse := httptest.NewRecorder()
 	fixture.handler.ServeHTTP(wrongSessionRevokeResponse, wrongSessionRevoke)
-	assertLocalIdentityError(t, wrongSessionRevokeResponse, http.StatusForbidden, localIdentitySessionOwnershipDenied)
+	assertLocalIdentityError(t, wrongSessionRevokeResponse, http.StatusForbidden, LocalIdentityFailureSessionScopeDenied)
 
 	account, err := fixture.repository.ReadAccount(context.Background(), registered.Account.UserID)
 	if err != nil {
@@ -292,6 +322,76 @@ func TestLocalIdentityHTTPSessionExpiryRevokeAndNoFallback(t *testing.T) {
 	protected.ServeHTTP(conflictingResponse, conflicting)
 	if !strings.Contains(conflictingResponse.Body.String(), "auth_context_contract_mismatch") || strings.Contains(conflictingResponse.Body.String(), registered.Account.UserID) {
 		t.Fatalf("dev headers became a local session fallback: %s", conflictingResponse.Body.String())
+	}
+}
+
+func TestLocalIdentityHTTPAccountProfileAndExternalIdentityRevoke(t *testing.T) {
+	now := time.Date(2026, 8, 19, 16, 30, 0, 0, time.UTC)
+	fixture := newLocalIdentityHTTPTestFixture(newMemoryLocalIdentityRepository(), now)
+	_, cookies, registered := registerLocalIdentityHTTPTestAccount(
+		t, fixture, "profile@example.com", "a sufficiently long password",
+	)
+	binding := localIdentityTestBinding(
+		"xid_profileaaaaaaaaa", registered.Account.UserID,
+		"https://issuer.secret.example.com/oidc", "upstream-subject-must-not-leak",
+	)
+	if err := fixture.repository.BindExternalIdentity(t.Context(), binding); err != nil {
+		t.Fatalf("bind profile external identity: %v", err)
+	}
+	membership := localIdentityTestMembership(registered.Account.UserID)
+	role := localIdentityTestRoleAssignment(registered.Account.UserID)
+	if err := fixture.repository.CreateWorkspaceMembership(t.Context(), membership); err != nil {
+		t.Fatalf("create profile membership: %v", err)
+	}
+	if err := fixture.repository.CreateRoleAssignment(t.Context(), role); err != nil {
+		t.Fatalf("create profile role: %v", err)
+	}
+
+	request := httptest.NewRequest(http.MethodGet, localIdentityCurrentAccountRoute, nil)
+	addLocalIdentityCookies(request, cookies)
+	response := httptest.NewRecorder()
+	fixture.handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("read account profile: status=%d body=%s", response.Code, response.Body.String())
+	}
+	var document localIdentityAccountProfileDocument
+	decodeLocalIdentityHTTPResponse(t, response, &document)
+	if document.Account.UserID != registered.Account.UserID || len(document.ExternalIdentities) != 1 ||
+		document.ExternalIdentities[0].ProviderRef != "radish_oidc" || !document.ExternalIdentities[0].CanRevoke ||
+		len(document.RoleAssignments) != 1 || len(document.WorkspaceMemberships) != 1 ||
+		!document.Capabilities.HasActiveLocalCredential || !document.Capabilities.RecentAuthentication {
+		t.Fatalf("unexpected account profile: %#v", document)
+	}
+	for _, forbidden := range []string{
+		"profile@example.com", binding.Issuer, binding.Subject, binding.AuditRef, "login_identifier", "subject", "issuer",
+	} {
+		if strings.Contains(response.Body.String(), forbidden) {
+			t.Fatalf("account profile leaked %q: %s", forbidden, response.Body.String())
+		}
+	}
+
+	csrf := localIdentityCookieValue(t, cookies, fixture.service.csrfCookieName())
+	wrongOwner := localIdentityHTTPJSONRequest(
+		t, http.MethodPost, "/v1/auth/external-identities/xid_otheraaaaaaaaaaa/revoke",
+		map[string]any{"expected_record_version": 1}, cookies,
+	)
+	wrongOwner.Header.Set(localIdentityCSRFHeader, csrf)
+	wrongOwnerResponse := httptest.NewRecorder()
+	fixture.handler.ServeHTTP(wrongOwnerResponse, wrongOwner)
+	assertLocalIdentityError(t, wrongOwnerResponse, http.StatusForbidden, localIdentityBindingOwnershipDenied)
+
+	revoke := localIdentityHTTPJSONRequest(
+		t, http.MethodPost, "/v1/auth/external-identities/"+binding.BindingID+"/revoke",
+		map[string]any{"expected_record_version": 1}, cookies,
+	)
+	revoke.Header.Set(localIdentityCSRFHeader, csrf)
+	revokeResponse := httptest.NewRecorder()
+	fixture.handler.ServeHTTP(revokeResponse, revoke)
+	if revokeResponse.Code != http.StatusNoContent {
+		t.Fatalf("revoke external identity: status=%d body=%s", revokeResponse.Code, revokeResponse.Body.String())
+	}
+	if _, err := fixture.repository.ResolveExternalIdentity(t.Context(), binding.Issuer, binding.Subject); !errors.Is(err, errLocalIdentityNotFound) {
+		t.Fatalf("revoked external identity still resolves: %v", err)
 	}
 }
 

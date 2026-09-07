@@ -30,6 +30,8 @@ workflow_rag_promotion_local_product=0
 workflow_rag_application_local_product=0
 workflow_definition_local_product=0
 workflow_definition_postgres_dev_test=0
+workflow_template_local_product=0
+workflow_template_postgres_dev_test=0
 application_session_local_product=0
 application_session_postgres_dev_test=0
 application_result_artifact_library_local_product=0
@@ -40,6 +42,7 @@ agent_copilot_local_product=0
 agent_copilot_postgres_dev_test=0
 application_evaluation_dev=0
 application_evaluation_local_product=0
+application_evaluation_schedule_local_product=0
 saved_draft_workspace_id="workspace_demo"
 saved_draft_application_id="app_flow_copilot"
 
@@ -100,6 +103,10 @@ Options:
                            Enable the SQLite Saved Draft → candidate → review → activation → v5 run chain.
   --workflow-definition-postgres-dev-test
                            Enable the same chain with PostgreSQL dev/test repositories.
+  --workflow-template-local-product
+                           Enable the SQLite Definition → template review/listing → Saved Draft derivation chain.
+  --workflow-template-postgres-dev-test
+                           Enable the same chain with PostgreSQL dev/test repositories.
   --application-session-local-product
                            Enable the SQLite Application Session chain with Workflow Definition v5 and Application RAG v4 profiles.
   --application-session-postgres-dev-test
@@ -118,6 +125,8 @@ Options:
                            Enable the memory-dev Application Evaluation Plan → Campaign → Pair → Handoff chain.
   --application-evaluation-local-product
                            Enable the same Application Evaluation chain with the shared SQLite local-product runtime.
+  --application-evaluation-schedule-local-product
+                           Enable the SQLite Schedule / Occurrence product chain with local Web Session auth and the explicit dev/test runner.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
   -h, --help              Show this help.
@@ -238,6 +247,14 @@ while [[ $# -gt 0 ]]; do
       workflow_definition_postgres_dev_test=1
       shift
       ;;
+    --workflow-template-local-product)
+      workflow_template_local_product=1
+      shift
+      ;;
+    --workflow-template-postgres-dev-test)
+      workflow_template_postgres_dev_test=1
+      shift
+      ;;
     --application-session-local-product)
       application_session_local_product=1
       shift
@@ -272,6 +289,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --application-evaluation-local-product)
       application_evaluation_local_product=1
+      shift
+      ;;
+    --application-evaluation-schedule-local-product)
+      application_evaluation_schedule_local_product=1
       shift
       ;;
     --verify-only)
@@ -309,6 +330,14 @@ fi
 if [[ "${workflow_definition_http_tool_local_product}" -eq 1 ]]; then
   workflow_http_tool_local_product=1
   workflow_definition_local_product=1
+fi
+if [[ "${workflow_template_local_product}" -eq 1 ]]; then
+  workflow_definition_local_product=1
+  admin_provider_route_local_product=1
+fi
+if [[ "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+  workflow_definition_postgres_dev_test=1
+  admin_provider_route_postgres_dev_test=1
 fi
 if [[ "${provider_attempt_postgres_dev_test}" -eq 1 ]]; then
   admin_provider_route_postgres_dev_test=1
@@ -350,6 +379,10 @@ fi
 if [[ "${application_evaluation_dev}" -eq 1 ]]; then
   saved_draft_dev=1
 fi
+if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+  application_evaluation_local_product=1
+  prompt_application_local_product=1
+fi
 if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
   api_key_local_product=1
   workflow_definition_local_product=1
@@ -362,6 +395,10 @@ workflow_definition_enabled=0
 if [[ "${workflow_definition_local_product}" -eq 1 || "${workflow_definition_postgres_dev_test}" -eq 1 ||
   "${application_evaluation_dev}" -eq 1 ]]; then
   workflow_definition_enabled=1
+fi
+workflow_template_enabled=0
+if [[ "${workflow_template_local_product}" -eq 1 || "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+  workflow_template_enabled=1
 fi
 application_session_enabled=0
 if [[ "${application_session_local_product}" -eq 1 || "${application_session_postgres_dev_test}" -eq 1 ||
@@ -482,6 +519,14 @@ if [[ "${workflow_definition_enabled}" -eq 1 && "${mode}" != "dev-live" ]]; then
 fi
 if [[ "${workflow_definition_local_product}" -eq 1 && "${workflow_definition_postgres_dev_test}" -eq 1 ]]; then
   echo "Choose either --workflow-definition-local-product or --workflow-definition-postgres-dev-test" >&2
+  exit 2
+fi
+if [[ "${workflow_template_enabled}" -eq 1 && "${mode}" != "dev-live" ]]; then
+  echo "Workflow Template product mode requires --mode dev-live" >&2
+  exit 2
+fi
+if [[ "${workflow_template_local_product}" -eq 1 && "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+  echo "Choose either --workflow-template-local-product or --workflow-template-postgres-dev-test" >&2
   exit 2
 fi
 if [[ "${application_session_local_product}" -eq 1 && "${application_session_postgres_dev_test}" -eq 1 ]]; then
@@ -1058,6 +1103,42 @@ if document.get("failure_code") is not None or not isinstance(document.get("cand
 PY
 }
 
+probe_workflow_template_route() {
+  local base_url="$1"
+  local tenant="$2"
+  local subject="$3"
+  local workspace_id="$4"
+  "${python_bin}" - "$base_url" "$tenant" "$subject" "$workspace_id" <<'PY'
+import json
+import sys
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+base_url, tenant, subject, workspace_id = sys.argv[1:]
+query = urlencode({"workspace_id": workspace_id, "limit": "1"})
+url = f"{base_url.rstrip('/')}/v1/user-workspace/workflow-templates?{query}"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "X-Request-Id": "dev-live-workflow-template-probe",
+    "X-RadishMind-Dev-Read-Identity": "dev-live-workflow-template-probe",
+    "X-RadishMind-Dev-Read-Tenant": tenant,
+    "X-RadishMind-Dev-Read-Subject": subject,
+    "X-RadishMind-Dev-Read-Scopes": "workflow_definitions:read",
+    "X-RadishMind-Dev-Read-Audit": "audit_dev_live_workflow_template_probe",
+    "X-RadishMind-Active-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Workspace": workspace_id,
+    "X-RadishMind-Dev-Read-Membership-Permissions": "workflow_definitions:read",
+    "X-RadishMind-Dev-Workflow-Workspace": workspace_id,
+}, method="GET")
+with urlopen(request, timeout=5) as response:
+    if response.status < 200 or response.status >= 300:
+        raise SystemExit(f"Unexpected HTTP status {response.status} from {url}")
+    document = json.loads(response.read().decode("utf-8"))
+if document.get("failure_code") is not None or not isinstance(document.get("templates"), list):
+    raise SystemExit("Workflow Template route did not return a successful templates[] envelope")
+PY
+}
+
 probe_application_session_route() {
   local base_url="$1"
   local tenant="$2"
@@ -1332,6 +1413,79 @@ if '<div id="root">' not in body:
 PY
 }
 
+probe_local_identity_cors() {
+  local base_url="$1"
+  local origin="$2"
+  "${python_bin}" - "$base_url" "$origin" <<'PY'
+import sys
+from urllib.request import Request, urlopen
+
+base_url, origin = sys.argv[1:]
+url = f"{base_url.rstrip('/')}/v1/auth/session"
+request = Request(url, headers={
+    "Origin": origin,
+    "Access-Control-Request-Method": "GET",
+    "Access-Control-Request-Headers": ", ".join([
+        "Content-Type",
+        "X-Request-Id",
+        "X-RadishMind-Active-Workspace",
+        "X-RadishMind-Dev-Workflow-Workspace",
+        "X-RadishMind-Dev-Workflow-Application",
+        "X-RadishMind-Dev-Application-Evaluation-Environment",
+    ]),
+}, method="OPTIONS")
+with urlopen(request, timeout=5) as response:
+    if response.status != 204:
+        raise SystemExit(f"Unexpected local identity CORS status {response.status} from {url}")
+    if response.headers.get("Access-Control-Allow-Origin") != origin:
+        raise SystemExit("Local identity CORS did not preserve the exact frontend origin")
+    if response.headers.get("Access-Control-Allow-Credentials") != "true":
+        raise SystemExit("Local identity CORS did not allow credentialed requests")
+    allowed_headers = response.headers.get("Access-Control-Allow-Headers", "").lower()
+    for required in [
+        "content-type",
+        "x-request-id",
+        "x-radishmind-active-workspace",
+        "x-radishmind-dev-workflow-workspace",
+        "x-radishmind-dev-workflow-application",
+        "x-radishmind-dev-application-evaluation-environment",
+    ]:
+        if required not in allowed_headers:
+            raise SystemExit(f"Local identity CORS did not allow {required}")
+PY
+}
+
+probe_local_identity_session_boundary() {
+  local base_url="$1"
+  local origin="$2"
+  "${python_bin}" - "$base_url" "$origin" <<'PY'
+import json
+import sys
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+
+base_url, origin = sys.argv[1:]
+url = f"{base_url.rstrip('/')}/v1/auth/session"
+request = Request(url, headers={
+    "Accept": "application/json",
+    "Origin": origin,
+    "X-Request-Id": "dev-live-local-session-boundary-probe",
+}, method="GET")
+try:
+    with urlopen(request, timeout=5) as response:
+        raise SystemExit(f"Unauthenticated local Session probe unexpectedly returned {response.status}")
+except HTTPError as error:
+    if error.code != 401:
+        raise SystemExit(f"Unexpected local Session boundary status {error.code}")
+    document = json.loads(error.read().decode("utf-8"))
+error_document = document.get("error") if isinstance(document, dict) else None
+if not isinstance(error_document, dict) or error_document.get("code") != "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED":
+    raise SystemExit("Local Session boundary did not return its sanitized authentication-required envelope")
+if error_document.get("failure_boundary") != "local_identity":
+    raise SystemExit("Local Session boundary response drifted")
+PY
+}
+
 wait_until() {
   local name="$1"
   shift
@@ -1482,6 +1636,13 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export RADISHMIND_PLATFORM_PROVIDER="${RADISHMIND_PLATFORM_PROVIDER:-mock}"
         export RADISHMIND_PLATFORM_MODEL="${RADISHMIND_PLATFORM_MODEL:-radishmind-local-dev}"
         export RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH="1"
+        if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+          export RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE="local_session_dev_test"
+          export RADISHMIND_LOCAL_IDENTITY_DEV_HTTP="1"
+          export RADISHMIND_LOCAL_IDENTITY_ALLOWED_ORIGIN="${frontend_origin}"
+          export RADISHMIND_LOCAL_IDENTITY_COOKIE_SECURE="false"
+          export RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV="true"
+        fi
         if [[ "${workflow_rag_snapshot_enabled}" -eq 1 ]]; then
           export RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV="1"
         fi
@@ -1524,6 +1685,19 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export RADISHMIND_WORKFLOW_EXECUTOR_DEV="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP="1"
           export RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE="1"
+        fi
+        if [[ "${workflow_template_enabled}" -eq 1 ]]; then
+          export RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV="1"
+          export RADISHMIND_MODEL_PROVIDER="openai-compatible"
+          export RADISHMIND_MODEL_PROFILE="radishmind-default-workflow"
+          export RADISHMIND_MODEL_PROFILE_FALLBACKS="radishmind-default-workflow"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_NAME="mock-workflow-model"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_BASE_URL="http://127.0.0.1:9/workflow-template-provider-disabled"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_API_KEY="workflow-template-dev-test-only"
+          export RADISHMIND_MODEL_PROFILE_RADISHMIND_DEFAULT_WORKFLOW_API_STYLE="openai-compatible"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_PROVIDER_ID="openai-compatible"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE="radishmind-default-workflow"
+          export RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID="mock-workflow-model"
         fi
         if [[ "${application_evaluation_enabled}" -eq 1 ]]; then
           export RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV="1"
@@ -1682,6 +1856,14 @@ if [[ "${verify_only}" -eq 0 ]]; then
         export VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL="${backend_url%/}"
         export VITE_RADISHMIND_DEV_READ_TENANT_REF="${tenant_ref}"
         export VITE_RADISHMIND_DEV_READ_SUBJECT_REF="${subject_ref}"
+        if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+          export VITE_RADISHMIND_READ_SOURCE="offline-fixture"
+          export VITE_RADISHMIND_READ_AUTH_MODE="local_session_dev_test"
+          export VITE_RADISHMIND_LOCAL_IDENTITY_MODE="local_identity_dev"
+          export VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL="${backend_url%/}"
+        else
+          export VITE_RADISHMIND_READ_AUTH_MODE="dev_headers"
+        fi
         if [[ "${application_draft_dev}" -eq 1 || "${application_publish_dev}" -eq 1 || "${application_publish_postgres_dev_test}" -eq 1 || "${api_key_local_product}" -eq 1 || "${workflow_rag_promotion_local_product}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE="dev-application-draft-http"
           export VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL="${backend_url%/}"
@@ -1753,6 +1935,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
           export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_BASE_URL="${backend_url%/}"
           export VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_WORKSPACE_ID="${saved_draft_workspace_id}"
         fi
+        if [[ "${workflow_template_enabled}" -eq 1 ]]; then
+          export VITE_RADISHMIND_WORKFLOW_TEMPLATE_SOURCE="dev-workflow-template-http"
+          export VITE_RADISHMIND_WORKFLOW_TEMPLATE_BASE_URL="${backend_url%/}"
+          export VITE_RADISHMIND_WORKFLOW_TEMPLATE_WORKSPACE_ID="${saved_draft_workspace_id}"
+        fi
         if [[ "${application_session_enabled}" -eq 1 ]]; then
           export VITE_RADISHMIND_APPLICATION_SESSION_SOURCE="dev-application-session-http"
           export VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL="${backend_url%/}"
@@ -1815,6 +2002,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
       else
         unset VITE_RADISHMIND_READ_SOURCE
         unset VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL
+        unset VITE_RADISHMIND_READ_AUTH_MODE
+        unset VITE_RADISHMIND_LOCAL_IDENTITY_MODE
+        unset VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_RUN_HISTORY_SOURCE
@@ -1825,6 +2015,9 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_BASE_URL
         unset VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_WORKSPACE_ID
+        unset VITE_RADISHMIND_WORKFLOW_TEMPLATE_SOURCE
+        unset VITE_RADISHMIND_WORKFLOW_TEMPLATE_BASE_URL
+        unset VITE_RADISHMIND_WORKFLOW_TEMPLATE_WORKSPACE_ID
         unset VITE_RADISHMIND_APPLICATION_SESSION_SOURCE
         unset VITE_RADISHMIND_APPLICATION_SESSION_BASE_URL
         unset VITE_RADISHMIND_APPLICATION_SESSION_WORKSPACE_ID
@@ -1892,7 +2085,7 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE
         unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID
       fi
-      exec npm run dev
+      exec npm run dev -- --host "${frontend_host}" --port "${frontend_port}"
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
     spawned_pids+=("$!")
   fi
@@ -1907,14 +2100,24 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "backend healthz probe failed"
     exit 1
   fi
-  if ! wait_until "dev-live read route CORS" probe_cors "${tenant_summary_url}" "${frontend_origin}"; then
-    show_failure_help "dev-live read route CORS probe failed"
-    exit 1
-  fi
-  if ! wait_until "dev-live read routes" probe_control_plane_read_routes "${backend_url}" "${tenant_ref}" "${subject_ref}"; then
-    show_failure_help "dev-live read route probe failed"
-    exit 1
-  fi
+  if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+    if ! wait_until "local identity credentialed CORS" probe_local_identity_cors "${backend_url}" "${frontend_origin}"; then
+      show_failure_help "local identity credentialed CORS probe failed"
+      exit 1
+    fi
+    if ! wait_until "local Session authentication boundary" probe_local_identity_session_boundary "${backend_url}" "${frontend_origin}"; then
+      show_failure_help "local Session authentication boundary probe failed"
+      exit 1
+    fi
+  else
+    if ! wait_until "dev-live read route CORS" probe_cors "${tenant_summary_url}" "${frontend_origin}"; then
+      show_failure_help "dev-live read route CORS probe failed"
+      exit 1
+    fi
+    if ! wait_until "dev-live read routes" probe_control_plane_read_routes "${backend_url}" "${tenant_ref}" "${subject_ref}"; then
+      show_failure_help "dev-live read route probe failed"
+      exit 1
+    fi
   if [[ "${api_key_local_product}" -eq 1 || "${admin_provider_route_postgres_dev_test}" -eq 1 || "${workflow_rag_application_enabled}" -eq 1 || "${prompt_application_enabled}" -eq 1 || "${agent_copilot_enabled}" -eq 1 || "${application_evaluation_enabled}" -eq 1 ]] && ! wait_until "Gateway API key auth mode" probe_gateway_api_key_mode "${backend_url}"; then
     show_failure_help "Gateway api_key_dev_test mode probe failed"
     exit 1
@@ -1973,6 +2176,16 @@ if [[ "${mode}" == "dev-live" ]]; then
     show_failure_help "Workflow Definition promotion dev route probe failed"
     exit 1
   fi
+  if [[ "${workflow_template_enabled}" -eq 1 ]] && ! wait_until \
+    "Workflow Template Catalog dev route" \
+    probe_workflow_template_route \
+    "${backend_url}" \
+    "${tenant_ref}" \
+    "${subject_ref}" \
+    "${saved_draft_workspace_id}"; then
+    show_failure_help "Workflow Template Catalog dev route probe failed"
+    exit 1
+  fi
   if [[ "${application_session_enabled}" -eq 1 ]] && ! wait_until \
     "Application Session dev route" \
     probe_application_session_route \
@@ -2005,6 +2218,7 @@ if [[ "${mode}" == "dev-live" ]]; then
     "${saved_draft_application_id}"; then
     show_failure_help "Agent Copilot dev route probe failed"
     exit 1
+  fi
   fi
 fi
 
@@ -2063,6 +2277,13 @@ if [[ "${mode}" == "dev-live" ]]; then
     fi
     step "Workflow Definition ${definition_store} product chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; review, activation, execution, comparison, and evaluation remain explicit actions."
   fi
+  if [[ "${workflow_template_enabled}" -eq 1 ]]; then
+    template_store="SQLite"
+    if [[ "${workflow_template_postgres_dev_test}" -eq 1 ]]; then
+      template_store="PostgreSQL dev/test"
+    fi
+    step "Workflow Template ${template_store} chain enabled for ${saved_draft_workspace_id}; Definition source, review, listing, target binding, and derivation remain explicit actions."
+  fi
   if [[ "${application_session_enabled}" -eq 1 ]]; then
     session_store="SQLite"
     if [[ "${application_session_postgres_dev_test}" -eq 1 || "${prompt_application_postgres_dev_test}" -eq 1 || "${agent_copilot_postgres_dev_test}" -eq 1 ]]; then
@@ -2092,7 +2313,12 @@ if [[ "${mode}" == "dev-live" ]]; then
     if [[ "${application_evaluation_local_product}" -eq 1 ]]; then
       evaluation_store="SQLite local-product"
     fi
-    step "Application Evaluation ${evaluation_store} chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; Plan, Campaign, Pair, and Handoff remain explicit development/test actions."
+    if [[ "${application_evaluation_schedule_local_product}" -eq 1 ]]; then
+      step "Application Evaluation ${evaluation_store} Schedule chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; local Session login, administrator bootstrap, lifecycle confirmation, Occurrence inspection, and exact Campaign handoff remain explicit development/test actions."
+      step "The bounded Schedule runner is enabled for this dedicated mode only; it performs no retry, replay, catch-up, automatic release, or production work."
+    else
+      step "Application Evaluation ${evaluation_store} chain enabled for ${saved_draft_workspace_id}/${saved_draft_application_id}; Plan, Campaign, Pair, and Handoff remain explicit development/test actions."
+    fi
   fi
 fi
 step "This is a dev-only launcher, not a production supervisor. Controlled execution is dev-only; production auth, secret resolution, unrestricted tools, automatic confirmation, writeback and replay remain disabled."

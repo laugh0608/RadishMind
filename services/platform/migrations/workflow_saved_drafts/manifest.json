@@ -372,12 +372,12 @@
   ],
   "migration_plan": {
     "migration_id": "0001_saved_workflow_drafts",
-    "latest_migration_id": "0004_saved_workflow_draft_structured_inputs",
+    "latest_migration_id": "0005_workspace_workflow_template_catalog",
     "migration_root": "services/platform/migrations/workflow_saved_drafts",
     "up_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.up.sql",
     "down_migration_path": "services/platform/migrations/workflow_saved_drafts/0001_saved_workflow_drafts.down.sql",
-    "latest_up_migration_path": "services/platform/migrations/workflow_saved_drafts/0004_saved_workflow_draft_structured_inputs.up.sql",
-    "latest_down_migration_path": "services/platform/migrations/workflow_saved_drafts/0004_saved_workflow_draft_structured_inputs.down.sql",
+    "latest_up_migration_path": "services/platform/migrations/workflow_saved_drafts/0005_workspace_workflow_template_catalog.up.sql",
+    "latest_down_migration_path": "services/platform/migrations/workflow_saved_drafts/0005_workspace_workflow_template_catalog.down.sql",
     "checksum_scope": "ordered_up_migration_chain",
     "forward_only_exception": null,
     "manual_apply_required": true,
@@ -461,6 +461,52 @@
       "TransitionWorkflowDraftLifecycle"
     ]
   },
+  "workspace_workflow_template_catalog_extension": {
+    "schema_versions": [
+      "workspace_workflow_template_candidate.v1",
+      "workspace_workflow_template_decision.v1",
+      "workspace_workflow_template_version.v1",
+      "workspace_workflow_template_lineage.v1",
+      "workspace_workflow_template_listing_event.v1",
+      "workspace_workflow_template_audit.v1"
+    ],
+    "tables": [
+      "workflow_template_candidates",
+      "workflow_template_decisions",
+      "workflow_template_versions",
+      "workflow_template_lineages",
+      "workflow_template_listing_events",
+      "workflow_template_audits"
+    ],
+    "scope_predicate": [
+      "tenant_ref",
+      "workspace_id"
+    ],
+    "review_materialization_transaction": [
+      "candidate compare-and-swap update",
+      "decision append",
+      "immutable version append",
+      "initial lineage insert",
+      "audit append"
+    ],
+    "listing_transaction": [
+      "lineage pointer compare-and-swap update",
+      "listing event append",
+      "audit append"
+    ],
+    "append_only_tables": [
+      "workflow_template_decisions",
+      "workflow_template_versions",
+      "workflow_template_listing_events",
+      "workflow_template_audits"
+    ],
+    "saved_draft_provenance_kind": "workspace_template_derivation",
+    "saved_draft_owner_bypass_allowed": false,
+    "shared_backend_selector_required": true,
+    "new_pool_dsn_or_database_file_allowed": false,
+    "fallback_to_memory_dev_store_allowed": false,
+    "projection_payload_mismatch_fails_closed": true
+  },
   "evidence_refs": {
     "ddl_review": "services/platform/migrations/workflow_saved_drafts/ddl-review.md",
     "rollback_evidence": "services/platform/migrations/workflow_saved_drafts/rollback-evidence.json",
@@ -540,6 +586,40 @@
       "fallback_to_memory_dev_store_allowed": false,
       "fallback_to_sample_allowed": false,
       "side_effect_allowed": true
+    },
+    {
+      "operation": "ReviewWorkflowTemplateCandidate",
+      "required_scope": "workflow_definitions:read + workflow_definitions:review",
+      "required_indexes": [
+        "workflow_template_candidates_workspace_list_idx",
+        "workflow_template_versions_workspace_list_idx"
+      ],
+      "predicate_coverage": [
+        "tenant and workspace scope",
+        "candidate review_version compare-and-swap",
+        "decision, version, lineage and audit single transaction",
+        "exact source Definition digest"
+      ],
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": true
+    },
+    {
+      "operation": "DecideWorkflowTemplateListing",
+      "required_scope": "workflow_definitions:read + workflow_definitions:activate",
+      "required_indexes": [
+        "workflow_template_lineages_workspace_list_idx",
+        "workflow_template_audits_workspace_order_idx"
+      ],
+      "predicate_coverage": [
+        "tenant and workspace scope",
+        "lineage pointer_version compare-and-swap",
+        "pointer, event and audit single transaction",
+        "immutable template version digest"
+      ],
+      "fallback_to_memory_dev_store_allowed": false,
+      "fallback_to_sample_allowed": false,
+      "side_effect_allowed": true
     }
   ],
   "failure_mapping_smoke_cases": [
@@ -572,6 +652,9 @@
     "saved_workflow_draft_insert",
     "saved_workflow_draft_compare_and_swap_update",
     "saved_workflow_draft_lifecycle_compare_and_swap_update",
-    "saved_workflow_draft_lifecycle_event_insert"
+    "saved_workflow_draft_lifecycle_event_insert",
+    "workflow_template_candidate_insert",
+    "workflow_template_review_transaction",
+    "workflow_template_listing_transaction"
   ]
 }

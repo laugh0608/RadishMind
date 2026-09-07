@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workspace-workflow-template-decision.schema.json",
+  "title": "Workspace Workflow Template Decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "review_version", "decision", "reason", "reviewer_ref", "decided_at", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workspace_workflow_template_decision.v1"},
+    "review_version": {"const": 1},
+    "decision": {"enum": ["approve", "reject", "request_changes", "withdraw"]},
+    "reason": {"type": "string", "minLength": 4, "maxLength": 500},
+    "reviewer_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "audit_ref": {"type": "string", "minLength": 1, "maxLength": 240}
+  }
+}

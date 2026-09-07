@@ -1,6 +1,6 @@
 # 本地 SQLite 开发持久化 v1
 
-更新时间：2026-08-17
+更新时间：2026-08-30
 
 状态：`local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`
 
@@ -46,6 +46,8 @@ Agent / Copilot Profile owner 沿用同一聚合边界成为第九个组件 `age
 
 2026-08-17 Application Result Artifact 与独立应用结果资产库复用第六组件 `workflow_runs` 的 migration family、共享数据库句柄和 selector，顺序追加 `0022_application_result_artifacts`、`0023_application_result_artifact_lifecycle` 与只含 application history 读取索引的 `0024_application_result_artifact_application_history`。显式 opt-in 的 canonical result content 只进入独立不可变 artifact owner；current lifecycle 与 append-only event 分表保存，既有资产升级时只回填 active v1。application-scoped list / export 不新增 export 表、repository、第十二个组件、DSN 或连接池，也不改变 Session / Turn / Run 的 metadata-only 合同；永久 purge 与生产持久化声明仍关闭。
 
+2026-08-30 Action Safety 与 Application Evaluation Schedule 继续复用第六组件 `workflow_runs`，依次追加 `0025_action_safety_snapshots` 与 `0026_application_evaluation_schedules`；PostgreSQL 同构 migration 为 `0028` 与 `0029`。前者只在五张既有 owner 表追加 all-or-none 脱敏 snapshot 三元组，后者保存 Schedule current / immutable version / Occurrence 与 due / open 投影；二者都不新增第十二个组件、数据库、DSN、pool 或跨 store join。Schedule runner 是 Platform 在显式开发测试 gate 下启动的单 worker，不由 SQLite runtime 自动创建；Server 关闭时先 cancel / join runner，再关闭 Workflow Run Store 与共享 SQLite runtime。
+
 Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.go.dev/modernc.org/sqlite)、[`v1.53.0` 模块声明](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/go.mod)和[许可证原文](https://gitlab.com/cznic/sqlite/-/raw/v1.53.0/LICENSE)为准。`github.com/mattn/go-sqlite3` 因明确要求 CGO 与 GCC，且 Windows / 交叉编译需要额外工具链，本阶段不采用；该结论只服务当前本地开发 runtime，不构成永久排除其它 driver 的平台政策。
 
 具体实现统一由[本地 SQLite 开发持久化 v1 实施任务卡](../task-cards/local-sqlite-dev-persistence-v1-plan.md)承接，不再为 driver、单个 repository 或 migration 派生同层任务卡与检查器。
@@ -65,7 +67,7 @@ Driver 评审证据以 [`modernc.org/sqlite` 官方 package 页面](https://pkg.
 3. 应用发布候选 `application_publish_candidates`；
 4. 应用目录 `application_catalog_records`；
 5. API 密钥记录 `api_key_records`；
-6. 工作流运行记录与显式保存的应用结果资产 `workflow_runs`；
+6. 工作流运行记录、Action Safety snapshot、Application Evaluation Plan / Campaign / Schedule / Occurrence 与显式保存的应用结果资产 `workflow_runs`；
 7. Gateway 脱敏请求历史 `gateway_requests`。
 8. Prompt Application 模板草案与不可变版本 `prompt_application_templates`。
 9. Agent / Copilot Profile 草案与不可变版本 `agent_copilot_profiles`。
@@ -100,12 +102,12 @@ var/sqlite-dev/radishmind.db
 - 设置本地文件权限；
 - 打开连接、启用 foreign keys、WAL 和受控 busy timeout；
 - 顺序应用已评审的本地 schema migration；
-- 向十一组组件的 repositories 注入共享数据库句柄；Workflow Run Store 内的 Session、Run 与 Result Artifact owner 共享该句柄但职责独立；
+- 向十一组组件的 repositories 注入共享数据库句柄；Workflow Run Store 内的 Session、Run、Action Safety snapshot、Evaluation Plan / Campaign / Schedule / Occurrence 与 Result Artifact owner 共享该句柄但职责独立；
 - 在服务关闭时完成 checkpoint 和连接回收。
 
 聚合启动采用单一所有权：组件 factory 在 `sqlite_dev` 下只验证共享 runtime 和自己的 migration marker，不创建也不关闭私有数据库连接；`Server` 是共享 runtime 的唯一生命周期所有者。启动阶段任一 migration、marker、repository 或 bridge 失败都必须关闭已经打开的资源并返回原始失败，不留下仍持有数据库文件的半启动服务。
 
-SQLite 不是独立服务，不增加后台守护进程。正式本地启动入口可以自动应用兼容的前滚 migration，以保持开箱即用；marker、checksum 或 schema 版本不兼容时必须停止启动。数据库重置是独立显式动作，不得由普通启动、测试失败或版本不匹配自动删除文件。
+SQLite 不是独立服务，本身不增加后台守护进程。Application Evaluation Schedule runner 属于 Platform 的显式 dev/test 生命周期，默认关闭且不由 `sqlite_dev` 自动启用；正式本地启动入口仍只自动应用兼容的前滚 migration。marker、checksum 或 schema 版本不兼容时必须停止启动。数据库重置是独立显式动作，不得由普通启动、测试失败或版本不匹配自动删除文件。
 
 ## Schema 与迁移边界
 

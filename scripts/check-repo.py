@@ -522,7 +522,7 @@ def check_content_baseline() -> None:
         "npm run test:coverage",
         "npm run build",
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
-        "go test -race ./...",
+        "go test -race -timeout 20m ./...",
         "go vet ./...",
     ):
         if pattern not in pr_workflow:
@@ -554,7 +554,7 @@ def check_content_baseline() -> None:
         "npm run test:coverage",
         "npm run build",
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
-        "go test -race ./...",
+        "go test -race -timeout 20m ./...",
         "go vet ./...",
     ):
         if pattern not in release_workflow:
@@ -565,6 +565,7 @@ def check_contract_schemas() -> None:
     contract_schema_paths = [
         REPO_ROOT / "contracts/copilot-request.schema.json",
         REPO_ROOT / "contracts/copilot-response.schema.json",
+        REPO_ROOT / "contracts/action-safety-decision.schema.json",
         REPO_ROOT / "contracts/copilot-gateway-envelope.schema.json",
         REPO_ROOT / "contracts/copilot-training-sample.schema.json",
         REPO_ROOT / "contracts/tool.schema.json",

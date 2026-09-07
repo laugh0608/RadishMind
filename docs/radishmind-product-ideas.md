@@ -1,6 +1,6 @@
 # RadishMind 产品机会池
 
-更新时间：2026-05-26
+更新时间：2026-08-27
 
 ## 文档目的
 
@@ -25,6 +25,8 @@
 - 价值：让 User Workspace 从“自己搭流程”扩展成团队复用和分发。
 - 依赖：workflow definition、版本、权限、运行记录、审核状态。
 - 停止线：不先做公开市场；首版只考虑 Radish 体系内部团队空间。
+
+2026-08-27 进展：内部团队空间的首版已收敛为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，批次 A 的 strict contract、memory owner 与默认关闭 HTTP 已完成，当前等待批次 B durable repository 授权。公开 Marketplace、跨 workspace / tenant、评分推荐、收费和第三方分发仍留在机会池，不随首版打开。
 
 ### 3. `Eval-as-a-Feature`
 

@@ -49,6 +49,7 @@ type workflowHTTPToolActionEnvelope struct {
 	WorkspaceID          string                                `json:"workspace_id"`
 	ApplicationID        string                                `json:"application_id"`
 	ActionPlan           *WorkflowHTTPToolActionPlan           `json:"action_plan"`
+	ActionSafety         *ActionSafetyReadProjectionV1         `json:"action_safety"`
 	ConfirmationDecision *WorkflowHTTPToolConfirmationDecision `json:"confirmation_decision"`
 	FailureCode          *string                               `json:"failure_code"`
 	FailureSummary       string                                `json:"failure_summary"`
@@ -56,14 +57,15 @@ type workflowHTTPToolActionEnvelope struct {
 }
 
 type workflowHTTPToolExecutionEnvelope struct {
-	RequestID      string                      `json:"request_id"`
-	WorkspaceID    string                      `json:"workspace_id"`
-	ApplicationID  string                      `json:"application_id"`
-	ActionPlan     *WorkflowHTTPToolActionPlan `json:"action_plan"`
-	Run            *WorkflowRunRecord          `json:"run"`
-	FailureCode    *string                     `json:"failure_code"`
-	FailureSummary string                      `json:"failure_summary"`
-	AuditRef       string                      `json:"audit_ref"`
+	RequestID      string                        `json:"request_id"`
+	WorkspaceID    string                        `json:"workspace_id"`
+	ApplicationID  string                        `json:"application_id"`
+	ActionPlan     *WorkflowHTTPToolActionPlan   `json:"action_plan"`
+	Run            *WorkflowRunRecord            `json:"run"`
+	ActionSafety   *ActionSafetyReadProjectionV1 `json:"action_safety"`
+	FailureCode    *string                       `json:"failure_code"`
+	FailureSummary string                        `json:"failure_summary"`
+	AuditRef       string                        `json:"audit_ref"`
 }
 
 func (s *Server) handleCreateWorkflowHTTPToolActionPlan(writer http.ResponseWriter, request *http.Request) {
@@ -311,8 +313,9 @@ func writeWorkflowHTTPToolActionResult(writer http.ResponseWriter, trace request
 func writeWorkflowHTTPToolActionResultWithStatus(writer http.ResponseWriter, status int, trace requestTrace, ctx WorkflowHTTPToolActionContext, result WorkflowHTTPToolActionResult) {
 	writeObservedJSON(writer, status, trace, workflowHTTPToolActionEnvelope{
 		RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
-		ActionPlan: result.ActionPlan, ConfirmationDecision: result.ConfirmationDecision,
-		FailureCode: workflowHTTPToolActionFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary,
+		ActionPlan: result.ActionPlan, ActionSafety: actionSafetyReadFromPlan(result.ActionPlan),
+		ConfirmationDecision: result.ConfirmationDecision,
+		FailureCode:          workflowHTTPToolActionFailurePointer(result.FailureCode), FailureSummary: result.FailureSummary,
 		AuditRef: ctx.AuditRef,
 	})
 }
@@ -336,9 +339,17 @@ func writeWorkflowHTTPToolExecutionResultWithStatus(
 	writeObservedJSON(writer, status, trace, workflowHTTPToolExecutionEnvelope{
 		RequestID: trace.requestID, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,
 		ActionPlan: result.ActionPlan, Run: result.Record,
-		FailureCode: workflowRunFailureCodePointer(result.FailureCode), FailureSummary: result.FailureSummary,
+		ActionSafety: workflowHTTPToolExecutionActionSafetyRead(result),
+		FailureCode:  workflowRunFailureCodePointer(result.FailureCode), FailureSummary: result.FailureSummary,
 		AuditRef: ctx.AuditRef,
 	})
+}
+
+func workflowHTTPToolExecutionActionSafetyRead(result WorkflowHTTPToolExecutionResult) *ActionSafetyReadProjectionV1 {
+	if view := actionSafetyReadFromRun(result.Record); view != nil {
+		return view
+	}
+	return actionSafetyReadFromPlan(result.ActionPlan)
 }
 
 func workflowHTTPToolActionFailurePointer(code WorkflowHTTPToolActionFailureCode) *string {

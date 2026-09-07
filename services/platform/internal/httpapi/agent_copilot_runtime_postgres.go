@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"time"
@@ -87,6 +88,16 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 	if err != nil {
 		return errAgentCopilotRuntimeContract
 	}
+	assignmentSafety, err := encodeActionSafetyAssignmentSnapshot(assignment.ActionSafety)
+	if err != nil {
+		return errAgentCopilotRuntimeContract
+	}
+	eventSafety, err := encodeActionSafetyAssignmentSnapshot(event.ActionSafety)
+	if err != nil {
+		return errAgentCopilotRuntimeContract
+	}
+	assignmentSafetySchema, assignmentSafetyDigest, assignmentSafetyPayload := assignmentSafety.columnValues()
+	eventSafetySchema, eventSafetyDigest, eventSafetyPayload := eventSafety.columnValues()
 	updatedAt, err := time.Parse(time.RFC3339Nano, assignment.UpdatedAt)
 	if err != nil {
 		return errAgentCopilotRuntimeContract
@@ -98,17 +109,21 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 	var command pgconnCommandTag
 	if exists {
 		command, err = tx.Exec(ctx.RequestContext, `UPDATE agent_copilot_runtime_assignments SET
-assignment_version=$1,assignment_state=$2,assignment_digest=$3,updated_at=$4,sanitized_assignment_payload=$5
-WHERE tenant_ref=$6 AND workspace_id=$7 AND application_id=$8 AND owner_subject_ref=$9 AND assignment_id=$10 AND assignment_version=$11`,
+assignment_version=$1,assignment_state=$2,assignment_digest=$3,updated_at=$4,sanitized_assignment_payload=$5,
+action_safety_schema_version=$6,action_safety_projection_digest=$7,sanitized_action_safety_snapshot=$8
+WHERE tenant_ref=$9 AND workspace_id=$10 AND application_id=$11 AND owner_subject_ref=$12 AND assignment_id=$13 AND assignment_version=$14`,
 			assignment.AssignmentVersion, assignment.State, assignment.AssignmentDigest, updatedAt, assignmentPayload,
+			assignmentSafetySchema, assignmentSafetyDigest, assignmentSafetyPayload,
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, assignment.AssignmentID, expectedVersion)
 	} else {
 		command, err = tx.Exec(ctx.RequestContext, `INSERT INTO agent_copilot_runtime_assignments
-(tenant_ref,workspace_id,application_id,owner_subject_ref,assignment_id,assignment_version,assignment_state,assignment_digest,updated_at,sanitized_assignment_payload)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT DO NOTHING`,
+(tenant_ref,workspace_id,application_id,owner_subject_ref,assignment_id,assignment_version,assignment_state,assignment_digest,updated_at,sanitized_assignment_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT DO NOTHING`,
 			ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
 			assignment.AssignmentID, assignment.AssignmentVersion, assignment.State,
-			assignment.AssignmentDigest, updatedAt, assignmentPayload)
+			assignment.AssignmentDigest, updatedAt, assignmentPayload,
+			assignmentSafetySchema, assignmentSafetyDigest, assignmentSafetyPayload)
 	}
 	if err != nil {
 		return errAgentCopilotRuntimeStore
@@ -117,11 +132,12 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT DO NOTHING`,
 		return errAgentCopilotRuntimeVersionConflict
 	}
 	if _, err = tx.Exec(ctx.RequestContext, `INSERT INTO agent_copilot_runtime_assignment_events
-(tenant_ref,workspace_id,application_id,owner_subject_ref,event_id,assignment_id,event_sequence,resulting_assignment_version,occurred_at,sanitized_event_payload)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+(tenant_ref,workspace_id,application_id,owner_subject_ref,event_id,assignment_id,event_sequence,resulting_assignment_version,occurred_at,sanitized_event_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
 		event.EventID, event.AssignmentID, event.EventSequence, event.ResultingAssignmentVersion,
-		occurredAt, eventPayload,
+		occurredAt, eventPayload, eventSafetySchema, eventSafetyDigest, eventSafetyPayload,
 	); err != nil {
 		return errAgentCopilotRuntimeStore
 	}
@@ -138,11 +154,13 @@ func readPostgresAgentCopilotRuntimeEntry(
 	var assignmentID, state, digest string
 	var version int
 	var updatedAt time.Time
-	var payload []byte
-	err := query.QueryRow(ctx.RequestContext, `SELECT assignment_id,assignment_version,assignment_state,assignment_digest,updated_at,sanitized_assignment_payload
+	var payload, safetyPayload []byte
+	var safetySchema, safetyDigest sql.NullString
+	err := query.QueryRow(ctx.RequestContext, `SELECT assignment_id,assignment_version,assignment_state,assignment_digest,updated_at,sanitized_assignment_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
 FROM agent_copilot_runtime_assignments WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef,
-	).Scan(&assignmentID, &version, &state, &digest, &updatedAt, &payload)
+	).Scan(&assignmentID, &version, &state, &digest, &updatedAt, &payload, &safetySchema, &safetyDigest, &safetyPayload)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeNotFound
 	}
@@ -154,6 +172,12 @@ FROM agent_copilot_runtime_assignments WHERE tenant_ref=$1 AND workspace_id=$2 A
 		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeContract
 	}
 	assignment := *decodedAssignment.(*AgentCopilotRuntimeAssignmentV1)
+	assignment.ActionSafety, decodeErr = decodeActionSafetyAssignmentSnapshot(actionSafetyStorageSnapshot{
+		SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+	})
+	if decodeErr != nil {
+		return AgentCopilotRuntimeAssignmentV1{}, nil, errAgentCopilotRuntimeContract
+	}
 	decodedAt, err := time.Parse(time.RFC3339Nano, assignment.UpdatedAt)
 	if err != nil || assignmentID != assignment.AssignmentID || version != assignment.AssignmentVersion ||
 		state != assignment.State || digest != assignment.AssignmentDigest ||
@@ -175,7 +199,8 @@ func readPostgresAgentCopilotRuntimeEvents(
 	query postgresAgentCopilotRuntimeQueryer,
 	assignmentID string,
 ) ([]AgentCopilotRuntimeAssignmentEventV1, error) {
-	rows, err := query.Query(ctx.RequestContext, `SELECT event_id,event_sequence,resulting_assignment_version,occurred_at,sanitized_event_payload
+	rows, err := query.Query(ctx.RequestContext, `SELECT event_id,event_sequence,resulting_assignment_version,occurred_at,sanitized_event_payload,
+action_safety_schema_version,action_safety_projection_digest,sanitized_action_safety_snapshot
 FROM agent_copilot_runtime_assignment_events
 WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_ref=$4 AND assignment_id=$5 ORDER BY event_sequence`,
 		ctx.TenantRef, ctx.WorkspaceID, ctx.ApplicationID, ctx.OwnerSubjectRef, assignmentID)
@@ -188,8 +213,9 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 		var eventID string
 		var sequence, version int
 		var occurredAt time.Time
-		var payload []byte
-		if rows.Scan(&eventID, &sequence, &version, &occurredAt, &payload) != nil {
+		var payload, safetyPayload []byte
+		var safetySchema, safetyDigest sql.NullString
+		if rows.Scan(&eventID, &sequence, &version, &occurredAt, &payload, &safetySchema, &safetyDigest, &safetyPayload) != nil {
 			return nil, errAgentCopilotRuntimeStore
 		}
 		decodedEvent, decodeErr := decodeAgentCopilotContract(agentCopilotRuntimeAssignmentEventSchema, payload)
@@ -197,6 +223,12 @@ WHERE tenant_ref=$1 AND workspace_id=$2 AND application_id=$3 AND owner_subject_
 			return nil, errAgentCopilotRuntimeContract
 		}
 		event := *decodedEvent.(*AgentCopilotRuntimeAssignmentEventV1)
+		event.ActionSafety, decodeErr = decodeActionSafetyAssignmentSnapshot(actionSafetyStorageSnapshot{
+			SchemaVersion: safetySchema.String, ProjectionDigest: safetyDigest.String, Payload: safetyPayload,
+		})
+		if decodeErr != nil {
+			return nil, errAgentCopilotRuntimeContract
+		}
 		decodedAt, decodeErr := time.Parse(time.RFC3339Nano, event.OccurredAt)
 		if decodeErr != nil || eventID != event.EventID || sequence != event.EventSequence ||
 			version != event.ResultingAssignmentVersion ||

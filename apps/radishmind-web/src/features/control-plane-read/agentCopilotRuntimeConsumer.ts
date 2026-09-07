@@ -1,4 +1,8 @@
 import type { AgentCopilotProfileVersionSummary } from "./agentCopilotProfileConsumer.ts";
+import {
+  parseActionSafetyReadProjection,
+  type ActionSafetyReadProjection,
+} from "./actionSafetyConsumer.ts";
 
 const DEV_SOURCE = "dev-agent-copilot-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -42,6 +46,7 @@ export type AgentCopilotRuntimeEvent = {
 export type AgentCopilotRuntimeState = {
   status: "offline" | "idle" | "ready" | "not_found" | "version_conflict" | "blocked" | "failed";
   assignment: AgentCopilotRuntimeAssignment | null;
+  actionSafety: ActionSafetyReadProjection | null;
   events: AgentCopilotRuntimeEvent[];
   currentAssignmentVersion: number;
   currentState: string;
@@ -72,6 +77,7 @@ export function initialAgentCopilotRuntimeState(config: AgentCopilotRuntimeConfi
   return {
     status: config.mode === "offline" ? "offline" : "idle",
     assignment: null,
+    actionSafety: null,
     events: [],
     currentAssignmentVersion: 0,
     currentState: "none",
@@ -129,7 +135,7 @@ async function requestRuntime(
     );
     const value: unknown = await response.json();
     if (!response.ok || !isEnvelope(value, config, applicationId)) throw new Error("invalid runtime response");
-    return mapRuntime(value);
+    return mapRuntime(value, config, applicationId);
   } catch {
     return {
       ...initialAgentCopilotRuntimeState(config),
@@ -140,12 +146,26 @@ async function requestRuntime(
   }
 }
 
-function mapRuntime(value: Document): AgentCopilotRuntimeState {
+function mapRuntime(
+  value: Document,
+  config: AgentCopilotRuntimeConfig,
+  applicationId: string,
+): AgentCopilotRuntimeState {
   const failureCode = typeof value.failure_code === "string" ? value.failure_code : "";
   const assignment = isAssignment(value.assignment) ? mapAssignment(value.assignment) : null;
   const events = Array.isArray(value.events) && value.events.every(isEvent)
     ? value.events.map(mapEvent)
     : [];
+  const actionSafety = assignment
+    ? parseActionSafetyReadProjection(value.action_safety, {
+        tenantRef: config.tenantRef,
+        workspaceId: config.workspaceId,
+        applicationId,
+        ownerKinds: ["agent_copilot_runtime_assignment"],
+        ownerId: assignment.assignmentId,
+        ownerVersion: assignment.assignmentVersion,
+      })
+    : null;
   return {
     status: failureCode === "agent_copilot_runtime_assignment_not_found"
       ? "not_found"
@@ -155,6 +175,7 @@ function mapRuntime(value: Document): AgentCopilotRuntimeState {
           ? failureCode.includes("ineligible") || failureCode.includes("authority") ? "blocked" : "failed"
           : "ready",
     assignment,
+    actionSafety,
     events,
     currentAssignmentVersion: Number(value.current_assignment_version),
     currentState: String(value.current_state),
@@ -203,16 +224,28 @@ function mapEvent(value: Document): AgentCopilotRuntimeEvent {
 }
 
 function isEnvelope(value: unknown, config: AgentCopilotRuntimeConfig, applicationId: string): value is Document {
-  if (!isRecord(value) || containsForbiddenResponse(value) || value.workspace_id !== config.workspaceId ||
+  if (!isRecord(value) || containsForbiddenResponse(value) || value.tenant_ref !== config.tenantRef ||
+    value.workspace_id !== config.workspaceId ||
     value.application_id !== applicationId ||
     typeof value.request_id !== "string" || typeof value.audit_ref !== "string" ||
     (value.failure_code !== null && typeof value.failure_code !== "string") ||
     !Number.isInteger(value.current_assignment_version) ||
     typeof value.current_state !== "string" ||
     (value.assignment !== null && !isAssignment(value.assignment)) ||
+    !Object.hasOwn(value, "action_safety") ||
     !Array.isArray(value.events) || !value.events.every(isEvent)) return false;
   if (value.assignment && (value.assignment.workspace_id !== config.workspaceId ||
       value.assignment.application_id !== applicationId)) return false;
+  if (value.assignment) {
+    if (!parseActionSafetyReadProjection(value.action_safety, {
+      tenantRef: config.tenantRef,
+      workspaceId: config.workspaceId,
+      applicationId,
+      ownerKinds: ["agent_copilot_runtime_assignment"],
+      ownerId: value.assignment.assignment_id,
+      ownerVersion: value.assignment.assignment_version,
+    })) return false;
+  } else if (value.action_safety !== null) return false;
   if (value.events.some((event: Document) =>
     event.workspace_id !== config.workspaceId || event.application_id !== applicationId
   )) return false;

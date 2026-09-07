@@ -9,9 +9,9 @@ import (
 	"radishmind.local/services/platform/internal/sqlitedev"
 )
 
-func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactApplicationHistory(t *testing.T) {
+func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationEvaluationSchedules(t *testing.T) {
 	migrations := Migrations()
-	if len(migrations) != 24 {
+	if len(migrations) != 26 {
 		t.Fatalf("unexpected workflow run SQLite migration count: %d", len(migrations))
 	}
 	if migrations[0].ID != legacyMigrationID || migrations[0].StoreSchemaVersion != legacyRunStoreSchemaVersion {
@@ -83,8 +83,26 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactAp
 	if migrations[22].ID != resultArtifactLifecycleMigrationID || migrations[22].StoreSchemaVersion != resultArtifactLifecycleVersion {
 		t.Fatalf("application result artifact lifecycle migration drifted: %#v", migrations[22])
 	}
-	if migrations[23].ID != MigrationID || migrations[23].StoreSchemaVersion != StoreSchemaVersion {
+	if migrations[23].ID != resultArtifactHistoryMigrationID || migrations[23].StoreSchemaVersion != resultArtifactHistoryVersion {
 		t.Fatalf("application result artifact application history migration drifted: %#v", migrations[23])
+	}
+	if migrations[24].ID != actionSafetyMigrationID || migrations[24].StoreSchemaVersion != actionSafetySchemaVersion {
+		t.Fatalf("Action Safety snapshot migration drifted: %#v", migrations[24])
+	}
+	if migrations[25].ID != MigrationID || migrations[25].StoreSchemaVersion != StoreSchemaVersion {
+		t.Fatalf("application evaluation schedule migration drifted: %#v", migrations[25])
+	}
+	for _, required := range []string{
+		"CREATE TABLE application_evaluation_schedules",
+		"CREATE TABLE application_evaluation_schedule_versions",
+		"CREATE TABLE application_evaluation_schedule_occurrences",
+		"application_evaluation_schedules_due_idx",
+		"application_evaluation_schedule_versions_no_update",
+		"application_evaluation_schedule_occurrences_controlled_update",
+	} {
+		if !strings.Contains(upSQLV26, required) {
+			t.Fatalf("SQLite application evaluation schedule migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_result_artifacts",
@@ -99,6 +117,21 @@ func TestWorkflowRunSQLiteMigrationsAreOrderedThroughApplicationResultArtifactAp
 	}
 	if !strings.Contains(upSQLV24, "application_result_artifacts_application_history_idx") {
 		t.Fatal("SQLite application result artifact application history migration is incomplete")
+	}
+	for _, required := range []string{
+		"action_safety_assignment_projection.v1",
+		"action_safety_plan_projection.v1",
+		"action_safety_run_projection.v1",
+		"NEW.action_safety_projection_digest IS NOT NULL",
+		"agent_copilot_runtime_assignments",
+		"agent_copilot_run_records",
+		"workflow_http_tool_action_plans",
+		"workflow_run_records",
+		"write_allowed_by_policy",
+	} {
+		if !strings.Contains(upSQLV25, required) {
+			t.Fatalf("SQLite Action Safety migration is missing %q", required)
+		}
 	}
 	for _, required := range []string{
 		"CREATE TABLE application_result_artifact_lifecycles",
@@ -404,7 +437,7 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("legacy workflow run changed during upgrade: count=%d err=%v", legacyRunCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 24 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM radishmind_schema_migrations WHERE component=?`, Component).Scan(&migrationCount); err != nil || migrationCount != 26 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("unexpected workflow run migration markers: count=%d err=%v", migrationCount, err)
 	}
@@ -494,9 +527,28 @@ func TestWorkflowRunSQLiteMigrationUpgradesWithoutChangingLegacyRuns(t *testing.
 		_ = upgradedRuntime.Close()
 		t.Fatalf("application evaluation tables are incomplete: count=%d err=%v", applicationEvaluationTableCount, err)
 	}
-	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name LIKE 'application_evaluation_%'`).Scan(&applicationEvaluationTriggerCount); err != nil || applicationEvaluationTriggerCount != 6 {
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name IN (
+		'application_evaluation_plans_controlled_update','application_evaluation_plans_no_delete',
+		'application_evaluation_plan_versions_no_update','application_evaluation_plan_versions_no_delete',
+		'application_evaluation_campaigns_controlled_update','application_evaluation_campaigns_no_delete'
+	)`).Scan(&applicationEvaluationTriggerCount); err != nil || applicationEvaluationTriggerCount != 6 {
 		_ = upgradedRuntime.Close()
 		t.Fatalf("application evaluation triggers are incomplete: count=%d err=%v", applicationEvaluationTriggerCount, err)
+	}
+	var applicationEvaluationScheduleTableCount, applicationEvaluationScheduleTriggerCount int
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
+		'application_evaluation_schedules','application_evaluation_schedule_versions','application_evaluation_schedule_occurrences'
+	)`).Scan(&applicationEvaluationScheduleTableCount); err != nil || applicationEvaluationScheduleTableCount != 3 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("application evaluation schedule tables are incomplete: count=%d err=%v", applicationEvaluationScheduleTableCount, err)
+	}
+	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='trigger' AND name IN (
+		'application_evaluation_schedules_controlled_update','application_evaluation_schedules_no_delete',
+		'application_evaluation_schedule_versions_no_update','application_evaluation_schedule_versions_no_delete',
+		'application_evaluation_schedule_occurrences_controlled_update','application_evaluation_schedule_occurrences_no_delete'
+	)`).Scan(&applicationEvaluationScheduleTriggerCount); err != nil || applicationEvaluationScheduleTriggerCount != 6 {
+		_ = upgradedRuntime.Close()
+		t.Fatalf("application evaluation schedule triggers are incomplete: count=%d err=%v", applicationEvaluationScheduleTriggerCount, err)
 	}
 	if err = upgradedRuntime.DB().QueryRowContext(ctx, `SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN (
 		'workflow_http_tool_action_plans',

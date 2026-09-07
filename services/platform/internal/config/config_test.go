@@ -115,6 +115,42 @@ func TestWorkflowDefinitionReleaseDevRequiresSavedDraftAuthorityGates(t *testing
 	}
 }
 
+func TestWorkflowTemplateCatalogDevRequiresExistingAuthorities(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.WorkflowTemplateCatalogDevEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "workflow definition release") {
+		t.Fatalf("expected workflow template catalog prerequisite failure, got %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.WorkflowSavedDraftDevHTTPEnabled = true
+	cfg.WorkflowSavedDraftDevWriteEnabled = true
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.WorkflowDefinitionReleaseDevEnabled = true
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("complete workflow template catalog development gates should validate: %v", err)
+	}
+}
+
+func TestWorkflowTemplateCatalogDevEnvironmentGate(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE", "1")
+	t.Setenv("RADISHMIND_APPLICATION_CATALOG_DEV_HTTP", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV", "1")
+	t.Setenv("RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV", "1")
+	cfg, err := LoadFromEnv()
+	if err != nil {
+		t.Fatalf("load workflow template catalog gate: %v", err)
+	}
+	if !cfg.WorkflowTemplateCatalogDevEnabled || cfg.FieldSources["workflow_template_catalog_dev"] != configSourceEnv {
+		t.Fatalf("workflow template catalog gate source drifted: %#v", cfg.FieldSources)
+	}
+	if !cfg.SanitizedSummary().WorkflowTemplateCatalogDevEnabled {
+		t.Fatalf("workflow template catalog gate missing from sanitized summary: %#v", cfg.SanitizedSummary())
+	}
+}
+
 func TestApplicationSessionDevRequiresCatalogAndRuntimeAuthority(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.ApplicationSessionDevEnabled = true
@@ -623,6 +659,44 @@ func TestApplicationEvaluationCampaignDevGateRequiresOwnersAndBoundEnvironment(t
 	cfg.ApplicationEvaluationCampaignEnvironment = "production"
 	if validateErr := ValidateServerStart(cfg); validateErr == nil || !strings.Contains(validateErr.Error(), "must be development or test") {
 		t.Fatalf("application evaluation campaign accepted production: %v", validateErr)
+	}
+}
+
+func TestApplicationEvaluationScheduleRunnerDevGateRequiresLocalDelegationOwner(t *testing.T) {
+	clearPlatformEnv(t)
+	t.Setenv("RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV", "1")
+	envConfig := defaultConfig()
+	if err := applyEnvOverrides(&envConfig); err != nil || !envConfig.ApplicationEvaluationScheduleRunnerDevEnabled ||
+		envConfig.FieldSources["application_evaluation_schedule_runner_dev"] != configSourceEnv {
+		t.Fatalf("load schedule runner env gate: config=%#v err=%v", envConfig.SanitizedSummary(), err)
+	}
+	cfg := defaultConfig()
+	cfg.ApplicationEvaluationScheduleRunnerDevEnabled = true
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "schedule runner dev requires") {
+		t.Fatalf("schedule runner accepted missing campaign and local identity owner: %v", err)
+	}
+	cfg.ControlPlaneReadDevAuthEnabled = true
+	cfg.ControlPlaneReadAuthMode = "local_session_dev_test"
+	cfg.LocalIdentityDevHTTPEnabled = true
+	cfg.LocalIdentityAllowedOrigin = "http://127.0.0.1:4000"
+	cfg.LocalIdentityCookieSecure = false
+	cfg.ApplicationCatalogDevHTTPEnabled = true
+	cfg.WorkflowRAGEvaluationDevEnabled = true
+	cfg.APIKeyLifecycleDevHTTPEnabled = true
+	cfg.GatewayRequestQuotaEnforcementDevEnabled = true
+	cfg.GatewayRequestQuotaEnvironment = "test"
+	cfg.ApplicationEvaluationCampaignDevEnabled = true
+	cfg.ApplicationEvaluationCampaignEnvironment = "test"
+	if err := ValidateServerStart(cfg); err != nil {
+		t.Fatalf("schedule runner rejected complete local delegation owner: %v", err)
+	}
+	summary := cfg.SanitizedSummary()
+	if !summary.ApplicationEvaluationScheduleRunnerDevEnabled {
+		t.Fatalf("schedule runner gate missing from sanitized summary: %#v", summary)
+	}
+	cfg.ControlPlaneReadAuthMode = "dev_headers"
+	if err := ValidateServerStart(cfg); err == nil || !strings.Contains(err.Error(), "local_session_dev_test") {
+		t.Fatalf("schedule runner accepted non-local delegated identity: %v", err)
 	}
 }
 
@@ -1165,6 +1239,54 @@ func TestLocalIdentityDevHTTPConfigFailsClosed(t *testing.T) {
 			mutate(&candidate)
 			if err := validateBridgeRuntimeConfig(candidate); err == nil {
 				t.Fatal("invalid local identity config was accepted")
+			}
+		})
+	}
+}
+
+func TestLocalIdentityOIDCClientConfigFailsClosed(t *testing.T) {
+	valid := defaultConfig()
+	valid.ControlPlaneReadDevAuthEnabled = true
+	valid.ControlPlaneReadAuthMode = "local_session_dev_test"
+	valid.LocalIdentityDevHTTPEnabled = true
+	valid.LocalIdentityAllowedOrigin = "http://127.0.0.1:4000"
+	valid.LocalIdentityCookieSecure = false
+	valid.LocalIdentityOIDCEnabled = true
+	valid.LocalIdentityOIDCIssuer = "http://127.0.0.1:18080/issuer"
+	valid.LocalIdentityOIDCDiscoveryURL = "http://127.0.0.1:18080/issuer/.well-known/openid-configuration"
+	valid.LocalIdentityOIDCClientID = "radishmind-loopback-client"
+	valid.LocalIdentityOIDCRedirectURI = "http://127.0.0.1:4000/v1/auth/oidc/callback"
+	valid.LocalIdentityOIDCScopes = "openid,profile"
+	valid.LocalIdentityOIDCAlgorithms = "RS256"
+	valid.LocalIdentityOIDCJWKSOrigin = "http://127.0.0.1:18080"
+	valid.LocalIdentityOIDCFirstLoginEnabled = true
+	if err := validateBridgeRuntimeConfig(valid); err != nil {
+		t.Fatalf("valid local identity OIDC client config was rejected: %v", err)
+	}
+	summary := valid.SanitizedSummary()
+	if !summary.LocalIdentityOIDCEnabled || !summary.LocalIdentityOIDCConfigured ||
+		!summary.LocalIdentityOIDCFirstLoginEnabled || summary.LocalIdentityOIDCTransactionTTL != "5m0s" {
+		t.Fatalf("local identity OIDC summary drifted: %#v", summary)
+	}
+
+	for name, mutate := range map[string]func(*Config){
+		"disabled first login": func(cfg *Config) { cfg.LocalIdentityOIDCEnabled = false },
+		"cross-origin discovery": func(cfg *Config) {
+			cfg.LocalIdentityOIDCDiscoveryURL = "https://other.invalid/.well-known/openid-configuration"
+		},
+		"remote HTTP issuer": func(cfg *Config) { cfg.LocalIdentityOIDCIssuer = "http://example.com/issuer" },
+		"redirect path drift": func(cfg *Config) {
+			cfg.LocalIdentityOIDCRedirectURI = "http://127.0.0.1:4000/arbitrary-callback"
+		},
+		"missing openid scope":   func(cfg *Config) { cfg.LocalIdentityOIDCScopes = "profile,email" },
+		"wildcard algorithm":     func(cfg *Config) { cfg.LocalIdentityOIDCAlgorithms = "*" },
+		"excess transaction TTL": func(cfg *Config) { cfg.LocalIdentityOIDCTransactionTTL = 30 * time.Minute },
+	} {
+		t.Run(name, func(t *testing.T) {
+			candidate := valid
+			mutate(&candidate)
+			if err := validateBridgeRuntimeConfig(candidate); err == nil {
+				t.Fatal("invalid local identity OIDC config was accepted")
 			}
 		})
 	}
@@ -1834,11 +1956,16 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_CONTROL_PLANE_READ_DATABASE_TIMEOUT",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE",
+		"RADISHMIND_WORKFLOW_DEFINITION_RELEASE_DEV",
+		"RADISHMIND_WORKFLOW_TEMPLATE_CATALOG_DEV",
 		"RADISHMIND_APPLICATION_SESSION_DEV",
 		"RADISHMIND_WORKFLOW_EXECUTOR_DEV",
 		"RADISHMIND_WORKFLOW_RAG_SNAPSHOT_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EXECUTION_DEV",
 		"RADISHMIND_WORKFLOW_RAG_EVALUATION_DEV",
+		"RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_DEV",
+		"RADISHMIND_APPLICATION_EVALUATION_CAMPAIGN_ENVIRONMENT",
+		"RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV",
 		"RADISHMIND_WORKFLOW_RAG_PROMOTION_DEV",
 		"RADISHMIND_WORKFLOW_DIAGNOSTICS_DEV",
 		"RADISHMIND_GATEWAY_REQUEST_HISTORY_DEV",
@@ -1862,6 +1989,7 @@ func clearPlatformEnv(t *testing.T) {
 		"RADISHMIND_GATEWAY_MODEL_PRICING_DEV_TEST_MIGRATION_DATABASE_URL",
 		"RADISHMIND_GATEWAY_MODEL_PRICING_DATABASE_TIMEOUT",
 		"RADISHMIND_LOCAL_PERSISTENCE_MODE",
+		"RADISHMIND_LOCAL_IDENTITY_DEV_HTTP",
 		"RADISHMIND_SQLITE_DEV_DATABASE_PATH",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_STORE",
 		"RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_TEST_DATABASE_URL",

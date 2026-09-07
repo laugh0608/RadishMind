@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workspace-workflow-template-listing-event.schema.json",
+  "title": "Workspace Workflow Template Listing Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "template_id", "decision", "reason", "before_pointer_version", "after_pointer_version", "before_listed_version", "after_listed_version", "actor_ref", "created_at", "request_id", "audit_ref"],
+  "properties": {
+    "schema_version": {"const": "workspace_workflow_template_listing_event.v1"},
+    "event_id": {"$ref": "#/$defs/id"},
+    "template_id": {"$ref": "#/$defs/id"},
+    "decision": {"enum": ["list", "replace", "unlist"]},
+    "reason": {"type": "string", "minLength": 4, "maxLength": 500},
+    "before_pointer_version": {"type": "integer", "minimum": 0},
+    "after_pointer_version": {"type": "integer", "minimum": 1},
+    "before_listed_version": {"type": "integer", "minimum": 0},
+    "after_listed_version": {"type": "integer", "minimum": 0},
+    "actor_ref": {"type": "string", "minLength": 1, "maxLength": 240},
+    "created_at": {"type": "string", "format": "date-time"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "audit_ref": {"type": "string", "minLength": 1, "maxLength": 240}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"decision": {"const": "list"}}, "required": ["decision"]},
+      "then": {
+        "properties": {
+          "before_listed_version": {"const": 0},
+          "after_listed_version": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"decision": {"const": "replace"}}, "required": ["decision"]},
+      "then": {
+        "properties": {
+          "before_listed_version": {"type": "integer", "minimum": 1},
+          "after_listed_version": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"decision": {"const": "unlist"}}, "required": ["decision"]},
+      "then": {
+        "properties": {
+          "before_listed_version": {"type": "integer", "minimum": 1},
+          "after_listed_version": {"const": 0}
+        }
+      }
+    }
+  ],
+  "$defs": {"id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"}}
+}

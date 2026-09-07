@@ -117,6 +117,28 @@ test("Application draft save carries application scope and maps version conflict
   }
 });
 
+test("Application draft local Session mutation carries tenant, workspace, and product binding only", async () => {
+  const local = { ...live, authMode: "local_session_dev_test" as const };
+  const draft = createApplicationConfigurationDraft(local, baseline);
+  draft.defaultModel = "profile:local-dev";
+  let captured: RequestInit | undefined;
+  globalThis.fetch = async (_url, init) => {
+    captured = init;
+    return jsonResponse(draftEnvelope({ version: 1 }));
+  };
+
+  assert.equal((await saveApplicationConfigurationDraft(local, draft, 0)).status, "saved");
+  const headers = new Headers(captured?.headers);
+  assert.equal(captured?.credentials, "include");
+  assert.equal(captured?.cache, "no-store");
+  assert.equal(headers.get("X-RadishMind-Active-Tenant"), "tenant_demo");
+  assert.equal(headers.get("X-RadishMind-Active-Workspace"), "workspace_demo");
+  assert.equal(headers.get("X-RadishMind-Dev-Application-Draft-Application"), baseline.applicationId);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Identity"), false);
+  assert.equal(headers.has("X-RadishMind-Dev-Read-Membership-Workspace"), false);
+  assert.equal(headers.has("Authorization"), false);
+});
+
 test("Application draft list and restore reject response scope drift", async () => {
   const originalFetch = globalThis.fetch;
   try {

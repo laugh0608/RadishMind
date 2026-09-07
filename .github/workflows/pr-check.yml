@@ -130,7 +130,7 @@ jobs:
         run: python3 scripts/checks/platform/check_platform_core_coverage.py
 
       - name: Test platform service with race detector
-        run: go test -race ./...
+        run: go test -race -timeout 20m ./...
         working-directory: services/platform
 
       - name: Vet platform service

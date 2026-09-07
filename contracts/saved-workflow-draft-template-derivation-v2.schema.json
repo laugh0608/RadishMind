@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/saved-workflow-draft-template-derivation-v2.schema.json",
+  "title": "Saved Workflow Draft Workspace Template Derivation v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "source_kind", "template_id", "template_version", "template_digest", "source_definition_id", "source_definition_version", "source_definition_digest"],
+  "properties": {
+    "version": {"const": 2},
+    "source_kind": {"const": "workspace_workflow_template"},
+    "template_id": {"$ref": "#/$defs/id"},
+    "template_version": {"type": "integer", "minimum": 1},
+    "template_digest": {"$ref": "#/$defs/digest"},
+    "source_definition_id": {"$ref": "#/$defs/id"},
+    "source_definition_version": {"type": "integer", "minimum": 1},
+    "source_definition_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"},
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

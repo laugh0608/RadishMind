@@ -102,7 +102,7 @@ test("Run History reloads an exact v4 handoff outside the current page without d
       ? jsonResponse(applicationRAGListEnvelope())
       : jsonResponse({
           request_id: "request_detail_v4", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
-          run: applicationRAGRunRecord(), failure_code: null, failure_summary: "", audit_ref: "audit_detail_v4",
+          run: applicationRAGRunRecord(), action_safety: null, failure_code: null, failure_summary: "", audit_ref: "audit_detail_v4",
           retrieval_fragment_previews: [],
         });
   };
@@ -133,7 +133,7 @@ test("application RAG v4 detail rejects authority snapshot scope drift", async (
     requestCount += 1;
     return requestCount === 1 ? jsonResponse(applicationRAGListEnvelope()) : jsonResponse({
       request_id: "request_detail_v4", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
-      run: record, failure_code: null, failure_summary: "", audit_ref: "audit_detail_v4",
+      run: record, action_safety: null, failure_code: null, failure_summary: "", audit_ref: "audit_detail_v4",
       retrieval_fragment_previews: [],
     });
   };
@@ -185,7 +185,7 @@ function listEnvelope() {
 
 function detailEnvelope(preview: string) {
   return {
-    request_id: "request_detail_v3", workspace_id: "workspace_demo", application_id: "app_flow_copilot", run: runRecord(), failure_code: null, failure_summary: "", audit_ref: "audit_detail_v3",
+    request_id: "request_detail_v3", workspace_id: "workspace_demo", application_id: "app_flow_copilot", run: runRecord(), action_safety: null, failure_code: null, failure_summary: "", audit_ref: "audit_detail_v3",
     retrieval_fragment_previews: [{ fragment_ref: "official_guide", preview, truncated: false }],
   };
 }

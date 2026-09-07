@@ -340,10 +340,22 @@ func (service applicationEvaluationCampaignService) List(ctx ApplicationEvaluati
 func (service applicationEvaluationCampaignService) finishCampaign(ctx ApplicationEvaluationContext, campaign ApplicationEvaluationCampaign, state, code, summary string) ApplicationEvaluationCampaignResult {
 	expected := campaign.RecordVersion
 	campaign.RecordVersion++
+	completedAt := service.currentTime().Format(time.RFC3339Nano)
+	if index := campaign.CurrentItemIndex; index >= 0 && index < len(campaign.Items) &&
+		campaign.Items[index].State == applicationEvaluationCampaignItemRunning {
+		campaign.Items[index].State = applicationEvaluationCampaignItemFailed
+		campaign.Items[index].RunSchemaVersion = applicationEvaluationRunSchemaVersion(campaign.ExecutionProfile)
+		campaign.Items[index].RunProfile = campaign.ExecutionProfile
+		campaign.Items[index].AuthorityDigest = campaign.Authority.AuthorityDigest
+		campaign.Items[index].FailureCode = code
+		campaign.Items[index].FailureBoundary = "campaign"
+		campaign.Items[index].CompletedAt = completedAt
+		campaign.FailedItems++
+	}
 	campaign.State = state
 	campaign.FailureCode = code
 	campaign.FailureSummary = firstApplicationEvaluationSummary(summary, applicationEvaluationFailureSummary(code))
-	campaign.CompletedAt = service.currentTime().Format(time.RFC3339Nano)
+	campaign.CompletedAt = completedAt
 	campaign.UpdatedByActorRef, campaign.RequestID, campaign.AuditRef = ctx.ActorRef, ctx.RequestID, ctx.AuditRef
 	stored, ok, err := service.repository.UpdateCampaign(ctx, expected, campaign)
 	if err != nil || !ok {
@@ -352,6 +364,23 @@ func (service applicationEvaluationCampaignService) finishCampaign(ctx Applicati
 	result := applicationEvaluationCampaignSuccess(stored, false)
 	result.FailureCode, result.FailureSummary = code, campaign.FailureSummary
 	return result
+}
+
+func applicationEvaluationRunSchemaVersion(profile string) string {
+	switch profile {
+	case applicationInteractionProfileWorkflow:
+		return workflowRunRecordDefinitionSchemaVersion
+	case applicationInteractionProfileWorkflowStructured:
+		return workflowRunRecordDefinitionStructuredSchemaVersion
+	case applicationInteractionProfileRAG:
+		return workflowRunRecordAppRAGSchemaVersion
+	case applicationInteractionProfilePrompt:
+		return workflowRunRecordPromptSchemaVersion
+	case applicationInteractionProfileAgentCopilot:
+		return agentCopilotRunV7Schema
+	default:
+		return ""
+	}
 }
 
 func (service applicationEvaluationCampaignService) currentTime() time.Time {
@@ -363,6 +392,9 @@ func (service applicationEvaluationCampaignService) currentTime() time.Time {
 
 func applicationEvaluationRunMatchesCampaign(ctx ApplicationEvaluationContext, campaign ApplicationEvaluationCampaign, run WorkflowRunRecord) bool {
 	if run.RunID == "" || run.TenantRef != "" && run.TenantRef != ctx.TenantRef || run.WorkspaceID != ctx.WorkspaceID || run.ApplicationID != ctx.ApplicationID || campaign.Authority == nil {
+		return false
+	}
+	if !sameApplicationEvaluationScheduleExecutionRef(run.ScheduleExecution, ctx.ScheduleExecution) {
 		return false
 	}
 	switch campaign.ExecutionProfile {

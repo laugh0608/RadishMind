@@ -21,6 +21,7 @@
 - 前端离线 view model 默认数据必须与 `control-plane-read-response-fixtures-v1` 的 RadishFlow Copilot / Radish Docs Assistant success 样例保持一致；`control-plane-read-product-sample-consistency-v1` 会校验该 response fixture、Go fake store、consumer smoke product refs 和前端离线默认 envelope 没有漂移。
 - 当显式设置 `VITE_RADISHMIND_READ_SOURCE=dev-live-http` 时，可通过 dev-only HTTP consumer 消费 fake-store-backed read handlers；后端必须同时设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 才会接受测试身份 header。
 - Control Plane live consumer 通过 `VITE_RADISHMIND_READ_AUTH_MODE` 区分 `dev_headers`、`signed_test_token` 与 `radish_oidc_integration_test`。OIDC integration 模式只读取页面内存中的 token provider；consumer 仍请求七条 read route，但只把 Tenant Summary 与 Audit 作为允许成功的数据读取，其余五条 workspace operation 的 `workspace_membership_unavailable` 是预期 fail-closed 结果，不会回退 dev headers、signed token 或 fake repository。
+- 本地身份与成员管理只在 `VITE_RADISHMIND_LOCAL_IDENTITY_MODE=local_identity_dev` 时显式启用；可选 `VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL` 只接受 HTTPS 或 loopback HTTP。gateway 使用 credentialed cookie、`no-store`、exact response parser 与 metadata-only 跨标签 session 通知；S7 User / Role 的七条 Admin 请求统一发送单值 `X-RadishMind-Active-Tenant + X-RadishMind-Active-Workspace`，mutation 再发送 CSRF、expected version 与显式确认。账户、目录、候选和确认内容不进入 URL query、Web Storage、IndexedDB、Cache Storage 或 service worker。
 - Workflow saved draft consumer 独立使用 `VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE=dev-saved-draft-http` 开关；默认仍是 sample-only，显式启用后通过 `POST /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts`、`GET /v1/user-workspace/workflow-drafts/{draft_id}` 和 `POST /v1/user-workspace/workflow-drafts/validate` 连接 platform memory dev store。后端仍必须设置 `RADISHMIND_CONTROL_PLANE_READ_DEV_AUTH=1` 与 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_HTTP=1`，保存还需要 `RADISHMIND_WORKFLOW_SAVED_DRAFT_DEV_WRITE=1`。
 - Workflow Executor v0 独立使用 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`；只有 active draft 是已保存、未修改且通过 bounded graph eligibility 的 executor v0 草案时，才能调用 Platform POST run，随后可用 GET scoped read 回读 record。服务端仍会重新读取并校验草案；Web 预检不构成执行授权。
 - Workflow RAG Snapshot / Execution 使用 `VITE_RADISHMIND_WORKFLOW_RAG_SOURCE=dev-workflow-rag-http` 与 `VITE_RADISHMIND_WORKFLOW_RAG_SCOPES`；默认 offline 零请求。显式启用后，知识快照面板管理应用作用域 immutable snapshot / `rag_ref`，execution 面板只允许从精确已保存且 eligible 的 RAG draft 发起一次 lexical retrieval 和一次 Gateway 调用，并把 metadata-only `workflow_run_record.v3` 交给 Run History / Comparison / Evaluation。纯 `workflowRAGLocalMaterialImporter.ts` 已能把本地 Markdown / Text 确定性投影为既有 fragment 合同，但尚未接入面板；原始文件与 staging 不持久化，当前 JSON textarea 只会在后续结构化 owner 批次中被替换。
@@ -38,6 +39,7 @@
 - Application Configuration Draft v2 与 Application Publish Candidate v2 都只携带 `binding_id / binding_version / binding_digest`。草案面板会先恢复 promotion candidate 的精确 source draft，再通过既有 CAS 创建绑定版本；发布面板展示 exact binding 和动态 blocker。application 切换会清空 promotion、binding 与 publish selection，不在三个资源之间复制知识正文或配置真相源。
 - Application RAG Runtime 使用 `VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE=dev-workflow-rag-application-runtime-http`。面板把 approved publish candidate、exact RAG binding、current assignment 与 application lifecycle 分开显示，`activate / replace / revoke` 均为人工 CAS；调用只接受 application API key Bearer，服务端在 provider 前重读完整 authority，并写 metadata-only run v4。
 - Workflow Definition Promotion 使用 `VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE=dev-workflow-definition-promotion-http`。面板按 immutable candidate、人工 review、definition version、人工 activation 与运行证据的顺序消费 strict contract；普通 profile 进入 v5 / v8，HTTP Tool profile 进入独立的 Plan → Confirm → Execute → v9 History 流程。运行前服务端重读 activation pointer、definition digest、application lifecycle 与 profile eligibility；Web 不复制执行算法，也不把 HTTP Tool profile 降级到普通 Definition run。
+- Workspace Workflow Template Catalog 使用 `VITE_RADISHMIND_WORKFLOW_TEMPLATE_SOURCE=dev-workflow-template-http`，可选 `VITE_RADISHMIND_WORKFLOW_TEMPLATE_BASE_URL` 与 `VITE_RADISHMIND_WORKFLOW_TEMPLATE_WORKSPACE_ID`。默认 offline 零请求；显式启用后，Human Promotion 下的 Catalog / Review / Listing / Derive 四任务面严格消费十条 dev/test route，scope generation + abort 会在 workspace / application / actor 变化时清空 cursor、selection、target 与 confirmation。derive 只把服务端 exact Saved Draft id / version / lifecycle authority 交给既有 Draft Designer，`derivation_v2` 会在后续保存时保真；不复制 Definition graph、不自动重试 CAS，也不打开公开 Marketplace、跨 workspace 或 production 能力。
 - Application Interaction Session 使用 `VITE_RADISHMIND_APPLICATION_SESSION_SOURCE=dev-application-session-http`。创建时显式选择 `workflow_definition_executor_v1`、`workflow_definition_executor_v2` 或 `application_rag_invocation_v1`，每轮只委托一次既有 v5 / v8 / v4 服务。v2 profile 从 exact Definition contract 生成 typed editor，Session v4 / Turn v4 只保存字段 metadata、digest 与 Run v8 ref；Active / Closed 过滤、run handoff 与重启恢复不重建 transcript，输入值、answer 与 transcript 只保留在当前组件内存。
 - Prompt Application 使用 `VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE=dev-prompt-application-http`。仅在当前应用类型为 `prompt_application` 时挂载 Template 创作 / 版本、Configuration Draft v3 binding、Publish Candidate v3 源码审查、Runtime Assignment、Prompt Invocation 与 Session / Turn v2 surface；Workflow / RAG authority surface 在该类型下不挂载。模板源码只由 Template owner 读取，配置、候选、assignment、Session 与 Run 只消费精确 ref / digest。受控调用只提交有界变量，成功输出只在当前组件内存；Run v6 与下游审查保持 metadata-only。
 - Agent / Copilot 使用 `VITE_RADISHMIND_AGENT_COPILOT_SOURCE=dev-agent-copilot-http`。仅在当前应用类型为 `agent` 时挂载 Profile 创作 / 版本、Configuration Draft v4 binding、Publish Candidate v4 源码审查、Runtime Assignment、一次受控建议与 Session / Turn v3 surface；Workflow RAG 与 Prompt owner 在该类型下不挂载。Profile source 由专属 owner 读取，配置、候选、assignment、Session 与 Run 只消费精确 ref / digest；完整 `CopilotResponse` 只保留在当前组件内存，Run v7 与下游审查保持 metadata-only。
@@ -246,6 +248,20 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowDefinitionHTTP
 ```
 
 该档同时启用既有 Definition 与 HTTP Tool owner，并为 Web 配置来源特定权限。页面中的 candidate、review、activation、plan、confirmation、execution 与 v9 History 都是显式动作；应用或工作区切换会清除一次性输入与迟到响应，SQLite 中的 plan、decision、audit 和 run 仍可跨重启恢复。
+
+工作区 Workflow Template Catalog / Review / Listing / Derive 的完整 SQLite 产品连续链使用 Shell 专用入口：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-template-local-product
+```
+
+PostgreSQL configured Server 对应使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-template-postgres-dev-test
+```
+
+两档都会启用既有 Definition、Template Catalog、Saved Draft 与目标 Application authority，并让 Human Promotion strict consumer 形成 approved Definition → candidate review → listing → exact target binding → `derivation_v2` Saved Draft handoff。SQLite 档用于页面刷新与服务重启恢复，PostgreSQL 档启动前检查 marker 并保持 no-fallback；两者都不自动 review、上架、派生、activation 或 run，也不启用公开 Marketplace、跨 workspace、HTTP Tool / RAG 模板或 production 能力。当前 PowerShell Web wrapper 尚未提供这两个 Workflow Template 产品档参数；完整 owner、权限、失败语义与操作顺序见[工作区 Workflow 模板目录专题](../../docs/features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)。
 
 Application Interaction Session 的完整 SQLite 链使用：
 

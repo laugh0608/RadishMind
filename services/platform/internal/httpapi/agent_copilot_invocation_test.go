@@ -644,7 +644,9 @@ func TestAgentCopilotInvocationHTTPUsesDedicatedAPIKeyScopeAndStrictBody(t *test
 	var envelope agentCopilotInvocationEnvelope
 	if successRecorder.Code != http.StatusOK || json.Unmarshal(successRecorder.Body.Bytes(), &envelope) != nil ||
 		envelope.FailureCode != nil || envelope.Run == nil || envelope.Run.SchemaVersion != agentCopilotRunV7Schema ||
-		envelope.Response == nil || envelope.Run.SideEffects.ProviderCalls != 1 || fixture.bridge.callCount() != 1 {
+		envelope.Response == nil || envelope.ActionSafety == nil || envelope.ActionSafety.Status != actionSafetyReadStatusRecorded ||
+		envelope.ActionSafety.Owner.Kind != "agent_copilot_response" ||
+		envelope.Run.SideEffects.ProviderCalls != 1 || fixture.bridge.callCount() != 1 {
 		t.Fatalf("Agent Copilot API key invocation failed: status=%d body=%s calls=%d", successRecorder.Code, successRecorder.Body.String(), fixture.bridge.callCount())
 	}
 	for _, forbidden := range []string{"private HTTP selection", invokeToken, "selected_unit_ids", "structured_answer"} {

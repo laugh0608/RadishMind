@@ -254,6 +254,15 @@ const WorkflowUserWorkspaceHomePanel = lazy(() =>
     default: module.WorkflowUserWorkspaceHomePanel,
   })),
 );
+
+const LocalIdentityGateway = lazy(() =>
+  import("../features/local-identity/localIdentityGateway.tsx").then((module) => ({
+    default: module.LocalIdentityGateway,
+  })),
+);
+
+const localIdentityGatewayEnabled = (import.meta.env as Record<string, string | undefined>)
+  .VITE_RADISHMIND_LOCAL_IDENTITY_MODE?.trim() === "local_identity_dev";
 const AdminControlPlaneWorkspace = lazy(() => import("../features/control-plane-read/adminControlPlaneWorkspace"));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
@@ -318,6 +327,17 @@ const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
 ];
 
 export function App() {
+  if (!localIdentityGatewayEnabled) return <ProductApp />;
+  return (
+    <Suspense fallback={null}>
+      <LocalIdentityGateway>
+        <ProductApp />
+      </LocalIdentityGateway>
+    </Suspense>
+  );
+}
+
+function ProductApp() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(
     () => normalizeActiveWorkspaceId(devLiveConfig.workspaceId ?? "") ?? "workspace_demo",
   );
@@ -1173,6 +1193,39 @@ export function App() {
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
+  };
+  const handleOpenTemplateDerivedDraft = (
+    createdDraft: WorkflowDraftDesignerDraft,
+    authority: {
+      draftId: string;
+      draftVersion: number;
+      lifecycleVersion: number;
+      lifecycleState: "active";
+      targetApplicationId: string;
+    },
+  ) => {
+    if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
+    const consumerState = workflowTemplateDerivedConsumerState(
+      activeSavedDraftConsumerConfig,
+      createdDraft,
+      authority,
+    );
+    pendingSavedDraftConsumerStateRef.current = { draftId: authority.draftId, state: consumerState };
+    setWorkspaceCreatedDrafts((drafts) => [
+      ...drafts.filter((draft) => draft.draftId !== authority.draftId),
+      createdDraft,
+    ]);
+    applyWorkflowSelectionPatch({
+      applicationRef: authority.targetApplicationId,
+      workflowDefinitionId: createdDraft.workflowDefinitionId,
+      runId: null,
+      draftId: authority.draftId,
+      scenarioId: null,
+    });
+    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
+    setWorkflowDraftEditDirty(false);
+    setSavedDraftConsumerState(consumerState);
+    window.location.hash = "#workflow-draft-designer";
   };
   const handleDeriveSavedWorkflowDraft = () => {
     const operationPending = workflowExecutorOperationPending || workflowRAGOperationPending;
@@ -2049,6 +2102,8 @@ export function App() {
 
           <Suspense fallback={<div className="application-catalog-panel"><p>Loading application catalog management…</p></div>}>
             <ApplicationCatalogPanel
+              key={activeWorkspaceId}
+              workspaceId={activeWorkspaceId}
               selectedApplicationId={selectedApplicationRef}
               onSelectRecord={handleSelectApplicationCatalogRecord}
               onSnapshotChange={setApplicationCatalogSnapshot}
@@ -2094,6 +2149,7 @@ export function App() {
                       (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
                     ).length + 1}
                     onDerivedDraft={handleCreateDefinitionDerivedDraft}
+                    onTemplateDerivedDraft={handleOpenTemplateDerivedDraft}
                     onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
                   />
                 </Suspense>
@@ -3744,6 +3800,31 @@ function workspaceDraftCreatedConsumerState(
     currentDraftVersion: 0,
     currentLifecycleVersion: sourceLifecycleVersion,
     currentLifecycleState: "active",
+    conflictDraftVersion: null,
+    auditRef: draft.routeMetadata.auditRef,
+    requestId: draft.routeMetadata.requestId,
+  };
+}
+
+function workflowTemplateDerivedConsumerState(
+  config: ReturnType<typeof readWorkflowSavedDraftConsumerConfig>,
+  draft: WorkflowDraftDesignerDraft,
+  authority: {
+    draftId: string;
+    draftVersion: number;
+    lifecycleVersion: number;
+    lifecycleState: "active";
+  },
+): WorkflowSavedDraftConsumerState {
+  return {
+    ...initialWorkflowSavedDraftConsumerState(config),
+    status: "saved_dev_record",
+    sourceLabel: "template-derived saved draft",
+    summary: `Template-derived Saved Draft ${authority.draftId} v${authority.draftVersion} is open from exact server authority.`,
+    failureCode: null,
+    currentDraftVersion: authority.draftVersion,
+    currentLifecycleVersion: authority.lifecycleVersion,
+    currentLifecycleState: authority.lifecycleState,
     conflictDraftVersion: null,
     auditRef: draft.routeMetadata.auditRef,
     requestId: draft.routeMetadata.requestId,
