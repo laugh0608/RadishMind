@@ -65,7 +65,7 @@ git push origin dev
 - `scripts/check-repo.ps1` 与 `scripts/check-repo.sh` 当前是正式仓库级验证入口
 - `scripts/check-text-files.ps1` 与 `scripts/check-text-files.sh` 负责文本文件卫生检查
 - `apps/radishmind-web/` 的 CI 使用 `npm ci`、`npm run test:coverage` 与 `npm run build`，`apps/radishmind-console/` 使用 `npm ci` 与 `npm run build`
-- `services/platform/` 的 CI 使用核心包分层覆盖率入口、`go test -race ./...` 与 `go vet ./...`
+- `services/platform/` 的 CI 使用核心包分层覆盖率入口、`go test -race -timeout 20m ./...` 与 `go vet ./...`；显式 `20m` 只扩展 Go 测试进程的冷启动竞态检测预算，仍保留有限超时
 - 当前基线重点是文本文件、治理文件齐备性、GitHub 规则 / workflow 口径一致性、Web 覆盖率与构建、Console 构建和 Go 平台分层测试
 
 ## 应用方式

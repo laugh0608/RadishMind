@@ -522,7 +522,7 @@ def check_content_baseline() -> None:
         "npm run test:coverage",
         "npm run build",
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
-        "go test -race ./...",
+        "go test -race -timeout 20m ./...",
         "go vet ./...",
     ):
         if pattern not in pr_workflow:
@@ -554,7 +554,7 @@ def check_content_baseline() -> None:
         "npm run test:coverage",
         "npm run build",
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
-        "go test -race ./...",
+        "go test -race -timeout 20m ./...",
         "go vet ./...",
     ):
         if pattern not in release_workflow:
