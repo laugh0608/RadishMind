@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-09-05
+更新时间：2026-09-08
 
 ## 这份文档讲什么
 
@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-09-05 当前读法：Family UI `S1` 至 `S10`、Workflow Definition 结构化输入、Workflow RAG 本地材料、Provider 价格、Gateway Provider Attempt、Workflow Definition HTTP Tool、应用结果资产、账户与成员管理、账户安全、[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)、[Action Safety Ladder](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)和[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)均已关闭。下一长期目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，批次 A 至 C 的 canonical、三存储与 local Session strict HTTP 已完成，批次 D 的 S7 / Authentication 五块 R1 / R25 Pencil 代表面已通过原生静态 QA，并于 2026-09-05 获项目所有者人工批准；下一步停在批次 E 独立授权线。production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
+2026-09-08 当前读法：已关闭功能以[能力矩阵](radishmind-capability-matrix.md)和[功能入口](features/README.md)为准。[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E：管理员从 S7 Invitations 创建并一次性交接，已登录成员从账户入口进入 Claim invitation，预览后显式认领；权限生效后仍需手动选择工作区。双数据库与浏览器验收已完成，下一目标由[当前推进焦点](radishmind-current-focus.md)承接。production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
 
 ## 项目定位
 

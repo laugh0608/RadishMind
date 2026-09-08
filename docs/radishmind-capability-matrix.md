@@ -1,12 +1,12 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-09-06
+更新时间：2026-09-08
 
 ## 读取口径
 
 当前成熟度为**内部开发者预览**。本矩阵区分实现、验证环境、外部验证和生产边界；`completed` 只关闭对应专题范围，不自动升级平台成熟度。
 
-表中“已有证据”引用各专题的历史验收，不表示本次文档更新重新执行了浏览器、PostgreSQL 或真实 Provider 联调。2026-09-06 的实际审阅验证见[本周周志](devlogs/2026-W36.md)。
+表中“已有证据”引用对应专题的实际验收，未重新执行的历史链不视为本次复验。2026-09-08 邀请双数据库与浏览器验收见[本周周志](devlogs/2026-W37.md)，此前全面审阅见[2026-W36](devlogs/2026-W36.md)。
 
 ## 当前能力
 
@@ -17,7 +17,7 @@
 | 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据 | 真实 Provider 调度验收、production worker、通用 scheduler；持续团队收益指标仍待建立 | [定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
 | Gateway | 三类北向推理协议、Models、SSE、Provider 选择、stdio worker pool；开发测试态 API key / quota、reported usage、价格快照与受控 unary fallback | 真实 Provider fallback、生产 API key / quota / price、限流、billing ledger、optional live health | [模型网关](features/model-gateway-api-distribution.md) |
 | 本地身份与成员 | 账户、Web Session、角色、成员、凭据轮换、确定性 OIDC 与双数据库 / 浏览器证据 | 真实 Radish 联调 `real_radish_integration_deferred`；production auth、MFA、账户恢复 | [管理端](features/admin-control-plane/README.md) |
-| 工作区邀请 | A / B canonical 与三存储、C 五条 strict HTTP、D Pencil 与人工批准已完成 | React strict consumer 与双数据库产品 / 浏览器链待批次 E 独立授权；邮件、目录搜索、管理员邀请关闭 | [邀请专题](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) |
+| 工作区邀请 | A 至 E 完成；五条 strict HTTP、四态目录、一次性交接与显式认领、双数据库权限 / 重启 / 并发、三视口与双标签凭据清理 | 邮件、目录搜索、管理员邀请、真实 Radish 和 production delivery 关闭；CI 尚未纳入自动浏览器回归 | [邀请专题](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) |
 | 受控工具与 Action Safety | Workflow HTTP Tool 的独立确认 / 执行链与安全资格快照已实现 | 通用 `/v1/tools/actions` 仍 blocked；写方法 Tool、`write_allowed_by_policy`、通用动作执行器未开放 | [HTTP Tool](features/workflow/workflow-definition-http-tool-v1.md)、[Action Safety](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) |
 | 通用 Session / Checkpoint | metadata-only 契约与只读 shell；与应用 Session / Turn 区分 | 通用 durable checkpoint、长期记忆、跨轮恢复执行器 | [架构](radishmind-architecture.md) |
 | 图片产物 | fixture client → adapter → 一次性 binary delivery → 私有存储 coordinator 已完成；metadata-only response builder 独立存在 | 真实生图 backend、reference resolver、生产存储、public URL、HTTP / Gateway / Web 交付 | [图片专题](features/image-generation-artifact-return.md) |
@@ -29,7 +29,7 @@
 
 ## 下一动作与验收区分
 
-当前执行项只在[当前推进焦点](radishmind-current-focus.md)维护。邀请状态保持 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`；R2 至 R6 与已关闭产品专题不因本次复审重开批次。
+当前执行项只在[当前推进焦点](radishmind-current-focus.md)维护。邀请状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`；R2 至 R6 与已关闭产品专题不因本次复审重开批次。
 
 后续专题分别记录代码 / 契约、单元 / 存储测试、浏览器连续链、真实 Provider、内部用户使用和生产验收。未执行填“未验证”，外部依赖缺失填具体阻塞，不从相邻能力推算 ready。使用指标与模型效果口径见[产品范围](radishmind-product-scope.md#使用与效果验收)。
 

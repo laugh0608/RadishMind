@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-09-06
+更新时间：2026-09-08
 
 ## 核心定义
 
@@ -92,4 +92,4 @@ raw、guided、builder 与 repaired 结果分别报告；结构修复通过不�
 - 不开放无限制工具、业务写回、自动确认提交、自动发布或 replay；生产身份、secret、quota / billing 和交付按独立范围验收。
 - 后端服务与 control plane 默认 Go；模型、评测和 AI 生态适配优先 Python；前端采用 React + Vite + TypeScript。
 - 通过 canonical schema、明确类型、稳定函数边界和行为测试维持一致性；模块职责收敛按[架构](radishmind-architecture.md)和[工程健康专题](platform/engineering-health-productization-remediation-v1.md)逐项评审实施。
-- 当前邀请批次 E 的独立授权线保持不变；本文的产品目标与验收建议不自动开启代码变更、后台服务、依赖安装或外部系统操作。
+- 邀请批次 E 已于 2026-09-08 独立获授权并完成；本文的产品目标与验收建议不自动开启后续代码变更、后台服务、依赖安装或外部系统操作。

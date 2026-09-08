@@ -1,8 +1,8 @@
 # 工作区成员邀请、认领与到期治理 v1 高风险任务卡
 
-更新时间：2026-09-05
+更新时间：2026-09-08
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`
 
 对应功能设计：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](../features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
 
@@ -21,7 +21,7 @@
 - v1 只允许 `workspace_reader`、`workspace_builder`、`workspace_reviewer`；`workspace_admin` 仍必须在成员身份明确后通过现有 exact member role assignment 流程授予。
 - TTL 只允许 `1h / 24h / 72h / 7d`。服务端使用 UTC clock 计算 `expires_at`，不接受客户端任意时间戳或无限期。
 - 邀请码使用 locator + 至少 256-bit CSPRNG secret。创建响应只返回一次原文，持久层只存 digest；格式合法但 locator 不存在时仍完成固定 dummy digest 的等价比较。
-- 批次 C 的明确授权在已完成 durable owner 上只开放 strict HTTP、本地 Session 安全边界与对应验证；项目所有者随后明确授权批次 D 只进入完整 Pencil，不提前开放 React、真实产品链或 production 能力。
+- 批次 C 与 D 的历史授权分别限定 strict HTTP 和完整 Pencil。项目所有者于 2026-09-08 再次明确授权批次 E，覆盖 React 消费层、双数据库产品链、浏览器验收与专题收口；生产能力仍关闭。
 
 ## 批次 A：canonical contract、secret policy 与 memory 原子链
 
@@ -124,6 +124,16 @@
 
 停止线：不自动选择 workspace，不发消息，不打开 `workspace_admin` invitation、production delivery、production auth / IAM 或真实 Radish。
 
+当前完成证据（2026-09-08）：
+
+- [x] 五接口严格消费、四态目录、角色 / TTL 审阅、一次性交接、显式预览 / 认领及版本受控撤销已接入 S7 / Authentication。
+- [x] 同步权限代次与请求代次阻止旧响应；创建端广播保留自己的结果，其它标签按元数据通知清理；退出后重新登录仍可操作。
+- [x] SQLite 配置化 Server 与浏览器入会、权限生效、重放拒绝、实际服务重启和 Session / 邀请恢复通过。
+- [x] PostgreSQL 受限 runtime 配置化链、八账户并发单胜者、重启、实际停库失败关闭与原 Server 重新连接通过。
+- [x] 三视口无横向溢出；双标签撤销、旧预览认领拒绝、无效输入、工作区 / 页面切换、另一标签退出与 Escape 清理通过。
+- [x] 邀请码未进入 URL、Web Storage、Cookie、日志、数据库明文或验收文件；截图中的一次性代码已遮蔽，临时进程、浏览器凭据、数据库与容器已清理。
+- 验证命令与实际环境边界见[2026-W37 周志](../devlogs/2026-W37.md)；本次真实浏览器验收不等于已有 CI 自动浏览器回归。
+
 ## 必须保持的负向边界
 
 - 无 email、login identifier、display name、OIDC issuer / subject 搜索、绑定或自动合并。
@@ -162,8 +172,8 @@ npm --prefix apps/radishmind-web run build
 - [x] 批次 B：SQLite / PostgreSQL durable owner。
 - [x] 批次 C：strict HTTP 与 local Session 安全边界。
 - [x] 批次 D：完整 Pencil、原生静态 QA 与项目所有者人工批准。
-- [ ] 批次 E：React strict consumer、双数据库产品链与专题收口。
+- [x] 批次 E：React strict consumer、双数据库产品链与专题收口。
 
 ## 当前下一步
 
-批次 D 的五块 Pencil 根画板已完成原生静态 QA，并于 2026-09-05 获项目所有者人工视觉与安全边界批准。下一步停在批次 E 独立授权线；未经项目所有者再次明确授权，不得修改 React、启动产品服务 / 浏览器验收或实施 strict consumer 与双数据库产品验收。
+批次 A 至 E 已完成，任务卡关闭。下一目标回到[当前推进焦点](../radishmind-current-focus.md)，根据真实用户阻塞、维护成本和可验证边界另行选择；不派生批次 F，不扩大邮件、目录搜索、管理员邀请或生产交付。

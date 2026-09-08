@@ -13,6 +13,11 @@ import (
 
 func TestWorkspaceInvitationHTTPFiveRouteVerticalChain(t *testing.T) {
 	fixture := newLocalIdentityAdministrationHTTPFixture(t)
+	runWorkspaceInvitationHTTPVerticalChain(t, fixture)
+}
+
+func runWorkspaceInvitationHTTPVerticalChain(t *testing.T, fixture localIdentityAdministrationHTTPFixture) workspaceInvitationCreationHTTPResponse {
+	t.Helper()
 	builder := roleDefinitionByKey(t, LocalIdentityBuiltInRoleCatalog(), localIdentityRoleWorkspaceBuilder)
 	creation := createWorkspaceInvitationOverHTTP(t, fixture, builder, workspaceInvitationTTL24Hours)
 	if creation.response.Header().Get("Cache-Control") != "no-store" {
@@ -21,7 +26,7 @@ func TestWorkspaceInvitationHTTPFiveRouteVerticalChain(t *testing.T) {
 	if creation.document.InvitationCode == "" ||
 		creation.document.Invitation.RoleKey != localIdentityRoleWorkspaceBuilder ||
 		creation.document.RequestID == "" {
-		t.Fatalf("invitation creation projection mismatch: %#v", creation.document)
+		t.Fatal("invitation creation projection mismatch")
 	}
 	assertWorkspaceInvitationHTTPSafePayload(t, creation.response.Body.String(), true, creation.document.InvitationCode)
 
@@ -121,6 +126,7 @@ func TestWorkspaceInvitationHTTPFiveRouteVerticalChain(t *testing.T) {
 	)
 	assertWorkspaceInvitationHTTPError(t, revokedPreview, http.StatusConflict, WorkspaceInvitationFailureNotClaimable,
 		"discard_terminal_invitation")
+	return creation.document
 }
 
 func TestWorkspaceInvitationHTTPAuthenticationScopeCSRFAndEnumerationGuards(t *testing.T) {
@@ -426,7 +432,7 @@ func createWorkspaceInvitationOverHTTP(
 		"ttl_policy":                      ttlPolicy, "confirmed": true,
 	}, fixture.adminCookies)
 	if response.Code != http.StatusCreated {
-		t.Fatalf("create workspace invitation: status=%d body=%s", response.Code, response.Body.String())
+		t.Fatalf("create workspace invitation: status=%d", response.Code)
 	}
 	var document workspaceInvitationCreationHTTPResponse
 	decodeLocalIdentityHTTPResponse(t, response, &document)
@@ -515,10 +521,10 @@ func assertWorkspaceInvitationHTTPSafePayload(t *testing.T, payload string, allo
 		`"cookie"`, `"issuer"`, `"subject"`, `"permission_grants"`,
 	} {
 		if strings.Contains(payload, forbidden) {
-			t.Fatalf("workspace invitation response leaked %q: %s", forbidden, payload)
+			t.Fatalf("workspace invitation response leaked forbidden field %q", forbidden)
 		}
 	}
 	if !allowCode && code != "" && strings.Contains(payload, code) {
-		t.Fatalf("workspace invitation response repeated one-time code: %s", payload)
+		t.Fatal("workspace invitation response repeated one-time code")
 	}
 }

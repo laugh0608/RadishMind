@@ -1,9 +1,10 @@
 import {
-  createContext,
+  lazy,
+  Suspense,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -24,6 +25,10 @@ import {
 } from "./localIdentityConsumer.ts";
 import { LocalIdentitySelfServiceSecurityPanel } from "./localIdentitySelfServiceSecurityPanel.tsx";
 import { localIdentitySelfServiceSecurityScopeKey } from "./localIdentitySelfServiceSecurityState.ts";
+import { LocalIdentityContext, type LocalIdentityContextValue } from "./localIdentityContext.ts";
+export { useLocalIdentity } from "./localIdentityContext.ts";
+
+const WorkspaceInvitationClaimPanel = lazy(() => import("./workspaceInvitationClaimPanel.tsx").then((module) => ({ default: module.WorkspaceInvitationClaimPanel })));
 
 type LocalIdentityGatewayState =
   | { status: "probing" }
@@ -31,39 +36,56 @@ type LocalIdentityGatewayState =
   | { status: "ready"; profile: LocalIdentityAccountProfile }
   | { status: "failed"; message: string; code: string };
 
-type LocalIdentityContextValue = {
-  config: LocalIdentityConsumerConfig;
-  profile: LocalIdentityAccountProfile;
-  refresh: () => Promise<void>;
-  linkOIDC: () => Promise<void>;
-  revokeExternalIdentity: (bindingId: string, expectedRecordVersion: number) => Promise<void>;
-};
-
-const LocalIdentityContext = createContext<LocalIdentityContextValue | null>(null);
-
-export function useLocalIdentity(): LocalIdentityContextValue | null {
-  return useContext(LocalIdentityContext);
-}
-
 export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   const config = useMemo(() => readLocalIdentityConsumerConfig(), []);
   const [state, setState] = useState<LocalIdentityGatewayState>({ status: "probing" });
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
+  const [accountTask, setAccountTask] = useState<"security" | "claim">("security");
   const [accountAction, setAccountAction] = useState<"" | "link" | "logout" | "revoke">("");
   const [accountActionError, setAccountActionError] = useState("");
   const [securityInvalidation, setSecurityInvalidation] = useState(0);
+  const authorityRevision = useRef(0);
+  const sessionGeneration = useRef(0);
+  const sessionController = useRef<AbortController | null>(null);
+  const currentActor = useRef("");
+  const workspaceScope = useRef("");
+  const readAuthorityRevision = useCallback(() => authorityRevision.current, []);
+  const invalidateAuthority = useCallback(() => {
+    authorityRevision.current += 1;
+    setSecurityInvalidation(authorityRevision.current);
+  }, []);
+  const onWorkspaceScopeChange = useCallback((tenantRef: string, workspaceId: string) => {
+    const scope = JSON.stringify([tenantRef, workspaceId]);
+    if (workspaceScope.current === scope) return;
+    workspaceScope.current = scope;
+    invalidateAuthority();
+  }, [invalidateAuthority]);
 
   const refresh = useCallback(async () => {
     if (config.mode !== "local_identity_dev") return;
+    const generation = ++sessionGeneration.current;
+    sessionController.current?.abort();
+    const controller = new AbortController();
+    sessionController.current = controller;
+    const isCurrent = () => !controller.signal.aborted && sessionGeneration.current === generation;
     try {
-      const authentication = await probeLocalIdentitySession(config);
+      const authentication = await probeLocalIdentitySession(config, controller.signal);
+      if (!isCurrent()) return;
       if (!authentication) {
+        invalidateAuthority();
+        currentActor.current = "";
         setState({ status: "unauthenticated" });
         return;
       }
-      const profile = await readLocalIdentityAccountProfile(config);
+      const profile = await readLocalIdentityAccountProfile(config, controller.signal);
+      if (!isCurrent()) return;
+      const actor = JSON.stringify([profile.account.userId, profile.account.lifecycleState, profile.session,
+        profile.capabilities.recentAuthentication]);
+      if (actor !== currentActor.current) { invalidateAuthority(); currentActor.current = actor; }
       setState({ status: "ready", profile });
     } catch (error) {
+      if (!isCurrent()) return;
+      invalidateAuthority();
       const failure = identityFailure(error);
       if (failure.code === "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED") {
         setState({ status: "unauthenticated" });
@@ -71,44 +93,31 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
       }
       setState({ status: "failed", ...failure });
     }
-  }, [config]);
+  }, [config, invalidateAuthority]);
 
   useEffect(() => {
     if (config.mode !== "local_identity_dev") return;
-    const controller = new AbortController();
-    void (async () => {
-      try {
-        const authentication = await probeLocalIdentitySession(config, controller.signal);
-        if (!authentication) {
-          setState({ status: "unauthenticated" });
-          return;
-        }
-        const profile = await readLocalIdentityAccountProfile(config, controller.signal);
-        setState({ status: "ready", profile });
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        const failure = identityFailure(error);
-        setState({ status: "failed", ...failure });
-      }
-    })();
-    return () => controller.abort();
-  }, [config]);
+    void refresh();
+    return () => { sessionGeneration.current += 1; sessionController.current?.abort(); };
+  }, [config, refresh]);
 
   useEffect(() => {
     if (config.mode !== "local_identity_dev" || typeof BroadcastChannel === "undefined") return;
     const channel = new BroadcastChannel("radishmind-local-identity-v1");
     channel.onmessage = (event: MessageEvent<unknown>) => {
       if (isSessionChangedEvent(event.data)) {
-        setSecurityInvalidation((current) => current + 1);
+        invalidateAuthority();
+        setState({ status: "probing" });
         void refresh();
       }
     };
     return () => channel.close();
-  }, [config.mode, refresh]);
+  }, [config.mode, refresh, invalidateAuthority]);
 
   useEffect(() => {
     if (!accountPanelOpen) return;
     const closeForRouteChange = () => {
+      invalidateAuthority();
       setAccountPanelOpen(false);
       setAccountActionError("");
     };
@@ -118,7 +127,7 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
       window.removeEventListener("hashchange", closeForRouteChange);
       window.removeEventListener("popstate", closeForRouteChange);
     };
-  }, [accountPanelOpen]);
+  }, [accountPanelOpen, invalidateAuthority]);
 
   if (config.mode !== "local_identity_dev") return <>{children}</>;
   if (state.status === "probing") return <LocalIdentityLoading />;
@@ -156,11 +165,16 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   }
 
   async function handleLogout() {
+    invalidateAuthority();
+    sessionGeneration.current += 1;
+    sessionController.current?.abort();
     setAccountAction("logout");
     setAccountActionError("");
     try {
       await logoutLocalIdentity(config);
       broadcastSessionChanged();
+      currentActor.current = "";
+      setAccountAction("");
       setAccountPanelOpen(false);
       setState({ status: "unauthenticated" });
     } catch (error) {
@@ -170,6 +184,9 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   }
 
   function handleAuthenticationRequired() {
+    invalidateAuthority();
+    sessionGeneration.current += 1;
+    sessionController.current?.abort();
     setAccountPanelOpen(false);
     setAccountAction("");
     setAccountActionError("");
@@ -177,12 +194,16 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   }
 
   function handleSessionChanged() {
+    invalidateAuthority();
     broadcastSessionChanged();
   }
 
   const contextValue: LocalIdentityContextValue = {
     config,
     profile: state.profile,
+    authorityRevision: securityInvalidation,
+    readAuthorityRevision,
+    onWorkspaceScopeChange,
     refresh,
     linkOIDC: handleLinkOIDC,
     revokeExternalIdentity: handleRevokeExternalIdentity,
@@ -190,14 +211,16 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
 
   return (
     <LocalIdentityContext.Provider value={contextValue}>
-      {children}
+      <div inert={accountPanelOpen && accountTask === "claim"}>{children}</div>
       <aside className="local-identity-account-control" aria-label="Local identity session">
         <button
           type="button"
           className="local-identity-account-trigger"
+          aria-label={`${state.profile.account.displayName} ${state.profile.session.authenticationMethod === "oidc" ? "Radish OIDC" : "Local session"}`}
           aria-expanded={accountPanelOpen}
           onClick={() => {
             setAccountActionError("");
+            setAccountTask("security");
             setAccountPanelOpen(true);
           }}
           disabled={accountPanelOpen}
@@ -206,18 +229,30 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
           <strong>{state.profile.account.displayName}</strong>
           <small>{state.profile.session.authenticationMethod === "oidc" ? "Radish OIDC" : "Local session"}</small>
         </button>
-        {accountPanelOpen ? (
+        {accountPanelOpen && accountTask === "claim" ? (
+          <Suspense fallback={<div className="local-identity-security-surface" role="status">Loading invitation claim…</div>}>
+            <WorkspaceInvitationClaimPanel
+              key={localIdentitySelfServiceSecurityScopeKey(state.profile, securityInvalidation)}
+              identity={contextValue}
+              onClose={() => { invalidateAuthority(); setAccountPanelOpen(false); }}
+              onOpenSecurity={() => { invalidateAuthority(); setAccountTask("security"); }}
+              onLogout={handleLogout}
+            />
+          </Suspense>
+        ) : accountPanelOpen ? (
           <LocalIdentitySelfServiceSecurityPanel
             key={localIdentitySelfServiceSecurityScopeKey(state.profile, securityInvalidation)}
             config={config}
             profile={state.profile}
             onClose={() => {
+              invalidateAuthority();
               setAccountPanelOpen(false);
               setAccountActionError("");
             }}
             onRefreshProfile={refresh}
             onAuthenticationRequired={handleAuthenticationRequired}
             onSessionChanged={handleSessionChanged}
+            onClaimInvitation={() => { invalidateAuthority(); setAccountTask("claim"); }}
             onLinkOIDC={handleLinkOIDC}
             onLogout={handleLogout}
             accountAction={accountAction}

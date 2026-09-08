@@ -1,20 +1,20 @@
 # 工作区成员邀请、认领与到期治理（开发 / 测试态）v1
 
-状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`
+状态：`workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`
 
-更新时间：2026-09-05
+更新时间：2026-09-08
 
 ## 设计结论
 
-本专题是应用定时回归评测关闭后，从四个一级产品面重新评审选出的下一项长期开发目标。它补齐现有本地成员管理的真实断点：管理员目前必须先在线下获得一个已有 active 本地账户的 exact `user_id`，再分别创建 `WorkspaceMembership` 和角色 assignment；产品没有“管理员预先表达准入意图，成员登录后自行认领”的安全闭环。
+本专题是应用定时回归评测关闭后，从四个一级产品面重新评审选出的下一项长期开发目标。它补齐现有本地成员管理的真实断点：管理员此前必须先在线下获得一个已有 active 本地账户的 exact `user_id`，再分别创建 `WorkspaceMembership` 和角色 assignment；批次 A 至 E 已补齐“管理员预先表达准入意图，成员登录后自行认领”的开发测试态闭环。
 
-项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已经建立，批次 A 至 C 已完成；批次 D 的五块正式 Pencil 代表面也已完成原生静态 QA，并于 2026-09-05 获项目所有者人工视觉与安全边界批准。它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
+项目所有者先批准该方向进入功能设计，并于 2026-09-02 进一步批准本文的一次性邀请代码、登录后预览、显式认领、到期与撤销治理、五批实施顺序和 `A / 完整 Pencil` 边界。[唯一高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)已完成关闭。批次 A 至 C 完成契约、仓储与 HTTP，批次 D 于 2026-09-05 获人工视觉与安全边界批准，批次 E 于 2026-09-08 获授权并完成 React、双数据库与浏览器产品验收。它不是已关闭成员管理专题的 Batch F，也不修改该专题的完成事实。
 
 首版最重要的边界是：邀请只保存待认领授权意图，`WorkspaceMembership` 继续是 workspace 访问的唯一 owner，`LocalRoleAssignment` 继续是角色与冻结 grants 的唯一 owner。邀请码不是 membership、Session、API Key 或可复用授权 token；只有在服务端单事务认领成功后，成员与角色权限才生效。
 
 ## 选择依据
 
-- [本地用户、角色与工作区成员管理 v1](local-user-role-workspace-membership-administration-dev-test-v1.md)已经完成账户状态校验、成员目录、内建角色目录、membership / role mutation、CAS、三种 store、strict Admin HTTP 和 S7 Web；当前唯一入会入口仍要求 exact `user_id`。
+- [本地用户、角色与工作区成员管理 v1](local-user-role-workspace-membership-administration-dev-test-v1.md)已经完成账户状态校验、成员目录、内建角色目录、membership / role mutation、CAS、三种 store、strict Admin HTTP 和 S7 Web；原有直接添加成员入口要求 exact `user_id`，本专题增加登录后持有效邀请码认领的入口。
 - [本地账户与 Radish OIDC 联合登录 v1](local-account-radish-oidc-federated-login-v1.md)已经提供本地注册、登录、Web Session 和本地账户 owner。认领者可先注册或登录，再提交邀请码；本专题不创建账户，也不等待真实 Radish OIDC。
 - 现有角色目录能从 `role_key + catalog_version + definition_digest` 派生并冻结 exact grants；邀请无需保存客户端 grants 或建立第二套角色策略。
 - 本功能可以在 memory、SQLite、PostgreSQL、本地 Web Session 与真实浏览器中形成完整连续链，不依赖邮件服务、用户目录、production secret、真实 issuer 或外部部署资源。
@@ -27,7 +27,7 @@
 | 本地账户与登录 | `UserAccount`、`LocalCredential`、`WebSession` | 认领只接受已登录 active 本地账户，不通过邀请创建或恢复账户 |
 | workspace 访问 | `WorkspaceMembership` | 继续是唯一访问 owner；邀请 pending / preview 不产生访问资格 |
 | 角色授权 | `LocalRoleAssignment` 与内建角色目录 | 认领成功时由 exact catalog definition 派生一个 assignment，客户端不提交 grants |
-| 管理员添加成员 | local identity administration service | 当前需要 exact `user_id`，且 membership 与 role 是两个独立人工步骤 |
+| 管理员直接添加成员 | local identity administration service | 直接添加仍使用 exact `user_id`；邀请认领在同一事务建立 membership 与 role |
 | 目录隐私 | workspace-scoped member projection | 不存在全局账户、email、login identifier 或 OIDC directory search，本专题也不新增 |
 | 仓储模式 | memory / SQLite / PostgreSQL dev/test | Invitation 必须同构持久化、并发单胜者、重启恢复且数据库失败不回退 memory |
 | Web 基准面 | S7 User / Role 与 Authentication Gateway | Admin 创建 / 治理进入 S7；成员预览 / 认领进入 Authentication，不建立 S11 |
@@ -148,7 +148,7 @@ strict body 提议：
 
 ## 目录、cursor 与可见性
 
-- Admin invitation directory 只列 exact tenant / workspace，不提供跨 workspace 或全局搜索。
+- Admin invitation directory 只列 exact tenant / workspace，默认 Pending，支持 Pending / Claimed / Expired / Revoked 四种独立状态过滤；不提供 All 聚合、跨 workspace 或全局搜索。
 - filter 允许 `effective_state=pending|claimed|revoked|expired`；默认 `pending`。
 - 排序固定为 `updated_at DESC, invitation_id DESC`，默认 limit `50`，最大 `100`。
 - cursor 绑定 tenant、workspace、effective state、limit 与首个请求的 `as_of`；后续页沿同一 `as_of` 计算 expiry，避免 invitation 在翻页过程中跨越到期点导致重复或遗漏。
@@ -245,6 +245,17 @@ Pencil 完成证据（2026-09-05）：
 - PostgreSQL configured Server 完成同构链、并发单胜者、停止 no-fallback 与 reconnect。
 - 覆盖双标签、`1440×900`、`720×900`、`390×844`、console / network / URL / storage / cookie / database 隐私审计并回写真相源。
 
+批次 E 完成事实（2026-09-08）：五条接口由单一严格消费层校验状态、作用域、角色目录、TTL、版本、分页快照及认领关系；两个页面共享同步权限代次、请求代次与取消机制。S7 支持四态目录、角色 / TTL 确认、复制 / 清理与版本受控撤销；账户面板提供不依赖已有工作区成员关系的认领入口。成功后刷新账户资料与可选工作区，保留当前选择。
+
+SQLite 与受限 runtime role 的 PostgreSQL 均通过实际配置化 Server 和浏览器入会链，权限检查、重复认领拒绝、持久化重启、PostgreSQL 八账户并发单胜者及实际停库 / 恢复均通过。停库时既有认证层返回 `401` 并关闭业务界面；恢复数据库后原 Server、原 Cookie 可重新读取持久化 Session 与已领取记录，没有内存回退。三视口、双标签、工作区 / 页面 / 账户变化与凭据隐私验收通过；临时服务、浏览器凭据、数据库账户和容器均已清理。过程证据和验证命令见[2026-W37 周志](../../devlogs/2026-W37.md)。
+
+### 产品使用入口
+
+- 复用既有本地身份开发配置：后端开启 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP`，认证方式为 `local_session_dev_test`；前端使用 `VITE_RADISHMIND_LOCAL_IDENTITY_MODE=local_identity_dev`，产品读取来源为 `VITE_RADISHMIND_READ_SOURCE=dev-live-http`，身份服务地址与允许 Origin 必须匹配。
+- 当前 tenant 复用 `VITE_RADISHMIND_DEV_READ_TENANT_REF`。管理员请求携带 exact tenant / workspace；预览和认领只携带当前 tenant 及本地 Session，目标 workspace 来自验证后的邀请，不能由客户端 header 覆盖。
+- 管理员进入 `#admin-workspace-invitations`，确认角色和 TTL 后创建并交接一次性代码；离开、刷新或清理后只能看到元数据，需要再次交接时撤销并创建新邀请。
+- 已登录成员打开账户面板的 Claim invitation，预览后勾选确认并认领。已有成员关系冲突、终态、到期、角色漂移或版本冲突均按服务端失败结果恢复，不自动重试写入或选择工作区。
+
 ## 验收方式
 
 - memory、SQLite、PostgreSQL 对 create / list / revoke / preview / claim、cursor `as_of`、CAS、并发和重启的语义一致。
@@ -268,4 +279,4 @@ Pencil 完成证据（2026-09-05）：
 
 ## 下一实现入口
 
-[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`。批次 D 已获项目所有者人工批准；下一步停在批次 E 独立授权线，未经再次明确授权不得修改 React、启动产品联调或实施 strict consumer 与双数据库产品验收。
+[工作区成员邀请、认领与到期治理 v1 高风险任务卡](../../task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`，A 至 E 完成关闭。下一目标回到[当前推进焦点](../../radishmind-current-focus.md)按真实用户阻塞与维护边界选择，不派生邀请批次 F。

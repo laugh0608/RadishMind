@@ -1,25 +1,25 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-09-06
+更新时间：2026-09-08
 
 ## 文档职责
 
-本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W36 周志](devlogs/2026-W36.md)。
+本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W37 周志](devlogs/2026-W37.md)。
 
 正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度为**内部开发者预览**。Workflow、应用运行与评测、Gateway、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实 Provider、团队试用或生产运行已通过验收。
-- 当前唯一产品目标为[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)，状态保持 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`。A / B 的 canonical 与三存储、C 的五条 strict HTTP、D 的 Pencil 与人工视觉 / 安全边界批准均已完成。
-- 下一步停在**邀请批次 E 独立授权线**。2026-09-06 的全面审阅与文档完善不授权 React 实施、服务启动、双数据库产品联调或真实浏览器验收；具体实施范围仍以[唯一任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)为准。
+- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
+- 下一步回到**真实用户流程阻塞与后续范围选择**。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F；结构收敛、自动浏览器回归与内部试用仍需先选定具体目标和边界。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
 - 工程整改 R2 至 R6 保持完成。当前文档已承接结构收敛、自动浏览器回归和内部使用验证的建议；它们是后续实施候选，尚无新工程批次或新增门禁。问题、依赖与验收见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
 ## 下一顺位的选择
 
-邀请产品链完成后，围绕“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”选择下一目标。四个产品面共同服务这条用户流程，不分别维持功能扩张队列。
+邀请产品链已完成。围绕“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”选择下一目标。四个产品面共同服务这条用户流程，不分别维持功能扩张队列。
 
 | 顺序 | 候选工作 | 进入条件与结果 |
 | --- | --- | --- |

@@ -60,6 +60,7 @@ export function LocalIdentitySelfServiceSecurityPanel({
   onRefreshProfile,
   onAuthenticationRequired,
   onSessionChanged,
+  onClaimInvitation,
   onLinkOIDC,
   onLogout,
   accountAction,
@@ -71,6 +72,7 @@ export function LocalIdentitySelfServiceSecurityPanel({
   onRefreshProfile: () => Promise<void>;
   onAuthenticationRequired: () => void;
   onSessionChanged: () => void;
+  onClaimInvitation: () => void;
   onLinkOIDC: () => Promise<void>;
   onLogout: () => Promise<void>;
   accountAction: "" | "link" | "logout" | "revoke";
@@ -374,6 +376,7 @@ export function LocalIdentitySelfServiceSecurityPanel({
           <p>{profile.account.displayName} · <code>{profile.account.userId}</code></p>
         </div>
         <div className="local-identity-security-heading-actions">
+          <button type="button" onClick={onClaimInvitation} disabled={busy}>Claim invitation</button>
           <button type="button" onClick={() => void onLinkOIDC()} disabled={busy || !profile.capabilities.oidcEnabled || !profile.capabilities.recentAuthentication}>
             {accountAction === "link" ? "Opening…" : "Link Radish identity"}
           </button>

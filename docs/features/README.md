@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-09-06
+更新时间：2026-09-08
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)当前为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_batch_d_pencil_approved_batch_e_ready`。canonical / 三存储、五条 strict HTTP 与 Pencil 人工审查已完成，下一步停在批次 E 独立授权线。
+[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合；下一目标回到真实用户阻塞和维护边界的选择，不派生同层续批。
 
 [应用定时回归评测](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[工作区 Workflow 模板目录](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)和[Action Safety Ladder](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)保持完成关闭。真实 Radish OIDC 为 `real_radish_integration_deferred`，应用运行观测后续仍为 `no_entry`。
 

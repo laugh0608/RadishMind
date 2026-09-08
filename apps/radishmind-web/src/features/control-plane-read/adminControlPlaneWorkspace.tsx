@@ -32,6 +32,9 @@ const AdminLocalIdentityOwner = lazy(() =>
     default: module.AdminLocalIdentityOwner,
   })),
 );
+const WorkspaceInvitationAdminPanel = lazy(() =>
+  import("../local-identity/workspaceInvitationAdminPanel.tsx").then((module) => ({ default: module.WorkspaceInvitationAdminPanel })),
+);
 
 const AdminOperationsReviewPanel = lazy(() =>
   import("./adminOperationsReviewPanel.tsx").then((module) => ({
@@ -162,6 +165,7 @@ export default function AdminControlPlaneWorkspace({
 
   const pricingActive = activeSurface === "pricing";
   const quotaActive = activeSurface === "quota";
+  const invitationsActive = activeSurface === "invitations";
 
   return (
     <section
@@ -175,10 +179,12 @@ export default function AdminControlPlaneWorkspace({
         <div>
           <p className="eyebrow">{quotaActive ? "S9 · Admin Quota Admission" : pricingActive ? "S7 · Admin Pricing" : "S7 · Admin Control Plane"}</p>
           <h3 id="admin-control-plane-title">
-            {quotaActive ? "Application request quota" : pricingActive ? "Provider model pricing" : "Administration and routing"}
+            {invitationsActive ? "Workspace invitations" : quotaActive ? "Application request quota" : pricingActive ? "Provider model pricing" : "Administration and routing"}
           </h3>
           <p>
-            {quotaActive
+            {invitationsActive
+              ? "Issue one-time, time-limited access intent for this exact workspace. Membership and role access begin only after a signed-in claimant completes the atomic claim."
+              : quotaActive
               ? "Maintain the exact development/test application policy and its quota-owner UTC usage."
               : pricingActive
               ? "Maintain one exact immutable USD pricing revision for future development/test request snapshots."
@@ -216,12 +222,15 @@ export default function AdminControlPlaneWorkspace({
           <p className="admin-control-plane-boundary">
             <span aria-hidden="true">!</span>
             User and Role consume only the exact workspace member directory and server-owned built-in role catalog.
-            Global account search, email lookup, invitations, custom roles, production IAM and bootstrap HTTP stay closed.
+            Invitations express one-time access intent. Email delivery, global account search, admin invitations, custom roles, production IAM and bootstrap HTTP stay closed.
           </p>
         </nav>
 
         <main className="admin-control-plane-owner" data-owner={activeSurface ?? "inactive"}>
           {activeSurface === "tenant" ? <AdminTenantOwner overview={tenantOverview} /> : null}
+          {invitationsActive ? <Suspense fallback={<div className="admin-control-plane-loading">Loading workspace invitations…</div>}>
+            <WorkspaceInvitationAdminPanel tenantRef={sourceConfig.tenantRef} workspaceId={sourceConfig.workspaceId ?? ""} />
+          </Suspense> : null}
           {activeSurface === "user" || activeSurface === "role" ? (
             <Suspense fallback={<div className="admin-control-plane-loading">Loading local identity administration…</div>}>
               <AdminLocalIdentityOwner
@@ -310,6 +319,7 @@ function buildResourceStatuses(
     tenant: tenantStatus,
     user: localIdentityReady ? { label: "member directory", tone: "ready" } : { label: "offline", tone: "neutral" },
     role: localIdentityReady ? { label: "built-in catalog", tone: "ready" } : { label: "offline", tone: "neutral" },
+    invitations: localIdentityReady ? { label: "one-time claim", tone: "ready" } : { label: "offline", tone: "neutral" },
     audit: auditStatus,
     provider: routeStatus,
     profile: routeStatus,

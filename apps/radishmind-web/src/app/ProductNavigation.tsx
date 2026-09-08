@@ -5,6 +5,8 @@ import type {
   ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
 import { applicationDevelopmentStageForHash } from "../features/control-plane-read/applicationDevelopmentWorkspace";
+import { useLocalIdentity } from "../features/local-identity/localIdentityContext.ts";
+import { availableIdentityWorkspaces } from "../features/local-identity/localIdentityWorkspaceAccess.ts";
 import {
   adminControlPlanePrimaryHref,
   applicationApiAccessPrimaryHref,
@@ -104,6 +106,16 @@ export function ProductNavigation({
 }: ProductNavigationProps) {
   const [activeHash, setActiveHash] = useState(() => window.location.hash || "#workspace-overview");
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+  const identity = useLocalIdentity();
+  const reportScope = identity?.onWorkspaceScopeChange;
+  const workspaceChoices = identity ? availableIdentityWorkspaces(identity.profile)
+    .filter((membership) => membership.tenantRef === sourceConfig.tenantRef).map((membership) => membership.workspaceId) : [];
+  useEffect(() => { reportScope?.(sourceConfig.tenantRef, activeWorkspaceId); }, [reportScope, sourceConfig.tenantRef, activeWorkspaceId]);
+  function switchWorkspace(candidate: string) {
+    const accepted = onActiveWorkspaceSwitch(candidate);
+    if (accepted) reportScope?.(sourceConfig.tenantRef, candidate.trim());
+    return accepted;
+  }
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -125,7 +137,8 @@ export function ProductNavigation({
               idPrefix="mobile"
               activeWorkspaceId={activeWorkspaceId}
               sourceState={sourceState}
-              onActiveWorkspaceSwitch={onActiveWorkspaceSwitch}
+              onActiveWorkspaceSwitch={switchWorkspace}
+              workspaceChoices={workspaceChoices}
             />
             <NavigationLinks activeHash={activeHash} apiKeysAnchor={apiKeysAnchor} counts={counts} />
           </div>
@@ -138,7 +151,8 @@ export function ProductNavigation({
           idPrefix="desktop"
           activeWorkspaceId={activeWorkspaceId}
           sourceState={sourceState}
-          onActiveWorkspaceSwitch={onActiveWorkspaceSwitch}
+          onActiveWorkspaceSwitch={switchWorkspace}
+          workspaceChoices={workspaceChoices}
         />
         <NavigationLinks activeHash={activeHash} apiKeysAnchor={apiKeysAnchor} counts={counts} />
         <div className="product-nav-environment">
@@ -171,11 +185,13 @@ function WorkspaceSwitcher({
   activeWorkspaceId,
   sourceState,
   onActiveWorkspaceSwitch,
+  workspaceChoices,
 }: {
   idPrefix: string;
   activeWorkspaceId: string;
   sourceState: ControlPlaneReadDevLiveLoadState;
   onActiveWorkspaceSwitch: (candidate: string) => boolean;
+  workspaceChoices: string[];
 }) {
   const [workspaceDraft, setWorkspaceDraft] = useState(activeWorkspaceId);
   const [workspaceFailure, setWorkspaceFailure] = useState("");
@@ -207,12 +223,16 @@ function WorkspaceSwitcher({
         <span className="product-workspace-copy">
           <input
             id={inputId}
+            list={`${idPrefix}-available-workspaces`}
             value={workspaceDraft}
             onChange={(event) => setWorkspaceDraft(event.target.value)}
             autoComplete="off"
             spellCheck={false}
             disabled={!workspaceSwitchEnabled}
           />
+          <datalist id={`${idPrefix}-available-workspaces`}>
+            {workspaceChoices.map((workspaceId) => <option key={workspaceId} value={workspaceId} />)}
+          </datalist>
           <small>Developer workspace</small>
         </span>
         {workspaceSwitchEnabled ? (

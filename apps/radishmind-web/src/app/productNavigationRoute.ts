@@ -29,6 +29,7 @@ const ADMIN_CONTROL_PLANE_ANCHORS = new Set([
   "#admin-tenant-overview",
   "#admin-user-directory",
   "#admin-role-policy",
+  "#admin-workspace-invitations",
   "#admin-audit-log",
   "#admin-provider-config",
   "#admin-profile-config",
