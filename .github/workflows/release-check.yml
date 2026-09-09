@@ -86,6 +86,56 @@ jobs:
         run: npm run build
         working-directory: apps/radishmind-web
 
+  web-browser-regression:
+    name: Release Workflow Browser Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/radishmind-web/package-lock.json
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: services/platform/go.mod
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bootstrap development environment
+        run: bash ./scripts/bootstrap-dev.sh
+
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: apps/radishmind-web
+
+      - name: Install pinned Chromium runtime
+        run: npx playwright install --with-deps --only-shell chromium
+        working-directory: apps/radishmind-web
+
+      - name: Test isolated SQLite and mock Workflow paths
+        run: npm run test:e2e
+        working-directory: apps/radishmind-web
+
+      - name: Upload browser failure evidence
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-browser-regression-${{ github.run_attempt }}
+          path: output/playwright/workflow-e2e/
+          if-no-files-found: ignore
+          retention-days: 7
+
   console-build:
     name: Release RadishMind Console Build
     runs-on: ubuntu-latest

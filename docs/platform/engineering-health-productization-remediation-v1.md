@@ -14,7 +14,7 @@
 
 本次复审确认：开发测试态功能、持久化、安全与版本边界已有连续实现；主要维护风险集中在公共入口承载过多职责、当前文档混入过期断言，以及用户收益和自动浏览器回归证据不足。统计口径、构建与测试结果集中在[2026-W36 周志](../devlogs/2026-W36.md#2026-09-06-全面审阅与文档收敛)。
 
-项目所有者已授权按审阅建议完善项目文档。本节承接后续方向和验收建议，不是模块迁移、依赖安装、CI 变更、服务启动、真实 Provider 或部署授权。R2 至 R6 保持完成；邀请批次 E 已于 2026-09-08 独立获授权并完成，2026-09-09 另行获批收敛前端草案库与 Designer 状态归属，范围与验收见[草案库专题](../features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md#草案前端状态归属收敛)。其它候选未因此自动启动，不创建 R7、平行任务卡或新增 checker。
+项目所有者已授权按审阅建议完善项目文档。本节承接后续方向和验收建议，不是模块迁移、依赖安装、CI 变更、服务启动、真实 Provider 或部署授权。R2 至 R6 保持完成；邀请批次 E 已于 2026-09-08 独立获授权并完成，2026-09-09 另行获批收敛前端草案库与 Designer 状态归属，范围与验收见[草案库专题](../features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md#草案前端状态归属收敛)。随后另行批准三条 Workflow 自动浏览器回归及现有 PR / Release CI 接入，实施范围见下节。其它候选未因此自动启动，不创建 R7、平行任务卡或新增 checker。
 
 ### 当前判断
 
@@ -37,6 +37,28 @@
 | 轻量 push 检查评估 | 保持串行 dev 开发模式，先评估本地检查与 PR / release CI 的反馈间隔和执行成本 | 是否增加 push 检查由独立变更确定；当前 workflow 触发器与分支保护保持原状 |
 
 代码体量下降或文件移动不是独立完成标准。每项必须有明确用户或维护问题、边界内的行为证据与可解释结果；一次只推进一个范围清晰的领域，避免同时调整包结构、权限、协议和部署。
+
+### Workflow 自动浏览器回归
+
+2026-09-09 项目所有者批准将已走查的三条用户流程纳入持续验证；范围为草案修订 / 双标签冲突、迟到响应 / 作用域隔离，以及 Definition 人工审查 / 激活至一次 mock 运行和精确历史读取。实现位于 `apps/radishmind-web/tests/e2e/`，复用既有 SQLite 产品入口与领域 API，不新建任务卡或专项 checker。
+
+- `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
+- 每次运行生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。
+- Web 使用现有 CORS 允许的 `127.0.0.1:4100`，Platform 使用 `127.0.0.1:17000`。任一端口被占用即失败，不复用用户服务；测试使用单 worker、零重试，以免掩盖不稳定失败。
+- `run.mjs` 拥有启动器与测试运行器的 POSIX 进程组；正常退出、失败、`SIGINT` / `SIGTERM` 均关闭后代进程，限时结束后再删除本轮临时数据库。原生 Windows 暂不支持该清理入口，使用 Linux、macOS 或 WSL。
+- 日志、HTTP 方法 / 路径 / 状态记录和 HTML 报告位于忽略目录 `output/playwright/workflow-e2e/run-*`；失败另保留截图、页面错误上下文与 trace。数据均为本轮合成输入，数据库不进入报告或 CI artifact。
+- `1440 / 1200 / 390px` 断言内部容器边界、链接多点命中、真实导航和整页宽度；检查内部裁切，不能仅依据 `scrollWidth` 判定布局通过。
+- PR 与 Release 新增对称浏览器 job；PR 的 `Candidate Quality` 纳入结果，既有触发器保持不变。失败 / 取消时上传证据，保留七天；本地通过与远端 CI 执行成功分别记录，不互相代替。
+
+首次准备在仓库完成既有 `./scripts/bootstrap-dev.sh` 后执行：
+
+```bash
+cd apps/radishmind-web
+npm ci
+npx playwright install chromium --only-shell
+```
+
+Linux CI 使用 `npx playwright install --with-deps --only-shell chromium` 安装系统依赖。日常运行 `npm run test:e2e`；重复性复验使用 `npm run test:e2e -- --repeat-each=2`，单流程调试可传 `--grep`。该命令会临时启动服务，独立于常规 `check-repo`；退出后应显示已清理进程组与临时目录，失败证据目录会保留。
 
 ### 文档与产品验收的收敛
 

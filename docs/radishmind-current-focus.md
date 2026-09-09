@@ -12,10 +12,10 @@
 
 - 当前成熟度为**内部开发者预览**。Workflow、应用运行与评测、Gateway、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实 Provider、团队试用或生产运行已通过验收。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
-- 2026-09-09 已走查首条 SQLite / mock Workflow 用户链，修复编辑器迟到响应串入新草案、刷新后新建执行草案 ID 冲突、Definition v5 / v8 响应消费遗漏既有字段三处阻塞；已完成保存至精确运行历史的浏览器复验，详见[本周周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或新增自动浏览器回归。
-- 下一步回到**真实用户流程阻塞与后续范围选择**。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F；前端草案库与 Designer 的状态归属收敛已于 2026-09-09 按批准范围完成并通过验收；后端领域拆分、自动浏览器回归与内部试用仍需分别选定具体目标和边界。
+- 2026-09-09 已修复 SQLite / mock Workflow 主链阻塞、完成草案前端状态归属收敛与 Workspace 响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[本周周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或生产验收。
+- 下一步回到**真实用户流程阻塞与后续范围选择**。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F；后端领域拆分与内部试用仍需分别选定具体目标和边界，浏览器回归扩围也需明确新的用户流程。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
-- 工程整改 R2 至 R6 保持完成。当前文档已承接结构收敛、自动浏览器回归和内部使用验证的建议；它们是后续实施候选，尚无新工程批次或新增门禁。问题、依赖与验收见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
+- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端结构与内部使用验证仍为候选，问题、依赖与验收见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
 ## 下一顺位的选择
@@ -25,8 +25,8 @@
 | 顺序 | 候选工作 | 进入条件与结果 |
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
-| 2 | 收敛前端工作流状态与一个后端领域 | 先明确受影响 owner、依赖与迁移边界；保护作用域、并发、持久化和敏感状态清理 |
-| 3 | 固定少量自动浏览器回归 | 先选择已实现的关键流程与可重复测试环境；依赖、服务和 CI 变更按任务授权 |
+| 2 | 选择一个后端领域收敛 | 前端草案状态收敛已完成；后端需先明确 owner、依赖与迁移边界，保护作用域、并发、持久化和敏感状态清理 |
+| 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；新流程扩围先确定用户收益和环境边界，依赖、服务和 CI 变更按任务授权 |
 | 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / Provider、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
 

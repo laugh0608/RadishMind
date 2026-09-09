@@ -514,12 +514,14 @@ def check_content_baseline() -> None:
         "name: Repo Hygiene",
         "name: Repository Baseline",
         "name: RadishMind Web Build",
+        "name: Workflow Browser Regression",
         "name: RadishMind Console Build",
         "name: Platform Go Tests",
         "name: Platform PostgreSQL Integration",
         "name: Candidate Quality",
         "npm ci",
         "npm run test:coverage",
+        "npm run test:e2e",
         "npm run build",
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
         "go test -race -timeout 20m ./...",
@@ -532,6 +534,7 @@ def check_content_baseline() -> None:
       - repo-hygiene
       - repository-baseline
       - web-build
+      - web-browser-regression
       - console-build
       - platform-go-tests
       - platform-postgres-integration
@@ -548,10 +551,12 @@ def check_content_baseline() -> None:
         "name: Release Repo Hygiene",
         "name: Release Repository Baseline",
         "name: Release RadishMind Web Build",
+        "name: Release Workflow Browser Regression",
         "name: Release RadishMind Console Build",
         "name: Release Platform Go Tests",
         "npm ci",
         "npm run test:coverage",
+        "npm run test:e2e",
         "npm run build",
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
         "go test -race -timeout 20m ./...",

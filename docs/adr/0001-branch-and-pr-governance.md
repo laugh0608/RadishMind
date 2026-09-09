@@ -1,6 +1,6 @@
 # ADR 0001: Branch And PR Governance
 
-更新时间：2026-08-29
+更新时间：2026-09-09
 
 ## 状态
 
@@ -87,10 +87,10 @@ Accepted
 - PR 模板
 - GitHub Actions PR 检查工作流
   - `PR Checks` 在目标分支为 `dev` 或 `master` 的 Pull Request 上自动运行，并保留手动触发；普通 `dev` push 不触发
-  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 六个组件 job
-  - `Candidate Quality` 使用 `if: always()` 汇总六个组件，任一组件失败、取消或跳过都会失败
+  - 当前包含 `Repo Hygiene`、`Repository Baseline`、`RadishMind Web Build`、`Workflow Browser Regression`、`RadishMind Console Build`、`Platform Go Tests` 与 `Platform PostgreSQL Integration` 七个组件 job
+  - `Candidate Quality` 使用 `if: always()` 汇总七个组件，任一组件失败、取消或跳过都会失败
   - `master` ruleset 只绑定稳定的聚合 context `Candidate Quality`，组件名称与依赖关系由仓库基线校验
-  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release RadishMind Console Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
+  - 规范 tag push 与手动补跑改由独立的 `Release Checks` workflow 承担，并使用 `Release Repo Hygiene` / `Release Repository Baseline` / `Release RadishMind Web Build` / `Release Workflow Browser Regression` / `Release RadishMind Console Build` / `Release Platform Go Tests` 独立 job 名，避免与 PR required check 名称漂移或混淆
 - 文本编码与文件格式检查脚本
 - 仓库治理基线检查脚本
 - `master` ruleset 模板

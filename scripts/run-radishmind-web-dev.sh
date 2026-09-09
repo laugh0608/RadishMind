@@ -53,6 +53,8 @@ platform_wrapper="${repo_root}/scripts/run-platform-service.sh"
 platform_dir="${repo_root}/services/platform"
 log_dir="${repo_root}/tmp/radishmind-web-dev"
 spawned_pids=()
+reuse_existing=1
+frontend_config=""
 
 usage() {
   cat <<'EOF'
@@ -129,6 +131,9 @@ Options:
                            Enable the SQLite Schedule / Occurrence product chain with local Web Session auth and the explicit dev/test runner.
   --verify-only           Probe existing backend/frontend processes only.
   --exit-after-probe      Start missing local processes, probe, then stop spawned processes.
+  --no-reuse-existing     Fail if a requested service port is already occupied.
+  --log-dir PATH          Write service logs to this directory.
+  --frontend-config PATH Use an explicit Vite configuration (for isolated browser tests).
   -h, --help              Show this help.
 
 Modes:
@@ -157,6 +162,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --frontend-url)
       frontend_url="${2:?missing value for --frontend-url}"
+      shift 2
+      ;;
+    --no-reuse-existing)
+      reuse_existing=0
+      shift
+      ;;
+    --log-dir)
+      log_dir="${2:?missing value for --log-dir}"
+      shift 2
+      ;;
+    --frontend-config)
+      frontend_config="${2:?missing value for --frontend-config}"
       shift 2
       ;;
     --timeout-seconds)
@@ -1571,6 +1588,14 @@ frontend_port="$(url_part "${frontend_url}" port)"
 assert_browser_safe_port "${backend_url}" "${backend_port}"
 assert_browser_safe_port "${frontend_url}" "${frontend_port}"
 
+if [[ "${reuse_existing}" -eq 0 ]]; then
+  if port_is_open "${frontend_host}" "${frontend_port}" || \
+    { [[ "${mode}" == "dev-live" ]] && port_is_open "${backend_host}" "${backend_port}"; }; then
+    echo "Isolated startup requires unoccupied frontend and backend ports." >&2
+    exit 1
+  fi
+fi
+
 provider_attempt_fixture_host=""
 provider_attempt_fixture_port=""
 provider_attempt_fixture_health_url=""
@@ -1627,6 +1652,10 @@ if [[ "${verify_only}" -eq 0 ]]; then
       fi
     fi
     if port_is_open "${backend_host}" "${backend_port}"; then
+      if [[ "${reuse_existing}" -eq 0 ]]; then
+        echo "Isolated startup cannot reuse the backend port." >&2
+        exit 1
+      fi
       step "Backend port ${backend_port} is already open; reusing it if probes pass."
       verify_existing_backend
     else
@@ -1846,6 +1875,10 @@ if [[ "${verify_only}" -eq 0 ]]; then
   fi
 
   if port_is_open "${frontend_host}" "${frontend_port}"; then
+    if [[ "${reuse_existing}" -eq 0 ]]; then
+      echo "Isolated startup cannot reuse the frontend port." >&2
+      exit 1
+    fi
     step "Web port ${frontend_port} is already open; reusing it if probes pass."
   else
     step "Starting web (${mode}). Logs: ${log_dir}/web.out.log ; ${log_dir}/web.err.log"
@@ -2085,7 +2118,11 @@ if [[ "${verify_only}" -eq 0 ]]; then
         unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_RUNTIME_PROFILE
         unset VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_DEFAULT_MODEL_ID
       fi
-      exec npm run dev -- --host "${frontend_host}" --port "${frontend_port}"
+      frontend_config_args=()
+      if [[ -n "${frontend_config}" ]]; then
+        frontend_config_args=(--config "${frontend_config}")
+      fi
+      exec npm run dev -- --host "${frontend_host}" --port "${frontend_port}" "${frontend_config_args[@]}"
     ) >"${log_dir}/web.out.log" 2>"${log_dir}/web.err.log" &
     spawned_pids+=("$!")
   fi

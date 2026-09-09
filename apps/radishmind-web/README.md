@@ -96,7 +96,7 @@
 - `applicationOperationsPanel.tsx` 只组合既有 Gateway Request History 与 Workflow Run History consumer 的当前窗口，不创建 correlation owner 或新的 usage ledger。
 - `applicationDevelopmentWorkspace.ts` / `applicationDevelopmentWorkspaceRoute.ts` 负责唯一 Application context、五阶段映射、lifecycle availability、workspace generation、route generation 与 `surfaceKey`；`applicationDevelopmentWorkspacePanel.tsx` / `applicationDevelopmentWorkspaceSurface.tsx` 只挂载当前阶段 owner surface，并拒绝不属于当前 surface 的迟到 evidence 回调。
 - `applicationDevelopmentHandoff.ts` 只管理当前 Application generation 内一个待消费的稳定短引用；`applicationDevelopmentReadiness.ts` 只聚合十三项脱敏 contribution、九个来源组与四态 readiness，二者都不复制领域对象、输入输出、credential、发布记录或运行真相源。
-- `workflowDraftDesigner.ts` 与 `App.tsx` 负责受控本地编辑、本地节点新增 / 移动 / 删除保护、边重建、节点属性编辑、active draft validate / save / read、版本冲突时保留本地草案，以及 saved dev draft 打开后进入 Draft Designer；`workflowUserWorkspaceHome.ts` / `workflowUserWorkspaceHomePanel.tsx` 负责从 Workspace Home 与 workflow definitions 派生本地草案，并展示活动 / 归档、筛选、加载更多、打开 / 只读审查和可逆 lifecycle 入口。
+- `useWorkflowDraftWorkspace.ts`、`useWorkflowSavedDraftLibrary.ts` 与 `workflowDraftEditing.ts` 负责受控本地编辑、本地节点新增 / 移动 / 删除保护、边重建、节点属性编辑、active draft validate / save / read、版本冲突时保留本地草案，以及 saved dev draft 打开后进入 Draft Designer；`workflowUserWorkspaceHome.ts` / `workflowUserWorkspaceHomePanel.tsx` 负责从 Workspace Home 与 workflow definitions 派生本地草案，并展示活动 / 归档、筛选、加载更多、打开 / 只读审查和可逆 lifecycle 入口。
 - `ProductNavigation.tsx` 负责唯一桌面侧栏、窄屏折叠菜单、active workspace 切换和主 / 次级页面锚点；主入口只保留 Overview、Operations Inbox、Applications、Workflows、API & Keys 及两项 Review，既有长尾页面进入可折叠的 `More surfaces`，没有因壳层迁移删除功能入口。
 - `workspaceProductOverviewPanel.tsx` 与 `workspaceOperationsInboxPanel.tsx` 负责 `S1` 首屏的真实来源覆盖、当前 Application、紧凑关注队列、继续任务和写入边界；它们只消费现有 view model，不创建新的统计、运营或修复真相源。
 - `App.tsx` 负责产品壳组合、Application 选择和把共享 context / owner props 交给 feature-owned workspace；Application 开发阶段编排由 `ApplicationDevelopmentWorkspaceSurface` 承担。如果新增真实后端 route、持久化状态或执行能力，应先落契约和边界文档，并按风险判断是否需要任务卡、fixture 或 checker，而不是直接在 App 或 panel 中接线。
@@ -387,3 +387,5 @@ npm run preview
 ```
 
 `npm run test:coverage` 是 PR / release 的可发现覆盖率入口，当前预算为行 `90%`、分支 `78%`、函数 `85%`；它约束已进入 Node 严格消费端测试的模块，不替代 React 页面构建和真实浏览器验收。
+
+自动浏览器回归入口为 `npm run test:e2e`，执行测试类型检查和三条独立 SQLite / mock Workflow 流程；首次安装、端口、失败证据与进程清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 将其作为独立 job 执行，常规 `npm test` 不会启动服务。
