@@ -19470,6 +19470,7 @@ textarea {
 /* S2 R6 Application Workspace: one continuous, owner-scoped Workbench surface. */
 .application-development-workspace.surface-band {
   display: grid;
+  container: application-development / inline-size;
   gap: 0;
   margin-top: 24px;
   overflow: visible;
@@ -20529,7 +20530,8 @@ textarea {
   border-color: var(--rm-border-soft);
 }
 
-@media (max-width: 1180px) {
+/* The three columns need 926px plus the Workbench border, after shell navigation. */
+@container application-development (max-width: 928px) {
   .application-development-workbench {
     grid-template-columns: 190px minmax(0, 1fr);
   }
