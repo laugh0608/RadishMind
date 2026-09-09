@@ -12,6 +12,10 @@ export function createWorkflowDraftEditorRequests() {
     invalidate() {
       generation += 1;
     },
+    current() {
+      const requestGeneration = generation;
+      return () => requestGeneration === generation;
+    },
     begin() {
       const requestGeneration = ++generation;
       return () => requestGeneration === generation;

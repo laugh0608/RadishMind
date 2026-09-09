@@ -102,7 +102,15 @@
       "handleOpenSavedWorkflowDraft",
       "openWorkflowDraftDevRecord(summary",
       "setWorkspaceCreatedDrafts((drafts) => [",
-      "draftId: openedDraft.draftId"
+      "draftId: openedDraft.draftId",
+      "useWorkflowDraftWorkspace"
+    ],
+    "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftCreation.ts"
     ]
   },
   "home_panel_contract": {

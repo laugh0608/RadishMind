@@ -116,7 +116,8 @@
       "viewport:",
       "selection:",
       "derived_edge_kind"
-    ]
+    ],
+    "owner_file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts"
   },
   "backend_contract": {
     "domain_file": "services/platform/internal/httpapi/workflow_saved_draft.go",

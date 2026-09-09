@@ -134,7 +134,7 @@ def assert_lifecycle_contract(fixture: dict[str, Any]) -> None:
 
 def assert_app_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("app_contract") or {}
-    app_text = read(str(contract.get("file")))
+    app_text = read(str(contract.get("file"))) + "\n" + read(str(contract["owner_file"]))
     panel_text = read(str(contract.get("panel_file")))
     for literal in contract.get("required_state_action_literals") or []:
         require(str(literal) in app_text, f"App missing saved draft consumer owner literal: {literal}")

@@ -159,6 +159,7 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     node_designer_text = read(str(contract.get("node_designer_file")))
     consumer_text = read(str(contract.get("consumer_file")))
     app_text = read(str(contract.get("app_file")))
+    app_text += "\n" + "\n".join(read(str(path)) for path in contract["owner_files"])
     panel_text = read(str(contract.get("panel_file")))
     validation_text = read(str(contract.get("validation_file")))
     style_text = read(str(contract.get("style_file")))
@@ -203,9 +204,9 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         "saved draft restore must keep edge kind derived locally before layout restore",
     )
     require(
-        app_text.index("const handleWorkflowDraftAddEdge")
-        < app_text.index("const handleWorkflowDraftRemoveEdge")
-        < app_text.index("const handleWorkflowDraftAddNode"),
+        app_text.index("const onAddEdge")
+        < app_text.index("const onRemoveEdge")
+        < app_text.index("const onAddNode"),
         "draft edge mutation handlers must stay with the local active draft edit handlers",
     )
     require(

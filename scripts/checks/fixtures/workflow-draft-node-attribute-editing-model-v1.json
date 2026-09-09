@@ -47,19 +47,20 @@
       "defaultWorkflowDraftOutputMappingSummary("
     ],
     "required_app_literals": [
-      "handleWorkflowDraftNodeProviderRefChange",
-      "handleWorkflowDraftNodeToolRefChange",
-      "handleWorkflowDraftNodeRagRefChange",
-      "handleWorkflowDraftNodeInputFieldsChange",
-      "handleWorkflowDraftNodeOutputFieldsChange",
-      "handleWorkflowDraftNodeOutputMappingChange",
+      "onUpdateNodeProviderRef",
+      "onUpdateNodeToolRef",
+      "onUpdateNodeRagRef",
+      "onUpdateNodeInputFields",
+      "onUpdateNodeOutputFields",
+      "onUpdateNodeOutputMapping",
       "parseWorkflowDraftContractFields",
-      "onUpdateNodeProviderRef={handleWorkflowDraftNodeProviderRefChange}",
-      "onUpdateNodeToolRef={handleWorkflowDraftNodeToolRefChange}",
-      "onUpdateNodeRagRef={handleWorkflowDraftNodeRagRefChange}",
-      "onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}",
-      "onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}",
-      "onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}"
+      "onUpdateNodeProviderRef={onUpdateNodeProviderRef}",
+      "onUpdateNodeToolRef={onUpdateNodeToolRef}",
+      "onUpdateNodeRagRef={onUpdateNodeRagRef}",
+      "const onUpdateNodeInputFields:",
+      "const onUpdateNodeOutputFields:",
+      "onUpdateNodeOutputMapping={onUpdateNodeOutputMapping}",
+      "onEditDraft={editWorkflowDraft}"
     ],
     "required_panel_literals": [
       "WorkflowDraftNodeCard",
@@ -120,6 +121,13 @@
       "input_contract_fields",
       "output_mapping_summary",
       "saved draft did not preserve node attributes"
+    ],
+    "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftCreation.ts"
     ]
   },
   "required_doc_references": {

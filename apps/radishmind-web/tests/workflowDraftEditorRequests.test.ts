@@ -69,3 +69,17 @@ test("explicit selection, reset, or unmount invalidates requests within the same
   const next = requests.begin();
   assert.equal(next(), true);
 });
+
+test("revision and lifecycle observers cannot apply after another editor action starts", () => {
+  const requests = createWorkflowDraftEditorRequests();
+  requests.setScope("workspace:application:draft");
+  const revision = requests.current();
+  const sameRevision = requests.current();
+  assert.equal(revision(), true);
+  assert.equal(sameRevision(), true);
+  const save = requests.begin();
+  assert.equal(revision(), false);
+  assert.equal(save(), true);
+  requests.setScope("workspace:application:other-draft");
+  assert.equal(save(), false);
+});

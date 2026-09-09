@@ -13,7 +13,7 @@
 - 当前成熟度为**内部开发者预览**。Workflow、应用运行与评测、Gateway、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实 Provider、团队试用或生产运行已通过验收。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
 - 2026-09-09 已走查首条 SQLite / mock Workflow 用户链，修复编辑器迟到响应串入新草案、刷新后新建执行草案 ID 冲突、Definition v5 / v8 响应消费遗漏既有字段三处阻塞；已完成保存至精确运行历史的浏览器复验，详见[本周周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或新增自动浏览器回归。
-- 下一步回到**真实用户流程阻塞与后续范围选择**。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F；结构收敛、自动浏览器回归与内部试用仍需先选定具体目标和边界。
+- 下一步回到**真实用户流程阻塞与后续范围选择**。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F；前端草案库与 Designer 的状态归属收敛已于 2026-09-09 按批准范围完成并通过验收；后端领域拆分、自动浏览器回归与内部试用仍需分别选定具体目标和边界。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
 - 工程整改 R2 至 R6 保持完成。当前文档已承接结构收敛、自动浏览器回归和内部使用验证的建议；它们是后续实施候选，尚无新工程批次或新增门禁。问题、依赖与验收见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。

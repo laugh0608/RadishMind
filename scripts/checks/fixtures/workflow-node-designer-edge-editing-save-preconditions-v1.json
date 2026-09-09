@@ -151,9 +151,9 @@
       "Saved draft edge restored from dev record."
     ],
     "required_app_literals": [
-      "handleWorkflowDraftEdgeConditionChange",
-      "handleWorkflowDraftAddEdge",
-      "handleWorkflowDraftRemoveEdge",
+      "onUpdateEdgeCondition",
+      "onAddEdge",
+      "onRemoveEdge",
       "validationInspector={activeWorkflowDraftValidationInspector}",
       "buildWorkflowDraftEdgeForConnection(",
       "workflowDraftReviewableEdgeConditionSummary(",
@@ -162,11 +162,12 @@
       "workflowDraftEdgeKindForConnection(",
       "workflowDraftEdgeConditionSummary(",
       "rebuildWorkflowDraftEdges(",
-      "onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}",
-      "onAddEdge={handleWorkflowDraftAddEdge}",
-      "onRemoveEdge={handleWorkflowDraftRemoveEdge}",
+      "const onUpdateEdgeCondition:",
+      "onAddEdge={onAddEdge}",
+      "onRemoveEdge={onRemoveEdge}",
       "status: \"unsaved_local\"",
-      "localOnlyInteraction: \"local_edit\""
+      "localOnlyInteraction: \"local_edit\"",
+      "onEditDraft={editWorkflowDraft}"
     ],
     "required_panel_literals": [
       "validationInspector={validationInspector}",
@@ -208,6 +209,13 @@
       "targetHandle",
       "handle_id",
       "port_id"
+    ],
+    "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftCreation.ts"
     ]
   },
   "required_doc_references": {

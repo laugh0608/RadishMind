@@ -63,6 +63,7 @@ def assert_literals(text: str, literals: list[Any], label: str) -> None:
 def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    app_text += "\n" + "\n".join(read(str(path)) for path in contract["owner_files"])
     panel_text = read(str(contract.get("panel_file")))
     clone_text = read(str(contract.get("clone_file")))
     designer_text = read(str(contract.get("designer_file")))
@@ -94,18 +95,18 @@ def assert_frontend_and_platform_contract(fixture: dict[str, Any]) -> None:
     for selector in contract.get("required_style_selectors") or []:
         require(str(selector) in style_text, f"styles.css missing selector: {selector}")
 
-    panel_render_index = app_text.index("<WorkflowDraftDesignerPanel")
+    panel_render_index = panel_text.index("  return (")
     for handler in (
-        "handleWorkflowDraftNodeProviderRefChange",
-        "handleWorkflowDraftNodeToolRefChange",
-        "handleWorkflowDraftNodeRagRefChange",
-        "handleWorkflowDraftNodeInputFieldsChange",
-        "handleWorkflowDraftNodeOutputFieldsChange",
-        "handleWorkflowDraftNodeOutputMappingChange",
+        "onUpdateNodeProviderRef",
+        "onUpdateNodeToolRef",
+        "onUpdateNodeRagRef",
+        "onUpdateNodeInputFields",
+        "onUpdateNodeOutputFields",
+        "onUpdateNodeOutputMapping",
     ):
         require(
-            app_text.index(handler) < panel_render_index,
-            f"{handler} must remain owned by App before panel callback wiring",
+            panel_text.index("const " + handler) < panel_render_index,
+            f"{handler} must be declared in the Designer before rendering",
         )
     require(
         panel_text.index("function WorkflowDraftNodeCard")

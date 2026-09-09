@@ -100,7 +100,7 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     draft_type_text = read(str(contract.get("draft_type_file")))
     consumer_text = read(str(contract.get("consumer_file")))
-    app_text = read(str(contract.get("app_file")))
+    app_text = read(str(contract.get("app_file"))) + "\n" + read(str(contract["owner_file"]))
     clone_text = read(str(contract.get("clone_file")))
     node_designer_text = read(str(contract.get("node_designer_file")))
     handoff_text = read(str(contract.get("handoff_file")))

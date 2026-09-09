@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { applyWorkflowDraftEdit, canRemoveWorkflowDraftNode, WORKFLOW_DRAFT_NODE_TYPE_OPTIONS, type WorkflowDraftEdit } from "./workflowDraftEditing.ts";
 
 import {
   workflowSavedDraftConflictRequiresResolution,
@@ -42,27 +43,8 @@ type WorkflowDraftDesignerPanelProps = {
   savedDraftConflictOpenSummary: WorkflowSavedDraftSummary | null;
   draftEditDirty: boolean;
   executorOperationPending: boolean;
-  nodeTypeOptions: readonly WorkflowDraftNodeTypeOption[];
-  canRemoveNode: (nodeId: string) => boolean;
   onSelectDraft: (draftId: string) => void;
-  onUpdateDraftLabel: (label: string) => void;
-  onUpdateDraftSummary: (summary: string) => void;
-  onUpdateNodeLabel: (nodeId: string, label: string) => void;
-  onUpdateNodeInputSummary: (nodeId: string, inputSummary: string) => void;
-  onUpdateNodeOutputSummary: (nodeId: string, outputSummary: string) => void;
-  onUpdateNodeProviderRef: (nodeId: string, providerRef: string) => void;
-  onUpdateNodeToolRef: (nodeId: string, toolRef: string) => void;
-  onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void;
-  onUpdateNodeInputFields: (nodeId: string, inputFieldsText: string) => void;
-  onUpdateNodeOutputFields: (nodeId: string, outputFieldsText: string) => void;
-  onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void;
-  onUpdateNodeDesignerPosition: (nodeId: string, x: number, y: number) => void;
-  onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void;
-  onAddEdge: (fromNodeId: string, toNodeId: string) => boolean;
-  onRemoveEdge: (edgeId: string) => boolean;
-  onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void;
-  onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
-  onRemoveNode: (nodeId: string) => void;
+  onEditDraft: (update: (draft: WorkflowDraftDesignerDraft) => WorkflowDraftDesignerDraft) => boolean;
   onResetDraftEdits: () => void;
   onContinueLocalDraftAfterConflict: () => void;
   onOpenConflictSavedDraft: () => void;
@@ -82,27 +64,8 @@ export function WorkflowDraftDesignerPanel({
   savedDraftConflictOpenSummary,
   draftEditDirty,
   executorOperationPending,
-  nodeTypeOptions,
-  canRemoveNode,
   onSelectDraft,
-  onUpdateDraftLabel,
-  onUpdateDraftSummary,
-  onUpdateNodeLabel,
-  onUpdateNodeInputSummary,
-  onUpdateNodeOutputSummary,
-  onUpdateNodeProviderRef,
-  onUpdateNodeToolRef,
-  onUpdateNodeRagRef,
-  onUpdateNodeInputFields,
-  onUpdateNodeOutputFields,
-  onUpdateNodeOutputMapping,
-  onUpdateNodeDesignerPosition,
-  onUpdateEdgeCondition,
-  onAddEdge,
-  onRemoveEdge,
-  onAddNode,
-  onMoveNode,
-  onRemoveNode,
+  onEditDraft,
   onResetDraftEdits,
   onContinueLocalDraftAfterConflict,
   onOpenConflictSavedDraft,
@@ -111,6 +74,27 @@ export function WorkflowDraftDesignerPanel({
   onSaveDraft,
   onReadDraft,
 }: WorkflowDraftDesignerPanelProps) {
+  const nodeTypeOptions = WORKFLOW_DRAFT_NODE_TYPE_OPTIONS;
+  const canRemoveNode = (nodeId: string) => canRemoveWorkflowDraftNode(selectedDraft, nodeId);
+  const editDraft = (edit: WorkflowDraftEdit) => onEditDraft((draft) => applyWorkflowDraftEdit(draft, edit));
+  const onUpdateDraftLabel: (label: string) => void = (label) => editDraft({ type: "label", label });
+  const onUpdateDraftSummary: (summary: string) => void = (summary) => editDraft({ type: "summary", summary });
+  const onUpdateNodeLabel: (nodeId: string, label: string) => void = (nodeId, label) => editDraft({ type: "node", nodeId, patch: { label } });
+  const onUpdateNodeInputSummary: (nodeId: string, inputSummary: string) => void = (nodeId, inputSummary) => editDraft({ type: "node", nodeId, patch: { inputSummary } });
+  const onUpdateNodeOutputSummary: (nodeId: string, outputSummary: string) => void = (nodeId, outputSummary) => editDraft({ type: "node", nodeId, patch: { outputSummary } });
+  const onUpdateNodeProviderRef: (nodeId: string, providerRef: string) => void = (nodeId, providerRef) => editDraft({ type: "node", nodeId, patch: { providerRef } });
+  const onUpdateNodeToolRef: (nodeId: string, toolRef: string) => void = (nodeId, toolRef) => editDraft({ type: "node", nodeId, patch: { toolRef } });
+  const onUpdateNodeRagRef: (nodeId: string, ragRef: string) => void = (nodeId, ragRef) => editDraft({ type: "node", nodeId, patch: { ragRef } });
+  const onUpdateNodeInputFields: (nodeId: string, inputFieldsText: string) => void = (nodeId, text) => editDraft({ type: "input_fields", nodeId, text });
+  const onUpdateNodeOutputFields: (nodeId: string, outputFieldsText: string) => void = (nodeId, text) => editDraft({ type: "output_fields", nodeId, text });
+  const onUpdateNodeOutputMapping: (nodeId: string, outputMappingSummary: string) => void = (nodeId, outputMappingSummary) => editDraft({ type: "node", nodeId, patch: { outputMappingSummary } });
+  const onUpdateNodeDesignerPosition: (nodeId: string, x: number, y: number) => void = (nodeId, x, y) => editDraft({ type: "position", nodeId, x, y });
+  const onUpdateEdgeCondition: (edgeId: string, conditionSummary: string) => void = (edgeId, conditionSummary) => editDraft({ type: "edge_condition", edgeId, conditionSummary });
+  const onAddEdge: (fromNodeId: string, toNodeId: string) => boolean = (fromNodeId, toNodeId) => editDraft({ type: "add_edge", fromNodeId, toNodeId });
+  const onRemoveEdge: (edgeId: string) => boolean = (edgeId) => editDraft({ type: "remove_edge", edgeId });
+  const onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void = (nodeType) => editDraft({ type: "add_node", nodeType });
+  const onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void = (nodeId, direction) => editDraft({ type: "move_node", nodeId, direction });
+  const onRemoveNode: (nodeId: string) => void = (nodeId) => editDraft({ type: "remove_node", nodeId });
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   const conflictRequiresResolution = workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState);

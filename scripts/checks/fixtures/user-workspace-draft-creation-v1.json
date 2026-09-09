@@ -49,7 +49,8 @@
       "createdDraftCount=",
       "workflow-definition-row-actions",
       "Create draft",
-      "event.stopPropagation()"
+      "event.stopPropagation()",
+      "onEditDraft={editWorkflowDraft}"
     ],
     "required_context_literals": [
       "localWorkflowDrafts?: WorkflowDraftDesignerDraft[];",
@@ -77,6 +78,13 @@
       ".workflow-definition-row-actions",
       ".workflow-user-workspace-home-actions button",
       ".workflow-definition-row-actions button"
+    ],
+    "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftCreation.ts"
     ]
   },
   "required_doc_references": {
