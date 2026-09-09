@@ -137,7 +137,7 @@ test("definition run maps strict v5 evidence and transient advisory output", asy
   let runHeaders: Headers | undefined;
   globalThis.fetch = async (_input, init) => {
     runHeaders = new Headers(init?.headers);
-    return json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), advisory_output: "Transient advisory output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
+    return json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), action_safety: null, advisory_output: "Transient advisory output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
   };
   const result = await startWorkflowDefinitionRun(live, applicationId, { definitionId: "definition_demo", expectedPointerVersion: 1, expectedDefinitionVersion: 1, expectedDefinitionDigest: digest, executionProfile: "workflow_definition_executor_v1", inputText: "Bounded one-time input.", conditionValues: {}, model: "" });
   assert.equal(result.record.schemaVersion, "workflow_run_record.v5");
@@ -147,15 +147,27 @@ test("definition run maps strict v5 evidence and transient advisory output", asy
   assert.equal(runHeaders?.get("X-RadishMind-Active-Workspace"), "workspace_demo");
   assert.equal(runHeaders?.get("X-RadishMind-Dev-Read-Membership-Workspace"), "workspace_demo");
   assert.equal(runHeaders?.get("X-RadishMind-Dev-Read-Membership-Permissions"), "workflow_runs:execute,workflow_definitions:read");
-  globalThis.fetch = async () => json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), advisory_output: "ok", raw_response: "forbidden", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
+  globalThis.fetch = async () => json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), action_safety: null, advisory_output: "ok", raw_response: "forbidden", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
   await assert.rejects(() => startWorkflowDefinitionRun(live, applicationId, { definitionId: "definition_demo", expectedPointerVersion: 1, expectedDefinitionVersion: 1, expectedDefinitionDigest: digest, executionProfile: "workflow_definition_executor_v1", inputText: "Bounded.", conditionValues: {}, model: "" }), /invalid or sensitive/u);
+});
+
+test("definition run rejects missing, non-null, unknown and sensitive Action Safety fields", async () => {
+  const envelope = { request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV5(), advisory_output: "Transient output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" };
+  for (const body of [envelope, { ...envelope, action_safety: {} }, { ...envelope, action_safety: { token: "forbidden" } }, { ...envelope, action_safety: null, unknown: true }]) {
+    globalThis.fetch = async () => json(body);
+    await assert.rejects(() => startWorkflowDefinitionRun(live, applicationId, {
+      definitionId: "definition_demo", expectedPointerVersion: 1, expectedDefinitionVersion: 1,
+      expectedDefinitionDigest: digest, executionProfile: "workflow_definition_executor_v1",
+      inputText: "Bounded.", conditionValues: {}, model: "",
+    }), /invalid or sensitive/u);
+  }
 });
 
 test("definition v2 run sends inputs only and maps strict v8 metadata", async () => {
   let requestBody: Record<string, unknown> | undefined;
   globalThis.fetch = async (_input, init) => {
     requestBody = JSON.parse(String(init?.body));
-    return json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV8(), advisory_output: "Transient structured output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
+    return json({ request_id: "request_run", workspace_id: "workspace_demo", application_id: applicationId, run: runV8(), action_safety: null, advisory_output: "Transient structured output.", failure_code: null, failure_summary: "", audit_ref: "audit_run" });
   };
   const result = await startWorkflowDefinitionRun(live, applicationId, {
     definitionId: "definition_demo", expectedPointerVersion: 1, expectedDefinitionVersion: 2, expectedDefinitionDigest: digest,

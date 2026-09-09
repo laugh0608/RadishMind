@@ -570,10 +570,12 @@ function isVersionListEnvelope(value: unknown, config: WorkflowDefinitionPromoti
 
 function isRunEnvelope(value: unknown, config: WorkflowDefinitionPromotionConfig, applicationId: string): value is { request_id: string; workspace_id: string; application_id: string; run: unknown | null; advisory_output?: string; failure_code: string | null; failure_summary: string; audit_ref: string } {
   const keys = value && typeof value === "object" && "advisory_output" in value
-    ? ["request_id", "workspace_id", "application_id", "run", "advisory_output", "failure_code", "failure_summary", "audit_ref"]
-    : ["request_id", "workspace_id", "application_id", "run", "failure_code", "failure_summary", "audit_ref"];
+    ? ["request_id", "workspace_id", "application_id", "run", "action_safety", "advisory_output", "failure_code", "failure_summary", "audit_ref"]
+    : ["request_id", "workspace_id", "application_id", "run", "action_safety", "failure_code", "failure_summary", "audit_ref"];
   if (!strictObject(value, keys) || containsForbiddenResponseKey(value)) return false;
   const item = value as Record<string, unknown>;
+  // v5 / v8 do not own an Action Safety projection; the HTTP owner emits null.
+  if (item.action_safety !== null) return false;
   return item.workspace_id === config.workspaceId && item.application_id === applicationId && typeof item.request_id === "string" && typeof item.audit_ref === "string" && typeof item.failure_summary === "string" && (item.advisory_output === undefined || typeof item.advisory_output === "string") && (item.failure_code === null || typeof item.failure_code === "string") && (item.run === null || typeof item.run === "object");
 }
 

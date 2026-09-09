@@ -1,6 +1,6 @@
 # 已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1
 
-更新时间：2026-08-08
+更新时间：2026-09-09
 
 状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_completed`
 
@@ -41,6 +41,14 @@
 - revision 历史的 list / read / compare 继续可读；restore request 已携带 expected lifecycle version，并在归档状态失败关闭。
 - Workflow Definition candidate、Saved Draft 受控执行、RAG retrieval 和 HTTP Tool 已在各自业务 owner 内统一复验 active lifecycle。
 - 已晋级 Definition 和既有 Run 都保留 source draft provenance；来源草案归档后，这些不可变证据不得失效或被级联修改。
+
+### 编辑器异步响应隔离
+
+2026-09-09 主流程走查发现：保存旧草案期间创建新草案，旧保存响应会覆盖新草案的版本与保存状态。编辑器现对打开、读取、校验和保存使用共同的请求代次；草案、工作区、应用权威上下文变化、显式编辑 / 重置及卸载使旧请求失效。成功和失败回调均先判断代次，旧响应不能更新当前草案、清除未保存标记或刷新错误作用域的草案库；切走再返回相同作用域也不能恢复旧请求资格。
+
+执行草案的新建身份使用 `crypto.randomUUID()`，展示编号不再充当持久化 ID；刷新、只加载部分草案或另开标签不能因相同内存计数复用已有 ID。旧草案 ID 与存储记录保持可读。
+
+请求失效只限制前端状态接收，不撤销已经送达服务端的保存。用户须从原作用域草案库精确重读持久化结果；服务端双版本 CAS 和显式冲突恢复保持不变。SQLite / mock 浏览器复验覆盖延迟保存 / 读取后新建草案、刷新后新身份与首次保存、正常校验保存、双标签版本冲突与显式打开恢复、工作区切换后的延迟校验失败；不据此声明新增 CI 浏览器回归或所有并发场景已覆盖。
 
 ### S3 UI 消费
 

@@ -41,6 +41,7 @@ import {
   type WorkflowSavedDraftConsumerState,
   type WorkflowSavedDraftConflictReviewSummary,
 } from "../features/control-plane-read/savedWorkflowDraftConsumer";
+import { createWorkflowDraftEditorRequests } from "../features/control-plane-read/workflowDraftEditorRequests";
 import type { WorkflowSavedDraftRevisionRestoreResult } from "../features/control-plane-read/workflowSavedDraftRevisionConsumer";
 import {
   buildWorkflowExecutorV0Draft,
@@ -695,6 +696,13 @@ function ProductApp() {
     `${activeWorkspaceId}:${workflowScopedApplicationId}:${activeSavedDraftConsumerConfig.subjectRef}`;
   const savedDraftLibraryScopeKeyRef = useRef(savedDraftLibraryScopeKey);
   savedDraftLibraryScopeKeyRef.current = savedDraftLibraryScopeKey;
+  const savedDraftEditorRequests = useRef(createWorkflowDraftEditorRequests()).current;
+  savedDraftEditorRequests.setScope(JSON.stringify([
+    savedDraftLibraryScopeKey,
+    applicationDevelopmentWorkspaceContext.generationKey,
+    selectedWorkflowDraft.draftId,
+  ]));
+  useEffect(() => () => savedDraftEditorRequests.invalidate(), [savedDraftEditorRequests]);
   const savedDraftConflictOpenSummary = useMemo(
     () =>
       activeSavedDraftListState.summaries.find(
@@ -748,7 +756,7 @@ function ProductApp() {
     }
     setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig));
     setWorkflowDraftEditDirty(false);
-  }, [activeSavedDraftConsumerConfig, selectedWorkflowDraft.draftId]);
+  }, [activeSavedDraftConsumerConfig, applicationDevelopmentWorkspaceContext.generationKey, selectedWorkflowDraft.draftId]);
 
   useEffect(() => {
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
@@ -794,6 +802,7 @@ function ProductApp() {
   }, [selectedWorkflowDraft.applicationRef, selectedWorkflowDraft.draftId]);
 
   const markWorkflowDraftLocallyEdited = () => {
+    savedDraftEditorRequests.invalidate();
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState((state) => {
       if (state.status === "version_conflict") {
@@ -1011,6 +1020,7 @@ function ProductApp() {
   };
 
   const handleWorkflowDraftEditReset = () => {
+    savedDraftEditorRequests.invalidate();
     setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
     if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
       setWorkflowDraftEditDirty(true);
@@ -1046,6 +1056,13 @@ function ProductApp() {
     draftId: string | null;
     scenarioId: string | null;
   }) => {
+    if (
+      applicationRef !== selectedApplicationRef ||
+      workflowDefinitionId !== selectedWorkflowDefinitionId ||
+      draftId !== selectedWorkflowDraftId
+    ) {
+      savedDraftEditorRequests.invalidate();
+    }
     setSelectedApplicationRef(applicationRef);
     setSelectedWorkflowDefinitionId(workflowDefinitionId);
     setSelectedRunId(runId);
@@ -1441,6 +1458,7 @@ function ProductApp() {
     if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
       return;
     }
+    const isCurrentEditorRequest = savedDraftEditorRequests.begin();
     const requestGeneration = savedDraftOpenRequestGenerationRef.current + 1;
     savedDraftOpenRequestGenerationRef.current = requestGeneration;
     const requestScopeKey = savedDraftLibraryScopeKeyRef.current;
@@ -1458,7 +1476,7 @@ function ProductApp() {
     }));
     openWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig)
       .then((result) => {
-        if (!workflowSavedDraftRequestIsCurrent(
+        if (!isCurrentEditorRequest() || !workflowSavedDraftRequestIsCurrent(
           requestGeneration,
           savedDraftOpenRequestGenerationRef.current,
           requestScopeKey,
@@ -1506,7 +1524,7 @@ function ProductApp() {
         window.location.hash = "#workflow-draft-designer";
       })
       .catch((error: unknown) => {
-        if (!workflowSavedDraftRequestIsCurrent(
+        if (!isCurrentEditorRequest() || !workflowSavedDraftRequestIsCurrent(
           requestGeneration,
           savedDraftOpenRequestGenerationRef.current,
           requestScopeKey,
@@ -1656,6 +1674,7 @@ function ProductApp() {
       return;
     }
     const currentDraftVersion = savedDraftConsumerState.currentDraftVersion;
+    const isCurrentEditorRequest = savedDraftEditorRequests.begin();
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "validating",
@@ -1670,8 +1689,11 @@ function ProductApp() {
       savedDraftConsumerState.currentLifecycleVersion,
       savedDraftConsumerState.currentLifecycleState,
     )
-      .then(setSavedDraftConsumerState)
+      .then((nextState) => {
+        if (isCurrentEditorRequest()) setSavedDraftConsumerState(nextState);
+      })
       .catch((error: unknown) => {
+        if (!isCurrentEditorRequest()) return;
         setSavedDraftConsumerState((state) => ({
           ...state,
           status: "validation_failed",
@@ -1694,6 +1716,7 @@ function ProductApp() {
     if (expectedDraftVersion === null) {
       return;
     }
+    const isCurrentEditorRequest = savedDraftEditorRequests.begin();
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "saving",
@@ -1708,6 +1731,7 @@ function ProductApp() {
       savedDraftConsumerState.currentLifecycleVersion,
     )
       .then((nextState) => {
+        if (!isCurrentEditorRequest()) return;
         setSavedDraftConsumerState(nextState);
         if (nextState.status === "version_conflict") {
           refreshSavedWorkflowDraftList(
@@ -1737,6 +1761,7 @@ function ProductApp() {
         }
       })
       .catch((error: unknown) => {
+        if (!isCurrentEditorRequest()) return;
         setSavedDraftConsumerState((state) => ({
           ...state,
           status: "save_failed",
@@ -1755,6 +1780,7 @@ function ProductApp() {
       return;
     }
     const currentDraftVersion = savedDraftConsumerState.currentDraftVersion;
+    const isCurrentEditorRequest = savedDraftEditorRequests.begin();
     setSavedDraftConsumerState((state) => ({
       ...state,
       status: "reading",
@@ -1763,8 +1789,11 @@ function ProductApp() {
       conflictDraftVersion: null,
     }));
     readWorkflowDraftDevRecord(activeWorkflowDraft, activeSavedDraftConsumerConfig, currentDraftVersion)
-      .then(setSavedDraftConsumerState)
+      .then((nextState) => {
+        if (isCurrentEditorRequest()) setSavedDraftConsumerState(nextState);
+      })
       .catch((error: unknown) => {
+        if (!isCurrentEditorRequest()) return;
         setSavedDraftConsumerState((state) => ({
           ...state,
           status: "read_failed",
@@ -1779,6 +1808,7 @@ function ProductApp() {
     restoredDraft: WorkflowDraftDesignerDraft,
     result: WorkflowSavedDraftRevisionRestoreResult,
   ) => {
+    savedDraftEditorRequests.invalidate();
     setWorkspaceCreatedDrafts((drafts) => [
       ...drafts.filter((draft) => draft.draftId !== restoredDraft.draftId),
       restoredDraft,
@@ -1954,6 +1984,7 @@ function ProductApp() {
     if (normalized === activeWorkspaceId) {
       return true;
     }
+    savedDraftEditorRequests.invalidate();
     setSelectedApplicationRef(null);
     setApplicationCatalogSnapshot(null);
     setSelectedWorkflowDefinitionId(null);

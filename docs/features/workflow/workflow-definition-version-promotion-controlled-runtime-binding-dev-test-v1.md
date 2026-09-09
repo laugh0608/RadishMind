@@ -1,6 +1,6 @@
 # Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1
 
-更新时间：2026-08-09
+更新时间：2026-09-09
 
 状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed`
 
@@ -31,6 +31,12 @@
 7. Run History 以新的 schema 显示 definition id / version / digest、source draft evidence、节点时间线、诊断和副作用计数；原始输入和模型回答仍不持久化。
 8. Comparison 与 Evaluation 只比较兼容的 definition-bound runs，不重新执行 definition，也不自动改变 active version。
 9. 用户从 active definition 派生新 Saved Draft 时，草案携带 `source_definition_id` 与 `base_definition_version`；新编辑必须重新创建 candidate、review 和 activation，不能原地修改旧 version。
+
+## 运行响应消费与主流程复验
+
+2026-09-09 SQLite / mock 主流程复验发现：服务端已完成 v5 运行并返回 `200`，Web 晋级消费层却因缺少 `action_safety` 字段合同而拒绝整个响应。消费层现按既有 HTTP owner 接受显式 `action_safety: null`；v5 / v8 不属于 Action Safety 投影适用的 Run 类型，因此缺失字段、非空投影、未知字段和敏感字段继续拒绝。不新增协议、运行类型、授权或重试路径。
+
+浏览器已完成草案保存、候选创建、显式批准、独立激活、v5 mock 运行、一次性建议显示、输入清理与精确 Run History 交接；刷新后可重新选择并读取持久化记录。v8 响应消费通过单元测试，本次没有执行结构化 v8 浏览器运行、真实 Provider、PostgreSQL 或团队试用。错误提示不能作为运行未发生的证明；失败后应先检查 Run History，避免重复消耗 Provider。本次两次 mock 运行均为显式验收动作，没有自动重试。
 
 ## 资源与真相源
 
