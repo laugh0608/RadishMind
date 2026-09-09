@@ -1,6 +1,6 @@
 # Workflow Draft Designer Surface 专题
 
-更新时间：2026-08-08
+更新时间：2026-09-09
 
 状态：`workflow_draft_designer_surface_v1_s3_r2_implemented`
 
@@ -44,7 +44,7 @@ S3 把上述既有能力重组为共享 Workbench 壳层中的连续 Designer �
 - `S3 R2` 已改为默认聚焦当前节点与直接邻居，保证节点、端口和连线在首屏可读；显式 `Fit graph` 才承担全图展示。选择节点或 validation finding 会把目标带入可读视区，不再只更新选中状态而让目标留在裁切区外。
 - review 已改为紧凑摘要和按需展开入口。Inspector 在 `1440px` 固定于画布右侧，`<=1380px` 下移到画布之后，`<=760px` 默认折叠；窄屏不再重复同一节点的切换摘要与完整 Inspector。
 - 强选中只属于当前产品导航或正在驱动 Inspector 的节点 / 连线；普通节点、Saved Draft 引用和 review 摘要保持中性，finding focus 与 lifecycle / readiness / failure 状态使用独立结构、文字和图标通道。
-- `App.tsx` 继续唯一持有 application / workflow / run / draft / scenario 选择、editable draft、dirty、Saved Draft consumer / lifecycle / conflict 与全部 mutation action；`workflowDraftDesignerPanel.tsx` 只消费现有 view model 和 callbacks。九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 只读且不可发布的边界不变。
+- 2026-09-09 状态归属收敛后，`App.tsx` 保留全局选择与依赖接线；`useWorkflowDraftWorkspace.ts` 持有本地草案、未保存标记、双版本、consumer / conflict 及编辑动作，`useWorkflowSavedDraftLibrary.ts` 持有列表、筛选、分页与生命周期请求。`workflowDraftDesignerPanel.tsx` 消费 view model 和回调，图编辑转换由 `workflowDraftEditing.ts` 提供。九组来源、十三项 contribution、revision `partial`、RAG authority `blocked`、readiness 只读且不可发布的边界不变，详见[草案状态归属](saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md#草案前端状态归属收敛)。
 - Designer 动作仍只复用 `Validate`、`Save draft`、`Read saved`、`Preview plan` 与 `Review handoff`；没有新增发布、运行、导出或发送，也不新增 API、schema、repository、task card、fixture 或专项 checker。
 
 ## 状态模型

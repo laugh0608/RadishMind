@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-09-08
+更新时间：2026-09-09
 
 ## 这份文档讲什么
 
@@ -289,7 +289,9 @@ Model Gateway 的读法是先看 Overview / Route / Usage-Audit / Evidence Revie
 
 Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同源码 owner。Prompt 依次建立 Template Version、Configuration / Candidate v3 与 Prompt Runtime Assignment；Agent 依次建立结构化 Profile Version、Configuration / Candidate v4 与 Agent Copilot Runtime Assignment。两者的 API key 和 Session 分别委托唯一 invocation service，完整输出只在首次同步响应或当前 Web 内存中可见；Run v6 / v7 只保存 metadata。操作顺序分别见 [Prompt Application 使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)和 [Agent / Copilot 使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。
 
-Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 开关可写入 `memory_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
+Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 配置可写入 `memory_dev`、`sqlite_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
+
+三条 Workflow 自动浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`：临时启动独立 SQLite / mock Web 与 Platform，验证草案修订 / 冲突、迟到响应隔离和 Definition 受控运行历史，退出时清理本轮服务与数据库。首次准备、固定端口、失败证据和平台限制见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)；普通 `npm test` 不启动这些服务，远端 CI 首跑仍待执行。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的活动草案列表，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；打开当前 saved record 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback；不可变 revision 恢复仍使用独立历史流程。
 

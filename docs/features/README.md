@@ -14,7 +14,7 @@
 
 [应用定时回归评测](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[工作区 Workflow 模板目录](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)和[Action Safety Ladder](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)保持完成关闭。真实 Radish OIDC 为 `real_radish_integration_deferred`，应用运行观测后续仍为 `no_entry`。
 
-前端草案状态收敛与三条 Workflow 自动浏览器回归已分别获批完成；后端身份 / 成员包边界已形成待确认方案，内部试用仍为候选，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
+前端草案状态收敛与三条 Workflow 自动浏览器回归已分别获批完成；后端身份 / 成员首个策略切片已选定、尚未实施，内部试用仍为候选，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
 
 ## 专题分层
 

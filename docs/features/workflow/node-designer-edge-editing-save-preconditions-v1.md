@@ -1,6 +1,6 @@
 # Workflow Node Designer Edge Editing Save Preconditions v1 专题
 
-更新时间：2026-06-24
+更新时间：2026-09-09
 
 状态：`workflow_node_designer_edge_editing_save_preconditions_v1_defined`
 
@@ -60,7 +60,7 @@
 `Workflow Node Designer Controlled Edge Mutation Implementation v1` 已按以下范围完成：
 
 - 在 `WorkflowNodeDesigner` 中把合法 `onConnect` 从 preview feedback 升级为调用 `onAddEdge`。
-- 在 `App.tsx` 中新增 active draft edge add / remove helper，复用现有 `workflowDraftEdgeId`、`workflowDraftEdgeKindForConnection` 和 `workflowDraftEdgeConditionSummary`。
+- 初版在 `App.tsx` 中实现的 active draft edge add / remove 已于 2026-09-09 归入 `workflowDraftEditing.ts`，由 Designer 面板提交内容转换、`useWorkflowDraftWorkspace.ts` 统一失效与标脏；继续复用 `workflowDraftEdgeId`、`workflowDraftEdgeKindForConnection` 和 `workflowDraftEdgeConditionSummary`。
 - 在 Node Designer inspector connected edge 条目中提供删除边入口，并保留删除保护提示。
 - 保存 / restore 继续走现有 `savedWorkflowDraftConsumer` edge mapping。
 - Review Handoff 和 validation inspector 继续消费 active draft，不新增 handoff persistence。
