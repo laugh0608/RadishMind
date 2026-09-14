@@ -185,7 +185,7 @@ S8 的 Prompt Invocation 与 Prompt Session 继续把运行资格交给服务端
 Prompt Application 工作区作为既有 Application Development Workspace 下的独立 feature-owned surface，至少覆盖：
 
 1. Template 列表、创建、恢复和 CAS 冲突处理；
-2. 消息模板、变量、输出契约编辑；
+2. 消息模板、变量及输出契约基础选项编辑；结构化 schema 的 UI 编辑缺口见下节；
 3. 本地确定性校验与合成值预览；
 4. 不可变模板版本创建与精确版本详情；
 5. Template Version → Configuration Draft binding handoff；
@@ -195,6 +195,17 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 9. exact Run History、Evaluation 与 Operations handoff。
 
 应用切换、revision 变化、归档、身份变化和 surface 卸载必须清除未保存模板、变量值、渲染预览、响应和迟到请求。稳定 URL 只允许阶段锚点与短资源标识，不携带模板源码、变量值或输出；不得使用 `localStorage`、`sessionStorage`、IndexedDB 或 cookie 恢复这些内容。
+
+### 结构化输出契约的 UI 缺口与后续范围
+
+2026-09-14 代码与浏览器复核确认：后端、持久化和严格消费端已经支持受控 JSON Schema 子集，但 `promptApplicationTemplatePanel.tsx` 只提供输出类型、空结果和字节上限。选择 `json_object` 会建立 `properties={}`、`required=[]`、`additionalProperties=false` 的空对象契约，页面尚无字段或 schema 编辑入口；不能据此声明开发者已能完全通过 UI 配置结构化应用。
+
+下一步在现有模板工作区补齐编辑能力，使内部开发者可配置[故障诊断模板](prompt-application-dev-test-usage-guide.md#内部故障诊断试用)的五字段输出契约。范围如下，当前仍未实现：
+
+- 只编辑或导入后端已支持的 JSON Schema 子集；复用既有字段类型、必填项、额外字段策略和预算，不加入任意 JSON Schema 扩展、外部引用或新依赖。
+- 错误应在保存和版本创建前清晰表达；草案恢复、源码审查和不可变版本必须保留精确契约，类型切换不得静默丢失待编辑 schema。
+- 将现有 Prompt 浏览器用例从空对象扩展为非空诊断结构，验证合法结果完整保存与刷新读取，缺字段 / 额外字段被拒绝且不自动重调。
+- 沿用现有 API、schema、持久化、审核与显式激活边界，不新建任务卡或 checker。验证仍使用本地固定响应服务；真实模型试用继续暂缓。
 
 ### 真实 Provider 的消息与输出适配
 

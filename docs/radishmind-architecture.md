@@ -23,6 +23,8 @@ RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，�
 
 当前大量领域、存储与执行逻辑仍在 `services/platform/internal/httpapi/` 同包，产品工作区状态也部分集中在 `App.tsx` 和 `features/control-plane-read/`。下文的逻辑职责不表示已经完成 Go 包拆分、前端目录迁移或独立服务部署。
 
+Prompt 应用调用在 Python Runtime 中由 `prompt_application_inference.py` 解包 Go 已渲染的有序消息，并将答案原文封装回既有 canonical 响应；Go 继续负责精确运行权限、输出契约和结果保存。该适配不是新进程或公开协议，具体边界见[Prompt Provider 适配](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)。
+
 ## 四个产品面与逻辑职责
 
 - `User Workspace`：应用、草案、运行、结果和评测的用户入口；页面消费领域状态，不复制服务端授权或发布资格。
@@ -106,7 +108,7 @@ production secret resolver 与其 audit storage adapter 仍是后置边界；这
 
 2026-09-06 文档审阅建议先保护现有行为，再按一个领域逐步形成实际代码边界。候选包括身份 / 成员领域提取、前端工作流状态归属、严格消费者的版本兼容集中与关键浏览器回归。
 
-前端草案状态收敛与三条 Workflow 自动浏览器回归已分别完成，后者已接入 PR / Release 配置。2026-09-14 已建立标准库依赖的 `internal/workspacepolicy`，集中权限目录与内建角色策略，并直接迁移调用点；身份记录、应用服务、assignment 生命周期与仓储事务继续保留在 `internal/httpapi`。新包不反向依赖 HTTP 或数据库，不增加转发层、角色来源或运行生命周期。部署形态、权限、API、schema 与数据库角色均未改变；具体边界和验收见[包边界与实现](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)。
+前端草案状态收敛、三条 Workflow 与三条 Prompt 自动浏览器回归已完成，并复用既有 PR / Release 配置。2026-09-14 已建立标准库依赖的 `internal/workspacepolicy`，集中权限目录与内建角色策略，并直接迁移调用点；身份记录、应用服务、assignment 生命周期与仓储事务继续保留在 `internal/httpapi`。新包不反向依赖 HTTP 或数据库，不增加转发层、角色来源或运行生命周期。部署形态、权限、API、schema 与数据库角色均未改变；具体边界和验收见[包边界与实现](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)。
 
 ## 契约与历史证据路由
 

@@ -20,6 +20,10 @@
 - 本轮获批补充的三条 Prompt 浏览器回归与原三条 Workflow 已连续两轮通过，覆盖创建、审核、调用、失败不重调和结果恢复，并修正模型目录协议映射、失败响应及失败 turn 保存问题。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)，不新增同层任务卡或 checker。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
+## 明日首项（2026-09-15）
+
+补齐 Prompt 结构化输出契约的 UI 编辑，使开发者能通过网页配置已有五字段诊断模板。先按[专题范围](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-缺口与后续范围)确认编辑、错误提示和类型切换行为，再实现保存 / 恢复 / 版本审查与非空结构化结果回归。当前仅记录排期，今晚不启动实现；真实模型试用保持暂缓，详细交接见[明日事项](devlogs/2026-W38.md#2026-09-15-明日事项)。
+
 ## 下一顺位的选择
 
 邀请产品链已完成。围绕“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”选择下一目标。四个产品面共同服务这条用户流程，不分别维持功能扩张队列。

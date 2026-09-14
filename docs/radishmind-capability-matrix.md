@@ -6,14 +6,14 @@
 
 当前成熟度为**内部开发者预览**。本矩阵区分实现、验证环境、外部验证和生产边界；`completed` 只关闭对应专题范围，不自动升级平台成熟度。
 
-表中“已有证据”引用对应专题的实际验收，未重新执行的历史链不视为本次复验。邀请双数据库验收、Workflow 主链修正、前端状态收敛与三条自动浏览器回归见[2026-W37 周志](devlogs/2026-W37.md)，本次策略包提取与回归见[2026-W38 周志](devlogs/2026-W38.md)；此前全面审阅见[2026-W36](devlogs/2026-W36.md)。
+表中“已有证据”引用对应专题的实际验收，未重新执行的历史链不视为本次复验。邀请双数据库验收、Workflow 主链修正、前端状态收敛与三条自动浏览器回归见[2026-W37 周志](devlogs/2026-W37.md)，本次策略包提取、Prompt 传输修复与三条新增浏览器回归见[2026-W38 周志](devlogs/2026-W38.md)；此前全面审阅见[2026-W36](devlogs/2026-W36.md)。
 
 ## 当前能力
 
 | 能力 | 开发测试态实现与证据 | 仍未成立或未完成 | 权威专题 |
 | --- | --- | --- | --- |
 | Workflow 草案与定义 | 创建、编辑、校验、版本 / 生命周期、三存储、冲突 / 重启、审查与受控运行；模板目录和结构化输入已关闭 | 任意节点执行、通用 replay、自动 release 与业务写回 | [Workflow](features/workflow/README.md) |
-| 应用工作区 | 配置、Prompt / Agent 档案、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
+| 应用工作区 | 配置、Prompt / Agent 档案、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | Prompt 结构化输出 schema 的 UI 编辑尚未补齐；通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
 | 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据 | 真实 Provider 调度验收、production worker、通用 scheduler；持续团队收益指标仍待建立 | [定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
 | Gateway | 三类北向推理协议、Models、SSE、Provider 选择、stdio worker pool；开发测试态 API key / quota、reported usage、价格快照与受控 unary fallback | 真实 Provider fallback、生产 API key / quota / price、限流、billing ledger、optional live health | [模型网关](features/model-gateway-api-distribution.md) |
 | 本地身份与成员 | 账户、Web Session、角色、成员、凭据轮换、确定性 OIDC 与双数据库 / 浏览器证据 | 真实 Radish 联调 `real_radish_integration_deferred`；production auth、MFA、账户恢复 | [管理端](features/admin-control-plane/README.md) |
@@ -22,7 +22,7 @@
 | 通用 Session / Checkpoint | metadata-only 契约与只读 shell；与应用 Session / Turn 区分 | 通用 durable checkpoint、长期记忆、跨轮恢复执行器 | [架构](radishmind-architecture.md) |
 | 图片产物 | fixture client → adapter → 一次性 binary delivery → 私有存储 coordinator 已完成；metadata-only response builder 独立存在 | 真实生图 backend、reference resolver、生产存储、public URL、HTTP / Gateway / Web 交付 | [图片专题](features/image-generation-artifact-return.md) |
 | 持久化与审计 | memory / SQLite / PostgreSQL 开发测试仓储、migration、CAS、scope、no fallback 与重启测试 | 生产数据库资源与运行验收；production secret backend 的 audit store 未因应用审计完成而成立 | [SQLite](platform/local-sqlite-dev-persistence-v1.md)、[运行手册](platform/platform-service-operations-runbook-v1.md) |
-| UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；三条 SQLite / mock Workflow 浏览器回归本地通过并接入 PR / Release；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 新浏览器 CI 远端尚未运行，覆盖仅限 Chromium 的三条流程；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
+| UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；三条 Workflow 与三条 Prompt 浏览器回归在隔离 SQLite / 固定响应环境连续两轮通过并接入既有 PR / Release；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 新浏览器 CI 远端尚未运行，覆盖仅限 Chromium 的六条流程，固定响应不代表真实模型质量；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
 | 部署与运维 | 本地 Console、启动入口、Docker 静态边界和历史本地容器 smoke | production secret、环境隔离、process supervisor、产品 Web 正式包装、真实镜像发布和恢复演练 | [部署说明](../deploy/README.md) |
 | 模型适配 | 原始 / 修复双轨、小规模 holdout 和 builder 审查记录 | raw 晋级、训练准入、稳定业务收益和生产模型声明 | [训练目录](../training/README.md) |
 | 外部业务接入 | RadishFlow / Radish 的协议、样例、candidate 与离线回归证据；Catalyst 文档预留 | 真实挂载点与验收环境未齐备，不建立模拟接入完成声明 | [集成入口](integrations/README.md) |
