@@ -566,7 +566,7 @@ func (store authorityDriftPromptRunStore) UpsertRun(ctx WorkflowRunContext, reco
 	return err
 }
 
-func newPromptApplicationInvocationFixture(t *testing.T) promptApplicationInvocationFixture {
+func newPromptApplicationInvocationFixture(t *testing.T, sources ...PromptApplicationTemplateSource) promptApplicationInvocationFixture {
 	t.Helper()
 	draftRepository := newMemoryApplicationConfigurationDraftRepository()
 	candidateRepository := newMemoryApplicationPublishCandidateRepository()
@@ -578,6 +578,11 @@ func newPromptApplicationInvocationFixture(t *testing.T) promptApplicationInvoca
 
 	templateContext := validPromptApplicationTemplateContext()
 	templateInput := validPromptApplicationTemplateDraftInput()
+	if len(sources) > 0 {
+		templateInput.Messages = sources[0].Messages
+		templateInput.Variables = sources[0].Variables
+		templateInput.OutputContract = sources[0].OutputContract
+	}
 	templateService := newPromptApplicationTemplateService(templateRepository)
 	if saved := templateService.SaveDraft(templateContext, templateInput, 0); saved.Draft == nil {
 		t.Fatalf("seed Prompt template: %#v", saved)

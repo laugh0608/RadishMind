@@ -1,6 +1,6 @@
 # 提示词应用模板版本审查与受控调用（开发 / 测试态）v1
 
-更新时间：2026-07-25
+更新时间：2026-09-14
 
 状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_completed`
 
@@ -195,6 +195,19 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 9. exact Run History、Evaluation 与 Operations handoff。
 
 应用切换、revision 变化、归档、身份变化和 surface 卸载必须清除未保存模板、变量值、渲染预览、响应和迟到请求。稳定 URL 只允许阶段锚点与短资源标识，不携带模板源码、变量值或输出；不得使用 `localStorage`、`sessionStorage`、IndexedDB 或 cookie 恢复这些内容。
+
+### 真实 Provider 的消息与输出适配
+
+2026-09-14 的故障诊断试用接入核对发现，原 Python Runtime 将 Prompt 调用继续交给文档问答的消息 builder 与 CopilotResponse 归一化器：模板角色退化为问答资料，合法的应用 JSON 字段被丢弃。这是单语言替身未覆盖的传输衔接缺口，不改变此前开发测试态证据的范围，也不构成真实 Provider 验收。
+
+现有 `prompt-application-invocation-v1` 标记对应的适配由 `services/runtime/prompt_application_inference.py` 收口：
+
+- Go 继续持有模板验证、精确 authority、一次渲染、调用准入与最终输出契约校验。Python 只解码 `northbound_prompt` 中已渲染的消息，不再次解释变量或推断运行权限。
+- 同时核对既有 protocol、request kind、路由、平台上下文和禁用工具 / 检索 / 业务写入标记；消息仅允许现有 `system | developer | user`，拒绝重复字段、额外消息字段、错误类型和超预算。被识别为 Prompt 的无效请求不得降级为文档问答。
+- OpenAI 兼容传输保留消息角色和顺序；Gemini / Anthropic 将 `system` 与 `developer` 交给各自系统指令字段，用户内容保留为用户消息。
+- Provider 返回的非空、有界文本作为不透明内容放入既有 canonical `CopilotResponse.summary`；不新增 schema 字段，不抽取其中的摘要或 actions，不去除 JSON 围栏、不修补 JSON。外层 `status=ok` 只代表传输结果可以交回 Go，最终调用成功仍取决于模板输出契约。
+- 外层 `proposed_actions=[]`、`confidence=0` 和 `requires_confirmation=false` 由 builder 固定，只描述没有平台候选动作及未评估质量，不能由答案正文中的同名字段改写，也不表示正文中的建议已获执行授权。
+- 普通文档问答、其它 Copilot 任务与未标记的北向接口继续使用原有处理路径。mock 输出仍只提供开发测试证据；不新增真实 Provider fallback、自动重试、输出持久化或业务写回。
 
 ## API、存储和权限
 

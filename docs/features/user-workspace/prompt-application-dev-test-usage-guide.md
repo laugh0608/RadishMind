@@ -288,6 +288,8 @@ Prompt profile 只消费 `variables`，不接受调用方用 `model`、模板、
 
 本轮先准备内部开发者的故障诊断任务：从创建应用到审查已保存的诊断答案，再对同一输入进行一次有意的重复运行与人工比较。它验证既有产品链能否帮助开发者形成有证据的排查步骤，不新增工具执行、业务写回、运行协议或模型评测基线。
 
+接入核对已发现并修正 Python Runtime 对 Prompt 消息套用文档问答提示词、对应用 JSON 套用 CopilotResponse 归一化的问题；详见[真实 Provider 消息与输出适配](prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)。修复用隔离传输及跨语言记录验证，真实模型连接与人工答案质量仍需本轮试用确认。
+
 ### 素材与输入边界
 
 - [模板源码](prompt-application-dev-test-usage-guide.parts/diagnostics-trial-source.json)直接使用现有 `PromptApplicationTemplateSource` 三个字段；保存时通过本文 Template API 的既有请求信封填入实际资源 ID，不把源码文件当作完整草案记录提交。

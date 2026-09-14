@@ -16,7 +16,7 @@
 - 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、memory / SQLite / HTTP、Platform 全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
 - 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
-- 项目所有者已选定推进内部故障诊断试用；当前先准备 [Prompt Application 试用素材与执行范围](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)，复用模板审查、受控 Session、显式结果资产与 Run Comparison。下一动作是落实模型 / Provider、费用和操作窗口后执行；合成样本的离线验证不代表真实 Provider 或人工答案质量验收，不新增同层任务卡或 checker。
+- 项目所有者已选定推进内部故障诊断试用；[试用素材与执行范围](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)已提交。接入核对发现并修复 Python Runtime 对 Prompt 消息与答案误用文档问答处理的衔接问题，[实现边界](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保持既有协议与 authority；跨语言复验、定向测试与仓库全量回归通过。下一动作是落实模型 / Provider、费用和操作窗口；隔离传输验证不代表真实 Provider 或人工答案质量验收，不新增同层任务卡或 checker。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
 ## 下一顺位的选择
