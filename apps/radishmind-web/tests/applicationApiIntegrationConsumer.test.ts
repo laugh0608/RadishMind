@@ -89,6 +89,22 @@ test("Application model catalog validates success and carries current scope", as
   }
 });
 
+test("Application model catalog accepts the Runtime profile chat protocol without inventing other capabilities", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => jsonResponse({
+      object: "list",
+      data: [{ id: "profile:prompt-e2e", object: "model", created: 1, owned_by: "radishmind",
+        metadata: { northbound_protocols: ["chat.completions"], credential_state: "configured" } }],
+    }, "runtime-profile-catalog");
+    const state = await loadApplicationModelCatalog(live, "app_docs_assistant", undefined, "runtime-profile-catalog");
+    assert.equal(state.status, "ready");
+    assert.deepEqual(state.models[0]?.protocols, ["chat_completions"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Application model catalog uses only Bearer auth after an API key handoff", async () => {
   const originalFetch = globalThis.fetch;
   const apiKeyToken = `rmd_dev_key_aaaaaaaaaaaaaaaa.${"A".repeat(43)}`;

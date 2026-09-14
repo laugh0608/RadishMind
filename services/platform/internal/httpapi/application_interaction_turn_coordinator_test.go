@@ -138,6 +138,28 @@ func TestApplicationInteractionTurnCoordinatorExplicitlySavesResultArtifactWitho
 	}
 }
 
+func TestApplicationInteractionTurnCoordinatorSkipsResultRetentionForUnsuccessfulTurns(t *testing.T) {
+	for _, status := range []WorkflowRunStatus{WorkflowRunStatusFailed, WorkflowRunStatusCanceled, WorkflowRunStatusOutcomeUnknown} {
+		t.Run(string(status), func(t *testing.T) {
+			coordinator, ctx, session, _, _ := workflowApplicationInteractionCoordinatorFixture(t)
+			calls := 0
+			coordinator.executeWorkflow = func(WorkflowRunContext, WorkflowDefinitionRunRequest) WorkflowRunResult {
+				calls++
+				return WorkflowRunResult{Record: &WorkflowRunRecord{SchemaVersion: workflowRunRecordDefinitionSchemaVersion, RunID: "run_unsuccessfulretention01", Status: status}, FailureCode: WorkflowRunFailureStoreUnavailable}
+			}
+			input := ApplicationInteractionTurnExecutionInput{ExpectedSessionVersion: 1, ClientTurnKey: "unsuccessful-retention", SaveResult: true, InputText: "synthetic input", ConditionValues: map[string]bool{}}
+			result := coordinator.Execute(ctx, session.SessionID, input)
+			if result.FailureCode == "" || result.Turn == nil || result.Turn.Status == string(WorkflowRunStatusSucceeded) || result.AdvisoryOutput != "" || result.ResultArtifact != nil || result.ResultArtifactFailureCode != "" {
+				t.Fatalf("unsuccessful execution was mistaken for a retention failure: %#v", result)
+			}
+			replay := coordinator.Execute(ctx, session.SessionID, input)
+			if !replay.IdempotentReplay || calls != 1 || replay.ResultArtifact != nil || replay.ResultArtifactFailureCode != "" {
+				t.Fatalf("unsuccessful turn replay attempted execution or retention: %#v calls=%d", replay, calls)
+			}
+		})
+	}
+}
+
 func TestApplicationInteractionTurnCoordinatorConcurrentClientKeyCallsDelegateOnce(t *testing.T) {
 	coordinator, ctx, session, _, _ := workflowApplicationInteractionCoordinatorFixture(t)
 	entered := make(chan struct{})

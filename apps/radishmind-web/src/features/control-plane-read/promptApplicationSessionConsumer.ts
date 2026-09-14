@@ -298,7 +298,14 @@ function isSessionEnvelope(
       !Object.hasOwn(value, "turn") && !Object.hasOwn(value, "prompt_output") &&
       !Object.hasOwn(value, "result_artifact") && !Object.hasOwn(value, "result_artifact_failure_code");
   }
-  return value.session_id === expectedSessionId && value.session !== null &&
+  // Authority checks may reject a turn before loading a session or creating a run.
+  if (value.session === null) {
+    return value.session_id === expectedSessionId && typeof value.failure_code === "string" &&
+      value.failure_code.length > 0 && value.turn === null && value.idempotent_replay === false &&
+      value.prompt_output === undefined && value.advisory_output === undefined && value.answer === undefined &&
+      value.result_artifact === undefined && value.result_artifact_failure_code === undefined;
+  }
+  return value.session_id === expectedSessionId && (value.session as Document).session_id === expectedSessionId &&
     (value.turn === null || isTurn(value.turn, config, applicationId, expectedSessionId)) &&
     (value.prompt_output === undefined || typeof value.prompt_output === "string") &&
     (value.result_artifact === undefined || value.result_artifact === null || isRecord(value.result_artifact)) &&

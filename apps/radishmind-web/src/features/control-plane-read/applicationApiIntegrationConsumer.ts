@@ -244,7 +244,7 @@ function publicProtocols(metadata: Record<string, unknown> | undefined): Applica
 }
 
 function normalizeProtocol(value: string): ApplicationApiProtocol | null {
-  if (value === "openai-chat-completions" || value === "chat_completions") return "chat_completions";
+  if (value === "chat.completions" || value === "openai-chat-completions" || value === "chat_completions") return "chat_completions";
   if (value === "openai-responses" || value === "responses") return "responses";
   if (value === "anthropic-messages" || value === "messages") return "messages";
   return null;

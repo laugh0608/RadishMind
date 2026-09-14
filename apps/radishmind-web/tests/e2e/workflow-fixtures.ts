@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { test as base, expect, type Page, type Response, type Route } from "@playwright/test";
 
-type Application = { id: string; name: string };
+export type Application = { id: string; name: string; kind: string };
 
-export const test = base.extend<{ application: Application; diagnostics: void }>({
+export const test = base.extend<{ application: Application; diagnostics: void; applicationKind: "workflow_copilot" | "prompt_application" }>({
+  applicationKind: ["workflow_copilot", { option: true }],
   diagnostics: [async ({ context }, use, testInfo) => {
     const failures: string[] = [];
     const requests: { method: string; path: string; status: number }[] = [];
@@ -31,20 +32,20 @@ export const test = base.extend<{ application: Application; diagnostics: void }>
       await testInfo.attach("request-statuses", { body: JSON.stringify({ requests, failures, pageErrors }, null, 2), contentType: "application/json" });
     }
   }, { auto: true }],
-  application: async ({ page, diagnostics: _diagnostics }, use) => {
-    const name = `Workflow E2E ${randomUUID().slice(0, 8)}`;
+  application: async ({ page, diagnostics: _diagnostics, applicationKind }, use) => {
+    const name = `${applicationKind} E2E ${randomUUID().slice(0, 8)}`;
     await page.goto("/#workspace-applications");
     await page.getByRole("button", { name: "Create application", exact: true }).click();
     const creation = page.locator("article").filter({ has: page.getByRole("heading", { name: "Server-generated identity", exact: true }) });
     await creation.getByRole("textbox", { name: "Display name", exact: true }).fill(name);
-    await creation.getByRole("combobox", { name: "Application kind", exact: true }).selectOption({ label: "Workflow Copilot" });
+    await creation.getByRole("combobox", { name: "Application kind", exact: true }).selectOption(applicationKind);
     const created = page.waitForResponse((response) => isEndpoint(response, "/v1/user-workspace/applications", "POST"));
     await page.getByRole("button", { name: "Create and select", exact: true }).click();
     const response = await created;
     expect(response.ok()).toBeTruthy();
     const { record } = await response.json();
     expect(record.application_id).toMatch(/^app_[a-z2-7]+$/);
-    const application = { id: record.application_id as string, name };
+    const application = { id: record.application_id as string, name, kind: applicationKind };
     await expect(page.getByRole("region", { name: "Application development context" })).toContainText(application.id);
     await use(application);
   },
@@ -92,7 +93,7 @@ export async function promptLabel(page: Page) {
 }
 
 export async function selectApplication(page: Page, application: Application) {
-  await page.getByRole("button", { name: `${application.name} workflow_copilot ${application.id} v1`, exact: true }).click();
+  await page.getByRole("button", { name: `${application.name} ${application.kind} ${application.id} v1`, exact: true }).click();
   await expect(page.getByRole("region", { name: "Application development context" })).toContainText(application.id);
 }
 

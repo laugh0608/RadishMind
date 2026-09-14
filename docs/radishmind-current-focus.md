@@ -16,7 +16,8 @@
 - 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、memory / SQLite / HTTP、Platform 全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
 - 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
-- 项目所有者已选定推进内部故障诊断试用；[试用素材与执行范围](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)已提交。接入核对发现并修复 Python Runtime 对 Prompt 消息与答案误用文档问答处理的衔接问题，[实现边界](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保持既有协议与 authority；跨语言复验、定向测试与仓库全量回归通过。下一动作是落实模型 / Provider、费用和操作窗口；隔离传输验证不代表真实 Provider 或人工答案质量验收，不新增同层任务卡或 checker。
+- 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [Provider 消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实 Provider 或人工答案质量验收。
+- 本轮获批补充的三条 Prompt 浏览器回归与原三条 Workflow 已连续两轮通过，覆盖创建、审核、调用、失败不重调和结果恢复，并修正模型目录协议映射、失败响应及失败 turn 保存问题。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)，不新增同层任务卡或 checker。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
 ## 下一顺位的选择
@@ -27,7 +28,7 @@
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
 | 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
-| 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；新流程扩围先确定用户收益和环境边界，依赖、服务和 CI 变更按任务授权 |
+| 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；三条 Prompt 生命周期与结果恢复回归也已完成两轮验证，使用隔离 SQLite 与固定响应服务 |
 | 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / Provider、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
 

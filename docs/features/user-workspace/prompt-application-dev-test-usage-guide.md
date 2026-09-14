@@ -284,7 +284,17 @@ Prompt profile 只消费 `variables`，不接受调用方用 `model`、模板、
 
 需要保留答案时，在上述 turn body 增加 `save_result: true`，或在 Prompt Session 页面提交前勾选保存结果；默认关闭。成功执行后仍须独立检查 `result_artifact` 与 `result_artifact_failure_code`，执行成功不保证保存成功。Prompt 输出目前按 `text/markdown` 捕获，即使内容满足模板的 JSON 输出契约，也不能据此宣称资产类型自动变为 `application/json`。刷新后可通过精确资产引用读取；首次未保存时，终态重试不能补存或重放答案。详见[结果资产显式保存专题](application-session-result-artifact-explicit-retention-dev-test-v1.md)。
 
+## 自动浏览器回归
+
+`apps/radishmind-web` 的 `npm run test:e2e -- --grep Prompt` 复用既有隔离测试入口，覆盖从 UI 创建应用、签发开发测试态 API key 并交接 Playground 模型目录、保存配置、模板版本绑定、候选审核和显式激活，到 Session 调用与结果资产恢复；另覆盖输出契约失败不保存 / 同键不重调，以及配置变更后重新审核和替换才能恢复执行。启动、端口、清理与证据边界见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。
+
+模型目录中的 `chat.completions` 映射为 UI 的 `chat_completions`，不会额外赋予 Responses 或 Messages 能力。失败 turn 跳过结果保存，避免把执行错误误报为保存错误。执行前 authority 拒绝可返回空 Session / Turn；前端展示服务端失败码，且不接受该分支夹带正文、资产或重放成功。
+
+这组测试只调用本地固定响应服务，不消耗真实模型配额。当前 UI 的 `json_object` 使用闭合空对象 schema，测试以 `{}` 验证完整传输与结果保存，不以此判断诊断质量，也不代替下节真实任务试用。
+
 ## 内部故障诊断试用
+
+2026-09-14 项目所有者暂缓真实模型试用；素材继续保留，恢复前落实 Provider / 模型、费用和操作窗口。
 
 本轮先准备内部开发者的故障诊断任务：从创建应用到审查已保存的诊断答案，再对同一输入进行一次有意的重复运行与人工比较。它验证既有产品链能否帮助开发者形成有证据的排查步骤，不新增工具执行、业务写回、运行协议或模型评测基线。
 

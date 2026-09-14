@@ -30,7 +30,7 @@
 3. 用户显式选择保存时，turn route 要求 `save_result=true`，并沿现有 `application_sessions:execute` 身份、成员资格和 application scope 执行。
 4. coordinator 仍先完成 authority 重读、provider 前 reservation、单次既有 runtime 委托和 terminal turn 写入。
 5. 只有 terminal turn 为 `succeeded`、run ref 与 profile 严格匹配且 canonical result 非空时，Result Artifact owner 才捕获内容；客户端不能提交 artifact content、digest、run ref 或 source metadata。
-6. 首次响应返回原结果和 metadata-only artifact summary。保存失败不得伪造成功，也不得重新调用 provider；执行成功与保存失败必须分别表达。
+6. 执行失败、取消或结果未知时跳过保存，保留原执行失败码，不另报资产来源不可用；只有成功 turn 才尝试保存。首次成功响应返回原结果和 metadata-only artifact summary。保存失败不得伪造成功，也不得重新调用 provider；执行成功与保存失败必须分别表达。
 7. 用户可按同一 application / session 列出 metadata-only artifact summary，并用精确 artifact id 读取内容。
 8. 相同 client turn key 的重试不得重复 provider 调用或创建第二份资产；若首次未选择保存，重试不能从已丢失的易失结果补建资产。
 9. SQLite / PostgreSQL 开发测试态现在可在服务重启后恢复 artifact；memory owner 仍明确不声明重启恢复。

@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
+import { startPromptProvider } from "./prompt-provider.mjs";
 
 if (process.platform === "win32") {
   throw new Error("Browser regression service cleanup requires POSIX process groups; use Linux, macOS, or WSL.");
@@ -32,6 +33,7 @@ const groups = [];
 const logs = [];
 let interrupted = false;
 let shutdown;
+let promptProvider;
 
 function groupExists(pid) {
   try {
@@ -61,6 +63,10 @@ function stop() {
       await child.finished;
     }
     try {
+      if (promptProvider) {
+        await promptProvider.close();
+        await writeFile(join(output, "prompt-provider-observations.json"), JSON.stringify(promptProvider.observations, null, 2));
+      }
       for (const log of logs) {
         if (!log.destroyed) await new Promise((accept, reject) => {
           log.once("error", reject);
@@ -101,10 +107,11 @@ console.log(`[workflow-e2e] Artifacts: ${output}`);
 let exitCode = 1;
 try {
   await writeFile(configPath, "{}\n", { mode: 0o600 });
+  promptProvider = await startPromptProvider();
   if (interrupted) throw new Error("Interrupted during configuration setup.");
   const launcher = start("bash", [
     join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-    "--mode", "dev-live", "--workflow-definition-local-product", "--no-reuse-existing",
+    "--mode", "dev-live", "--workflow-definition-local-product", "--prompt-application-local-product", "--no-reuse-existing",
     "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
     "--timeout-seconds", "120", "--log-dir", join(output, "services"),
     "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),
@@ -114,6 +121,13 @@ try {
       ...environment,
       RADISHMIND_PLATFORM_CONFIG: configPath,
       RADISHMIND_PLATFORM_PROVIDER: "mock",
+      RADISHMIND_MODEL_PROFILE: "prompt-e2e",
+      RADISHMIND_MODEL_PROFILE_FALLBACKS: "prompt-e2e",
+      RADISHMIND_MODEL_PROFILE_PROMPT_E2E_NAME: "prompt-e2e-model",
+      RADISHMIND_MODEL_PROFILE_PROMPT_E2E_BASE_URL: `${promptProvider.url}/v1`,
+      RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_KEY: "prompt-e2e-fixture-only",
+      RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_STYLE: "openai-compatible",
+      RADISHMIND_MODEL_PROFILE_PROMPT_E2E_REQUEST_TIMEOUT_SECONDS: "5",
       RADISHMIND_SQLITE_DEV_DATABASE_PATH: join(runtime, "workflow.db"),
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -144,12 +158,12 @@ try {
     startupTimer.abort();
   }
   if (interrupted) throw new Error("Interrupted during startup.");
-  console.log("[workflow-e2e] SQLite/mock services ready on 4100 and 17000.");
+  console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000; Prompt fixture ${promptProvider.url}.`);
   const tests = start(process.execPath, [
     join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
     "--config", "tests/e2e/playwright.config.ts", ...process.argv.slice(2),
   ], {
-    env: { ...environment, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output },
+    env: { ...environment, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, RADISHMIND_E2E_PROVIDER_URL: promptProvider.url },
     stdio: "inherit",
   });
   const result = await Promise.race([

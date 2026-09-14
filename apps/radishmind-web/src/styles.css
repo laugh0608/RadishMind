@@ -6906,13 +6906,14 @@ dd {
 
 .application-result-artifact-layout {
   display: grid;
-  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 14px;
   min-width: 0;
 }
 
 .application-result-artifact-list,
 .application-result-artifact-inspector {
+  overflow-wrap: anywhere;
   display: grid;
   align-content: start;
   gap: 10px;
@@ -6925,6 +6926,7 @@ dd {
   gap: 12px;
   min-width: 0;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .application-result-artifact-list button.selected {

@@ -87,7 +87,7 @@ jobs:
         working-directory: apps/radishmind-web
 
   web-browser-regression:
-    name: Release Workflow Browser Regression
+    name: Release Workflow and Prompt Browser Regression
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -123,7 +123,7 @@ jobs:
         run: npx playwright install --with-deps --only-shell chromium
         working-directory: apps/radishmind-web
 
-      - name: Test isolated SQLite and mock Workflow paths
+      - name: Test isolated SQLite Workflow and Prompt paths
         run: npm run test:e2e
         working-directory: apps/radishmind-web
 
