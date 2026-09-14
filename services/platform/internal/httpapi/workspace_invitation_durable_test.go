@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/sqlitedev"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 	sqlitelocalidentitymigrations "radishmind.local/services/platform/migrations/sqlite/local_identity_records"
 )
 
@@ -90,7 +91,7 @@ func TestSQLiteWorkspaceInvitationCorruptPayloadAndUnavailableStoreFailClosed(t 
 	)
 	repository := newSQLiteLocalIdentityRepository(runtime.DB())
 	fixture := newDurableWorkspaceInvitationFixture(t, repository)
-	creation := createDurableWorkspaceInvitation(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+	creation := createDurableWorkspaceInvitation(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 	if _, err := runtime.DB().ExecContext(context.Background(), `UPDATE local_workspace_invitations
         SET schema_version='corrupt.workspace_invitation' WHERE invitation_id=?`, creation.Invitation.InvitationID); err != nil {
 		t.Fatalf("corrupt SQLite invitation payload: %v", err)
@@ -198,7 +199,7 @@ func createDurableWorkspaceInvitation(
 	ttlPolicy string,
 ) WorkspaceInvitationCreation {
 	t.Helper()
-	definition, exists := builtInLocalIdentityRole(roleKey)
+	definition, exists := workspacepolicy.BuiltInRole(roleKey)
 	if !exists {
 		t.Fatalf("missing durable invitation role %s", roleKey)
 	}
@@ -222,7 +223,7 @@ func runDurableWorkspaceInvitationContract(
 	t.Helper()
 	fixture := newDurableWorkspaceInvitationFixture(t, repository)
 	for index := 0; index < 3; index++ {
-		createDurableWorkspaceInvitation(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL1Hour)
+		createDurableWorkspaceInvitation(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL1Hour)
 	}
 	first, err := fixture.service.List(context.Background(), fixture.admin, WorkspaceInvitationListQuery{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
@@ -250,7 +251,7 @@ func runDurableWorkspaceInvitationContract(
 	fixture.claimant.AuthenticatedAt = fixture.clock.read()
 
 	revocable := createDurableWorkspaceInvitation(
-		t, fixture, localIdentityRoleWorkspaceReviewer, workspaceInvitationTTL24Hours,
+		t, fixture, workspacepolicy.RoleWorkspaceReviewer, workspaceInvitationTTL24Hours,
 	)
 	if _, err := fixture.service.Revoke(context.Background(), fixture.admin, WorkspaceInvitationRevokeInput{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
@@ -260,11 +261,11 @@ func runDurableWorkspaceInvitationContract(
 		t.Fatalf("revoke durable invitation: %v", err)
 	}
 	claimable := createDurableWorkspaceInvitation(
-		t, fixture, localIdentityRoleWorkspaceBuilder, workspaceInvitationTTL24Hours,
+		t, fixture, workspacepolicy.RoleWorkspaceBuilder, workspaceInvitationTTL24Hours,
 	)
 	preview, err := fixture.service.Preview(context.Background(), fixture.claimant, claimable.InvitationCode)
 	if err != nil || preview.InvitationID != claimable.Invitation.InvitationID ||
-		preview.Role.RoleKey != localIdentityRoleWorkspaceBuilder {
+		preview.Role.RoleKey != workspacepolicy.RoleWorkspaceBuilder {
 		t.Fatalf("preview durable invitation: preview=%#v err=%v", preview, err)
 	}
 

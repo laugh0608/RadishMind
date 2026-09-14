@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type localIdentityRepository interface {
@@ -526,7 +528,7 @@ func (repository *memoryLocalIdentityRepository) CreateRoleAssignment(_ context.
 	grants, ok := normalizedPermissionGrants(assignment.PermissionGrants)
 	assignment.PermissionGrants = grants
 	if !ok || assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" ||
-		localIdentityContainsManagementPermission(grants) ||
+		workspacepolicy.ContainsManagementPermission(grants) ||
 		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}

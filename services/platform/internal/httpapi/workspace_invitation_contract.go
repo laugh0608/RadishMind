@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -288,7 +290,7 @@ func workspaceInvitationTTLDuration(policy string) (time.Duration, bool) {
 	}
 }
 
-func workspaceInvitationRoleEligible(definition LocalIdentityRoleDefinition) bool {
+func workspaceInvitationRoleEligible(definition workspacepolicy.RoleDefinition) bool {
 	if definition.CanManageLocalIdentity {
 		return false
 	}
@@ -297,7 +299,7 @@ func workspaceInvitationRoleEligible(definition LocalIdentityRoleDefinition) boo
 
 func workspaceInvitationRoleKeyEligible(roleKey string) bool {
 	switch roleKey {
-	case localIdentityRoleWorkspaceReader, localIdentityRoleWorkspaceBuilder, localIdentityRoleWorkspaceReviewer:
+	case workspacepolicy.RoleWorkspaceReader, workspacepolicy.RoleWorkspaceBuilder, workspacepolicy.RoleWorkspaceReviewer:
 		return true
 	default:
 		return false
@@ -376,7 +378,7 @@ func cloneWorkspaceInvitation(invitation WorkspaceInvitation) WorkspaceInvitatio
 	return invitation
 }
 
-func workspaceInvitationRoleSummary(definition LocalIdentityRoleDefinition) WorkspaceInvitationRoleSummary {
+func workspaceInvitationRoleSummary(definition workspacepolicy.RoleDefinition) WorkspaceInvitationRoleSummary {
 	return WorkspaceInvitationRoleSummary{
 		RoleKey: definition.RoleKey, DisplayName: definition.DisplayName, Summary: definition.Summary,
 		CatalogVersion: definition.CatalogVersion, DefinitionDigest: definition.DefinitionDigest,

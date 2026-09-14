@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -59,10 +61,10 @@ type localIdentityAdminMemberReadResponse struct {
 }
 
 type localIdentityAdminRoleCatalogResponse struct {
-	RequestID   string                   `json:"request_id"`
-	TenantRef   string                   `json:"tenant_ref"`
-	WorkspaceID string                   `json:"workspace_id"`
-	Catalog     LocalIdentityRoleCatalog `json:"catalog"`
+	RequestID   string                      `json:"request_id"`
+	TenantRef   string                      `json:"tenant_ref"`
+	WorkspaceID string                      `json:"workspace_id"`
+	Catalog     workspacepolicy.RoleCatalog `json:"catalog"`
 }
 
 type localIdentityAdminMembershipResponse struct {
@@ -93,7 +95,7 @@ func registerLocalIdentityAdministrationHTTPRoutes(mux *http.ServeMux, server *S
 func (server *Server) handleLocalIdentityAdminMemberList(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminMemberListPath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationRequest(writer, request, trace)
-	if !ok || !server.preAuthorizeLocalIdentityAdministration(writer, request, trace, administration, actor, localIdentityPermissionMembersRead) {
+	if !ok || !server.preAuthorizeLocalIdentityAdministration(writer, request, trace, administration, actor, workspacepolicy.PermissionMembersRead) {
 		return
 	}
 	query, err := localIdentityAdminMemberListQuery(request, actor.TenantRef, actor.WorkspaceID)
@@ -115,7 +117,7 @@ func (server *Server) handleLocalIdentityAdminMemberList(writer http.ResponseWri
 func (server *Server) handleLocalIdentityAdminMemberRead(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminMemberReadPath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationRequest(writer, request, trace)
-	if !ok || !server.preAuthorizeLocalIdentityAdministration(writer, request, trace, administration, actor, localIdentityPermissionMembersRead) {
+	if !ok || !server.preAuthorizeLocalIdentityAdministration(writer, request, trace, administration, actor, workspacepolicy.PermissionMembersRead) {
 		return
 	}
 	if request.URL.RawQuery != "" {
@@ -137,7 +139,7 @@ func (server *Server) handleLocalIdentityAdminMemberRead(writer http.ResponseWri
 func (server *Server) handleLocalIdentityAdminRoleCatalog(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminRoleCatalogPath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationRequest(writer, request, trace)
-	if !ok || !server.preAuthorizeLocalIdentityAdministration(writer, request, trace, administration, actor, localIdentityPermissionRolesRead) {
+	if !ok || !server.preAuthorizeLocalIdentityAdministration(writer, request, trace, administration, actor, workspacepolicy.PermissionRolesRead) {
 		return
 	}
 	if request.URL.RawQuery != "" {
@@ -157,7 +159,7 @@ func (server *Server) handleLocalIdentityAdminRoleCatalog(writer http.ResponseWr
 func (server *Server) handleLocalIdentityAdminMembershipCreate(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminMembershipCreatePath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationMutation(
-		writer, request, trace, localIdentityPermissionMembershipsWrite,
+		writer, request, trace, workspacepolicy.PermissionMembershipsWrite,
 	)
 	if !ok {
 		return
@@ -187,7 +189,7 @@ func (server *Server) handleLocalIdentityAdminMembershipCreate(writer http.Respo
 func (server *Server) handleLocalIdentityAdminMembershipRevoke(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminMembershipRevokePath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationMutation(
-		writer, request, trace, localIdentityPermissionMembershipsWrite,
+		writer, request, trace, workspacepolicy.PermissionMembershipsWrite,
 	)
 	if !ok {
 		return
@@ -219,7 +221,7 @@ func (server *Server) handleLocalIdentityAdminMembershipRevoke(writer http.Respo
 func (server *Server) handleLocalIdentityAdminRoleAssign(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminRoleAssignPath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationMutation(
-		writer, request, trace, localIdentityPermissionRolesAssign,
+		writer, request, trace, workspacepolicy.PermissionRolesAssign,
 	)
 	if !ok {
 		return
@@ -251,7 +253,7 @@ func (server *Server) handleLocalIdentityAdminRoleAssign(writer http.ResponseWri
 func (server *Server) handleLocalIdentityAdminRoleRevoke(writer http.ResponseWriter, request *http.Request) {
 	trace := newRequestTrace(request, localIdentityAdminRoleRevokePath)
 	_, administration, actor, ok := server.requireLocalIdentityAdministrationMutation(
-		writer, request, trace, localIdentityPermissionRolesAssign,
+		writer, request, trace, workspacepolicy.PermissionRolesAssign,
 	)
 	if !ok {
 		return

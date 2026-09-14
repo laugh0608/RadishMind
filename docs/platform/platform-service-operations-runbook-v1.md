@@ -1,6 +1,6 @@
 # 平台服务运行手册 v1
 
-更新时间：2026-08-30
+更新时间：2026-09-14
 
 ## 文档职责
 
@@ -27,7 +27,7 @@ GOCACHE=/tmp/radishmind-go-build-cache go vet ./...
 cd ../..
 ```
 
-集中覆盖率入口会以 `go test -count=1 -covermode=count -coverprofile=<temp> ./...` 生成语句覆盖率 profile，并分别约束 `internal/bridge` `75%`、`internal/config` `80%`、`internal/diagnostics` `85%`、`internal/httpapi` `70%`、`internal/secretbackend` `80%`、`internal/sqlitedev` `75%`。命令包装器和嵌入式 migration 资产不进入核心包预算；`internal/httpapi` 中名称带独立 `_postgres` token 的 PostgreSQL 专属实现会从核心单元覆盖率分母中精确排除，并在结果中报告排除语句数与文件数。对应 repository 行为仍由后文独立 PostgreSQL integration job 覆盖，不允许通过降低核心阈值或扩大文件匹配范围绕过。PR 与 release workflow 均执行覆盖率预算、race 和 vet。
+集中覆盖率入口会以 `go test -count=1 -covermode=count -coverprofile=<temp> ./...` 生成语句覆盖率 profile，并分别约束 `internal/bridge` `75%`、`internal/config` `80%`、`internal/diagnostics` `85%`、`internal/httpapi` `70%`、`internal/workspacepolicy` `70%`、`internal/secretbackend` `80%`、`internal/sqlitedev` `75%`。命令包装器和嵌入式 migration 资产不进入核心包预算；`internal/httpapi` 中名称带独立 `_postgres` token 的 PostgreSQL 专属实现会从核心单元覆盖率分母中精确排除，并在结果中报告排除语句数与文件数。对应 repository 行为仍由后文独立 PostgreSQL integration job 覆盖，不允许通过降低核心阈值或扩大文件匹配范围绕过。PR 与 release workflow 均执行覆盖率预算、race 和 vet。2026-09-14 提取的 `workspacepolicy` 纳入同一入口，原包阈值与 PostgreSQL 排除规则保持不变；迁移前后同时报告 `httpapi` 与策略包的语句分母，避免以代码移出产生虚假改善。
 
 从仓库根目录直接启动最小 mock 服务：
 

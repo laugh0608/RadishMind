@@ -1,6 +1,6 @@
 # 工程健康与产品化整改专题 v1
 
-更新时间：2026-09-09
+更新时间：2026-09-14
 
 状态：`remediation_v1_active_governance`
 
@@ -14,7 +14,7 @@
 
 本次复审确认：开发测试态功能、持久化、安全与版本边界已有连续实现；主要维护风险集中在公共入口承载过多职责、当前文档混入过期断言，以及用户收益和自动浏览器回归证据不足。统计口径、构建与测试结果集中在[2026-W36 周志](../devlogs/2026-W36.md#2026-09-06-全面审阅与文档收敛)。
 
-项目所有者已授权按审阅建议完善项目文档。本节承接后续方向和验收建议，不是模块迁移、依赖安装、CI 变更、服务启动、真实 Provider 或部署授权。R2 至 R6 保持完成；邀请批次 E 已于 2026-09-08 独立获授权并完成，2026-09-09 另行获批收敛前端草案库与 Designer 状态归属，范围与验收见[草案库专题](../features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md#草案前端状态归属收敛)。随后另行批准三条 Workflow 自动浏览器回归及现有 PR / Release CI 接入，实施范围见下节。身份 / 成员领域已完成依赖盘点与[包边界方案](#身份与成员领域包边界方案待实施)，首个策略切片已安排次日实施；实际迁移尚未开始。其它候选未因此自动启动，不创建 R7、平行任务卡或新增 checker。
+项目所有者已授权按审阅建议完善项目文档。本节承接后续方向和验收建议，不是模块迁移、依赖安装、CI 变更、服务启动、真实 Provider 或部署授权。R2 至 R6 保持完成；邀请批次 E 已于 2026-09-08 独立获授权并完成，2026-09-09 另行获批收敛前端草案库与 Designer 状态归属，范围与验收见[草案库专题](../features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md#草案前端状态归属收敛)。随后另行批准三条 Workflow 自动浏览器回归及现有 PR / Release CI 接入，实施范围见下节。身份 / 成员领域已完成依赖盘点与[包边界方案](#身份与成员领域包边界与实现)，首个策略切片已于 2026-09-14 获授权实施，代码、独立策略与双数据库回归已完成。其它候选未因此自动启动，不创建 R7、平行任务卡或新增 checker。
 
 ### 当前判断
 
@@ -70,11 +70,11 @@ Linux CI 使用 `npx playwright install --with-deps --only-shell chromium` 安�
 
 整改目标不是扩大项目范围，而是把已经形成的平台、Workflow、Gateway、评测和安全能力收束成可维护、可复验、可持续迭代的产品基线。
 
-## 身份与成员领域包边界方案（待实施）
+## 身份与成员领域包边界与实现
 
-2026-09-09 以 `e26cad12` 为盘点基线。目标是让工作区权限与内建角色策略能够独立修改、编译和测试，并让 HTTP、身份管理及邀请事务消费同一个策略来源。本节是可审阅方案；拟新增的包尚不存在，不表示身份领域已完成拆分。
+2026-09-09 以 `e26cad12` 为方案盘点基线；2026-09-14 已按项目所有者授权实施首个策略切片并完成双数据库回归。`internal/workspacepolicy` 已集中工作区权限与内建角色目录，HTTP、身份管理及邀请事务直接消费同一策略来源。身份记录、应用服务与仓储事务继续留在 `httpapi`；本节不表示整个身份领域已拆分。验证记录见[2026-W38 周志](../devlogs/2026-W38.md)。
 
-### 当前依赖与事务边界
+### 迁移前依赖与保留的事务边界
 
 | 职责 | 当前代码落点（均在 `services/platform/internal/httpapi/`） | 已确认的边界 |
 | --- | --- | --- |
@@ -91,29 +91,29 @@ Linux CI 使用 `npx playwright install --with-deps --only-shell chromium` 安�
 
 ### 首个切片：工作区权限与内建角色策略
 
-拟新增 `services/platform/internal/workspacepolicy/`，只依赖 Go 标准库。按职责放置 `permissions.go`、`role_catalog.go` 及对应测试；包名只表达工作区策略，不承接登录、Session、成员状态或通用散列工具。
+已新增 `services/platform/internal/workspacepolicy/`，只依赖 Go 标准库。按职责放置 `permissions.go`、`role_catalog.go` 及对应测试；包名只表达工作区策略，不承接登录、Session、成员状态或通用散列工具。
 
 ```mermaid
 flowchart LR
-  H["httpapi：HTTP 与请求授权"] --> P["拟新增 workspacepolicy：权限与角色目录"]
+  H["httpapi：HTTP 与请求授权"] --> P["workspacepolicy：权限与角色目录"]
   S["httpapi：身份管理与邀请服务"] --> P
   R["httpapi：既有仓储与事务规则"] --> P
   H --> S
   S --> R
 ```
 
-图中只有 `workspacepolicy` 是新增包；其余节点仍在现有 `httpapi` 包内。新包不导入 `httpapi`、`net/http`、SQL、配置或 migration 包，不引入新的服务对象、repository factory 或生命周期。
+图中只有 `workspacepolicy` 是本次新增包；其余节点仍在现有 `httpapi` 包内。新包不导入 `httpapi`、`net/http`、SQL、配置或 migration 包，不引入新的服务对象、repository factory 或生命周期。
 
 | 迁出内容 | 新包职责与调用方式 | 留在原处的内容 |
 | --- | --- | --- |
-| permission allowlist 与管理权限常量 | 私有目录；提供排序后的名称副本、请求权限规范化、grants 合法性及是否包含管理权限的判断 | Header / signed-test claim 解析、Session scope 交接、HTTP 失败映射 |
+| permission allowlist 与管理权限常量 | 私有目录；提供排序后的名称副本、请求权限规范化、grants 合法性、是否包含任一管理权限及是否具备全部管理权限的精确判断 | Header / signed-test claim 解析、Session scope 交接、HTTP 失败映射 |
 | 四角色与 canonical catalog | `RoleDefinition`、`RoleCatalog`、`BuiltInRoleCatalog()` 与 `BuiltInRole()`；schema、JSON tags、排序、grants 和 digest 保持一致 | 基于 actor 的目录读取授权、响应 envelope、assignment 与 invitation projection |
 | 角色 grants 合并、目录 digest 与深复制 | 作为策略包私有实现；不暴露可变 map / slice，不导出通用 hash API | `localIdentityDigest` 的 cursor / audit 使用、`isLowerHex` 及 identity record 校验 |
 | 纯策略测试 | 迁入新包，独立验证固定目录与权限处理 | HTTP、身份安全、成员管理和邀请的组合测试继续保留 |
 
-`localIdentityAssignmentCanManage` 的 lifecycle / expiry 判断、assignment 元数据合法性和目录漂移判断仍随身份记录留在 `httpapi`，仅直接读取新包策略。目录文件须按职责拆开，不能整文件移动后反向导入 `httpapi`。目录 digest 在新包保留相同算法的私有实现，cursor / audit 继续由现有身份代码处理，不因散列算法相同建立跨领域策略依赖。
+`localIdentityAssignmentCanManage` 的 lifecycle / expiry 判断、assignment 元数据合法性和目录漂移判断仍随身份记录留在 `httpapi`，仅直接读取新包策略；完整管理权限判断由 `HasManagementPermissions` 承载，保持原有精确字符串匹配。目录文件须按职责拆开，不能整文件移动后反向导入 `httpapi`。目录 digest 在新包保留相同算法的私有实现，cursor / audit 继续由现有身份代码处理，不因散列算法相同建立跨领域策略依赖。
 
-调用点一次性改为导入新包；不保留只转发的新旧函数、长期 type alias 或两份 grants 目录。盘点未发现 `httpapi` 之外的 Go 代码消费现有角色目录导出符号；实施前再次确认这一点。依赖方向由 Go 编译约束，不能为了复用旧测试 fixture 引入反向依赖。
+调用点一次性改为导入新包；不保留只转发的新旧函数、长期 type alias 或两份 grants 目录。实施前已再次确认 `httpapi` 之外没有 Go 代码消费原角色目录导出符号。依赖方向由 Go 编译约束，不能为了复用旧测试 fixture 引入反向依赖。
 
 ### 必须保持的行为
 
@@ -127,16 +127,16 @@ flowchart LR
 1. 先以现有目录合同和权限规范化测试记录行为基线；提取纯策略实现与测试，再切换全部调用点。新包需在不编译 HTTP、数据库和模型执行代码的情况下单独运行测试。
 2. 独立测试检查目录 / 单角色返回值均不可修改 canonical 数据、角色查找、固定 digest、四角色关系、未知 / 空权限、重复 grants、请求去重顺序及管理权限隔离；已有组合测试不缩减。
 3. 定向执行身份授权、成员管理、邀请的 memory / SQLite 与 HTTP 测试，再执行现有 Platform 全量 race / vet。PostgreSQL 使用现有 `postgres_integration` 产品测试验证目录派生、角色撤销、最后管理员、原子认领、并发单胜者与重启；未启动数据库或被 skip 的用例不能记为通过。
-4. `scripts/checks/platform/check_platform_core_coverage.py` 当前仅统计六个显式包，新包会被忽略。实施时在同一个 checker 中加入 `internal/workspacepolicy`，承接原 `httpapi` 的 `70%` 语句覆盖率下限；原 `httpapi` 及其它阈值不降低，报告迁移前后分母与覆盖率，不以移出已覆盖代码制造改善。此预算映射属于本切片实现范围，尚未修改，不新增 checker。
+4. `scripts/checks/platform/check_platform_core_coverage.py` 原来仅统计六个显式包；本次在同一个 checker 中加入 `internal/workspacepolicy`，承接原 `httpapi` 的 `70%` 语句覆盖率下限；原 `httpapi` 及其它阈值不降低，报告迁移前后分母与覆盖率，不以移出已覆盖代码制造改善。预算映射与既有解析测试已同步修改，不新增 checker。
 5. 现有 Go CI 的 `./...` 会发现新包，覆盖率入口复用原 job；不新增 CI job、浏览器框架或依赖。完成后同步架构实际代码映射、身份管理专题、覆盖率说明与周志，运行全量仓库检查。
 
 完成标准是策略具有单一归属、能独立测试，所有原调用方仍遵守相同权限与事务合同；不以减少文件行数或让 `httpapi` 目录变小作为通过依据。
 
 ### 实施范围与停止线
 
-项目所有者已在 2026-09-09 日终将上面的首个切片、调用点迁移、必要测试及既有覆盖率映射安排到次日实施，详见[明日事项](../devlogs/2026-W37.md#2026-09-10-明日事项)。今天不开始代码迁移。成员记录、应用服务、memory snapshot 与 SQL 仓储的进一步拆分在本切片完成后重新评估；当前不设必须连续实施的后续批次。
+项目所有者在 2026-09-09 日终安排首个切片，2026-09-14 恢复并明确授权实施；原交接见[明日事项](../devlogs/2026-W37.md#2026-09-10-明日事项)。本次代码迁移、调用点与覆盖率映射已落地。成员记录、应用服务、memory snapshot 与 SQL 仓储的进一步拆分在本切片完成后重新评估；当前不设必须连续实施的后续批次。
 
-本轮只完成只读代码盘点、定向基线验证与文档方案，不启动 Docker、长期服务、真实 Provider 或数据库迁移。后续 PostgreSQL 验收需按运行约定明确容器、端口与清理授权；授权前不把双数据库验收写成完成。若实施必须改变事务、身份敏感字段可见性或对外契约，先更新方案与范围。
+迁移前后 Platform 普通测试、策略独立测试与 race / vet 已通过；覆盖率预算与仓库全量检查亦通过。PostgreSQL 在本任务获得独立授权后完成四项既有身份 / 成员 / 邀请集成测试，零失败、零跳过；临时容器已删除，端口已释放，详细结果见[本周周志](../devlogs/2026-W38.md)。本切片完成，进一步包迁移仍按实际维护问题重新评估。若实施必须改变事务、身份敏感字段可见性或对外契约，先更新方案与范围。
 
 ## 审阅范围与基线
 

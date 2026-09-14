@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 func TestWorkspaceInvitationCodePolicyAndCanonicalProjection(t *testing.T) {
@@ -39,7 +41,7 @@ func TestWorkspaceInvitationCodePolicyAndCanonicalProjection(t *testing.T) {
 	}
 
 	now := time.Date(2026, 9, 2, 8, 0, 0, 0, time.UTC)
-	definition, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	definition, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	invitation := WorkspaceInvitation{
 		SchemaVersion: workspaceInvitationSchemaVersion, InvitationID: invitationID, RecordVersion: 1,
 		TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", RoleKey: definition.RoleKey,
@@ -82,16 +84,16 @@ func TestWorkspaceInvitationTTLRoleAndFailureContracts(t *testing.T) {
 		t.Fatal("arbitrary invitation TTL was accepted")
 	}
 	for _, roleKey := range []string{
-		localIdentityRoleWorkspaceReader,
-		localIdentityRoleWorkspaceBuilder,
-		localIdentityRoleWorkspaceReviewer,
+		workspacepolicy.RoleWorkspaceReader,
+		workspacepolicy.RoleWorkspaceBuilder,
+		workspacepolicy.RoleWorkspaceReviewer,
 	} {
-		definition, exists := builtInLocalIdentityRole(roleKey)
+		definition, exists := workspacepolicy.BuiltInRole(roleKey)
 		if !exists || !workspaceInvitationRoleEligible(definition) {
 			t.Fatalf("eligible invitation role was rejected: %s", roleKey)
 		}
 	}
-	administrator, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceAdmin)
+	administrator, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceAdmin)
 	if workspaceInvitationRoleEligible(administrator) {
 		t.Fatal("workspace_admin became invitation-eligible")
 	}

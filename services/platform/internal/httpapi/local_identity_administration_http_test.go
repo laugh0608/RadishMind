@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type localIdentityAdministrationHTTPFixture struct {
@@ -27,7 +29,7 @@ func TestLocalIdentityAdministrationHTTPSevenRouteVerticalChain(t *testing.T) {
 	}
 	var catalogDocument localIdentityAdminRoleCatalogResponse
 	decodeLocalIdentityHTTPResponse(t, catalogResponse, &catalogDocument)
-	reader := roleDefinitionByKey(t, catalogDocument.Catalog, localIdentityRoleWorkspaceReader)
+	reader := roleDefinitionByKey(t, catalogDocument.Catalog, workspacepolicy.RoleWorkspaceReader)
 
 	membershipResponse := fixture.request(t, http.MethodPost, strings.Replace(
 		localIdentityAdminMembershipCreatePath, "{workspace_id}", "workspace_demo", 1,
@@ -132,8 +134,8 @@ func TestLocalIdentityAdministrationHTTPSevenRouteVerticalChain(t *testing.T) {
 
 func TestLocalIdentityAdministrationHTTPAuthenticationAndMutationGuards(t *testing.T) {
 	fixture := newLocalIdentityAdministrationHTTPFixture(t)
-	catalog := LocalIdentityBuiltInRoleCatalog()
-	reader := roleDefinitionByKey(t, catalog, localIdentityRoleWorkspaceReader)
+	catalog := workspacepolicy.BuiltInRoleCatalog()
+	reader := roleDefinitionByKey(t, catalog, workspacepolicy.RoleWorkspaceReader)
 	membershipPath := strings.Replace(localIdentityAdminMembershipCreatePath, "{workspace_id}", "workspace_demo", 1)
 
 	unauthenticated := fixture.request(t, http.MethodPost, membershipPath, map[string]any{
@@ -182,12 +184,12 @@ func TestLocalIdentityAdministrationHTTPAuthenticationAndMutationGuards(t *testi
 
 	grantsInjection := fixture.request(t, http.MethodPost, membershipPath, map[string]any{
 		"user_id": fixture.target.Account.UserID, "confirmed": true,
-		"permission_grants": []string{localIdentityPermissionRolesAssign},
+		"permission_grants": []string{workspacepolicy.PermissionRolesAssign},
 	}, fixture.adminCookies)
 	assertLocalIdentityError(t, grantsInjection, http.StatusBadRequest, "INVALID_JSON")
 	if _, err := fixture.identity.repository.AuthorizeWorkspace(
 		context.Background(), fixture.target.Account.UserID, "tenant_demo", "workspace_demo",
-		[]string{localIdentityPermissionMembersRead}, fixture.identity.service.nowUTC(),
+		[]string{workspacepolicy.PermissionMembersRead}, fixture.identity.service.nowUTC(),
 	); err == nil {
 		t.Fatal("grants injection created a membership")
 	}
@@ -253,7 +255,7 @@ func TestLocalIdentityAdministrationHTTPRequiresExactPermission(t *testing.T) {
 		localIdentityAdministrationRepository: underlying,
 		underlying:                            underlying,
 		userID:                                fixture.target.Account.UserID,
-		permission:                            localIdentityPermissionMembersRead,
+		permission:                            workspacepolicy.PermissionMembersRead,
 	}
 	fixture.identity.service.repository = repository
 	fixture.identity.server.localIdentityAdministrationService.repository = repository
@@ -429,7 +431,7 @@ func (fixture localIdentityAdministrationHTTPFixture) createTargetMembership(t *
 	return document.Membership
 }
 
-func roleDefinitionByKey(t *testing.T, catalog LocalIdentityRoleCatalog, roleKey string) LocalIdentityRoleDefinition {
+func roleDefinitionByKey(t *testing.T, catalog workspacepolicy.RoleCatalog, roleKey string) workspacepolicy.RoleDefinition {
 	t.Helper()
 	for _, definition := range catalog.Roles {
 		if definition.RoleKey == roleKey {
@@ -437,5 +439,5 @@ func roleDefinitionByKey(t *testing.T, catalog LocalIdentityRoleCatalog, roleKey
 		}
 	}
 	t.Fatalf("role %q is missing from catalog", roleKey)
-	return LocalIdentityRoleDefinition{}
+	return workspacepolicy.RoleDefinition{}
 }

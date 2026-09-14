@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 func localIdentityAdministrationScopeLockKey(tenantRef string, workspaceID string) int64 {
@@ -30,7 +32,7 @@ func buildLocalIdentityWorkspaceMemberSummary(
 				continue
 			}
 			roleSet[assignment.RoleKey] = struct{}{}
-			definition, known := builtInLocalIdentityRole(assignment.RoleKey)
+			definition, known := workspacepolicy.BuiltInRole(assignment.RoleKey)
 			if !known || !localIdentityRoleDefinitionMatchesAssignment(definition, assignment) {
 				drift = true
 			}

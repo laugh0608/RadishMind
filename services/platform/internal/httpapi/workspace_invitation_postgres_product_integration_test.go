@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"radishmind.local/services/platform/internal/workspacepolicy"
 	localidentitymigrations "radishmind.local/services/platform/migrations/local_identity_records"
 )
 
@@ -76,7 +77,7 @@ func TestWorkspaceInvitationConfiguredPostgresProduct(t *testing.T) {
 
 func runWorkspaceInvitationConfiguredHTTPRace(t *testing.T, fixture localIdentityAdministrationHTTPFixture) {
 	t.Helper()
-	role := roleDefinitionByKey(t, LocalIdentityBuiltInRoleCatalog(), localIdentityRoleWorkspaceReader)
+	role := roleDefinitionByKey(t, workspacepolicy.BuiltInRoleCatalog(), workspacepolicy.RoleWorkspaceReader)
 	creation := createWorkspaceInvitationOverHTTP(t, fixture, role, workspaceInvitationTTL1Hour)
 	const competitors = 8
 	requests := make([]*http.Request, competitors)

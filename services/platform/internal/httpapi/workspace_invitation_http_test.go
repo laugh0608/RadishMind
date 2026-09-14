@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 func TestWorkspaceInvitationHTTPFiveRouteVerticalChain(t *testing.T) {
@@ -18,13 +20,13 @@ func TestWorkspaceInvitationHTTPFiveRouteVerticalChain(t *testing.T) {
 
 func runWorkspaceInvitationHTTPVerticalChain(t *testing.T, fixture localIdentityAdministrationHTTPFixture) workspaceInvitationCreationHTTPResponse {
 	t.Helper()
-	builder := roleDefinitionByKey(t, LocalIdentityBuiltInRoleCatalog(), localIdentityRoleWorkspaceBuilder)
+	builder := roleDefinitionByKey(t, workspacepolicy.BuiltInRoleCatalog(), workspacepolicy.RoleWorkspaceBuilder)
 	creation := createWorkspaceInvitationOverHTTP(t, fixture, builder, workspaceInvitationTTL24Hours)
 	if creation.response.Header().Get("Cache-Control") != "no-store" {
 		t.Fatalf("create response is cacheable: %q", creation.response.Header().Get("Cache-Control"))
 	}
 	if creation.document.InvitationCode == "" ||
-		creation.document.Invitation.RoleKey != localIdentityRoleWorkspaceBuilder ||
+		creation.document.Invitation.RoleKey != workspacepolicy.RoleWorkspaceBuilder ||
 		creation.document.RequestID == "" {
 		t.Fatal("invitation creation projection mismatch")
 	}
@@ -56,7 +58,7 @@ func runWorkspaceInvitationHTTPVerticalChain(t *testing.T, fixture localIdentity
 	var preview workspaceInvitationPreviewHTTPResponse
 	decodeLocalIdentityHTTPResponse(t, previewResponse, &preview)
 	if preview.InvitationID != creation.document.Invitation.InvitationID || preview.TenantRef != "tenant_demo" ||
-		preview.WorkspaceID != "workspace_demo" || preview.Role.RoleKey != localIdentityRoleWorkspaceBuilder {
+		preview.WorkspaceID != "workspace_demo" || preview.Role.RoleKey != workspacepolicy.RoleWorkspaceBuilder {
 		t.Fatalf("invitation preview mismatch: %#v", preview)
 	}
 	assertWorkspaceInvitationHTTPSafePayload(t, previewResponse.Body.String(), false, creation.document.InvitationCode)
@@ -75,7 +77,7 @@ func runWorkspaceInvitationHTTPVerticalChain(t *testing.T, fixture localIdentity
 	decodeLocalIdentityHTTPResponse(t, claimResponse, &claimed)
 	if claimed.Invitation.EffectiveState != workspaceInvitationEffectiveClaimed || claimed.Membership == nil ||
 		claimed.RoleAssignment == nil || claimed.Membership.UserID != fixture.target.Account.UserID ||
-		claimed.RoleAssignment.RoleKey != localIdentityRoleWorkspaceBuilder {
+		claimed.RoleAssignment.RoleKey != workspacepolicy.RoleWorkspaceBuilder {
 		t.Fatalf("claim response did not return committed authorization refs: %#v", claimed)
 	}
 	assertWorkspaceInvitationHTTPSafePayload(t, claimResponse.Body.String(), false, creation.document.InvitationCode)
@@ -109,7 +111,7 @@ func runWorkspaceInvitationHTTPVerticalChain(t *testing.T, fixture localIdentity
 		t.Fatalf("claimed directory did not use canonical terminal refs: %#v", claimedPage)
 	}
 
-	reviewer := roleDefinitionByKey(t, LocalIdentityBuiltInRoleCatalog(), localIdentityRoleWorkspaceReviewer)
+	reviewer := roleDefinitionByKey(t, workspacepolicy.BuiltInRoleCatalog(), workspacepolicy.RoleWorkspaceReviewer)
 	revocable := createWorkspaceInvitationOverHTTP(t, fixture, reviewer, workspaceInvitationTTL1Hour)
 	revokePath := strings.NewReplacer(
 		"{workspace_id}", "workspace_demo", "{invitation_id}", revocable.document.Invitation.InvitationID,
@@ -131,7 +133,7 @@ func runWorkspaceInvitationHTTPVerticalChain(t *testing.T, fixture localIdentity
 
 func TestWorkspaceInvitationHTTPAuthenticationScopeCSRFAndEnumerationGuards(t *testing.T) {
 	fixture := newLocalIdentityAdministrationHTTPFixture(t)
-	reader := roleDefinitionByKey(t, LocalIdentityBuiltInRoleCatalog(), localIdentityRoleWorkspaceReader)
+	reader := roleDefinitionByKey(t, workspacepolicy.BuiltInRoleCatalog(), workspacepolicy.RoleWorkspaceReader)
 	creation := createWorkspaceInvitationOverHTTP(t, fixture, reader, workspaceInvitationTTL24Hours)
 	previewBody := map[string]any{"invitation_code": creation.document.InvitationCode}
 
@@ -247,7 +249,7 @@ func TestWorkspaceInvitationHTTPAuthenticationScopeCSRFAndEnumerationGuards(t *t
 		assertWorkspaceInvitationHTTPError(t, response, http.StatusBadRequest,
 			WorkspaceInvitationFailureInvalid, "reenter_invitation_code")
 		assertWorkspaceInvitationHTTPSafePayload(t, response.Body.String(), false, creation.document.InvitationCode)
-		for _, forbidden := range []string{"tenant_demo", "workspace_demo", localIdentityRoleWorkspaceReader, parts[0], parts[1]} {
+		for _, forbidden := range []string{"tenant_demo", "workspace_demo", workspacepolicy.RoleWorkspaceReader, parts[0], parts[1]} {
 			if strings.Contains(response.Body.String(), forbidden) {
 				t.Fatalf("invalid-code response leaked %q: %s", forbidden, response.Body.String())
 			}
@@ -273,7 +275,7 @@ func TestWorkspaceInvitationHTTPAuthenticationScopeCSRFAndEnumerationGuards(t *t
 
 func TestWorkspaceInvitationHTTPStrictPayloadQueryPermissionAndMethodBoundaries(t *testing.T) {
 	fixture := newLocalIdentityAdministrationHTTPFixture(t)
-	reader := roleDefinitionByKey(t, LocalIdentityBuiltInRoleCatalog(), localIdentityRoleWorkspaceReader)
+	reader := roleDefinitionByKey(t, workspacepolicy.BuiltInRoleCatalog(), workspacepolicy.RoleWorkspaceReader)
 	creation := createWorkspaceInvitationOverHTTP(t, fixture, reader, workspaceInvitationTTL24Hours)
 
 	injection := workspaceInvitationClaimantResponse(
@@ -329,7 +331,7 @@ func TestWorkspaceInvitationHTTPStrictPayloadQueryPermissionAndMethodBoundaries(
 
 	createPath := strings.Replace(workspaceInvitationAdminCreateRoute, "{workspace_id}", "workspace_demo", 1)
 	adminInvitation := fixture.request(t, http.MethodPost, createPath, map[string]any{
-		"role_key": localIdentityRoleWorkspaceAdmin, "expected_catalog_version": reader.CatalogVersion,
+		"role_key": workspacepolicy.RoleWorkspaceAdmin, "expected_catalog_version": reader.CatalogVersion,
 		"expected_role_definition_digest": reader.DefinitionDigest,
 		"ttl_policy":                      workspaceInvitationTTL24Hours, "confirmed": true,
 	}, fixture.adminCookies)
@@ -361,7 +363,7 @@ func TestWorkspaceInvitationHTTPStrictPayloadQueryPermissionAndMethodBoundaries(
 	underlying := fixture.identity.repository.(*memoryLocalIdentityRepository)
 	permissionRepository := &workspaceInvitationHTTPPermissionRepository{
 		localIdentityAdministrationRepository: underlying, underlying: underlying,
-		deniedPermission: localIdentityPermissionRolesRead,
+		deniedPermission: workspacepolicy.PermissionRolesRead,
 	}
 	fixture.identity.server.localIdentityAdministrationService.repository = permissionRepository
 	permissionDeniedList := fixture.request(t, http.MethodGet, strings.Replace(
@@ -370,12 +372,12 @@ func TestWorkspaceInvitationHTTPStrictPayloadQueryPermissionAndMethodBoundaries(
 	assertWorkspaceInvitationHTTPError(t, permissionDeniedList, http.StatusForbidden,
 		LocalIdentityFailurePermissionDenied, "refresh_active_workspace_authorization")
 	if !slices.Equal(permissionRepository.lastRequired, []string{
-		localIdentityPermissionMembersRead, localIdentityPermissionRolesRead,
+		workspacepolicy.PermissionMembersRead, workspacepolicy.PermissionRolesRead,
 	}) {
 		t.Fatalf("invitation list did not preauthorize the exact permission combination: %#v",
 			permissionRepository.lastRequired)
 	}
-	permissionRepository.deniedPermission = localIdentityPermissionRolesAssign
+	permissionRepository.deniedPermission = workspacepolicy.PermissionRolesAssign
 	permissionDeniedCreate := fixture.request(t, http.MethodPost, methodPath, map[string]any{
 		"role_key": reader.RoleKey, "expected_catalog_version": reader.CatalogVersion,
 		"expected_role_definition_digest": reader.DefinitionDigest,
@@ -384,7 +386,7 @@ func TestWorkspaceInvitationHTTPStrictPayloadQueryPermissionAndMethodBoundaries(
 	assertWorkspaceInvitationHTTPError(t, permissionDeniedCreate, http.StatusForbidden,
 		LocalIdentityFailurePermissionDenied, "refresh_active_workspace_authorization")
 	if !slices.Equal(permissionRepository.lastRequired, []string{
-		localIdentityPermissionMembershipsWrite, localIdentityPermissionRolesAssign,
+		workspacepolicy.PermissionMembershipsWrite, workspacepolicy.PermissionRolesAssign,
 	}) {
 		t.Fatalf("invitation create did not preauthorize the exact permission combination: %#v",
 			permissionRepository.lastRequired)
@@ -421,7 +423,7 @@ type workspaceInvitationHTTPCreateResult struct {
 func createWorkspaceInvitationOverHTTP(
 	t *testing.T,
 	fixture localIdentityAdministrationHTTPFixture,
-	role LocalIdentityRoleDefinition,
+	role workspacepolicy.RoleDefinition,
 	ttlPolicy string,
 ) workspaceInvitationHTTPCreateResult {
 	t.Helper()

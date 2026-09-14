@@ -12,6 +12,7 @@ import (
 	"time"
 
 	modernsqlite "modernc.org/sqlite"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type sqliteLocalIdentityRepository struct {
@@ -457,7 +458,7 @@ func (repository *sqliteLocalIdentityRepository) CreateRoleAssignment(ctx contex
 		return errLocalIdentityStoreUnavailable
 	}
 	if !ok || assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" ||
-		localIdentityContainsManagementPermission(grants) ||
+		workspacepolicy.ContainsManagementPermission(grants) ||
 		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}

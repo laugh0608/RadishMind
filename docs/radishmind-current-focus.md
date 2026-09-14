@@ -1,10 +1,10 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-09-09
+更新时间：2026-09-14
 
 ## 文档职责
 
-本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W37 周志](devlogs/2026-W37.md)。
+本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W38 周志](devlogs/2026-W38.md)。
 
 正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
@@ -12,10 +12,10 @@
 
 - 当前成熟度为**内部开发者预览**。Workflow、应用运行与评测、Gateway、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实 Provider、团队试用或生产运行已通过验收。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
-- 2026-09-09 已修复 SQLite / mock Workflow 主链阻塞、完成草案前端状态归属收敛与 Workspace 响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[本周周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或生产验收。
-- 项目所有者已将[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界方案待实施)安排到 **2026-09-10**：提取工作区权限与内建角色策略，保留既有身份、成员和邀请事务。今天只完成方案与文档，实际包迁移尚未开始；恢复任务时按[明日事项](devlogs/2026-W37.md#2026-09-10-明日事项)推进。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
+- 2026-09-09 已修复 SQLite / mock Workflow 主链阻塞、完成草案前端状态归属收敛与 Workspace 响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或生产验收。
+- 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、memory / SQLite / HTTP、Platform 全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
-- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片已安排，进一步迁移与内部使用验证仍为候选，问题、依赖与验收见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
+- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移与内部使用验证仍为候选，问题、依赖与验收见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
 ## 下一顺位的选择
@@ -25,7 +25,7 @@
 | 顺序 | 候选工作 | 进入条件与结果 |
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
-| 2 | 实施后端首个迁移切片 | 权限与内建角色策略范围已选定并安排明日推进；保护既有身份、成员与邀请事务，实际迁移尚未开始 |
+| 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
 | 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；新流程扩围先确定用户收益和环境边界，依赖、服务和 CI 变更按任务授权 |
 | 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / Provider、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |

@@ -11,12 +11,12 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -235,7 +235,7 @@ func (service *localIdentityHTTPService) authenticateRequest(request *http.Reque
 	}
 	tenantRef, tenantValid := selectedLocalIdentityTenant(request)
 	actorRef, _ := LocalUserActorRef(account.UserID)
-	scopes := localIdentityControlPlaneScopeCandidates()
+	scopes := workspacepolicy.PermissionNames()
 	identity := &VerifiedControlPlaneIdentity{
 		AuthSource: localIdentityAuthMode, IssuerRef: "issuer:radishmind-local", SubjectRef: actorRef,
 		TenantRef: tenantRef, ScopeGrants: append([]string(nil), scopes...), IssuedAt: session.CreatedAt,
@@ -751,15 +751,6 @@ func selectedLocalIdentityTenant(request *http.Request) (string, bool) {
 	}
 	value := strings.TrimSpace(values[0])
 	return value, len(values) == 1 && validControlPlaneReadAuthReference(value, false)
-}
-
-func localIdentityControlPlaneScopeCandidates() []string {
-	scopes := make([]string, 0, len(workspacePermissionAllowlist))
-	for scope := range workspacePermissionAllowlist {
-		scopes = append(scopes, scope)
-	}
-	slices.Sort(scopes)
-	return scopes
 }
 
 func deriveLocalIdentityCSRFToken(rawCredential string) string {

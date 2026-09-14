@@ -1,12 +1,12 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-09-09
+更新时间：2026-09-14
 
 ## 读取口径
 
 当前成熟度为**内部开发者预览**。本矩阵区分实现、验证环境、外部验证和生产边界；`completed` 只关闭对应专题范围，不自动升级平台成熟度。
 
-表中“已有证据”引用对应专题的实际验收，未重新执行的历史链不视为本次复验。邀请双数据库验收、Workflow 主链修正、前端状态收敛与三条自动浏览器回归见[本周周志](devlogs/2026-W37.md)，此前全面审阅见[2026-W36](devlogs/2026-W36.md)。
+表中“已有证据”引用对应专题的实际验收，未重新执行的历史链不视为本次复验。邀请双数据库验收、Workflow 主链修正、前端状态收敛与三条自动浏览器回归见[2026-W37 周志](devlogs/2026-W37.md)，本次策略包提取与回归见[2026-W38 周志](devlogs/2026-W38.md)；此前全面审阅见[2026-W36](devlogs/2026-W36.md)。
 
 ## 当前能力
 
@@ -22,7 +22,7 @@
 | 通用 Session / Checkpoint | metadata-only 契约与只读 shell；与应用 Session / Turn 区分 | 通用 durable checkpoint、长期记忆、跨轮恢复执行器 | [架构](radishmind-architecture.md) |
 | 图片产物 | fixture client → adapter → 一次性 binary delivery → 私有存储 coordinator 已完成；metadata-only response builder 独立存在 | 真实生图 backend、reference resolver、生产存储、public URL、HTTP / Gateway / Web 交付 | [图片专题](features/image-generation-artifact-return.md) |
 | 持久化与审计 | memory / SQLite / PostgreSQL 开发测试仓储、migration、CAS、scope、no fallback 与重启测试 | 生产数据库资源与运行验收；production secret backend 的 audit store 未因应用审计完成而成立 | [SQLite](platform/local-sqlite-dev-persistence-v1.md)、[运行手册](platform/platform-service-operations-runbook-v1.md) |
-| UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；三条 SQLite / mock Workflow 浏览器回归本地通过并接入 PR / Release；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留 | 新浏览器 CI 远端尚未运行，覆盖仅限 Chromium 的三条流程；部分模块覆盖率不等于全 UI；后端包迁移尚未实施 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
+| UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；三条 SQLite / mock Workflow 浏览器回归本地通过并接入 PR / Release；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 新浏览器 CI 远端尚未运行，覆盖仅限 Chromium 的三条流程；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
 | 部署与运维 | 本地 Console、启动入口、Docker 静态边界和历史本地容器 smoke | production secret、环境隔离、process supervisor、产品 Web 正式包装、真实镜像发布和恢复演练 | [部署说明](../deploy/README.md) |
 | 模型适配 | 原始 / 修复双轨、小规模 holdout 和 builder 审查记录 | raw 晋级、训练准入、稳定业务收益和生产模型声明 | [训练目录](../training/README.md) |
 | 外部业务接入 | RadishFlow / Radish 的协议、样例、candidate 与离线回归证据；Catalyst 文档预留 | 真实挂载点与验收环境未齐备，不建立模拟接入完成声明 | [集成入口](integrations/README.md) |

@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -72,7 +74,7 @@ func registerWorkspaceInvitationHTTPRoutes(mux *http.ServeMux, server *Server) {
 func (server *Server) handleWorkspaceInvitationAdminList(writer http.ResponseWriter, request *http.Request) {
 	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationAdminListRoute)
 	service, actor, ok := server.requireWorkspaceInvitationAdministrator(
-		writer, request, trace, false, localIdentityPermissionMembersRead, localIdentityPermissionRolesRead,
+		writer, request, trace, false, workspacepolicy.PermissionMembersRead, workspacepolicy.PermissionRolesRead,
 	)
 	if !ok {
 		return
@@ -96,7 +98,7 @@ func (server *Server) handleWorkspaceInvitationAdminList(writer http.ResponseWri
 func (server *Server) handleWorkspaceInvitationAdminCreate(writer http.ResponseWriter, request *http.Request) {
 	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationAdminCreateRoute)
 	service, actor, ok := server.requireWorkspaceInvitationAdministrator(
-		writer, request, trace, true, localIdentityPermissionMembershipsWrite, localIdentityPermissionRolesAssign,
+		writer, request, trace, true, workspacepolicy.PermissionMembershipsWrite, workspacepolicy.PermissionRolesAssign,
 	)
 	if !ok {
 		return
@@ -129,7 +131,7 @@ func (server *Server) handleWorkspaceInvitationAdminCreate(writer http.ResponseW
 func (server *Server) handleWorkspaceInvitationAdminRevoke(writer http.ResponseWriter, request *http.Request) {
 	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationAdminRevokeRoute)
 	service, actor, ok := server.requireWorkspaceInvitationAdministrator(
-		writer, request, trace, true, localIdentityPermissionMembershipsWrite, localIdentityPermissionRolesAssign,
+		writer, request, trace, true, workspacepolicy.PermissionMembershipsWrite, workspacepolicy.PermissionRolesAssign,
 	)
 	if !ok {
 		return

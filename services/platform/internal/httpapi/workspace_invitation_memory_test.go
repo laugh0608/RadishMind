@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type workspaceInvitationTestClock struct {
@@ -73,7 +75,7 @@ func createWorkspaceInvitationForTest(
 	ttlPolicy string,
 ) WorkspaceInvitationCreation {
 	t.Helper()
-	definition, exists := builtInLocalIdentityRole(roleKey)
+	definition, exists := workspacepolicy.BuiltInRole(roleKey)
 	if !exists {
 		t.Fatalf("missing role definition: %s", roleKey)
 	}
@@ -107,7 +109,7 @@ func TestMemoryWorkspaceInvitationCreatePreviewListAndRevoke(t *testing.T) {
 		workspaceInvitationTTL72Hours,
 		workspaceInvitationTTL7Days,
 	} {
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, ttlPolicy)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, ttlPolicy)
 		duration, _ := workspaceInvitationTTLDuration(ttlPolicy)
 		if !creation.Invitation.ExpiresAt.Equal(fixture.clock.read().Add(duration)) ||
 			creation.Invitation.EffectiveState != workspaceInvitationEffectivePending {
@@ -115,7 +117,7 @@ func TestMemoryWorkspaceInvitationCreatePreviewListAndRevoke(t *testing.T) {
 		}
 	}
 
-	definition, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceAdmin)
+	definition, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceAdmin)
 	_, err := fixture.service.Create(context.Background(), fixture.admin, WorkspaceInvitationCreateInput{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
 		RoleKey: definition.RoleKey, ExpectedCatalogVersion: definition.CatalogVersion,
@@ -136,7 +138,7 @@ func TestMemoryWorkspaceInvitationCreatePreviewListAndRevoke(t *testing.T) {
 	if !errors.Is(err, errWorkspaceInvitationRoleIneligible) {
 		t.Fatalf("unknown invitation role did not fail closed: %v", err)
 	}
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	_, err = fixture.service.Create(context.Background(), fixture.admin, WorkspaceInvitationCreateInput{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
 		RoleKey: reader.RoleKey, ExpectedCatalogVersion: reader.CatalogVersion,
@@ -154,14 +156,14 @@ func TestMemoryWorkspaceInvitationCreatePreviewListAndRevoke(t *testing.T) {
 	if err != nil || len(page.Invitations) != 4 || page.AsOf != fixture.clock.read() {
 		t.Fatalf("list pending invitations: count=%d as_of=%s err=%v", len(page.Invitations), page.AsOf, err)
 	}
-	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReviewer, workspaceInvitationTTL1Hour)
+	creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReviewer, workspaceInvitationTTL1Hour)
 	preview, err := fixture.service.Preview(context.Background(), fixture.claimant, creation.InvitationCode)
 	if err != nil {
 		t.Fatalf("preview invitation: %v", err)
 	}
 	if preview.InvitationID != creation.Invitation.InvitationID || preview.RecordVersion != 1 ||
 		preview.TenantRef != fixture.claimant.TenantRef || preview.WorkspaceID != fixture.admin.WorkspaceID ||
-		preview.Role.RoleKey != localIdentityRoleWorkspaceReviewer || preview.EffectiveState != workspaceInvitationEffectivePending {
+		preview.Role.RoleKey != workspacepolicy.RoleWorkspaceReviewer || preview.EffectiveState != workspaceInvitationEffectivePending {
 		t.Fatalf("preview projection drifted: %#v", preview)
 	}
 
@@ -192,7 +194,7 @@ func TestMemoryWorkspaceInvitationCreatePreviewListAndRevoke(t *testing.T) {
 
 func TestMemoryWorkspaceInvitationActorEligibilityFailsClosed(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	createInput := WorkspaceInvitationCreateInput{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
 		RoleKey: reader.RoleKey, ExpectedCatalogVersion: reader.CatalogVersion,
@@ -213,7 +215,7 @@ func TestMemoryWorkspaceInvitationActorEligibilityFailsClosed(t *testing.T) {
 		t.Fatalf("stale administrator authentication was accepted: %v", err)
 	}
 
-	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL1Hour)
+	creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL1Hour)
 	wrongTenant := fixture.claimant
 	wrongTenant.TenantRef = "tenant_other"
 	if _, err := fixture.service.Preview(context.Background(), wrongTenant, creation.InvitationCode); !errors.Is(err, errWorkspaceInvitationAccountIneligible) {
@@ -240,7 +242,7 @@ func TestMemoryWorkspaceInvitationActorEligibilityFailsClosed(t *testing.T) {
 
 func TestMemoryWorkspaceInvitationInvalidCodeUsesUniformFailure(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
-	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL1Hour)
+	creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL1Hour)
 	wrongCode, _, err := newWorkspaceInvitationCode(creation.Invitation.InvitationID)
 	if err != nil {
 		t.Fatalf("generate wrong secret: %v", err)
@@ -261,7 +263,7 @@ func TestMemoryWorkspaceInvitationInvalidCodeUsesUniformFailure(t *testing.T) {
 func TestMemoryWorkspaceInvitationCursorBindsFilterAndAsOf(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
 	for index := 0; index < 3; index++ {
-		createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL1Hour)
+		createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL1Hour)
 	}
 	first, err := fixture.service.List(context.Background(), fixture.admin, WorkspaceInvitationListQuery{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
@@ -312,7 +314,7 @@ func TestMemoryWorkspaceInvitationCursorBindsFilterAndAsOf(t *testing.T) {
 func TestMemoryWorkspaceInvitationCursorDoesNotFreezeAdministratorAuthorization(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
 	for index := 0; index < 2; index++ {
-		createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+		createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 	}
 	first, err := fixture.service.List(context.Background(), fixture.admin, WorkspaceInvitationListQuery{
 		TenantRef: fixture.admin.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
@@ -323,7 +325,7 @@ func TestMemoryWorkspaceInvitationCursorDoesNotFreezeAdministratorAuthorization(
 	}
 	fixture.repository.mu.Lock()
 	for assignmentID, assignment := range fixture.repository.roleAssignments {
-		if assignment.UserID == fixture.admin.UserID && assignment.RoleKey == localIdentityRoleWorkspaceAdmin {
+		if assignment.UserID == fixture.admin.UserID && assignment.RoleKey == workspacepolicy.RoleWorkspaceAdmin {
 			expiresAt := fixture.clock.read().Add(time.Hour)
 			assignment.ExpiresAt = &expiresAt
 			fixture.repository.roleAssignments[assignmentID] = assignment
@@ -341,14 +343,14 @@ func TestMemoryWorkspaceInvitationCursorDoesNotFreezeAdministratorAuthorization(
 
 func TestMemoryWorkspaceInvitationClaimCreatesExistingAuthorizationOwners(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
-	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceBuilder, workspaceInvitationTTL24Hours)
+	creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceBuilder, workspaceInvitationTTL24Hours)
 	mutation, err := claimWorkspaceInvitationForTest(fixture, creation)
 	if err != nil {
 		t.Fatalf("claim invitation: %v", err)
 	}
 	if mutation.Invitation.EffectiveState != workspaceInvitationEffectiveClaimed ||
 		mutation.Invitation.ClaimedByUserID != fixture.claimant.UserID || mutation.Membership == nil ||
-		mutation.RoleAssignment == nil || mutation.RoleAssignment.RoleKey != localIdentityRoleWorkspaceBuilder {
+		mutation.RoleAssignment == nil || mutation.RoleAssignment.RoleKey != workspacepolicy.RoleWorkspaceBuilder {
 		t.Fatalf("claim mutation drifted: %#v", mutation)
 	}
 	authorization, err := fixture.repository.AuthorizeWorkspace(
@@ -389,7 +391,7 @@ func TestMemoryWorkspaceInvitationClaimCreatesExistingAuthorizationOwners(t *tes
 
 func TestMemoryWorkspaceInvitationClaimSingleWinnerAndAtomicCommit(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
-	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReviewer, workspaceInvitationTTL24Hours)
+	creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReviewer, workspaceInvitationTTL24Hours)
 	const contenders = 24
 	start := make(chan struct{})
 	results := make(chan error, contenders)
@@ -449,7 +451,7 @@ func TestMemoryWorkspaceInvitationClaimSingleWinnerAndAtomicCommit(t *testing.T)
 func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T) {
 	t.Run("expired invitation", func(t *testing.T) {
 		fixture := newWorkspaceInvitationTestFixture(t)
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL1Hour)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL1Hour)
 		fixture.clock.set(fixture.clock.read().Add(time.Hour))
 		fixture.claimant.AuthenticatedAt = fixture.clock.read()
 		beforeMemberships, beforeAssignments := workspaceInvitationOwnerCounts(fixture.repository)
@@ -464,7 +466,7 @@ func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T
 
 	t.Run("catalog drift", func(t *testing.T) {
 		fixture := newWorkspaceInvitationTestFixture(t)
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 		fixture.repository.mu.Lock()
 		stored := fixture.repository.workspaceInvitations[creation.Invitation.InvitationID]
 		stored.invitation.RoleCatalogVersion = "local_identity_builtin_roles_v1"
@@ -480,7 +482,7 @@ func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T
 
 	t.Run("repository corruption", func(t *testing.T) {
 		fixture := newWorkspaceInvitationTestFixture(t)
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 		fixture.repository.mu.Lock()
 		stored := fixture.repository.workspaceInvitations[creation.Invitation.InvitationID]
 		stored.invitation.UpdatedAt = time.Time{}
@@ -495,7 +497,7 @@ func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T
 
 	t.Run("unrevoked expired membership", func(t *testing.T) {
 		fixture := newWorkspaceInvitationTestFixture(t)
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 		createdAt := fixture.clock.read().Add(-2 * time.Hour)
 		expiresAt := fixture.clock.read().Add(-time.Hour)
 		membership := WorkspaceMembership{
@@ -516,8 +518,8 @@ func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T
 
 	t.Run("active role assignment invariant", func(t *testing.T) {
 		fixture := newWorkspaceInvitationTestFixture(t)
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
-		definition, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceBuilder)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
+		definition, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceBuilder)
 		assignment := LocalRoleAssignment{
 			SchemaVersion: localIdentitySchemaVersion, AssignmentID: "rla_0000000000000e02",
 			UserID: fixture.claimant.UserID, TenantRef: fixture.claimant.TenantRef, WorkspaceID: fixture.admin.WorkspaceID,
@@ -541,7 +543,7 @@ func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T
 
 	t.Run("version conflict", func(t *testing.T) {
 		fixture := newWorkspaceInvitationTestFixture(t)
-		creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+		creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 		beforeMemberships, beforeAssignments := workspaceInvitationOwnerCounts(fixture.repository)
 		_, err := fixture.service.Claim(context.Background(), fixture.claimant, WorkspaceInvitationClaimInput{
 			InvitationCode: creation.InvitationCode, ExpectedVersion: creation.Invitation.RecordVersion + 1,
@@ -556,7 +558,7 @@ func TestMemoryWorkspaceInvitationClaimFailureLeavesNoPartialWrites(t *testing.T
 
 func TestMemoryWorkspaceInvitationRevokedMembershipCanRejoin(t *testing.T) {
 	fixture := newWorkspaceInvitationTestFixture(t)
-	creation := createWorkspaceInvitationForTest(t, fixture, localIdentityRoleWorkspaceReader, workspaceInvitationTTL24Hours)
+	creation := createWorkspaceInvitationForTest(t, fixture, workspacepolicy.RoleWorkspaceReader, workspaceInvitationTTL24Hours)
 	createdAt := fixture.clock.read().Add(-time.Hour)
 	membership := WorkspaceMembership{
 		SchemaVersion: localIdentitySchemaVersion, MembershipID: "mbr_0000000000000a01",

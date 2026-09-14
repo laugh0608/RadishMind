@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type localIdentityWorkspaceMemberCursor struct {
@@ -134,7 +136,7 @@ func (repository *memoryLocalIdentityRepository) CreateWorkspaceMembershipForAdm
 		actorUserID,
 		membership.TenantRef,
 		membership.WorkspaceID,
-		localIdentityPermissionMembershipsWrite,
+		workspacepolicy.PermissionMembershipsWrite,
 		now,
 	); err != nil {
 		return err
@@ -174,7 +176,7 @@ func (repository *memoryLocalIdentityRepository) CreateCatalogRoleAssignment(
 	now = now.UTC()
 	grants, ok := normalizedPermissionGrants(assignment.PermissionGrants)
 	assignment.PermissionGrants = grants
-	definition, exists := builtInLocalIdentityRole(assignment.RoleKey)
+	definition, exists := workspacepolicy.BuiltInRole(assignment.RoleKey)
 	if !localUserIDPattern.MatchString(actorUserID) || now.IsZero() ||
 		!ok || !exists || assignment.WorkspaceID == "" || !validLocalRoleAssignment(assignment) ||
 		assignment.LifecycleState != localIdentityStateActive ||
@@ -188,7 +190,7 @@ func (repository *memoryLocalIdentityRepository) CreateCatalogRoleAssignment(
 		actorUserID,
 		assignment.TenantRef,
 		assignment.WorkspaceID,
-		localIdentityPermissionRolesAssign,
+		workspacepolicy.PermissionRolesAssign,
 		now,
 	); err != nil {
 		return err
@@ -246,7 +248,7 @@ func (repository *memoryLocalIdentityRepository) RevokeCatalogRoleAssignment(
 		actorUserID,
 		tenantRef,
 		workspaceID,
-		localIdentityPermissionRolesAssign,
+		workspacepolicy.PermissionRolesAssign,
 		revokedAt,
 	); err != nil {
 		return LocalRoleAssignment{}, err
@@ -296,7 +298,7 @@ func (repository *memoryLocalIdentityRepository) RevokeWorkspaceMembershipAndAss
 		actorUserID,
 		tenantRef,
 		workspaceID,
-		localIdentityPermissionMembershipsWrite,
+		workspacepolicy.PermissionMembershipsWrite,
 		revokedAt,
 	); err != nil {
 		return LocalIdentityWorkspaceMembershipRevocation{}, err
@@ -351,7 +353,7 @@ func (repository *memoryLocalIdentityRepository) BootstrapWorkspaceAdministrator
 	now = now.UTC()
 	membership := bootstrap.Membership
 	assignment := bootstrap.RoleAssignment
-	definition, exists := builtInLocalIdentityRole(localIdentityRoleWorkspaceAdmin)
+	definition, exists := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceAdmin)
 	if now.IsZero() || !validWorkspaceMembership(membership) || !validLocalRoleAssignment(assignment) ||
 		membership.LifecycleState != localIdentityStateActive || assignment.LifecycleState != localIdentityStateActive ||
 		membership.UserID != assignment.UserID || membership.TenantRef != assignment.TenantRef ||
@@ -515,7 +517,7 @@ func localIdentityRoleAssignmentView(
 	effective bool,
 	now time.Time,
 ) LocalIdentityWorkspaceRoleAssignmentView {
-	definition, known := builtInLocalIdentityRole(assignment.RoleKey)
+	definition, known := workspacepolicy.BuiltInRole(assignment.RoleKey)
 	drift := !known || !localIdentityRoleDefinitionMatchesAssignment(definition, assignment)
 	scope := "workspace"
 	if assignment.WorkspaceID == "" {

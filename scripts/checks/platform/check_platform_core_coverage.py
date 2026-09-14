@@ -18,6 +18,7 @@ CORE_COVERAGE_BUDGETS = {
     "internal/config": 80.0,
     "internal/diagnostics": 85.0,
     "internal/httpapi": 70.0,
+    "internal/workspacepolicy": 70.0,
     "internal/secretbackend": 80.0,
     "internal/sqlitedev": 75.0,
 }

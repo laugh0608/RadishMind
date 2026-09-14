@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const postgresWorkspaceInvitationSelect = `SELECT
@@ -76,7 +77,7 @@ func (repository *postgresLocalIdentityRepository) ListWorkspaceInvitations(
 	}
 	if err = snapshot.authorizeWorkspaceInvitationAdministratorLocked(
 		strings.TrimSpace(actorUserID), filter.TenantRef, filter.WorkspaceID, filter.authorizedAt,
-		localIdentityPermissionMembersRead, localIdentityPermissionRolesRead,
+		workspacepolicy.PermissionMembersRead, workspacepolicy.PermissionRolesRead,
 	); err != nil {
 		return WorkspaceInvitationPage{}, err
 	}

@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-09-09
+更新时间：2026-09-14
 
 ## 架构职责
 
@@ -15,6 +15,7 @@ RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，�
 | 产品 Web | `apps/radishmind-web/` | React + Vite + TypeScript；应用、Workflow、Gateway 和管理端用户流程 |
 | 本地运维 Console | `apps/radishmind-console/` | 平台发现、诊断与只读证据；不代替正式产品 Web |
 | Go Platform | `services/platform/` | HTTP、身份与权限、领域编排、持久化、配额、路由、运行与审计 |
+| 工作区策略 | `services/platform/internal/workspacepolicy/` | 标准库依赖的权限目录、四个内建角色、固定 digest 与独立策略测试；由 HTTP、身份服务和既有仓储直接消费 |
 | Bridge | `services/platform/internal/bridge/` | 默认四个受控 Python stdio worker；健康握手、有界排队、取消、超时、崩溃重建、优雅关闭和请求隔离 |
 | Python Gateway / Runtime | `services/gateway/`、`services/runtime/` | canonical 请求分发、Provider 适配、模型推理、规则与响应构建；`process_per_request` 保留显式回滚 |
 | 契约 | `contracts/`、`contracts/typescript/` | canonical schema、产品资源协议和跨语言消费合同 |
@@ -105,7 +106,7 @@ production secret resolver 与其 audit storage adapter 仍是后置边界；这
 
 2026-09-06 文档审阅建议先保护现有行为，再按一个领域逐步形成实际代码边界。候选包括身份 / 成员领域提取、前端工作流状态归属、严格消费者的版本兼容集中与关键浏览器回归。
 
-前端草案状态收敛与三条 Workflow 自动浏览器回归已分别完成，后者已接入 PR / Release 配置。Go 身份 / 成员领域当前仍在 `internal/httpapi`；已选定的首个切片将建立标准库依赖的 `internal/workspacepolicy`，集中权限目录与内建角色策略，保留身份记录、应用服务和仓储事务。该包尚未创建，部署形态、权限、API、schema 与数据库角色均未因此改变；依赖、迁移顺序和验收见[包边界方案](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界方案待实施)。
+前端草案状态收敛与三条 Workflow 自动浏览器回归已分别完成，后者已接入 PR / Release 配置。2026-09-14 已建立标准库依赖的 `internal/workspacepolicy`，集中权限目录与内建角色策略，并直接迁移调用点；身份记录、应用服务、assignment 生命周期与仓储事务继续保留在 `internal/httpapi`。新包不反向依赖 HTTP 或数据库，不增加转发层、角色来源或运行生命周期。部署形态、权限、API、schema 与数据库角色均未改变；具体边界和验收见[包边界与实现](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)。
 
 ## 契约与历史证据路由
 

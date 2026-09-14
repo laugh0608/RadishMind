@@ -15,6 +15,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"radishmind.local/services/platform/internal/workspacepolicy"
 	localidentitymigrations "radishmind.local/services/platform/migrations/local_identity_records"
 )
 
@@ -154,7 +155,7 @@ func TestLocalIdentityPostgresMigrationRepositoryRuntimeRoleRestartAndRollback(t
 		UserID: administrationState.Administrator.UserID, AuditRef: "audit:postgres-bootstrap-cli",
 	}
 	cliBootstrap, err := BootstrapLocalIdentityWorkspaceAdministratorDevTest(ctx, bootstrapOptions)
-	if err != nil || cliBootstrap.RoleKey != localIdentityRoleWorkspaceAdmin ||
+	if err != nil || cliBootstrap.RoleKey != workspacepolicy.RoleWorkspaceAdmin ||
 		cliBootstrap.UserID != administrationState.Administrator.UserID {
 		t.Fatalf("PostgreSQL explicit bootstrap coordinator mismatch: result=%#v err=%v", cliBootstrap, err)
 	}
@@ -330,7 +331,7 @@ func assertPostgresWorkspaceInvitationCorruptPayloadFailsClosed(
 			return "rla_0000000000005bad", nil
 		}
 	}
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	creation, err := service.Create(ctx, state.Administrator, WorkspaceInvitationCreateInput{
 		TenantRef: state.TenantRef, WorkspaceID: state.WorkspaceID, RoleKey: reader.RoleKey,
 		ExpectedCatalogVersion: reader.CatalogVersion, ExpectedRoleDefinitionDigest: reader.DefinitionDigest,

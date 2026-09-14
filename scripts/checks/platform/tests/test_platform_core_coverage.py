@@ -18,6 +18,8 @@ class PlatformCoreCoverageTest(unittest.TestCase):
                     "radishmind.local/services/platform/internal/httpapi/server.go:3.1,4.1 2 0",
                     "radishmind.local/services/platform/internal/httpapi/workflow_postgres_store.go:1.1,5.1 5 0",
                     "radishmind.local/services/platform/internal/bridge/bridge.go:1.1,3.1 4 2",
+                    "radishmind.local/services/platform/internal/workspacepolicy/permissions.go:1.1,3.1 6 2",
+                    "radishmind.local/services/platform/internal/workspacepolicy/role_catalog.go:1.1,3.1 2 0",
                 )
             )
         )
@@ -33,6 +35,12 @@ class PlatformCoreCoverageTest(unittest.TestCase):
         self.assertEqual(bridge.covered_statements, 4)
         self.assertEqual(bridge.total_statements, 4)
         self.assertEqual(bridge.excluded_statements, 0)
+
+        policy = summaries["internal/workspacepolicy"]
+        self.assertEqual(policy.covered_statements, 6)
+        self.assertEqual(policy.total_statements, 8)
+        self.assertEqual(policy.percentage, 75.0)
+        self.assertEqual(policy.excluded_statements, 0)
 
     def test_postgres_exclusion_is_scoped_by_package_and_filename_token(self) -> None:
         self.assertTrue(

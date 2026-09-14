@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 func (repository *postgresLocalIdentityRepository) CreateWorkspaceMembershipForAdministration(
@@ -53,7 +54,7 @@ func (repository *postgresLocalIdentityRepository) CreateCatalogRoleAssignment(
 	now = now.UTC()
 	grants, ok := normalizedPermissionGrants(assignment.PermissionGrants)
 	assignment.PermissionGrants = grants
-	definition, exists := builtInLocalIdentityRole(assignment.RoleKey)
+	definition, exists := workspacepolicy.BuiltInRole(assignment.RoleKey)
 	if !localUserIDPattern.MatchString(actorUserID) || now.IsZero() || !ok || !exists ||
 		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive ||
 		!assignment.CreatedAt.Equal(now) || !assignment.UpdatedAt.Equal(now) ||
@@ -206,7 +207,7 @@ func (repository *postgresLocalIdentityRepository) BootstrapWorkspaceAdministrat
 	now = now.UTC()
 	membership := bootstrap.Membership
 	assignment := bootstrap.RoleAssignment
-	definition, exists := builtInLocalIdentityRole(localIdentityRoleWorkspaceAdmin)
+	definition, exists := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceAdmin)
 	if now.IsZero() || !validWorkspaceMembership(membership) || !validLocalRoleAssignment(assignment) ||
 		membership.LifecycleState != localIdentityStateActive || assignment.LifecycleState != localIdentityStateActive ||
 		membership.UserID != assignment.UserID || membership.TenantRef != assignment.TenantRef ||

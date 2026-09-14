@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -301,7 +303,7 @@ func (s *Server) authorizeWorkspaceScopedPermissions(
 	request *http.Request,
 	requiredPermissions ...string,
 ) (controlPlaneReadAuthContext, string, int) {
-	permissions, valid := normalizeRequiredWorkspacePermissions(requiredPermissions)
+	permissions, valid := workspacepolicy.NormalizeRequiredPermissions(requiredPermissions)
 	if !valid {
 		return controlPlaneReadAuthContext{}, "workspace_permission_denied", http.StatusForbidden
 	}
