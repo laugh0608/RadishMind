@@ -8,17 +8,17 @@
 
 本专题把应用目录中已经允许声明的 `prompt_application` 建设为可创作、可审查、可激活、可调用和可复验的正式开发测试态产品能力。内部开发者可以在一个应用作用域内维护提示词模板源码、声明输入变量与输出契约、生成不可变模板版本，把精确版本绑定到既有应用发布候选，并在人工审查和显式运行时激活后通过 Application API 或 Application Interaction Session 受控调用。
 
-这不是为现有应用配置页增加一个自由文本输入框。提示词模板是可执行的应用源码，必须拥有独立领域、版本、摘要、权限、持久化和隐私边界；应用配置、发布候选、运行时 assignment、Gateway、Session、Run History 与 Evaluation 继续各自承担已有职责。
+这不是为现有应用配置页增加一个自由文本输入框。提示词模板是可执行的应用源码，必须拥有独立领域、版本、摘要、权限、持久化和隐私边界；应用配置、发布候选、运行绑定、Gateway、Session、Run History 与 Evaluation 继续各自承担已有职责。
 
 ## 专题启动前的现状与问题
 
-- Application Catalog 与 Application Configuration Draft 已允许 `prompt_application`，但专题启动前没有应用作用域的模板草案、模板版本、变量契约或运行时 authority。
+- Application Catalog 与 Application Configuration Draft 已允许 `prompt_application`，但专题启动前没有应用作用域的模板草案、模板版本、变量契约或运行授权依据。
 - Application Configuration Draft 明确不保存提示词、消息、用户输入或模型输出；把模板正文直接加入该 owner 会破坏现有脱敏配置边界。
 - Workflow Definition 支持 `prompt` 节点，但当前不可变定义保存的是节点结构、输入 / 输出摘要与引用，不是提示词源码真相源；不能把摘要字段解释为可执行模板正文。
 - Application Interaction Session 在专题启动时只支持 `workflow_definition_executor_v1` 与 `application_rag_invocation_v1`；批次 D 已新增独立 v2 Prompt profile，既有 v1 session 语义未放宽。
 - 仓库 `prompts/` 保存的是 RadishMind 自身的静态任务提示词，不属于用户应用资源，也不提供多租户、版本、审查或运行时绑定。
 
-因此，专题启动时 `prompt_application` 只是目录与配置允许值，并没有与产品声明相匹配的真实用户路径；批次 A 至批次 C 已依次补齐模板领域、持久化、配置 / 发布审查和显式 assignment，批次 D 已补齐受控调用与 metadata-only 审查链，产品界面由批次 E 承接。
+因此，专题启动时 `prompt_application` 只是目录与配置允许值，并没有与产品声明相匹配的真实用户路径；批次 A 至批次 C 已依次补齐模板领域、持久化、配置 / 发布审查和显式运行绑定，批次 D 已补齐受控调用与仅元数据的审查链，产品界面由批次 E 承接。
 
 ## 目标用户与主要任务
 
@@ -30,23 +30,23 @@
 4. 开发者从已保存且校验通过的精确草案版本生成不可变模板版本。
 5. 开发者把精确模板版本引用附着到新的 Application Configuration Draft 版本，不在配置草案中复制模板正文。
 6. 既有 Application Publish Candidate 创建路径生成绑定模板版本的候选；审查人读取精确模板版本完成批准、拒绝、要求修改或撤回。
-7. 批准不自动激活。具备独立权限的参与者显式创建或替换 Prompt Application runtime assignment。
-8. Application API key 或 Application Interaction Session 解析当前 assignment，重读完整 authority 后只委托一次既有 Gateway 调用。
-9. 用户从 Run History、Comparison、Evaluation 与 Application Operations 审查 metadata-only 运行证据；原始变量、渲染消息、模型输出和 provider raw response 不从运行记录恢复。
+7. 批准不自动激活。具备独立权限的参与者显式创建或替换 Prompt Application 运行绑定。
+8. Application API key 或 Application Interaction Session 解析当前 assignment，重读完整授权依据 后只委托一次既有 Gateway 调用。
+9. 用户从 Run History、Comparison、Evaluation 与 Application Operations 审查仅元数据的运行证据；原始变量、渲染消息、模型输出和提供方原始响应不从运行记录恢复。
 
 ## 领域所有权
 
-| 领域 | 真相源 / owner | 本专题中的职责 | 不允许承担的职责 |
+| 领域 | 真相源 / 负责模块 | 本专题中的职责 | 不允许承担的职责 |
 | --- | --- | --- | --- |
-| 应用身份与生命周期 | Application Catalog | 确认应用存在、作用域一致、类型为 `prompt_application` 且生命周期允许编辑或调用 | 不保存模板正文或运行时 assignment |
+| 应用身份与生命周期 | Application Catalog | 确认应用存在、作用域一致、类型为 `prompt_application` 且生命周期允许编辑或调用 | 不保存模板正文或运行绑定 |
 | 应用公开运行配置 | Application Configuration Draft | 保存协议、模型、允许协议与精确模板版本引用 | 不保存提示词正文、变量值、渲染消息或输出 |
-| 模板源码 | 新增 Prompt Application Template owner | 保存模板草案、变量声明、输出契约、CAS 版本和不可变模板版本 | 不保存 provider credential、运行输入、运行输出或发布决定 |
-| 应用发布审查 | 既有 Application Publish Candidate owner | 通过新 schema 版本绑定配置草案与精确模板版本，承担唯一人工审查状态机 | 不复制模板正文，不因批准自动激活或发布 |
-| 运行时激活 | 新增 Prompt Application Runtime Assignment owner | 保存当前已激活候选与模板版本的 ref-only 指针、CAS 和事件 | 不复制配置或模板快照，不调用 provider |
-| 模型调用 | 既有 Gateway | 执行协议适配、provider / profile / model 选择与单次上行调用 | 不管理模板草案、发布审查或 assignment |
-| 交互编排 | Application Interaction Session | 通过显式 Prompt profile 委托同一个 invocation service，维护 metadata-only session / turn | 不持久化 transcript，不复制渲染器或 Gateway 算法 |
-| 运行证据 | Workflow Run Store / Application Operations | 保存 authority、digest、状态、diagnostic、usage availability 和副作用计数 | 不保存变量、完整 prompt、answer 或 provider raw response |
-| 质量评测 | 既有 Evaluation owner | 对明确的 Prompt profile 与 exact template lineage 做只读比较和开发测试态评测 | 不修改模板、候选、assignment 或运行记录 |
+| 模板源码 | 新增提示词应用模板负责模块 | 保存模板草案、变量声明、输出契约、CAS 版本和不可变模板版本 | 不保存提供方凭据、运行输入、运行输出或发布决定 |
+| 应用发布审查 | 既有应用发布候选负责模块 | 通过新 schema 版本绑定配置草案与精确模板版本，承担唯一人工审查状态机 | 不复制模板正文，不因批准自动激活或发布 |
+| 运行时激活 | 新增提示词应用运行绑定负责模块 | 保存只包含当前已激活候选与模板版本引用的指针、CAS 和事件 | 不复制配置或模板快照，不调用提供方 |
+| 模型调用 | 既有 Gateway | 执行协议适配，选择提供方、配置档案和模型，并完成单次上行调用 | 不管理模板草案、发布审查或运行绑定 |
+| 交互编排 | Application Interaction Session | 通过显式 Prompt 执行档委托同一个调用服务，维护仅元数据的会话与轮次 | 不持久化 transcript，不复制渲染器或 Gateway 算法 |
+| 运行证据 | Workflow Run Store / Application Operations | 保存 authority、digest、状态、diagnostic、usage availability 和副作用计数 | 不保存变量、完整提示词、答案或提供方原始响应 |
+| 质量评测 | 既有评测负责模块 | 对明确的 Prompt profile 与精确模板版本来源链做只读比较和开发测试态评测 | 不修改模板、候选、assignment 或运行记录 |
 
 ## 模板领域模型
 
@@ -71,11 +71,11 @@
 
 - 未声明占位符、缺失必填变量和额外变量均失败关闭；
 - 每个变量只按声明类型做确定性规范化，不递归解释变量值中的占位符；
-- `string_list` 使用规范 JSON 数组文本渲染，其余标量使用明确的 canonical 表达；
-- 默认值属于模板源码，可以进入模板 owner，但不得包含 credential、token、header、cookie、DSN 或 provider secret；
+- `string_list` 使用规范 JSON 数组文本渲染，其余标量使用明确的规范化表达；
+- 默认值属于模板源码，可以进入模板负责模块，但不得包含 credential、token、header、cookie、DSN 或提供方密钥；
 - 模板、单条消息、变量数量、变量值和最终渲染请求必须有明确大小预算。
 
-受限语法只保证渲染行为可预测，不宣称解决 prompt injection。审查界面必须展示变量契约、模板源码和使用合成值生成的预览；真实运行值不得进入候选、审查记录或 committed 证据。
+受限语法只保证渲染行为可预测，不宣称解决 prompt injection。审查界面必须展示变量契约、模板源码和使用合成值生成的预览；真实运行值不得进入候选、审查记录或已提交证据。
 
 ### 输出契约
 
@@ -84,7 +84,7 @@
 - `text`：返回文本，受最大长度与空结果规则约束；
 - `json_object`：要求返回单个 JSON object，并按受控 JSON Schema 子集校验字段、类型、必填项和额外字段策略。
 
-输出不满足契约时运行失败，不自动修复、不追加第二次 provider 调用，也不降级为未校验文本。输出契约属于模板版本摘要的一部分。
+输出不满足契约时运行失败，不自动修复、不追加第二次提供方调用，也不降级为未校验文本。输出契约属于模板版本摘要的一部分。
 
 ### 不可变模板版本
 
@@ -121,80 +121,80 @@
 - 模板与应用作用域；
 - 模板变量和输出契约的有效状态。
 
-候选只保存模板 ref / digest，不复制模板正文。审查界面通过 Template owner 独立读取源码；源码不可用、digest 漂移、作用域漂移或应用类型改变时必须阻塞审查与运行资格。
+候选只保存模板 ref / digest，不复制模板正文。审查界面通过模板负责模块独立读取源码；源码不可用、digest 漂移、作用域漂移或应用类型改变时必须阻塞审查与运行资格。
 
-批准候选仍不代表正式发布，也不自动建立 runtime assignment。现有 v1 / v2 发布候选继续可读，不因 v3 引入而改写。
+批准候选仍不代表正式发布，也不自动建立运行绑定。现有 v1 / v2 发布候选继续可读，不因 v3 引入而改写。
 
 ## 运行时 assignment 与 exact authority
 
-`prompt_application_runtime_assignment.v1` 是 ref-only 当前运行指针，至少包含：
+`prompt_application_runtime_assignment.v1` 是 仅保存引用的当前运行指针，至少包含：
 
-- tenant / workspace / application / owner scope；
+- 租户、工作区、应用和所有者作用域；
 - `assignment_version` 与状态；
 - `candidate_id`、`candidate_review_version`；
 - `draft_id`、`draft_version`、`draft_digest`；
 - `template_id`、`template_version`、`template_digest`；
-- actor、request、audit 和时间引用。
+- 参与者、请求、审计和时间引用。
 
 只有当前 `approved`、未漂移且类型匹配的 v3 candidate 可以被显式 `activate | replace`；`revoke` 只撤销当前 assignment，不修改候选、配置草案或模板版本。所有动作使用 expected assignment version，事件只追加且不得保存模板正文。
 
-Prompt invocation service 在创建运行前和每次计划内 provider 调用前重读并比较 exact authority：
+提示词应用调用服务在创建运行前和每次计划内提供方调用前重读并比较精确授权依据：
 
 1. Application Catalog 当前记录、类型、生命周期与 revision；
-2. 当前 runtime assignment 与 CAS 版本；
-3. 精确 approved publish candidate v3 与 review version；
-4. 精确配置草案版本、digest 和 template binding；
-5. 精确模板版本、digest、变量契约与输出契约；
-6. 默认协议、模型及当前 Gateway model catalog eligibility；
-7. API key 或 Session actor 的应用 scope 与 `prompt_application:invoke` 权限。
+2. 当前运行绑定与 CAS 版本；
+3. 精确的已批准发布候选 v3 与审查版本；
+4. 精确配置草案版本、摘要和模板绑定；
+5. 精确模板版本、摘要、变量契约与输出契约；
+6. 默认协议、模型及当前 Gateway 模型目录资格；
+7. API key 或 Session actor 的应用作用域与 `prompt_application:invoke` 权限。
 
-任何漂移、缺失、归档、吊销、存储故障或权限变化都必须在 provider 副作用前失败关闭，不回退历史 assignment、旧候选、旧模板版本、默认 fixture 或内存存储。
+任何漂移、缺失、归档、吊销、存储故障或权限变化都必须在提供方副作用前失败关闭，不回退历史 assignment、旧候选、旧模板版本、默认 fixture 或内存存储。
 
 ## 受控调用与运行记录
 
-新增显式 execution profile `prompt_application_invocation_v1`。Application API key 路径和 Application Interaction Session 都委托同一个 invocation service：
+新增显式执行档 `prompt_application_invocation_v1`。应用 API 密钥路径和 Application Interaction Session 都委托同一个调用服务：
 
-- 每次 invocation 只允许一次计划内 Gateway provider 调用；
-- request 只提交变量值、client invocation key 和必要的 application scope，不能提交模板正文、版本、digest、provider credential 或 authority snapshot；
-- 服务端按 exact template version 渲染 canonical messages，再使用已批准配置中的协议和模型调用既有 Gateway；
-- 不复制 Gateway 协议适配、provider selection、取消或 request history 算法；
-- client invocation key 的同步或并发重试只能读取既有 running / terminal evidence，不重复调用 provider；
-- 取消映射为 `canceled`，provider 结果不确定或终态写入失败映射为 `outcome_unknown`，不得自动 replay。
+- 每次调用只允许一次计划内 Gateway 提供方调用；
+- 请求只提交变量值、客户端调用幂等键和必要的应用作用域，不能提交模板正文、版本、摘要、提供方凭据或授权依据快照；
+- 服务端按精确模板版本渲染规范化消息，再使用已批准配置中的协议和模型调用既有 Gateway；
+- 不复制 Gateway 协议适配、提供方选择、取消或请求历史算法；
+- client invocation key 的同步或并发重试只能读取既有运行中或终态的证据，不重复调用提供方；
+- 取消映射为 `canceled`，提供方结果不确定或终态写入失败映射为 `outcome_unknown`，不得自动重放。
 
-批次 A 必须冻结新的严格 authority、Session / Turn 和 run record schema 版本；既有 `application_runtime_authority.v1`、Application Session v1、Turn v1 与 workflow run v0–v5 不原地放宽。新的 metadata-only run lineage 至少保存：
+批次 A 必须冻结新的严格 authority、Session / Turn 和 run record schema 版本；既有 `application_runtime_authority.v1`、Application Session v1、Turn v1 与 workflow run v0–v5 不原地放宽。新的仅元数据运行记录来源链至少保存：
 
 - execution profile、application / assignment / candidate / draft / template refs 与 digest；
 - input digest / bytes、变量名集合摘要，不保存变量值；
 - requested / selected protocol、provider、profile 和 model；
 - started / completed time、status、failure code、diagnostic 与 usage availability；
 - provider / tool / retrieval / confirmation / business write / replay 副作用计数；
-- request、audit 和 actor ref。
+- request、audit 和参与者引用。
 
-原始变量、渲染消息、模板正文副本、模型输出和 provider raw response 只在当前请求内存中存在。成功响应可把当前输出返回调用方；幂等重试和历史读取不得根据 metadata 伪造输出或 transcript。
+原始变量、渲染消息、模板正文副本、模型输出和提供方原始响应只在当前请求内存中存在。成功响应可把当前输出返回调用方；幂等重试和历史读取不得根据元数据伪造输出或完整对话。
 
 ### Web 资格失败交接
 
-S8 的 Prompt Invocation 与 Prompt Session 继续把运行资格交给服务端 exact authority resolver，前端不根据已加载 assignment 摘要建立第二套 readiness 判定。Prompt Invocation 只有在服务端稳定返回 `prompt_runtime_assignment_not_found`、`prompt_runtime_candidate_ineligible` 或 `prompt_runtime_authority_changed` 时，才说明本次尝试在 Gateway / provider 调用前失败关闭，并提供 `#prompt-application-runtime-assignment` 精确入口。Prompt Session 只对 `application_session_authority_not_found`、`application_session_authority_changed` 或 `application_session_profile_ineligible` 提供相同交接。
+S8 的 Prompt Invocation 与 Prompt Session 继续把运行资格交给服务端精确授权依据解析器，前端不根据已加载 assignment 摘要建立第二套准入判定。Prompt Invocation 只有在服务端稳定返回 `prompt_runtime_assignment_not_found`、`prompt_runtime_candidate_ineligible` 或 `prompt_runtime_authority_changed` 时，才说明本次尝试在 Gateway / 提供方调用前失败关闭，并提供 `#prompt-application-runtime-assignment` 精确入口。Prompt Session 只对 `application_session_authority_not_found`、`application_session_authority_changed` 或 `application_session_profile_ineligible` 提供相同交接。
 
-该入口不携带 application ID、candidate ID、version 或 mutation 参数，只切换既有 Assignment owner；不能自动 activate、replace、revoke、重新签发 credential 或重试调用。scope、输入、传输、存储、响应契约、取消和 outcome unknown 等失败继续由原 owner 解释。
+该入口不携带 application ID、candidate ID、version 或 mutation 参数，只切换既有 运行绑定负责模块；不能自动 activate、replace、revoke、重新签发 credential 或重试调用。scope、输入、传输、存储、响应契约、取消和 outcome unknown 等失败继续由原负责模块解释。
 
 该交接已在 2026-08-09 进入共享 Web 组件与纯 view model 测试；真实浏览器同时确认 Prompt Invocation / Session 在没有允许列表内失败时不会显示伪恢复入口。
 
 ## Web 产品路径
 
-Prompt Application 工作区作为既有 Application Development Workspace 下的独立 feature-owned surface，至少覆盖：
+提示词应用工作区作为既有 Application Development Workspace 下由独立功能模块负责的界面，至少覆盖：
 
 1. Template 列表、创建、恢复和 CAS 冲突处理；
 2. 消息模板、变量及受限 JSON Schema 输出契约编辑；交互与验证范围见下节；
 3. 本地确定性校验与合成值预览；
 4. 不可变模板版本创建与精确版本详情；
-5. Template Version → Configuration Draft binding handoff；
+5. Template Version → Configuration Draft 绑定交接；
 6. Publish Candidate v3 源码审查、漂移与 blocker；
-7. runtime assignment 的显式 activate / replace / revoke；
+7. 运行绑定的显式 activate / replace / revoke；
 8. Prompt Application Session / 单次受控测试；
-9. exact Run History、Evaluation 与 Operations handoff。
+9. 运行历史、Evaluation 与 Operations 的精确交接。
 
-应用切换、revision 变化、归档、身份变化和 surface 卸载必须清除未保存模板、变量值、渲染预览、响应和迟到请求。稳定 URL 只允许阶段锚点与短资源标识，不携带模板源码、变量值或输出；不得使用 `localStorage`、`sessionStorage`、IndexedDB 或 cookie 恢复这些内容。
+应用切换、revision 变化、归档、身份变化和界面卸载必须清除未保存模板、变量值、渲染预览、响应和迟到请求。稳定 URL 只允许阶段锚点与短资源标识，不携带模板源码、变量值或输出；不得使用 `localStorage`、`sessionStorage`、IndexedDB 或 cookie 恢复这些内容。
 
 ### 结构化输出契约的 UI 编辑
 
@@ -210,16 +210,16 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 ### 真实 Provider 的消息与输出适配
 
-2026-09-14 的故障诊断试用接入核对发现，原 Python Runtime 将 Prompt 调用继续交给文档问答的消息 builder 与 CopilotResponse 归一化器：模板角色退化为问答资料，合法的应用 JSON 字段被丢弃。这是单语言替身未覆盖的传输衔接缺口，不改变此前开发测试态证据的范围，也不构成真实 Provider 验收。
+2026-09-14 的故障诊断试用接入核对发现，原 Python 运行时 将 Prompt 调用继续交给文档问答的消息构建器 与 CopilotResponse 归一化器：模板角色退化为问答资料，合法的应用 JSON 字段被丢弃。这是单语言替身未覆盖的传输衔接缺口，不改变此前开发测试态证据的范围，也不构成真实 Provider 验收。
 
 现有 `prompt-application-invocation-v1` 标记对应的适配由 `services/runtime/prompt_application_inference.py` 收口：
 
 - Go 继续持有模板验证、精确 authority、一次渲染、调用准入与最终输出契约校验。Python 只解码 `northbound_prompt` 中已渲染的消息，不再次解释变量或推断运行权限。
 - 同时核对既有 protocol、request kind、路由、平台上下文和禁用工具 / 检索 / 业务写入标记；消息仅允许现有 `system | developer | user`，拒绝重复字段、额外消息字段、错误类型和超预算。被识别为 Prompt 的无效请求不得降级为文档问答。
 - OpenAI 兼容传输保留消息角色和顺序；Gemini / Anthropic 将 `system` 与 `developer` 交给各自系统指令字段，用户内容保留为用户消息。
-- Provider 返回的非空、有界文本作为不透明内容放入既有 canonical `CopilotResponse.summary`；不新增 schema 字段，不抽取其中的摘要或 actions，不去除 JSON 围栏、不修补 JSON。外层 `status=ok` 只代表传输结果可以交回 Go，最终调用成功仍取决于模板输出契约。
+- 提供方返回的非空、有界文本作为不透明内容放入既有规范契约中的 `CopilotResponse.summary` 字段；不新增 schema 字段，不抽取其中的摘要或 actions，不去除 JSON 围栏、不修补 JSON。外层 `status=ok` 只代表传输结果可以交回 Go，最终调用成功仍取决于模板输出契约。
 - 外层 `proposed_actions=[]`、`confidence=0` 和 `requires_confirmation=false` 由 builder 固定，只描述没有平台候选动作及未评估质量，不能由答案正文中的同名字段改写，也不表示正文中的建议已获执行授权。
-- 普通文档问答、其它 Copilot 任务与未标记的北向接口继续使用原有处理路径。mock 输出仍只提供开发测试证据；不新增真实 Provider fallback、自动重试、输出持久化或业务写回。
+- 普通文档问答、其它 Copilot 任务与未标记的北向接口继续使用原有处理路径。mock 输出仍只提供开发测试证据；不新增真实提供方回退、自动重试、输出持久化或业务写回。
 
 ## API、存储和权限
 
@@ -232,26 +232,26 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 - Configuration binding：从精确 draft + template version 生成下一版配置草案；
 - Publish Candidate v3：复用既有 create / read / list / review 路由与状态机；
 - Runtime Assignment：read current、list events、activate / replace / revoke；
-- Invocation：API key 单次调用与 Application Session v2 profile 只委托唯一 invocation service；
+- Invocation：API key 单次调用与 Application Session v2 profile 只委托唯一调用服务；
 - Run / Evaluation：复用既有历史、详情、比较和评测入口，按 v6 lineage 显式识别且不重新执行。
 
-权限已经区分模板摘要读取、源码读取、写入、版本创建、配置绑定、assignment 读取与管理，以及独立 API key `prompt_application:invoke`；发布候选继续使用既有 write / review scope。`memory_dev`、聚合 `sqlite_dev` 与 `postgres_dev_test` 共享作用域、CAS、不可变版本、排序、失败和 no-fallback 语义；Runtime Assignment / Event、Session / Turn v2 与 Run v6 使用共享 Workflow runtime 下的独立 Prompt 投影。production repository、production auth 和正式发布继续关闭。
+权限已经区分模板摘要读取、源码读取、写入、版本创建、配置绑定、assignment 读取与管理，以及独立 API key `prompt_application:invoke`；发布候选继续使用既有 write / review scope。`memory_dev`、聚合 `sqlite_dev` 与 `postgres_dev_test` 共享作用域、CAS、不可变版本、排序、失败和不回退语义；Runtime Assignment / Event、Session / Turn v2 与 Run v6 使用共享 Workflow runtime 下的独立 Prompt 投影。生产存储库、生产认证和正式发布继续关闭。
 
 ## 稳定失败语义
 
 实施契约至少需要覆盖：
 
-- template scope / payload / secret material / syntax / variable / output contract invalid；
-- template draft not found / version conflict / store unavailable / write disabled；
-- template version not found / immutable conflict / digest drift；
-- configuration binding kind mismatch / source drift；
-- publish candidate template unavailable / review drift / superseded；
-- runtime assignment absent / version conflict / candidate ineligible / revoked；
-- model or protocol ineligible；
-- invocation input invalid / duplicate running / authority drift / canceled / outcome unknown；
-- output contract validation failed。
+- 模板作用域、请求载荷、敏感材料、语法、变量或输出契约无效；
+- 模板草案不存在、版本冲突、存储库不可用或写入功能未开启；
+- 模板版本不存在、不可变版本冲突或摘要漂移；
+- 配置绑定的应用类型不匹配或来源漂移；
+- 发布候选绑定的模板不可用、审查依据漂移或候选已被取代；
+- 运行绑定不存在、版本冲突、候选不合格或绑定已撤销；
+- 模型或协议不符合调用资格；
+- 调用输入无效、相同幂等键的调用仍在运行、授权依据漂移、调用已取消或结果不确定；
+- 输出契约校验失败。
 
-错误响应只返回稳定 failure code、脱敏 summary、当前可公开版本和 request / audit ref；不回显模板正文、变量值、渲染消息、模型输出、credential、token、header、endpoint、DSN 或 provider raw error。
+错误响应只返回稳定 failure code、脱敏 summary、当前可公开版本和 request / audit ref；不回显模板正文、变量值、渲染消息、模型输出、credential、token、header、endpoint、DSN 或提供方原始错误。
 
 ## 实施批次
 
@@ -259,20 +259,20 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 - 冻结 Template Draft / Version、配置 binding、Publish Candidate v3、Runtime Assignment、authority、Session / Turn 与 run lineage schema。
 - 实现模板领域校验、受限占位符 parser / renderer、输出契约 validator 和相邻单元测试。
-- 实现 memory repository、Template Draft / Version API、作用域、CAS、不可变版本和敏感材料守卫。
-- 形成高风险实施任务卡；批次 A 未通过前不打开 provider 调用。
+- 实现内存存储库、Template Draft / Version API、作用域、CAS、不可变版本和敏感材料守卫。
+- 形成高风险实施任务卡；批次 A 未通过前不打开提供方调用。
 
 ### 批次 B：SQLite / PostgreSQL 开发测试态持久化
 
-- 在共享本地产品 runtime 中加入模板与 assignment migration，不新增 DSN、pool 或 fallback。
-- 完成 SQLite / PostgreSQL repository、schema marker、manual migration、rollback / reapply、运行角色、重启、并发、corruption 和 no-fallback 验证。
+- 在共享本地产品运行时中加入模板与运行绑定迁移，不新增 DSN、连接池或回退。
+- 完成 SQLite / PostgreSQL 存储库、schema marker、手动迁移、回滚与重新应用、运行角色、重启、并发、数据损坏和不回退验证。
 - 数据库扫描证明运行变量、渲染消息、输出与 credential-like 材料不进入持久 owner。
 
 ### 批次 C：配置、发布审查与 runtime assignment
 
 - 实现 ref-only Configuration Draft binding 与 Publish Candidate v3。
-- 复用既有发布审查状态机，补 exact template reload、源码审查投影、漂移和 supersede 语义。
-- 实现 assignment activate / replace / revoke、事件、CAS 和 read-time eligibility；candidate approve 不自动激活。
+- 复用既有发布审查状态机，补精确模板重读、源码审查投影、漂移和 supersede 语义。
+- 实现 assignment activate / replace / revoke、事件、CAS 和读取时资格核验；candidate approve 不自动激活。
 
 完成证据：
 
@@ -285,18 +285,18 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 状态：`completed`；完成锚点为 `prompt_application_template_version_review_controlled_invocation_dev_test_v1_batch_d_completed`。
 
-- 实现 `prompt_application_invocation_v1` exact authority resolver 和 provider 前 checkpoint。
-- API key 与 Application Session 委托唯一 invocation service，单次调用既有 Gateway。
-- 接入新的 metadata-only run lineage、History / Detail / Comparison / Evaluation / Operations，并保持旧 lineage 兼容。
+- 实现 `prompt_application_invocation_v1` 精确授权依据解析器和提供方调用前检查点。
+- API key 与 Application Session 委托唯一调用服务，单次调用既有 Gateway。
+- 接入新的仅元数据运行记录来源链、History / Detail / Comparison / Evaluation / Operations，并保持旧 lineage 兼容。
 - 覆盖幂等、并发、取消、漂移、终态不确定、输出契约失败和零自动重放。
 
 实现记录：
 
-- 唯一 invocation service 在运行预留前解析完整 authority，并在计划内 Gateway 调用前再次重读 Application Catalog、当前 assignment、approved candidate v3、Configuration Draft v3、immutable Template Version 和协议 / 模型资格；漂移在 provider 副作用前失败关闭。
+- 唯一调用服务在运行预留前解析完整授权依据，并在计划内 Gateway 调用前再次重读 Application Catalog、当前 assignment、approved candidate v3、Configuration Draft v3、immutable Template Version 和协议 / 模型资格；漂移在提供方副作用前失败关闭。
 - `POST /v1/prompt-applications/invocations` 只接受 API key `prompt_application:invoke`、有界 `variables` 和 `client_invocation_key`；客户端不能提交模板、authority、provider、credential 或重试策略。成功路径只调用一次既有 Gateway。
-- Application Session / Turn v2 使用 `prompt_application_invocation_v1` profile，只委托同一 invocation service；Run v6、Session 和 Turn 持久化均为 metadata-only，终态幂等返回不重放输出或 provider。
+- Application Session / Turn v2 使用 `prompt_application_invocation_v1` profile，只委托同一调用服务；Run v6、Session 和 Turn 持久化均为仅元数据，终态幂等返回不重放输出或 provider。
 - History / Detail / Comparison / Evaluation / Operations 已严格识别 v6 lineage；TypeScript Run / History / Comparison consumer 同步支持新版本，但没有启用 Prompt Web 工作区或 API key 创建入口。
-- memory / SQLite 覆盖 exact authority、并发重复、取消、超时、输出契约、终态写入不确定、重启恢复和敏感扫描；PostgreSQL 行为用例已覆盖 Run / Session 重启、数据库约束与敏感扫描，并通过 build-tag 编译。
+- memory / SQLite 覆盖精确授权依据、并发重复、取消、超时、输出契约、终态写入不确定、重启恢复和敏感扫描；PostgreSQL 行为用例已覆盖 Run / Session 重启、数据库约束与敏感扫描，并通过 build-tag 编译。
 - 2026-07-24 首次执行真实 PostgreSQL `check` 时，本机 Docker daemon 未运行，脚本在创建临时数据库前退出；该历史环境阻塞未被误写为通过。
 - 2026-07-25 重新执行 `./scripts/run-workflow-saved-draft-postgres-dev-test.sh check` 已通过：新增 Prompt Run / Session 行为用例完成真实 PostgreSQL 重启、约束和敏感扫描，随后全部受审 schema 恢复与 configured platform startup profile 验证也通过。批次 D 据此正式关闭并开放批次 E。
 
@@ -311,28 +311,28 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 当前实现与证据：
 
-- Application Development Workspace 已按 `prompt_application` 类型挂载独立 Template、Runtime Assignment、Prompt Invocation 与 Session v2 surface；Workflow / RAG owner 在该类型下不再挂载，readiness 新增 Prompt authority 并把不适用 owner 显式收口。
-- Template surface 已覆盖确定性本地校验 / 预览、草案 CAS 保存 / 恢复、不可变版本创建 / 精确源码读取和 Configuration Draft v3 binding；Publish Review 已严格消费 v3 candidate，并允许审查人从精确 template ref 重读源码与核对 digest。
-- Runtime Assignment surface 已覆盖当前 authority、只追加事件及 `activate | replace | revoke`；Controlled Test 已覆盖 API key `prompt_application:invoke` 签发、一次性 Playground 交接、单次 Prompt invocation、Session / Turn v2 和 Run handoff。公开模型目录只按精确 Application scope 保留为最近一次已验证快照，以兼容开发态 `React.StrictMode` 副作用重放；Bearer credential 仍保持一次性内存边界。
+- Application Development Workspace 已按 `prompt_application` 类型挂载独立 Template、Runtime Assignment、Prompt Invocation 与 Session v2 界面；Workflow / RAG 负责模块在该类型下不再挂载，readiness 新增 Prompt authority 并把不适用 owner 显式收口。
+- 模板界面已覆盖确定性本地校验 / 预览、草案 CAS 保存 / 恢复、不可变版本创建 / 精确源码读取和 Configuration Draft v3 binding；Publish Review 已严格消费 v3 candidate，并允许审查人从精确 template ref 重读源码与核对 digest。
+- 运行绑定界面已覆盖当前 authority、只追加事件及 `activate | replace | revoke`；Controlled Test 已覆盖 API key `prompt_application:invoke` 签发、一次性 Playground 交接、单次 Prompt invocation、Session / Turn v2 和运行记录交接。公开模型目录只按精确 Application scope 保留为最近一次已验证快照，以兼容开发态 `React.StrictMode` 副作用重放；Bearer credential 仍保持一次性内存边界。
 - Shell / PowerShell launcher 已新增 `--prompt-application-local-product` / `-PromptApplicationLocalProduct` 和 `--prompt-application-postgres-dev-test` / `-PromptApplicationPostgresDevTest`。SQLite 本地产品档与 PostgreSQL 开发测试档均已通过 migration preflight、Platform / Web 启动和 `--exit-after-probe` 探针，配置启动允许 Prompt runtime 单独满足 Session 与共享 Run Store 的依赖，不要求无关 Workflow Definition / RAG runtime 同时开启。
-- Web strict consumer 已补齐并通过 209 项测试和生产构建。验收发现并从 owner 边界修正四类真实缺陷：模板校验保留已保存 lineage 与 CAS version，未保存源码不允许创建 immutable version；零审查版本候选不会伪造 evidence version；Run History 使用独立只读 capability 并严格识别 Prompt v6 authority；Session v2 以 metadata-only 列表恢复活动会话，不恢复 transcript 或 output。Prompt runtime CORS 同时开放精确 workspace / application 绑定头。
+- Web strict consumer 已补齐并通过 209 项测试和生产构建。验收发现并从负责模块边界修正四类真实缺陷：模板校验保留已保存 lineage 与 CAS version，未保存源码不允许创建 immutable version；零审查版本候选不会伪造 evidence version；Run History 使用独立只读 capability 并严格识别 Prompt v6 authority；Session v2 以 仅元数据列表恢复活动会话，不恢复 transcript 或 output。Prompt runtime CORS 同时开放精确 workspace / application 绑定头。
 - SQLite 真实浏览器连续链已完成：创建 Prompt Application、保存模板草案与不可变版本、绑定 Configuration Draft v3、创建并批准 Publish Candidate v3、确认批准不会自动激活、显式创建 Runtime Assignment、完成 API key invocation 与 Session v2 turn，并在 Run History 复验 v6 metadata；服务重启后应用、模板、配置、候选、assignment、Session 与 Run metadata 均恢复，原始 credential、变量和 output 均未恢复。
-- PostgreSQL 真实浏览器连续链已完成同一 owner 顺序和服务重启恢复。额外通过 authority drift 负向验收：仅修改配置草案后调用在 provider 副作用前返回 `prompt_runtime_authority_changed`；重新创建并批准 candidate、显式 `replace` 到 assignment v2 后调用恢复成功，证明旧 authority 不会隐式回退。
-- CAS 负向验收通过：外部更新草案后，旧页面保存返回 `prompt_template_version_conflict`，明确恢复当前草案版本后才允许继续编辑。取消验收通过：上游延迟期间取消返回 `prompt_invocation_canceled`，没有 retry 或成功 provider 结果。
+- PostgreSQL 真实浏览器连续链已完成同一负责模块顺序和服务重启恢复。额外通过 authority drift 负向验收：仅修改配置草案后调用在提供方副作用前返回 `prompt_runtime_authority_changed`；重新创建并批准 candidate、显式 `replace` 到 assignment v2 后调用恢复成功，证明旧 authority 不会隐式回退。
+- CAS 负向验收通过：外部更新草案后，旧页面保存返回 `prompt_template_version_conflict`，明确恢复当前草案版本后才允许继续编辑。取消验收通过：上游延迟期间取消返回 `prompt_invocation_canceled`，没有 retry 或成功提供方结果。
 - URL、local storage、session storage、cookie、console 与 network 已复验：credential 不进入 URL 或浏览器持久存储，控制台无错误；SQLite 数据文件与 PostgreSQL 专项门禁均通过敏感材料扫描。批次 E 与本专题据此关闭。
 
 ## 验收方式
 
 - contract：JSON Schema、Go codec、TypeScript strict consumer 均拒绝未知字段、旧 schema 漂移和敏感字段。
-- renderer：同一模板版本和规范化变量生成相同 rendered digest；非法语法、缺失 / 额外变量、嵌套解释和超限内容失败关闭。
-- repository：memory / SQLite / PostgreSQL 同组契约，覆盖 CAS、不可变版本、作用域、排序、重启、migration、rollback、运行角色和 no fallback。
-- governance：配置 binding、候选创建 / review、assignment 激活为三个显式动作；任一 authority 漂移均阻塞运行。
-- provider：非 invocation 路由零 provider 调用；每次成功 invocation 恰好一次计划内调用；幂等、取消与 outcome unknown 不重放。
-- privacy：模板正文只进入 Template owner；运行变量、rendered messages、output、provider raw response、credential、token、header 和 DSN 不进入 run / session / assignment / candidate、日志或 committed evidence。
+- renderer：同一模板版本和规范化变量生成相同渲染结果摘要；非法语法、缺失 / 额外变量、嵌套解释和超限内容失败关闭。
+- repository：memory / SQLite / PostgreSQL 同组契约，覆盖 CAS、不可变版本、作用域、排序、重启、migration、rollback、运行角色和不回退。
+- governance：配置 binding、候选创建与审查、assignment 激活为三个显式动作；任一 authority 漂移均阻塞运行。
+- provider：非 invocation 路由零提供方调用；每次成功 invocation 恰好一次计划内调用；幂等、取消与 outcome unknown 不重放。
+- privacy：模板正文只进入模板负责模块；运行变量、渲染后的消息、output、提供方原始响应、credential、token、header 和 DSN 不进入 run / session / assignment / candidate、日志或已提交证据。
 - compatibility：应用配置 v1 / v2、发布候选 v1 / v2、Application Session v1、run v0–v5、Gateway、Workflow / RAG、API key、Operations 和 Evaluation 继续通过。
-- browser：完成从模板创作到受控调用和运行审查的连续链，页面无控制台错误，应用切换和服务重启不恢复 transient 内容。
+- browser：完成从模板创作到受控调用和运行审查的连续链，页面无控制台错误，应用切换和服务重启不恢复临时内容。
 
-涉及新 schema、API、持久化、API key capability 和 provider 执行边界，后续实现必须先新增一个对应任务卡，并在每批完成后执行相称验证；批次 D、E 与专题关闭补跑全量仓库门禁。
+涉及新 schema、API、持久化、API key capability 和提供方执行边界，后续实现必须先新增一个对应任务卡，并在每批完成后执行相称验证；批次 D、E 与专题关闭补跑全量仓库门禁。
 
 ## 停止线
 
@@ -341,8 +341,8 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 - 不支持任意模板代码、Jinja / Handlebars 完整语法、函数、循环、条件、include、文件 / 环境变量 / 网络读取或动态工具注册。
 - 不实现多轮 durable transcript、长期记忆、自动摘要、agent loop、RAG、HTTP Tool、connector、在线搜索、schedule、background execution、replay / resume、业务写回或自动确认。
 - 不自动创建配置 binding、发布候选、review、assignment、release 或正式应用变更。
-- 不实现 provider retry / fallback、负载均衡、quota、billing、cost ledger、生产 API key、生产认证、生产 secret 或生产能力声明。
-- 不下载模型、不接真实外部 provider 账户、不把本地 fake / mock 调用写成生产可用。
+- 不实现提供方重试或回退、负载均衡、quota、billing、cost ledger、生产 API key、生产认证、生产 secret 或生产能力声明。
+- 不下载模型、不接真实外部提供方账户、不把本地 fake / mock 调用写成生产可用。
 
 ## 下一步
 

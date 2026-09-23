@@ -15,11 +15,11 @@
 长期产品面保持四个：
 
 1. `User Workspace`：应用、Prompt、Workflow、Agent / Copilot、RAG、API key、调用量、运行记录和成本摘要。
-2. `Admin Control Plane`：本地注册、用户、会话、角色、权限、租户、provider/profile、模型路由、quota、price、secret backend、审计和部署状态；以本地账户为 owner，并可作为 OIDC client 接入 `Radish`。
-3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API 分发、多 provider / profile / model 路由，以及开发测试态 quota、价格快照、trace 与受控 fallback；生产限流、billing 与真实 health 分别后置验收。
-4. `Workflow / Agent Runtime`：Prompt、LLM、condition、output，以及独立开发测试态 HTTP Tool 与 RAG 执行档案；高风险动作默认要求确认，通用 agent loop 继续后置。
+2. `Admin Control Plane`：本地注册、用户、会话、角色、权限、租户、模型提供方 / 配置档案、模型路由、配额、价格、密钥后端、审计和部署状态；由本地账户模块负责，并可作为 OIDC 客户端接入 `Radish`。
+3. `Model Gateway / API Distribution`：OpenAI-compatible / Responses / Messages / Models API 分发、多提供方 / 配置档案 / 模型路由，以及开发测试态配额、价格快照、调用追踪与受控故障回退；生产限流、计费与真实健康状态分别后置验收。
+4. `Workflow / Agent Runtime`：提示词、大语言模型、条件与输出节点，以及独立开发测试态 HTTP Tool 与 RAG 执行档案；高风险动作默认要求确认，通用智能体循环继续后置。
 
-图片输入理解与图片生成是横切适配能力，不是第五个一级产品面。图片像素生成继续由独立 `RadishMind-Image Adapter` 与 backend 承接，主模型只负责理解、规划、约束、审查和结构化意图。
+图片输入理解与图片生成是横切适配能力，不是第五个一级产品面。图片像素生成继续由独立 `RadishMind-Image Adapter` 与后端承接，主模型只负责理解、规划、约束、审查和结构化意图。
 
 四个产品面共同服务“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”。后续优先级由该流程的真实阻塞、维护风险和使用证据决定，不以新增功能、批次或画板数量衡量产品成熟度。
 
@@ -29,43 +29,43 @@
 
 ### 1. 平台与协议基座
 
-- 统一 canonical contract、模型服务、Gateway、provider/profile 和基础评测。
+- 统一规范契约、模型服务、模型网关、提供方 / 配置档案和基础评测。
 - 保持结构化 JSON、失败关闭、密钥脱敏和上层业务真相源只读边界。
-- 历史 `P1 Runtime Foundation`、`M3` 和 `M4` 证据继续可复验，但不再扩同层 readiness 链。
+- 历史 `P1 Runtime Foundation`、`M3` 和 `M4` 证据继续可复验，但不再扩同层准入链。
 
 ### 2. 工作流与用户闭环
 
 - 优先完成 Workflow 草案创建、编辑、校验、保存、恢复、审查和安全执行。
-- 运行历史、失败诊断、对比、评测 case / baseline / suite 与 Gateway 请求审查形成连续产品链。
+- 运行历史、失败诊断、对比、评测用例 / 基线 / 套件与模型网关请求审查形成连续产品链。
 - 用户工作区应用接入、配置草案、发布治理、应用目录和 API 密钥生命周期按真实使用路径验收。
 
 ### 3. 开发测试态持久化与身份边界
 
-- RadishMind 自有运行数据允许使用明确命名的 SQLite / PostgreSQL 开发测试态 repository。
-- migration、作用域、原子并发、重启恢复、运行角色和 no fallback 必须有可执行证据。
-- 先完成本地账户、session、角色与 workspace membership，再完成确定性 OIDC Relying Party；真实 Radish 联调与 production auth 仍必须等待上游 client registration、secret、部署资源和负责人。
+- RadishMind 自有运行数据允许使用明确命名的 SQLite / PostgreSQL 开发测试态存储库。
+- 迁移、作用域、原子并发、重启恢复、运行角色和不回退语义必须有可执行证据。
+- 先完成本地账户、会话、角色与工作区成员关系，再完成确定性 OIDC 依赖方；真实 Radish 联调与生产认证仍必须等待上游客户端注册、密钥、部署资源和负责人。
 
 ### 4. 运行时与工程治理收敛
 
-- Gateway 使用受控 `stdio` worker pool，保留显式 process 回滚模式。
-- 测试、覆盖率、性能预算、PR / release CI 与仓库门禁按风险分层维护。
-- 入口文档、活动 checker、fixture 和 task card 必须回到各自职责；历史证据可索引、可手工复验，但不占当前主线。
+- 模型网关使用受控 `stdio` 工作进程池，保留显式进程回滚模式。
+- 测试、覆盖率、性能预算、PR / 发布持续集成与仓库门禁按风险分层维护。
+- 入口文档、活动检查器、测试夹具和任务卡必须回到各自职责；历史证据可索引、可手工复验，但不占当前主线。
 
 ### 5. 外部接入、生产化与模型适配
 
-- `RadishFlow` 优先于 `Radish`；真实挂载点、owner、协议和验收环境明确后再恢复接入。
-- production secret、环境隔离、process supervisor、quota / billing、生产 API key 和公开生产声明分别验收。
+- `RadishFlow` 优先于 `Radish`；真实挂载点、负责人、协议和验收环境明确后再恢复接入。
+- 生产密钥、环境隔离、进程监管、配额 / 计费、生产 API 密钥和公开生产声明分别验收。
 - `RadishMind-Core` 采用开源基座加自有协议、数据与评测偏好适配；没有评测和运行窗口时不启动训练或长跑。
 
 ## 当前执行顺位
 
-项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。当前完成专题规划，尚未批准依赖安装或代码实施。按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行推进；界面语言与业务 locale、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选不与 i18n 同时开工。
+项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。专题规划与随后批准的首轮常读文档中文化已完成；依赖安装或代码实施仍未进入。按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行推进；界面语言与业务语言字段 `locale`、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选不与 i18n 同时开工。
 
-1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与 Authentication 认领入口、双数据库产品链、三视口与双标签验收已闭合，后续选题服从当前已指定的 i18n 顺位，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实 Provider、production worker、真实 Radish 和 production IAM 尚未进入。
-2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
-3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
-4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。
-5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
+1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与认证认领入口、双数据库产品链、三视口与双标签验收已闭合，后续选题服从当前已指定的 i18n 顺位，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实模型提供方、生产工作进程、真实 Radish 和生产身份与访问管理尚未进入。
+2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动检查器数量和代码量均下降超过 `15%`；模型提供方、生产运维与控制面正式界面因仍缺少等价行为证据继续保留，不再派生独立清理批次。
+3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读控制台页面、证据面板和布局整理不自动形成新任务卡、测试夹具或检查器。
+4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：身份负责模块、三种开发测试存储库、本地 Web 会话 HTTP、确定性 Authorization Code + PKCE、当前账户 / 撤销 API、完整 Pencil、Web 严格消费端、S7 当前账户负责模块与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。开发身份头、签名测试成员断言与回环地址签发方不能作为生产授权来源；生产密钥后端、真实提供方凭据 / 端点、自动路由、进程监管、控制台生产打包（console production packaging）、生产认证、生产 API 密钥、生产配额和计费继续为 `not_satisfied`。
+5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史测试夹具，也不新建同层治理入口。
 
 ## 邀请闭环后的决策顺序
 
@@ -78,8 +78,8 @@
 | 1 | 用户主流程阻塞修正 | 在既有专题记录谁执行什么任务、卡在哪里、已有证据与修复后的可重复成功路径 |
 | 2 | 后端领域职责收敛 | 草案前端状态收敛已完成；后端工作区权限 / 内建角色策略包已提取，独立策略与双数据库回归通过，保持身份、成员与邀请事务；进一步迁移按实际维护问题评估 |
 | 3 | 自动浏览器持续验证 | 三条 Workflow 与五条 Prompt 回归已在隔离 SQLite / 固定响应环境通过并接入既有 CI 配置；远端首跑仍待执行，新增流程另行确定收益与范围 |
-| 4 | 内部真实任务试用 | 故障诊断素材已准备，真实模型试用暂缓；恢复时确认用户、输入、模型 / Provider 与运行窗口，再记录完成率、耗时、求助点和输出质量 |
-| 5 | 有明确窗口的接入与交付 | 依据试用结论与外部条件选择功能扩展、真实集成或生产验收，不从历史 readiness 尾链自动续批 |
+| 4 | 内部真实任务试用 | 故障诊断素材已准备，真实模型试用暂缓；恢复时确认用户、输入、模型 / 提供方与运行窗口，再记录完成率、耗时、求助点和输出质量 |
+| 5 | 有明确窗口的接入与交付 | 依据试用结论与外部条件选择功能扩展、真实集成或生产验收，不从历史准入尾链自动续批 |
 
 具体建议与验证边界集中在[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。保持一条产品线、必要时一条工程线；候选顺序不代表同时开工或已批准架构变更。
 
@@ -96,13 +96,13 @@
 
 ## 停止线
 
-- 不把开发测试态数据库、fake / local adapter、离线 smoke、静态 schema artifact、当前本地 console 或部分覆盖率写成 production ready。
-- 不在缺少本地账户 / session / membership owner、真实 issuer / client registration、生产数据库资源、secret backend、部署环境、负责人和发布复核时启用生产能力。
+- 不把开发测试态数据库、模拟 / 本地适配器、离线冒烟验证、静态模式定义产物、当前本地控制台或部分覆盖率写成生产就绪。
+- 不在缺少本地账户 / 会话 / 成员关系负责模块、真实签发方 / 客户端注册、生产数据库资源、密钥后端、部署环境、负责人和发布复核时启用生产能力。
 - 不把 Control Plane、Gateway 和 Workflow Executor 混成隐式单体，也不因服务拆分引入新的默认语言栈。
-- 不把 task card、fixture、checker、readiness 或周志当成功能设计文档和当前决策入口的替代品。
-- 不继续派生“readiness 之后的 readiness”，不把历史 next dependency 恢复为当前开发顺位。
+- 不把任务卡、测试夹具、检查器、准入材料或周志当成功能设计文档和当前决策入口的替代品。
+- 不继续派生“准入之后的准入”，不把历史下一依赖恢复为当前开发顺位。
 - 不在上层项目没有真实挂载点时细化假想接线，不跨工作区修改 `RadishFlow`、`Radish` 或 `RadishCatalyst`。
-- 不让模型建议直接写入上层业务真相源，不启用 unrestricted tool、业务写回、自动确认提交或 replay。
-- 不让模型、客户端或人工批准直接授予 Action Safety 有效级别；v1 不实现 `write_allowed_by_policy`、写方法 Tool、通用动作执行器或新的 Confirmation / Run / Audit owner。
-- 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志或 committed 资产。
+- 不让模型建议直接写入上层业务真相源，不启用无限制工具、业务写回、自动确认提交或重放。
+- 不让模型、客户端或人工批准直接授予 Action Safety 有效级别；v1 不实现 `write_allowed_by_policy`、写方法 Tool、通用动作执行器或新的确认 / 运行 / 审计负责模块。
+- 不让 API 密钥、令牌、DSN、提供方原始响应或异常正文进入命令行参数、公开错误、日志或已提交资产。
 - 不在缺少评测基线和明确运行窗口时下载模型、长跑真实模型、扩训练 JSONL、蒸馏或权重工作。

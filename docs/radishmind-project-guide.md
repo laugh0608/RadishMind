@@ -15,7 +15,7 @@
 
 2026-06-14 起，具体功能或长期开发目标先看 [功能设计文档入口](features/README.md)。任务卡只承载实现批次、前置条件或高风险边界，不再作为功能默认主文档。
 
-2026-09-08 当前读法：已关闭功能以[能力矩阵](radishmind-capability-matrix.md)和[功能入口](features/README.md)为准。[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E：管理员从 S7 Invitations 创建并一次性交接，已登录成员从账户入口进入 Claim invitation，预览后显式认领；权限生效后仍需手动选择工作区。双数据库与浏览器验收已完成，下一目标由[当前推进焦点](radishmind-current-focus.md)承接。production membership / OIDC、production secret、production quota / billing、自动写入、自动发布与 production worker 仍未打开。
+2026-09-08 当前读法：已关闭功能以[能力矩阵](radishmind-capability-matrix.md)和[功能入口](features/README.md)为准。[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E：管理员从 S7 Invitations 创建并一次性交接，已登录成员从账户入口进入 Claim invitation，预览后显式认领；权限生效后仍需手动选择工作区。双数据库与浏览器验收已完成，下一目标由[当前推进焦点](radishmind-current-focus.md)承接。生产成员关系 / OIDC、生产密钥、生产配额 / 计费、自动写入、自动发布与生产工作进程仍未打开。
 
 ## 项目定位
 
@@ -27,13 +27,13 @@
 
 当前主要职责是：
 
-- 提供用户端 AI 应用 / 工作流 / API key / 调用记录工作台。
-- 提供管理端 provider/profile / 模型路由 / 租户 / quota / secret / 审计控制面。
+- 提供用户端 AI 应用 / 工作流 / API 密钥 / 调用记录工作台。
+- 提供管理端提供方及档案 / 模型路由 / 租户 / 配额 / 密钥 / 审计控制面。
 - 提供模型 API 分发和兼容网关。
 - 接收结构化上下文
 - 运行最小推理链路
 - 兼容多种上游模型接入方式与多种下游协议接口
-- 提供本地只读产品发现面，供 console 或上层 UI 读取平台可展示能力和停止线
+- 提供本地只读产品发现界面，供控制台或上层 UI 读取平台可展示能力和停止线
 - 组织局部工具、规则和响应收口
 - 输出解释、诊断、结构化建议和候选动作
 - 维护统一协议、评测门禁、审计记录和训练治理
@@ -41,10 +41,10 @@
 ## 实现分工
 
 - `UI`：`React + Vite + TypeScript`
-- `平台服务层`：`Go`，覆盖 `HTTP API`、`gateway`、control plane、鉴权、流式转发、长驻进程、观测和部署壳
+- `平台服务层`：`Go`，覆盖 `HTTP API`、`gateway` 网关、控制面、鉴权、流式转发、长驻进程、观测和部署壳
 - `模型侧`：`Python`，覆盖训练、评测、`prompt / builder`、离线推理和校验逻辑
-- `contracts/`：唯一 canonical protocol 真相源，所有语言只能消费，不得各自重新定义业务协议
-- `Radish` 集成：部署、数据库、登录 / 授权默认对齐 `Radish`；未来作为 OIDC client 接入 `Radish`；不默认引入 `.NET`
+- `contracts/`：唯一规范协议真相源，所有语言只能消费，不得各自重新定义业务协议
+- `Radish` 集成：部署、数据库、登录 / 授权默认对齐 `Radish`；后续作为 OIDC 客户端接入 `Radish`；不默认引入 `.NET`
 
 ## 当前四个产品面
 
@@ -57,15 +57,15 @@
 
 ## 当前五条主线
 
-1. `Runtime Service`：本地启动、gateway、route、provider/profile、协议兼容、响应封装、部署基础；当前已达到 short close，request observability 和 error taxonomy 已进入平台门禁。
-2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界；当前已有 session record、recovery checkpoint record/manifest/read result、northbound session metadata、metadata-only route smoke、confirmation / audit / result / executor / storage 设计门禁、short close readiness delta、stop-line manifest 和 close-candidate status summary。
-3. `Tooling Framework`：检索、附件解析、候选生成、builder、tool policy 和 audit；当前已有 tool contract、registry、audit record、session binding、metadata-only result cache、result materialization policy、executor boundary、storage backend design、deny-by-default gates 和 executor/storage/confirmation enablement plan。
-4. `Evaluation & Governance`：schema、smoke、offline eval、review、promotion gate、负向消费 summary、route smoke coverage summary、readiness summary、implementation preconditions、negative regression governance suite、negative coverage rollup、route negative coverage matrix 和 readiness consistency rollup。
-5. `Model Adaptation`：基座选型、prompt/runtime 协同、蒸馏、训练样本治理和模型晋级。
+1. `Runtime Service`：本地启动、网关、路由、提供方及档案、协议兼容、响应封装、部署基础；当前已达到阶段性收口，请求观测与错误分类已进入平台门禁。
+2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界；当前已有会话记录、恢复检查点记录 / 清单 / 读取结果、北向会话元数据、仅元数据路由冒烟验证、确认 / 审计 / 结果 / 执行器 / 存储设计门禁、阶段性收口准入差量、停止线清单和收口候选状态摘要。
+3. `Tooling Framework`：检索、附件解析、候选生成、构建器、工具策略和审计；当前已有工具契约、注册表、审计记录、会话绑定、仅元数据结果缓存、结果物化策略、执行器边界、存储后端设计、默认拒绝门禁和执行器 / 存储 / 确认启用计划。
+4. `Evaluation & Governance`：schema、冒烟验证、离线评测、审查、晋级门禁、负向消费摘要、路由冒烟覆盖摘要、准入状态摘要、实施前置条件、负向回归治理套件、负向覆盖汇总、路由负向覆盖矩阵和准入状态一致性汇总。
+5. `Model Adaptation`：基座选型、提示词与运行时协同、蒸馏、训练样本治理和模型晋级。
 
-当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与 sanitized Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5 / v8、工作区 Workflow Template Catalog / Review / Listing / Derive、Application Interaction Session v1 / v4、durable Run History / Comparison / Evaluation 与 Application Operations；Admin verified identity、Tenant / Audit PostgreSQL read repository，以及 deterministic OIDC verifier。Action Safety decision 在六个服务端 checkpoint 与既有 owner 的 memory / SQLite / PostgreSQL snapshot 中形成，并通过单一 `action_safety_read_projection.v1` 进入既有 Agent、Tool 与 eligible Run read envelope；它没有独立 route，不是客户端可提交的授权令牌。Application Evaluation Schedule 的 HTTP、memory / SQLite / PostgreSQL owner、显式低频 runner 与单一 React strict consumer 也已成立，只接受 Prompt exact Plan、每次受限委托重验和 deterministic Campaign handoff，并已通过开发 / 测试态双数据库、CAS、重启 / 重连、三视口与隐私验收。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式 dev/test gate 保护，不是公开 production API。
+当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与脱敏的 Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5 / v8、工作区 Workflow Template Catalog / Review / Listing / Derive、Application Interaction Session v1 / v4、持久化的 Run History / Comparison / Evaluation 与 Application Operations；Admin 已验证身份、Tenant / Audit 的 PostgreSQL 只读存储库，以及确定性 OIDC 验证器。Action Safety 决策在六个服务端检查点与既有所有者的内存 / SQLite / PostgreSQL 快照中形成，并通过单一 `action_safety_read_projection.v1` 进入既有 Agent、Tool 与符合条件的 Run 只读封套；它没有独立路由，不是客户端可提交的授权令牌。Application Evaluation Schedule 的 HTTP 接口、内存 / SQLite / PostgreSQL 所有者、显式低频运行器与单一 React 严格消费者也已成立，只接受 Prompt 精确 Plan、每次受限委托重验和确定性 Campaign 交接，并已通过开发 / 测试态双数据库、CAS、重启 / 重连、三视口与隐私验收。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式开发 / 测试门禁保护，不是公开生产 API。
 
-`Saved Workflow Draft v1` 已实现 platform Go domain service、memory / SQLite / PostgreSQL 开发测试态 repository、HTTP / Web consumer、严格 cursor、超过 `200` 条的 keyset 分页 / 组合筛选、内容版本与 lifecycle 版本分离、append-only lifecycle event、archive / unarchive 和相邻操作活动资格重读。Draft Designer 的 `version_conflict` 读法是保留当前本地 active draft、刷新当前 application 的 sanitized 活动草案列表、允许用户继续本地草案或显式打开当前 saved record，并把同一份 conflict review summary 交给 Review Handoff；它不自动覆盖、不自动合并。恢复不可变 revision 由独立历史面板承载，不与打开当前记录混用。当前仍不开放 production repository、真实 OIDC / membership、production secret、自动保存 / 合并、永久删除、批量生命周期、业务写回、replay / resume 或公开生产 API。
+`Saved Workflow Draft v1` 已实现平台 Go 领域服务、内存 / SQLite / PostgreSQL 开发测试态存储库、HTTP / Web 消费者、严格游标、超过 `200` 条的键集分页 / 组合筛选、内容版本与生命周期版本分离、仅追加的生命周期事件、归档 / 解除归档和相邻操作活动资格重读。Draft Designer 遇到 `version_conflict` 时保留当前本地活动草案，刷新当前应用的脱敏活动草案列表；用户可继续编辑本地草案或显式打开当前保存记录，同一份冲突审查摘要会交给 Review Handoff。它不自动覆盖、不自动合并。不可变修订版的恢复由独立历史面板承载，不与打开当前记录混用。当前仍不开放生产存储库、真实 OIDC / 成员关系、生产密钥、自动保存 / 合并、永久删除、批量生命周期、业务写回、重放 / 恢复执行或公开生产 API。
 
 2026-07-12 覆盖：Gateway Request History、Application Configuration Draft、Application Publish Candidate 和 Admin Tenant / Audit read 均支持显式 PostgreSQL dev/test repository、manual migration、marker / checksum、runtime role、no-fallback 与重启恢复。Control Plane auth 已支持 signed test token 和 `radish_oidc_integration_test`；后者只开放 Tenant Summary / Audit，workspace operation 因 membership 未成立而 fail closed。真实 Radish 联调已 deferred，不把 deterministic issuer 或本地浏览器路径解释为真实接入。
 
@@ -102,7 +102,7 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
 
 ### 1. 直接跑最小推理链路
 
-当前最小运行入口是 `scripts/run-copilot-inference.py`。它不是长驻服务，而是单次 CLI runtime。
+当前最小运行入口是 `scripts/run-copilot-inference.py`。它不是长驻服务，而是单次命令行运行。
 
 ```bash
 ./scripts/run-python.sh scripts/run-copilot-inference.py \
@@ -111,7 +111,7 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
   --response-output tmp/rf-suggest-edit.response.json
 ```
 
-如果后续要接真实 provider，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按 profile 分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议；`services/platform/` 也已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、SSE bridge、provider/profile inventory、request-side selection、`HuggingFace` / `Ollama` coverage、本地启动 wrapper、JSON 配置层级、deployment smoke、diagnostics / failure boundary 和 discoverability 对齐纳入第一版 runtime foundation。
+如果后续要接真实提供方，再显式传 `--provider openai-compatible|huggingface|ollama`、`--provider-profile`、`--model`、`--base-url`、`--api-key`。当前这条入口已经能按档案分流到 `openai-compatible chat`、`gemini-native` 和 `anthropic-messages` 三类上游协议；`services/platform/` 也已把 `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/platform/overview`、`/v1/platform/local-smoke`、SSE 桥接、提供方及档案清单、请求侧选择、`HuggingFace` / `Ollama` 覆盖、本地启动包装脚本、JSON 配置层级、部署冒烟验证、诊断与失败边界、能力发现对齐纳入第一版运行时基础。
 
 ### 2. 跑进程内 gateway demo
 
@@ -122,7 +122,7 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
   --check-summary scripts/checks/fixtures/radishflow-gateway-demo-summary.json
 ```
 
-这条链路当前使用 mock provider，只验证 route、schema、advisory-only 和 `requires_confirmation` 等不变量。
+这条链路当前使用模拟提供方，只验证路由、schema、仅建议模式和 `requires_confirmation` 等不变量。
 
 ### 3. 跑 service/API smoke matrix
 
@@ -135,17 +135,17 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
 
 这条矩阵会一起核对：
 
-- CLI runtime
-- gateway API
-- gateway demo
-- UI consumption
-- candidate handoff
+- 命令行运行时
+- 网关 API
+- 网关演示链路
+- UI 消费
+- 候选动作交接
 
 它现在是仓库里最接近“服务切片验收”的正式门禁。
 
 ### 3.5 运行 Go 平台服务层
 
-当前 `Go` 平台服务层已落在 `services/platform/`，用于承载 `HTTP API`、`gateway`、鉴权、流式转发、观测和部署壳。日常本地运行优先使用 wrapper：
+当前 `Go` 平台服务层已落在 `services/platform/`，用于承载 `HTTP API`、`gateway` 网关、鉴权、流式转发、观测和部署壳。日常本地运行优先使用包装脚本：
 
 ```bash
 ./scripts/run-platform-service.sh config-check
@@ -155,17 +155,17 @@ Production secret backend 当前仍只到说明、检查、metadata-only artifac
 
 Windows / PowerShell 使用对应的 `pwsh ./scripts/run-platform-service.ps1 config-check|diagnostics|serve`。
 
-wrapper 默认使用 `local-product` 档，把十一组本地运行数据统一写入仓库根 `var/sqlite-dev/radishmind.db`，并开启既有开发门禁；配置摘要不会输出绝对路径。Prompt 与 Agent Runtime Assignment / Event、Session / Turn、Run、Action Safety snapshot 和 Application Evaluation Plan / Campaign / Schedule / Occurrence 复用共享 Workflow Run Store；Admin Provider / Route 与 application request quota 分别是第十和第十一个独立组件，但其管理写入、quota enforcement 与 Schedule runner 仍需各自显式 gate。需要执行 PostgreSQL 专项验收或组件故障注入时，Shell 使用 `--profile configured`，PowerShell 使用 `-Profile configured`，该档不自动注入聚合持久化配置。
+包装脚本默认使用 `local-product` 档，把十一组本地运行数据统一写入仓库根 `var/sqlite-dev/radishmind.db`，并开启既有开发门禁；配置摘要不会输出绝对路径。Prompt 与 Agent Runtime Assignment / Event、Session / Turn、Run、Action Safety 快照和 Application Evaluation Plan / Campaign / Schedule / Occurrence 复用共享 Workflow Run Store；Admin Provider / Route 与应用请求配额分别是第十和第十一个独立组件，但其管理写入、配额执行与 Schedule 运行器仍需各自显式门禁。需要执行 PostgreSQL 专项验收或组件故障注入时，Shell 使用 `--profile configured`，PowerShell 使用 `-Profile configured`，该档不自动注入聚合持久化配置。
 
-当前 Platform 除 `/healthz`、overview / local-smoke、models、三协议 northbound、session/tooling 与七条 Control Plane Read-Side route 外，还注册 Workflow Draft / Definition / Template / Run / Evaluation、Workflow RAG、Application RAG、Application Session、Application Evaluation Plan / Campaign / Schedule、Application Draft / Publish Candidate 和 Gateway Request History dev/test route。Action Safety 没有独立 HTTP route；统一 read projection 只嵌入既有 Agent turn / assignment、Workflow HTTP Tool plan / execution 与 eligible Run response。Schedule runner 也不是 route enablement：它默认关闭，只在 Campaign dev、本地身份 HTTP、`local_session_dev_test` 与独立 runner gate 同时成立时启动。完整路由与 gate 见 [Platform README](../services/platform/README.md)；路由注册不等于默认开放。
+当前平台除 `/healthz`、overview / local-smoke、models、三协议北向接口、session/tooling 与七条 Control Plane Read-Side 路由外，还注册 Workflow Draft / Definition / Template / Run / Evaluation、Workflow RAG、Application RAG、Application Session、Application Evaluation Plan / Campaign / Schedule、Application Draft / Publish Candidate 和 Gateway Request History 的开发测试路由。Action Safety 没有独立 HTTP 路由；统一只读投影仅嵌入既有 Agent 轮次 / 运行时绑定、Workflow HTTP Tool 计划 / 执行与符合条件的 Run 响应。Schedule 运行器也不随路由启用：它默认关闭，只在 Campaign 开发门禁、本地身份 HTTP、`local_session_dev_test` 与独立运行器门禁同时成立时启动。完整路由与门禁见 [Platform README](../services/platform/README.md)；路由注册不等于默认开放。
 
-Control Plane Read-Side 支持 `dev_headers`、`signed_test_token` 和 `radish_oidc_integration_test` 三种显式开发测试 auth mode。`postgres_dev_test` 只承载 Tenant Summary / Audit；OIDC integration 下其余 workspace operation 返回 `workspace_membership_unavailable`，不会读取 fake repository。默认 disabled、非法组合、缺少 identity / permission / tenant binding 或 identity provider 不可用都 fail closed。
+Control Plane Read-Side 支持 `dev_headers`、`signed_test_token` 和 `radish_oidc_integration_test` 三种显式开发测试鉴权模式。`postgres_dev_test` 只承载 Tenant Summary / Audit；OIDC 集成模式下其余工作区操作返回 `workspace_membership_unavailable`，不会读取模拟存储库。默认禁用、非法组合、缺少身份 / 权限 / 租户绑定或身份提供方不可用都失败关闭。
 
-read-side repository 当前由显式 selector 路由：fake store 继续承载开发测试 workspace summary，PostgreSQL repository 只承载 Tenant Summary / Audit。PostgreSQL 模式要求 manual migration、marker / checksum、read-only runtime role、strict keyset cursor 与 startup SELECT preflight；连接、权限或 marker 失败不回退 fake store。
+只读存储库当前由显式选择器路由：模拟存储继续承载开发测试工作区摘要，PostgreSQL 存储库只承载 Tenant Summary / Audit。PostgreSQL 模式要求手动迁移、标记 / 校验和、只读运行角色、严格键集游标与启动时 SELECT 预检；连接、权限或标记失败不回退模拟存储。
 
-当前 OIDC verifier 是受控 integration-test runtime，不是 production auth。它校验 exact issuer / audience、algorithm allowlist、required `kid`、discovery / JWKS origin 与响应边界、single-flight refresh、unknown-kid 单次刷新、bounded cache / rotation / hard expiry、required claims、时间窗口、tenant binding 和版本化 permission mapping；raw token / claims 不进入 handler、repository、日志或 UI envelope。
+当前 OIDC 验证器是受控集成测试运行时，不是生产鉴权。它校验精确签发方 / 受众、算法允许列表、必需的 `kid`、发现端点 / JWKS 来源与响应边界、合并并发刷新、未知 `kid` 时单次刷新、有界缓存 / 轮换 / 强制过期、必需声明、时间窗口、租户绑定和版本化权限映射；原始令牌 / 声明不进入处理器、存储库、日志或 UI 封套。
 
-这仍然不是 production deployment：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级 secret backend、进程监管、环境隔离和正式发布包。
+这仍然不是生产部署：它已经能作为本地平台服务切片运行和诊断，但尚未具备生产级密钥后端、进程监管、环境隔离和正式发布包。
 
 ### 3.6 运行本地 console 产品壳
 
@@ -183,9 +183,9 @@ Windows / PowerShell 使用：
 pwsh ./scripts/run-radishmind-console-dev.ps1
 ```
 
-该入口会启动或复用 platform 后端和 console 前端，并探测 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、本地 CORS preflight 和前端页面。它不是 production supervisor，不负责长期守护进程，也不实现 executor、durable store、confirmation、业务写回或 replay。
+该入口会启动或复用平台后端和控制台前端，并探测 `/healthz`、`/v1/platform/overview`、`/v1/platform/local-smoke`、本地 CORS 预检和前端页面。它不是生产进程监管器，不负责长期守护进程，也不实现执行器、持久存储、确认、业务写回或重放。
 
-如果只想验证已有 platform 服务的本地 readiness，可运行：
+如果只想验证已有平台服务的本地准入状态，可运行：
 
 ```bash
 ./scripts/run-python.sh scripts/run-platform-local-smoke.py \

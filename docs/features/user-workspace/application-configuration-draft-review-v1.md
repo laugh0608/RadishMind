@@ -10,7 +10,7 @@
 
 Web 49 项测试与生产构建、平台全量 Go 测试和 PostgreSQL 集成套件通过。真实浏览器以 `app_docs_assistant` 加载 6 个模型，保存版本 1，在第二标签页保存版本 2，第一标签页触发冲突并显式恢复；随后完成 Responses 单次响应、流式响应、用户取消，并以同一 `request_id` 打开 `408 / BRIDGE_WORKER_CANCELED / postgres_dev_test` 请求历史详情。控制台为 0 个错误 / 0 个警告，URL 只含稳定区段锚点，`localStorage` / `sessionStorage` 为空。
 
-2026-07-14 已补齐 SQLite 开发持久化：配置草案通过共享 runtime 使用独立 migration 和 repository，保持作用域、稳定列表、创建元数据与保存 CAS；memory / SQLite 运行同组契约，真实文件覆盖多连接并发、关闭失败、重启恢复和敏感材料禁入。该能力只服务统一 `sqlite_dev` 规划，不改变既有 PostgreSQL 手动迁移与生产停止线。
+2026-07-14 已补齐 SQLite 开发持久化：配置草案通过共享运行时使用独立迁移和存储库，保持作用域、稳定列表、创建元数据与保存 CAS；内存与 SQLite 运行同组契约，真实文件覆盖多连接并发、关闭失败、重启恢复和敏感材料禁入。该能力只服务统一 `sqlite_dev` 规划，不改变既有 PostgreSQL 手动迁移与生产停止线。
 
 2026-07-15 已补齐 API 密钥本地产品链的模型目录复用：Playground 以 Bearer 凭据完成 `/v1/models` 严格校验后，只派发应用标识、公开模型字段和当前选择；配置面板重新校验事件并复用目录，不接收 API 密钥、`Authorization`、请求头或 Gateway 输入输出。应用切换会淘汰旧目录，避免凭据或模型选择跨应用扩散。
 
@@ -133,17 +133,17 @@ Web 49 项测试与生产构建、平台全量 Go 测试和 PostgreSQL 集成套
 
 ## 与 Workflow RAG binding 的组合边界
 
-- 未绑定草案继续使用 `application_configuration_draft.v1`；绑定草案使用 v2，且只新增 `workflow_rag_binding_ref={binding_id,binding_version,binding_digest}` 与服务端 canonical `draft_digest`，不复制 dataset、snapshot、query、fragment、评测指标或配置正文真相源。
-- 首次 attach / replace 必须从已批准 promotion candidate 的精确 source draft 开始。服务端重读当前 binding 与全部权威知识来源，确认除 binding ref 外没有配置修改后，才通过既有 expected-version CAS 创建下一版草案。
-- Web 只列出当前 eligible 的不可变 binding，并把“恢复 source draft”和“attach binding”保留为两个显式动作；批准 promotion candidate 不自动修改草案，attach 也不创建发布候选。
-- memory、SQLite 与 PostgreSQL 继续复用本专题既有 repository 和 JSON payload 表，无新增草案 store、selector、DSN、pool 或 migration。双数据库连续链与真实浏览器已验证 v1 source draft → v2 binding draft、重启恢复与 no-fallback。
+- 未绑定草案继续使用 `application_configuration_draft.v1`；绑定草案使用 v2，且只新增 `workflow_rag_binding_ref={binding_id,binding_version,binding_digest}` 与服务端规范化的 `draft_digest`，不复制数据集、快照、查询、片段、评测指标或配置正文真相源。
+- 首次附着或替换必须从已批准晋级候选的精确来源草案开始。服务端重读当前绑定与全部权威知识来源，确认除绑定引用外没有配置修改后，才通过既有预期版本 CAS 创建下一版草案。
+- Web 只列出当前符合条件的不可变绑定，并把“恢复 source draft”和“attach binding”保留为两个显式动作；批准晋级候选不自动修改草案，附着绑定也不创建发布候选。
+- 内存、SQLite 与 PostgreSQL 继续复用本专题既有存储库和 JSON 载荷表，无新增草案存储、选择器、DSN、连接池或迁移。双数据库连续链与真实浏览器已验证 v1 来源草案 → v2 绑定草案、重启恢复与不回退。
 
 ## 与 Prompt Application Template binding 的组合边界
 
 - 2026-07-21 已启用 `application_configuration_draft.v3`，只允许 `application_kind=prompt_application` 携带 `prompt_template_ref={template_id,template_version,template_digest}`；v3 不允许同时携带 Workflow RAG binding，v1 / v2 读取与写入语义保持不变。
-- binding 使用独立服务端路由：先重读当前精确草案与不可变 Template Version，由服务端计算并核对 digest，再通过既有 expected-version CAS 创建下一版草案。客户端不能直接保存或伪造 template ref，也不能提交模板正文。
-- binding 同时要求既有草案写权限与 `prompt_application_templates:bind`；Template 摘要、源码读取、版本创建和配置绑定保持独立授权。模板版本创建或发布候选批准都不会自动修改配置草案。
-- memory、SQLite 与 PostgreSQL 继续复用既有配置草案 repository 和 JSON payload 表；Template 源码只由独立 Template owner 保存，草案仅保存精确引用与服务端 digest。
+- 绑定使用独立服务端路由：先重读当前精确草案与不可变 Template Version，由服务端计算并核对摘要，再通过既有预期版本 CAS 创建下一版草案。客户端不能直接保存或伪造 template ref，也不能提交模板正文。
+- 绑定同时要求既有草案写权限与 `prompt_application_templates:bind`；模板摘要、源码读取、版本创建和配置绑定保持独立授权。模板版本创建或发布候选批准都不会自动修改配置草案。
+- 内存、SQLite 与 PostgreSQL 继续复用既有配置草案存储库和 JSON 载荷表；模板源码只由独立模板负责模块保存，草案仅保存精确引用与服务端摘要。
 
 ## 停止线
 

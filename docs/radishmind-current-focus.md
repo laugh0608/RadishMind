@@ -10,24 +10,24 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前成熟度为**内部开发者预览**。Workflow、应用运行与评测、Gateway、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实 Provider、团队试用或生产运行已通过验收。
+- 当前成熟度为**内部开发者预览**。工作流、应用运行与评测、模型网关、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实模型提供方、团队试用或生产运行已通过验收。
 - 下一重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，目前为方案待确认。先规划 `zh-CN` / `en-US` 的统一语言系统，再按完整用户流程迁移；本轮不安装依赖或修改运行代码。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
-- 2026-09-09 已修复 SQLite / mock Workflow 主链阻塞、完成草案前端状态归属收敛与 Workspace 响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或生产验收。
-- 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、memory / SQLite / HTTP、Platform 全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
+- 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
+- 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
-- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
-- 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [Provider 消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实 Provider 或人工答案质量验收。
-- 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条 Workflow 连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[本周周志](devlogs/2026-W39.md)，不新增同层任务卡或 checker。
-- 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
+- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条工作流浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
+- 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [模型提供方消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实模型提供方或人工答案质量验收。
+- 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条工作流连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[本周周志](devlogs/2026-W39.md)，不新增同层任务卡或检查器。
+- 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。这些未满足项分别指生产密钥后端、进程监管、部署环境隔离和控制台生产打包；英文名称保留与现有检查器一致。
 
 ## 当前完成与下一动作（2026-09-23）
 
-[Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条 Workflow 与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
+[Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条工作流与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
 
 项目所有者随后暂停手工测试，指定 i18n 为下一重点；本轮手工测试服务已停止，独立测试库与日志保留，未形成独立用户使用或答案质量验收。
 
-下一动作是审阅[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)，确认语言偏好策略、技术选型与分阶段范围；批准后进入 A 阶段的覆盖清单、依赖版本和语言入口设计，再实施公共基座与 Prompt 完整双语流程。真实模型试用继续暂缓，恢复前另行落实 Provider / 模型、费用与操作窗口。
+项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。下一动作是审阅[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)，确认语言偏好策略、技术选型与分阶段范围；批准后进入 A 阶段的覆盖清单、依赖版本和语言入口设计，再实施公共基座与 Prompt 完整双语流程。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
 
 ## 下一顺位的选择
 
@@ -37,22 +37,22 @@
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
 | 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
-| 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；五条 Prompt 编辑、生命周期与结果恢复回归已完成两轮验证，使用隔离 SQLite 与固定响应服务 |
-| 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / Provider、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
+| 3 | 持续验证关键浏览器流程 | 三条工作流回归已落地；五条 Prompt 编辑、生命周期与结果恢复回归已完成两轮验证，使用隔离 SQLite 与固定响应服务 |
+| 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / 提供方、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
 
 该表是决策顺序，不表示同时启动五项工作。仍按一条产品线、必要时一条工程线控制在制范围；实现前在既有功能或平台专题中确认具体范围。
 
 ## 保持关闭的边界
 
-- 邀请不发送邮件、不搜索目录，不邀请 `workspace_admin`；邀请码不直接授予权限，认领仍由既有身份 / 成员 / 角色 owner 原子处理。
-- 真实 Radish OIDC 联调保持 `real_radish_integration_deferred`。本地 Session、dev header、signed-test membership 和 loopback issuer 不能作为 production 授权证据。
-- production secret backend、生产认证、生产 API key / quota / billing、真实 Provider fallback、production worker、process supervisor 和生产交付继续未满足准入条件。
-- 通用自治 agent loop、无限制工具、写方法 Tool、业务写回、自动确认提交、自动 release、retry / replay 扩围继续关闭；Action Safety 不开放 `write_allowed_by_policy`。
-- [应用运行观测与用量归因](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续仍为 `no_entry`：没有首分页窗口阻塞真实任务的证据时，不创建服务端 summary、跨 store join 或 billing ledger。
-- 普通 UI、文案、布局和只读证据整理复用既有测试与门禁；不恢复 readiness / review / refresh 历史尾链，不因专题关闭派生新任务卡或 checker。
+- 邀请不发送邮件、不搜索目录，不邀请 `workspace_admin`；邀请码不直接授予权限，认领仍由既有身份 / 成员 / 角色负责模块原子处理。
+- 真实 Radish OIDC 联调保持 `real_radish_integration_deferred`。本地会话、开发身份头、签名测试成员断言和回环地址签发方不能作为生产授权证据。
+- 生产密钥后端、生产认证、生产 API 密钥 / 配额 / 计费、真实模型提供方故障回退、生产工作进程、进程监管和生产交付继续未满足准入条件。
+- 通用自治智能体循环、无限制工具、写方法工具、业务写回、自动确认提交、自动发布、重试 / 重放扩围继续关闭；Action Safety 不开放 `write_allowed_by_policy`。
+- [应用运行观测与用量归因](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续仍为 `no_entry`：没有首分页窗口阻塞真实任务的证据时，不创建服务端汇总、跨存储库关联查询或计费账本。
+- 普通 UI、文案、布局和只读证据整理复用既有测试与门禁；不恢复准入 / 审查 / 刷新历史尾链，不因专题关闭派生新任务卡或检查器。
 - 未明确授权不启动常驻服务、Docker、真实模型长跑、模型或数据下载、生图后端、发布部署；不跨外部项目工作区写入。
-- API key、token、DSN、一次性凭据、未经脱敏的真实敏感输入和 Provider 原始错误不得进入公开日志、URL 或 committed 资产。
+- API key、token、DSN、一次性凭据、未经脱敏的真实敏感输入和模型提供方原始错误不得进入公开日志、URL 或已提交资产。
 
 ## 读取与验证
 
