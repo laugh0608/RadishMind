@@ -1,3 +1,4 @@
+import { uiText, setTestLanguage } from "./ui-language";
 import { randomUUID } from "node:crypto";
 import { test as base, expect, type Page, type Response, type Route } from "@playwright/test";
 
@@ -32,21 +33,24 @@ export const test = base.extend<{ application: Application; diagnostics: void; a
       await testInfo.attach("request-statuses", { body: JSON.stringify({ requests, failures, pageErrors }, null, 2), contentType: "application/json" });
     }
   }, { auto: true }],
-  application: async ({ page, diagnostics: _diagnostics, applicationKind }, use) => {
+  application: async ({ page, diagnostics: _diagnostics, applicationKind }, use, testInfo) => {
+    const locale = testInfo.project.use.locale === "zh-CN" ? "zh-CN" : "en-US";
+    setTestLanguage(page, locale);
+    await page.addInitScript(value => { if (!localStorage.getItem("radishmind.uiLocale.v1")) localStorage.setItem("radishmind.uiLocale.v1", value); }, locale);
     const name = `${applicationKind} E2E ${randomUUID().slice(0, 8)}`;
     await page.goto("/#workspace-applications");
-    await page.getByRole("button", { name: "Create application", exact: true }).click();
-    const creation = page.locator("article").filter({ has: page.getByRole("heading", { name: "Server-generated identity", exact: true }) });
-    await creation.getByRole("textbox", { name: "Display name", exact: true }).fill(name);
-    await creation.getByRole("combobox", { name: "Application kind", exact: true }).selectOption(applicationKind);
+    await page.getByRole("button", { name: uiText(page, "Create application"), exact: true }).click();
+    const creation = page.locator("article").filter({ has: page.getByRole("heading", { name: uiText(page, "Server-generated identity"), exact: true }) });
+    await creation.getByRole("textbox", { name: uiText(page, "Display name"), exact: true }).fill(name);
+    await creation.getByRole("combobox", { name: uiText(page, "Application kind"), exact: true }).selectOption(applicationKind);
     const created = page.waitForResponse((response) => isEndpoint(response, "/v1/user-workspace/applications", "POST"));
-    await page.getByRole("button", { name: "Create and select", exact: true }).click();
+    await page.getByRole("button", { name: uiText(page, "Create and select"), exact: true }).click();
     const response = await created;
     expect(response.ok()).toBeTruthy();
     const { record } = await response.json();
     expect(record.application_id).toMatch(/^app_[a-z2-7]+$/);
     const application = { id: record.application_id as string, name, kind: applicationKind };
-    await expect(page.getByRole("region", { name: "Application development context" })).toContainText(application.id);
+    await expect(page.getByRole("region", { name: uiText(page, "Application development context") })).toContainText(application.id);
     await use(application);
   },
 });
@@ -94,7 +98,7 @@ export async function promptLabel(page: Page) {
 
 export async function selectApplication(page: Page, application: Application) {
   await page.getByRole("button", { name: `${application.name} ${application.kind} ${application.id} v1`, exact: true }).click();
-  await expect(page.getByRole("region", { name: "Application development context" })).toContainText(application.id);
+  await expect(page.getByRole("region", { name: uiText(page, "Application development context") })).toContainText(application.id);
 }
 
 export async function openDraft(page: Page, draftId: string) {

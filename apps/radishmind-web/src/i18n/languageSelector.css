@@ -1,0 +1,5 @@
+.ui-language-selector { display: grid; gap: 0.35rem; min-width: 0; padding: 0.75rem; color: var(--rm-text-secondary); font-size: 0.8rem; }
+.ui-language-selector select { max-width: 100%; min-height: 2.25rem; padding: 0.35rem 0.5rem; border: 1px solid var(--rm-border-soft); border-radius: var(--rm-radius-sm); color: var(--rm-text-primary); background: var(--rm-bg-surface); font: inherit; }
+.ui-language-selector select:focus-visible { outline: 2px solid var(--rm-focus-ring); outline-offset: 2px; }
+.ui-language-selector small:empty { display: none; }
+.ui-language-selector small { overflow-wrap: anywhere; }

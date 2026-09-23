@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { parsePromptApplicationVariables } from "./promptApplicationInvocationConsumer.ts";
@@ -24,13 +25,14 @@ export default function PromptApplicationSessionPanel({
   onRunRecorded?: (runId: string) => void;
   onOpenRun?: (runId: string) => void;
 }) {
+  const { t } = useTranslation("prompt");
   const [result, setResult] = useState<PromptApplicationSessionResult>(
     () => initialPromptApplicationSessionResult(config),
   );
   const [variablesText, setVariablesText] = useState('{"question":"请给出发布审查清单","tone":"简洁"}');
   const [clientTurnKey, setClientTurnKey] = useState(() => newClientTurnKey());
   const [sessions, setSessions] = useState<PromptApplicationSession[]>([]);
-  const [listSummary, setListSummary] = useState("");
+  const [listFailureCode, setListFailureCode] = useState("");
   const [saveResult, setSaveResult] = useState(false);
   const [pending, setPending] = useState<"" | "list" | "create" | "execute">("");
   const generationRef = useRef(0);
@@ -44,7 +46,7 @@ export default function PromptApplicationSessionPanel({
     controllerRef.current = controller;
     setResult(initialPromptApplicationSessionResult(config));
     setSessions([]);
-    setListSummary("");
+    setListFailureCode("");
     setVariablesText('{"question":"请给出发布审查清单","tone":"简洁"}');
     setClientTurnKey(newClientTurnKey());
     setSaveResult(false);
@@ -54,7 +56,7 @@ export default function PromptApplicationSessionPanel({
       controllerRef.current = null;
       setPending("");
       setSessions(listed.sessions);
-      setListSummary(listed.summary);
+      setListFailureCode(listed.failureCode);
       if (listed.sessions[0]) selectSession(listed.sessions[0], listed.summary);
     });
     return () => {
@@ -151,26 +153,26 @@ export default function PromptApplicationSessionPanel({
   }
 
   return (
-    <section className="prompt-application-session-panel" id="prompt-application-session" aria-label="Prompt Application Session v2">
+    <section className="prompt-application-session-panel" id="prompt-application-session" aria-label={t($ => $.sessionTitle)}>
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Prompt Application Session v2</p><h4>Metadata-only multi-turn owner</h4></div>
-        <span className={`status-badge ${result.turn?.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.session?.state ?? result.status}</span>
+        <div><p className="eyebrow">{t($ => $.sessionTitle)}</p><h4>{t($ => $.sessionMetadata)}</h4></div>
+        <span className={`status-badge ${result.turn?.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{t($ => $.states[result.session?.state ?? result.status])}</span>
       </div>
       <div className="application-publish-layout">
         <article className="application-publish-create">
-          <strong>{result.session?.sessionId ?? "No Prompt Session selected"}</strong>
+          <strong>{result.session?.sessionId ?? t($ => $.noSession)}</strong>
           {result.session ? (
             <>
-              <code>{result.session.assignmentId} · assignment v{result.session.assignmentVersion}</code>
-              <code>{result.session.templateId} · template v{result.session.templateVersion}</code>
-              <p>record v{result.session.recordVersion} · {result.session.turnCount} turn(s)</p>
+              <code>{result.session.assignmentId} · {t($ => $.assignmentVersion, { version: result.session.assignmentVersion })}</code>
+              <code>{result.session.templateId} · {t($ => $.templateVersionLabel, { version: result.session.templateVersion })}</code>
+              <p>{t($ => $.recordTurns, { version: result.session.recordVersion, count: result.session.turnCount })}</p>
             </>
           ) : null}
           <button type="button" onClick={() => void createSession()} disabled={config.mode === "offline" || Boolean(pending)}>
-            {pending === "create" ? "Creating…" : "Create Session v2"}
+            {pending === "create" ? t($ => $.creatingSession) : t($ => $.createSession)}
           </button>
-          <button type="button" className="secondary-action" onClick={cancelRequest} disabled={!pending}>Cancel current request</button>
-          <div className="application-publish-list" aria-label="Active Prompt Session v2 records">
+          <button type="button" className="secondary-action" onClick={cancelRequest} disabled={!pending}>{t($ => $.cancelRequest)}</button>
+          <div className="application-publish-list" aria-label={t($ => $.activeSessions)}>
             {sessions.map((session) => (
               <button
                 type="button"
@@ -180,18 +182,18 @@ export default function PromptApplicationSessionPanel({
                 onClick={() => selectSession(session)}
               >
                 <strong>{session.sessionId}</strong>
-                <small>record v{session.recordVersion} · {session.turnCount} turn(s)</small>
+                <small>{t($ => $.recordTurns, { version: session.recordVersion, count: session.turnCount })}</small>
               </button>
             ))}
           </div>
-          <p className="boundary-note">{listSummary}</p>
+          <p className="boundary-note">{listFailureCode ? <>{t($ => $.listFailed)} <code>{listFailureCode}</code></> : pending === "list" ? t($ => $.listLoading) : t($ => $.listedCount, { count: sessions.length })}</p>
         </article>
         <article className="application-publish-review">
-          <label>Turn variables<textarea rows={6} value={variablesText} onChange={(event) => setVariablesText(event.target.value)} /></label>
-          {variables.failureCode ? <p className="failure-summary">{variables.failureCode}</p> : null}
+          <label>{t($ => $.turnVariables)}<textarea rows={6} value={variablesText} onChange={(event) => setVariablesText(event.target.value)} /></label>
+          {variables.failureCode ? <p className="failure-summary">{variables.failureCode} · {t($ => $.invalidVariables)}</p> : null}
           <label>client_turn_key<input value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} maxLength={160} /></label>
           <button type="button" onClick={() => void executeTurn()} disabled={!result.session || !variables.isValid || result.session.state !== "active" || Boolean(pending)}>
-            {pending === "execute" ? "Executing…" : "Execute Prompt turn"}
+            {pending === "execute" ? t($ => $.executingTurn) : t($ => $.executeTurn)}
           </button>
         </article>
       </div>
@@ -207,21 +209,20 @@ export default function PromptApplicationSessionPanel({
         onOpenRun={onOpenRun}
       />
       <article className="application-publish-snapshot">
-        <strong>Transient prompt_output</strong>
-        <pre>{result.output || "(没有当前 turn output)"}</pre>
+        <strong>{t($ => $.transientPromptOutput)}</strong>
+        <pre>{result.output || t($ => $.noTurnOutput)}</pre>
         {result.turn ? (
           <>
-            <p>turn #{result.turn.sequence} · {result.turn.status} · {result.turn.turnId}</p>
-            <button type="button" onClick={() => onOpenRun?.(result.turn!.runId)}>Open Run v6 evidence</button>
+            <p>{t($ => $.turnSummary, { sequence: result.turn.sequence, status: t($ => $.states[result.turn!.status]), id: result.turn.turnId })}</p>
+            <button type="button" onClick={() => onOpenRun?.(result.turn!.runId)}>{t($ => $.openRunEvidence)}</button>
           </>
         ) : null}
-        {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureSummary}</p> : null}
+        {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureCode === "prompt_invocation_output_contract_failed" ? t($ => $.outputRejected) : t($ => $.failureHelp)}</p> : null}
         <ControlledUseFailureGuidance owner="prompt_session" failureCode={result.failureCode} />
-        <p className="boundary-note">{result.summary}</p>
+        <p className="boundary-note">{pending === "create" ? t($ => $.creatingSession) : pending === "execute" ? t($ => $.executingTurn) : result.failureCode === "application_session_request_canceled" ? t($ => $.requestCanceled) : result.status === "offline" ? t($ => $.sessionOffline) : result.failureCode ? t($ => $.sessionFailed) : result.status === "succeeded" ? t($ => $.sessionSucceeded) : result.status === "replayed" ? t($ => $.sessionReplayed) : result.session ? t($ => $.sessionRestored) : t($ => $.sessionCreateHelp)}</p>
       </article>
       <p className="boundary-note">
-        Session / Turn v2 仅持久化 authority、input digest/bytes、状态与 Run v6 引用；variables 始终易失，prompt_output 仅在逐 turn 显式选择时另存为结果资产。
-      </p>
+        {t($ => $.sessionBoundary)}</p>
     </section>
   );
 }

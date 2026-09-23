@@ -81,7 +81,7 @@ export type PromptTemplateDraftInput = {
   variables: PromptTemplateVariable[];
   outputContract: PromptTemplateOutputContract;
 };
-export type PromptTemplateFinding = { code: string; field: string; summary: string };
+export type PromptTemplateFinding = { code: string; field: string; summary: string; messageKey?: "inputObject" | "invalidScope" | "nameLength" | "descriptionLength" | "metadataSecret" | "messageCount" | "variableCount" | "variableDefinition" | "duplicateVariable" | "variableDescription" | "requiredDefault" | "defaultType" | "messageContract" | "messageSecret" | "syntax" | "sourceBytes" | "unusedVariable" | "outputContract" | "undeclaredInput" | "missingVariable" | "inputType" | "inputSecret" | "renderedBytes" | "undeclaredVariable" | "serverFinding" };
 export type PromptTemplateValidation = {
   state: "valid" | "invalid";
   isValid: boolean;
@@ -230,41 +230,41 @@ export function createPromptTemplateDraftInput(
 
 export function validatePromptTemplateLocally(input: PromptTemplateDraftInput): PromptTemplateValidation {
   const findings: PromptTemplateFinding[] = [];
-  const add = (code: string, field: string, summary: string) => findings.push({ code, field, summary });
+  const add = (code: string, field: string, summary: string, messageKey: PromptTemplateFinding["messageKey"]) => findings.push({ code, field, summary, messageKey });
   if (!TEMPLATE_ID.test(input.templateId) || !REFERENCE.test(input.workspaceId) || !APPLICATION_ID.test(input.applicationId)) {
-    add("prompt_template_payload_invalid", "scope", "Template、workspace 或 application 标识不符合契约。");
+    add("prompt_template_payload_invalid", "scope", "Template、workspace 或 application 标识不符合契约。", "invalidScope");
   }
   if (input.templateName.trim().length < 2 || input.templateName.trim().length > 80) {
-    add("prompt_template_payload_invalid", "template_name", "模板名称必须为 2 至 80 个字符。");
+    add("prompt_template_payload_invalid", "template_name", "模板名称必须为 2 至 80 个字符。", "nameLength");
   }
   if (input.description.trim().length > 512) {
-    add("prompt_template_payload_invalid", "description", "模板描述不得超过 512 个字符。");
+    add("prompt_template_payload_invalid", "description", "模板描述不得超过 512 个字符。", "descriptionLength");
   }
   if (SECRET_MATERIAL.test(input.templateName) || SECRET_MATERIAL.test(input.description)) {
-    add("prompt_template_secret_material_forbidden", "metadata", "模板元数据包含凭据样式材料。");
+    add("prompt_template_secret_material_forbidden", "metadata", "模板元数据包含凭据样式材料。", "metadataSecret");
   }
   if (input.messages.length < 1 || input.messages.length > 16) {
-    add("prompt_template_payload_invalid", "messages", "消息数量必须为 1 至 16。");
+    add("prompt_template_payload_invalid", "messages", "消息数量必须为 1 至 16。", "messageCount");
   }
   if (input.variables.length > 64) {
-    add("prompt_template_variable_invalid", "variables", "变量数量不得超过 64。");
+    add("prompt_template_variable_invalid", "variables", "变量数量不得超过 64。", "variableCount");
   }
   const variables = new Map<string, PromptTemplateVariable>();
   for (const [index, variable] of input.variables.entries()) {
     const field = `variables[${index}]`;
     if (!VARIABLE_NAME.test(variable.name) || !isVariableType(variable.type)) {
-      add("prompt_template_variable_invalid", field, "变量名称或类型不符合契约。");
+      add("prompt_template_variable_invalid", field, "变量名称或类型不符合契约。", "variableDefinition");
       continue;
     }
-    if (variables.has(variable.name)) add("prompt_template_variable_invalid", `${field}.name`, "变量名称重复。");
+    if (variables.has(variable.name)) add("prompt_template_variable_invalid", `${field}.name`, "变量名称重复。", "duplicateVariable");
     variables.set(variable.name, variable);
     if (variable.description.length > 512 || SECRET_MATERIAL.test(variable.description)) {
-      add(SECRET_MATERIAL.test(variable.description) ? "prompt_template_secret_material_forbidden" : "prompt_template_variable_invalid", `${field}.description`, "变量描述不符合预算或敏感材料边界。");
+      add(SECRET_MATERIAL.test(variable.description) ? "prompt_template_secret_material_forbidden" : "prompt_template_variable_invalid", `${field}.description`, "变量描述不符合预算或敏感材料边界。", "variableDescription");
     }
     if (variable.required && variable.defaultValue !== undefined) {
-      add("prompt_template_variable_invalid", `${field}.default_value`, "必填变量不能声明默认值。");
+      add("prompt_template_variable_invalid", `${field}.default_value`, "必填变量不能声明默认值。", "requiredDefault");
     } else if (variable.defaultValue !== undefined && !valueMatchesType(variable.defaultValue, variable.type)) {
-      add("prompt_template_variable_invalid", `${field}.default_value`, "默认值与变量类型不匹配。");
+      add("prompt_template_variable_invalid", `${field}.default_value`, "默认值与变量类型不匹配。", "defaultType");
     }
   }
   const referenced = new Set<string>();
@@ -273,27 +273,27 @@ export function validatePromptTemplateLocally(input: PromptTemplateDraftInput): 
     const field = `messages[${index}]`;
     totalBytes += utf8Bytes(message.content);
     if (!isRole(message.role) || !message.content || utf8Bytes(message.content) > 16 * 1024) {
-      add("prompt_template_payload_invalid", field, "消息角色、内容或长度不符合契约。");
+      add("prompt_template_payload_invalid", field, "消息角色、内容或长度不符合契约。", "messageContract");
     }
     if (SECRET_MATERIAL.test(message.content)) {
-      add("prompt_template_secret_material_forbidden", `${field}.content`, "消息包含凭据样式材料。");
+      add("prompt_template_secret_material_forbidden", `${field}.content`, "消息包含凭据样式材料。", "messageSecret");
     }
     const parsed = parseTemplate(message.content);
     if (!parsed.valid) {
-      add("prompt_template_syntax_invalid", `${field}.content`, "消息包含不受支持的模板语法。");
+      add("prompt_template_syntax_invalid", `${field}.content`, "消息包含不受支持的模板语法。", "syntax");
       continue;
     }
     for (const name of parsed.variables) {
       referenced.add(name);
-      if (!variables.has(name)) add("prompt_template_variable_invalid", `${field}.content`, `变量 ${name} 未声明。`);
+      if (!variables.has(name)) add("prompt_template_variable_invalid", `${field}.content`, `变量 ${name} 未声明。`, "undeclaredVariable");
     }
   }
-  if (totalBytes > 64 * 1024) add("prompt_template_payload_invalid", "messages", "模板源码超过 64 KiB。");
+  if (totalBytes > 64 * 1024) add("prompt_template_payload_invalid", "messages", "模板源码超过 64 KiB。", "sourceBytes");
   for (const name of variables.keys()) {
-    if (!referenced.has(name)) add("prompt_template_variable_invalid", `variables.${name}`, "已声明变量未被消息引用。");
+    if (!referenced.has(name)) add("prompt_template_variable_invalid", `variables.${name}`, "已声明变量未被消息引用。", "unusedVariable");
   }
   if (!isOutputContract(input.outputContract)) {
-    add("prompt_template_output_contract_invalid", "output_contract", "输出契约不符合当前受限 schema。");
+    add("prompt_template_output_contract_invalid", "output_contract", "输出契约不符合当前受限 schema。", "outputContract");
   }
   return { state: findings.length ? "invalid" : "valid", isValid: findings.length === 0, findings };
 }
@@ -309,7 +309,7 @@ export function renderPromptTemplatePreview(
   const declarations = new Map(input.variables.map((variable) => [variable.name, variable]));
   for (const name of Object.keys(values)) {
     if (!declarations.has(name)) {
-      findings.push({ code: "prompt_template_variable_invalid", field: `input.${name}`, summary: "输入包含未声明变量。" });
+      findings.push({ code: "prompt_template_variable_invalid", field: `input.${name}`, summary: "输入包含未声明变量。", messageKey: "undeclaredInput" });
     }
   }
   for (const variable of input.variables) {
@@ -317,17 +317,17 @@ export function renderPromptTemplatePreview(
       ? values[variable.name]
       : variable.defaultValue;
     if (value === undefined) {
-      if (variable.required) findings.push({ code: "prompt_template_variable_invalid", field: `input.${variable.name}`, summary: "缺少必填变量。" });
+      if (variable.required) findings.push({ code: "prompt_template_variable_invalid", field: `input.${variable.name}`, summary: "缺少必填变量。", messageKey: "missingVariable" });
       canonical.set(variable.name, "");
       continue;
     }
     if (!valueMatchesType(value, variable.type)) {
-      findings.push({ code: "prompt_template_variable_invalid", field: `input.${variable.name}`, summary: "合成值与变量类型不匹配。" });
+      findings.push({ code: "prompt_template_variable_invalid", field: `input.${variable.name}`, summary: "合成值与变量类型不匹配。", messageKey: "inputType" });
       continue;
     }
     const rendered = canonicalVariableValue(value, variable.type);
     if (SECRET_MATERIAL.test(rendered)) {
-      findings.push({ code: "prompt_template_secret_material_forbidden", field: `input.${variable.name}`, summary: "合成值包含凭据样式材料。" });
+      findings.push({ code: "prompt_template_secret_material_forbidden", field: `input.${variable.name}`, summary: "合成值包含凭据样式材料。", messageKey: "inputSecret" });
     }
     canonical.set(variable.name, rendered);
   }
@@ -337,7 +337,7 @@ export function renderPromptTemplatePreview(
     content: message.content.replace(/\{\{\s*([A-Za-z][A-Za-z0-9_]*)\s*\}\}/gu, (_match, name: string) => canonical.get(name) ?? ""),
   }));
   if (messages.reduce((total, message) => total + utf8Bytes(message.content), 0) > 128 * 1024) {
-    return { status: "invalid", messages: [], findings: [{ code: "prompt_template_variable_invalid", field: "input", summary: "渲染结果超过 128 KiB。" }] };
+    return { status: "invalid", messages: [], findings: [{ code: "prompt_template_variable_invalid", field: "input", summary: "渲染结果超过 128 KiB。", messageKey: "renderedBytes" }] };
   }
   return { status: "valid", messages, findings: [] };
 }

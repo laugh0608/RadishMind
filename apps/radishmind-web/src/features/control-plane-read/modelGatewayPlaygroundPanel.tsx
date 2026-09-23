@@ -1,3 +1,5 @@
+import "../../i18n/playgroundResources.ts";
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -38,6 +40,7 @@ export default function ModelGatewayPlaygroundPanel({
   applicationActive: boolean;
   active: boolean;
 }) {
+  const { t } = useTranslation("gateway");
   const [applicationId, setApplicationId] = useState(baseConfig.applicationId);
   const [apiKeyCredential, setAPIKeyCredential] = useState<{ apiKeyId: string; token: string } | null>(null);
   const [protocol, setProtocol] = useState<ModelGatewayPlaygroundProtocol>("chat_completions");
@@ -231,41 +234,102 @@ export default function ModelGatewayPlaygroundPanel({
     result.failureBoundary,
     result.attemptEvidenceAvailable ? result.providerAttemptCount : 0,
   );
+  const catalogStatusLabel = {
+    offline: t($ => $.playground.catalogStatusOffline),
+    idle: t($ => $.playground.catalogStatusIdle),
+    loading: t($ => $.playground.catalogStatusLoading),
+    ready: t($ => $.playground.catalogStatusReady),
+    empty: t($ => $.playground.catalogStatusEmpty),
+    failed: t($ => $.playground.catalogStatusFailed),
+  }[catalog.status];
+  const catalogFailureLabels: Record<string, string> = {
+    gateway_model_catalog_scope_invalid: t($ => $.playground.catalogScopeInvalid),
+    gateway_api_key_handoff_required: t($ => $.playground.catalogHandoffRequired),
+    gateway_model_catalog_network_error: t($ => $.playground.catalogNetworkError),
+    gateway_model_catalog_response_invalid: t($ => $.playground.catalogResponseInvalid),
+    gateway_model_catalog_http_failed: t($ => $.playground.catalogHttpFailed),
+    api_key_missing: t($ => $.playground.catalogApiKeyMissing),
+    api_key_invalid: t($ => $.playground.catalogApiKeyInvalid),
+    api_key_credential_conflict: t($ => $.playground.catalogApiKeyConflict),
+    api_key_revoked: t($ => $.playground.catalogApiKeyRevoked),
+    api_key_expired: t($ => $.playground.catalogApiKeyExpired),
+    api_key_scope_denied: t($ => $.playground.catalogApiKeyScopeDenied),
+    api_key_application_unavailable: t($ => $.playground.catalogApplicationUnavailable),
+    api_key_store_unavailable: t($ => $.playground.catalogApiKeyStoreUnavailable),
+  };
+  const catalogSummary = catalog.status === "offline" ? t($ => $.playground.catalogOffline)
+    : catalog.status === "idle" ? t($ => $.playground.catalogIdle)
+      : catalog.status === "loading" ? t($ => $.playground.catalogLoading)
+        : catalog.status === "ready" ? t($ => $.playground.catalogReady, { count: catalog.models.length })
+          : catalog.status === "empty" ? t($ => $.playground.catalogEmpty)
+            : catalogFailureLabels[catalog.failureCode] ?? t($ => $.playground.catalogGenericFailure);
+  const resultStatusLabel = {
+    offline: t($ => $.playground.resultStatusOffline),
+    idle: t($ => $.playground.resultStatusIdle),
+    submitting: t($ => $.playground.resultStatusSubmitting),
+    succeeded: t($ => $.playground.resultStatusSucceeded),
+    failed: t($ => $.playground.resultStatusFailed),
+    canceled: t($ => $.playground.resultStatusCanceled),
+  }[result.status];
+  const resultSummary = result.status === "offline" ? t($ => $.playground.resultOffline)
+    : result.status === "idle" ? result.failureCode === "gateway_api_key_handoff_required"
+      ? t($ => $.playground.resultHandoffRequired) : t($ => $.playground.resultReady)
+      : result.status === "submitting" ? result.stream
+        ? t($ => $.playground.resultStreamProgress) : t($ => $.playground.resultRequestProgress)
+        : result.status === "succeeded" ? result.fallbackUsed
+          ? t($ => $.playground.resultBackupCompleted) : result.stream
+            ? t($ => $.playground.resultStreamCompleted) : t($ => $.playground.resultCompleted)
+          : result.status === "canceled" ? t($ => $.playground.resultCanceled)
+            : result.failureBoundary === "quota_admission" ? t($ => $.playground.resultQuotaRejected)
+              : result.failureCode === "gateway_api_key_handoff_required" ? t($ => $.playground.resultHandoffRequired)
+                : result.failureCode === "gateway_playground_input_invalid" ? t($ => $.playground.resultInputInvalid)
+                  : result.failureCode === "gateway_playground_output_too_large" ? t($ => $.playground.resultOutputTooLarge)
+                    : result.failureCode === "gateway_playground_response_invalid" ? t($ => $.playground.resultResponseInvalid)
+                      : result.failureCode === "gateway_playground_network_error" ? t($ => $.playground.resultNetworkError)
+                        : t($ => $.playground.resultGenericFailure);
+  const quotaTitle = result.failureCode === "gateway_quota_policy_not_found"
+    ? t($ => $.playground.quotaPolicyMissingTitle)
+    : result.failureCode === "gateway_quota_exceeded"
+      ? t($ => $.playground.quotaExceededTitle) : t($ => $.playground.quotaOwnerUnavailableTitle);
+  const quotaSummary = result.failureCode === "gateway_quota_policy_not_found"
+    ? t($ => $.playground.quotaPolicyMissingSummary)
+    : result.failureCode === "gateway_quota_exceeded"
+      ? t($ => $.playground.quotaExceededSummary) : t($ => $.playground.quotaOwnerUnavailableSummary);
   return (
     <section className="surface-band model-gateway-overview gateway-playground" id="model-gateway-playground" aria-labelledby="model-gateway-playground-title">
       <div className="section-heading">
-        <div><p className="eyebrow">Model Gateway</p><h3 id="model-gateway-playground-title">Playground and request review</h3></div>
-        <span className={`status-badge ${executionReady ? "good" : "neutral"}`}>{enabled ? "dev/test controlled" : "offline"}</span>
+        <div><p className="eyebrow">{t($ => $.playground.modelGateway)}</p><h3 id="model-gateway-playground-title">{t($ => $.playground.playgroundReview)}</h3></div>
+        <span className={`status-badge ${executionReady ? "good" : "neutral"}`}>{enabled ? t($ => $.playground.devTestControlled) : t($ => $.playground.offline)}</span>
       </div>
       {enabled && !workspaceScopeMatches ? (
         <article className="model-gateway-overview-hero gateway-playground-blocked" role="alert">
-          <div><p className="eyebrow">Workspace boundary</p><h4>Gateway source scope does not match this workspace</h4><p>Configured source <code>{baseConfig.workspaceId}</code> cannot be used for Application Workspace <code>{workspaceId || "unavailable"}</code>. No model or inference request is sent.</p></div>
+          <div><p className="eyebrow">{t($ => $.playground.workspaceBoundary)}</p><h4>{t($ => $.playground.scopeMismatch)}</h4><p>{t($ => $.playground.workspaceScopeMismatchDetail, { sourceId: baseConfig.workspaceId, workspaceId: workspaceId || t($ => $.playground.unavailable) })}</p></div>
         </article>
       ) : enabled && !applicationActive ? (
         <article className="model-gateway-overview-hero gateway-playground-blocked" role="status">
-          <div><p className="eyebrow">Archived application</p><h4>Controlled invocation is closed</h4><p>Sanitized request history and current-window evidence remain readable, but an archived Application cannot load models or send a Gateway request.</p></div>
+          <div><p className="eyebrow">{t($ => $.playground.archivedApplication)}</p><h4>{t($ => $.playground.controlledInvocationClosed)}</h4><p>{t($ => $.playground.archivedInvocationBoundary)}</p></div>
         </article>
       ) : !enabled ? (
         <article className="model-gateway-overview-hero">
-          <div><p className="eyebrow">Offline boundary</p><h4>No northbound request is sent</h4><p>Enable the explicit Gateway Playground and Request History dev/test source to run a request. Production keys, quota, billing, retry, fallback, and persistence remain disabled.</p></div>
+          <div><p className="eyebrow">{t($ => $.playground.offlineBoundary)}</p><h4>{t($ => $.playground.noNorthboundRequest)}</h4><p>{t($ => $.playground.enablePlayground)}</p></div>
         </article>
       ) : (
         <div className="gateway-playground-layout">
           <form className="gateway-playground-form" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
-            <div className="gateway-playground-scope"><p><strong>Application scope</strong><code>{applicationId || "unbound"}</code></p><p><strong>Authentication</strong><code>{config.authMode === "api_key_dev_test" ? apiKeyCredential?.apiKeyId ?? "handoff required" : "dev headers"}</code></p>{apiKeyCredential ? <button type="button" className="secondary-action" onClick={clearCredential}>Clear credential</button> : null}</div>
+            <div className="gateway-playground-scope"><p><strong>{t($ => $.playground.applicationScope)}</strong><code>{applicationId || t($ => $.playground.unbound)}</code></p><p><strong>{t($ => $.playground.authentication)}</strong><code>{config.authMode === "api_key_dev_test" ? apiKeyCredential?.apiKeyId ?? t($ => $.playground.handoffRequired) : t($ => $.playground.devHeaders)}</code></p>{apiKeyCredential ? <button type="button" className="secondary-action" onClick={clearCredential}>{t($ => $.playground.clearCredential)}</button> : null}</div>
             <div className="gateway-playground-model-catalog">
-              <div><p className="eyebrow">Scoped model catalog</p><span className={`status-badge ${catalog.status === "ready" ? "good" : catalog.status === "failed" ? "bad" : "neutral"}`}>{catalog.status}</span></div>
-              <p>{catalog.summary}</p>
-              <button type="button" onClick={() => void loadModels()} disabled={!applicationId || !credentialReady || catalog.status === "loading" || !active}>{catalog.status === "loading" ? "Loading models…" : "Load models"}</button>
-              {catalog.models.length ? <label>Validated model<select value={catalog.selectedModel} onChange={(event) => { const selectedModel = event.target.value; const item = catalog.models.find((candidate) => candidate.id === selectedModel); setCatalog((current) => ({ ...current, selectedModel })); setModel(selectedModel); if (item && !item.protocols.includes(protocol)) setProtocol(item.protocols[0] ?? "chat_completions"); }}>{catalog.models.map((item) => <option key={item.id} value={item.id}>{item.id}</option>)}</select></label> : null}
-              {catalog.failureCode ? <p className="failure-summary">{catalog.failureCode}: {catalog.summary}</p> : null}
+              <div><p className="eyebrow">{t($ => $.playground.scopedModelCatalog)}</p><span className={`status-badge ${catalog.status === "ready" ? "good" : catalog.status === "failed" ? "bad" : "neutral"}`}>{catalogStatusLabel}</span></div>
+              <p>{catalogSummary}</p>
+              <button type="button" onClick={() => void loadModels()} disabled={!applicationId || !credentialReady || catalog.status === "loading" || !active}>{catalog.status === "loading" ? t($ => $.playground.loadingModels) : t($ => $.playground.loadModels)}</button>
+              {catalog.models.length ? <label>{t($ => $.playground.validatedModel)}<select value={catalog.selectedModel} onChange={(event) => { const selectedModel = event.target.value; const item = catalog.models.find((candidate) => candidate.id === selectedModel); setCatalog((current) => ({ ...current, selectedModel })); setModel(selectedModel); if (item && !item.protocols.includes(protocol)) setProtocol(item.protocols[0] ?? "chat_completions"); }}>{catalog.models.map((item) => <option key={item.id} value={item.id}>{item.id}</option>)}</select></label> : null}
+              {catalog.failureCode ? <p className="failure-summary">{catalog.failureCode}: {catalogSummary}</p> : null}
             </div>
-            <label>Protocol<select value={protocol} onChange={(event) => setProtocol(event.target.value as ModelGatewayPlaygroundProtocol)} disabled={result.status === "submitting" || catalog.status !== "ready"}><option value="chat_completions" disabled={!supportedProtocols.includes("chat_completions")}>Chat Completions</option><option value="responses" disabled={!supportedProtocols.includes("responses")}>Responses</option><option value="messages" disabled={!supportedProtocols.includes("messages")}>Messages</option></select></label>
-            <label>Model<input value={model} readOnly maxLength={160} disabled={result.status === "submitting" || catalog.status !== "ready"} /></label>
-            <label className="gateway-playground-input">Temporary input<textarea value={inputText} onChange={(event) => setInputText(event.target.value)} maxLength={8000} rows={7} disabled={result.status === "submitting"} /></label>
-            <label className="gateway-playground-stream"><input type="checkbox" checked={stream} onChange={(event) => setStream(event.target.checked)} disabled={result.status === "submitting"} /> Stream response</label>
+            <label>{t($ => $.playground.protocol)}<select value={protocol} onChange={(event) => setProtocol(event.target.value as ModelGatewayPlaygroundProtocol)} disabled={result.status === "submitting" || catalog.status !== "ready"}><option value="chat_completions" disabled={!supportedProtocols.includes("chat_completions")}>{t($ => $.playground.chatCompletions)}</option><option value="responses" disabled={!supportedProtocols.includes("responses")}>{t($ => $.playground.responses)}</option><option value="messages" disabled={!supportedProtocols.includes("messages")}>{t($ => $.playground.messages)}</option></select></label>
+            <label>{t($ => $.playground.model)}<input value={model} readOnly maxLength={160} disabled={result.status === "submitting" || catalog.status !== "ready"} /></label>
+            <label className="gateway-playground-input">{t($ => $.playground.temporaryInput)}<textarea value={inputText} onChange={(event) => setInputText(event.target.value)} maxLength={8000} rows={7} disabled={result.status === "submitting"} /></label>
+            <label className="gateway-playground-stream"><input type="checkbox" checked={stream} onChange={(event) => setStream(event.target.checked)} disabled={result.status === "submitting"} /> {t($ => $.playground.streamResponse)}</label>
             <fieldset className="gateway-playground-fallback">
-              <legend>Provider fallback for this request</legend>
+              <legend>{t($ => $.playground.providerFallback)}</legend>
               <label>
                 <input
                   type="checkbox"
@@ -273,49 +337,48 @@ export default function ModelGatewayPlaygroundPanel({
                   onChange={(event) => setFallbackMode(event.target.checked ? "allow_configured" : "disabled")}
                   disabled={result.status === "submitting" || stream || config.authMode !== "api_key_dev_test"}
                 />
-                Allow the active configured backup target
-              </label>
+                {t($ => $.playground.allowBackupTarget)}</label>
               <p className="boundary-note">
                 {config.authMode !== "api_key_dev_test"
-                  ? "Fallback remains disabled for non-API Key callers."
+                  ? t($ => $.playground.fallbackApiKeyOnly)
                   : stream
-                    ? "Fallback remains disabled while streaming is selected."
-                    : "The server still requires an active Route v2 policy and an eligible typed Provider failure. No target is selected by the client."}
+                    ? t($ => $.playground.fallbackStreamingDisabled)
+                    : t($ => $.playground.fallbackServerRequirement)}
               </p>
             </fieldset>
             <div className="gateway-playground-actions">
-              <button type="submit" disabled={result.status === "submitting" || !executionReady}>Send request</button>
-              <button type="button" onClick={cancel} disabled={result.status !== "submitting"}>Cancel</button>
+              <button type="submit" disabled={result.status === "submitting" || !executionReady}>{t($ => $.playground.sendRequest)}</button>
+              <button type="button" onClick={cancel} disabled={result.status !== "submitting"}>{t($ => $.playground.cancel)}</button>
             </div>
-            <p className="boundary-note">Input, output, and any handed-off API key stay in this component and active HTTP requests. The credential is cleared when leaving this route and is never written to browser storage.</p>
+            <p className="boundary-note">{t($ => $.playground.inputPrivacy)}</p>
           </form>
           <article className="gateway-playground-result" aria-live="polite">
             <div className="model-gateway-overview-row-main">
-              <div><p className="eyebrow">Current result</p><h4>{result.requestId || "No request yet"}</h4></div>
-              <span className={`status-badge ${result.status === "succeeded" ? "good" : result.status === "failed" || result.status === "canceled" ? "bad" : "neutral"}`}>{result.status}</span>
+              <div><p className="eyebrow">{t($ => $.playground.currentResult)}</p><h4>{result.requestId || t($ => $.playground.noRequestYet)}</h4></div>
+              <span className={`status-badge ${result.status === "succeeded" ? "good" : result.status === "failed" || result.status === "canceled" ? "bad" : "neutral"}`}>{resultStatusLabel}</span>
             </div>
-            <p>{result.summary}</p>
+            <p>{resultSummary}</p>
             {result.outputText ? <pre className="gateway-playground-output">{result.outputText}</pre> : null}
             <dl className="model-gateway-overview-meta">
-              <div><dt>Route</dt><dd>{result.route || "not sent"}</dd></div>
-              <div><dt>Mode</dt><dd>{result.stream ? "stream" : "unary"}</dd></div>
-              <div><dt>HTTP</dt><dd>{result.httpStatus || (result.status === "idle" || result.status === "submitting" ? "pending" : "not observed")}</dd></div>
-              <div><dt>Failure</dt><dd>{result.failureCode || "none"}{result.failureBoundary ? ` · ${result.failureBoundary}` : ""}</dd></div>
-              <div><dt>Provider attempts</dt><dd>{result.attemptEvidenceAvailable ? result.providerAttemptCount : "not observed"}</dd></div>
-              <div><dt>Fallback used</dt><dd>{result.attemptEvidenceAvailable ? String(result.fallbackUsed) : "not observed"}</dd></div>
+              <div><dt>{t($ => $.playground.route)}</dt><dd>{result.route || t($ => $.playground.notSent)}</dd></div>
+              <div><dt>{t($ => $.playground.mode)}</dt><dd>{result.stream ? t($ => $.playground.stream) : t($ => $.playground.unary)}</dd></div>
+              <div><dt>{t($ => $.playground.http)}</dt><dd>{result.httpStatus || (result.status === "idle" || result.status === "submitting" ? t($ => $.playground.pending) : t($ => $.playground.notObserved))}</dd></div>
+              <div><dt>{t($ => $.playground.failure)}</dt><dd>{result.failureCode || t($ => $.playground.none)}{result.failureBoundary ? ` · ${result.failureBoundary}` : ""}</dd></div>
+              <div><dt>{t($ => $.playground.providerAttempts)}</dt><dd>{result.attemptEvidenceAvailable ? result.providerAttemptCount : t($ => $.playground.notObserved)}</dd></div>
+              <div><dt>{t($ => $.playground.fallbackUsed)}</dt><dd>{result.attemptEvidenceAvailable ? String(result.fallbackUsed) : t($ => $.playground.notObserved)}</dd></div>
             </dl>
             {quotaFailureGuidance ? (
-              <article className="controlled-use-failure-guidance" aria-label="Gateway quota failure guidance">
+              <article className="controlled-use-failure-guidance" aria-label={t($ => $.playground.quotaFailureGuidance)}>
                 <div className="application-api-card-heading">
-                  <div><p className="eyebrow">Quota admission blocked</p><h5>{quotaFailureGuidance.title}</h5></div>
-                  <span className="status-badge bad">{quotaFailureGuidance.sideEffectBadge}</span>
+                  <div><p className="eyebrow">{t($ => $.playground.quotaAdmissionBlocked)}</p><h5>{quotaTitle}</h5></div>
+                  <span className="status-badge bad">{result.providerAttemptCount > 0 ? t($ => $.playground.quotaNoBackupCall) : t($ => $.playground.quotaNoProviderCall)}</span>
                 </div>
-                <p>{quotaFailureGuidance.summary}</p>
-                <p className="boundary-note">{quotaFailureGuidance.sideEffectSummary}</p>
-                <a href={`#${quotaFailureGuidance.adminAnchor}`}>{quotaFailureGuidance.adminLabel} <span aria-hidden="true">→</span></a>
+                <p>{quotaSummary}</p>
+                <p className="boundary-note">{result.providerAttemptCount > 0 ? t($ => $.playground.quotaNoBackupSummary) : t($ => $.playground.quotaNoProviderSummary)}</p>
+                <a href={`#${quotaFailureGuidance.adminAnchor}`}>{t($ => $.playground.openAdminQuota)} <span aria-hidden="true">→</span></a>
               </article>
             ) : null}
-            {result.historyReviewAvailable && result.requestId ? <button type="button" onClick={reviewHistory}>Review sanitized history</button> : null}
+            {result.historyReviewAvailable && result.requestId ? <button type="button" onClick={reviewHistory}>{t($ => $.playground.reviewSanitizedHistory)}</button> : null}
           </article>
         </div>
       )}

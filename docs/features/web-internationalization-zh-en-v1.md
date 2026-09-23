@@ -2,7 +2,7 @@
 
 更新时间：2026-09-23
 
-状态：方案待确认；项目所有者已指定为下一重点，本轮仅完成专题规划，尚未安装依赖或实施运行代码。
+状态：A 阶段依赖安装、公共基座与 Prompt 主链展示迁移已实施；单元与构建验证完成，浏览器验收待单独授权。A 阶段尚未关闭，不能据此声明全站双语完成。
 
 ## 目标与职责
 
@@ -63,22 +63,22 @@
 
 ### 切换入口与行为
 
-- 桌面入口放在现有产品壳的账户 / 偏好区域；窄屏放在现有菜单内。未登录的认证页也提供同一能力，不增加独立设置大页面或第二套导航。
+- 桌面入口放在现有导航底部、环境说明之前；窄屏放在菜单内、工作区选择之后。未登录认证页放在页头；具体组件边界见下文 A 阶段实施准备。不依赖仅在本地身份模式出现的账户按钮，不增加独立设置大页面或第二套导航。
 - 切换即时更新已显示的标签、错误、空态和帮助文字，不要求刷新或重新登录。错误消息必须根据稳定状态重新展示，不能只翻译下一次请求。
 - `uiLocale` 不参与标识当前工作区、应用和授权依据代次的 generation key、React `key`、路由或权限计算；所有使用展示标签作为 key 的落点在迁移时改用稳定标识。
 - 切换不卸载当前表单，不丢失未保存 schema、草案、变量、光标上下文和结果，不清除一次性凭据，不发起新的业务读取、保存、模型调用或执行。
 - 原有切换工作区、离开页面、撤销权限和卸载时的隐私清理仍生效；i18n 不扩大任何状态的寿命或复制其内容。
 - 语言入口应支持键盘、明确焦点与读屏名称；变更完成可用轻量 live region 提示，不抢走编辑焦点。
 
-## 技术方案建议
+## 技术方案
 
 ### 依赖选择与最小结构
 
-建议使用 `i18next` + `react-i18next` 承担语言资源、插值、复数和 React 更新，使用浏览器 `Intl` 处理格式化。理由是现有页面多、动态状态多，长期维护完整消息规则有必要复用成熟库；不自研第二套翻译引擎。
+采用 `i18next` + `react-i18next` 承担语言资源、插值、复数和 React 更新，使用浏览器 `Intl` 处理格式化。理由是现有页面多、动态状态多，长期维护完整消息规则有必要复用成熟库；不自研第二套翻译引擎。
 
-本轮只是选型建议。进入 A 阶段前须说明具体版本、React / TypeScript 兼容性、锁文件变化与包体影响，并取得依赖安装授权。只引入这两项直接依赖及其必要依赖，不默认增加语言检测、HTTP 资源加载插件、ICU、代码生成或 Vite 提取插件。
+具体版本、React / TypeScript 兼容性、锁文件变化与包体边界已在下文收口，本次安装已获授权并完成。只引入这两项直接依赖及其必要依赖，不默认增加语言检测、HTTP 资源加载插件、ICU、代码生成或 Vite 提取插件。
 
-建议落点（尚不存在，名称在 A 阶段收口）：
+已建立的实施落点：
 
 | 路径 | 职责 |
 | --- | --- |
@@ -89,7 +89,7 @@
 | 现有 feature 视图模型与展示边界 | 领域消息和状态映射；不增加全局万能错误 manager |
 | `tests/`、`tests/e2e/` | 资源完整性、状态隔离、双语流程与布局验证 |
 
-建议采用 TypeScript 资源对象与 `as const` 支持类型约束，沿用 Node 直接执行 TypeScript 测试的路径；资源为独立数据，不导入 React 或运行代码。以稳定语义键引用，不以中英文句子作为 key。具体使用类型化字符串键还是selector API，按批准版本选择并保持全项目一致，不照抄跨版本示例。
+采用 TypeScript 资源对象与 `as const` 支持类型约束，沿用 Node 直接执行 TypeScript 测试的路径；资源为独立数据，不导入 React 或运行代码。以稳定语义键引用，不以中英文句子作为 key。统一使用 selector API，显式设置 `enableSelector: true`，由资源类型声明约束选择器与插值参数；不混用动态字符串路径，也不启用需要另行处理复数键的 `optimize` 模式。
 
 命名空间按真实功能分组，例如 `common`、`shell`、`identity`、`applications`、`prompt`、`workflow`、`gateway`、`evaluation`、`admin`；同名多义词留在功能域，只有含义一致的控件文案才共享。不创建一个巨型平面字典，也不机械地为每个组件拆资源文件。
 
@@ -152,7 +152,7 @@
 
 | 阶段 | 范围 | 交付与完成条件 | 当前状态 |
 | --- | --- | --- | --- |
-| A：基座与首个完整切片 | 依赖准入、语言实例、偏好与切换入口；公共导航、应用目录、模型目录 / API key 基础交接、Prompt 配置 / 模板 / 审查 / 绑定 / Session / 结果及必要错误 | 能以两语完成五字段应用闭环；切换不丢草案和输入、不多请求；资源与安全测试通过 | 待方案确认 |
+| A：基座与首个完整切片 | 依赖准入、语言实例、偏好与切换入口；公共导航、应用目录、模型目录 / API key 基础交接、Prompt 配置 / 模板 / 审查 / 绑定 / Session / 结果及必要错误 | 能以两语完成五字段应用闭环；切换不丢草案和输入、不多请求；资源与安全测试通过 | 代码实施完成，待浏览器验收 |
 | B：Workflow 与 RAG / Tool | 草案库、节点设计器、校验、版本比较、模板派生、审查与激活、RAG 输入及检索、HTTP Tool 计划 / 确认 / 执行、运行详情 | 包含节点标题 / 端口提示 / 画布可访问名称及失败恢复，保存与权限行为不变 | 未进入 |
 | C：身份与管理 | 认证、账户安全、工作区选择、成员 / 角色 / 邀请与认领、Provider / 路由 / 配额 / 价格等管理面 | 未登录与登录态均可切换；一次性凭据、近期认证、双标签撤销和确认语义保持 | 未进入 |
 | D：Agent、Gateway 与运营 | Agent 档案 / 建议 / Session，Gateway Playground、API 接入说明、请求历史、用量、运营收件箱和详情 | 业务 locale 不变；多协议代码示例与报错说明双语，API 与复制内容保持契约 | 未进入 |
@@ -160,6 +160,74 @@
 | F：全站收口 | 全部已登记路由 / 弹层 / 状态、第三方组件可配置文字、术语复核和帮助指南 | 消息覆盖、双语布局、状态安全与既有门禁均通过，明确已排除的原始内容 | 未进入 |
 
 A 阶段内部先提交覆盖清单、术语与语言入口局部设计，再实施基座，最后贯通 Prompt 全链；不能以只增加切换按钮作为 A 完成。B 至 E 允许修复直接相关的布局和可访问性问题，不借机重排产品信息架构。
+
+## A 阶段实施准备（2026-09-23）
+
+本节把既定方案落实到当前代码与可执行步骤，不新增任务卡。准备完成不等于双语功能完成；安装与模块实现的后续事实见下文实施记录，浏览器验证仍待执行。
+
+### 依赖、安装影响与构建边界
+
+| 项目 | 核对结果与决定 |
+| --- | --- |
+| 当前锁文件 | React / React DOM `19.2.6`、TypeScript `5.9.3`、Vite `6.4.2`；保持现有版本 |
+| `i18next` | 固定 `26.4.2`；已发布包声明可选 TypeScript peer 为 `^5 \|\| ^6 \|\| ^7` |
+| `react-i18next` | 固定 `17.0.15`；React peer 为 `>= 16.8.0`，i18next peer 为 `>= 26.2.0`，可选 TypeScript peer 同上；覆盖当前锁定版本 |
+| 必要间接依赖 | 发布元数据列出 `@babel/runtime`、`html-parse-stringify`、`use-sync-external-store`；以安装后的完整锁文件审查实际变化，不将其误写为零间接依赖 |
+| 查证方式 | 2026-09-23 只读 `npm view` 查询上述精确版本的 peer / dependencies / integrity，并核对官方 TypeScript 与 React hook 文档；未安装包 |
+
+在 `apps/radishmind-web/` 获授权执行的命令：
+
+```bash
+npm install --save-exact --ignore-scripts --cache ../../tmp/npm-i18n-cache i18next@26.4.2 react-i18next@17.0.15
+```
+
+安装会访问 npm registry，修改该应用的 `package.json`、`package-lock.json` 和本地 `node_modules`；下载缓存限定在仓库忽略目录 `tmp/npm-i18n-cache/`，禁用安装脚本，不启动服务或下载浏览器。安装后审查锁文件与依赖风险信息；出现必须升级框架或增加其它直接依赖的情况，先说明变化。若取消实施，精确撤销本批文件修改；重建依赖树或删除缓存按当时授权执行，不用破坏性 Git 恢复整个工作区。
+
+准备阶段基线构建已通过。入口产物为 `504855` 字节，距离现有 `500 KiB` 上限约 `7 KiB`，因此不能把所有语言资源静态汇入入口后再提高阈值。普通懒加载块仍限 `64 KiB`，`react-vendor` 与 `workflowNodeDesigner` 仍各限 `220 KiB`。实施先测量库与公共资源的实际产物：保留功能懒加载、消除不必要的运行时资源导入，必要时在真实共享边界拆块；不能仅改块名获得预算豁免。npm 包解压体积不能代替浏览器包体结论。
+
+### 初始化、资源与语言控件
+
+1. `src/main.tsx` 在挂载业务树前完成偏好解析与公共资源初始化；唯一实例与 provider 放在 `App` / 身份分支外。StrictMode、账户切换和功能导航不能重复创建实例或监听器。
+2. `common`、`shell` 和认证入口必需的 `identity` 资源两语随启动就绪；应用 / Prompt 两语资源在对应现有懒加载模块解析完成前注册。类型声明只作类型导入，不为类型检查把全站资源引入入口。
+3. React 绑定显式采用 `useSuspense: false`，并由启动和模块加载边界保证资源就绪；不能仅关闭 Suspense 后放任页面显示内部 key。语言切换只订阅展示更新，不加入业务读取 effect、请求标识或清理条件。
+4. 共用 `src/i18n/LanguageSelector.tsx`，优先使用现有表单样式的原生 `select`，两项固定为“简体中文 / English”，控件名称及未保存提示本地化。桌面 `ProductNavigation.tsx` 放在环境说明前；移动菜单放在 `WorkspaceSwitcher` 后、链接前；认证 `localIdentityGateway.tsx` 放在页头，并覆盖探测中和失败入口。
+5. 选择器置于业务 `form` 外，不能触发提交；沿用既有弹层焦点与 `inert` 范围，不创建绕过账户认领遮罩的浮动入口。账户安全弹层及邀请深层页面在 C 阶段迁移，A 不为切换语言改变其交互边界。
+6. 迁移 `App.tsx` 中以 `metric.label`、`snapshot.label`、`limit.label` 为 key 的列表时改用稳定业务标识；保留 `surfaceKey`、`generationKey`、工作区标识的原有清理意义。错误与任务模型保存稳定状态和安全参数，在组件渲染时翻译，保证已显示错误也随语言更新。
+
+### 首批可达页面与状态清单
+
+下表文件除特别注明外位于 `src/features/control-plane-read/`。每行同时覆盖标题、动作、可访问名称、加载 / 空态、无权限或不可用态、校验与已发生错误；不存在的状态不为翻译新增业务分支。
+
+| 用户步骤 / 页面 | 当前落点 | A 阶段验收边界 |
+| --- | --- | --- |
+| 启动、登录与公共导航 | `src/main.tsx`、`src/app/App.tsx`、`src/app/ProductNavigation.tsx`、`src/features/local-identity/localIdentityGateway.tsx` | 两语首屏、认证探测 / 失败、基础登录 / 注册和工作区入口；安全设置、成员 / 邀请完整页面留给 C |
+| 应用目录、创建与进入工作区 | `applicationCatalogPanel.tsx`、`applicationDevelopmentWorkspacePanel.tsx`、`applicationDevelopmentWorkspaceSurface.tsx` | 能创建并选择 Prompt 应用；共享类型选择标签覆盖所有当前选项，不据此声称其它类型工作台已迁移 |
+| 模型和凭据准备 | `modelGatewayPlaygroundPanel.tsx`、`apiKeyLifecyclePanel.tsx`、`applicationApiIntegrationPanel.tsx` | 目录加载、模型选择、API key 基础管理与调用交接；完整 Playground、多协议说明与运营面留给 D |
+| 步骤导航与配置草案 | `promptAgentTypeWorkspace.tsx`、`promptAgentTypeWorkspaceModel.ts`、`applicationConfigurationDraftPanel.tsx` | Prompt 任务状态、草案编辑 / 保存 / 恢复、CAS 冲突；共享 Agent 枚举与协议值不改 |
+| 模板与输出契约 | `promptApplicationTemplatePanel.tsx`、`promptTemplateOutputSchema.ts` | 五字段 schema 原文、字段路径校验、类型切换、迟到响应、不可变版本；原始 JSON 与模板正文不翻译 |
+| 候选审查与运行绑定 | `applicationPublishCandidatePanel.tsx`、`promptApplicationRuntimePanel.tsx` | 精确源码审查、批准 / 拒绝、激活 / 替换 / 撤销及确认；中文动作不弱化权限语义 |
+| 受控调用与会话 | `promptApplicationInvocationPanel.tsx`、`promptApplicationSessionPanel.tsx`、`controlledUseFailureGuidance.ts` | 输入、等待、成功、缺字段 / 额外字段拒绝、授权变更和恢复提示；不更改模型 locale 或重试 |
+| 结果与刷新恢复 | `applicationResultArtifactPanel.tsx`、`applicationResultArtifactLibraryPanel.tsx`、`workflowReviewWorkspace.tsx`、`workflowReviewOwner.tsx` | Prompt 结果显式保存、列表定位、精确 Run 交接与刷新恢复所需区域；其余结果筛选、导出、对比与评测面在 E 完成 |
+
+现有锚点（如 `application-configuration-draft`、`application-publish-review`、`prompt-application-runtime-assignment`、`prompt-application-invocation`、`prompt-application-session`）全部保留。复用组件按上述可见区域迁移，未迁移区域登记在后续阶段，不能以文件已改动代替页面验收。
+
+### 实施顺序与验证窗口
+
+- 先安装与锁文件审核，完成类型化资源、偏好、格式化、三处入口及状态不变量测试；立即构建确认包体，避免完成大批翻译后才发现入口预算超限。
+- 再按表中用户步骤贯通 Prompt；每组结合已有单元测试检查文案、状态保留与稳定标识，随后执行 Web `npm test`、`npm run test:coverage`、`npm run build` 和浏览器测试 TypeScript 检查。
+- A 验收时把现有五条 Prompt 浏览器流程参数化为两语，按 `npm run test:e2e -- --grep Prompt --repeat-each=2` 执行共 20 次基础流程，并补语言切换、存储失败、请求中切换与代表视口验证。测试启动前显式种入语言偏好，不能依赖执行机器默认语言；三条 Workflow 保持既有语言基线，到 B 再扩展双语。
+- 浏览器运行复用 `tests/e2e/run.mjs`：回环地址 Web `4100`、Platform `17000`、固定响应服务随机空闲端口；仅临时 SQLite 与固定响应，不接真实模型。需单独取得本次服务启动授权；运行器在结束或失败时关闭所管进程、删除临时数据库，报告保留在忽略目录 `output/playwright/workflow-e2e/`。安装与静态实施阶段不启动此窗口。
+- A 收口执行完整仓库检查并更新本专题实际覆盖与未完成项。基础模块、选择器或首个页面可作为中间提交，但不能把 A 标为完成，直到全链及状态安全验收通过。
+
+## A 阶段实施记录（2026-09-23）
+
+- 项目所有者已授权精确依赖安装与代码实施。新增直接依赖仅 `i18next 26.4.2` 与 `react-i18next 17.0.15`；React、Vite、TypeScript 未升级。锁文件新增必要传递依赖 `@babel/runtime`、`html-parse-stringify`，复用已有 `use-sync-external-store`。
+- 实现单一语言实例、`radishmind.uiLocale.v1` 枚举偏好、浏览器语言解析、双标签事件、内存选择与存储失败提示、`html.lang`、三处语言入口和 `Intl` 展示函数。公共资源预载，功能成对资源随原懒加载模块注册；没有远程翻译请求或新的业务 locale 字段。
+- 公共导航、基础登录、应用目录 / 草案 / 候选审查、模型与 API 密钥基础交接、Prompt 模板 / 输出契约 / 运行绑定 / 调用 / 会话 / 结果保存恢复已迁移。精确 Run 交接的实际落点是 `workflowReviewWorkspace.tsx` / `workflowReviewOwner.tsx`；旧 `workflowRunHistoryPanel.tsx` 及完整评测功能仍属 E。
+- 展示层按稳定状态和错误码渲染消息；本地模板 finding 和 schema 校验补充稳定的展示标识与字段路径，原协议及校验约束不变。未知服务端错误显示通用提示并保留 code；Run 原始诊断单独标注来源。工作台 owner 的任意 `blockers.summary` / `missingEvidence` 暂保留来源原文，后续随对应流程治理，不猜测其语义或暗增协议字段。用户内容、模型输出、ID、摘要、scope 和代码示例均保持原文。
+- 资源键、非空值和插值参数检查覆盖全部成对资源；覆盖偏好优先级、存储失败、跨标签去重、异步结果代次、React 插值转义、格式化和 schema 稳定诊断。单元与覆盖率、构建及浏览器测试 TypeScript 检查已通过；精确结果与包体记录在本周周志。
+- 已准备双语五条 Prompt 基础流程和一条综合切换用例：无效 schema、焦点、保存等待、存储写失败和 `1440 / 720 / 390px` 代表视口。执行 `npm run test:e2e -- --repeat-each=2` 时计划 30 次（Prompt 24 次、既有英文 Workflow 6 次）。浏览器尚未运行，未保存状态、无多余请求、布局与截图审核仍为 A 的待验收项。
+- `npm audit` 报告五项既有依赖问题（四项 high、一项 moderate），未指向新引入的两项直接依赖；不在本批自动升级框架或执行 `npm audit fix`，不把本次实现声明为依赖安全收口。
 
 ## 验证与验收
 
@@ -197,7 +265,7 @@ A 阶段内部先提交覆盖清单、术语与语言入口局部设计，再实
 
 ## 后续进入条件
 
-下一动作是确认本专题的两语范围、语言偏好策略及推荐依赖，再细化 A 阶段页面清单、依赖版本 / 命令和语言入口设计。实施批准前不创建运行模块、不安装包、不改 API 或配置默认行为。
+下一动作是授权 A 阶段双语浏览器验收窗口，执行固定响应流程并修复发现的问题；验收完成后再关闭 A 并进入 B。无需重复安装依赖或重新建立专题。浏览器服务启动按上述独立窗口授权，不恢复真实模型试用。
 
 如后续需要账户同步、服务端消息本地化、第三语言或模型输出语言联动，应独立确认协议、权限、成本与验收范围，不作为本专题的隐式续批。
 

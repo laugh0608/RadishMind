@@ -1,3 +1,5 @@
+import "../../i18n/publishResources.ts";
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -65,6 +67,7 @@ export default function ApplicationPublishCandidatePanel({
   includeRuntimeAssignment?: boolean;
   onSelectedCandidateChange?: (candidate: ApplicationPublishCandidate | null) => void;
 }) {
+  const { t } = useTranslation("applications");
   const [draftList, setDraftList] = useState<ApplicationConfigurationDraftListState>(() => initialApplicationConfigurationDraftListState(draftConfig));
   const [candidateList, setCandidateList] = useState<ApplicationPublishCandidateListState>(() => initialApplicationPublishListState(publishConfig));
   const [candidate, setCandidate] = useState<ApplicationPublishCandidate | null>(null);
@@ -74,8 +77,57 @@ export default function ApplicationPublishCandidatePanel({
   const [evidenceText, setEvidenceText] = useState("");
   const [decision, setDecision] = useState<ApplicationPublishDecision>("approve");
   const [reviewReason, setReviewReason] = useState("");
-  const [handoffState, setHandoffState] = useState("");
+  const [handoffState, setHandoffState] = useState<{ kind: "offline" | "loading" | "reloaded" | "unavailable" | "failed"; draftId: string } | null>(null);
   const handledHandoffIdRef = useRef("");
+
+  const candidateStateLabel = (state: string) => {
+    switch (state) {
+      case "pending_review": return t($ => $.publish.pendingReviewStatus);
+      case "approved": return t($ => $.publish.approvedStatus);
+      case "rejected": return t($ => $.publish.rejectedStatus);
+      case "changes_requested": return t($ => $.publish.changesRequestedStatus);
+      case "withdrawn": return t($ => $.publish.withdrawnStatus);
+      default: return t($ => $.publish.unknownStateNotice);
+    }
+  };
+  const operationStatusLabel = () => {
+    switch (operation.status) {
+      case "offline": return t($ => $.publish.offlineStatus);
+      case "idle": return t($ => $.publish.idleStatus);
+      case "loading": return t($ => $.publish.loadingStatus);
+      case "creating": return t($ => $.publish.creatingStatus);
+      case "created": return t($ => $.publish.createdStatus);
+      case "loaded": return t($ => $.publish.loadedStatus);
+      case "reviewing": return t($ => $.publish.reviewingStatus);
+      case "reviewed": return t($ => $.publish.reviewedStatus);
+      case "review_version_conflict": return t($ => $.publish.reviewVersionConflictStatus);
+      case "immutable_conflict": return t($ => $.publish.immutableConflictStatus);
+      case "scope_denied": return t($ => $.publish.scopeDeniedStatus);
+      case "failed": return t($ => $.publish.failedStatus);
+    }
+  };
+  const operationMessage = () => {
+    if (operation.failureCode) return operation.status === "review_version_conflict"
+      ? t($ => $.publish.reviewVersionConflictNotice) : operation.status === "scope_denied"
+        ? t($ => $.publish.scopeDeniedNotice) : t($ => $.publish.publishOperationFailed);
+    switch (operation.status) {
+      case "offline": return t($ => $.publish.offlineReviewNotice);
+      case "idle": return t($ => $.publish.selectSavedValidDraftNotice);
+      case "loading": return t($ => $.publish.loadingCandidateAndEligibility);
+      case "creating": return t($ => $.publish.creatingCandidateFromSavedDraft);
+      case "created": return t($ => $.publish.candidateCreatedNotice);
+      case "loaded": return t($ => $.publish.candidateLoadedNotice);
+      case "reviewing": return t($ => $.publish.recordingAppendOnlyReview);
+      case "reviewed": return t($ => $.publish.reviewRecordedNotice);
+      default: return t($ => $.publish.publishOperationFailed);
+    }
+  };
+  const candidateListMessage = candidateList.status === "offline" ? t($ => $.publish.offlineCandidateListNotice)
+    : candidateList.status === "idle" ? t($ => $.publish.loadCandidatesNotice)
+      : candidateList.status === "loading" ? t($ => $.publish.loadingPublishCandidates)
+        : candidateList.status === "failed" ? t($ => $.publish.candidateListFailedNotice)
+          : candidateList.status === "empty" ? t($ => $.publish.noPublishCandidates)
+            : t($ => $.publish.loadedCandidateCount, { count: candidateList.summaries.length });
 
   useEffect(() => {
     setDraftList(initialApplicationConfigurationDraftListState(draftConfig));
@@ -87,7 +139,7 @@ export default function ApplicationPublishCandidatePanel({
     setEvidenceText("");
     setDecision("approve");
     setReviewReason("");
-    setHandoffState("");
+    setHandoffState(null);
     handledHandoffIdRef.current = "";
   }, [baseline.applicationId]);
 
@@ -147,16 +199,16 @@ export default function ApplicationPublishCandidatePanel({
     if (!handoffId || !handoffDraftId || handledHandoffIdRef.current === handoffId) return;
     handledHandoffIdRef.current = handoffId;
     if (!enabled) {
-      setHandoffState(`Draft ${handoffDraftId} was not loaded because the publish owner is offline. No candidate or review was created.`);
+      setHandoffState({ kind: "offline", draftId: handoffDraftId });
       onHandoffConsumed?.(handoffId);
       return;
     }
-    setHandoffState(`Loading exact draft ${handoffDraftId} from the configuration owner.`);
+    setHandoffState({ kind: "loading", draftId: handoffDraftId });
     void loadDrafts(handoffDraftId)
       .then((selectedId) => setHandoffState(selectedId === handoffDraftId
-        ? `Exact draft ${handoffDraftId} was reloaded for candidate review.`
-        : `Draft ${handoffDraftId} is unavailable or invalid in the current Application scope. No fallback draft was selected.`))
-      .catch(() => setHandoffState(`Draft ${handoffDraftId} could not be reloaded from its owner. No fallback draft was selected.`))
+        ? { kind: "reloaded", draftId: handoffDraftId }
+        : { kind: "unavailable", draftId: handoffDraftId }))
+      .catch(() => setHandoffState({ kind: "failed", draftId: handoffDraftId }))
       .finally(() => onHandoffConsumed?.(handoffId));
   }, [baseline.applicationId, enabled, handoffDraftId, handoffId, onHandoffConsumed]);
 
@@ -217,41 +269,41 @@ export default function ApplicationPublishCandidatePanel({
   return (
     <section className="application-publish-workspace" id="application-publish-review" aria-labelledby="application-publish-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Application Publish Governance</p><h4 id="application-publish-title">Candidate, review, drift, and promotion eligibility</h4></div>
-        <span className={`status-badge ${readOnly || candidate?.candidateState === "approved" ? "good" : operation.status.includes("conflict") || operation.status === "failed" ? "bad" : "neutral"}`}>{readOnly ? "archived read-only" : candidate?.candidateState ?? operation.status}</span>
+        <div><p className="eyebrow">{t($ => $.publish.publishGovernanceTitle)}</p><h4 id="application-publish-title">{t($ => $.publish.publishGovernanceSubtitle)}</h4></div>
+        <span className={`status-badge ${readOnly || candidate?.candidateState === "approved" ? "good" : operation.status.includes("conflict") || operation.status === "failed" ? "bad" : "neutral"}`}>{readOnly ? t($ => $.publish.archivedReadOnly) : candidate ? candidateStateLabel(candidate.candidateState) : operationStatusLabel()}</span>
       </div>
 
       <div className="application-publish-scope">
-        <article><span>Application</span><strong>{baseline.displayName}</strong><code>{baseline.applicationId}</code></article>
-        <article><span>Baseline</span><strong>{baseline.updatedAt}</strong><p>Control Plane read truth remains immutable.</p></article>
-        <article><span>Promotion</span><strong>disabled</strong><p>Candidate approval never mutates the formal application.</p></article>
+        <article><span>{t($ => $.publish.application)}</span><strong>{baseline.displayName}</strong><code>{baseline.applicationId}</code></article>
+        <article><span>{t($ => $.publish.baseline)}</span><strong>{baseline.updatedAt}</strong><p>{t($ => $.publish.controlPlaneTruthImmutable)}</p></article>
+        <article><span>{t($ => $.publish.promotion)}</span><strong>{t($ => $.publish.disabled)}</strong><p>{t($ => $.publish.candidateApprovalDoesNotMutateApplication)}</p></article>
       </div>
-      {handoffState ? <p className="boundary-note" role="status">{handoffState}</p> : null}
+      {handoffState ? <p className="boundary-note" role="status">{handoffState.kind === "offline" ? t($ => $.publish.draftHandoffOffline, { draftId: handoffState.draftId }) : handoffState.kind === "loading" ? t($ => $.publish.loadingExactDraft, { draftId: handoffState.draftId }) : handoffState.kind === "reloaded" ? t($ => $.publish.exactDraftReloaded, { draftId: handoffState.draftId }) : handoffState.kind === "unavailable" ? t($ => $.publish.draftUnavailableNoFallback, { draftId: handoffState.draftId }) : t($ => $.publish.draftReloadFailedNoFallback, { draftId: handoffState.draftId })}</p> : null}
 
-      {readOnly ? <p className="boundary-note">Archived application candidates and review decisions remain readable. Candidate creation, review decisions, and invocation handoffs are disabled.</p> : <div className="application-publish-layout">
+      {readOnly ? <p className="boundary-note">{t($ => $.publish.archivedCandidateReadOnlyNotice)}</p> : <div className="application-publish-layout">
         <article className="application-publish-create">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Candidate source</p><h5>Bind an exact saved draft version</h5></div><button type="button" onClick={() => void loadDrafts()} disabled={!enabled || draftList.status === "loading"}>Load saved drafts</button></div>
-          <label>Saved valid draft<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)} disabled={!enabled || draftList.summaries.length === 0}><option value="">No saved valid draft selected</option>{draftList.summaries.map((summary) => <option key={summary.draftId} value={summary.draftId} disabled={summary.validationState !== "valid"}>{summary.draftId} · v{summary.draftVersion} · {summary.validationState}{summary.workflowRAGBindingRef ? " · RAG bound" : ""}{summary.promptTemplateRef ? ` · Template v${summary.promptTemplateRef.templateVersion}` : ""}{summary.agentCopilotProfileRef ? ` · Profile v${summary.agentCopilotProfileRef.profileVersion}` : ""}</option>)}</select></label>
-          {selectedDraft?.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>Exact draft binding</strong><code>{selectedDraft.workflowRAGBindingRef.bindingId} · v{selectedDraft.workflowRAGBindingRef.bindingVersion}</code><code>{selectedDraft.workflowRAGBindingRef.bindingDigest}</code></div> : null}
-          {selectedDraft?.promptTemplateRef ? <div className="application-publish-binding"><strong>Exact Prompt Template ref</strong><code>{selectedDraft.promptTemplateRef.templateId} · v{selectedDraft.promptTemplateRef.templateVersion}</code><code>{selectedDraft.promptTemplateRef.templateDigest}</code></div> : null}
-          {selectedDraft?.agentCopilotProfileRef ? <div className="application-publish-binding"><strong>Exact Agent Copilot Profile ref</strong><code>{selectedDraft.agentCopilotProfileRef.profileId} · v{selectedDraft.agentCopilotProfileRef.profileVersion}</code><code>{selectedDraft.agentCopilotProfileRef.profileDigest}</code><code>{selectedDraft.agentCopilotProfileRef.policyDigest}</code></div> : null}
-          {!selectedDraft?.workflowRAGBindingRef && !selectedDraft?.promptTemplateRef && !selectedDraft?.agentCopilotProfileRef ? <p className="boundary-note">This draft has no RAG binding, Prompt Template, or Agent Copilot Profile reference.</p> : null}
-          <label>Candidate id<input value={candidateId} onChange={(event) => setCandidateId(event.target.value)} maxLength={160} /></label>
-          <label>Sanitized Request History refs<textarea value={evidenceText} onChange={(event) => setEvidenceText(event.target.value)} rows={4} placeholder="One request_id per line; no prompts, responses, headers, or credentials." /></label>
-          {evidence.failureCode ? <p className="failure-summary">{evidence.failureCode}</p> : <p className="boundary-note">{evidence.requestIds.length} normalized history reference(s); payloads stay in Request History.</p>}
-          <button type="button" onClick={() => void createCandidate()} disabled={!mutationEnabled || !selectedDraft || selectedDraft.validationState !== "valid" || Boolean(evidence.failureCode) || operation.status === "creating"}>Create immutable candidate</button>
-          <p className="boundary-note">The server reloads the saved draft and application baseline. Browser form content cannot replace the candidate snapshot.</p>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.candidateSource)}</p><h5>{t($ => $.publish.bindExactSavedDraftVersion)}</h5></div><button type="button" onClick={() => void loadDrafts()} disabled={!enabled || draftList.status === "loading"}>{t($ => $.publish.loadSavedDrafts)}</button></div>
+          <label>{t($ => $.publish.savedValidDraft)}<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)} disabled={!enabled || draftList.summaries.length === 0}><option value="">{t($ => $.publish.noSavedValidDraftSelected)}</option>{draftList.summaries.map((summary) => <option key={summary.draftId} value={summary.draftId} disabled={summary.validationState !== "valid"}>{summary.draftId} · v{summary.draftVersion} · {summary.validationState === "valid" ? t($ => $.publish.validStatus) : t($ => $.publish.invalidStatus)}{summary.workflowRAGBindingRef ? t($ => $.publish.ragBound) : ""}{summary.promptTemplateRef ? t($ => $.publish.templateVersionReference, { version: summary.promptTemplateRef.templateVersion }) : ""}{summary.agentCopilotProfileRef ? t($ => $.publish.profileVersionReference, { version: summary.agentCopilotProfileRef.profileVersion }) : ""}</option>)}</select></label>
+          {selectedDraft?.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>{t($ => $.publish.exactDraftBinding)}</strong><code>{selectedDraft.workflowRAGBindingRef.bindingId} · v{selectedDraft.workflowRAGBindingRef.bindingVersion}</code><code>{selectedDraft.workflowRAGBindingRef.bindingDigest}</code></div> : null}
+          {selectedDraft?.promptTemplateRef ? <div className="application-publish-binding"><strong>{t($ => $.publish.exactPromptTemplateReference)}</strong><code>{selectedDraft.promptTemplateRef.templateId} · v{selectedDraft.promptTemplateRef.templateVersion}</code><code>{selectedDraft.promptTemplateRef.templateDigest}</code></div> : null}
+          {selectedDraft?.agentCopilotProfileRef ? <div className="application-publish-binding"><strong>{t($ => $.publish.exactAgentProfileReference)}</strong><code>{selectedDraft.agentCopilotProfileRef.profileId} · v{selectedDraft.agentCopilotProfileRef.profileVersion}</code><code>{selectedDraft.agentCopilotProfileRef.profileDigest}</code><code>{selectedDraft.agentCopilotProfileRef.policyDigest}</code></div> : null}
+          {!selectedDraft?.workflowRAGBindingRef && !selectedDraft?.promptTemplateRef && !selectedDraft?.agentCopilotProfileRef ? <p className="boundary-note">{t($ => $.publish.draftNoRelatedReferences)}</p> : null}
+          <label>{t($ => $.publish.candidateIdLabel)}<input value={candidateId} onChange={(event) => setCandidateId(event.target.value)} maxLength={160} /></label>
+          <label>{t($ => $.publish.sanitizedRequestHistoryReferences)}<textarea value={evidenceText} onChange={(event) => setEvidenceText(event.target.value)} rows={4} placeholder={t($ => $.publish.requestIdsPlaceholder)} /></label>
+          {evidence.failureCode ? <p className="failure-summary">{t($ => $.publish.requestEvidenceInvalid)} <code>{evidence.failureCode}</code></p> : <p className="boundary-note">{t($ => $.publish.normalizedHistoryReferences, { count: evidence.requestIds.length })}</p>}
+          <button type="button" onClick={() => void createCandidate()} disabled={!mutationEnabled || !selectedDraft || selectedDraft.validationState !== "valid" || Boolean(evidence.failureCode) || operation.status === "creating"}>{t($ => $.publish.createImmutableCandidate)}</button>
+          <p className="boundary-note">{t($ => $.publish.serverReloadsCandidateSources)}</p>
         </article>
 
         <article className="application-publish-review">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Review decision</p><h5>{candidate?.candidateId ?? "No candidate selected"}</h5></div><span className="status-badge neutral">review v{candidate?.reviewVersion ?? 0}</span></div>
-          <label>Decision<select value={decision} onChange={(event) => setDecision(event.target.value as ApplicationPublishDecision)} disabled={!candidate}><option value="approve">Approve candidate</option><option value="reject">Reject candidate</option><option value="request_changes">Request changes</option><option value="withdraw">Withdraw candidate</option></select></label>
-          <label>Review reason<textarea value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} rows={4} maxLength={500} placeholder="Explain the bounded dev/test review decision without credentials or request content." /></label>
-          {reviewFailure && reviewReason ? <p className="failure-summary">{reviewFailure}</p> : null}
-          <button type="button" onClick={() => void submitReview()} disabled={!enabled || !candidate || !canReview || Boolean(reviewFailure) || operation.status === "reviewing"}>Record review decision</button>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.reviewDecision)}</p><h5>{candidate?.candidateId ?? t($ => $.publish.noCandidateSelected)}</h5></div><span className="status-badge neutral">{t($ => $.publish.reviewVersionLabel, { version: candidate?.reviewVersion ?? 0 })}</span></div>
+          <label>{t($ => $.publish.decision)}<select value={decision} onChange={(event) => setDecision(event.target.value as ApplicationPublishDecision)} disabled={!candidate}><option value="approve">{t($ => $.publish.approveCandidate)}</option><option value="reject">{t($ => $.publish.rejectCandidate)}</option><option value="request_changes">{t($ => $.publish.requestChanges)}</option><option value="withdraw">{t($ => $.publish.withdrawCandidate)}</option></select></label>
+          <label>{t($ => $.publish.reviewReason)}<textarea value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} rows={4} maxLength={500} placeholder={t($ => $.publish.reviewReasonPlaceholder)} /></label>
+          {reviewFailure && reviewReason ? <p className="failure-summary">{t($ => $.publish.reviewReasonInvalid)} <code>{reviewFailure}</code></p> : null}
+          <button type="button" onClick={() => void submitReview()} disabled={!enabled || !candidate || !canReview || Boolean(reviewFailure) || operation.status === "reviewing"}>{t($ => $.publish.recordReviewDecision)}</button>
           {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
-          <p className="boundary-note">{operation.summary}</p>
-          {operation.status === "review_version_conflict" && candidate ? <button type="button" onClick={() => void openCandidate(candidate.candidateId)}>Restore current review version {operation.currentReviewVersion}</button> : null}
+          <p className="boundary-note">{operationMessage()}</p>
+          {operation.status === "review_version_conflict" && candidate ? <button type="button" onClick={() => void openCandidate(candidate.candidateId)}>{t($ => $.publish.restoreReviewVersionWithNumber, { version: operation.currentReviewVersion })}</button> : null}
         </article>
       </div>}
 
@@ -274,31 +326,50 @@ export default function ApplicationPublishCandidatePanel({
             onEvidenceChange={onEvidenceChange}
           />
         ) : null}
-      </> : <p className="boundary-note">{readOnly ? "Open an existing candidate below to review its immutable snapshot and blockers." : "Create or open a candidate to review its immutable snapshot and blockers."}</p>}
+      </> : <p className="boundary-note">{readOnly ? t($ => $.publish.openExistingCandidateInstruction) : t($ => $.publish.createOrOpenCandidateInstruction)}</p>}
 
       <article className="application-publish-saved">
-        <div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test candidates</p><h5>{candidateList.summary}</h5></div><button type="button" onClick={() => void refreshCandidates()} disabled={!enabled || candidateList.status === "loading"}>Refresh candidates</button></div>
+        <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.savedDevelopmentCandidates)}</p><h5>{candidateListMessage}</h5></div><button type="button" onClick={() => void refreshCandidates()} disabled={!enabled || candidateList.status === "loading"}>{t($ => $.publish.refreshCandidates)}</button></div>
         {candidateList.failureCode ? <p className="failure-summary">{candidateList.failureCode}</p> : null}
-        <div className="application-publish-candidate-list">{candidateList.summaries.map((summary) => <button type="button" key={summary.candidateId} onClick={() => void openCandidate(summary.candidateId)}><strong>{summary.candidateId}</strong><span>{summary.candidateState} · review v{summary.reviewVersion}{summary.workflowRAGBindingRef ? " · RAG bound" : ""}{summary.promptTemplateRef ? ` · Template v${summary.promptTemplateRef.templateVersion}` : ""}{summary.agentCopilotProfileRef ? ` · Profile v${summary.agentCopilotProfileRef.profileVersion}` : ""}</span><small>draft v{summary.draftVersion} · {summary.promotionBlockers} blocker(s)</small></button>)}</div>
+        <div className="application-publish-candidate-list">{candidateList.summaries.map((summary) => <button type="button" key={summary.candidateId} onClick={() => void openCandidate(summary.candidateId)}><strong>{summary.candidateId}</strong><span>{candidateStateLabel(summary.candidateState)} · {t($ => $.publish.reviewVersionLabel, { version: summary.reviewVersion })}{summary.workflowRAGBindingRef ? t($ => $.publish.ragBound) : ""}{summary.promptTemplateRef ? t($ => $.publish.templateVersionReference, { version: summary.promptTemplateRef.templateVersion }) : ""}{summary.agentCopilotProfileRef ? t($ => $.publish.profileVersionReference, { version: summary.agentCopilotProfileRef.profileVersion }) : ""}</span><small>{t($ => $.publish.draftVersionAndBlockers, { version: summary.draftVersion, count: summary.promotionBlockers })}</small></button>)}</div>
       </article>
 
-      <p className="boundary-note">Offline mode performs no requests. Production auth, formal application repository, publish owner, promotion runtime, API key lifecycle, quota, billing, fallback, load balancing, Workflow tool, confirmation, writeback, replay, and resume remain disabled.</p>
+      <p className="boundary-note">{t($ => $.publish.offlineModeBoundaryNotice)}</p>
     </section>
   );
 }
 
 function CandidateDetail({ candidate, baseline, readOnly, onIntegration, onPlayground, onHistory }: { candidate: ApplicationPublishCandidate; baseline: ApplicationConfigurationBaseline; readOnly: boolean; onIntegration: () => void; onPlayground: () => void; onHistory: (requestId: string) => void }) {
+  const { t } = useTranslation("applications");
+  const decisionLabel = (decision: string) => decision === "approve" ? t($ => $.publish.approveCandidate)
+    : decision === "reject" ? t($ => $.publish.rejectCandidate)
+      : decision === "request_changes" ? t($ => $.publish.requestChanges)
+        : decision === "withdraw" ? t($ => $.publish.withdrawCandidate)
+          : t($ => $.publish.unknownStateNotice);
+  const blockerMessage = (code: string) => {
+    switch (code) {
+      case "publish_review_required": return t($ => $.publish.reviewRequiredBlocker);
+      case "publish_review_rejected": return t($ => $.publish.reviewRejectedBlocker);
+      case "publish_changes_requested": return t($ => $.publish.changesRequestedBlocker);
+      case "publish_candidate_withdrawn": return t($ => $.publish.candidateWithdrawnBlocker);
+      case "promotion_disabled": return t($ => $.publish.promotionDisabledBlocker);
+      case "publish_candidate_superseded": return t($ => $.publish.candidateSupersededBlocker);
+      case "publish_candidate_draft_changed": return t($ => $.publish.draftChangedBlocker);
+      case "application_base_revision_changed": return t($ => $.publish.baselineChangedBlocker);
+      default: return t($ => $.publish.unknownPromotionBlocker);
+    }
+  };
   const comparison = [
     { field: "display_name", before: baseline.displayName, after: candidate.configuration.displayName },
     { field: "application_kind", before: baseline.applicationKind, after: candidate.configuration.applicationKind },
-    { field: "default_protocol", before: "not configured in read model", after: candidate.configuration.defaultProtocol },
-    { field: "default_model", before: "not configured in read model", after: candidate.configuration.defaultModel },
+    { field: "default_protocol", before: t($ => $.publish.notConfiguredInReadModel), after: candidate.configuration.defaultProtocol },
+    { field: "default_model", before: t($ => $.publish.notConfiguredInReadModel), after: candidate.configuration.defaultModel },
   ];
   return <div className="application-publish-detail">
-    <article className="application-publish-snapshot"><div className="application-api-card-heading"><div><p className="eyebrow">Immutable snapshot</p><h5>{candidate.draftId} · v{candidate.draftVersion}</h5></div><span className="status-badge neutral">{candidate.schemaVersion}</span></div><code className="application-publish-digest">{candidate.draftDigest}</code>{candidate.configuration.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>Exact immutable RAG binding</strong><code>{candidate.configuration.workflowRAGBindingRef.bindingId} · v{candidate.configuration.workflowRAGBindingRef.bindingVersion}</code><code>{candidate.configuration.workflowRAGBindingRef.bindingDigest}</code></div> : null}{candidate.configuration.promptTemplateRef ? <PromptTemplateSourceReview applicationId={candidate.applicationId} templateRef={candidate.configuration.promptTemplateRef} /> : null}{candidate.configuration.agentCopilotProfileRef ? <AgentCopilotProfileSourceReview applicationId={candidate.applicationId} profileRef={candidate.configuration.agentCopilotProfileRef} /> : null}{!candidate.configuration.workflowRAGBindingRef && !candidate.configuration.promptTemplateRef && !candidate.configuration.agentCopilotProfileRef ? <p className="boundary-note">No RAG binding, Prompt Template, or Agent Copilot Profile ref was present in this candidate snapshot.</p> : null}<p>{candidate.configuration.description || "No public description."}</p><div className="application-publish-comparison">{comparison.map((item) => <div className={item.before === item.after ? "unchanged" : "changed"} key={item.field}><strong>{item.field}</strong><span>{item.before}</span><span>→</span><span>{item.after}</span></div>)}</div>{!readOnly && candidate.configuration.applicationKind !== "agent" ? <div className="application-draft-handoff"><button type="button" onClick={onIntegration}>Open API Integration</button><button type="button" onClick={onPlayground}>Test in Playground</button></div> : null}</article>
-    <article className="application-publish-eligibility"><div className="application-api-card-heading"><div><p className="eyebrow">Promotion eligibility</p><h5>{candidate.promotionEligibility.status}</h5></div><span className={`status-badge ${candidate.promotionEligibility.eligible ? "good" : "bad"}`}>{candidate.promotionEligibility.blockers.length} blockers</span></div>{candidate.promotionEligibility.blockers.length ? <ul>{candidate.promotionEligibility.blockers.map((blocker) => <li key={blocker.code}><strong>{blocker.code}</strong><p>{blocker.summary}</p></li>)}</ul> : <p className="boundary-note">Candidate is eligible for an explicit runtime assignment decision.</p>}</article>
-    <article className="application-publish-evidence"><div className="application-api-card-heading"><div><p className="eyebrow">Request History references</p><h5>{candidate.evidenceRequestIds.length} sanitized refs</h5></div></div>{candidate.evidenceRequestIds.length ? candidate.evidenceRequestIds.map((requestId) => <button type="button" key={requestId} onClick={() => onHistory(requestId)}><code>{requestId}</code><span>Open exact history detail</span></button>) : <p className="boundary-note">No Gateway request references were attached.</p>}</article>
-    <article className="application-publish-review-log"><div className="application-api-card-heading"><div><p className="eyebrow">Append-only review log</p><h5>{candidate.reviews.length} decisions</h5></div></div>{candidate.reviews.length ? candidate.reviews.map((review) => <div key={review.reviewVersion}><strong>v{review.reviewVersion} · {review.decision}</strong><span>{review.reviewerRef} · {review.reviewedAt}</span><p>{review.reason}</p></div>) : <p className="boundary-note">No review decision has been recorded.</p>}</article>
+    <article className="application-publish-snapshot"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.immutableSnapshot)}</p><h5>{candidate.draftId} · v{candidate.draftVersion}</h5></div><span className="status-badge neutral">{candidate.schemaVersion}</span></div><code className="application-publish-digest">{candidate.draftDigest}</code>{candidate.configuration.workflowRAGBindingRef ? <div className="application-publish-binding"><strong>{t($ => $.publish.exactImmutableRagBinding)}</strong><code>{candidate.configuration.workflowRAGBindingRef.bindingId} · v{candidate.configuration.workflowRAGBindingRef.bindingVersion}</code><code>{candidate.configuration.workflowRAGBindingRef.bindingDigest}</code></div> : null}{candidate.configuration.promptTemplateRef ? <PromptTemplateSourceReview applicationId={candidate.applicationId} templateRef={candidate.configuration.promptTemplateRef} /> : null}{candidate.configuration.agentCopilotProfileRef ? <AgentCopilotProfileSourceReview applicationId={candidate.applicationId} profileRef={candidate.configuration.agentCopilotProfileRef} /> : null}{!candidate.configuration.workflowRAGBindingRef && !candidate.configuration.promptTemplateRef && !candidate.configuration.agentCopilotProfileRef ? <p className="boundary-note">{t($ => $.publish.snapshotNoRelatedReferences)}</p> : null}<p>{candidate.configuration.description || t($ => $.publish.noPublicDescription)}</p><div className="application-publish-comparison">{comparison.map((item) => <div className={item.before === item.after ? "unchanged" : "changed"} key={item.field}><strong>{item.field}</strong><span>{item.before}</span><span>→</span><span>{item.after}</span></div>)}</div>{!readOnly && candidate.configuration.applicationKind !== "agent" ? <div className="application-draft-handoff"><button type="button" onClick={onIntegration}>{t($ => $.publish.openApiIntegration)}</button><button type="button" onClick={onPlayground}>{t($ => $.publish.testInPlayground)}</button></div> : null}</article>
+    <article className="application-publish-eligibility"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.promotionEligibility)}</p><h5>{candidate.promotionEligibility.eligible ? t($ => $.publish.eligiblePromotionStatus) : t($ => $.publish.promotionBlockedStatus)}</h5></div><span className={`status-badge ${candidate.promotionEligibility.eligible ? "good" : "bad"}`}>{t($ => $.publish.blockerCount, { count: candidate.promotionEligibility.blockers.length })}</span></div>{candidate.promotionEligibility.blockers.length ? <ul>{candidate.promotionEligibility.blockers.map((blocker) => <li key={blocker.code}><strong>{blocker.code}</strong><p>{blockerMessage(blocker.code)}</p></li>)}</ul> : <p className="boundary-note">{t($ => $.publish.eligibleForExplicitRuntimeDecision)}</p>}</article>
+    <article className="application-publish-evidence"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.requestHistoryReferences)}</p><h5>{t($ => $.publish.sanitizedReferenceCount, { count: candidate.evidenceRequestIds.length })}</h5></div></div>{candidate.evidenceRequestIds.length ? candidate.evidenceRequestIds.map((requestId) => <button type="button" key={requestId} onClick={() => onHistory(requestId)}><code>{requestId}</code><span>{t($ => $.publish.openExactHistoryDetail)}</span></button>) : <p className="boundary-note">{t($ => $.publish.noGatewayHistoryReferences)}</p>}</article>
+    <article className="application-publish-review-log"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.publish.appendOnlyReviewLog)}</p><h5>{t($ => $.publish.reviewDecisionCount, { count: candidate.reviews.length })}</h5></div></div>{candidate.reviews.length ? candidate.reviews.map((review) => <div key={review.reviewVersion}><strong>v{review.reviewVersion} · {decisionLabel(review.decision)}</strong><span>{review.reviewerRef} · {review.reviewedAt}</span><p>{review.reason}</p></div>) : <p className="boundary-note">{t($ => $.publish.noReviewDecisionRecorded)}</p>}</article>
   </div>;
 }
 
@@ -309,6 +380,7 @@ function PromptTemplateSourceReview({
   applicationId: string;
   templateRef: ApplicationPublishPromptTemplateRef;
 }) {
+  const { t } = useTranslation("applications");
   const [source, setSource] = useState<PromptTemplateVersion | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "verified" | "failed">("idle");
   const [failureCode, setFailureCode] = useState("");
@@ -341,9 +413,9 @@ function PromptTemplateSourceReview({
   return (
     <div className="application-publish-binding prompt-template-source-review">
       <div className="application-api-card-heading">
-        <div><strong>Exact immutable Prompt Template</strong><code>{templateRef.templateId} · v{templateRef.templateVersion}</code></div>
+        <div><strong>{t($ => $.publish.exactImmutablePromptTemplate)}</strong><code>{templateRef.templateId} · v{templateRef.templateVersion}</code></div>
         <button type="button" onClick={() => void reviewExactSource()} disabled={status === "loading"}>
-          {status === "loading" ? "Reading source…" : "Read exact source"}
+          {status === "loading" ? t($ => $.publish.readingSource) : t($ => $.publish.readExactSource)}
         </button>
       </div>
       <code>{templateRef.templateDigest}</code>
@@ -351,7 +423,7 @@ function PromptTemplateSourceReview({
       {source ? (
         <div className="prompt-template-source">
           <strong>{source.templateName}</strong>
-          <p>{source.description || "No template description."}</p>
+          <p>{source.description || t($ => $.publish.noTemplateDescription)}</p>
           {source.messages.map((message, index) => (
             <div key={`${message.role}-${index}`}>
               <code>{message.role}</code>
@@ -359,11 +431,11 @@ function PromptTemplateSourceReview({
             </div>
           ))}
           <small>
-            variables: {source.variables.map((variable) => `${variable.name}:${variable.type}${variable.required ? "!" : ""}`).join(", ") || "none"}
+            {t($ => $.publish.variablesLabel)}{source.variables.map((variable) => `${variable.name}:${variable.type}${variable.required ? "!" : ""}`).join(", ") || t($ => $.publish.none)}
           </small>
-          <pre aria-label="审查输出契约">{JSON.stringify(source.outputContract, null, 2)}</pre>
+          <pre aria-label={t($ => $.publish.reviewOutputContract)}>{JSON.stringify(source.outputContract, null, 2)}</pre>
         </div>
-      ) : <p className="boundary-note">审查前从 Template owner 读取 exact version；候选内的 digest 不替代源码读取。</p>}
+      ) : <p className="boundary-note">{t($ => $.publish.readTemplateSourceBeforeReview)}</p>}
     </div>
   );
 }
@@ -375,6 +447,7 @@ function AgentCopilotProfileSourceReview({
   applicationId: string;
   profileRef: ApplicationPublishAgentCopilotProfileRef;
 }) {
+  const { t } = useTranslation("applications");
   const [source, setSource] = useState<AgentCopilotProfileVersion | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "verified" | "failed">("idle");
   const [failureCode, setFailureCode] = useState("");
@@ -409,9 +482,9 @@ function AgentCopilotProfileSourceReview({
   return (
     <div className="application-publish-binding prompt-template-source-review">
       <div className="application-api-card-heading">
-        <div><strong>Exact immutable Agent Copilot Profile</strong><code>{profileRef.profileId} · v{profileRef.profileVersion}</code></div>
+        <div><strong>{t($ => $.publish.exactImmutableAgentProfile)}</strong><code>{profileRef.profileId} · v{profileRef.profileVersion}</code></div>
         <button type="button" onClick={() => void reviewExactSource()} disabled={status === "loading"}>
-          {status === "loading" ? "Reading source…" : "Read exact source"}
+          {status === "loading" ? t($ => $.publish.readingSource) : t($ => $.publish.readExactSource)}
         </button>
       </div>
       <code>{profileRef.profileDigest}</code>
@@ -419,12 +492,12 @@ function AgentCopilotProfileSourceReview({
       {failureCode ? <p className="failure-summary">{failureCode}</p> : null}
       {source ? (
         <dl className="tenant-meta">
-          <div><dt>Project</dt><dd>{source.project}</dd></div>
-          <div><dt>Tasks</dt><dd>{source.allowedTasks.join(", ")}</dd></div>
-          <div><dt>Locale</dt><dd>{source.defaultLocale}</dd></div>
-          <div><dt>Safety</dt><dd>{source.riskPolicy.mode} · confirmation required</dd></div>
+          <div><dt>{t($ => $.publish.project)}</dt><dd>{source.project}</dd></div>
+          <div><dt>{t($ => $.publish.tasks)}</dt><dd>{source.allowedTasks.join(", ")}</dd></div>
+          <div><dt>{t($ => $.publish.locale)}</dt><dd>{source.defaultLocale}</dd></div>
+          <div><dt>{t($ => $.publish.safety)}</dt><dd>{source.riskPolicy.mode} {t($ => $.publish.confirmationRequired)}</dd></div>
         </dl>
-      ) : <p className="boundary-note">审查前从 Profile owner 读取 exact version；候选内的 digest 不替代源码读取。</p>}
+      ) : <p className="boundary-note">{t($ => $.publish.readProfileSourceBeforeReview)}</p>}
     </div>
   );
 }

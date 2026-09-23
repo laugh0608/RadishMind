@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -52,6 +53,7 @@ export default function PromptApplicationTemplatePanel({
   onOpenPublishReview,
   onEvidenceChange,
 }: Props) {
+  const { t } = useTranslation("prompt");
   const [input, setInput] = useState(() => createPromptTemplateDraftInput(templateConfig, applicationId));
   const [schemaSource, setSchemaSource] = useState(() => formatPromptOutputSchema());
   const parsedSchema = useMemo(() => parsePromptOutputSchema(schemaSource), [schemaSource]);
@@ -60,6 +62,8 @@ export default function PromptApplicationTemplatePanel({
   const [operation, setOperation] = useState<PromptTemplateOperation>(() => initialOperation());
   const [drafts, setDrafts] = useState<PromptTemplateListResult>(() => initialDraftList());
   const [versions, setVersions] = useState<PromptTemplateVersionListResult>(() => initialVersionList());
+  const [draftsLoading, setDraftsLoading] = useState(false);
+  const [versionsLoading, setVersionsLoading] = useState(false);
   const [previewInput, setPreviewInput] = useState('{"question":"如何审查本次发布？","tone":"清晰"}');
   const [preview, setPreview] = useState<PromptTemplatePreview | null>(null);
   const [applicationDrafts, setApplicationDrafts] = useState<ApplicationConfigurationDraftListState>(
@@ -68,7 +72,7 @@ export default function PromptApplicationTemplatePanel({
   const [selectedDraftId, setSelectedDraftId] = useState("");
   const [selectedTemplateVersion, setSelectedTemplateVersion] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
-  const [bindingStatus, setBindingStatus] = useState("");
+  const [bindingStatus, setBindingStatus] = useState<"" | "pending" | "failed" | "saved">("");
   const [bindingFailure, setBindingFailure] = useState("");
 
   useEffect(() => {
@@ -161,8 +165,9 @@ export default function PromptApplicationTemplatePanel({
 
   async function refreshDrafts() {
     if (templateConfig.mode !== "dev_prompt_application_http") return;
-    setDrafts({ status: "empty", summaries: [], failureCode: "", summary: "正在加载模板草案。" });
-    setDrafts(await listPromptTemplateDrafts(templateConfig, applicationId));
+    setDraftsLoading(true);
+    try { setDrafts(await listPromptTemplateDrafts(templateConfig, applicationId)); }
+    finally { setDraftsLoading(false); }
   }
 
   async function restoreDraft(templateId: string) {
@@ -193,10 +198,12 @@ export default function PromptApplicationTemplatePanel({
 
   async function refreshVersions(templateId = input.templateId) {
     if (templateConfig.mode !== "dev_prompt_application_http" || !templateId) return;
-    setVersions({ status: "empty", summaries: [], failureCode: "", summary: "正在加载不可变版本。" });
-    const result = await listPromptTemplateVersions(templateConfig, applicationId, templateId);
-    setVersions(result);
-    setSelectedTemplateVersion(result.summaries[0]?.templateVersion ?? 0);
+    setVersionsLoading(true);
+    try {
+      const result = await listPromptTemplateVersions(templateConfig, applicationId, templateId);
+      setVersions(result);
+      setSelectedTemplateVersion(result.summaries[0]?.templateVersion ?? 0);
+    } finally { setVersionsLoading(false); }
   }
 
   async function openVersion(version: number) {
@@ -214,7 +221,7 @@ export default function PromptApplicationTemplatePanel({
       setPreview({
         status: "invalid",
         messages: [],
-        findings: [{ code: "prompt_template_variable_invalid", field: "input", summary: "合成变量必须是 JSON object。" }],
+        findings: [{ code: "prompt_template_variable_invalid", field: "input", messageKey: "inputObject", summary: "合成变量必须是 JSON object。" }],
       });
     }
   }
@@ -233,7 +240,7 @@ export default function PromptApplicationTemplatePanel({
   async function bindVersion() {
     if (!canBind || !selectedDraft || !selectedVersion) return;
     setBindingFailure("");
-    setBindingStatus("服务端正在重读精确草案与模板版本并执行 CAS binding。");
+    setBindingStatus("pending");
     const result = await bindApplicationConfigurationDraftPromptTemplate(
       draftConfig,
       applicationId,
@@ -244,22 +251,22 @@ export default function PromptApplicationTemplatePanel({
     );
     if (!result.draft || result.state.status !== "saved") {
       setBindingFailure(result.state.failureCode || "prompt_template_binding_ineligible");
-      setBindingStatus(result.state.summary);
+      setBindingStatus("failed");
       return;
     }
-    setBindingStatus(`Configuration Draft v${result.state.currentDraftVersion} 已绑定模板 ${result.draft.promptTemplateRef?.templateId} v${result.draft.promptTemplateRef?.templateVersion}。`);
+    setBindingStatus("saved");
     await loadApplicationDrafts();
     onOpenPublishReview?.(result.draft.draftId);
   }
 
   if (applicationKind !== "prompt_application") {
     return (
-      <section className="prompt-application-template-panel not-applicable" aria-label="Prompt Application template workspace">
+      <section className="prompt-application-template-panel not-applicable" aria-label={t($ => $.templateWorkspace)}>
         <div className="section-heading compact-heading">
-          <div><p className="eyebrow">Prompt Application</p><h4>当前应用不使用 Prompt Template owner</h4></div>
-          <span className="status-badge neutral">not applicable</span>
+          <div><p className="eyebrow">{t($ => $.applicationType)}</p><h4>{t($ => $.notApplicableTitle)}</h4></div>
+          <span className="status-badge neutral">{t($ => $.notApplicable)}</span>
         </div>
-        <p>只有类型为 <code>prompt_application</code> 的应用可以创建、版本化或绑定提示词模板。</p>
+        <p>{t($ => $.onlyPrompt)}</p>
       </section>
     );
   }
@@ -267,64 +274,64 @@ export default function PromptApplicationTemplatePanel({
   return (
     <section className="prompt-application-template-panel" id="prompt-application-template-workspace" aria-labelledby="prompt-template-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Prompt Application · Template owner</p><h4 id="prompt-template-title">模板创作、合成预览、不可变版本与配置绑定</h4></div>
+        <div><p className="eyebrow">{t($ => $.templateOwnerHeading)}</p><h4 id="prompt-template-title">{t($ => $.templateTitle)}</h4></div>
         <span className={`status-badge ${operation.status === "saved" || operation.status === "versioned" ? "good" : operation.failureCode ? "bad" : "neutral"}`}>
-          {operation.status}
+          {t($ => $.states[operation.status])}
         </span>
       </div>
 
       <div className="prompt-template-scope">
-        <article><span>Application</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
-        <article><span>Template owner</span><strong>{templateConfig.mode}</strong><code>{input.templateId}</code></article>
-        <article><span>Privacy</span><strong>source-only owner</strong><p>运行变量与输出不会保存到模板。</p></article>
+        <article><span>{t($ => $.application)}</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
+        <article><span>{t($ => $.templateOwner)}</span><strong>{templateConfig.mode}</strong><code>{input.templateId}</code></article>
+        <article><span>{t($ => $.privacy)}</span><strong>{t($ => $.sourceOnly)}</strong><p>{t($ => $.templatePrivacy)}</p></article>
       </div>
 
-      {!applicationActive ? <p className="failure-summary">归档应用只允许读取既有模板；保存、版本创建和 binding 均关闭。</p> : null}
+      {!applicationActive ? <p className="failure-summary">{t($ => $.archivedTemplate)}</p> : null}
 
       <div className="prompt-template-layout">
         <article className="prompt-template-editor">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Template Draft</p><h5>{input.templateId}</h5></div><span className="status-badge neutral">draft v{operation.currentDraftVersion}</span></div>
-          <label>Template id<input value={input.templateId} onChange={(event) => edit({ templateId: event.target.value })} disabled={operation.currentDraftVersion > 0} /></label>
-          <label>Template name<input value={input.templateName} maxLength={80} onChange={(event) => edit({ templateName: event.target.value })} /></label>
-          <label>Description<textarea value={input.description} maxLength={512} rows={3} onChange={(event) => edit({ description: event.target.value })} /></label>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.templateDraft)}</p><h5>{input.templateId}</h5></div><span className="status-badge neutral">{t($ => $.draftVersion, { version: operation.currentDraftVersion })}</span></div>
+          <label>{t($ => $.templateId)}<input value={input.templateId} onChange={(event) => edit({ templateId: event.target.value })} disabled={operation.currentDraftVersion > 0} /></label>
+          <label>{t($ => $.templateName)}<input value={input.templateName} maxLength={80} onChange={(event) => edit({ templateName: event.target.value })} /></label>
+          <label>{t($ => $.description)}<textarea value={input.description} maxLength={512} rows={3} onChange={(event) => edit({ description: event.target.value })} /></label>
 
           <fieldset>
-            <legend>Ordered messages</legend>
+            <legend>{t($ => $.orderedMessages)}</legend>
             {input.messages.map((message, index) => (
               <div className="prompt-template-message" key={`${index}-${message.role}`}>
                 <select value={message.role} onChange={(event) => editMessage(index, { role: event.target.value as PromptTemplateRole })}>
                   <option value="system">system</option><option value="developer">developer</option><option value="user">user</option>
                 </select>
                 <textarea value={message.content} rows={4} maxLength={16384} onChange={(event) => editMessage(index, { content: event.target.value })} />
-                <button type="button" onClick={() => removeMessage(index)} disabled={input.messages.length === 1}>Remove</button>
+                <button type="button" onClick={() => removeMessage(index)} disabled={input.messages.length === 1}>{t($ => $.remove)}</button>
               </div>
             ))}
-            <button type="button" onClick={() => edit({ messages: [...input.messages, { role: "user", content: "{{ value }}" }] })} disabled={input.messages.length >= 16}>Add message</button>
+            <button type="button" onClick={() => edit({ messages: [...input.messages, { role: "user", content: "{{ value }}" }] })} disabled={input.messages.length >= 16}>{t($ => $.addMessage)}</button>
           </fieldset>
 
           <fieldset>
-            <legend>Variables</legend>
+            <legend>{t($ => $.variables)}</legend>
             {input.variables.map((variable, index) => (
               <div className="prompt-template-variable" key={`${index}-${variable.name}`}>
-                <input aria-label={`Variable ${index + 1} name`} value={variable.name} onChange={(event) => editVariable(index, { name: event.target.value })} />
-                <select aria-label={`Variable ${index + 1} type`} value={variable.type} onChange={(event) => editVariable(index, { type: event.target.value as PromptTemplateVariableType, defaultValue: undefined })}>
+                <input aria-label={t($ => $.variableFields.name, { index: index + 1 })} value={variable.name} onChange={(event) => editVariable(index, { name: event.target.value })} />
+                <select aria-label={t($ => $.variableFields.type, { index: index + 1 })} value={variable.type} onChange={(event) => editVariable(index, { type: event.target.value as PromptTemplateVariableType, defaultValue: undefined })}>
                   <option value="string">string</option><option value="integer">integer</option><option value="number">number</option><option value="boolean">boolean</option><option value="string_list">string_list</option>
                 </select>
-                <label><input type="checkbox" checked={variable.required} onChange={(event) => editVariable(index, { required: event.target.checked, defaultValue: undefined })} />required</label>
-                <input aria-label={`Variable ${index + 1} description`} value={variable.description} maxLength={512} onChange={(event) => editVariable(index, { description: event.target.value })} />
-                {!variable.required ? <input aria-label={`Variable ${index + 1} default`} value={formatDefaultValue(variable.defaultValue)} placeholder="Optional JSON-compatible default" onChange={(event) => editVariable(index, { defaultValue: parseDefaultValue(event.target.value, variable.type) })} /> : null}
-                <button type="button" onClick={() => removeVariable(index)}>Remove</button>
+                <label><input type="checkbox" checked={variable.required} onChange={(event) => editVariable(index, { required: event.target.checked, defaultValue: undefined })} />{t($ => $.required)}</label>
+                <input aria-label={t($ => $.variableFields.description, { index: index + 1 })} value={variable.description} maxLength={512} onChange={(event) => editVariable(index, { description: event.target.value })} />
+                {!variable.required ? <input aria-label={t($ => $.variableFields.default, { index: index + 1 })} value={formatDefaultValue(variable.defaultValue)} placeholder={t($ => $.optionalDefault)} onChange={(event) => editVariable(index, { defaultValue: parseDefaultValue(event.target.value, variable.type) })} /> : null}
+                <button type="button" onClick={() => removeVariable(index)}>{t($ => $.remove)}</button>
               </div>
             ))}
-            <button type="button" onClick={() => edit({ variables: [...input.variables, { name: `value${input.variables.length + 1}`, type: "string", required: true, description: "" }] })} disabled={input.variables.length >= 64}>Add variable</button>
+            <button type="button" onClick={() => edit({ variables: [...input.variables, { name: `value${input.variables.length + 1}`, type: "string", required: true, description: "" }] })} disabled={input.variables.length >= 64}>{t($ => $.addVariable)}</button>
           </fieldset>
 
           <fieldset>
-            <legend>Output contract</legend>
-            <label>Kind<select value={input.outputContract.kind} onChange={(event) => setOutputKind(event.target.value as PromptTemplateOutputKind)}><option value="text">text</option><option value="json_object">json_object</option></select></label>
-            <label><input type="checkbox" checked={input.outputContract.allowEmpty} onChange={(event) => edit({ outputContract: { ...input.outputContract, allowEmpty: event.target.checked } })} />Allow empty output</label>
+            <legend>{t($ => $.outputContract)}</legend>
+            <label>{t($ => $.kind)}<select value={input.outputContract.kind} onChange={(event) => setOutputKind(event.target.value as PromptTemplateOutputKind)}><option value="text">text</option><option value="json_object">json_object</option></select></label>
+            <label><input type="checkbox" checked={input.outputContract.allowEmpty} onChange={(event) => edit({ outputContract: { ...input.outputContract, allowEmpty: event.target.checked } })} />{t($ => $.allowEmptyOutput)}</label>
             {input.outputContract.kind === "json_object" ? <>
-              <label htmlFor="prompt-output-schema">输出 JSON Schema</label>
+              <label htmlFor="prompt-output-schema">{t($ => $.outputSchema)}</label>
               <textarea id="prompt-output-schema" rows={16} spellCheck={false} value={schemaSource}
                 aria-invalid={Boolean(parsedSchema.error)} aria-describedby="prompt-output-schema-help prompt-output-schema-error"
                 onChange={(event) => {
@@ -332,60 +339,61 @@ export default function PromptApplicationTemplatePanel({
                   setSchemaSource(source);
                   edit({ outputContract: { ...input.outputContract, jsonSchema: parsePromptOutputSchema(source).schema } });
                 }} />
-              <p id="prompt-output-schema-help" className="boundary-note">可粘贴或直接编辑 JSON。根类型为 object；支持对象、数组和标量，省略 additionalProperties 按 false 处理。最多 8 层、合计 128 个字段、紧凑 JSON 32 KiB。</p>
-              <p id="prompt-output-schema-error" className="failure-summary" aria-live="polite">{parsedSchema.error}</p>
-            </> : <p className="boundary-note">切回 json_object 可继续编辑本页暂存的 schema；离开页面或恢复其他草案会清除暂存内容。</p>}
-            <label>Maximum bytes<input type="number" min={1} max={65536} value={input.outputContract.maxBytes} onChange={(event) => edit({ outputContract: { ...input.outputContract, maxBytes: Number(event.target.value) } })} /></label>
+              <p id="prompt-output-schema-help" className="boundary-note">{t($ => $.schemaHelp)}</p>
+              <p id="prompt-output-schema-error" className="failure-summary" aria-live="polite">{parsedSchema.issue ? `${parsedSchema.issue.path}：${t($ => $.schemaIssues[parsedSchema.issue!.code])}` : parsedSchema.error}</p>
+            </> : <p className="boundary-note">{t($ => $.schemaRetention)}</p>}
+            <label>{t($ => $.maximumBytes)}<input type="number" min={1} max={65536} value={input.outputContract.maxBytes} onChange={(event) => edit({ outputContract: { ...input.outputContract, maxBytes: Number(event.target.value) } })} /></label>
           </fieldset>
 
           <div className="application-draft-actions">
-            <button type="button" onClick={() => void validateRemote()} disabled={saving || !applicationActive}>Validate</button>
-            <button type="button" onClick={() => void saveDraft()} disabled={saving || !enabled || !localValidation.isValid}>Save with CAS</button>
-            <button type="button" onClick={() => void createVersion()} disabled={saving || !enabled || !localValidation.isValid || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1}>Create immutable version</button>
+            <button type="button" onClick={() => void validateRemote()} disabled={saving || !applicationActive}>{t($ => $.validate)}</button>
+            <button type="button" onClick={() => void saveDraft()} disabled={saving || !enabled || !localValidation.isValid}>{t($ => $.saveCas)}</button>
+            <button type="button" onClick={() => void createVersion()} disabled={saving || !enabled || !localValidation.isValid || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1}>{t($ => $.createVersion)}</button>
           </div>
         </article>
 
         <article className="prompt-template-review">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Deterministic review</p><h5>{operation.summary}</h5></div><span className={`status-badge ${localValidation.isValid ? "good" : "bad"}`}>{localValidation.state}</span></div>
+          {hasUnsavedChanges ? <p>{t($ => $.unsavedChanges)}</p> : null}
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.deterministicReview)}</p><h5>{t($ => $.templateStates[operation.status])}</h5></div><span className={`status-badge ${localValidation.isValid ? "good" : "bad"}`}>{t($ => $.states[localValidation.state])}</span></div>
           {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
           {(operation.validation.findings.length ? operation.validation.findings : localValidation.findings).map((finding) => (
-            <p className="failure-summary" key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong> · {finding.code} · {finding.summary}</p>
+            <p className="failure-summary" key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong> · {finding.code} · {t($ => $.findings[finding.messageKey ?? "serverFinding"])}</p>
           ))}
-          {operation.status === "version_conflict" ? <button type="button" onClick={() => void restoreDraft(input.templateId)}>Restore current draft v{operation.currentDraftVersion}</button> : null}
+          {operation.status === "version_conflict" ? <button type="button" onClick={() => void restoreDraft(input.templateId)}>{t($ => $.restoreDraft, { version: operation.currentDraftVersion })}</button> : null}
 
-          <label>Synthetic variables<textarea rows={7} value={previewInput} onChange={(event) => { setPreviewInput(event.target.value); setPreview(null); }} /></label>
-          <button type="button" onClick={renderPreview}>Render synthetic preview</button>
+          <label>{t($ => $.syntheticVariables)}<textarea rows={7} value={previewInput} onChange={(event) => { setPreviewInput(event.target.value); setPreview(null); }} /></label>
+          <button type="button" onClick={renderPreview}>{t($ => $.renderPreview)}</button>
           {preview ? <div className={`prompt-template-preview ${preview.status}`}>
-            <strong>{preview.status === "valid" ? "Synthetic preview only" : "Preview blocked"}</strong>
+            <strong>{preview.status === "valid" ? t($ => $.previewOnly) : t($ => $.previewBlocked)}</strong>
             {preview.messages.map((message, index) => <div key={`${message.role}-${index}`}><code>{message.role}</code><pre>{message.content}</pre></div>)}
-            {preview.findings.map((finding) => <p className="failure-summary" key={`${finding.code}-${finding.field}`}>{finding.code} · {finding.field}</p>)}
+            {preview.findings.map((finding) => <p className="failure-summary" key={`${finding.code}-${finding.field}`}>{finding.code} · {finding.field} · {t($ => $.findings[finding.messageKey ?? "serverFinding"])}</p>)}
           </div> : null}
-          <p className="boundary-note">预览只使用当前内存中的合成值，不写入 URL、storage、模板 owner、Run 或 Session。</p>
+          <p className="boundary-note">{t($ => $.previewPrivacy)}</p>
         </article>
       </div>
 
       <div className="prompt-template-lower-grid">
         <article>
-          <div className="application-api-card-heading"><div><p className="eyebrow">Saved drafts</p><h5>{drafts.summary}</h5></div><button type="button" onClick={() => void refreshDrafts()}>Refresh</button></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.savedDrafts)}</p><h5>{draftsLoading ? t($ => $.listLoading) : drafts.status === "offline" ? t($ => $.listOffline) : drafts.status === "failed" ? t($ => $.listFailed) : drafts.summaries.length ? t($ => $.listedCount, { count: drafts.summaries.length }) : t($ => $.listEmpty)}</h5></div><button type="button" onClick={() => void refreshDrafts()}>{t($ => $.refresh)}</button></div>
           {drafts.failureCode ? <p className="failure-summary">{drafts.failureCode}</p> : null}
-          {drafts.summaries.map((draft) => <button type="button" className="prompt-template-summary" key={draft.templateId} disabled={saving} onClick={() => void restoreDraft(draft.templateId)}><strong>{draft.templateName}</strong><span>{draft.templateId} · v{draft.draftVersion}</span><small>{draft.messageRoles.join(" → ")} · {draft.variableNames.join(", ") || "no variables"}</small></button>)}
+          {drafts.summaries.map((draft) => <button type="button" className="prompt-template-summary" key={draft.templateId} disabled={saving} onClick={() => void restoreDraft(draft.templateId)}><strong>{draft.templateName}</strong><span>{draft.templateId} · v{draft.draftVersion}</span><small>{draft.messageRoles.join(" → ")} · {draft.variableNames.join(", ") || t($ => $.noVariables)}</small></button>)}
         </article>
 
         <article>
-          <div className="application-api-card-heading"><div><p className="eyebrow">Immutable versions</p><h5>{versions.summary}</h5></div><button type="button" onClick={() => void refreshVersions()}>Refresh</button></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.immutableVersions)}</p><h5>{versionsLoading ? t($ => $.listLoading) : versions.status === "offline" ? t($ => $.listOffline) : versions.status === "failed" ? t($ => $.listFailed) : versions.summaries.length ? t($ => $.listedCount, { count: versions.summaries.length }) : t($ => $.listEmpty)}</h5></div><button type="button" onClick={() => void refreshVersions()}>{t($ => $.refresh)}</button></div>
           {versions.failureCode ? <p className="failure-summary">{versions.failureCode}</p> : null}
-          {versions.summaries.map((version) => <button type="button" className={selectedTemplateVersion === version.templateVersion ? "prompt-template-summary selected" : "prompt-template-summary"} key={version.templateVersion} onClick={() => void openVersion(version.templateVersion)}><strong>Version {version.templateVersion}</strong><span>source draft v{version.sourceDraftVersion} · {version.outputKind}</span><small>{version.templateDigest}</small></button>)}
-          {operation.version ? <div className="prompt-template-version-detail"><strong>{operation.version.templateName} · immutable v{operation.version.templateVersion}</strong><code>{operation.version.templateDigest}</code><p>{operation.version.messages.length} message(s) · {operation.version.variables.length} variable(s)</p><pre aria-label="不可变版本输出契约">{JSON.stringify(operation.version.outputContract, null, 2)}</pre></div> : null}
+          {versions.summaries.map((version) => <button type="button" className={selectedTemplateVersion === version.templateVersion ? "prompt-template-summary selected" : "prompt-template-summary"} key={version.templateVersion} onClick={() => void openVersion(version.templateVersion)}><strong>{t($ => $.version)}{version.templateVersion}</strong><span>{t($ => $.sourceDraftVersion, { version: version.sourceDraftVersion })} · {version.outputKind}</span><small>{version.templateDigest}</small></button>)}
+          {operation.version ? <div className="prompt-template-version-detail"><strong>{operation.version.templateName} · {t($ => $.immutableVersion, { version: operation.version.templateVersion })}</strong><code>{operation.version.templateDigest}</code><p>{t($ => $.messageCount, { count: operation.version.messages.length })} · {t($ => $.variableCount, { count: operation.version.variables.length })}</p><pre aria-label={t($ => $.immutableContract)}>{JSON.stringify(operation.version.outputContract, null, 2)}</pre></div> : null}
         </article>
       </div>
 
       <article className="prompt-template-binding">
-        <div className="application-api-card-heading"><div><p className="eyebrow">Configuration Draft binding</p><h5>显式绑定精确模板版本</h5></div><button type="button" onClick={() => void loadApplicationDrafts()} disabled={!enabled}>Load drafts</button></div>
-        <label>Valid Prompt Application draft<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)}><option value="">No draft selected</option>{applicationDrafts.summaries.map((draft) => <option key={draft.draftId} value={draft.draftId} disabled={draft.applicationKind !== "prompt_application" || draft.validationState !== "valid"}>{draft.draftId} · v{draft.draftVersion}{draft.promptTemplateRef ? ` · template v${draft.promptTemplateRef.templateVersion}` : ""}</option>)}</select></label>
-        <label>Immutable template version<select value={selectedTemplateVersion} onChange={(event) => setSelectedTemplateVersion(Number(event.target.value))}><option value={0}>No version selected</option>{versions.summaries.map((version) => <option key={version.templateVersion} value={version.templateVersion}>{version.templateId} · v{version.templateVersion}</option>)}</select></label>
-        <button type="button" onClick={() => void bindVersion()} disabled={!canBind}>Bind and open Publish Review</button>
+        <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.configurationBinding)}</p><h5>{t($ => $.bindExactVersion)}</h5></div><button type="button" onClick={() => void loadApplicationDrafts()} disabled={!enabled}>{t($ => $.loadDrafts)}</button></div>
+        <label>{t($ => $.validDraft)}<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)}><option value="">{t($ => $.noDraft)}</option>{applicationDrafts.summaries.map((draft) => <option key={draft.draftId} value={draft.draftId} disabled={draft.applicationKind !== "prompt_application" || draft.validationState !== "valid"}>{draft.draftId} · v{draft.draftVersion}{draft.promptTemplateRef ? ` · template v${draft.promptTemplateRef.templateVersion}` : ""}</option>)}</select></label>
+        <label>{t($ => $.templateVersion)}<select value={selectedTemplateVersion} onChange={(event) => setSelectedTemplateVersion(Number(event.target.value))}><option value={0}>{t($ => $.noVersion)}</option>{versions.summaries.map((version) => <option key={version.templateVersion} value={version.templateVersion}>{version.templateId} · v{version.templateVersion}</option>)}</select></label>
+        <button type="button" onClick={() => void bindVersion()} disabled={!canBind}>{t($ => $.bindReview)}</button>
         {bindingFailure ? <p className="failure-summary">{bindingFailure}</p> : null}
-        <p className="boundary-note">{bindingStatus || "Binding 只提交 draft/template 的 id 与 version；digest 和源码由服务端重读。"}</p>
+        <p className="boundary-note">{bindingStatus === "pending" ? t($ => $.bindingPending) : bindingStatus === "failed" ? t($ => $.bindingFailed) : bindingStatus === "saved" ? t($ => $.bindingSaved) : t($ => $.bindingBoundary)}</p>
       </article>
     </section>
   );

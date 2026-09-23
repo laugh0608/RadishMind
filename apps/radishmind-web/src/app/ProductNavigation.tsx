@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "../i18n/LanguageSelector.tsx";
 import { useEffect, useRef, useState } from "react";
 
 import type {
@@ -31,67 +33,67 @@ type ProductNavigationProps = {
 };
 
 const PRIMARY_LINKS = [
-  { href: "#workspace-overview", label: "Overview", icon: "overview", countKey: null },
-  { href: "#workspace-operations-inbox", label: "Operations inbox", icon: "inbox", countKey: "inbox" },
-  { href: "#workspace-applications", label: "Applications", icon: "application", countKey: "applications" },
-  { href: "#workspace-workflow-definitions", label: "Workflows", icon: "workflow", countKey: "workflows" },
-  { href: "#workspace-api-keys", label: "API & keys", icon: "key", countKey: "apiKeys" },
-  { href: "#admin-control-plane", label: "Admin", icon: "admin", countKey: null },
+  { href: "#workspace-overview", label: "overview", icon: "overview", countKey: null },
+  { href: "#workspace-operations-inbox", label: "inbox", icon: "inbox", countKey: "inbox" },
+  { href: "#workspace-applications", label: "applications", icon: "application", countKey: "applications" },
+  { href: "#workspace-workflow-definitions", label: "workflows", icon: "workflow", countKey: "workflows" },
+  { href: "#workspace-api-keys", label: "apiKeys", icon: "key", countKey: "apiKeys" },
+  { href: "#admin-control-plane", label: "admin", icon: "admin", countKey: null },
 ] as const;
 
 const REVIEW_LINKS = [
-  { href: "#workspace-run-history", label: "Run history", icon: "history" },
-  { href: "#model-gateway-evidence-review", label: "Evidence review", icon: "evidence" },
+  { href: "#workspace-run-history", label: "runHistory", icon: "history" },
+  { href: "#model-gateway-evidence-review", label: "evidenceReview", icon: "evidence" },
 ] as const;
 
 type NavigationIconName = typeof PRIMARY_LINKS[number]["icon"] | typeof REVIEW_LINKS[number]["icon"];
 
 const SECONDARY_GROUPS = [
   {
-    label: "Application",
+    label: "application",
     links: [
-      ["#application-api-integration", "API integration"],
-      ["#application-publish-review", "Publish review"],
-      ["#application-interaction-session", "Application interaction"],
-      ["#application-rag-invocation", "Application RAG"],
-      ["#workspace-usage-quota", "Usage quota"],
+      ["#application-api-integration", "apiIntegration"],
+      ["#application-publish-review", "publishReview"],
+      ["#application-interaction-session", "interaction"],
+      ["#application-rag-invocation", "rag"],
+      ["#workspace-usage-quota", "quota"],
     ],
   },
   {
-    label: "Model gateway",
+    label: "gateway",
     links: [
-      ["#model-gateway-playground", "Playground"],
-      ["#model-gateway-overview", "Gateway overview"],
-      ["#model-gateway-route-evidence", "Route evidence"],
-      ["#model-gateway-usage-audit-evidence", "Usage evidence"],
+      ["#model-gateway-playground", "playground"],
+      ["#model-gateway-overview", "gatewayOverview"],
+      ["#model-gateway-route-evidence", "routeEvidence"],
+      ["#model-gateway-usage-audit-evidence", "usageEvidence"],
     ],
   },
   {
-    label: "Workflow review",
+    label: "workflowReview",
     links: [
-      ["#workflow-application-detail", "Application detail"],
-      ["#workflow-draft-designer", "Draft designer"],
-      ["#workflow-http-tool-action-review", "HTTP tool review"],
-      ["#workflow-executor-v0", "Executor v0"],
-      ["#workflow-draft-validation-inspector", "Draft validation"],
-      ["#workflow-execution-plan-preview", "Full-runtime plan"],
-      ["#workflow-runtime-readiness-inspector", "Runtime readiness"],
-      ["#workflow-scenario-inspector", "Scenario inspector"],
-      ["#workflow-workspace-review", "Review workspace"],
-      ["#workflow-review-handoff", "Review handoff"],
+      ["#workflow-application-detail", "applicationDetail"],
+      ["#workflow-draft-designer", "draftDesigner"],
+      ["#workflow-http-tool-action-review", "toolReview"],
+      ["#workflow-executor-v0", "executor"],
+      ["#workflow-draft-validation-inspector", "draftValidation"],
+      ["#workflow-execution-plan-preview", "runtimePlan"],
+      ["#workflow-runtime-readiness-inspector", "runtimeReadiness"],
+      ["#workflow-scenario-inspector", "scenarioInspector"],
+      ["#workflow-workspace-review", "reviewWorkspace"],
+      ["#workflow-review-handoff", "reviewHandoff"],
     ],
   },
   {
-    label: "Admin & contract",
+    label: "adminContract",
     links: [
-      ["#admin-operations-review", "Operations review"],
-      ["#admin-provider-deployment-review", "Provider deployment"],
-      ["#admin-tenant-overview", "Tenant overview"],
-      ["#admin-audit-log", "Audit log"],
-      ["#admin-gateway-request-quota", "Request quota"],
-      ["#routes", "Route catalog"],
-      ["#states", "Shared states"],
-      ["#guard", "Output guard"],
+      ["#admin-operations-review", "operationsReview"],
+      ["#admin-provider-deployment-review", "providerDeployment"],
+      ["#admin-tenant-overview", "tenantOverview"],
+      ["#admin-audit-log", "auditLog"],
+      ["#admin-gateway-request-quota", "requestQuota"],
+      ["#routes", "routeCatalog"],
+      ["#states", "sharedStates"],
+      ["#guard", "outputGuard"],
     ],
   },
 ] as const;
@@ -104,6 +106,7 @@ export function ProductNavigation({
   sourceState,
   onActiveWorkspaceSwitch,
 }: ProductNavigationProps) {
+  const { t } = useTranslation("shell");
   const [activeHash, setActiveHash] = useState(() => window.location.hash || "#workspace-overview");
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const identity = useLocalIdentity();
@@ -127,11 +130,11 @@ export function ProductNavigation({
   }, []);
 
   return (
-    <aside className="product-nav" aria-label="Product navigation">
+    <aside className="product-nav" aria-label={t($ => $.navigation)}>
       <div className="product-nav-mobile-bar">
         <ProductBrand />
         <details className="product-nav-mobile-menu" ref={mobileMenuRef}>
-          <summary>Menu</summary>
+          <summary>{t($ => $.menu)}</summary>
           <div className="product-nav-mobile-menu-content">
             <WorkspaceSwitcher
               idPrefix="mobile"
@@ -140,6 +143,7 @@ export function ProductNavigation({
               onActiveWorkspaceSwitch={switchWorkspace}
               workspaceChoices={workspaceChoices}
             />
+            <LanguageSelector />
             <NavigationLinks activeHash={activeHash} apiKeysAnchor={apiKeysAnchor} counts={counts} />
           </div>
         </details>
@@ -155,13 +159,14 @@ export function ProductNavigation({
           workspaceChoices={workspaceChoices}
         />
         <NavigationLinks activeHash={activeHash} apiKeysAnchor={apiKeysAnchor} counts={counts} />
+        <LanguageSelector />
         <div className="product-nav-environment">
           <span aria-hidden="true">△</span>
           <div>
-            <strong>{sourceConfig.mode === "dev_live_http" ? "Development / test" : "Offline fixtures"}</strong>
+            <strong>{sourceConfig.mode === "dev_live_http" ? t($ => $.development) : t($ => $.offline)}</strong>
             <small>{sourceState.status}</small>
           </div>
-          <span className="product-nav-guard">Guarded</span>
+          <span className="product-nav-guard">{t($ => $.guarded)}</span>
         </div>
       </div>
     </aside>
@@ -169,12 +174,13 @@ export function ProductNavigation({
 }
 
 function ProductBrand() {
+  const { t } = useTranslation("shell");
   return (
-    <a className="product-brand" href="#workspace-overview" aria-label="RadishMind workspace overview">
+    <a className="product-brand" href="#workspace-overview" aria-label={t($ => $.workspaceOverview)}>
       <span className="product-brand-seal" aria-hidden="true">R</span>
       <span className="product-brand-copy">
         <strong>RadishMind</strong>
-        <small>Workbench</small>
+        <small>{t($ => $.workbench)}</small>
       </span>
     </a>
   );
@@ -193,12 +199,13 @@ function WorkspaceSwitcher({
   onActiveWorkspaceSwitch: (candidate: string) => boolean;
   workspaceChoices: string[];
 }) {
+  const { t } = useTranslation("shell");
   const [workspaceDraft, setWorkspaceDraft] = useState(activeWorkspaceId);
-  const [workspaceFailure, setWorkspaceFailure] = useState("");
+  const [workspaceFailure, setWorkspaceFailure] = useState(false);
 
   useEffect(() => {
     setWorkspaceDraft(activeWorkspaceId);
-    setWorkspaceFailure("");
+    setWorkspaceFailure(false);
   }, [activeWorkspaceId]);
 
   const inputId = `${idPrefix}-active-workspace-input`;
@@ -207,17 +214,17 @@ function WorkspaceSwitcher({
   return (
     <form
       className="product-workspace-switcher"
-      aria-label="Active workspace selector"
+      aria-label={t($ => $.workspaceSelector)}
       onSubmit={(event) => {
         event.preventDefault();
         if (!onActiveWorkspaceSwitch(workspaceDraft)) {
-          setWorkspaceFailure("Workspace reference is invalid.");
+          setWorkspaceFailure(true);
           return;
         }
-        setWorkspaceFailure("");
+        setWorkspaceFailure(false);
       }}
     >
-      <label htmlFor={inputId}>Workspace</label>
+      <label htmlFor={inputId}>{t($ => $.workspace)}</label>
       <div className="product-workspace-switcher-control">
         <span className="product-workspace-avatar" aria-hidden="true">WS</span>
         <span className="product-workspace-copy">
@@ -233,19 +240,19 @@ function WorkspaceSwitcher({
           <datalist id={`${idPrefix}-available-workspaces`}>
             {workspaceChoices.map((workspaceId) => <option key={workspaceId} value={workspaceId} />)}
           </datalist>
-          <small>Developer workspace</small>
+          <small>{t($ => $.developerWorkspace)}</small>
         </span>
         {workspaceSwitchEnabled ? (
           <button
             type="submit"
-            aria-label="Switch workspace"
+            aria-label={t($ => $.switchWorkspace)}
             disabled={sourceState.status === "loading" || workspaceDraft.trim() === activeWorkspaceId}
           >
             ↕
           </button>
         ) : null}
       </div>
-      {workspaceFailure ? <small className="product-workspace-failure" role="alert">{workspaceFailure}</small> : null}
+      {workspaceFailure ? <small className="product-workspace-failure" role="alert">{t($ => $.invalidWorkspace)}</small> : null}
     </form>
   );
 }
@@ -259,12 +266,13 @@ function NavigationLinks({
   apiKeysAnchor: ProductNavigationProps["apiKeysAnchor"];
   counts: ProductNavigationCounts;
 }) {
+  const { t } = useTranslation("shell");
   const activePrimaryHref = primaryNavigationHref(activeHash, apiKeysAnchor);
   const activeReviewHref = workflowReviewPrimaryHref(activeHash) ?? activeHash;
   return (
-    <nav className="product-nav-links" aria-label="Workspace sections">
+    <nav className="product-nav-links" aria-label={t($ => $.sections)}>
       <div className="product-nav-group">
-        <span className="product-nav-group-label">Workspace</span>
+        <span className="product-nav-group-label">{t($ => $.workspace)}</span>
         {PRIMARY_LINKS.map((link) => {
           const href = link.countKey === "apiKeys" ? apiKeysAnchor : link.href;
           const count = link.countKey ? counts[link.countKey] : null;
@@ -276,7 +284,7 @@ function NavigationLinks({
             >
               <span className="product-nav-link-main">
                 <span className="product-nav-icon"><NavigationIcon name={link.icon} /></span>
-                <span>{link.label}</span>
+                <span>{t($ => $.links[link.label])}</span>
               </span>
               {count !== null ? <small>{count}</small> : null}
             </a>
@@ -285,7 +293,7 @@ function NavigationLinks({
       </div>
 
       <div className="product-nav-group">
-        <span className="product-nav-group-label">Review</span>
+        <span className="product-nav-group-label">{t($ => $.review)}</span>
         {REVIEW_LINKS.map((link) => (
           <a
             key={link.href}
@@ -294,20 +302,20 @@ function NavigationLinks({
           >
             <span className="product-nav-link-main">
               <span className="product-nav-icon"><NavigationIcon name={link.icon} /></span>
-              <span>{link.label}</span>
+              <span>{t($ => $.links[link.label])}</span>
             </span>
           </a>
         ))}
       </div>
 
       <details className="product-nav-more">
-        <summary>More surfaces</summary>
+        <summary>{t($ => $.moreSurfaces)}</summary>
         <div>
           {SECONDARY_GROUPS.map((group) => (
-            <section key={group.label}>
-              <span>{group.label}</span>
+            <section key={t($ => $.links[group.label])}>
+              <span>{t($ => $.links[group.label])}</span>
               {group.links.map(([href, label]) => (
-                <a key={href} href={href}>{label}</a>
+                <a key={href} href={href}>{t($ => $.links[label])}</a>
               ))}
             </section>
           ))}

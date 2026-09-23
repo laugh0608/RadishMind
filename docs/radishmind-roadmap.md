@@ -59,7 +59,7 @@
 
 ## 当前执行顺位
 
-项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。专题规划与随后批准的首轮常读文档中文化已完成；依赖安装或代码实施仍未进入。按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行推进；界面语言与业务语言字段 `locale`、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选不与 i18n 同时开工。
+项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。专题规划、首轮常读文档中文化及 A 阶段依赖与代码实施已完成；下一步单独授权双语浏览器验收，A 尚未关闭。按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行推进；界面语言与业务语言字段 `locale`、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选不与 i18n 同时开工。
 
 1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与认证认领入口、双数据库产品链、三视口与双标签验收已闭合，后续选题服从当前已指定的 i18n 顺位，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实模型提供方、生产工作进程、真实 Radish 和生产身份与访问管理尚未进入。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动检查器数量和代码量均下降超过 `15%`；模型提供方、生产运维与控制面正式界面因仍缺少等价行为证据继续保留，不再派生独立清理批次。
@@ -69,7 +69,7 @@
 
 ## 邀请闭环后的决策顺序
 
-以下是后续选题规则；当前先推进上述已指定的中英 i18n 规划与确认。
+以下是后续选题规则；当前先推进上述中英 i18n A 阶段浏览器验收。
 
 2026-09-06 审阅建议已分别推进：邀请批次 E、Workflow 主链阻塞修正、草案前端状态收敛、工作区响应式修正与三条 Workflow 自动浏览器回归均已获批完成，随后补充的三条 Prompt 回归也已通过。后端权限 / 角色策略切片已于 2026-09-14 实施，独立策略、双数据库回归与仓库验证完成；其它候选仍按独立目标进入，R2 至 R6 保持关闭。
 

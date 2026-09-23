@@ -9,6 +9,10 @@ if (baseURL !== "http://127.0.0.1:4100" || !output) {
 export default defineConfig({
   testDir: ".",
   testMatch: "*.spec.ts",
+  projects: [
+    { name: "chromium-en-US", use: { locale: "en-US" } },
+    { name: "chromium-zh-CN", testMatch: "prompt.spec.ts", use: { locale: "zh-CN" } },
+  ],
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),

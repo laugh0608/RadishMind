@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
 import {
@@ -248,6 +249,7 @@ export function App() {
 }
 
 function ProductApp() {
+  const { t } = useTranslation("shell");
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(
     () => normalizeActiveWorkspaceId(devLiveConfig.workspaceId ?? "") ?? "workspace_demo",
   );
@@ -898,7 +900,7 @@ function ProductApp() {
         onActiveWorkspaceSwitch={handleActiveWorkspaceSwitch}
       />
 
-      <section className="product-workspace" aria-label="Control plane read shell">
+      <section className="product-workspace" aria-label={t($ => $.appShell.controlPlaneShell)}>
         <WorkspaceProductOverviewPanel
           application={applicationDevelopmentWorkspaceContext}
           inbox={workspaceOperationsInbox}
@@ -966,11 +968,11 @@ function ProductApp() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-applications-title">Applications</h3>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
+              <h3 id="workspace-applications-title">{t($ => $.appShell.applicationsTitle)}</h3>
             </div>
             <StatusBadge tone={workspaceApplications.canRenderApplications ? "good" : "bad"}>
-              {workspaceApplications.canRenderApplications ? "read-only ready" : "blocked"}
+              {workspaceApplications.canRenderApplications ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -978,7 +980,7 @@ function ProductApp() {
             <article className="applications-route">
               <div className="card-title-row">
                 <div>
-                  <p className="eyebrow">Application Summary List Route</p>
+                  <p className="eyebrow">{t($ => $.appShell.applicationSummaryRoute)}</p>
                   <h4>{workspaceApplications.routeId}</h4>
                 </div>
                 <StatusBadge tone="neutral">{workspaceApplications.requiredScope}</StatusBadge>
@@ -986,32 +988,32 @@ function ProductApp() {
               <p className="route-path">{workspaceApplications.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceApplications.readModel}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceApplications.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceApplications.nextCursor ?? "none"}</dd>
+                  <dt>{t($ => $.appShell.nextCursor)}</dt>
+                  <dd>{workspaceApplications.nextCursor ?? t($ => $.appShell.none)}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceApplications.auditRef}</dd>
                 </div>
               </dl>
             </article>
 
-            <div className="applications-metrics" aria-label="Workspace application metrics">
+            <div className="applications-metrics" aria-label={t($ => $.appShell.applicationMetrics)}>
               {workspaceApplications.metrics.map((metric) => (
-                <ApplicationMetric key={metric.label} metric={metric} />
+                <ApplicationMetric key={metric.id} metric={metric} />
               ))}
             </div>
           </div>
 
-          <Suspense fallback={<div className="application-catalog-panel"><p>Loading application catalog management…</p></div>}>
+          <Suspense fallback={<div className="application-catalog-panel"><p>{t($ => $.appShell.loadingCatalog)}</p></div>}>
             <ApplicationCatalogPanel
               key={activeWorkspaceId}
               workspaceId={activeWorkspaceId}
@@ -1022,7 +1024,7 @@ function ProductApp() {
           </Suspense>
 
           {!applicationCatalogLive ? (
-            <div className="application-list" aria-label="Workspace applications">
+            <div className="application-list" aria-label={t($ => $.appShell.workspaceApplications)}>
               {workspaceApplications.applications.map((application) => (
                 <ApplicationRow
                   key={application.applicationRef}
@@ -1038,12 +1040,12 @@ function ProductApp() {
             <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
           ) : null}
 
-          <Suspense fallback={<div className="application-development-workspace"><p>Loading Application Development Workspace…</p></div>}>
+          <Suspense fallback={<div className="application-development-workspace"><p>{t($ => $.appShell.loadingWorkspace)}</p></div>}>
             <ApplicationDevelopmentWorkspacePanel
               key={applicationDevelopmentWorkspaceContext.generationKey}
               context={applicationDevelopmentWorkspaceContext}
               renderStageSurfaces={(activeStage, surfaceKey, controls) => (
-                <Suspense fallback={<div className="application-development-stage-surfaces"><p>Loading Application Development stage surfaces…</p></div>}>
+                <Suspense fallback={<div className="application-development-stage-surfaces"><p>{t($ => $.appShell.loadingStage)}</p></div>}>
                   <ApplicationDevelopmentWorkspaceSurface
                     key={surfaceKey}
                     context={applicationDevelopmentWorkspaceContext}
@@ -1099,11 +1101,11 @@ function ProductApp() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
               <h3 id="workspace-usage-quota-title">Usage Quota</h3>
             </div>
             <StatusBadge tone={workspaceUsageQuota.canRenderQuota ? "good" : "bad"}>
-              {workspaceUsageQuota.canRenderQuota ? "read-only ready" : "blocked"}
+              {workspaceUsageQuota.canRenderQuota ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -1119,7 +1121,7 @@ function ProductApp() {
               <p className="route-path">{workspaceUsageQuota.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceUsageQuota.readModel}</dd>
                 </div>
                 <div>
@@ -1127,11 +1129,11 @@ function ProductApp() {
                   <dd>{workspaceUsageQuota.quota?.period ?? "not available"}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceUsageQuota.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceUsageQuota.auditRef}</dd>
                 </div>
               </dl>
@@ -1170,11 +1172,11 @@ function ProductApp() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
               <h3 id="workspace-workflow-definitions-title">Workflows</h3>
             </div>
             <StatusBadge tone={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "good" : "bad"}>
-              {workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "read-only ready" : "blocked"}
+              {workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -1190,19 +1192,19 @@ function ProductApp() {
               <p className="route-path">{workspaceWorkflowDefinitions.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceWorkflowDefinitions.readModel}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceWorkflowDefinitions.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceWorkflowDefinitions.nextCursor ?? "none"}</dd>
+                  <dt>{t($ => $.appShell.nextCursor)}</dt>
+                  <dd>{workspaceWorkflowDefinitions.nextCursor ?? t($ => $.appShell.none)}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceWorkflowDefinitions.auditRef}</dd>
                 </div>
               </dl>
@@ -1343,11 +1345,11 @@ function ProductApp() {
           {false && <>
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
               <h3 id="workspace-run-history-title">Run History</h3>
             </div>
             <StatusBadge tone={workspaceRunHistory.canRenderRuns ? "good" : "bad"}>
-              {workspaceRunHistory.canRenderRuns ? "read-only ready" : "blocked"}
+              {workspaceRunHistory.canRenderRuns ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -1363,19 +1365,19 @@ function ProductApp() {
               <p className="route-path">{workspaceRunHistory.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceRunHistory.readModel}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceRunHistory.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceRunHistory.nextCursor ?? "none"}</dd>
+                  <dt>{t($ => $.appShell.nextCursor)}</dt>
+                  <dd>{workspaceRunHistory.nextCursor ?? t($ => $.appShell.none)}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceRunHistory.auditRef}</dd>
                 </div>
               </dl>
@@ -1448,7 +1450,7 @@ function ProductApp() {
               <h3 id="guard-title">Forbidden output guard</h3>
             </div>
             <StatusBadge tone={shell.forbiddenProjectionBlocked ? "bad" : "good"}>
-              {shell.forbiddenProjectionBlocked ? "blocked" : "clear"}
+              {shell.forbiddenProjectionBlocked ? t($ => $.appShell.blocked) : "clear"}
             </StatusBadge>
           </div>
           <div className="guard-layout">
@@ -3471,11 +3473,16 @@ function WorkflowApplicationBlockedCapabilityCard({
 }
 
 function ApplicationMetric({ metric }: { metric: WorkspaceApplicationsMetric }) {
+  const { t } = useTranslation("shell");
+  const value = metric.id === "cursor" ? t($ => $.appShell.metrics.cursorValues[metric.value === "available" ? "available" : "none"]) : metric.value;
+  const detail = metric.id === "blockedRuns" ? t($ => $.appShell.metrics.blockedDetail)
+    : metric.id === "audit" ? t($ => $.appShell.metrics.auditDetail)
+    : metric.id === "cursor" && metric.value === "none" ? t($ => $.appShell.metrics.singlePage) : metric.detail;
   return (
     <article className="application-metric">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <p>{metric.detail}</p>
+      <span>{t($ => $.appShell.metrics.labels[metric.id])}</span>
+      <strong>{value}</strong>
+      <p>{detail}</p>
     </article>
   );
 }

@@ -1,6 +1,6 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-09-09
+更新时间：2026-09-23
 
 ## 这份文档讲什么
 
@@ -54,6 +54,12 @@
 4. `Workflow / Agent Runtime`：Prompt、LLM、HTTP tool、RAG retrieval、condition、output 和受控 agent loop。
 
 这些产品面及 Image Path 的后续开发入口已整理到 `docs/features/`。
+
+## Web 界面语言
+
+已接入简体中文与英文选择器：桌面位于导航底部，窄屏位于菜单内，未登录时位于认证页页头。浏览器只保存 `radishmind.uiLocale.v1` 语言枚举；未显式选择时采用浏览器首个受支持语言，无匹配时使用中文。存储不可用时仅对当前页面生效并显示未保存提示。
+
+目前实施范围是公共导航、基础认证与 Prompt 主链展示，尚待双语浏览器验收；其它页面仍在分阶段迁移，不能视为全站双语完成。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
 
 ## 当前五条主线
 
