@@ -14,7 +14,7 @@
 - 下一重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，A 阶段已完成，双语 Prompt 与切换检查、英文 Workflow 共 30 次连续两轮通过；下一步准备 B 阶段 Workflow / RAG / Tool 迁移范围。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
 - 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
-- 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
+- 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[2026-W38 周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
 - 工程整改 R2 至 R6 保持完成。前端状态收敛与三条工作流浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [模型提供方消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实模型提供方或人工答案质量验收。
@@ -27,7 +27,7 @@
 
 项目所有者随后暂停手工测试，指定 i18n 为下一重点；本轮手工测试服务已停止，独立测试库与日志保留，未形成独立用户使用或答案质量验收。
 
-项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)A 阶段已通过双语浏览器验收并关闭，保持原包体预算。下一动作是准备 B 阶段 Workflow / RAG / HTTP Tool 的页面、状态与术语清单，再按完整流程迁移；不另起工程批次或扩展身份 / Gateway 专题。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
+项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)A 阶段已通过双语浏览器验收并关闭，保持原包体预算。下一动作是准备 B 阶段 Workflow / RAG / HTTP Tool 的页面、状态与术语清单，再按完整流程迁移，具体见[2026-09-24 明日事项](devlogs/2026-W39.md#2026-09-24-明日事项)；不另起工程批次或扩展身份 / Gateway 专题。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
 
 ## 下一顺位的选择
 
@@ -37,7 +37,7 @@
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
 | 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
-| 3 | 持续验证关键浏览器流程 | 三条工作流回归已落地；五条 Prompt 编辑、生命周期与结果恢复回归已完成两轮验证，使用隔离 SQLite 与固定响应服务 |
+| 3 | 持续验证关键浏览器流程 | 五条 Prompt 基础流程与一条切换流程已完成中英两语各两轮验证，三条 Workflow 保持英文各两轮，共 30 次通过；Workflow 双语留待 B 阶段，沿用隔离 SQLite 与固定响应服务 |
 | 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / 提供方、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
 

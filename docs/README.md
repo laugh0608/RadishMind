@@ -30,14 +30,14 @@
 - 产品：[用户工作区](features/user-workspace/README.md)、[管理端](features/admin-control-plane/README.md)、[Workflow](features/workflow/README.md)、[Gateway](features/gateway/README.md)、[图片适配](features/image-generation-artifact-return.md)。
 - 横切能力：[平台专题](platform/README.md)、[契约专题](contracts/README.md)、[部署说明](../deploy/README.md)。
 - 数据与验证：[canonical 契约](../contracts/README.md)、[数据集](../datasets/README.md)、[训练与模型实验](../training/README.md)、[脚本入口](../scripts/README.md)。
-- 设计：[Family UI 产品化](features/user-workspace/radishmind-family-ui-productization-v1.md)、[Web 中英国际化规划](features/web-internationalization-zh-en-v1.md)、[文档语言治理](document-language-governance-v1.md)。
+- 设计：[Family UI 产品化](features/user-workspace/radishmind-family-ui-productization-v1.md)、[Web 中英国际化与本地化](features/web-internationalization-zh-en-v1.md)、[文档语言治理](document-language-governance-v1.md)。
 - 历史专题：[Control Plane Read-Side](contracts/control-plane-read-side.md)、[Production Secret Storage Adapter 静态准入](platform/production-secret-backend-audit-store-storage-adapter-static-readiness-guide-v1.md)。
 
 ## 事实与验证口径
 
 - 功能 `completed` 只对应该专题的已批准范围；分别说明代码、存储测试、人工浏览器、自动浏览器、真实提供方、团队试用和生产验收，不推算未验证层次。
 - 当前应用与 Workflow 已有开发测试态数据库、身份、受控执行和结果链。历史只读 / 仅元数据契约的停止线只约束其原始批次。
-- 人工浏览器记录、本地自动回归与远端 CI 执行分别记录。当前三条 Workflow 与五条 Prompt 自动回归已在隔离 SQLite 环境本地通过并接入既有 CI 配置，远端尚未运行；消费层覆盖率不等于全 UI 覆盖率。早期 Workflow 证据见[2026-W37](devlogs/2026-W37.md)，策略包提取、Prompt 固定响应传输与结果恢复证据见[2026-W38](devlogs/2026-W38.md)，结构化契约编辑与非空结果回归见[2026-W39](devlogs/2026-W39.md)。
+- 人工浏览器记录、本地自动回归与远端 CI 执行分别记录。当前五条 Prompt 基础流程与一条切换流程已在中英两语各连续两轮通过，三条 Workflow 保持英文各两轮，共 30 次；均使用隔离 SQLite 并接入既有 CI 配置，远端尚未运行；消费层覆盖率不等于全 UI 覆盖率。早期 Workflow 证据见[2026-W37](devlogs/2026-W37.md)，策略包提取、Prompt 固定响应传输与结果恢复证据见[2026-W38](devlogs/2026-W38.md)，结构化契约编辑、非空结果与 i18n A 阶段双语回归见[2026-W39](devlogs/2026-W39.md)。
 - 缺失值、外部阻塞和未执行测试分别写明；不把模拟数据、静态 schema 或本地试验写成生产就绪。
 
 ## 历史契约导航

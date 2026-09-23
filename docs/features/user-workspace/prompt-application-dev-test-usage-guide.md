@@ -8,6 +8,14 @@
 
 当前已提供模板与运行绑定管理、提示词应用调用、Application Session / Turn v2、Run v6，以及 History / Comparison / Evaluation / Operations 的元数据消费，以及 Application Development Workspace 下的 Prompt Web 工作区。Run / Session 的内存、SQLite 与真实 PostgreSQL 行为门禁，以及两种数据库的真实浏览器连续链、服务重启、CAS、授权依据漂移、取消和临时内容清理验收均已通过。Runtime Assignment 的 `active` 只表示某个已批准候选被显式选为当前运行授权依据，不表示提供方已被调用，也不构成生产发布。
 
+## 界面语言
+
+Prompt 主链现已支持简体中文与英文。桌面导航底部、移动菜单和认证页头提供“语言 / Language”选择器，选项固定为“简体中文 / English”。首次访问优先使用已保存选择，再匹配浏览器的中文或英文偏好，均不匹配时使用简体中文；本机存储不可用时仍可切换，但选择只在当前页面内存生效，界面会提示未保存。
+
+切换语言不重写模板、JSON Schema、变量或模型输出，也不更改运行语言、权限与请求。未保存的 schema 原文及已有校验状态保留，提示随语言更新。本文中的 API 路径、字段、状态值和资源 ID 均保留原文，例如 `json_object` 不是需要翻译的按钮名称。
+
+当前双语验收覆盖 Prompt 创建、配置、模板、审查、绑定、调用、会话、结果恢复与精确 Run 交接。Workflow / RAG / HTTP Tool 和完整身份、管理、评测页面仍按[国际化专题](../web-internationalization-zh-en-v1.md)继续迁移，不能据此认为全站已双语化。
+
 ## 资源与操作顺序
 
 一条可用的开发测试态配置必须按以下负责模块顺序建立：
@@ -292,6 +300,8 @@ Prompt 执行档只消费 `variables`，不接受调用方用 `model`、模板�
 
 这组测试只调用本地固定响应服务，不消耗真实模型配额。2026-09-23 已补齐 `json_object` 输出契约的网页编辑，回归使用五字段诊断契约验证非空结构化结果的传输、显式保存与刷新恢复，并覆盖缺字段、额外字段拒绝且同一幂等键不重复调用。此前以 `{}` 验证空对象传输的记录不代表当前编辑范围；这些固定响应测试仍不判断诊断质量，也不代替下节真实任务试用。
 
+2026-09-23 的双语验收将五条 Prompt 基础流程及一条语言切换流程分别以中英两语连续执行两轮，共 24 次通过；同次运行的三条英文 Workflow 各两轮，共 30 次通过。切换流程覆盖无效 schema、编辑焦点、等待保存响应、存储写失败和 `1440 / 720 / 390px`。跨标签行为用独立 storage 事件验证，不代表账户撤销与凭据的双标签组合已验收；证据见[当日周志](../../devlogs/2026-W39.md#2026-09-23-i18n-a-阶段浏览器验收)。
+
 ## 内部故障诊断试用
 
 2026-09-14 项目所有者暂缓真实模型试用；素材继续保留，恢复前落实 Provider / 模型、费用和操作窗口。
@@ -303,7 +313,7 @@ Prompt 执行档只消费 `variables`，不接受调用方用 `model`、模板�
 ### 素材与输入边界
 
 - [模板源码](prompt-application-dev-test-usage-guide.parts/diagnostics-trial-source.json)直接使用现有 `PromptApplicationTemplateSource` 三个字段；保存时通过本文 Template API 的既有请求信封填入实际资源 ID，不把源码文件当作完整草案记录提交。
-- 网页配置时在模板工作区选择 `json_object`，将素材中的 `output_contract.json_schema` 对象粘贴到“输出 JSON Schema”，将输出上限设置为 `8192` 字节；错误消除后保存草案，再创建版本并进入源码审查。省略的 additionalProperties 按既有请求语义补为 false，切到 text 时暂存原文只保留在当前页面内存。
+- 网页配置时在模板工作区选择 `json_object`，将素材中的 `output_contract.json_schema` 对象粘贴到“输出 JSON Schema / Output JSON Schema”，将输出上限设置为 `8192` 字节；错误消除后保存草案，再创建版本并进入源码审查。省略的 additionalProperties 按既有请求语义补为 false，切到 text 时暂存原文只保留在当前页面内存。
 - [五个合成样本](prompt-application-dev-test-usage-guide.parts/diagnostics-trial-samples.json)仅将 `variables` 交给运行服务，`review_points` 留给人工审查。样本是可复验的预演材料，不声称来自真实故障，也不代替真实开发者试用证据。
 - `diagnostics-01` 至 `04` 分别覆盖端口不一致、未知进程占用端口、上下文不足和日志中的恶意指令；`05` 缺少必填日志，只验证确定性渲染拒绝，不进入 Provider 队列。
 - 真实任务可在后续明确数据范围后替换为经审查的脱敏输入；不得在本轮直接复制真实日志、路径、凭据或用户内容进入 committed 资产。
