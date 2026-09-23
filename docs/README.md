@@ -30,7 +30,7 @@
 - 产品：[用户工作区](features/user-workspace/README.md)、[管理端](features/admin-control-plane/README.md)、[Workflow](features/workflow/README.md)、[Gateway](features/gateway/README.md)、[图片适配](features/image-generation-artifact-return.md)。
 - 横切能力：[平台专题](platform/README.md)、[契约专题](contracts/README.md)、[部署说明](../deploy/README.md)。
 - 数据与验证：[canonical 契约](../contracts/README.md)、[数据集](../datasets/README.md)、[训练与模型实验](../training/README.md)、[脚本入口](../scripts/README.md)。
-- 设计：[Family UI 产品化](features/user-workspace/radishmind-family-ui-productization-v1.md)、[语言治理](document-language-governance-v1.md)。
+- 设计：[Family UI 产品化](features/user-workspace/radishmind-family-ui-productization-v1.md)、[Web 中英 i18n 规划](features/web-internationalization-zh-en-v1.md)、[文档语言治理](document-language-governance-v1.md)。
 - 历史专题：[Control Plane Read-Side](contracts/control-plane-read-side.md)、[Production Secret Storage Adapter 静态准入](platform/production-secret-backend-audit-store-storage-adapter-static-readiness-guide-v1.md)。
 
 ## 事实与验证口径

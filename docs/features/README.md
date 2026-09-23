@@ -10,7 +10,9 @@
 
 ## 当前目标
 
-[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合；下一目标回到真实用户阻塞和维护边界的选择，不派生同层续批。
+项目所有者已指定 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)为下一重点。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；当前方案待确认，尚未安装依赖或修改运行代码，手工测试已暂停。
+
+[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
 
 [应用定时回归评测](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[工作区 Workflow 模板目录](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)和[Action Safety Ladder](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)保持完成关闭。真实 Radish OIDC 为 `real_radish_integration_deferred`，应用运行观测后续仍为 `no_entry`。
 
@@ -20,7 +22,7 @@
 
 | 层级 | 路径 | 职责 |
 | --- | --- | --- |
-| 产品面 | `docs/features/*.md` | 长期目标、用户和范围 |
+| 产品面与跨页面功能 | `docs/features/*.md` | 长期目标、用户和范围；跨页面功能不另立产品面 |
 | 功能与复杂页面 | 对应产品面的子目录 | 页面 / 界面专题承载流程、状态、数据归属、实施与验收 |
 | 平台横切能力 | `docs/platform/` | 身份、持久化、运行与工程边界 |
 | 外部集成 | `docs/integrations/` | 外部项目或后端接入的上游、协议与验收条件 |
@@ -36,6 +38,7 @@
 | `Model Gateway / API Distribution` | [模型网关与 API 分发](model-gateway-api-distribution.md) | [Provider、准入、用量、价格与 fallback](gateway/README.md) |
 | `Workflow / Agent Runtime` | [工作流与运行时](workflow-agent-runtime.md) | [草案、Definition、执行、模板与 RAG](workflow/README.md) |
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | fixture / 私有存储已完成；真实 backend 和公开交付独立验收，不另立第五产品主线 |
+| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | 方案待确认；统一语言系统与现有 Web 全流程双语迁移 |
 
 ## 常用用户流程
 

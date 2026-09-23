@@ -6,7 +6,7 @@
 
 本路线图只维护产品方向、阶段顺序、当前执行顺位和停止线。功能流程、数据边界与验收方式进入 [功能设计文档入口](features/README.md)，平台横切能力进入 [平台专题入口](platform/README.md)，具体实现批次进入 [任务卡入口](task-cards/README.md)，历史完成流水进入 [开发周志](devlogs/README.md) 或既有专题。
 
-当前成熟度统一称为“内部开发者预览”。历史 `M3 / M4` 和 `P1` 至 `P7` 编号只用于定位既有证据与长期专题，不再解释为必须逐级晋升的成熟度等级，也不决定今天的开发顺位。当前执行决策以 [当前推进焦点](radishmind-current-focus.md) 和 [工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md) 为准。
+当前成熟度统一称为“内部开发者预览”。历史 `M3 / M4` 和 `P1` 至 `P7` 编号只用于定位既有证据与长期专题，不再解释为必须逐级晋升的成熟度等级，也不决定今天的开发顺位。当前执行决策以[当前推进焦点](radishmind-current-focus.md)为准，工程整改事实见[工程健康与产品化整改专题 v1](platform/engineering-health-productization-remediation-v1.md)。
 
 ## 产品方向
 
@@ -59,13 +59,17 @@
 
 ## 当前执行顺位
 
-1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与 Authentication 认领入口、双数据库产品链、三视口与双标签验收已闭合，下一步按下表选择实际用户阻塞或维护目标，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实 Provider、production worker、真实 Radish 和 production IAM 尚未进入。
+项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。当前完成专题规划，尚未批准依赖安装或代码实施。按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行推进；界面语言与业务 locale、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选不与 i18n 同时开工。
+
+1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与 Authentication 认领入口、双数据库产品链、三视口与双标签验收已闭合，后续选题服从当前已指定的 i18n 顺位，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实 Provider、production worker、真实 Radish 和 production IAM 尚未进入。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动 checker 数量和代码量均下降超过 `15%`；Provider、Production Ops 与 Control Plane formal UI 因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读 console 页面、evidence 面板和布局整理不自动形成新任务卡、fixture 或 checker。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：identity owner、三种开发测试仓储、本地 Web Session HTTP、确定性 Authorization Code + PKCE、当前账户 / revoke API、完整 Pencil、Web strict consumer、S7 当前账户 owner 与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。dev header、signed-test membership 与 loopback issuer 不能作为 production 授权来源；production secret backend、真实 provider credential / endpoint、自动路由、process supervisor、console production packaging、生产认证、production API key、production quota 和 billing 继续为 `not_satisfied`。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史 fixture，也不新建同层治理入口。
 
 ## 邀请闭环后的决策顺序
+
+以下是后续选题规则；当前先推进上述已指定的中英 i18n 规划与确认。
 
 2026-09-06 审阅建议已分别推进：邀请批次 E、Workflow 主链阻塞修正、草案前端状态收敛、工作区响应式修正与三条 Workflow 自动浏览器回归均已获批完成，随后补充的三条 Prompt 回归也已通过。后端权限 / 角色策略切片已于 2026-09-14 实施，独立策略、双数据库回归与仓库验证完成；其它候选仍按独立目标进入，R2 至 R6 保持关闭。
 

@@ -11,6 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度为**内部开发者预览**。Workflow、应用运行与评测、Gateway、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实 Provider、团队试用或生产运行已通过验收。
+- 下一重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，目前为方案待确认。先规划 `zh-CN` / `en-US` 的统一语言系统，再按完整用户流程迁移；本轮不安装依赖或修改运行代码。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
 - 2026-09-09 已修复 SQLite / mock Workflow 主链阻塞、完成草案前端状态归属收敛与 Workspace 响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实 Provider、团队试用或生产验收。
 - 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、memory / SQLite / HTTP、Platform 全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
@@ -24,11 +25,13 @@
 
 [Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条 Workflow 与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
 
-下一动作按下表选择有具体证据的用户流程阻塞；没有新阻塞时不自动拆包或扩功能。真实模型试用继续暂缓，恢复前另行落实 Provider / 模型、费用与操作窗口。
+项目所有者随后暂停手工测试，指定 i18n 为下一重点；本轮手工测试服务已停止，独立测试库与日志保留，未形成独立用户使用或答案质量验收。
+
+下一动作是审阅[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)，确认语言偏好策略、技术选型与分阶段范围；批准后进入 A 阶段的覆盖清单、依赖版本和语言入口设计，再实施公共基座与 Prompt 完整双语流程。真实模型试用继续暂缓，恢复前另行落实 Provider / 模型、费用与操作窗口。
 
 ## 下一顺位的选择
 
-邀请产品链已完成。围绕“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”选择下一目标。四个产品面共同服务这条用户流程，不分别维持功能扩张队列。
+邀请产品链已完成。当前优先推进项目所有者指定的中英 i18n 专题；其后仍围绕“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”按下表选择目标。四个产品面共同服务这条用户流程，不分别维持功能扩张队列。
 
 | 顺序 | 候选工作 | 进入条件与结果 |
 | --- | --- | --- |
