@@ -5209,6 +5209,14 @@ h4 {
   padding: 16px;
 }
 
+.workflow-definition-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workflow-definition-row-main h4 {
+  overflow-wrap: anywhere;
+}
+
 .workflow-run-history-live-list {
   display: grid;
   gap: 10px;

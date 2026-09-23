@@ -59,7 +59,7 @@
 
 已接入简体中文与英文选择器：桌面位于导航底部，窄屏位于菜单内，未登录时位于认证页页头。浏览器只保存 `radishmind.uiLocale.v1` 语言枚举；未显式选择时采用浏览器首个受支持语言，无匹配时使用中文。存储不可用时仅对当前页面生效并显示未保存提示。
 
-目前实施范围是公共导航、基础认证与 Prompt 主链展示，尚待双语浏览器验收；其它页面仍在分阶段迁移，不能视为全站双语完成。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
+目前实施范围是公共导航、基础认证与 Prompt 主链展示；A 阶段的中英 Prompt 主链、语言切换和代表视口已通过浏览器验收。账户安全与管理仍由后续 C 阶段验收，其它页面仍在分阶段迁移，不能视为全站双语完成。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
 
 ## 当前五条主线
 
@@ -297,7 +297,7 @@ Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同�
 
 Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 配置可写入 `memory_dev`、`sqlite_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
 
-三条 Workflow 与三条 Prompt 自动浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`：临时启动隔离 SQLite、Web 与 Platform；Workflow 使用 mock，Prompt 使用运行器持有的本地固定响应服务。覆盖草案修订 / 冲突、迟到响应隔离、Definition 受控运行历史，以及 Prompt 模板审核 / 激活、结果恢复、输出契约失败与配置变更恢复，退出时清理本轮服务和数据库。首次准备、固定端口、失败证据和平台限制见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)；普通 `npm test` 不启动这些服务，远端 CI 首跑仍待执行。
+三条英文 Workflow、五条中英 Prompt 基础流程与一条中英语言切换流程使用 `apps/radishmind-web/` 下的 `npm run test:e2e`：临时启动隔离 SQLite、Web 与 Platform；Workflow 使用 mock，Prompt 使用运行器持有的本地固定响应服务。覆盖草案修订 / 冲突、迟到响应隔离、Definition 受控运行历史，以及 Prompt 模板审核 / 激活、结果恢复、输出契约失败、配置变更恢复与语言切换状态保持；两语与两轮配置共 30 次执行，退出时清理本轮服务和数据库。首次准备、固定端口、失败证据和平台限制见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)；普通 `npm test` 不启动这些服务，远端 CI 首跑仍待执行。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的活动草案列表，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；打开当前 saved record 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback；不可变 revision 恢复仍使用独立历史流程。
 

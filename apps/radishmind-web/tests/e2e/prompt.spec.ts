@@ -194,11 +194,33 @@ test("Prompt schema editor preserves drafts across kind switches and blocks inva
   for (const width of [1440, 720, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await editor.scrollIntoViewIfNeeded();
-    expect(await editor.evaluate((element) => {
+    await expect.poll(() => editor.evaluate((element) => {
       const bounds = element.getBoundingClientRect();
       const parent = element.closest("fieldset")!.getBoundingClientRect();
-      return bounds.width > 0 && bounds.left >= parent.left && bounds.right <= parent.right && document.documentElement.scrollWidth === window.innerWidth;
-    })).toBe(true);
+      const textOverflow: object[] = [];
+      if (document.documentElement.scrollWidth > innerWidth) {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const range = document.createRange(); range.selectNodeContents(node);
+          const box = range.getBoundingClientRect();
+          if (box.width && box.right + scrollX > innerWidth + 1) {
+            const item = node.parentElement!;
+            textOverflow.push({ tag: item.tagName, className: item.className, right: box.right + scrollX,
+              parents: [item.parentElement, item.parentElement?.parentElement, item.parentElement?.parentElement?.parentElement].map(parent => parent ? `${parent.tagName}#${parent.id}.${parent.className}` : "") });
+          }
+        }
+      }
+      return {
+        textOverflow: textOverflow.slice(0, 15),
+        withinParent: bounds.width > 0 && bounds.left >= parent.left && bounds.right <= parent.right,
+        pageWidth: document.documentElement.scrollWidth,
+        viewport: window.innerWidth,
+        overflowing: document.documentElement.scrollWidth <= innerWidth ? [] : [...document.querySelectorAll("body *")].flatMap(item => {
+          const box = item.getBoundingClientRect();
+          return box.width && box.right + scrollX > innerWidth + 1 ? [{ tag: item.tagName, className: item.className, parents: [item.parentElement, item.parentElement?.parentElement, item.parentElement?.parentElement?.parentElement].map(parent => parent ? `${parent.tagName}#${parent.id}.${parent.className}` : ""), right: box.right + scrollX }] : [];
+        }).slice(0, 15),
+      };
+    })).toMatchObject({ withinParent: true, pageWidth: width, viewport: width, overflowing: [], textOverflow: [] });
     await template(page).screenshot({ path: testInfo.outputPath(`prompt-schema-${width}.png`) });
   }
   // A different surface must discard unsaved source, including the hidden text-mode scratch.
@@ -356,18 +378,21 @@ test("Prompt language switching preserves invalid schema, focus and pending save
   expect(result.draft.output_contract.json_schema).toEqual(diagnosisSchema);
   await expect(template(page).getByRole("button", { name: uiText(page, "Create immutable version"), exact: true })).toBeEnabled();
   await page.unroute(`**${templatePath}`);
+  const savedSource = await editor.inputValue();
+  expect(JSON.parse(savedSource)).toEqual(diagnosisSchema);
   for (const width of [1440, 720, 390]) {
     await page.setViewportSize({ width, height: 900 });
     const menu = page.locator(".product-nav-mobile-menu");
-    if (await menu.isVisible()) await menu.locator("summary").click();
+    if (await menu.isVisible()) await menu.locator(":scope > summary").click();
     const selector = page.locator(".ui-language-selector select:visible").first();
     await expect(selector).toHaveValue(locale);
     await selector.focus();
     await expect(selector).toBeFocused();
     await expect(selector).toHaveAccessibleName(locale === "zh-CN" ? "界面语言" : "Interface language");
-    if (await menu.isVisible()) await menu.locator("summary").click();
-    await expect(editor).toHaveValue(JSON.stringify(diagnosisSchema));
+    if (await menu.isVisible()) await menu.locator(":scope > summary").click();
+    await expect(editor).toHaveValue(savedSource);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await editor.scrollIntoViewIfNeeded();
     await page.screenshot({ path: testInfo.outputPath(`prompt-${locale}-${width}.png`) });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -384,7 +409,7 @@ test("Prompt language switching preserves invalid schema, focus and pending save
   setTestLanguage(page, next);
   await expect(page.locator("html")).toHaveAttribute("lang", next);
   await expect(page.locator(".ui-language-selector:visible").first()).toContainText(next === "zh-CN" ? "未能保存" : "could not be saved");
-  await expect(editor).toHaveValue(JSON.stringify(diagnosisSchema));
+  await expect(editor).toHaveValue(savedSource);
   expect(requests).toEqual(beforeDeniedWrite);
   expect(await page.evaluate(() => localStorage.getItem("radishmind.uiLocale.v1"))).toBe(persisted);
   page.off("request", observe);

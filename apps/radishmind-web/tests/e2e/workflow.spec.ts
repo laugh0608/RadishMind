@@ -1,3 +1,4 @@
+import { uiText } from "./ui-language";
 import {
   test, expect, designer, draftField, createDraft, saveDraft, promptLabel, selectApplication,
   openDraft, isEndpoint, draftRoute, holdDraftResponse,
@@ -148,12 +149,26 @@ test("reviewed definition runs once and remains readable after refresh across la
   const runId = await page.locator(".workflow-definition-run-result strong").innerText();
   expect(runId).toMatch(/^run_[a-z0-9]+$/);
   await page.getByRole("button", { name: "打开 Run History", exact: true }).click();
-  const runOwner = page.getByRole("region", { name: "runs workflow review owner", exact: true });
+  const runOwner = page.getByRole("region", { name: uiText(page, "runs workflow review owner"), exact: true });
   await expect(runOwner).toContainText(runId);
   await expect(runOwner).toContainText("workflow_run_record.v5");
   await expect(runOwner).toContainText(/succeeded/i);
   await page.reload();
   await selectApplication(page, application);
+  // The catalog projection is refreshed on reload, after the definition was published.
+  await expect(page.locator("#workspace-workflow-definitions .workflow-definition-row").first()).toBeVisible();
+  for (const width of [1440, 720, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    const definitionsFit = await page.locator("#workspace-workflow-definitions .workflow-definition-row").evaluateAll(rows => rows.length > 0 && rows.every(row => {
+      const card = row.getBoundingClientRect();
+      return [...row.querySelectorAll(".workflow-definition-row-main, .workflow-definition-row-meta, .workflow-definition-row-actions, h4")].every(item => {
+        const box = item.getBoundingClientRect();
+        return box.left >= card.left && box.right <= card.right && item.scrollWidth <= item.clientWidth + 1;
+      });
+    }));
+    expect(definitionsFit, "Long definition IDs and row content must fit each catalog card").toBe(true);
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("button", { name: new RegExp(`^${runId} `) }).click();
   await expect(runOwner).toContainText("workflow_run_record.v5");
   await expect(runOwner).toContainText(/succeeded/i);

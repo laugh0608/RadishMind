@@ -2,6 +2,8 @@ import type { Page } from "@playwright/test";
 
 // Independent product expectations: do not import implementation dictionaries here.
 const labels: Record<string, readonly [string, string]> = {
+  "prompt_application": ["Prompt application", "Prompt 应用"],
+  "workflow_copilot": ["Workflow Copilot", "工作流 Copilot"],
   "Create application": ["Create application", "创建应用"],
   "Server-generated identity": ["Server-generated identity", "由服务端生成标识"],
   "Display name": ["Display name", "显示名称"],

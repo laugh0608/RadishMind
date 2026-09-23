@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度为**内部开发者预览**。工作流、应用运行与评测、模型网关、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实模型提供方、团队试用或生产运行已通过验收。
-- 下一重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，A 阶段依赖、公共基座与 Prompt 主链展示已实施，单元与构建验证通过；下一步单独授权双语浏览器验收，尚未关闭 A。
+- 下一重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，A 阶段已完成，双语 Prompt 与切换检查、英文 Workflow 共 30 次连续两轮通过；下一步准备 B 阶段 Workflow / RAG / Tool 迁移范围。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
 - 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
 - 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[本周周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
@@ -27,7 +27,7 @@
 
 项目所有者随后暂停手工测试，指定 i18n 为下一重点；本轮手工测试服务已停止，独立测试库与日志保留，未形成独立用户使用或答案质量验收。
 
-项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)已实施 A 阶段依赖、公共基座与 Prompt 主链展示，保持原包体预算。下一动作是授权固定响应的双语浏览器验收窗口，核验状态保留、请求次数及代表视口；浏览器证据齐备前不关闭 A。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
+项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)A 阶段已通过双语浏览器验收并关闭，保持原包体预算。下一动作是准备 B 阶段 Workflow / RAG / HTTP Tool 的页面、状态与术语清单，再按完整流程迁移；不另起工程批次或扩展身份 / Gateway 专题。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
 
 ## 下一顺位的选择
 

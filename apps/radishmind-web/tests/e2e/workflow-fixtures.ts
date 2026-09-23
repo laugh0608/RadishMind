@@ -97,7 +97,7 @@ export async function promptLabel(page: Page) {
 }
 
 export async function selectApplication(page: Page, application: Application) {
-  await page.getByRole("button", { name: `${application.name} ${application.kind} ${application.id} v1`, exact: true }).click();
+  await page.getByRole("button", { name: `${application.name} ${uiText(page, application.kind)} ${application.id} v1`, exact: true }).click();
   await expect(page.getByRole("region", { name: uiText(page, "Application development context") })).toContainText(application.id);
 }
 
