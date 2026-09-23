@@ -1,10 +1,10 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-09-14
+更新时间：2026-09-23
 
 ## 文档职责
 
-本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W38 周志](devlogs/2026-W38.md)。
+本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W39 周志](devlogs/2026-W39.md)。
 
 正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
@@ -17,12 +17,14 @@
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
 - 工程整改 R2 至 R6 保持完成。前端状态收敛与三条 Workflow 浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [Provider 消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实 Provider 或人工答案质量验收。
-- 本轮获批补充的三条 Prompt 浏览器回归与原三条 Workflow 已连续两轮通过，覆盖创建、审核、调用、失败不重调和结果恢复，并修正模型目录协议映射、失败响应及失败 turn 保存问题。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)，不新增同层任务卡或 checker。
+- 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条 Workflow 连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[本周周志](devlogs/2026-W39.md)，不新增同层任务卡或 checker。
 - 本地 Console 保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。
 
-## 明日首项（2026-09-15）
+## 当前完成与下一动作（2026-09-23）
 
-补齐 Prompt 结构化输出契约的 UI 编辑，使开发者能通过网页配置已有五字段诊断模板。先按[专题范围](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-缺口与后续范围)确认编辑、错误提示和类型切换行为，再实现保存 / 恢复 / 版本审查与非空结构化结果回归。当前仅记录排期，今晚不启动实现；真实模型试用保持暂缓，详细交接见[明日事项](devlogs/2026-W38.md#2026-09-15-明日事项)。
+[Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条 Workflow 与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
+
+下一动作按下表选择有具体证据的用户流程阻塞；没有新阻塞时不自动拆包或扩功能。真实模型试用继续暂缓，恢复前另行落实 Provider / 模型、费用与操作窗口。
 
 ## 下一顺位的选择
 
@@ -32,7 +34,7 @@
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
 | 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
-| 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；三条 Prompt 生命周期与结果恢复回归也已完成两轮验证，使用隔离 SQLite 与固定响应服务 |
+| 3 | 持续验证关键浏览器流程 | 三条 Workflow 回归已落地；五条 Prompt 编辑、生命周期与结果恢复回归已完成两轮验证，使用隔离 SQLite 与固定响应服务 |
 | 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / Provider、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
 

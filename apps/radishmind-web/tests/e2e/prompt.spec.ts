@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { type Page, type Locator } from "@playwright/test";
-import { test, expect, isEndpoint, selectApplication } from "./workflow-fixtures";
+import { test, expect, isEndpoint, selectApplication, type Application } from "./workflow-fixtures";
 
 test.use({ applicationKind: "prompt_application" });
 
@@ -12,6 +12,23 @@ const template = (page: Page) => page.locator("#prompt-application-template-work
 const configuration = (page: Page) => page.locator("#application-configuration-draft");
 const session = (page: Page) => page.getByRole("region", { name: "Prompt Application Session v2", exact: true });
 const artifacts = (page: Page) => session(page).getByRole("region", { name: "Application result artifacts", exact: true });
+
+const diagnosisSchema = {
+  type: "object", additionalProperties: false,
+  properties: {
+    diagnosis: { type: "string", additionalProperties: false },
+    evidence: { type: "array", additionalProperties: false, items: { type: "string", additionalProperties: false } },
+    next_checks: { type: "array", additionalProperties: false, items: { type: "string", additionalProperties: false } },
+    missing_context: { type: "array", additionalProperties: false, items: { type: "string", additionalProperties: false } },
+    uncertainty: { type: "string", additionalProperties: false },
+  },
+  required: ["diagnosis", "evidence", "missing_context", "next_checks", "uncertainty"],
+};
+const diagnosisOutput = {
+  diagnosis: "Synthetic timeout diagnosis", evidence: ["Synthetic upstream timeout"],
+  next_checks: ["Check synthetic upstream health"], missing_context: ["Synthetic request trace"],
+  uncertainty: "Synthetic evidence is incomplete",
+};
 
 async function navigate(page: Page, anchor: string) {
   await page.locator(`a[href="#${anchor}"]:visible`).first().click();
@@ -38,6 +55,8 @@ async function publishAndActivate(page: Page, applicationId: string, replace = f
   const created = await submit(page, review.getByRole("button", { name: "Create immutable candidate", exact: true }), candidatePath);
   await review.getByRole("button", { name: "Read exact source", exact: true }).click();
   await expect(review.locator(".prompt-template-source")).toContainText("{{ question }}");
+  const reviewedContract = JSON.parse(await review.getByLabel("审查输出契约").innerText());
+  expect(reviewedContract.jsonSchema).toEqual(diagnosisSchema);
   await review.getByRole("textbox", { name: "Review reason", exact: true }).fill("Reviewed isolated browser regression template and exact configuration.");
   await submit(page, review.getByRole("button", { name: "Record review decision", exact: true }), `${candidatePath}/${created.candidate.candidate_id}/reviews`);
   await navigate(page, "prompt-application-runtime-assignment");
@@ -51,7 +70,7 @@ async function publishAndActivate(page: Page, applicationId: string, replace = f
   return submit(page, assignment.getByRole("button", { name: "记录显式 runtime 决策", exact: true }), `/v1/user-workspace/applications/${applicationId}/prompt-runtime-assignment/decisions`);
 }
 
-async function prepareApplication(page: Page, applicationId: string) {
+async function loadModelCatalog(page: Page) {
   await navigate(page, "workspace-api-keys");
   const keys = page.locator("#workspace-api-keys");
   await keys.locator("summary").filter({ hasText: "Issue new credential" }).click();
@@ -61,6 +80,11 @@ async function prepareApplication(page: Page, applicationId: string) {
   const playground = page.locator("#model-gateway-playground");
   await playground.getByRole("button", { name: "Load models", exact: true }).click();
   await expect(playground.getByRole("combobox", { name: "Validated model", exact: true })).toBeVisible();
+}
+
+async function prepareApplication(page: Page, application: Application) {
+  const applicationId = application.id;
+  await loadModelCatalog(page);
   await navigate(page, "application-configuration-draft");
   await configuration(page).getByRole("combobox", { name: "Default protocol", exact: true }).selectOption("chat_completions");
   await configuration(page).getByRole("combobox", { name: "Default model", exact: true }).selectOption("profile:prompt-e2e");
@@ -69,9 +93,22 @@ async function prepareApplication(page: Page, applicationId: string) {
   await template(page).locator(".prompt-template-message textarea").nth(0).fill("{{ tone }}");
   await template(page).locator(".prompt-template-message textarea").nth(1).fill("{{ question }}");
   await template(page).getByRole("combobox", { name: "Kind", exact: true }).selectOption("json_object");
+  const schemaEditor = template(page).getByRole("textbox", { name: "输出 JSON Schema", exact: true });
+  await schemaEditor.fill(JSON.stringify(diagnosisSchema, null, 2));
   const saved = await submit(page, template(page).getByRole("button", { name: "Save with CAS", exact: true }), templatePath);
+  expect(saved.draft.output_contract.json_schema).toEqual(diagnosisSchema);
+  // Reload from the persisted draft before creating a version, not from editor memory.
+  await page.reload();
+  await selectApplication(page, application);
+  await navigate(page, "prompt-application-template-workspace");
+  await template(page).getByRole("button", { name: "Refresh", exact: true }).first().click();
+  await template(page).locator(".prompt-template-summary").filter({ hasText: saved.draft.template_id }).click();
+  await expect(schemaEditor).toHaveValue(/diagnosis/);
+  expect(JSON.parse(await schemaEditor.inputValue())).toEqual(diagnosisSchema);
   const version = await submit(page, template(page).getByRole("button", { name: "Create immutable version", exact: true }), `${templatePath}/${saved.draft.template_id}/versions`);
   expect(version.version.output_contract.kind).toBe("json_object");
+  expect(version.version.output_contract.json_schema).toEqual(diagnosisSchema);
+  expect(JSON.parse(await template(page).getByLabel("不可变版本输出契约").innerText()).jsonSchema).toEqual(diagnosisSchema);
   await template(page).getByRole("button", { name: "Load drafts", exact: true }).click();
   await template(page).getByRole("combobox", { name: "Valid Prompt Application draft", exact: true }).selectOption(draft.draft.draft_id);
   await template(page).getByRole("combobox", { name: "Immutable template version", exact: true }).selectOption("1");
@@ -97,13 +134,87 @@ async function observedCalls(page: Page, caseId: string) {
   return response.json();
 }
 
+test("Prompt schema editor preserves drafts across kind switches and blocks invalid versions", async ({ page, application }, testInfo) => {
+  await expect(page.getByRole("region", { name: "Application development context" })).toContainText(application.id);
+  await navigate(page, "application-configuration-draft");
+  await navigate(page, "prompt-application-template-workspace");
+  const kind = template(page).getByRole("combobox", { name: "Kind", exact: true });
+  const editor = template(page).getByRole("textbox", { name: "输出 JSON Schema", exact: true });
+  const save = template(page).getByRole("button", { name: "Save with CAS", exact: true });
+  const version = template(page).getByRole("button", { name: "Create immutable version", exact: true });
+  await kind.selectOption("json_object");
+  for (const source of ["{", JSON.stringify({ ...diagnosisSchema, required: ["undeclared"] }), JSON.stringify({ ...diagnosisSchema, $ref: "unsupported" })]) {
+    await editor.fill(source);
+    await expect(editor).toHaveAttribute("aria-invalid", "true");
+    await expect(save).toBeDisabled();
+    await expect(version).toBeDisabled();
+    await kind.selectOption("text");
+    await expect(save).toBeEnabled();
+    await kind.selectOption("json_object");
+    await expect(editor).toHaveValue(source);
+    await expect(save).toBeDisabled();
+  }
+  await editor.fill(JSON.stringify(diagnosisSchema, null, 2));
+  await kind.selectOption("text");
+  const textDraft = await submit(page, save, templatePath);
+  expect(textDraft.draft.output_contract.json_schema).toBeUndefined();
+  await kind.selectOption("json_object");
+  await expect(editor).toHaveValue(JSON.stringify(diagnosisSchema, null, 2));
+  const saved = await submit(page, save, templatePath);
+  expect(saved.draft.draft_version).toBe(2);
+  await editor.fill("{");
+  await template(page).getByRole("button", { name: "Validate", exact: true }).click();
+  await expect(version).toBeDisabled();
+  await editor.fill(JSON.stringify(diagnosisSchema, null, 2));
+  const corrected = await submit(page, save, templatePath);
+  expect(corrected.draft.draft_version).toBe(3);
+  let releaseSave!: () => void;
+  let saveArrived!: () => void;
+  const heldSave = new Promise<void>((resolve) => { releaseSave = resolve; });
+  const saveReady = new Promise<void>((resolve) => { saveArrived = resolve; });
+  await page.route(`**${templatePath}`, async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    const response = await route.fetch();
+    saveArrived();
+    await heldSave;
+    await route.fulfill({ response });
+  });
+  const lateSave = submit(page, save, templatePath);
+  await saveReady;
+  await editor.fill("{");
+  releaseSave();
+  await lateSave;
+  await page.unroute(`**${templatePath}`);
+  await expect(save).toBeDisabled();
+  await expect(editor).toHaveValue("{");
+  await expect(version).toBeDisabled();
+  await editor.fill(JSON.stringify(diagnosisSchema, null, 2));
+  expect((await submit(page, save, templatePath)).draft.draft_version).toBe(5);
+  for (const width of [1440, 720, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await editor.scrollIntoViewIfNeeded();
+    expect(await editor.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const parent = element.closest("fieldset")!.getBoundingClientRect();
+      return bounds.width > 0 && bounds.left >= parent.left && bounds.right <= parent.right && document.documentElement.scrollWidth === window.innerWidth;
+    })).toBe(true);
+    await template(page).screenshot({ path: testInfo.outputPath(`prompt-schema-${width}.png`) });
+  }
+  // A different surface must discard unsaved source, including the hidden text-mode scratch.
+  await kind.selectOption("text");
+  await navigate(page, "application-configuration-draft");
+  await navigate(page, "prompt-application-template-workspace");
+  await kind.selectOption("json_object");
+  expect(JSON.parse(await editor.inputValue()).properties).toEqual({});
+});
+
 test("Prompt saves a canonical result and restores the exact artifact after refresh", async ({ page, application }, testInfo) => {
-  const { sessionId } = await prepareApplication(page, application.id);
+  const { sessionId } = await prepareApplication(page, application);
   const caseId = randomUUID();
   const result = await execute(page, sessionId, caseId);
   expect(result.failure_code ?? "").toBe("");
   expect(result.turn.status).toBe("succeeded");
-  expect(result.prompt_output).toBe("{}");
+  expect(JSON.parse(result.prompt_output)).toEqual(diagnosisOutput);
   expect(result.result_artifact_failure_code ?? "").toBe("");
   const artifactId = result.result_artifact.artifact_id;
   const runId = result.turn.run_ref.run_id;
@@ -117,7 +228,7 @@ test("Prompt saves a canonical result and restores the exact artifact after refr
   await expect(session(page).getByRole("textbox", { name: "Turn variables", exact: true })).not.toHaveValue(new RegExp(caseId));
   await artifacts(page).getByRole("button", { name: "Refresh artifacts", exact: true }).click();
   await artifacts(page).getByRole("button").filter({ hasText: artifactId }).click();
-  await expect(artifacts(page).locator(".application-result-artifact-inspector pre")).toHaveText("{}");
+  expect(JSON.parse(await artifacts(page).locator(".application-result-artifact-inspector pre").innerText())).toEqual(diagnosisOutput);
   for (const width of [1440, 1200, 390]) {
     await page.setViewportSize({ width, height: 900 });
     const openRun = artifacts(page).getByRole("button", { name: "Open exact run", exact: true });
@@ -150,10 +261,10 @@ test("Prompt saves a canonical result and restores the exact artifact after refr
   expect(await observedCalls(page, caseId)).toEqual([{ caseId, accepted: true, mode: "valid" }]);
 });
 
-test("Prompt rejects output outside the template contract without saving or retrying", async ({ page, application }) => {
-  const { sessionId } = await prepareApplication(page, application.id);
+for (const mode of ["invalid", "missing"]) test(`Prompt rejects ${mode} output without saving or retrying`, async ({ page, application }) => {
+  const { sessionId } = await prepareApplication(page, application);
   const caseId = randomUUID();
-  const result = await execute(page, sessionId, caseId, "invalid");
+  const result = await execute(page, sessionId, caseId, mode);
   expect(result.failure_code).toBe("prompt_invocation_output_contract_failed");
   expect(result.turn.status).toBe("failed");
   expect(result.result_artifact).toBeUndefined();
@@ -166,11 +277,13 @@ test("Prompt rejects output outside the template contract without saving or retr
   // Explicit repeat of the same turn key must remain metadata-only and not call the fixture again.
   const replay = await submit(page, session(page).getByRole("button", { name: "Execute Prompt turn", exact: true }), `${sessionPath}/${sessionId}/turns`, true);
   expect(replay.idempotent_replay).toBe(true);
-  expect(await observedCalls(page, caseId)).toEqual([{ caseId, accepted: true, mode: "invalid" }]);
+  expect(await observedCalls(page, caseId)).toEqual([{ caseId, accepted: true, mode }]);
 });
 
 test("Prompt configuration drift blocks calls until explicit review and replacement", async ({ page, application }) => {
-  const { sessionId } = await prepareApplication(page, application.id);
+  const { sessionId } = await prepareApplication(page, application);
+  // The draft recovery reload deliberately cleared the in-memory credential and catalog.
+  await loadModelCatalog(page);
   await navigate(page, "application-configuration-draft");
   await configuration(page).getByRole("button", { name: "Refresh", exact: true }).click();
   await configuration(page).locator(".application-draft-summary").click();

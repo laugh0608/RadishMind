@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   bindApplicationConfigurationDraftPromptTemplate,
@@ -29,6 +29,7 @@ import {
   type PromptTemplateVariableType,
   type PromptTemplateVersionListResult,
 } from "./promptApplicationTemplateConsumer.ts";
+import { formatPromptOutputSchema, parsePromptOutputSchema } from "./promptTemplateOutputSchema.ts";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const templateConfig = readPromptTemplateConfig();
@@ -52,6 +53,10 @@ export default function PromptApplicationTemplatePanel({
   onEvidenceChange,
 }: Props) {
   const [input, setInput] = useState(() => createPromptTemplateDraftInput(templateConfig, applicationId));
+  const [schemaSource, setSchemaSource] = useState(() => formatPromptOutputSchema());
+  const parsedSchema = useMemo(() => parsePromptOutputSchema(schemaSource), [schemaSource]);
+  const editRevision = useRef(0);
+  const [saving, setSaving] = useState(false);
   const [operation, setOperation] = useState<PromptTemplateOperation>(() => initialOperation());
   const [drafts, setDrafts] = useState<PromptTemplateListResult>(() => initialDraftList());
   const [versions, setVersions] = useState<PromptTemplateVersionListResult>(() => initialVersionList());
@@ -68,6 +73,7 @@ export default function PromptApplicationTemplatePanel({
 
   useEffect(() => {
     setInput(createPromptTemplateDraftInput(templateConfig, applicationId));
+    setSchemaSource(formatPromptOutputSchema());
     setOperation(initialOperation());
     setDrafts(initialDraftList());
     setVersions(initialVersionList());
@@ -112,6 +118,7 @@ export default function PromptApplicationTemplatePanel({
   }, [onEvidenceChange, operation, selectedVersion]);
 
   function edit(patch: Partial<PromptTemplateDraftInput>) {
+    editRevision.current += 1;
     setInput((current) => ({ ...current, ...patch }));
     setHasUnsavedChanges(true);
     setOperation((current) => ({ ...current, status: templateConfig.mode === "offline" ? "offline" : "idle", failureCode: "", summary: "模板包含未保存的内存编辑。" }));
@@ -120,13 +127,13 @@ export default function PromptApplicationTemplatePanel({
 
   async function validateRemote() {
     if (!localValidation.isValid) {
-      setOperation({
-        ...initialOperation(),
+      setOperation((current) => ({
+        ...current,
         status: "invalid",
         validation: localValidation,
         failureCode: localValidation.findings[0]?.code ?? "prompt_template_payload_invalid",
         summary: "请先解决本地确定性校验阻塞项。",
-      });
+      }));
       return;
     }
     setOperation((current) => ({ ...current, status: "idle", failureCode: "", summary: "正在执行服务端确定性校验。" }));
@@ -135,12 +142,19 @@ export default function PromptApplicationTemplatePanel({
   }
 
   async function saveDraft() {
-    if (!enabled || !localValidation.isValid) return;
+    if (saving || !enabled || !localValidation.isValid) return;
+    const revision = editRevision.current;
+    setSaving(true);
     const result = await savePromptTemplateDraft(templateConfig, input, operation.currentDraftVersion);
     setOperation(result);
+    setSaving(false);
     if (result.draft) {
-      setInput(draftToInput(result.draft));
-      setHasUnsavedChanges(false);
+      // Preserve newer source edits while still advancing the persisted CAS lineage.
+      if (revision === editRevision.current) {
+        setInput(draftToInput(result.draft));
+        if (result.draft.outputContract.jsonSchema) setSchemaSource(formatPromptOutputSchema(result.draft.outputContract.jsonSchema));
+        setHasUnsavedChanges(false);
+      }
       await refreshDrafts();
     }
   }
@@ -156,13 +170,14 @@ export default function PromptApplicationTemplatePanel({
     setOperation(result);
     if (result.draft) {
       setInput(draftToInput(result.draft));
+      setSchemaSource(formatPromptOutputSchema(result.draft.outputContract.jsonSchema));
       setHasUnsavedChanges(false);
       await refreshVersions(templateId);
     }
   }
 
   async function createVersion() {
-    if (!enabled || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1) return;
+    if (!enabled || !localValidation.isValid || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1) return;
     const result = await createPromptTemplateVersion(
       templateConfig,
       applicationId,
@@ -308,13 +323,25 @@ export default function PromptApplicationTemplatePanel({
             <legend>Output contract</legend>
             <label>Kind<select value={input.outputContract.kind} onChange={(event) => setOutputKind(event.target.value as PromptTemplateOutputKind)}><option value="text">text</option><option value="json_object">json_object</option></select></label>
             <label><input type="checkbox" checked={input.outputContract.allowEmpty} onChange={(event) => edit({ outputContract: { ...input.outputContract, allowEmpty: event.target.checked } })} />Allow empty output</label>
+            {input.outputContract.kind === "json_object" ? <>
+              <label htmlFor="prompt-output-schema">输出 JSON Schema</label>
+              <textarea id="prompt-output-schema" rows={16} spellCheck={false} value={schemaSource}
+                aria-invalid={Boolean(parsedSchema.error)} aria-describedby="prompt-output-schema-help prompt-output-schema-error"
+                onChange={(event) => {
+                  const source = event.target.value;
+                  setSchemaSource(source);
+                  edit({ outputContract: { ...input.outputContract, jsonSchema: parsePromptOutputSchema(source).schema } });
+                }} />
+              <p id="prompt-output-schema-help" className="boundary-note">可粘贴或直接编辑 JSON。根类型为 object；支持对象、数组和标量，省略 additionalProperties 按 false 处理。最多 8 层、合计 128 个字段、紧凑 JSON 32 KiB。</p>
+              <p id="prompt-output-schema-error" className="failure-summary" aria-live="polite">{parsedSchema.error}</p>
+            </> : <p className="boundary-note">切回 json_object 可继续编辑本页暂存的 schema；离开页面或恢复其他草案会清除暂存内容。</p>}
             <label>Maximum bytes<input type="number" min={1} max={65536} value={input.outputContract.maxBytes} onChange={(event) => edit({ outputContract: { ...input.outputContract, maxBytes: Number(event.target.value) } })} /></label>
           </fieldset>
 
           <div className="application-draft-actions">
-            <button type="button" onClick={() => void validateRemote()} disabled={!applicationActive}>Validate</button>
-            <button type="button" onClick={() => void saveDraft()} disabled={!enabled || !localValidation.isValid}>Save with CAS</button>
-            <button type="button" onClick={() => void createVersion()} disabled={!enabled || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1}>Create immutable version</button>
+            <button type="button" onClick={() => void validateRemote()} disabled={saving || !applicationActive}>Validate</button>
+            <button type="button" onClick={() => void saveDraft()} disabled={saving || !enabled || !localValidation.isValid}>Save with CAS</button>
+            <button type="button" onClick={() => void createVersion()} disabled={saving || !enabled || !localValidation.isValid || hasUnsavedChanges || !operation.draft || operation.currentDraftVersion < 1}>Create immutable version</button>
           </div>
         </article>
 
@@ -341,14 +368,14 @@ export default function PromptApplicationTemplatePanel({
         <article>
           <div className="application-api-card-heading"><div><p className="eyebrow">Saved drafts</p><h5>{drafts.summary}</h5></div><button type="button" onClick={() => void refreshDrafts()}>Refresh</button></div>
           {drafts.failureCode ? <p className="failure-summary">{drafts.failureCode}</p> : null}
-          {drafts.summaries.map((draft) => <button type="button" className="prompt-template-summary" key={draft.templateId} onClick={() => void restoreDraft(draft.templateId)}><strong>{draft.templateName}</strong><span>{draft.templateId} · v{draft.draftVersion}</span><small>{draft.messageRoles.join(" → ")} · {draft.variableNames.join(", ") || "no variables"}</small></button>)}
+          {drafts.summaries.map((draft) => <button type="button" className="prompt-template-summary" key={draft.templateId} disabled={saving} onClick={() => void restoreDraft(draft.templateId)}><strong>{draft.templateName}</strong><span>{draft.templateId} · v{draft.draftVersion}</span><small>{draft.messageRoles.join(" → ")} · {draft.variableNames.join(", ") || "no variables"}</small></button>)}
         </article>
 
         <article>
           <div className="application-api-card-heading"><div><p className="eyebrow">Immutable versions</p><h5>{versions.summary}</h5></div><button type="button" onClick={() => void refreshVersions()}>Refresh</button></div>
           {versions.failureCode ? <p className="failure-summary">{versions.failureCode}</p> : null}
           {versions.summaries.map((version) => <button type="button" className={selectedTemplateVersion === version.templateVersion ? "prompt-template-summary selected" : "prompt-template-summary"} key={version.templateVersion} onClick={() => void openVersion(version.templateVersion)}><strong>Version {version.templateVersion}</strong><span>source draft v{version.sourceDraftVersion} · {version.outputKind}</span><small>{version.templateDigest}</small></button>)}
-          {operation.version ? <div className="prompt-template-version-detail"><strong>{operation.version.templateName} · immutable v{operation.version.templateVersion}</strong><code>{operation.version.templateDigest}</code><p>{operation.version.messages.length} message(s) · {operation.version.variables.length} variable(s)</p></div> : null}
+          {operation.version ? <div className="prompt-template-version-detail"><strong>{operation.version.templateName} · immutable v{operation.version.templateVersion}</strong><code>{operation.version.templateDigest}</code><p>{operation.version.messages.length} message(s) · {operation.version.variables.length} variable(s)</p><pre aria-label="不可变版本输出契约">{JSON.stringify(operation.version.outputContract, null, 2)}</pre></div> : null}
         </article>
       </div>
 
@@ -387,7 +414,7 @@ export default function PromptApplicationTemplatePanel({
           kind,
           allowEmpty: input.outputContract.allowEmpty,
           maxBytes: input.outputContract.maxBytes,
-          jsonSchema: { type: "object", additionalProperties: false, properties: {}, required: [] },
+          jsonSchema: parsedSchema.schema,
         },
     });
   }

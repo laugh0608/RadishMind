@@ -1,3 +1,6 @@
+import { validatePromptOutputSchema, type PromptTemplateJSONSchema } from "./promptTemplateOutputSchema.ts";
+export type { PromptTemplateJSONSchema } from "./promptTemplateOutputSchema.ts";
+
 const DEV_SOURCE = "dev-prompt-application-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const TEMPLATE_PATH = "/v1/user-workspace/prompt-application-templates";
@@ -61,13 +64,6 @@ export type PromptTemplateVariable = {
   required: boolean;
   description: string;
   defaultValue?: string | number | boolean | string[];
-};
-export type PromptTemplateJSONSchema = {
-  type: "object" | "array" | "string" | "integer" | "number" | "boolean";
-  properties?: Record<string, PromptTemplateJSONSchema>;
-  required?: string[];
-  additionalProperties: boolean;
-  items?: PromptTemplateJSONSchema;
 };
 export type PromptTemplateOutputContract = {
   kind: PromptTemplateOutputKind;
@@ -635,20 +631,7 @@ function isOutputContractDocument(value: unknown): boolean {
   if (!isRecord(value) || !isOutputKind(value.kind) || typeof value.allow_empty !== "boolean" ||
     !integer(value.max_bytes, 1) || (value.max_bytes as number) > 65536) return false;
   if (value.kind === "text") return hasExactKeys(value, ["kind", "allow_empty", "max_bytes"]);
-  return hasExactKeys(value, ["kind", "allow_empty", "max_bytes", "json_schema"]) && isJSONSchema(value.json_schema);
-}
-
-function isJSONSchema(value: unknown, depth = 0): boolean {
-  if (!isRecord(value) || depth > 8 || !["object", "array", "string", "integer", "number", "boolean"].includes(String(value.type)) ||
-    typeof value.additionalProperties !== "boolean") return false;
-  const allowed = new Set(["type", "properties", "required", "additionalProperties", "items"]);
-  if (Object.keys(value).some((key) => !allowed.has(key))) return false;
-  if (value.properties !== undefined && (!isRecord(value.properties) ||
-    !Object.entries(value.properties).every(([name, nested]) => VARIABLE_NAME.test(name) && isJSONSchema(nested, depth + 1)))) return false;
-  if (value.required !== undefined && (!Array.isArray(value.required) ||
-    !value.required.every((item) => typeof item === "string" && item.length > 0 && item.length <= 64) ||
-    new Set(value.required).size !== value.required.length)) return false;
-  return value.items === undefined || isJSONSchema(value.items, depth + 1);
+  return hasExactKeys(value, ["kind", "allow_empty", "max_bytes", "json_schema"]) && validatePromptOutputSchema(value.json_schema) === "";
 }
 
 function isValidation(value: unknown): boolean {
@@ -948,7 +931,7 @@ function canonicalVariableValue(value: unknown, type: PromptTemplateVariableType
 
 function isOutputContract(value: PromptTemplateOutputContract): boolean {
   if (!isOutputKind(value.kind) || !Number.isInteger(value.maxBytes) || value.maxBytes < 1 || value.maxBytes > 65536) return false;
-  return value.kind === "text" ? value.jsonSchema === undefined : value.jsonSchema !== undefined && isJSONSchema(jsonSchemaPayload(value.jsonSchema));
+  return value.kind === "text" ? value.jsonSchema === undefined : value.jsonSchema !== undefined && validatePromptOutputSchema(value.jsonSchema) === "";
 }
 
 function validTemplateMetadata(value: Document): boolean {

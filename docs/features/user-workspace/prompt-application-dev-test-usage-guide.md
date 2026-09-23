@@ -1,6 +1,6 @@
 # Prompt Application 开发测试态使用指南
 
-更新时间：2026-09-14
+更新时间：2026-09-23
 
 ## 适用范围
 
@@ -303,6 +303,7 @@ Prompt profile 只消费 `variables`，不接受调用方用 `model`、模板、
 ### 素材与输入边界
 
 - [模板源码](prompt-application-dev-test-usage-guide.parts/diagnostics-trial-source.json)直接使用现有 `PromptApplicationTemplateSource` 三个字段；保存时通过本文 Template API 的既有请求信封填入实际资源 ID，不把源码文件当作完整草案记录提交。
+- 网页配置时在模板工作区选择 `json_object`，将素材中的 `output_contract.json_schema` 对象粘贴到“输出 JSON Schema”，将输出上限设置为 `8192` 字节；错误消除后保存草案，再创建版本并进入源码审查。省略的 additionalProperties 按既有请求语义补为 false，切到 text 时暂存原文只保留在当前页面内存。
 - [五个合成样本](prompt-application-dev-test-usage-guide.parts/diagnostics-trial-samples.json)仅将 `variables` 交给运行服务，`review_points` 留给人工审查。样本是可复验的预演材料，不声称来自真实故障，也不代替真实开发者试用证据。
 - `diagnostics-01` 至 `04` 分别覆盖端口不一致、未知进程占用端口、上下文不足和日志中的恶意指令；`05` 缺少必填日志，只验证确定性渲染拒绝，不进入 Provider 队列。
 - 真实任务可在后续明确数据范围后替换为经审查的脱敏输入；不得在本轮直接复制真实日志、路径、凭据或用户内容进入 committed 资产。

@@ -156,6 +156,36 @@ test("Prompt Template version source requires read_source and rejects response d
   assert.equal(rejected.version, null);
 });
 
+test("Prompt structured contracts survive source reads and CAS payloads; validation rejects undeclared fields", async () => {
+  const schema = {
+    type: "object" as const, additionalProperties: false,
+    properties: { diagnosis: { type: "string" as const, additionalProperties: false } }, required: ["diagnosis"],
+  };
+  const envelope = versionEnvelope();
+  const outputContract = { kind: "json_object", allow_empty: false, max_bytes: 4096, json_schema: schema };
+  globalThis.fetch = async () => jsonResponse({ ...envelope, version: { ...envelope.version, output_contract: outputContract } });
+  const source = await readPromptTemplateVersion(config, applicationId, templateId, 1);
+  assert.deepEqual(source.version?.outputContract.jsonSchema, schema);
+  const input = createPromptTemplateDraftInput(config, applicationId);
+  input.templateId = templateId;
+  input.outputContract = source.version!.outputContract;
+  let calls = 0;
+  globalThis.fetch = async (_url, init) => {
+    calls++;
+    assert.deepEqual(JSON.parse(String(init?.body)).template.output_contract, outputContract);
+    return jsonResponse(emptyEnvelope());
+  };
+  await savePromptTemplateDraft(config, input, 0);
+  assert.equal(calls, 1);
+  input.outputContract.jsonSchema = { ...schema, required: ["undeclared"] };
+  assert.equal(validatePromptTemplateLocally(input).isValid, false);
+  assert.equal(calls, 1);
+  globalThis.fetch = async () => jsonResponse({ ...envelope, version: {
+    ...envelope.version, output_contract: { ...outputContract, json_schema: input.outputContract.jsonSchema },
+  } });
+  assert.equal((await readPromptTemplateVersion(config, applicationId, templateId, 1)).version, null);
+});
+
 function emptyEnvelope() {
   return {
     request_id: "prompt-template-request",

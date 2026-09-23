@@ -21247,3 +21247,25 @@ textarea {
     grid-column: auto;
   }
 }
+
+/* Keep schema editing and exact source review within the current workbench column. */
+.prompt-template-editor fieldset,
+.prompt-template-editor label,
+.prompt-template-version-detail,
+.prompt-template-source {
+  min-width: 0;
+}
+
+.prompt-template-editor #prompt-output-schema {
+  min-width: 0;
+  max-width: 100%;
+  resize: vertical;
+  font-family: var(--rm-font-mono, monospace);
+}
+
+.prompt-template-version-detail pre,
+.prompt-template-source > pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--rm-text-primary);
+}

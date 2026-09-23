@@ -1,6 +1,6 @@
 # 工程健康与产品化整改专题 v1
 
-更新时间：2026-09-14
+更新时间：2026-09-23
 
 状态：`remediation_v1_active_governance`
 
@@ -44,9 +44,11 @@
 
 2026-09-14 项目所有者暂缓真实模型试用，并批准在同一入口补充三条 Prompt Application 回归：模板与配置审核、显式激活和结果保存后刷新读取；输出契约失败不保存且同键不重调；配置变更阻断调用，重新审核并显式替换后创建新 Session 恢复执行。配置准备也通过 UI 完成 API key 向 Playground 的模型目录交接。原三条 Workflow 流程保留，不增加依赖、CI job 或触发器。
 
+2026-09-23 补齐 Prompt 结构化输出编辑，并将既有回归扩为五条：编辑 / 类型切换 / 保存迟到响应保护、非空结果保存恢复、额外字段拒绝、缺字段拒绝、配置漂移后的显式恢复。与原三条 Workflow 连续两轮共 16 次通过，沿用同一运行器与 CI，证据见[2026-W39 周志](../devlogs/2026-W39.md)。
+
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
 - 每次运行生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。
-- Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用当前 UI 闭合 JSON schema 接受的 `{}`，额外字段用于拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。
+- Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。
 - Web 使用现有 CORS 允许的 `127.0.0.1:4100`，Platform 使用 `127.0.0.1:17000`。任一端口被占用即失败，不复用用户服务；测试使用单 worker、零重试，以免掩盖不稳定失败。
 - `run.mjs` 拥有启动器与测试运行器的 POSIX 进程组；正常退出、失败、`SIGINT` / `SIGTERM` 均关闭后代进程及本轮 Prompt fixture，限时结束后再删除本轮临时数据库。原生 Windows 暂不支持该清理入口，使用 Linux、macOS 或 WSL。
 - 日志、HTTP 方法 / 路径 / 状态记录和 HTML 报告位于忽略目录 `output/playwright/workflow-e2e/run-*`；另保存不含凭据或正文的 fixture 调用观察；失败保留截图、页面错误上下文与 trace。数据均为本轮合成输入，数据库不进入报告或 CI artifact。

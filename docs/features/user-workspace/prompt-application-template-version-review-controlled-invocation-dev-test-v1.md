@@ -1,6 +1,6 @@
 # 提示词应用模板版本审查与受控调用（开发 / 测试态）v1
 
-更新时间：2026-09-14
+更新时间：2026-09-23
 
 状态：`prompt_application_template_version_review_controlled_invocation_dev_test_v1_completed`
 
@@ -185,7 +185,7 @@ S8 的 Prompt Invocation 与 Prompt Session 继续把运行资格交给服务端
 Prompt Application 工作区作为既有 Application Development Workspace 下的独立 feature-owned surface，至少覆盖：
 
 1. Template 列表、创建、恢复和 CAS 冲突处理；
-2. 消息模板、变量及输出契约基础选项编辑；结构化 schema 的 UI 编辑缺口见下节；
+2. 消息模板、变量及受限 JSON Schema 输出契约编辑；交互与验证范围见下节；
 3. 本地确定性校验与合成值预览；
 4. 不可变模板版本创建与精确版本详情；
 5. Template Version → Configuration Draft binding handoff；
@@ -196,16 +196,17 @@ Prompt Application 工作区作为既有 Application Development Workspace 下�
 
 应用切换、revision 变化、归档、身份变化和 surface 卸载必须清除未保存模板、变量值、渲染预览、响应和迟到请求。稳定 URL 只允许阶段锚点与短资源标识，不携带模板源码、变量值或输出；不得使用 `localStorage`、`sessionStorage`、IndexedDB 或 cookie 恢复这些内容。
 
-### 结构化输出契约的 UI 缺口与后续范围
+### 结构化输出契约的 UI 编辑
 
-2026-09-14 代码与浏览器复核确认：后端、持久化和严格消费端已经支持受控 JSON Schema 子集，但 `promptApplicationTemplatePanel.tsx` 只提供输出类型、空结果和字节上限。选择 `json_object` 会建立 `properties={}`、`required=[]`、`additionalProperties=false` 的空对象契约，页面尚无字段或 schema 编辑入口；不能据此声明开发者已能完全通过 UI 配置结构化应用。
+2026-09-23 按已确认范围补齐现有模板工作区。此前后端和持久化支持受限 JSON Schema，但页面只能生成空对象契约；本轮加入可直接编辑或粘贴 JSON 的输入区，使内部开发者可通过网页配置[故障诊断模板](prompt-application-dev-test-usage-guide.md#内部故障诊断试用)的五字段输出契约。
 
-下一步在现有模板工作区补齐编辑能力，使内部开发者可配置[故障诊断模板](prompt-application-dev-test-usage-guide.md#内部故障诊断试用)的五字段输出契约。范围如下，当前仍未实现：
+- 只接受既有子集：根 object，嵌套 object / array / string / integer / number / boolean；导入时省略 additionalProperties 按既有 Go 请求语义补为 false，响应消费仍要求显式布尔值；required 必须引用已声明字段且无重复。根计为第 1 层，最多 8 层、累计 128 个对象字段、紧凑 JSON 32 KiB。前端编辑与严格响应消费复用同一校验，不扩 schema、API 或依赖。
+- 输入区就地显示语法、字段路径与预算错误。无效内容保留在当前页面内存，阻止保存和版本创建；不使用上一次合法 schema 代替当前输入。服务端仍负责最终校验。
+- 切换到 text 时不向请求发送 schema；本页暂存的原文（含无效编辑）可在切回 json_object 后继续使用。保存 text 不清除暂存；恢复草案、切换应用或离开页面时清除。不得写入浏览器持久化或 URL。
+- 草案保存 / 恢复沿用 CAS。保存请求返回时只更新其对应编辑快照；期间的新编辑保留为未保存状态。无效内容的本地校验不清空已保存草案版本。不可变版本详情与发布源码审查均展示精确输出契约，不改审核或显式激活边界。
+- 扩展既有 Prompt 浏览器回归，覆盖编辑错误、类型切换、草案重新读取、不可变版本与源码审查，以及非空诊断结果的显式保存和刷新读取；缺字段 / 额外字段失败且不保存、不自动重调。五条 Prompt 与原三条 Workflow 连续两轮通过，结果记录于[2026-W39 周志](../../devlogs/2026-W39.md)。
 
-- 只编辑或导入后端已支持的 JSON Schema 子集；复用既有字段类型、必填项、额外字段策略和预算，不加入任意 JSON Schema 扩展、外部引用或新依赖。
-- 错误应在保存和版本创建前清晰表达；草案恢复、源码审查和不可变版本必须保留精确契约，类型切换不得静默丢失待编辑 schema。
-- 将现有 Prompt 浏览器用例从空对象扩展为非空诊断结构，验证合法结果完整保存与刷新读取，缺字段 / 额外字段被拒绝且不自动重调。
-- 沿用现有 API、schema、持久化、审核与显式激活边界，不新建任务卡或 checker。验证仍使用本地固定响应服务；真实模型试用继续暂缓。
+真实模型试用继续暂缓；固定响应只验证产品流程和契约，不证明诊断答案质量。不新建任务卡或 checker。
 
 ### 真实 Provider 的消息与输出适配
 

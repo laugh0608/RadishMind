@@ -361,6 +361,7 @@ function PromptTemplateSourceReview({
           <small>
             variables: {source.variables.map((variable) => `${variable.name}:${variable.type}${variable.required ? "!" : ""}`).join(", ") || "none"}
           </small>
+          <pre aria-label="审查输出契约">{JSON.stringify(source.outputContract, null, 2)}</pre>
         </div>
       ) : <p className="boundary-note">审查前从 Template owner 读取 exact version；候选内的 digest 不替代源码读取。</p>}
     </div>

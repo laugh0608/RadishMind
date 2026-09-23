@@ -25,14 +25,22 @@ export async function startPromptProvider() {
       try { document = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
       catch { return send(400, { error: "fixture_invalid_json" }); }
       const messages = document.messages;
-      const marker = messages?.[1]?.content?.match(/^E2E_CASE:([a-f0-9-]{36}):(valid|invalid)$/);
+      const marker = messages?.[1]?.content?.match(/^E2E_CASE:([a-f0-9-]{36}):(valid|invalid|missing)$/);
       const accepted = document.model === "prompt-e2e-model" && Array.isArray(messages) && messages.length === 2
         && messages[0].role === "system" && messages[0].content === "E2E_PROMPT_SYSTEM_V1"
         && messages[1].role === "user" && Boolean(marker);
       observations.push({ caseId: marker?.[1] ?? "unrecognized", accepted, mode: marker?.[2] ?? "unknown" });
       if (!accepted) return send(400, { error: "fixture_prompt_transport_mismatch" });
-      // The UI's current closed JSON-object contract accepts {}, rejects extra fields.
-      const content = marker[2] === "valid" ? "{}" : '{"unexpected":"E2E_INVALID_OUTPUT"}';
+      const output = {
+        diagnosis: "Synthetic timeout diagnosis",
+        evidence: ["Synthetic upstream timeout"],
+        next_checks: ["Check synthetic upstream health"],
+        missing_context: ["Synthetic request trace"],
+        uncertainty: "Synthetic evidence is incomplete",
+      };
+      if (marker[2] === "invalid") output.unexpected = "E2E_INVALID_OUTPUT";
+      if (marker[2] === "missing") delete output.diagnosis;
+      const content = JSON.stringify(output);
       send(200, {
         id: "prompt-e2e-response", object: "chat.completion",
         choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
