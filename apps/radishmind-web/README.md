@@ -388,4 +388,4 @@ npm run preview
 
 `npm run test:coverage` 是 PR / release 的可发现覆盖率入口，当前预算为行 `90%`、分支 `78%`、函数 `85%`；它约束已进入 Node 严格消费端测试的模块，不替代 React 页面构建和真实浏览器验收。
 
-自动浏览器回归入口为 `npm run test:e2e`，执行测试类型检查和三条独立 SQLite / mock Workflow 流程；首次安装、端口、失败证据与进程清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 将其作为独立 job 执行，常规 `npm test` 不会启动服务。
+自动浏览器回归入口为 `npm run test:e2e`，执行独立测试类型检查和模板、Prompt / Workflow 双语回归；两组按顺序使用各自的临时 SQLite 与测试模型档案；首次安装、端口、失败证据与进程清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 将其作为独立 job 执行，常规 `npm test` 不会启动服务。

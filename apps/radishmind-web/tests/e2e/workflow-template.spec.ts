@@ -1,6 +1,9 @@
+import { prepareTemplateRoute } from "./template-route-fixture";
 import { randomUUID } from "node:crypto";
 import { test, expect, createDraft, saveDraft, draftField, holdDraftResponse, isEndpoint } from "./workflow-fixtures";
 import { uiText, setTestLanguage, draftVersionText } from "./ui-language";
+
+test.beforeAll(async ({ request }) => { await prepareTemplateRoute(request); });
 
 test("review and template language switching preserves pending decisions and explicit derivation", async ({ page, application }, testInfo) => {
   const locale = testInfo.project.use.locale === "zh-CN" ? "zh-CN" : "en-US";
@@ -21,6 +24,8 @@ test("review and template language switching preserves pending decisions and exp
   await saveDraft(page, 1);
   await page.getByRole("link", { name: uiText(page, "Open Workflow definition owner"), exact: true }).click();
   const promotion = page.locator("#workflow-definition-promotion");
+  await expect(promotion.getByRole("textbox", { name: uiText(page, "Definition ID"), exact: true })).not.toHaveValue("");
+  await expect(promotion.getByRole("textbox", { name: uiText(page, "Candidate ID"), exact: true })).toHaveValue(/^wdrc_/);
   const definitionId = await promotion.getByRole("textbox", { name: uiText(page, "Definition ID"), exact: true }).inputValue();
   const candidateId = await promotion.getByRole("textbox", { name: uiText(page, "Candidate ID"), exact: true }).inputValue();
   await promotion.getByRole("button", { name: uiText(page, "Create promotion candidate"), exact: true }).click();
@@ -51,7 +56,9 @@ test("review and template language switching preserves pending decisions and exp
   await field("Definition ID").fill(definitionId);
   await field("Title").fill("Source template 源模板 <literal>");
   await field("Summary").fill("Synthetic template review and derivation evidence.");
+  const created = page.waitForResponse(response => isEndpoint(response, "/v1/user-workspace/workflow-template-candidates", "POST"));
   await button("Create candidate").click();
+  expect((await created).ok()).toBeTruthy();
   await expect(catalog.locator(".workflow-template-records")).toContainText(templateCandidate);
   const tasks = catalog.locator(".workflow-template-catalog__tasks button");
   await tasks.nth(1).click();
@@ -88,6 +95,11 @@ test("review and template language switching preserves pending decisions and exp
     await page.setViewportSize({ width, height: 900 });
     await catalog.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    const authorityFits = await catalog.locator(".workflow-template-authority").evaluate(element => {
+      const area = element.getBoundingClientRect();
+      return [...element.children].every(child => child.scrollWidth <= child.clientWidth + 1 && child.getBoundingClientRect().right <= area.right);
+    });
+    expect(authorityFits, "Exact template authority must wrap within its card").toBe(true);
     if (testInfo.repeatEachIndex === 0) await testInfo.attach(`template-confirm-${width}`, { body: await catalog.screenshot(), contentType: "image/png" });
   }
   await page.setViewportSize({ width: 1440, height: 900 });

@@ -23,8 +23,8 @@ const labels: Record<string, readonly [string, string]> = {
   "Template": ["Template", "模板"],
   "Apply pointer decision": ["Apply pointer decision", "提交上架决定"],
   "Listed template": ["Listed template", "已上架模板"],
-  "Saved draft ID": ["Saved draft ID", "已保存草案 ID"],
-  "Derive and open saved draft": ["Derive and open saved draft", "派生并打开草案"],
+  "Saved draft ID": ["Saved Draft ID", "已保存草案 ID"],
+  "Derive and open saved draft": ["Derive and open Saved Draft", "派生并打开草案"],
 
   "Revision History": ["Revision History", "修订历史"],
   "Editing enabled": ["Editing enabled", "可编辑"],
