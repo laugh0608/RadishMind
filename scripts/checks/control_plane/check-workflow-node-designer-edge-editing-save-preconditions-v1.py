@@ -183,7 +183,7 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     require(
         node_designer_text.index("validateWorkflowNodeDesignerConnection(connection, draft)")
         < node_designer_text.index("const added = onAddEdge(connection.source, connection.target)")
-        < node_designer_text.index("Added draft edge:")
+        < node_designer_text.index('code: "edgeAdded"')
         < node_designer_text.index("function validateWorkflowNodeDesignerConnection("),
         "node designer onConnect must validate before controlled active draft mutation",
     )

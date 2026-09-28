@@ -71,7 +71,7 @@
       "createdDraftCountsByWorkflowDefinition",
       "onCreateDraftForWorkflowDefinition",
       "workflow-user-workspace-home-actions",
-      "Create draft"
+      "$.library.createDraft"
     ],
     "required_style_selectors": [
       ".workflow-user-workspace-home-actions",

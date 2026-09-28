@@ -1,6 +1,6 @@
 # 已保存 Workflow 草案库生命周期与组织（开发 / 测试态）v1
 
-更新时间：2026-09-09
+更新时间：2026-09-28
 
 状态：`saved_workflow_draft_library_lifecycle_organization_dev_test_v1_completed`
 
@@ -63,6 +63,10 @@
 ### 自动浏览器回归
 
 2026-09-09 另行获批的三条 Workflow 自动回归已覆盖草案修订 / 双标签冲突、迟到保存 / 校验响应隔离，以及受控 Definition 运行至刷新后的精确历史读取；本地连续两轮通过。测试使用独立 SQLite / mock 与 Chromium，已接入 PR / Release 配置，远端尚未运行；详细流程、运行方法和失败证据见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。延迟精确读取、归档响应等其它人工场景未因此自动获得 CI 覆盖。
+
+### 草案流程双语（2026-09-28）
+
+[i18n B 阶段](../web-internationalization-zh-en-v1.md#b-阶段首个实施范围2026-09-28)已迁移草案库、Designer、节点画布和修订恢复的操作与状态文案。语言切换只重绘展示，双版本 CAS、作用域 / 请求代次、归档只读和解除归档后精确重新打开保持原有规则。草案内容、节点名称和原始协议值不翻译；画布反馈和恢复确认按稳定状态在渲染时翻译。双语浏览器覆盖沿用既有回归，新增切换与归档确认检查；实际验收记录见[2026-W40 周志](../../devlogs/2026-W40.md)。完整审查、模板与 Definition 中文运行不由本次草案流程代替验收。
 
 ### S3 UI 消费
 

@@ -14,6 +14,8 @@ export type WorkflowSavedDraftRevisionChange = {
     | "edge_changed";
   subject: string;
   summary: string;
+  before?: string;
+  after?: string;
 };
 
 export type WorkflowSavedDraftRevisionComparison = {
@@ -31,7 +33,7 @@ export function compareWorkflowSavedDraftRevision(
 ): WorkflowSavedDraftRevisionComparison {
   const changes: WorkflowSavedDraftRevisionChange[] = [];
   if (historical.label !== active.label) {
-    changes.push({ kind: "metadata", subject: "name", summary: `${historical.label} → ${active.label}` });
+    changes.push({ kind: "metadata", subject: "name", before: historical.label, after: active.label, summary: `${historical.label} → ${active.label}` });
   }
   if (historical.summary !== active.summary) {
     changes.push({ kind: "metadata", subject: "summary", summary: "草案说明已变更。" });
@@ -40,6 +42,8 @@ export function compareWorkflowSavedDraftRevision(
     changes.push({
       kind: "metadata",
       subject: "base definition",
+      before: String(historical.baseDefinitionVersion ?? 0),
+      after: String(active.baseDefinitionVersion ?? 0),
       summary: `${historical.baseDefinitionVersion ?? 0} → ${active.baseDefinitionVersion ?? 0}`,
     });
   }
@@ -136,6 +140,8 @@ function compareMetadataValue(
     changes.push({
       kind: "metadata",
       subject,
+      before: historical,
+      after: active,
       summary: `${historical || "未设置"} → ${active || "未设置"}`,
     });
   }

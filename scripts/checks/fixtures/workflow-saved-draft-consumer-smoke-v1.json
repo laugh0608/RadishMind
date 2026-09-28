@@ -118,15 +118,15 @@
     ],
     "required_panel_display_literals": [
       "workflow-designer-actions",
-      "Version conflict review",
-      "Continue local draft",
-      "Open saved draft",
-      "Saved draft conflict review actions",
+      "$.draft.conflictReview",
+      "$.draft.continueLocal",
+      "$.draft.openSaved",
+      "$.draft.conflictActions",
       "savedDraftConflictReviewSummary",
       "workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)",
       "interactionDisabled",
-      "Saved version",
-      "Saved version metadata is refreshing"
+      "$.draft.savedVersion",
+      "$.draft.openUnavailable"
     ],
     "owner_file": "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts"
   },

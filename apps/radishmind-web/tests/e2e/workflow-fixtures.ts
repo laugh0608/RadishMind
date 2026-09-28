@@ -1,4 +1,4 @@
-import { uiText, setTestLanguage } from "./ui-language";
+import { uiText, setTestLanguage, draftVersionText } from "./ui-language";
 import { randomUUID } from "node:crypto";
 import { test as base, expect, type Page, type Response, type Route } from "@playwright/test";
 
@@ -65,17 +65,17 @@ export function isEndpoint(response: Response, path: string, method: string) {
 export const draftRoute = "/v1/user-workspace/workflow-drafts";
 
 export function designer(page: Page) {
-  return page.getByRole("region", { name: "Workflow draft designer development workbench", exact: true });
+  return page.getByRole("region", { name: uiText(page, "Workflow draft designer development workbench"), exact: true });
 }
 
 export function draftField(page: Page, field: string) {
   return designer(page).locator(".workflow-designer-context > div")
-    .filter({ has: page.locator("dt").filter({ hasText: new RegExp(`^${field}$`) }) }).locator("dd");
+    .filter({ has: page.locator("dt").filter({ hasText: new RegExp(`^${uiText(page, field)}$`) }) }).locator("dd");
 }
 
 export async function createDraft(page: Page) {
-  await page.getByRole("button", { name: "Create executor v0 draft", exact: true }).click();
-  await expect(draftField(page, "Version")).toHaveText("content 0 / lifecycle 0");
+  await page.getByRole("button", { name: uiText(page, "Create executor v0 draft"), exact: true }).click();
+  await expect(draftField(page, "Version")).toHaveText(draftVersionText(page, 0, 0));
   const id = (await draftField(page, "Draft").innerText()).trim();
   expect(id).toMatch(/^draft_executor_v0_[a-f0-9-]+$/);
   return id;
@@ -83,17 +83,17 @@ export async function createDraft(page: Page) {
 
 export async function saveDraft(page: Page, expectedVersion: number) {
   const saved = page.waitForResponse((response) => isEndpoint(response, draftRoute, "POST"));
-  await designer(page).getByRole("button", { name: "Save draft", exact: true }).click();
+  await designer(page).getByRole("button", { name: uiText(page, "Save draft"), exact: true }).click();
   const response = await saved;
   expect(response.ok()).toBeTruthy();
-  await expect(draftField(page, "Version")).toHaveText(`content ${expectedVersion} / lifecycle 1`);
+  await expect(draftField(page, "Version")).toHaveText(draftVersionText(page, expectedVersion, 1));
   return response;
 }
 
 export async function promptLabel(page: Page) {
-  const selection = designer(page).getByRole("combobox", { name: "Inspect node", exact: true });
+  const selection = designer(page).getByRole("combobox", { name: uiText(page, "Inspect node"), exact: true });
   if (await selection.inputValue() !== "node_executor_prompt") await selection.selectOption("node_executor_prompt");
-  return designer(page).getByRole("textbox", { name: "Label", exact: true });
+  return designer(page).getByRole("textbox", { name: uiText(page, "Label"), exact: true });
 }
 
 export async function selectApplication(page: Page, application: Application) {
@@ -102,10 +102,10 @@ export async function selectApplication(page: Page, application: Application) {
 }
 
 export async function openDraft(page: Page, draftId: string) {
-  const row = page.getByLabel("Saved draft summaries").locator("article").filter({ hasText: draftId });
-  await row.getByRole("button", { name: "打开草案", exact: true }).click();
+  const row = page.getByLabel(uiText(page, "Saved draft summaries")).locator("article").filter({ hasText: draftId });
+  await row.getByRole("button", { name: uiText(page, "Open draft"), exact: true }).click();
   await expect(draftField(page, "Draft")).toHaveText(draftId);
-  await expect(designer(page).getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+  await expect(designer(page).getByRole("button", { name: uiText(page, "Save draft"), exact: true })).toBeEnabled();
 }
 
 // Wait for the response body and a completed render, not a guessed network delay.

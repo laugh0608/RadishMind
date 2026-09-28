@@ -1,4 +1,5 @@
 export const appShell = {
+  workflowCreateExecutor: "创建执行器 v0 草案",
   "userWorkspace": "用户工作区",
   "applicationsTitle": "应用",
   "readOnlyReady": "只读数据已就绪",

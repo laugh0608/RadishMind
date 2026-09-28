@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
 import type {
   WorkflowExecutorConsumerState,
@@ -32,6 +33,7 @@ export function WorkflowExecutorPanel({
   onStartRun: () => void;
   onReloadRun: () => void;
 }) {
+  const { t } = useTranslation("shell");
   const pending = consumerState.status === "starting" || consumerState.status === "reading";
   const canStart = consumerState.mode === "dev_workflow_executor_http" &&
     eligibility.eligible && inputText.trim().length > 0 && !pending;
@@ -75,7 +77,7 @@ export function WorkflowExecutorPanel({
 
       <div className="workflow-executor-action-row">
         <button type="button" disabled={pending} onClick={onCreateExecutorDraft}>
-          Create executor v0 draft
+          {t($ => $.appShell.workflowCreateExecutor)}
         </button>
         <button type="button" disabled={!canStart} onClick={onStartRun}>
           {consumerState.status === "starting" ? "Running…" : "Start bounded run"}

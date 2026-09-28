@@ -130,9 +130,9 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         "restore guard and coordinate clamp order drifted",
     )
     require(
-        node_designer_text.index("Saved draft mapping")
-        < node_designer_text.index("Layout metadata")
-        < node_designer_text.index("Derived edge kind"),
+        node_designer_text.index("$.canvas.savedMapping")
+        < node_designer_text.index("$.canvas.layoutMetadata")
+        < node_designer_text.index("$.canvas.derivedEdgeKind"),
         "node designer mapping summary order drifted",
     )
 

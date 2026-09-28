@@ -99,9 +99,9 @@
       "persistence: layout.persistence"
     ],
     "required_node_designer_literals": [
-      "Layout metadata",
-      "saved draft layout metadata",
-      "viewport and selection remain transient"
+      "$.canvas.layoutMetadata",
+      "$.canvas.restoredLayoutExplanation",
+      "$.canvas.activeLayoutExplanation"
     ],
     "required_handoff_literals": [
       "saved draft metadata",

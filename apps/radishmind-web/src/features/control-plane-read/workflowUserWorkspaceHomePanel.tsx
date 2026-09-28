@@ -1,3 +1,8 @@
+import { formatDisplayDate } from "../../i18n/formatters.ts";
+import "../../i18n/workflowLibraryResources.ts";
+import { workflowDraftStatusLabel, workflowDraftLibraryMessage, workflowDraftLifecycleMessage } from "./workflowDraftMessages.ts";
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowDraftResources.ts";
 import type {
   WorkflowUserWorkspaceHomeApplication,
   WorkflowUserWorkspaceHomeMetric,
@@ -15,7 +20,6 @@ import type {
   WorkflowSavedDraftSummary,
 } from "./savedWorkflowDraftConsumer";
 import {
-  workflowSavedDraftArchiveConfirmationSummary,
   workflowSavedDraftLibraryActions,
 } from "./savedWorkflowDraftLibraryPresentation.ts";
 import type {
@@ -56,6 +60,7 @@ export function WorkflowUserWorkspaceHomePanel({
   onArchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
   onUnarchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
 }) {
+  const { t } = useTranslation("workflow");
   const [draftFilters, setDraftFilters] = useState(libraryFilters);
   const [archiveConfirmDraftId, setArchiveConfirmDraftId] = useState("");
   const primaryReadiness = home.readinessRollup.slice(0, 6);
@@ -75,8 +80,8 @@ export function WorkflowUserWorkspaceHomePanel({
     >
       <div className="section-heading">
         <div>
-          <p className="eyebrow">User Workspace Home</p>
-          <h3 id="workflow-user-workspace-home-title">Workspace status and review handoff</h3>
+          <p className="eyebrow">{t($ => $.library.home)}</p>
+          <h3 id="workflow-user-workspace-home-title">{t($ => $.library.homeTitle)}</h3>
         </div>
         <StatusBadge tone={home.canRenderUserWorkspaceHome ? "neutral" : "bad"}>
           {home.canRenderUserWorkspaceHome ? "offline advisory" : "blocked"}
@@ -91,33 +96,33 @@ export function WorkflowUserWorkspaceHomePanel({
         </div>
         <dl className="workflow-user-workspace-home-meta">
           <div>
-            <dt>Application</dt>
+            <dt>{t($ => $.draft.application)}</dt>
             <dd>{home.applicationId}</dd>
           </div>
           <div>
-            <dt>Workflow</dt>
+            <dt>{t($ => $.library.workflow)}</dt>
             <dd>{home.workflowDefinitionId}</dd>
           </div>
           <div>
-            <dt>Run</dt>
+            <dt>{t($ => $.library.run)}</dt>
             <dd>{home.runId}</dd>
           </div>
           <div>
-            <dt>Draft</dt>
+            <dt>{t($ => $.draft.draft)}</dt>
             <dd>{home.draftId}</dd>
           </div>
           <div>
-            <dt>Scenario</dt>
+            <dt>{t($ => $.library.scenario)}</dt>
             <dd>{home.scenarioId}</dd>
           </div>
           <div>
-            <dt>Audit</dt>
+            <dt>{t($ => $.draft.audit)}</dt>
             <dd>{home.auditRef}</dd>
           </div>
         </dl>
       </article>
 
-      <div className="workflow-user-workspace-home-metric-grid" aria-label="User workspace home metrics">
+      <div className="workflow-user-workspace-home-metric-grid" aria-label={t($ => $.library.homeMetrics)}>
         {home.metrics.map((metric) => (
           <WorkflowUserWorkspaceHomeMetricCard key={metric.metricId} metric={metric} />
         ))}
@@ -126,10 +131,10 @@ export function WorkflowUserWorkspaceHomePanel({
       <div className="workflow-user-workspace-home-layout">
         <div className="workflow-user-workspace-home-column">
           <div className="workflow-user-workspace-home-subheading">
-            <p className="eyebrow">Application Portfolio</p>
-            <h4>Workspace apps</h4>
+            <p className="eyebrow">{t($ => $.library.portfolio)}</p>
+            <h4>{t($ => $.library.workspaceApps)}</h4>
           </div>
-          <div className="workflow-user-workspace-home-application-grid" aria-label="Workspace application portfolio">
+          <div className="workflow-user-workspace-home-application-grid" aria-label={t($ => $.library.portfolioRegion)}>
             {home.applicationPortfolio.map((application) => (
               <WorkflowUserWorkspaceHomeApplicationCard
                 key={application.applicationRef}
@@ -145,10 +150,10 @@ export function WorkflowUserWorkspaceHomePanel({
 
         <div className="workflow-user-workspace-home-column">
           <div className="workflow-user-workspace-home-subheading">
-            <p className="eyebrow">Review Path</p>
-            <h4>Current inspection order</h4>
+            <p className="eyebrow">{t($ => $.library.reviewPath)}</p>
+            <h4>{t($ => $.library.inspectionOrder)}</h4>
           </div>
-          <div className="workflow-user-workspace-home-stage-grid" aria-label="Current workflow review stages">
+          <div className="workflow-user-workspace-home-stage-grid" aria-label={t($ => $.library.reviewStages)}>
             {home.currentReviewStages.map((stage) => (
               <WorkflowUserWorkspaceHomeStageCard key={stage.stageId} stage={stage} />
             ))}
@@ -156,24 +161,22 @@ export function WorkflowUserWorkspaceHomePanel({
         </div>
       </div>
 
-      <div className="workflow-user-workspace-home-section saved-draft-list" aria-label="User workspace saved draft list">
+      <div className="workflow-user-workspace-home-section saved-draft-list" aria-label={t($ => $.library.savedList)}>
         <div className="workflow-user-workspace-home-subheading saved-draft-list-heading">
           <div>
-            <p className="eyebrow">Saved Drafts</p>
-            <h4>Saved Draft Library</h4>
+            <p className="eyebrow">{t($ => $.library.savedDrafts)}</p>
+            <h4>{t($ => $.library.library)}</h4>
           </div>
           <button
             type="button"
             disabled={savedDraftListState.mode !== "dev_saved_draft_http" || savedDraftListState.status === "loading"}
             onClick={onRefreshSavedDrafts}
-          >
-            Refresh
-          </button>
+          >{t($ => $.library.refresh)}</button>
         </div>
         <div
           className="saved-draft-library-tabs"
           role="tablist"
-          aria-label="Saved draft lifecycle views"
+          aria-label={t($ => $.library.lifecycleViews)}
         >
           {(["active", "archived"] as const).map((lifecycleState) => (
             <button
@@ -185,13 +188,13 @@ export function WorkflowUserWorkspaceHomePanel({
               disabled={savedDraftListState.status === "loading"}
               onClick={() => onLibraryLifecycleChange(lifecycleState)}
             >
-              {lifecycleState === "active" ? "活动草案" : "归档草案"}
+              {lifecycleState === "active" ? t($ => $.library.activeDrafts) : t($ => $.library.archivedDrafts)}
             </button>
           ))}
         </div>
-        <div className="saved-draft-library-filters" aria-label="Saved draft library filters">
+        <div className="saved-draft-library-filters" aria-label={t($ => $.library.libraryFilters)}>
           <label>
-            <span>名称前缀</span>
+            <span>{t($ => $.library.namePrefix)}</span>
             <input
               value={draftFilters.namePrefix}
               maxLength={80}
@@ -202,7 +205,7 @@ export function WorkflowUserWorkspaceHomePanel({
             />
           </label>
           <label>
-            <span>Validation</span>
+            <span>{t($ => $.draft.validation)}</span>
             <select
               value={draftFilters.validationState}
               onChange={(event) => setDraftFilters({
@@ -210,15 +213,15 @@ export function WorkflowUserWorkspaceHomePanel({
                 validationState: event.currentTarget.value as WorkflowSavedDraftLibraryFilters["validationState"],
               })}
             >
-              <option value="">全部</option>
-              <option value="valid_for_review">valid_for_review</option>
-              <option value="invalid_draft">invalid_draft</option>
-              <option value="blocked_capability">blocked_capability</option>
-              <option value="schema_unsupported">schema_unsupported</option>
+              <option value="">{t($ => $.library.all)}</option>
+              <option value="valid_for_review">{t($ => $.library.validForReview)}</option>
+              <option value="invalid_draft">{t($ => $.library.invalidDraft)}</option>
+              <option value="blocked_capability">{t($ => $.library.blockedCapability)}</option>
+              <option value="schema_unsupported">{t($ => $.library.schemaUnsupported)}</option>
             </select>
           </label>
           <label>
-            <span>Provenance</span>
+            <span>{t($ => $.library.provenance)}</span>
             <select
               value={draftFilters.provenanceKind}
               onChange={(event) => setDraftFilters({
@@ -226,11 +229,11 @@ export function WorkflowUserWorkspaceHomePanel({
                 provenanceKind: event.currentTarget.value as WorkflowSavedDraftLibraryFilters["provenanceKind"],
               })}
             >
-              <option value="">全部</option>
-              <option value="unversioned">unversioned</option>
-              <option value="workflow_definition">workflow_definition</option>
-              <option value="saved_draft_derivation">saved_draft_derivation</option>
-              <option value="workspace_template_derivation">workspace_template_derivation</option>
+              <option value="">{t($ => $.library.all)}</option>
+              <option value="unversioned">{t($ => $.library.unversioned)}</option>
+              <option value="workflow_definition">{t($ => $.library.workflowDefinition)}</option>
+              <option value="saved_draft_derivation">{t($ => $.library.savedDerivation)}</option>
+              <option value="workspace_template_derivation">{t($ => $.library.templateDerivation)}</option>
             </select>
           </label>
           <div className="saved-draft-library-filter-actions">
@@ -238,9 +241,7 @@ export function WorkflowUserWorkspaceHomePanel({
               type="button"
               disabled={savedDraftListState.status === "loading"}
               onClick={() => onLibraryFiltersChange(draftFilters)}
-            >
-              应用筛选
-            </button>
+            >{t($ => $.library.applyFilters)}</button>
             <button
               type="button"
               disabled={savedDraftListState.status === "loading"}
@@ -253,16 +254,14 @@ export function WorkflowUserWorkspaceHomePanel({
                 setDraftFilters(cleared);
                 onLibraryFiltersChange(cleared);
               }}
-            >
-              清除
-            </button>
+            >{t($ => $.library.clear)}</button>
           </div>
         </div>
         <article className="workflow-user-workspace-home-card saved-draft-list-status">
           <div className="workflow-user-workspace-home-row-main">
             <div>
-              <span>{savedDraftListState.sourceLabel}</span>
-              <strong>{savedDraftListState.status}</strong>
+              <span>{t($ => $.library.savedDrafts)}</span>
+              <strong>{workflowDraftStatusLabel(t, savedDraftListState.status)}</strong>
             </div>
             <StatusBadge tone={workflowSavedDraftListTone(savedDraftListState.status)}>
               {savedDraftListState.mode}
@@ -270,39 +269,38 @@ export function WorkflowUserWorkspaceHomePanel({
           </div>
           <dl className="workflow-user-workspace-home-meta">
             <div>
-              <dt>Application</dt>
+              <dt>{t($ => $.draft.application)}</dt>
               <dd>{savedDraftListState.applicationRef || home.applicationId}</dd>
             </div>
             <div>
-              <dt>Lifecycle</dt>
-              <dd>{savedDraftListState.lifecycleState}</dd>
+              <dt>{t($ => $.draft.lifecycle)}</dt>
+              <dd>{workflowDraftStatusLabel(t, savedDraftListState.lifecycleState)}</dd>
             </div>
             <div>
-              <dt>Loaded</dt>
+              <dt>{t($ => $.library.loaded)}</dt>
               <dd>{savedDraftListState.summaries.length}</dd>
             </div>
             <div>
-              <dt>More</dt>
-              <dd>{savedDraftListState.hasMore ? "available" : "none"}</dd>
+              <dt>{t($ => $.library.more)}</dt>
+              <dd>{savedDraftListState.hasMore ? t($ => $.library.available) : t($ => $.draft.none)}</dd>
             </div>
             <div>
-              <dt>Failure</dt>
-              <dd>{savedDraftListState.failureCode ?? "none"}</dd>
+              <dt>{t($ => $.draft.failure)}</dt>
+              <dd>{savedDraftListState.failureCode ?? t($ => $.draft.none)}</dd>
             </div>
             <div>
-              <dt>Audit</dt>
+              <dt>{t($ => $.draft.audit)}</dt>
               <dd>{savedDraftListState.auditRef}</dd>
             </div>
           </dl>
-          <p>{savedDraftListState.summary}</p>
+          <p>{workflowDraftLibraryMessage(t, savedDraftListState)}</p>
           {lifecycleOperation.status !== "idle" ? (
             <p>
-              Lifecycle: {lifecycleOperation.status} · {lifecycleOperation.draftId} ·
-              {lifecycleOperation.failureCode ?? "no failure"} · {lifecycleOperation.summary}
+              {workflowDraftLifecycleMessage(t, lifecycleOperation)}
             </p>
           ) : null}
         </article>
-        <div className="saved-draft-summary-grid" aria-label="Saved draft summaries">
+        <div className="saved-draft-summary-grid" aria-label={t($ => $.library.savedSummaries)}>
           {savedDraftListState.summaries.map((summary) => (
             <WorkflowSavedDraftSummaryCard
               key={summary.draftId}
@@ -330,17 +328,17 @@ export function WorkflowUserWorkspaceHomePanel({
             disabled={savedDraftListState.status === "loading"}
             onClick={onLoadMoreSavedDrafts}
           >
-            {savedDraftListState.status === "loading" ? "正在加载…" : "加载更多"}
+            {savedDraftListState.status === "loading" ? t($ => $.library.loading) : t($ => $.library.loadMore)}
           </button>
         ) : null}
       </div>
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Readiness Priorities</p>
-          <h4>Primary blocked and offline signals</h4>
+          <p className="eyebrow">{t($ => $.library.readinessPriorities)}</p>
+          <h4>{t($ => $.library.blockedSignals)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-readiness-grid" aria-label="Workspace readiness rollup">
+        <div className="workflow-user-workspace-home-readiness-grid" aria-label={t($ => $.library.readinessRollup)}>
           {primaryReadiness.map((readiness) => (
             <WorkflowUserWorkspaceHomeReadinessCard key={readiness.readinessId} readiness={readiness} />
           ))}
@@ -349,10 +347,10 @@ export function WorkflowUserWorkspaceHomePanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Run Evidence</p>
-          <h4>Recent workspace runs</h4>
+          <p className="eyebrow">{t($ => $.library.runEvidence)}</p>
+          <h4>{t($ => $.library.recentRuns)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-run-grid" aria-label="Recent workspace runs">
+        <div className="workflow-user-workspace-home-run-grid" aria-label={t($ => $.library.recentRuns)}>
           {home.recentRuns.map((run) => (
             <WorkflowUserWorkspaceHomeRunCard key={run.runId} run={run} />
           ))}
@@ -361,10 +359,10 @@ export function WorkflowUserWorkspaceHomePanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Route Evidence</p>
-          <h4>Read-side source routes</h4>
+          <p className="eyebrow">{t($ => $.library.routeEvidence)}</p>
+          <h4>{t($ => $.library.sourceRoutes)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-route-grid" aria-label="Workspace home route evidence">
+        <div className="workflow-user-workspace-home-route-grid" aria-label={t($ => $.library.homeRouteEvidence)}>
           {primaryRouteEvidence.map((route) => (
             <WorkflowUserWorkspaceHomeRouteCard key={route.evidenceId} route={route} />
           ))}
@@ -373,10 +371,10 @@ export function WorkflowUserWorkspaceHomePanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Stop Lines</p>
-          <h4>Locked capabilities</h4>
+          <p className="eyebrow">{t($ => $.library.stopLines)}</p>
+          <h4>{t($ => $.library.lockedCapabilities)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-stopline-grid" aria-label="Workspace home stop lines">
+        <div className="workflow-user-workspace-home-stopline-grid" aria-label={t($ => $.library.homeStopLines)}>
           {primaryStopLines.map((stopLine) => (
             <WorkflowUserWorkspaceHomeStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
           ))}
@@ -406,6 +404,7 @@ function WorkflowUserWorkspaceHomeApplicationCard({
   createdDraftCount: number;
   onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -419,31 +418,29 @@ function WorkflowUserWorkspaceHomeApplicationCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Application</dt>
+          <dt>{t($ => $.draft.application)}</dt>
           <dd>{application.applicationRef}</dd>
         </div>
         <div>
-          <dt>Workflow</dt>
+          <dt>{t($ => $.library.workflow)}</dt>
           <dd>{application.workflowDefinitionId}</dd>
         </div>
         <div>
-          <dt>Run status</dt>
+          <dt>{t($ => $.library.runStatus)}</dt>
           <dd>{application.latestRunStatus}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.draft.audit)}</dt>
           <dd>{application.auditRef}</dd>
         </div>
       </dl>
       <p>{application.summary}</p>
       <div className="workflow-user-workspace-home-actions">
-        <span>{createdDraftCount} local drafts</span>
+        <span>{t($ => $.library.localDraftCount, { count: createdDraftCount })}</span>
         <button
           type="button"
           onClick={() => onCreateDraftForWorkflowDefinition(application.workflowDefinitionId)}
-        >
-          Create draft
-        </button>
+        >{t($ => $.library.createDraft)}</button>
       </div>
     </article>
   );
@@ -468,6 +465,7 @@ function WorkflowSavedDraftSummaryCard({
   onArchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
   onUnarchiveSavedDraft: (summary: WorkflowSavedDraftSummary) => void;
 }) {
+  const { t, i18n } = useTranslation("workflow");
   const actions = workflowSavedDraftLibraryActions(summary);
   return (
     <article className="workflow-user-workspace-home-card saved-draft-summary-card">
@@ -476,37 +474,37 @@ function WorkflowSavedDraftSummaryCard({
           <p className="eyebrow">{summary.workflowDefinitionId}</p>
           <h5 title={summary.name}>{summary.name}</h5>
         </div>
-        <StatusBadge tone={summary.validForReview ? "good" : "neutral"}>{summary.validationState}</StatusBadge>
+        <StatusBadge tone={summary.validForReview ? "good" : "neutral"}>{workflowDraftStatusLabel(t, summary.validationState)}</StatusBadge>
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Draft</dt>
+          <dt>{t($ => $.draft.draft)}</dt>
           <dd>{summary.draftId}</dd>
         </div>
         <div>
-          <dt>Version</dt>
-          <dd>content {summary.draftVersion} / lifecycle {summary.lifecycleVersion}</dd>
+          <dt>{t($ => $.draft.version)}</dt>
+          <dd>{t($ => $.draft.versions, { content: summary.draftVersion, lifecycle: summary.lifecycleVersion })}</dd>
         </div>
         <div>
-          <dt>Provenance</dt>
-          <dd>{summary.provenanceKind}</dd>
+          <dt>{t($ => $.library.provenance)}</dt>
+          <dd>{workflowDraftStatusLabel(t, summary.provenanceKind)}</dd>
         </div>
         <div>
-          <dt>Library updated</dt>
-          <dd>{summary.libraryUpdatedAt}</dd>
+          <dt>{t($ => $.library.libraryUpdated)}</dt>
+          <dd title={summary.libraryUpdatedAt}>{formatDisplayDate(summary.libraryUpdatedAt, i18n.language === "en-US" ? "en-US" : "zh-CN") ?? t($ => $.draft.statusUnknown)}</dd>
         </div>
         <div>
-          <dt>Archived</dt>
-          <dd>{summary.archivedAt ?? "no"}</dd>
+          <dt>{t($ => $.library.archived)}</dt>
+          <dd title={summary.archivedAt ?? undefined}>{summary.archivedAt === null ? t($ => $.library.notArchived) : formatDisplayDate(summary.archivedAt, i18n.language === "en-US" ? "en-US" : "zh-CN") ?? t($ => $.draft.statusUnknown)}</dd>
         </div>
         <div>
-          <dt>Graph</dt>
+          <dt>{t($ => $.library.graph)}</dt>
           <dd>
-            {summary.nodeCount} nodes / {summary.edgeCount} edges
+            {t($ => $.draft.graphSize, { nodes: summary.nodeCount, edges: summary.edgeCount })}
           </dd>
         </div>
         <div>
-          <dt>Blocked</dt>
+          <dt>{t($ => $.draft.blocked)}</dt>
           <dd>{summary.blockedCapabilityCount}</dd>
         </div>
       </dl>
@@ -514,29 +512,25 @@ function WorkflowSavedDraftSummaryCard({
       <div className="workflow-user-workspace-home-actions">
         <span>{summary.sampleOrUnsavedDraftStatus}</span>
         <button type="button" disabled={operationPending} onClick={() => onOpenSavedDraft(summary)}>
-          {actions.primaryLabel}
+          {actions.readOnly ? t($ => $.library.readOnlyReview) : t($ => $.library.openDraft)}
         </button>
         {actions.lifecycleConfirmationRequired ? (
           <button type="button" disabled={operationPending} onClick={onPrepareArchive}>
-            {actions.lifecycleLabel}
+            {actions.lifecycleTarget === "archived" ? t($ => $.library.archive) : t($ => $.library.unarchive)}
           </button>
         ) : (
           <button type="button" disabled={operationPending} onClick={() => onUnarchiveSavedDraft(summary)}>
-            {actions.lifecycleLabel}
+            {actions.lifecycleTarget === "archived" ? t($ => $.library.archive) : t($ => $.library.unarchive)}
           </button>
         )}
       </div>
       {archiveConfirmation ? (
-        <div className="saved-draft-archive-confirmation" role="group" aria-label={`Confirm archive ${summary.draftId}`}>
+        <div className="saved-draft-archive-confirmation" role="group" aria-label={t($ => $.library.archiveLabel, { id: summary.draftId })}>
           <p>
-            {workflowSavedDraftArchiveConfirmationSummary(summary.draftId)}
+            {t($ => $.library.archiveExplanation, { id: summary.draftId })}
           </p>
-          <button type="button" disabled={operationPending} onClick={() => onArchiveSavedDraft(summary)}>
-            确认归档
-          </button>
-          <button type="button" disabled={operationPending} onClick={onCancelArchive}>
-            取消
-          </button>
+          <button type="button" disabled={operationPending} onClick={() => onArchiveSavedDraft(summary)}>{t($ => $.library.confirmArchive)}</button>
+          <button type="button" disabled={operationPending} onClick={onCancelArchive}>{t($ => $.draft.cancel)}</button>
         </div>
       ) : null}
     </article>
@@ -544,6 +538,7 @@ function WorkflowSavedDraftSummaryCard({
 }
 
 function WorkflowUserWorkspaceHomeStageCard({ stage }: { stage: WorkflowWorkspaceReviewStage }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -557,15 +552,15 @@ function WorkflowUserWorkspaceHomeStageCard({ stage }: { stage: WorkflowWorkspac
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Primary</dt>
+          <dt>{t($ => $.library.primary)}</dt>
           <dd>{stage.primaryRef}</dd>
         </div>
         <div>
-          <dt>Blocked</dt>
+          <dt>{t($ => $.draft.blocked)}</dt>
           <dd>{stage.blockedCount}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.draft.audit)}</dt>
           <dd>{stage.auditRef}</dd>
         </div>
       </dl>
@@ -579,6 +574,7 @@ function WorkflowUserWorkspaceHomeReadinessCard({
 }: {
   readiness: WorkflowUserWorkspaceHomeReadiness;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -590,11 +586,11 @@ function WorkflowUserWorkspaceHomeReadinessCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Value</dt>
+          <dt>{t($ => $.library.value)}</dt>
           <dd>{readiness.value}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.draft.audit)}</dt>
           <dd>{readiness.auditRef}</dd>
         </div>
       </dl>
@@ -604,6 +600,7 @@ function WorkflowUserWorkspaceHomeReadinessCard({
 }
 
 function WorkflowUserWorkspaceHomeRunCard({ run }: { run: WorkflowUserWorkspaceHomeRun }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -617,19 +614,19 @@ function WorkflowUserWorkspaceHomeRunCard({ run }: { run: WorkflowUserWorkspaceH
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Workflow</dt>
+          <dt>{t($ => $.library.workflow)}</dt>
           <dd>{run.workflowDefinitionId}</dd>
         </div>
         <div>
-          <dt>Failure</dt>
+          <dt>{t($ => $.draft.failure)}</dt>
           <dd>{run.failureCode}</dd>
         </div>
         <div>
-          <dt>Cost</dt>
+          <dt>{t($ => $.library.cost)}</dt>
           <dd>{run.cost}</dd>
         </div>
         <div>
-          <dt>Trace</dt>
+          <dt>{t($ => $.library.trace)}</dt>
           <dd>{run.traceId}</dd>
         </div>
       </dl>
@@ -639,6 +636,7 @@ function WorkflowUserWorkspaceHomeRunCard({ run }: { run: WorkflowUserWorkspaceH
 }
 
 function WorkflowUserWorkspaceHomeRouteCard({ route }: { route: WorkflowUserWorkspaceHomeRouteEvidence }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -650,15 +648,15 @@ function WorkflowUserWorkspaceHomeRouteCard({ route }: { route: WorkflowUserWork
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Route</dt>
+          <dt>{t($ => $.draft.route)}</dt>
           <dd>{route.routeId}</dd>
         </div>
         <div>
-          <dt>Request</dt>
+          <dt>{t($ => $.draft.request)}</dt>
           <dd>{route.requestId}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.draft.audit)}</dt>
           <dd>{route.auditRef}</dd>
         </div>
       </dl>

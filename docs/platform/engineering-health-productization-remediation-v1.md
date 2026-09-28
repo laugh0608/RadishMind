@@ -48,6 +48,8 @@
 
 随后 [i18n A 阶段](../features/web-internationalization-zh-en-v1.md)复用本入口：五条 Prompt 基础流程与一条语言切换流程按中英两语执行，原三条 Workflow 保持英文基线；连续两轮共 30 次通过。语言切换检查覆盖 schema / 焦点、保存等待、存储写失败与三视口；同时修复双记录目录中长技术 ID 撑开定义卡片的问题。没有新增 CI job 或真实模型调用，远端 CI 仍未复验。
 
+2026-09-28 i18n B 首个草案流程复用同一入口：原两条草案回归扩为双语，新增编辑 / 保存等待 / 恢复确认切换和归档 / 解除归档后重新打开两条双语流程；Definition 运行暂留英文，Prompt 六条双语继续保留。连续两轮共 42 次通过，运行约 5.3 分钟；临时服务与 SQLite 已清理，报告和请求标识误判修复见[2026-W40 周志](../devlogs/2026-W40.md)。
+
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
 - 每次运行生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。
 - Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。

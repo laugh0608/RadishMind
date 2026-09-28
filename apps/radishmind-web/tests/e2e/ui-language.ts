@@ -2,6 +2,42 @@ import type { Page } from "@playwright/test";
 
 // Independent product expectations: do not import implementation dictionaries here.
 const labels: Record<string, readonly [string, string]> = {
+  "Revision History": ["Revision History", "修订历史"],
+  "Editing enabled": ["Editing enabled", "可编辑"],
+  "Unsaved local": ["Unsaved local", "本地未保存"],
+  "Edit state": ["Edit state", "编辑状态"],
+  "Draft name": ["Draft name", "草案名称"],
+  "Fine-grained draft and graph fields": ["Fine-grained draft and graph fields", "草案与图的详细字段"],
+  "Workflow node designer inspector": ["Workflow node designer inspector", "工作流节点属性面板"],
+  "Read saved": ["Read saved", "读取已保存草案"],
+  "User workspace saved draft list": ["User workspace saved draft list", "用户工作区已保存草案列表"],
+  "Apply filters": ["Apply filters", "应用筛选"],
+  "Name prefix": ["Name prefix", "名称前缀"],
+  "Read-only review": ["Read-only review", "只读审查"],
+  "Unarchive": ["Unarchive", "解除归档"],
+  "Archived drafts": ["Archived drafts", "归档草案"],
+  "Active drafts": ["Active drafts", "活动草案"],
+  "Cancel": ["Cancel", "取消"],
+  "Confirm archive": ["Confirm archive", "确认归档"],
+  "Archive": ["Archive", "归档"],
+  "Saved Draft Library": ["Saved Draft Library", "已保存草案库"],
+  "Validation failed": ["Validation failed", "校验失败"],
+  "Confirm new revision": ["Confirm new revision", "确认创建新修订"],
+  "Prepare restore from this version": ["Prepare restore from this version", "准备从此版本恢复"],
+  "Refresh history": ["Refresh history", "刷新历史"],
+  "Draft revision history and restore": ["Draft revision history and restore", "草案修订历史与恢复"],
+  "Switch workspace": ["Switch workspace", "切换工作区"],
+  "Workspace": ["Workspace", "工作区"],
+  "Version conflict review": ["Version conflict review", "版本冲突审查"],
+  "Open saved draft": ["Open saved draft", "打开已保存草案"],
+  "Open draft": ["Open draft", "打开草案"],
+  "Saved draft summaries": ["Saved draft summaries", "已保存草案摘要"],
+  "Label": ["Label", "名称"],
+  "Inspect node": ["Inspect node", "查看节点"],
+  "Draft": ["Draft", "草案"],
+  "Version": ["Version", "版本"],
+  "Create executor v0 draft": ["Create executor v0 draft", "创建执行器 v0 草案"],
+  "Workflow draft designer development workbench": ["Workflow draft designer development workbench", "工作流草案开发工作台"],
   "prompt_application": ["Prompt application", "Prompt 应用"],
   "workflow_copilot": ["Workflow Copilot", "工作流 Copilot"],
   "Create application": ["Create application", "创建应用"],
@@ -58,4 +94,8 @@ export function uiText(page: Page, source: string) {
   const entry = labels[source];
   if (!entry) return source;
   return entry[languages.get(page) === "zh-CN" ? 1 : 0];
+}
+
+export function draftVersionText(page: Page, content: number, lifecycle: number) {
+  return languages.get(page) === "zh-CN" ? `内容 ${content} / 生命周期 ${lifecycle}` : `content ${content} / lifecycle ${lifecycle}`;
 }

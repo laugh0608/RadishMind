@@ -17,11 +17,19 @@ import type { apiKey } from "./locales/en-US/apiKey.ts";
 import type { runReview } from "./locales/en-US/runReview.ts";
 import type { appShell } from "./locales/en-US/appShell.ts";
 
+import type { workflowDraft } from "./locales/en-US/workflowDraft.ts";
+
+import type { workflowCanvas } from "./locales/en-US/workflowCanvas.ts";
+
+import type { workflowRevision } from "./locales/en-US/workflowRevision.ts";
+
+import type { workflowLibrary } from "./locales/en-US/workflowLibrary.ts";
+
 declare module "i18next" {
   interface CustomTypeOptions {
     defaultNS: "common";
     enableSelector: true;
     returnNull: false;
-    resources: { common: typeof common; shell: typeof shell & { appShell: typeof appShell }; identity: typeof identity; prompt: typeof prompt; evaluation: { runReview: typeof runReview }; gateway: { playground: typeof playground; apiIntegration: typeof apiIntegration; apiKey: typeof apiKey }; applications: { catalog: typeof catalog; configuration: typeof configuration; publish: typeof publish; workspacePanel: typeof workspacePanel; workspaceSurface: typeof workspaceSurface; promptWorkspace: typeof promptWorkspace; artifact: typeof artifact; artifactLibrary: typeof artifactLibrary } };
+    resources: { workflow: { library: typeof workflowLibrary; revision: typeof workflowRevision; canvas: typeof workflowCanvas; draft: typeof workflowDraft }; common: typeof common; shell: typeof shell & { appShell: typeof appShell }; identity: typeof identity; prompt: typeof prompt; evaluation: { runReview: typeof runReview }; gateway: { playground: typeof playground; apiIntegration: typeof apiIntegration; apiKey: typeof apiKey }; applications: { catalog: typeof catalog; configuration: typeof configuration; publish: typeof publish; workspacePanel: typeof workspacePanel; workspaceSurface: typeof workspaceSurface; promptWorkspace: typeof promptWorkspace; artifact: typeof artifact; artifactLibrary: typeof artifactLibrary } };
   }
 }

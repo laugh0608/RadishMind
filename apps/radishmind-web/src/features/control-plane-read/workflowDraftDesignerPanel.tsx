@@ -1,3 +1,7 @@
+import { formatDisplayDate } from "../../i18n/formatters.ts";
+import { workflowDraftStatusLabel, workflowDraftConsumerMessage, workflowDraftNodeTypeLabel, workflowDraftNodeTypeSummary } from "./workflowDraftMessages.ts";
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowDraftResources.ts";
 import { lazy, Suspense } from "react";
 import { applyWorkflowDraftEdit, canRemoveWorkflowDraftNode, WORKFLOW_DRAFT_NODE_TYPE_OPTIONS, type WorkflowDraftEdit } from "./workflowDraftEditing.ts";
 
@@ -74,6 +78,7 @@ export function WorkflowDraftDesignerPanel({
   onSaveDraft,
   onReadDraft,
 }: WorkflowDraftDesignerPanelProps) {
+  const { t, i18n } = useTranslation("workflow");
   const nodeTypeOptions = WORKFLOW_DRAFT_NODE_TYPE_OPTIONS;
   const canRemoveNode = (nodeId: string) => canRemoveWorkflowDraftNode(selectedDraft, nodeId);
   const editDraft = (edit: WorkflowDraftEdit) => onEditDraft((draft) => applyWorkflowDraftEdit(draft, edit));
@@ -102,106 +107,99 @@ export function WorkflowDraftDesignerPanel({
     savedDraftConsumerState.currentDraftVersion > 0 &&
     savedDraftConsumerState.currentLifecycleState !== "active";
   const lifecycleReadOnlyLabel = savedDraftConsumerState.currentLifecycleState === "unknown"
-    ? "reopen required"
-    : `${savedDraftConsumerState.currentLifecycleState} read-only review`;
+    ? t($ => $.draft.reopenRequired)
+    : t($ => $.draft.archivedReview);
   const requestInteractionDisabled = operationPending || conflictRequiresResolution || executorOperationPending;
   const interactionDisabled = requestInteractionDisabled || lifecycleReadOnly;
-  const editStateLabel = draftEditDirty ? "unsaved local" : selectedDraft.localOnlyInteraction;
+  const editStateLabel = draftEditDirty ? t($ => $.draft.unsavedLocal) : workflowDraftStatusLabel(t, selectedDraft.localOnlyInteraction);
   const conflictOpenUnavailableMessage =
-    savedDraftConflictReviewSummary?.openUnavailableReason ??
-    "Saved version metadata is refreshing from the dev-only saved draft list before open is enabled.";
+    t($ => $.draft.openUnavailable, { status: workflowDraftStatusLabel(t, savedDraftConflictReviewSummary?.savedMetadataState ?? "refreshing") });
 
   return (
     <section
       className="workflow-draft-designer workflow-designer-workbench"
       id="workflow-draft-designer"
-      aria-label="Workflow draft designer development workbench"
+      aria-label={t($ => $.draft.workbench)}
     >
       <header className="workflow-designer-header">
         <div className="workflow-designer-breadcrumb-row">
-          <span>Workflows</span>
+          <span>{t($ => $.draft.workflows)}</span>
           <span aria-hidden="true">/</span>
           <strong>{selectedDraft.workflowDefinitionId}</strong>
           <code>{selectedDraft.routeMetadata.routePath}</code>
         </div>
         <div className="workflow-designer-title-row">
           <div>
-            <h4>Workflow Designer</h4>
+            <h4>{t($ => $.draft.designer)}</h4>
             <p>{selectedDraft.label}</p>
           </div>
           <StatusBadge tone={designer.canRenderDraftDesigner ? "good" : "bad"}>
             {lifecycleReadOnly
               ? lifecycleReadOnlyLabel
               : designer.canRenderDraftDesigner
-                ? "development designer"
-                : "blocked"}
+                ? t($ => $.draft.developmentDesigner)
+                : t($ => $.draft.blocked)}
           </StatusBadge>
         </div>
-        <dl className="workflow-designer-context" aria-label="Active workflow draft context">
+        <dl className="workflow-designer-context" aria-label={t($ => $.draft.activeContext)}>
           <div>
-            <dt>Application</dt>
+            <dt>{t($ => $.draft.application)}</dt>
             <dd>{selectedDraft.applicationRef}</dd>
           </div>
           <div>
-            <dt>Draft</dt>
+            <dt>{t($ => $.draft.draft)}</dt>
             <dd>{selectedDraft.draftId}</dd>
           </div>
           <div>
-            <dt>Version</dt>
-            <dd>content {savedDraftConsumerState.currentDraftVersion} / lifecycle {savedDraftConsumerState.currentLifecycleVersion}</dd>
+            <dt>{t($ => $.draft.version)}</dt>
+            <dd>{t($ => $.draft.versions, { content: savedDraftConsumerState.currentDraftVersion, lifecycle: savedDraftConsumerState.currentLifecycleVersion })}</dd>
           </div>
           <div>
-            <dt>Lifecycle</dt>
-            <dd>{savedDraftConsumerState.currentLifecycleState}</dd>
+            <dt>{t($ => $.draft.lifecycle)}</dt>
+            <dd>{workflowDraftStatusLabel(t, savedDraftConsumerState.currentLifecycleState)}</dd>
           </div>
           <div className={draftEditDirty ? "attention" : "neutral"}>
-            <dt>Edit state</dt>
+            <dt>{t($ => $.draft.editState)}</dt>
             <dd>{editStateLabel}</dd>
           </div>
         </dl>
-        <div className="workflow-designer-actions" aria-label="Workflow draft actions">
+        <div className="workflow-designer-actions" aria-label={t($ => $.draft.draftActions)}>
           <button
             type="button"
             disabled={!canCallDevConsumer || interactionDisabled}
             onClick={onValidateDraft}
-          >
-            Validate
-          </button>
+          >{t($ => $.draft.validate)}</button>
           <button
             type="button"
             className="primary"
             disabled={!canCallDevConsumer || interactionDisabled}
             onClick={onSaveDraft}
-          >
-            Save draft
-          </button>
+          >{t($ => $.draft.saveDraft)}</button>
           <button
             type="button"
             disabled={!canCallDevConsumer || requestInteractionDisabled}
             onClick={onReadDraft}
-          >
-            Read saved
-          </button>
+          >{t($ => $.draft.readSaved)}</button>
         </div>
         {lifecycleReadOnly ? (
           <p className="workflow-draft-revision-stopline" role="status">
             {savedDraftConsumerState.currentLifecycleState === "unknown"
-              ? "草案已解除归档，但当前浏览器仍保留解除归档前的只读快照；请从活动草案库重新打开，以读取最新 lifecycle 和内容版本。"
-              : `当前草案 lifecycle 为 ${savedDraftConsumerState.currentLifecycleState}：内容、修订历史和比较保持可读；本地编辑、保存、派生、恢复、晋级和直接执行全部禁用。`}
+              ? t($ => $.draft.reopenExplanation)
+              : t($ => $.draft.archivedExplanation)}
           </p>
         ) : null}
       </header>
 
       <div className="workflow-designer-primary-layout">
-        <aside className="workflow-designer-rail" aria-label="Draft references and node types">
+        <aside className="workflow-designer-rail" aria-label={t($ => $.draft.referenceRail)}>
           <div className="workflow-designer-rail-heading">
             <div>
-              <span>Draft references</span>
-              <strong>{designer.templates.length} available</strong>
+              <span>{t($ => $.draft.references)}</span>
+              <strong>{t($ => $.draft.availableCount, { count: designer.templates.length })}</strong>
             </div>
-            <a href="#workflow-user-workspace-home">Open library</a>
+            <a href="#workflow-user-workspace-home">{t($ => $.draft.openLibrary)}</a>
           </div>
-          <div className="workflow-draft-template-grid" aria-label="Workflow draft templates">
+          <div className="workflow-draft-template-grid" aria-label={t($ => $.draft.templates)}>
             {designer.templates.map((template) => (
               <WorkflowDraftTemplateButton
                 key={template.draftId}
@@ -216,12 +214,12 @@ export function WorkflowDraftDesignerPanel({
           <details className="workflow-designer-node-palette">
             <summary className="workflow-designer-rail-heading">
               <div>
-                <span>Add node</span>
-                <strong>{selectedDraft.nodes.length} nodes</strong>
+                <span>{t($ => $.draft.addNode)}</span>
+                <strong>{t($ => $.draft.nodeCount, { count: selectedDraft.nodes.length })}</strong>
               </div>
-              <small>Expand</small>
+              <small>{t($ => $.draft.expand)}</small>
             </summary>
-            <div className="workflow-draft-add-node-grid" aria-label="Add workflow draft node">
+            <div className="workflow-draft-add-node-grid" aria-label={t($ => $.draft.addDraftNode)}>
               {nodeTypeOptions.map((option) => (
                 <button
                   key={option.nodeType}
@@ -230,9 +228,9 @@ export function WorkflowDraftDesignerPanel({
                   disabled={interactionDisabled}
                   onClick={() => onAddNode(option.nodeType)}
                 >
-                  <span>{option.lane}</span>
-                  <strong>{option.label}</strong>
-                  <small>{option.summary}</small>
+                  <span>{workflowDraftStatusLabel(t, option.lane)}</span>
+                  <strong>{workflowDraftNodeTypeLabel(t, option.nodeType)}</strong>
+                  <small>{workflowDraftNodeTypeSummary(t, option.nodeType)}</small>
                 </button>
               ))}
             </div>
@@ -242,8 +240,8 @@ export function WorkflowDraftDesignerPanel({
         <div className="workflow-designer-canvas-column">
           <Suspense
             fallback={(
-              <section className="workflow-node-designer-shell" aria-label="Loading node designer">
-                <p>Loading node designer…</p>
+              <section className="workflow-node-designer-shell" aria-label={t($ => $.draft.loadingDesigner)}>
+                <p>{t($ => $.draft.loadingDesignerText)}</p>
               </section>
             )}
           >
@@ -270,32 +268,32 @@ export function WorkflowDraftDesignerPanel({
 
         <details className="workflow-designer-review-dock">
           <summary>
-            <span>Review surfaces</span>
+            <span>{t($ => $.draft.reviewSurfaces)}</span>
             <strong>
-              {validationInspector.validationStatus} · {validationInspector.structuralChecks.length + validationInspector.contractChecks.length} validation checks
+              {t($ => $.draft.validationCount, { status: workflowDraftStatusLabel(t, validationInspector.validationStatus), count: validationInspector.structuralChecks.length + validationInspector.contractChecks.length })}
             </strong>
-            <small>Plan, readiness, and handoff remain derived or read only</small>
+            <small>{t($ => $.draft.reviewBoundary)}</small>
           </summary>
-          <nav className="workflow-designer-review-links" aria-label="Workflow draft review surfaces">
+          <nav className="workflow-designer-review-links" aria-label={t($ => $.draft.reviewNavigation)}>
             <a href="#workflow-draft-validation-inspector">
-              <span>Validation</span>
-              <strong>{validationInspector.validationStatus}</strong>
-              <small>{validationInspector.structuralChecks.length + validationInspector.contractChecks.length} checks</small>
+              <span>{t($ => $.draft.validation)}</span>
+              <strong>{workflowDraftStatusLabel(t, validationInspector.validationStatus)}</strong>
+              <small>{t($ => $.draft.checkCount, { count: validationInspector.structuralChecks.length + validationInspector.contractChecks.length })}</small>
             </a>
             <a href="#workflow-execution-plan-preview">
-              <span>Preview plan</span>
-              <strong>Derived only</strong>
-              <small>No execution owner</small>
+              <span>{t($ => $.draft.previewPlan)}</span>
+              <strong>{t($ => $.draft.derivedOnly)}</strong>
+              <small>{t($ => $.draft.noExecutor)}</small>
             </a>
             <a href="#workflow-runtime-readiness-inspector">
-              <span>Readiness</span>
-              <strong>Read only</strong>
-              <small>{selectedDraft.readiness.length} checks</small>
+              <span>{t($ => $.draft.readiness)}</span>
+              <strong>{t($ => $.draft.readOnly)}</strong>
+              <small>{t($ => $.draft.checkCount, { count: selectedDraft.readiness.length })}</small>
             </a>
             <a href="#workflow-review-handoff">
-              <span>Review handoff</span>
-              <strong>Browser only</strong>
-              <small>No save, export, or send</small>
+              <span>{t($ => $.draft.reviewHandoff)}</span>
+              <strong>{t($ => $.draft.browserOnly)}</strong>
+              <small>{t($ => $.draft.handoffBoundary)}</small>
             </a>
           </nav>
         </details>
@@ -304,106 +302,98 @@ export function WorkflowDraftDesignerPanel({
       {savedDraftConflictReviewSummary ? (
         <details className="workflow-designer-disclosure workflow-draft-conflict-review" open>
           <summary>
-            <span>Version conflict review</span>
+            <span>{t($ => $.draft.conflictReview)}</span>
             <StatusBadge
               tone={savedDraftConflictReviewSummary.status === "local_draft_continued" ? "neutral" : "bad"}
             >
-              {savedDraftConflictReviewSummary.status}
+              {workflowDraftStatusLabel(t, savedDraftConflictReviewSummary.status)}
             </StatusBadge>
           </summary>
           <article className="workflow-draft-card workflow-draft-conflict-review-card">
             <dl className="workflow-run-guard-meta">
-              <div><dt>Local draft</dt><dd>{savedDraftConflictReviewSummary.draftId}</dd></div>
-              <div><dt>Saved version</dt><dd>{savedDraftConflictReviewSummary.savedDraftVersion}</dd></div>
-              <div><dt>Updated</dt><dd>{savedDraftConflictReviewSummary.savedUpdatedAt}</dd></div>
-              <div><dt>Actor</dt><dd>{savedDraftConflictReviewSummary.savedUpdatedByActorRef}</dd></div>
-              <div><dt>Validation</dt><dd>{savedDraftConflictReviewSummary.savedValidationState}</dd></div>
-              <div><dt>Blocked</dt><dd>{savedDraftConflictReviewSummary.savedBlockedCapabilityCount ?? "not loaded"}</dd></div>
-              <div><dt>Metadata</dt><dd>{savedDraftConflictReviewSummary.savedMetadataState}</dd></div>
-              <div><dt>Open</dt><dd>{savedDraftConflictReviewSummary.openActionState}</dd></div>
+              <div><dt>{t($ => $.draft.localDraft)}</dt><dd>{savedDraftConflictReviewSummary.draftId}</dd></div>
+              <div><dt>{t($ => $.draft.savedVersion)}</dt><dd>{savedDraftConflictReviewSummary.savedDraftVersion}</dd></div>
+              <div><dt>{t($ => $.draft.updated)}</dt><dd title={savedDraftConflictReviewSummary.savedUpdatedAt}>{formatDisplayDate(savedDraftConflictReviewSummary.savedUpdatedAt, i18n.language === "en-US" ? "en-US" : "zh-CN") ?? t($ => $.draft.notLoaded)}</dd></div>
+              <div><dt>{t($ => $.draft.actor)}</dt><dd>{savedDraftConflictReviewSummary.savedUpdatedByActorRef}</dd></div>
+              <div><dt>{t($ => $.draft.validation)}</dt><dd>{workflowDraftStatusLabel(t, savedDraftConflictReviewSummary.savedValidationState)}</dd></div>
+              <div><dt>{t($ => $.draft.blocked)}</dt><dd>{savedDraftConflictReviewSummary.savedBlockedCapabilityCount ?? t($ => $.draft.notLoaded)}</dd></div>
+              <div><dt>{t($ => $.draft.metadata)}</dt><dd>{workflowDraftStatusLabel(t, savedDraftConflictReviewSummary.savedMetadataState)}</dd></div>
+              <div><dt>{t($ => $.draft.open)}</dt><dd>{workflowDraftStatusLabel(t, savedDraftConflictReviewSummary.openActionState)}</dd></div>
             </dl>
-            <p>{savedDraftConflictReviewSummary.summary}</p>
-            <p>{savedDraftConflictReviewSummary.localDraftPreservationSummary}</p>
-            <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
+            <p>{t($ => $.draft.conflictSummary, { draft: savedDraftConflictReviewSummary.draftId, version: savedDraftConflictReviewSummary.savedDraftVersion })}</p>
+            <p>{savedDraftConflictReviewSummary.status === "local_draft_continued" ? t($ => $.draft.continuedExplanation) : t($ => $.draft.conflictPreserved)}</p>
+            <div className="workflow-workspace-review-token-list" aria-label={t($ => $.draft.conflictLocks)}>
               <code>auto_overwrite_locked</code>
               <code>auto_merge_locked</code>
               <code>{savedDraftConflictReviewSummary.openActionState}</code>
             </div>
-            <div className="workflow-draft-conflict-action-row" aria-label="Saved draft conflict review actions">
+            <div className="workflow-draft-conflict-action-row" aria-label={t($ => $.draft.conflictActions)}>
               <button
                 type="button"
                 disabled={operationPending || savedDraftConflictReviewSummary.status === "local_draft_continued"}
                 onClick={onContinueLocalDraftAfterConflict}
-              >
-                Continue local draft
-              </button>
+              >{t($ => $.draft.continueLocal)}</button>
               <button
                 type="button"
                 disabled={operationPending || !savedDraftConflictOpenSummary || !savedDraftConflictReviewSummary.canOpenSavedDraft}
                 onClick={onOpenConflictSavedDraft}
-              >
-                Open saved draft
-              </button>
+              >{t($ => $.draft.openSaved)}</button>
             </div>
             <p>
               {savedDraftConflictReviewSummary.canOpenSavedDraft
-                ? "Open saved draft is available from sanitized saved draft metadata; it replaces the active draft only after explicit selection."
+                ? t($ => $.draft.openExplanation)
                 : conflictOpenUnavailableMessage}
             </p>
-            <p>{savedDraftConflictReviewSummary.nextReviewerStep}</p>
-            <p>{savedDraftConflictReviewSummary.reviewerQuestion}</p>
+            <p>{t($ => $.draft.conflictNext)}</p>
+
           </article>
         </details>
       ) : null}
 
       <details className="workflow-designer-disclosure">
         <summary>
-          <span>Draft identity, saved state, and persistence boundary</span>
+          <span>{t($ => $.draft.persistenceBoundary)}</span>
           <StatusBadge tone={workflowSavedDraftConsumerTone(savedDraftConsumerState.status)}>
-            {savedDraftConsumerState.status}
+            {workflowDraftStatusLabel(t, savedDraftConsumerState.status)}
           </StatusBadge>
         </summary>
-        <div className="workflow-draft-summary-grid" aria-label="Selected workflow draft summary">
-          <WorkflowDraftFact label="Draft" value={selectedDraft.draftId} detail={selectedDraft.summary} />
-          <WorkflowDraftFact label="Route" value={selectedDraft.routeMetadata.draftRouteId} detail={selectedDraft.routeMetadata.routePath} />
-          <WorkflowDraftFact label="Source" value={selectedDraft.routeMetadata.sourceRouteId} detail={selectedDraft.workflowDefinitionId} />
-          <WorkflowDraftFact label="Request" value={selectedDraft.routeMetadata.requestId} detail={selectedDraft.routeMetadata.auditRef} />
-          <WorkflowDraftFact label="Saved state" value={savedDraftConsumerState.sourceLabel} detail={savedDraftConsumerState.summary} />
-          <WorkflowDraftFact label="Failure" value={savedDraftConsumerState.failureCode ?? "none"} detail={savedDraftConsumerState.requestId} />
+        <div className="workflow-draft-summary-grid" aria-label={t($ => $.draft.selectedSummary)}>
+          <WorkflowDraftFact label={t($ => $.draft.draft)} value={selectedDraft.draftId} detail={selectedDraft.summary} />
+          <WorkflowDraftFact label={t($ => $.draft.route)} value={selectedDraft.routeMetadata.draftRouteId} detail={selectedDraft.routeMetadata.routePath} />
+          <WorkflowDraftFact label={t($ => $.draft.source)} value={selectedDraft.routeMetadata.sourceRouteId} detail={selectedDraft.workflowDefinitionId} />
+          <WorkflowDraftFact label={t($ => $.draft.request)} value={selectedDraft.routeMetadata.requestId} detail={selectedDraft.routeMetadata.auditRef} />
+          <WorkflowDraftFact label={t($ => $.draft.savedState)} value={workflowDraftStatusLabel(t, savedDraftConsumerState.status)} detail={workflowDraftConsumerMessage(t, savedDraftConsumerState)} />
+          <WorkflowDraftFact label={t($ => $.draft.failure)} value={savedDraftConsumerState.failureCode ?? t($ => $.draft.none)} detail={savedDraftConsumerState.requestId} />
           {selectedDraft.derivation ? (
             <WorkflowDraftFact
-              label="派生来源"
+              label={t($ => $.draft.derivationSource)}
               value={selectedDraft.derivation.version === 1
                 ? selectedDraft.derivation.sourceDraftId
                 : selectedDraft.derivation.templateId}
               detail={selectedDraft.derivation.version === 1
-                ? `saved version ${selectedDraft.derivation.sourceDraftVersion} · direct parent only`
-                : `template version ${selectedDraft.derivation.templateVersion} · ${selectedDraft.derivation.templateDigest}`}
+                ? t($ => $.draft.savedParent, { version: selectedDraft.derivation.sourceDraftVersion })
+                : t($ => $.draft.templateParent, { version: selectedDraft.derivation.templateVersion, digest: selectedDraft.derivation.templateDigest })}
             />
           ) : null}
         </div>
-        <div className="workflow-draft-action-row" aria-label="Saved draft dev consumer secondary actions">
+        <div className="workflow-draft-action-row" aria-label={t($ => $.draft.secondaryActions)}>
           <button
             type="button"
             disabled={!canDeriveSavedWorkflowDraft(savedDraftConsumerState, draftEditDirty, interactionDisabled)}
             onClick={onDeriveSavedDraft}
-          >
-            派生新草案
-          </button>
-          <button type="button" disabled={!draftEditDirty || interactionDisabled} onClick={onResetDraftEdits}>
-            Reset local edits
-          </button>
+          >{t($ => $.draft.derive)}</button>
+          <button type="button" disabled={!draftEditDirty || interactionDisabled} onClick={onResetDraftEdits}>{t($ => $.draft.resetEdits)}</button>
         </div>
       </details>
 
       <details className="workflow-designer-disclosure">
         <summary>
-          <span>Fine-grained draft and graph fields</span>
-          <strong>{selectedDraft.nodes.length} nodes / {selectedDraft.edges.length} edges</strong>
+          <span>{t($ => $.draft.graphFields)}</span>
+          <strong>{t($ => $.draft.graphSize, { nodes: selectedDraft.nodes.length, edges: selectedDraft.edges.length })}</strong>
         </summary>
-        <div className="workflow-draft-edit-grid" aria-label="Workflow draft local editing">
+        <div className="workflow-draft-edit-grid" aria-label={t($ => $.draft.localEditing)}>
           <label className="workflow-draft-edit-field">
-            <span>Draft name</span>
+            <span>{t($ => $.draft.draftName)}</span>
             <input
               type="text"
               value={selectedDraft.label}
@@ -413,7 +403,7 @@ export function WorkflowDraftDesignerPanel({
             />
           </label>
           <label className="workflow-draft-edit-field wide">
-            <span>Draft summary</span>
+            <span>{t($ => $.draft.draftSummary)}</span>
             <textarea
               value={selectedDraft.summary}
               maxLength={4000}
@@ -423,7 +413,7 @@ export function WorkflowDraftDesignerPanel({
             />
           </label>
         </div>
-        <div className="workflow-draft-node-grid" aria-label="Workflow draft nodes">
+        <div className="workflow-draft-node-grid" aria-label={t($ => $.draft.draftNodes)}>
           {selectedDraft.nodes.map((node, nodeIndex) => (
             <WorkflowDraftNodeCard
               key={node.nodeId}
@@ -446,7 +436,7 @@ export function WorkflowDraftDesignerPanel({
             />
           ))}
         </div>
-        <div className="workflow-draft-edge-grid" aria-label="Workflow draft edges">
+        <div className="workflow-draft-edge-grid" aria-label={t($ => $.draft.draftEdges)}>
           {selectedDraft.edges.map((edge) => (
             <WorkflowDraftEdgeCard
               key={edge.edgeId}
@@ -461,20 +451,20 @@ export function WorkflowDraftDesignerPanel({
 
       <details className="workflow-designer-disclosure">
         <summary>
-          <span>Readiness, risks, and blocked capabilities</span>
-          <strong>Read-only evidence</strong>
+          <span>{t($ => $.draft.riskSection)}</span>
+          <strong>{t($ => $.draft.readOnlyEvidence)}</strong>
         </summary>
-        <div className="workflow-draft-readiness-grid" aria-label="Workflow draft readiness">
+        <div className="workflow-draft-readiness-grid" aria-label={t($ => $.draft.draftReadiness)}>
           {selectedDraft.readiness.map((readiness) => (
             <WorkflowDraftReadinessCard key={readiness.checkId} readiness={readiness} />
           ))}
         </div>
-        <div className="workflow-draft-risk-grid" aria-label="Workflow draft risk summary">
+        <div className="workflow-draft-risk-grid" aria-label={t($ => $.draft.draftRisks)}>
           {selectedDraft.risks.map((risk) => (
             <WorkflowDraftRiskCard key={risk.riskId} risk={risk} />
           ))}
         </div>
-        <div className="workflow-draft-blocked-grid" aria-label="Workflow draft blocked capabilities">
+        <div className="workflow-draft-blocked-grid" aria-label={t($ => $.draft.draftBlocked)}>
           {selectedDraft.blockedCapabilities.map((capability) => (
             <WorkflowDraftBlockedCapabilityCard key={capability.capabilityId} capability={capability} />
           ))}
@@ -505,6 +495,7 @@ function WorkflowDraftTemplateButton({
   disabled: boolean;
   onSelectDraft: (draftId: string) => void;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <button
       type="button"
@@ -517,7 +508,7 @@ function WorkflowDraftTemplateButton({
       <span>{template.workflowKind}</span>
       <strong>{template.label}</strong>
       <p>{template.summary}</p>
-      <small>{template.status} / risk {template.riskLevel} / nodes {template.nodeCount}</small>
+      <small>{t($ => $.draft.templateFacts, { status: workflowDraftStatusLabel(t, template.status), risk: workflowDraftStatusLabel(t, template.riskLevel), count: template.nodeCount })}</small>
     </button>
   );
 }
@@ -557,45 +548,46 @@ function WorkflowDraftNodeCard({
   onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void;
   onRemoveNode: (nodeId: string) => void;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-draft-node">
       <div className="workflow-draft-row-main">
         <div>
-          <p className="eyebrow">{node.lane} / {node.nodeType}</p>
+          <p className="eyebrow">{workflowDraftStatusLabel(t, node.lane)} / {workflowDraftStatusLabel(t, node.nodeType)}</p>
           <input
             className="workflow-draft-node-label-input"
             type="text"
             value={node.label}
             maxLength={160}
             disabled={editingDisabled}
-            aria-label={`Node label ${node.nodeId}`}
+            aria-label={t($ => $.draft.nodeLabel, { id: node.nodeId })}
             onChange={(event) => onUpdateLabel(node.nodeId, event.currentTarget.value)}
           />
         </div>
         <StatusBadge tone={node.readiness === "blocked" ? "bad" : node.readiness === "ready" ? "good" : "neutral"}>
-          {node.readiness}
+          {workflowDraftStatusLabel(t, node.readiness)}
         </StatusBadge>
       </div>
-      <div className="workflow-draft-node-actions" aria-label={`Structure controls ${node.nodeId}`}>
-        <button type="button" disabled={editingDisabled || nodeIndex === 0} onClick={() => onMoveNode(node.nodeId, "up")}>Up</button>
-        <button type="button" disabled={editingDisabled || nodeIndex === nodeCount - 1} onClick={() => onMoveNode(node.nodeId, "down")}>Down</button>
-        <button type="button" disabled={editingDisabled || !canDelete} onClick={() => onRemoveNode(node.nodeId)}>Remove</button>
+      <div className="workflow-draft-node-actions" aria-label={t($ => $.draft.structureControls, { id: node.nodeId })}>
+        <button type="button" disabled={editingDisabled || nodeIndex === 0} onClick={() => onMoveNode(node.nodeId, "up")}>{t($ => $.draft.up)}</button>
+        <button type="button" disabled={editingDisabled || nodeIndex === nodeCount - 1} onClick={() => onMoveNode(node.nodeId, "down")}>{t($ => $.draft.down)}</button>
+        <button type="button" disabled={editingDisabled || !canDelete} onClick={() => onRemoveNode(node.nodeId)}>{t($ => $.draft.remove)}</button>
       </div>
       <dl className="workflow-detail-node-meta">
-        <div><dt>Input</dt><dd>{node.inputSummary}</dd></div>
-        <div><dt>Output</dt><dd>{node.outputSummary}</dd></div>
-        <div><dt>Risk</dt><dd>{node.riskLevel}</dd></div>
-        <div><dt>Preview</dt><dd>{node.previewOnlyReason}</dd></div>
+        <div><dt>{t($ => $.draft.input)}</dt><dd>{node.inputSummary}</dd></div>
+        <div><dt>{t($ => $.draft.output)}</dt><dd>{node.outputSummary}</dd></div>
+        <div><dt>{t($ => $.draft.risk)}</dt><dd>{workflowDraftStatusLabel(t, node.riskLevel)}</dd></div>
+        <div><dt>{t($ => $.draft.preview)}</dt><dd>{node.previewOnlyReason}</dd></div>
       </dl>
-      <div className="workflow-draft-node-attribute-grid" aria-label={`Node attributes ${node.nodeId}`}>
-        <DraftNodeTextField label="Provider ref" value={node.providerRef} disabled={editingDisabled} onChange={(value) => onUpdateProviderRef(node.nodeId, value)} />
-        <DraftNodeTextField label="Tool ref" value={node.toolRef} disabled={editingDisabled} onChange={(value) => onUpdateToolRef(node.nodeId, value)} />
-        <DraftNodeTextField label="RAG ref" value={node.ragRef} disabled={editingDisabled} onChange={(value) => onUpdateRagRef(node.nodeId, value)} />
-        <DraftNodeTextArea label="Input summary" value={node.inputSummary} disabled={editingDisabled} wide onChange={(value) => onUpdateInputSummary(node.nodeId, value)} />
-        <DraftNodeTextArea label="Output summary" value={node.outputSummary} disabled={editingDisabled} wide onChange={(value) => onUpdateOutputSummary(node.nodeId, value)} />
-        <DraftNodeTextArea label="Input fields" value={node.inputContractFields.join(", ")} disabled={editingDisabled} maxLength={1000} onChange={(value) => onUpdateInputFields(node.nodeId, value)} />
-        <DraftNodeTextArea label="Output fields" value={node.outputContractFields.join(", ")} disabled={editingDisabled} maxLength={1000} onChange={(value) => onUpdateOutputFields(node.nodeId, value)} />
-        <DraftNodeTextArea label="Output mapping" value={node.outputMappingSummary} disabled={editingDisabled} wide onChange={(value) => onUpdateOutputMapping(node.nodeId, value)} />
+      <div className="workflow-draft-node-attribute-grid" aria-label={t($ => $.draft.nodeAttributes, { id: node.nodeId })}>
+        <DraftNodeTextField label={t($ => $.draft.providerRef)} value={node.providerRef} disabled={editingDisabled} onChange={(value) => onUpdateProviderRef(node.nodeId, value)} />
+        <DraftNodeTextField label={t($ => $.draft.toolRef)} value={node.toolRef} disabled={editingDisabled} onChange={(value) => onUpdateToolRef(node.nodeId, value)} />
+        <DraftNodeTextField label={t($ => $.draft.ragRef)} value={node.ragRef} disabled={editingDisabled} onChange={(value) => onUpdateRagRef(node.nodeId, value)} />
+        <DraftNodeTextArea label={t($ => $.draft.inputSummary)} value={node.inputSummary} disabled={editingDisabled} wide onChange={(value) => onUpdateInputSummary(node.nodeId, value)} />
+        <DraftNodeTextArea label={t($ => $.draft.outputSummary)} value={node.outputSummary} disabled={editingDisabled} wide onChange={(value) => onUpdateOutputSummary(node.nodeId, value)} />
+        <DraftNodeTextArea label={t($ => $.draft.inputFields)} value={node.inputContractFields.join(", ")} disabled={editingDisabled} maxLength={1000} onChange={(value) => onUpdateInputFields(node.nodeId, value)} />
+        <DraftNodeTextArea label={t($ => $.draft.outputFields)} value={node.outputContractFields.join(", ")} disabled={editingDisabled} maxLength={1000} onChange={(value) => onUpdateOutputFields(node.nodeId, value)} />
+        <DraftNodeTextArea label={t($ => $.draft.outputMapping)} value={node.outputMappingSummary} disabled={editingDisabled} wide onChange={(value) => onUpdateOutputMapping(node.nodeId, value)} />
       </div>
     </article>
   );
@@ -654,15 +646,16 @@ function WorkflowDraftEdgeCard({
   onUpdateCondition: (edgeId: string, conditionSummary: string) => void;
   onRemoveEdge: (edgeId: string) => boolean;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-draft-edge">
       <div className="workflow-draft-edge-heading">
         <div className="workflow-draft-edge-heading-main">
           <span>{edge.edgeKind}</span>
-          <strong>{edge.fromNodeId} to {edge.toNodeId}</strong>
+          <strong>{t($ => $.draft.edgeEndpoints, { from: edge.fromNodeId, to: edge.toNodeId })}</strong>
           <small>{edge.edgeId}</small>
         </div>
-        <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>Remove</button>
+        <button type="button" disabled={editingDisabled} onClick={() => onRemoveEdge(edge.edgeId)}>{t($ => $.draft.remove)}</button>
       </div>
       <textarea
         className="workflow-draft-edge-condition-input"
@@ -670,7 +663,7 @@ function WorkflowDraftEdgeCard({
         maxLength={4000}
         rows={3}
         disabled={editingDisabled}
-        aria-label={`Edge condition ${edge.edgeId}`}
+        aria-label={t($ => $.draft.edgeCondition, { id: edge.edgeId })}
         onChange={(event) => onUpdateCondition(edge.edgeId, event.currentTarget.value)}
       />
     </article>
@@ -678,11 +671,12 @@ function WorkflowDraftEdgeCard({
 }
 
 function WorkflowDraftReadinessCard({ readiness }: { readiness: WorkflowDraftDesignerReadiness }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-draft-readiness">
       <div className="workflow-draft-row-main">
         <div><p className="eyebrow">{readiness.checkId}</p><h5>{readiness.label}</h5></div>
-        <StatusBadge tone={readiness.status === "blocked" ? "bad" : readiness.status === "ready" ? "good" : "neutral"}>{readiness.status}</StatusBadge>
+        <StatusBadge tone={readiness.status === "blocked" ? "bad" : readiness.status === "ready" ? "good" : "neutral"}>{workflowDraftStatusLabel(t, readiness.status)}</StatusBadge>
       </div>
       <p>{readiness.summary}</p>
     </article>
@@ -690,28 +684,30 @@ function WorkflowDraftReadinessCard({ readiness }: { readiness: WorkflowDraftDes
 }
 
 function WorkflowDraftRiskCard({ risk }: { risk: WorkflowDraftDesignerRisk }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-draft-risk">
       <div className="workflow-draft-row-main">
         <div><p className="eyebrow">{risk.riskId}</p><h5>{risk.label}</h5></div>
-        <StatusBadge tone={risk.riskLevel === "high" ? "bad" : risk.riskLevel === "low" ? "good" : "neutral"}>{risk.riskLevel}</StatusBadge>
+        <StatusBadge tone={risk.riskLevel === "high" ? "bad" : risk.riskLevel === "low" ? "good" : "neutral"}>{workflowDraftStatusLabel(t, risk.riskLevel)}</StatusBadge>
       </div>
       <p>{risk.summary}</p>
-      <small>{risk.requiresConfirmation ? "future human review required" : "advisory only"}</small>
+      <small>{risk.requiresConfirmation ? t($ => $.draft.humanReview) : t($ => $.draft.advisoryOnly)}</small>
     </article>
   );
 }
 
 function WorkflowDraftBlockedCapabilityCard({ capability }: { capability: WorkflowDraftDesignerBlockedCapability }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-draft-blocked-capability">
       <div className="workflow-draft-row-main">
         <div><p className="eyebrow">{capability.capabilityId}</p><h5>{capability.label}</h5></div>
-        <StatusBadge tone="bad">{capability.status}</StatusBadge>
+        <StatusBadge tone="bad">{workflowDraftStatusLabel(t, capability.status)}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
-        <div><dt>Missing prerequisite</dt><dd>{capability.missingPrerequisite}</dd></div>
-        <div><dt>Audit</dt><dd>{capability.auditRef}</dd></div>
+        <div><dt>{t($ => $.draft.missingPrerequisite)}</dt><dd>{capability.missingPrerequisite}</dd></div>
+        <div><dt>{t($ => $.draft.audit)}</dt><dd>{capability.auditRef}</dd></div>
       </dl>
       <p>{capability.summary}</p>
     </article>

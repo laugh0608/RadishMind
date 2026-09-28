@@ -1,4 +1,5 @@
 export const appShell = {
+  workflowCreateExecutor: "Create executor v0 draft",
   "userWorkspace": "User Workspace",
   "applicationsTitle": "Applications",
   "readOnlyReady": "read-only ready",

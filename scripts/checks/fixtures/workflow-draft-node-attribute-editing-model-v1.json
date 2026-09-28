@@ -71,12 +71,12 @@
       "onUpdateInputFields",
       "onUpdateOutputFields",
       "onUpdateOutputMapping",
-      "Provider ref",
-      "Tool ref",
-      "RAG ref",
-      "Input fields",
-      "Output fields",
-      "Output mapping"
+      "$.draft.providerRef",
+      "$.draft.toolRef",
+      "$.draft.ragRef",
+      "$.draft.inputFields",
+      "$.draft.outputFields",
+      "$.draft.outputMapping"
     ],
     "required_clone_literals": [
       "inputContractFields: [...node.inputContractFields]",
