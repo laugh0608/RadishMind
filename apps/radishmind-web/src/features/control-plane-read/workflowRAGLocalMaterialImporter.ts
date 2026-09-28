@@ -1,3 +1,4 @@
+import type { WorkflowRAGSnapshotFindingMessage } from "./workflowRAGSnapshotFeedback.ts";
 import {
   WORKFLOW_RAG_SNAPSHOT_LIMITS,
   containsWorkflowRAGSecretMaterial,
@@ -44,7 +45,7 @@ export type WorkflowRAGLocalMaterialFinding = {
   code: WorkflowRAGLocalMaterialFailureCode;
   sourceId: string;
   fragmentRef: string;
-  summary: string;
+  message: WorkflowRAGSnapshotFindingMessage;
 };
 
 export type WorkflowRAGLocalMaterialSource = {
@@ -99,20 +100,20 @@ export function preflightWorkflowRAGLocalMaterialSelection(files: readonly Workf
       "workflow_rag_material_file_count_invalid",
       "",
       "",
-      `一次必须选择 1 至 ${WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles} 个文件。`,
+      { key: "fileCount", values: { maximum: WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles } },
     )]);
   }
   const findings: WorkflowRAGLocalMaterialFinding[] = [];
   if (rawBytes > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxRawBytes) {
-    findings.push(finding("workflow_rag_material_file_too_large", "", "", "所选文件原始内容总量超过 1 MiB。"));
+    findings.push(finding("workflow_rag_material_file_too_large", "", "", { key: "rawBudget" }));
   }
   for (const file of files) {
     const fileName = normalizedBaseName(file.fileName);
     if (!allowedExtension(fileName)) {
-      findings.push(finding("workflow_rag_material_file_type_unsupported", "", "", `${fileName || "未命名文件"} 不是受支持的 Markdown / Text 文件。`));
+      findings.push(finding("workflow_rag_material_file_type_unsupported", "", "", { key: "unsupportedFile", values: { file: fileName } }));
     }
     if (file.fileBytes > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFileBytes) {
-      findings.push(finding("workflow_rag_material_file_too_large", "", "", `${fileName || "未命名文件"} 超过 256 KiB。`));
+      findings.push(finding("workflow_rag_material_file_too_large", "", "", { key: "fileBudget", values: { file: fileName } }));
     }
   }
   return findings.length ? blockedResult(rawBytes, findings) : null;
@@ -124,14 +125,14 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
       "workflow_rag_material_file_count_invalid",
       "",
       "",
-      `一次必须选择 1 至 ${WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles} 个文件。`,
+      { key: "fileCount", values: { maximum: WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFiles } },
     )]);
   }
 
   const rawBytes = files.reduce((total, file) => total + file.bytes.byteLength, 0);
   const findings: WorkflowRAGLocalMaterialFinding[] = [];
   if (rawBytes > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxRawBytes) {
-    findings.push(finding("workflow_rag_material_file_too_large", "", "", "所选文件原始内容总量超过 1 MiB。"));
+    findings.push(finding("workflow_rag_material_file_too_large", "", "", { key: "rawBudget" }));
   }
 
   const decoded: DecodedMaterial[] = [];
@@ -139,24 +140,24 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
     const fileName = normalizedBaseName(file.fileName);
     const extension = allowedExtension(fileName);
     if (!extension) {
-      findings.push(finding("workflow_rag_material_file_type_unsupported", "", "", `${fileName || "未命名文件"} 不是受支持的 Markdown / Text 文件。`));
+      findings.push(finding("workflow_rag_material_file_type_unsupported", "", "", { key: "unsupportedFile", values: { file: fileName } }));
       continue;
     }
     if (file.bytes.byteLength > WORKFLOW_RAG_LOCAL_MATERIAL_LIMITS.maxFileBytes) {
-      findings.push(finding("workflow_rag_material_file_too_large", "", "", `${fileName} 超过 256 KiB。`));
+      findings.push(finding("workflow_rag_material_file_too_large", "", "", { key: "fileBudget", values: { file: fileName } }));
       continue;
     }
     const normalizedText = decodeStrictUTF8(file.bytes);
     if (normalizedText === null) {
-      findings.push(finding("workflow_rag_material_utf8_invalid", "", "", `${fileName} 不是严格 UTF-8。`));
+      findings.push(finding("workflow_rag_material_utf8_invalid", "", "", { key: "utf8", values: { file: fileName } }));
       continue;
     }
     if (!normalizedText.trim() || normalizedText.includes("\u0000")) {
-      findings.push(finding("workflow_rag_material_content_invalid", "", "", `${fileName} 为空或包含 NUL。`));
+      findings.push(finding("workflow_rag_material_content_invalid", "", "", { key: "invalidContent", values: { file: fileName } }));
       continue;
     }
     if (containsWorkflowRAGSecretMaterial(normalizedText)) {
-      findings.push(finding("workflow_rag_secret_material_forbidden", "", "", `${fileName} 命中敏感材料规则。`));
+      findings.push(finding("workflow_rag_secret_material_forbidden", "", "", { key: "fileSecret", values: { file: fileName } }));
       continue;
     }
     decoded.push({
@@ -184,7 +185,7 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
     const sourceRef = `local_material/${sourceSlug}-${material.contentDigest.slice(7, 19)}`;
     const previousSource = sourceDigestOwner.get(material.contentDigest);
     if (previousSource) {
-      findings.push(finding("workflow_rag_material_source_duplicate", sourceId, "", `${material.fileName} 与 ${previousSource} 内容完全重复。`));
+      findings.push(finding("workflow_rag_material_source_duplicate", sourceId, "", { key: "duplicateSource", values: { source: material.fileName, previous: previousSource } }));
     } else {
       sourceDigestOwner.set(material.contentDigest, material.fileName);
     }
@@ -193,7 +194,7 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
       ? plainTextSections(material.normalizedText, displayStem(material.fileName))
       : markdownSections(material.normalizedText, displayStem(material.fileName));
     if (!sections.length) {
-      findings.push(finding("workflow_rag_material_content_invalid", sourceId, "", `${material.fileName} 没有可导入的正文。`));
+      findings.push(finding("workflow_rag_material_content_invalid", sourceId, "", { key: "noContent", values: { file: material.fileName } }));
       continue;
     }
 
@@ -218,11 +219,11 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
         contentDigest,
       };
       if (contentBytes < 1 || contentBytes > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragmentBytes) {
-        findings.push(finding("workflow_rag_material_budget_exceeded", sourceId, fragmentRef, `${fragmentRef} 超过单片段预算。`));
+        findings.push(finding("workflow_rag_material_budget_exceeded", sourceId, fragmentRef, { key: "fragmentBudget", values: { fragment: fragmentRef } }));
       }
       const previousFragment = fragmentDigestOwner.get(contentDigest);
       if (previousFragment) {
-        findings.push(finding("workflow_rag_material_fragment_duplicate", sourceId, fragmentRef, `${fragmentRef} 与 ${previousFragment} 正文完全重复。`));
+        findings.push(finding("workflow_rag_material_fragment_duplicate", sourceId, fragmentRef, { key: "duplicateContent", values: { fragment: fragmentRef, previous: previousFragment } }));
       } else {
         fragmentDigestOwner.set(contentDigest, fragmentRef);
       }
@@ -243,10 +244,10 @@ export async function importWorkflowRAGLocalMaterials(files: readonly WorkflowRA
 
   const totalContentBytes = fragments.reduce((total, fragment) => total + fragment.contentBytes, 0);
   if (fragments.length > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragments || totalContentBytes > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxTotalContentBytes) {
-    findings.push(finding("workflow_rag_material_budget_exceeded", "", "", "最终片段数量或正文总量超过知识快照预算。"));
+    findings.push(finding("workflow_rag_material_budget_exceeded", "", "", { key: "snapshotBudget" }));
   }
   if (!fragments.length && !findings.length) {
-    findings.push(finding("workflow_rag_material_content_invalid", "", "", "没有生成可提交的知识片段。"));
+    findings.push(finding("workflow_rag_material_content_invalid", "", "", { key: "noFragments" }));
   }
 
   return {
@@ -421,8 +422,8 @@ function compareDecodedMaterials(left: DecodedMaterial, right: DecodedMaterial):
   return left.selectionIndex - right.selectionIndex;
 }
 
-function finding(code: WorkflowRAGLocalMaterialFailureCode, sourceId: string, fragmentRef: string, summary: string): WorkflowRAGLocalMaterialFinding {
-  return { code, sourceId, fragmentRef, summary };
+function finding(code: WorkflowRAGLocalMaterialFailureCode, sourceId: string, fragmentRef: string, message: WorkflowRAGSnapshotFindingMessage): WorkflowRAGLocalMaterialFinding {
+  return { code, sourceId, fragmentRef, message };
 }
 
 function blockedResult(rawBytes: number, findings: WorkflowRAGLocalMaterialFinding[]): WorkflowRAGLocalMaterialImportResult {

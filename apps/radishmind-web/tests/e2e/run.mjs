@@ -17,7 +17,14 @@ const artifactRoot = join(repoRoot, "output/playwright/workflow-e2e");
 await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
-for (const suite of ["templates", "workflow"]) {
+const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
+const availableSuites = ["templates", "workflow", "rag"];
+if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
+  throw new Error("Use at most one --suite=templates|workflow|rag selector.");
+}
+const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
+const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
+for (const suite of suites) {
   const code = await runSuite(suite);
   if (code !== 0) { process.exitCode = code; break; }
 }
@@ -122,7 +129,7 @@ async function runSuite(suite) {
     if (interrupted) throw new Error("Interrupted during configuration setup.");
     const launcher = start("bash", [
       join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-      "--mode", "dev-live", "--workflow-definition-local-product", ...(suite === "templates" ? ["--workflow-template-local-product"] : ["--prompt-application-local-product"]), "--no-reuse-existing",
+      "--mode", "dev-live", ...(suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", suite === "templates" ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
       "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
       "--timeout-seconds", "120", "--log-dir", join(output, "services"),
       "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),
@@ -172,7 +179,7 @@ async function runSuite(suite) {
     console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000; Prompt fixture ${promptProvider.url}.`);
     const tests = start(process.execPath, [
       join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
-      "--config", "tests/e2e/playwright.config.ts", ...process.argv.slice(2),
+      "--config", "tests/e2e/playwright.config.ts", ...testArguments,
     ], {
       env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, RADISHMIND_E2E_PROVIDER_URL: promptProvider.url },
       stdio: "inherit",

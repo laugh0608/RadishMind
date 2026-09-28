@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowRAGSnapshotResources.ts";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { importWorkflowRAGLocalMaterials, preflightWorkflowRAGLocalMaterialSelection, type WorkflowRAGLocalMaterialFile } from "./workflowRAGLocalMaterialImporter.ts";
@@ -31,8 +34,9 @@ type SnapshotCollection = {
   activeCursor: string;
   archivedCursor: string;
   failureCode: string;
-  summary: string;
 };
+
+type SnapshotOperation = WorkflowRAGSnapshotOperationResult & { localMessage?: "localRejected" | "fileReadFailed" };
 
 type PendingOperation = "" | "listing" | "reading" | "importing" | "creating" | "versioning" | "archiving";
 
@@ -45,13 +49,14 @@ export default function WorkflowRAGSnapshotPanel({
   applicationName: string;
   applicationActive: boolean;
 }) {
+  const { t } = useTranslation("workflow");
   const [collection, setCollection] = useState<SnapshotCollection>(emptyCollection);
   const [filter, setFilter] = useState<WorkflowRAGSnapshotLifecycle>("active");
   const [selectedResource, setSelectedResource] = useState<WorkflowRAGSnapshotResource | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<WorkflowRAGSnapshotRecord | null>(null);
   const [editor, setEditor] = useState<WorkflowRAGSnapshotEditor>(createEmptyWorkflowRAGSnapshotEditor);
   const [pending, setPending] = useState<PendingOperation>("");
-  const [operation, setOperation] = useState<WorkflowRAGSnapshotOperationResult | null>(null);
+  const [operation, setOperation] = useState<SnapshotOperation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const requestGeneration = useRef(0);
@@ -172,7 +177,7 @@ export default function WorkflowRAGSnapshotPanel({
     } catch {
       if (requestGeneration.current !== generation) return;
       setPending("");
-      setOperation(localFailure("workflow_rag_material_content_invalid", "浏览器未能读取所选本地文件；现有 staging 保持不变。"));
+      setOperation(localFailure("workflow_rag_material_content_invalid", "fileReadFailed"));
     }
   };
 
@@ -256,14 +261,14 @@ export default function WorkflowRAGSnapshotPanel({
     const result = await listWorkflowRAGSnapshots(config, applicationId, filter, cursor);
     if (requestGeneration.current !== generation) return;
     setPending("");
-    setCollection((current) => mergePage(current, filter, result.records, result.nextCursor, result.failureCode, result.summary));
+    setCollection((current) => mergePage(current, filter, result.records, result.nextCursor, result.failureCode));
   };
 
   if (config.mode === "offline") {
-    return <BoundaryPanel status="offline" summary="RAG 知识快照保持 offline；本面板发送 0 个请求，也不会模拟写入成功。" />;
+    return <BoundaryPanel status="offline" summary={t($ => $.ragSnapshot.offlineNote)} />;
   }
   if (!canRead || !applicationId.trim()) {
-    return <BoundaryPanel status="scope denied" summary="缺少 application scope 或 workflow_rag_snapshots:read；本面板发送 0 个请求。" />;
+    return <BoundaryPanel status="scope_denied" summary={t($ => $.ragSnapshot.scopeNote)} />;
   }
 
   const currentCursor = filter === "active" ? collection.activeCursor : collection.archivedCursor;
@@ -274,58 +279,58 @@ export default function WorkflowRAGSnapshotPanel({
   return (
     <section className="workflow-rag-snapshot-panel" id="workflow-rag-snapshot-panel" aria-labelledby="workflow-rag-snapshot-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Workflow RAG · Application knowledge</p><h4 id="workflow-rag-snapshot-title">知识快照与精确版本</h4></div>
-        <span className={`status-badge ${collection.failureCode ? "bad" : "good"}`}>{pending || (collection.failureCode ? "failed" : "ready")}</span>
+        <div><p className="eyebrow">{t($ => $.ragSnapshot.applicationKnowledge)}</p><h4 id="workflow-rag-snapshot-title">{t($ => $.ragSnapshot.heading)}</h4></div>
+        <span className={`status-badge ${collection.failureCode ? "bad" : "good"}`}>{t($ => $.ragSnapshot.status[pending || (collection.failureCode ? "failed" : "ready")])}</span>
       </div>
 
       <div className="workflow-rag-scope-grid">
-        <article><span>Application</span><strong>{applicationName || applicationId}</strong><code>{applicationId}</code></article>
-        <article><span>Repository scope</span><strong>{config.workspaceId}</strong><code>{config.tenantRef}</code></article>
-        <article><span>Profile</span><strong>lexical-ngram-dev.v1</strong><small>精确版本可绑定到独立 retrieval execution。</small></article>
-        <article><span>Write boundary</span><strong>{canWrite ? "create / version enabled" : "read-only"}</strong><small>归档使用独立 archive scope。</small></article>
+        <article><span>{t($ => $.ragSnapshot.application)}</span><strong>{applicationName || applicationId}</strong><code>{applicationId}</code></article>
+        <article><span>{t($ => $.ragSnapshot.repositoryScope)}</span><strong>{config.workspaceId}</strong><code>{config.tenantRef}</code></article>
+        <article><span>{t($ => $.ragSnapshot.profile)}</span><strong>lexical-ngram-dev.v1</strong><small>{t($ => $.ragSnapshot.profileNote)}</small></article>
+        <article><span>{t($ => $.ragSnapshot.writeBoundary)}</span><strong>{canWrite ? t($ => $.ragSnapshot.writeEnabled) : t($ => $.ragSnapshot.readOnly)}</strong><small>{t($ => $.ragSnapshot.archiveScope)}</small></article>
       </div>
 
-      {!applicationActive ? <p className="workflow-rag-boundary-note">当前应用已归档；知识快照正文与历史仍可精确读取，但创建、版本化和归档入口均关闭。</p> : null}
-      {collection.failureCode ? <p className="workflow-rag-failure" role="alert"><code>{collection.failureCode}</code> · {collection.summary}</p> : null}
+      {!applicationActive ? <p className="workflow-rag-boundary-note">{t($ => $.ragSnapshot.archivedApplication)}</p> : null}
+      {collection.failureCode ? <p className="workflow-rag-failure" role="alert"><code>{collection.failureCode}</code> · {t($ => $.ragSnapshot.listFailed)}</p> : null}
 
       <div className="workflow-rag-toolbar">
-        <div className="workflow-rag-filter" aria-label="知识快照生命周期筛选">
-          {(["active", "archived"] as const).map((state) => <button key={state} type="button" className={filter === state ? "selected" : ""} disabled={pending !== ""} onClick={() => changeFilter(state)}>{state}</button>)}
+        <div className="workflow-rag-filter" aria-label={t($ => $.ragSnapshot.filterLabel)}>
+          {(["active", "archived"] as const).map((state) => <button key={state} type="button" className={filter === state ? "selected" : ""} disabled={pending !== ""} onClick={() => changeFilter(state)}>{t($ => $.ragSnapshot.status[state])}</button>)}
         </div>
-        <button type="button" disabled={pending !== "" || !canWrite} onClick={beginCreate}>新建知识快照</button>
+        <button type="button" disabled={pending !== "" || !canWrite} onClick={beginCreate}>{t($ => $.ragSnapshot.newSnapshot)}</button>
       </div>
 
       <div className="workflow-rag-layout">
-        <div className="workflow-rag-list" aria-label={`${filter} knowledge snapshots`}>
+        <div className="workflow-rag-list" aria-label={t($ => $.ragSnapshot.listLabel, { state: t($ => $.ragSnapshot.status[filter]) })}>
           {visibleResources.map((resource) => (
             <button key={resource.snapshotId} type="button" disabled={pending !== ""} className={selectedResource?.snapshotId === resource.snapshotId ? "selected" : ""} onClick={() => void selectResource(resource)}>
               <span><strong>{resource.displayName}</strong><code>{resource.latestRAGRef}</code></span>
-              <span><small>{resource.fragmentCount} fragments</small><small>{resource.totalContentBytes} bytes</small></span>
+              <span><small>{t($ => $.ragSnapshot.resourceFragments, { count: resource.fragmentCount })}</small><small>{t($ => $.ragSnapshot.resourceBytes, { count: resource.totalContentBytes })}</small></span>
             </button>
           ))}
-          {!visibleResources.length && pending !== "listing" ? <p>当前作用域没有 {filter} 知识快照。</p> : null}
-          {currentCursor ? <button type="button" disabled={pending !== ""} onClick={() => void loadMore()}>加载下一页</button> : null}
+          {!visibleResources.length && pending !== "listing" ? <p>{t($ => $.ragSnapshot.emptyList, { state: t($ => $.ragSnapshot.status[filter]) })}</p> : null}
+          {currentCursor ? <button type="button" disabled={pending !== ""} onClick={() => void loadMore()}>{t($ => $.ragSnapshot.loadMore)}</button> : null}
         </div>
 
         <div className="workflow-rag-editor">
           {showCreate || selectedRecord ? (
             <WorkflowRAGSnapshotEditorPanel editor={editor} analysis={analysis} disabled={editorDisabled} immutableSnapshotKey={Boolean(selectedRecord)} importing={pending === "importing"} onChange={changeEditor} onImportFiles={(files) => void importLocalFiles(files)} />
           ) : (
-            <article className="workflow-rag-empty"><strong>选择精确快照版本</strong><p>列表只含 metadata；选择后才以 read scope 拉取当前明确版本的正文。</p></article>
+            <article className="workflow-rag-empty"><strong>{t($ => $.ragSnapshot.selectVersion)}</strong><p>{t($ => $.ragSnapshot.listNote)}</p></article>
           )}
 
           {showCreate ? (
-            <div className="workflow-rag-actions"><button type="button" disabled={writeDisabled} onClick={() => void submitCreate()}>{pending === "creating" ? "创建中…" : "创建 v1"}</button><button type="button" disabled={pending !== ""} onClick={cancelCreate}>取消</button></div>
+            <div className="workflow-rag-actions"><button type="button" disabled={writeDisabled} onClick={() => void submitCreate()}>{pending === "creating" ? t($ => $.ragSnapshot.creating) : t($ => $.ragSnapshot.createV1)}</button><button type="button" disabled={pending !== ""} onClick={cancelCreate}>{t($ => $.ragSnapshot.cancel)}</button></div>
           ) : selectedRecord ? (
             <>
               <SnapshotRecordEvidence record={selectedRecord} />
               {selectedRecord.lifecycleState === "active" ? (
                 <div className="workflow-rag-actions">
-                  <button type="button" disabled={writeDisabled} onClick={() => void submitVersion()}>{pending === "versioning" ? "写入中…" : `完整替换并创建 v${selectedRecord.snapshotVersion + 1}`}</button>
-                  <button type="button" className="danger-action" disabled={archiveDisabled} onClick={() => setShowArchiveConfirm(true)}>归档快照</button>
+                  <button type="button" disabled={writeDisabled} onClick={() => void submitVersion()}>{pending === "versioning" ? t($ => $.ragSnapshot.versioning) : t($ => $.ragSnapshot.replaceVersion, { version: selectedRecord.snapshotVersion + 1 })}</button>
+                  <button type="button" className="danger-action" disabled={archiveDisabled} onClick={() => setShowArchiveConfirm(true)}>{t($ => $.ragSnapshot.archive)}</button>
                 </div>
               ) : null}
-              {showArchiveConfirm ? <div className="workflow-rag-archive-confirm" role="alert"><p>归档后禁止创建新版本；现有版本仍保持精确可读。</p><button type="button" className="danger-action" disabled={archiveDisabled} onClick={() => void submitArchive()}>确认归档</button><button type="button" disabled={pending !== ""} onClick={() => setShowArchiveConfirm(false)}>取消</button></div> : null}
+              {showArchiveConfirm ? <div className="workflow-rag-archive-confirm" role="alert"><p>{t($ => $.ragSnapshot.archiveNote)}</p><button type="button" className="danger-action" disabled={archiveDisabled} onClick={() => void submitArchive()}>{t($ => $.ragSnapshot.confirmArchive)}</button><button type="button" disabled={pending !== ""} onClick={() => setShowArchiveConfirm(false)}>{t($ => $.ragSnapshot.cancel)}</button></div> : null}
             </>
           ) : null}
 
@@ -337,34 +342,50 @@ export default function WorkflowRAGSnapshotPanel({
 }
 
 function SnapshotRecordEvidence({ record }: { record: WorkflowRAGSnapshotRecord }) {
-  return <article className="workflow-rag-record"><div><strong>{record.ragRef}</strong><span className="status-badge neutral">{record.lifecycleState}</span></div><dl><div><dt>Digest</dt><dd>{record.snapshotDigest}</dd></div><div><dt>Profile</dt><dd>{record.profileRef}</dd></div><div><dt>Fragments</dt><dd>{record.fragmentCount}</dd></div><div><dt>Content bytes</dt><dd>{record.totalContentBytes}</dd></div><div><dt>Request</dt><dd>{record.requestId}</dd></div><div><dt>Audit</dt><dd>{record.auditRef}</dd></div></dl></article>;
+  const { t } = useTranslation("workflow");
+  return <article className="workflow-rag-record"><div><strong>{record.ragRef}</strong><span className="status-badge neutral">{t($ => $.ragSnapshot.status[record.lifecycleState])}</span></div><dl><div><dt>{t($ => $.ragSnapshot.digest)}</dt><dd>{record.snapshotDigest}</dd></div><div><dt>{t($ => $.ragSnapshot.profile)}</dt><dd>{record.profileRef}</dd></div><div><dt>{t($ => $.ragSnapshot.fragments)}</dt><dd>{record.fragmentCount}</dd></div><div><dt>{t($ => $.ragSnapshot.contentBytes)}</dt><dd>{record.totalContentBytes}</dd></div><div><dt>{t($ => $.ragSnapshot.request)}</dt><dd>{record.requestId}</dd></div><div><dt>{t($ => $.ragSnapshot.audit)}</dt><dd>{record.auditRef}</dd></div></dl></article>;
 }
 
-function OperationEvidence({ operation }: { operation: WorkflowRAGSnapshotOperationResult }) {
-  return <article className={`workflow-rag-operation ${operation.status === "failed" || operation.status === "version_conflict" ? "failed" : ""}`} aria-live="polite"><strong>{operation.status}</strong><p>{operation.summary}</p>{operation.failureCode ? <code>{operation.failureCode}</code> : null}{operation.status === "version_conflict" ? <small>Current: v{operation.currentLatestVersion} · {operation.currentLifecycleState}</small> : null}</article>;
+function OperationEvidence({ operation }: { operation: SnapshotOperation }) {
+  const { t } = useTranslation("workflow");
+  const summaryKey = operation.localMessage ?? ({
+    version_conflict: "conflictNote", offline: "offlineNote", scope_denied: "operationScopeNote", failed: "operationFailed",
+    created: "operationSucceeded", loaded: "operationSucceeded", versioned: "operationSucceeded", archived: "operationSucceeded",
+  } as const)[operation.status];
+  const lifecycle = operation.currentLifecycleState;
+  const lifecycleLabel = lifecycle === "active" || lifecycle === "archived" ? t($ => $.ragSnapshot.status[lifecycle]) : lifecycle;
+  return (
+    <article className={`workflow-rag-operation ${operation.status === "failed" || operation.status === "version_conflict" ? "failed" : ""}`} aria-live="polite">
+      <strong>{t($ => $.ragSnapshot.status[operation.status])}</strong>
+      <p>{t($ => $.ragSnapshot[summaryKey], { status: t($ => $.ragSnapshot.status[operation.status]) })}</p>
+      {operation.failureCode ? <code>{operation.failureCode}</code> : null}
+      {operation.status === "version_conflict" ? <small>{t($ => $.ragSnapshot.currentVersion, { version: operation.currentLatestVersion, state: lifecycleLabel })}</small> : null}
+    </article>
+  );
 }
 
-function BoundaryPanel({ status, summary }: { status: string; summary: string }) {
-  return <section className="workflow-rag-snapshot-panel offline" aria-label="Workflow RAG knowledge snapshot"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Application knowledge</p><h4>知识快照未启用</h4></div><span className="status-badge neutral">{status}</span></div><p>{summary}</p></section>;
+function BoundaryPanel({ status, summary }: { status: "offline" | "scope_denied"; summary: string }) {
+  const { t } = useTranslation("workflow");
+  return <section className="workflow-rag-snapshot-panel offline" aria-label={t($ => $.ragSnapshot.boundaryLabel)}><div className="section-heading compact-heading"><div><p className="eyebrow">{t($ => $.ragSnapshot.applicationKnowledge)}</p><h4>{t($ => $.ragSnapshot.disabledTitle)}</h4></div><span className="status-badge neutral">{t($ => $.ragSnapshot.status[status])}</span></div><p>{summary}</p></section>;
 }
 
 function emptyCollection(): SnapshotCollection {
-  return { active: [], archived: [], activeCursor: "", archivedCursor: "", failureCode: "", summary: "" };
+  return { active: [], archived: [], activeCursor: "", archivedCursor: "", failureCode: "" };
 }
 
 function collectionFromResults(active: Awaited<ReturnType<typeof listWorkflowRAGSnapshots>>, archived: Awaited<ReturnType<typeof listWorkflowRAGSnapshots>>): SnapshotCollection {
-  return { active: active.records, archived: archived.records, activeCursor: active.nextCursor, archivedCursor: archived.nextCursor, failureCode: active.failureCode || archived.failureCode, summary: active.failureCode ? active.summary : archived.failureCode ? archived.summary : `${active.records.length} active / ${archived.records.length} archived` };
+  return { active: active.records, archived: archived.records, activeCursor: active.nextCursor, archivedCursor: archived.nextCursor, failureCode: active.failureCode || archived.failureCode };
 }
 
-function mergePage(current: SnapshotCollection, lifecycle: WorkflowRAGSnapshotLifecycle, records: WorkflowRAGSnapshotResource[], cursor: string, failureCode: string, summary: string): SnapshotCollection {
+function mergePage(current: SnapshotCollection, lifecycle: WorkflowRAGSnapshotLifecycle, records: WorkflowRAGSnapshotResource[], cursor: string, failureCode: string): SnapshotCollection {
   const merged = mergeResources(lifecycle === "active" ? current.active : current.archived, records);
-  return lifecycle === "active" ? { ...current, active: merged, activeCursor: cursor, failureCode, summary } : { ...current, archived: merged, archivedCursor: cursor, failureCode, summary };
+  return lifecycle === "active" ? { ...current, active: merged, activeCursor: cursor, failureCode } : { ...current, archived: merged, archivedCursor: cursor, failureCode };
 }
 
 function mergeResources(current: WorkflowRAGSnapshotResource[], incoming: WorkflowRAGSnapshotResource[]): WorkflowRAGSnapshotResource[] {
   return [...new Map([...current, ...incoming].map((resource) => [resource.snapshotId, resource])).values()].sort((left, right) => left.snapshotKey.localeCompare(right.snapshotKey));
 }
 
-function localFailure(failureCode: string, summary = "知识快照输入在请求发送前被拒绝。"): WorkflowRAGSnapshotOperationResult {
-  return { status: "failed", record: null, failureCode, currentLatestVersion: 0, currentLifecycleState: "", summary };
+function localFailure(failureCode: string, localMessage: SnapshotOperation["localMessage"] = "localRejected"): SnapshotOperation {
+  return { status: "failed", record: null, failureCode, currentLatestVersion: 0, currentLifecycleState: "", summary: "", localMessage };
 }

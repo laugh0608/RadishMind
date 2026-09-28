@@ -1406,6 +1406,10 @@ h4 {
   background: var(--rm-bg-surface);
 }
 
+.workflow-rag-fragment-owner {
+  container: rag-fragments / inline-size;
+}
+
 .workflow-rag-owner-heading,
 .workflow-rag-source-heading,
 .workflow-rag-inspector-heading {
@@ -1928,6 +1932,22 @@ h4 {
     text-align: center;
   }
 
+  .workflow-rag-fragment-workspace,
+  .workflow-rag-fragment-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-rag-fragment-list {
+    border-right: 0;
+    border-bottom: 1px solid var(--rm-border-soft);
+  }
+
+  .workflow-rag-fragment-fields .wide {
+    grid-column: auto;
+  }
+}
+
+@container rag-fragments (max-width: 520px) {
   .workflow-rag-fragment-workspace,
   .workflow-rag-fragment-fields {
     grid-template-columns: 1fr;
