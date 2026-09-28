@@ -56,9 +56,9 @@
       "active_draft_runtime_readiness_inspector"
     ],
     "required_panel_literals": [
-      "Active Draft Review Record",
-      "Validation, plan, readiness",
-      "Saved Draft Conflict Review",
+      "$.handoff.activeDraftReviewRecord",
+      "$.handoff.validationPlanReadiness",
+      "$.handoff.savedDraftConflictReview",
       "WorkflowReviewHandoffSavedDraftConflictCard",
       "handoff.savedDraftConflictReviewSummary",
       "WorkflowReviewHandoffActiveDraftSectionCard",

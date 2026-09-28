@@ -62,17 +62,17 @@
       "canStartRuntime: false"
     ],
     "required_panel_literals": [
-      "Node Designer Review Handoff",
-      "Canvas overlay, inspector, mapping",
+      "$.handoff.nodeDesignerReviewHandoff",
+      "$.handoff.canvasOverlayInspectorMapping",
       "WorkflowReviewHandoffNodeDesignerSectionCard",
       "WorkflowReviewHandoffNodeDesignerGraphFindingCard",
       "workflowReviewHandoffGraphFindingGroups(",
       "workflow-review-handoff-graph-summary",
       "workflow-review-handoff-graph-group",
       "workflow-review-handoff-graph-card-traces",
-      "Handoff path",
-      "Handoff path refs",
-      "Evidence refs",
+      "$.handoff.handoffPath",
+      "$.handoff.handoffPathRefs",
+      "$.handoff.evidenceRefs",
       "handoff.nodeDesignerReviewRecord.sections.map",
       "group.findings.map",
       "finding.handoffPath",
@@ -82,9 +82,9 @@
       "Edge graph findings",
       "Graph-level findings",
       "section.itemCount",
-      "Workflow node designer review handoff",
-      "Workflow node designer graph review summary",
-      "Workflow node designer graph review findings"
+      "$.handoff.workflowNodeDesignerReviewHandoff",
+      "$.handoff.workflowNodeDesignerGraphReviewSummary",
+      "$.handoff.workflowNodeDesignerGraphReviewFindings"
     ],
     "required_context_literals": [
       "const workflowReviewHandoff = buildWorkflowReviewHandoffViewModel({",

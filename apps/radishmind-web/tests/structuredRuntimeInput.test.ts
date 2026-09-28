@@ -30,7 +30,7 @@ test("structured runtime validation preserves types and requires an explicit boo
   const contract = parseStructuredRuntimeInputContractDocument(contractDocument)!;
   const missing = validateStructuredRuntimeInputDrafts(contract, { customer_name: "Acme", retry_count: "2" });
   assert.equal(missing.failureCode, "workflow_input_required_field_missing");
-  assert.equal(missing.fieldErrors.dry_run, "这是必填字段。");
+  assert.equal(missing.fieldErrors.dry_run, "required");
 
   const valid = validateStructuredRuntimeInputDrafts(contract, {
     customer_name: "Acme",
@@ -45,7 +45,7 @@ test("structured runtime validation preserves types and requires an explicit boo
 test("structured runtime validation rejects unknown, unsafe, and mistyped values", () => {
   const contract = parseStructuredRuntimeInputContractDocument(contractDocument)!;
   assert.equal(validateStructuredRuntimeInputDrafts(contract, { customer_name: "Acme", retry_count: "2", dry_run: true, unknown: "x" }).failureCode, "workflow_input_unknown_field");
-  assert.equal(validateStructuredRuntimeInputDrafts(contract, { customer_name: "password=hunter2", retry_count: "2", dry_run: true }).fieldErrors.customer_name?.includes("不得包含"), true);
+  assert.equal(validateStructuredRuntimeInputDrafts(contract, { customer_name: "password=hunter2", retry_count: "2", dry_run: true }).fieldErrors.customer_name, "secret_material");
   assert.equal(validateStructuredRuntimeInputDrafts(contract, { customer_name: "Acme", retry_count: "2.5", dry_run: true }).failureCode, "workflow_input_value_type_invalid");
   assert.equal(validateStructuredRuntimeInputDrafts(contract, { customer_name: "Acme", retry_count: "2", threshold: "0x10", dry_run: true }).failureCode, "workflow_input_value_type_invalid");
   assert.equal(validateStructuredRuntimeInputDrafts(contract, { customer_name: "Acme", retry_count: "2", threshold: "1e309", dry_run: true }).failureCode, "workflow_input_value_type_invalid");

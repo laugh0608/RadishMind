@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   WorkflowDefinitionPromotionConflict,
+  WorkflowDefinitionPromotionFailure,
   createWorkflowDefinitionCandidate,
   decideWorkflowDefinitionCandidate,
   deriveWorkflowDraftFromDefinitionVersion,
@@ -229,3 +230,12 @@ function snapshotDocument() {
 function runV5() { const node = (id: string, type: string) => ({ node_id: id, node_type: type, label: id, status: "succeeded", started_at: "2026-07-19T10:02:00Z", completed_at: "2026-07-19T10:02:01Z", duration_ms: 10, predecessor_node_ids: [], provider_ref: type === "llm" ? "provider:mock" : "", output_preview: "", failure_code: "" }); return { schema_version: "workflow_run_record.v5", record_version: 2, run_id: "run_definition_demo", draft_id: "", draft_version: 0, workspace_id: "workspace_demo", application_id: applicationId, execution_kind: "workflow_definition_execution", execution_source_kind: "workflow_definition", execution_source_id: "definition_demo", execution_source_version: 1, execution_profile: "workflow_definition_executor_v1", input_digest: digest, definition_authority: { definition_id: "definition_demo", definition_version: 1, definition_digest: digest, activation_pointer_version: 1, candidate_id: "candidate_demo", candidate_review_version: 1, source_draft_id: "draft_demo", source_draft_version: 3, source_draft_digest: digest, application_record_version: 1, application_lifecycle: "active" }, status: "succeeded", failure_code: "", failure_summary: "", started_at: "2026-07-19T10:02:00Z", completed_at: "2026-07-19T10:02:01Z", input_bytes: 23, condition_node_ids: [], requested_model: "", selected_provider: "mock", selected_profile: "", selected_model: "mock", upstream_model: "mock", selection_source: "mock", nodes: [node("node_prompt", "prompt"), node("node_model", "llm"), node("node_output", "output")], output: "", request_id: "request_run", audit_ref: "audit_run", actor_ref: "subject_demo_user", side_effects: { retrieval_calls: 0, provider_calls: 1, tool_calls: 0, confirmation_calls: 0, business_writes: 0, replay_writes: 0 }, diagnostic: { failure_boundary: "", failure_stage: "", failed_node_id: "", last_completed_node_id: "node_output", terminal_write_state: "stored", gateway_failure_category: "none", tool_failure_category: "none", retrieval_failure_category: "none", summary: "", recommended_review_action: "", observed_at: "2026-07-19T10:02:01Z" } }; }
 function runV8() { return { ...runV5(), schema_version: "workflow_run_record.v8", execution_source_version: 2, execution_profile: "workflow_definition_executor_v2", input_contract_id: "contract_customer_retry", input_contract_digest: digest, input_fields: [{ name: "customer_name", value_type: "string" }, { name: "retry_count", value_type: "integer" }], definition_authority: { ...runV5().definition_authority, definition_version: 2 }, input_bytes: 40 }; }
 function json(value: unknown): Promise<Response> { return Promise.resolve(new Response(JSON.stringify(value), { status: 200, headers: { "Content-Type": "application/json" } })); }
+
+
+test("rejected promotion preserves the server failure code independently of its prose", async () => {
+  globalThis.fetch = async () => json(releaseEnvelope({ failure_code: "workflow_definition_activation_denied" }));
+  await assert.rejects(
+    () => createWorkflowDefinitionCandidate(live, applicationId, { candidateId: "candidate_demo", definitionId: "definition_demo", draftId: "draft_demo", expectedDraftVersion: 1, expectedLifecycleVersion: 1 }),
+    (error: unknown) => error instanceof WorkflowDefinitionPromotionFailure && error.failureCode === "workflow_definition_activation_denied",
+  );
+});

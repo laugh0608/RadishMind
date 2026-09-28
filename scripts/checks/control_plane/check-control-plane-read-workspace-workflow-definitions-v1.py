@@ -228,7 +228,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     ):
         require(literal in source, f"workspace workflow definitions missing source literal: {literal}")
     for literal in (
-        "Workflows",
+        "$.appShell.workflows",
         "workspaceWorkflowDefinitions.canRenderWorkflowDefinitions",
         "WorkflowDefinitionMetric",
         "WorkflowDefinitionRow",

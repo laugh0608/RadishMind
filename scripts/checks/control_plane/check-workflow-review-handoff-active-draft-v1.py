@@ -90,7 +90,7 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         "handoff must build active draft review record before recipients, findings, and evidence",
     )
     require(
-        panel_text.index("Active Draft Review Record") < panel_text.index("Review Recipients"),
+        panel_text.index("$.handoff.activeDraftReviewRecord") < panel_text.index("$.handoff.reviewRecipients"),
         "active draft review record must render before review recipients",
     )
 

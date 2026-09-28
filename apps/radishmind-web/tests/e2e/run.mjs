@@ -111,7 +111,7 @@ try {
   if (interrupted) throw new Error("Interrupted during configuration setup.");
   const launcher = start("bash", [
     join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-    "--mode", "dev-live", "--workflow-definition-local-product", "--prompt-application-local-product", "--no-reuse-existing",
+    "--mode", "dev-live", "--workflow-definition-local-product", "--workflow-template-local-product", "--prompt-application-local-product", "--no-reuse-existing",
     "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
     "--timeout-seconds", "120", "--log-dir", join(output, "services"),
     "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),

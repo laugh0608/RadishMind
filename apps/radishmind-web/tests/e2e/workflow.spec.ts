@@ -109,15 +109,15 @@ test("late save and validation responses cannot cross draft or workspace scope",
 test("reviewed definition runs once and remains readable after refresh across layouts", async ({ page, application }) => {
   await createDraft(page);
   await saveDraft(page, 1);
-  await page.getByRole("link", { name: "Open Workflow definition owner", exact: true }).click();
-  await page.getByRole("button", { name: "创建晋级候选", exact: true }).click();
-  await page.getByRole("button", { name: "追加 review v1", exact: true }).click();
-  await page.getByRole("button", { name: "activate · expected pointer v0", exact: true }).click();
-  await expect(page.getByRole("button", { name: "启动精确版本运行", exact: true })).toBeEnabled();
+  await page.getByRole("link", { name: uiText(page, "Open Workflow definition owner"), exact: true }).click();
+  await page.getByRole("button", { name: uiText(page, "Create promotion candidate"), exact: true }).click();
+  await page.getByRole("button", { name: uiText(page, "Append review v1"), exact: true }).click();
+  await page.getByRole("button", { name: uiText(page, "Activate · expected pointer v0"), exact: true }).click();
+  await expect(page.getByRole("button", { name: uiText(page, "Start exact version run"), exact: true })).toBeEnabled();
 
   for (const width of [1440, 1200, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    const link = page.getByRole("link", { name: "Open Workflow definition owner", exact: true });
+    const link = page.getByRole("link", { name: uiText(page, "Open Workflow definition owner"), exact: true });
     await link.scrollIntoViewIfNeeded();
     const geometry = await link.evaluate((element) => {
       const workbench = element.closest(".application-development-workbench")!;
@@ -132,7 +132,7 @@ test("reviewed definition runs once and remains readable after refresh across la
       };
     });
     expect(geometry).toEqual({ railWithin: true, pointerHits: true, pageWidth: width });
-    await page.getByRole("link", { name: "Open Application candidate owner", exact: true }).click();
+    await page.getByRole("link", { name: uiText(page, "Open Application candidate owner"), exact: true }).click();
     await link.click();
     await expect(page).toHaveURL(/#workflow-definition-promotion$/);
     await expect(page.locator("#application-development-owner-surface")).toBeVisible();
@@ -143,17 +143,17 @@ test("reviewed definition runs once and remains readable after refresh across la
   page.on("request", (request) => {
     if (request.method() === "POST" && new URL(request.url()).pathname === "/v1/user-workspace/workflow-definition-runs") executions.push(request.url());
   });
-  await page.getByRole("textbox", { name: "一次性输入", exact: true }).fill("Synthetic E2E advisory input; no business action is authorized.");
-  await page.getByRole("button", { name: "启动精确版本运行", exact: true }).click();
-  await expect(page.getByRole("button", { name: "打开 Run History", exact: true })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "一次性输入", exact: true })).toHaveValue("");
+  await page.getByRole("textbox", { name: uiText(page, "One-time input"), exact: true }).fill("Synthetic E2E advisory input; no business action is authorized.");
+  await page.getByRole("button", { name: uiText(page, "Start exact version run"), exact: true }).click();
+  await expect(page.getByRole("button", { name: uiText(page, "Open Run History"), exact: true })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: uiText(page, "One-time input"), exact: true })).toHaveValue("");
   const runId = await page.locator(".workflow-definition-run-result strong").innerText();
   expect(runId).toMatch(/^run_[a-z0-9]+$/);
-  await page.getByRole("button", { name: "打开 Run History", exact: true }).click();
+  await page.getByRole("button", { name: uiText(page, "Open Run History"), exact: true }).click();
   const runOwner = page.getByRole("region", { name: uiText(page, "runs workflow review owner"), exact: true });
   await expect(runOwner).toContainText(runId);
   await expect(runOwner).toContainText("workflow_run_record.v5");
-  await expect(runOwner).toContainText(/succeeded/i);
+  await expect(runOwner).toContainText(uiText(page, "Succeeded"));
   await page.reload();
   await selectApplication(page, application);
   // The catalog projection is refreshed on reload, after the definition was published.
@@ -172,7 +172,7 @@ test("reviewed definition runs once and remains readable after refresh across la
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("button", { name: new RegExp(`^${runId} `) }).click();
   await expect(runOwner).toContainText("workflow_run_record.v5");
-  await expect(runOwner).toContainText(/succeeded/i);
+  await expect(runOwner).toContainText(uiText(page, "Succeeded"));
   await expect(runOwner).not.toContainText("Synthetic E2E advisory input");
   expect(executions).toHaveLength(1);
 });

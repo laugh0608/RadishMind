@@ -1,3 +1,4 @@
+import type { StructuredRuntimeInputFieldError } from "./structuredRuntimeInput.ts";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -720,7 +721,7 @@ function StructuredEvaluationFixtureEditor({
     ? `${structuredRuntimeInputAuthorityKey(source.contract)}:${selectedItem.itemKey}:${JSON.stringify(sourceInputs)}`
     : "invalid";
   const [drafts, setDrafts] = useState<StructuredRuntimeInputDrafts>(() => runtimeInputDrafts(sourceInputs));
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, StructuredRuntimeInputFieldError>>({});
   const [validationSummary, setValidationSummary] = useState("");
 
   useEffect(() => {

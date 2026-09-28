@@ -30,5 +30,7 @@ export const appShell = {
   "blockedDetail": "Read-only status reference",
   "auditDetail": "Latest list read audit reference",
   "singlePage": "Single page"
-}
+},
+  workflows: "Workflows",
+  workflowReviewLoading: "Loading workflow review handoff…",
 } as const;

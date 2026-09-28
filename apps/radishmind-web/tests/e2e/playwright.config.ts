@@ -11,7 +11,7 @@ export default defineConfig({
   testMatch: "*.spec.ts",
   projects: [
     { name: "chromium-en-US", use: { locale: "en-US" } },
-    { name: "chromium-zh-CN", grepInvert: /reviewed definition runs once/, use: { locale: "zh-CN" } },
+    { name: "chromium-zh-CN", use: { locale: "zh-CN" } },
   ],
   fullyParallel: false,
   workers: 1,

@@ -1,3 +1,10 @@
+import type { workflowInput } from "./locales/en-US/workflowInput.ts";
+import type { workflowHistory } from "./locales/en-US/workflowHistory.ts";
+import type { workflowExecutor } from "./locales/en-US/workflowExecutor.ts";
+import type { workflowTemplate } from "./locales/en-US/workflowTemplate.ts";
+import type { workflowPromotion } from "./locales/en-US/workflowPromotion.ts";
+import type { workflowHandoff } from "./locales/en-US/workflowHandoff.ts";
+import type { workflowInspection } from "./locales/en-US/workflowInspection.ts";
 import "i18next";
 import type { common } from "./locales/en-US/common.ts";
 import type { shell } from "./locales/en-US/shell.ts";
@@ -30,6 +37,6 @@ declare module "i18next" {
     defaultNS: "common";
     enableSelector: true;
     returnNull: false;
-    resources: { workflow: { library: typeof workflowLibrary; revision: typeof workflowRevision; canvas: typeof workflowCanvas; draft: typeof workflowDraft }; common: typeof common; shell: typeof shell & { appShell: typeof appShell }; identity: typeof identity; prompt: typeof prompt; evaluation: { runReview: typeof runReview }; gateway: { playground: typeof playground; apiIntegration: typeof apiIntegration; apiKey: typeof apiKey }; applications: { catalog: typeof catalog; configuration: typeof configuration; publish: typeof publish; workspacePanel: typeof workspacePanel; workspaceSurface: typeof workspaceSurface; promptWorkspace: typeof promptWorkspace; artifact: typeof artifact; artifactLibrary: typeof artifactLibrary } };
+    resources: { workflow: { input: typeof workflowInput; history: typeof workflowHistory; executor: typeof workflowExecutor; template: typeof workflowTemplate; promotion: typeof workflowPromotion; handoff: typeof workflowHandoff; inspection: typeof workflowInspection; library: typeof workflowLibrary; revision: typeof workflowRevision; canvas: typeof workflowCanvas; draft: typeof workflowDraft }; common: typeof common; shell: typeof shell & { appShell: typeof appShell }; identity: typeof identity; prompt: typeof prompt; evaluation: { runReview: typeof runReview }; gateway: { playground: typeof playground; apiIntegration: typeof apiIntegration; apiKey: typeof apiKey }; applications: { catalog: typeof catalog; configuration: typeof configuration; publish: typeof publish; workspacePanel: typeof workspacePanel; workspaceSurface: typeof workspaceSurface; promptWorkspace: typeof promptWorkspace; artifact: typeof artifact; artifactLibrary: typeof artifactLibrary } };
   }
 }

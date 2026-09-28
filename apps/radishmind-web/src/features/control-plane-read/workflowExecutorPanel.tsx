@@ -1,3 +1,7 @@
+import { executorStateMessage, executorBlockerMessage } from "./workflowExecutorMessages.ts";
+import "../../i18n/workflowDraftResources.ts";
+import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
+import "../../i18n/workflowExecutorResources.ts";
 import { useTranslation } from "react-i18next";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
 import type {
@@ -33,7 +37,8 @@ export function WorkflowExecutorPanel({
   onStartRun: () => void;
   onReloadRun: () => void;
 }) {
-  const { t } = useTranslation("shell");
+  const { t } = useTranslation("workflow");
+  const { t: shellT } = useTranslation("shell");
   const pending = consumerState.status === "starting" || consumerState.status === "reading";
   const canStart = consumerState.mode === "dev_workflow_executor_http" &&
     eligibility.eligible && inputText.trim().length > 0 && !pending;
@@ -46,50 +51,50 @@ export function WorkflowExecutorPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Workflow Executor v0</p>
-          <h4 id="workflow-executor-v0-title">Bounded development run</h4>
+          <p className="eyebrow">{t($ => $.executor.workflowExecutorV0)}</p>
+          <h4 id="workflow-executor-v0-title">{t($ => $.executor.boundedDevelopmentRun)}</h4>
         </div>
         <ExecutorStatusBadge state={consumerState} eligible={eligibility.eligible} />
       </div>
 
       <div className="workflow-executor-summary-grid">
         <article>
-          <span>Draft</span>
+          <span>{t($ => $.executor.draft)}</span>
           <strong>{draft.draftId}</strong>
-          <p>{draft.executionProfile ?? "review_only"} / saved version {eligibility.savedDraftVersion}</p>
+          <p>{t($ => $.executor.savedProfile, { profile: draft.executionProfile ?? "review_only", version: eligibility.savedDraftVersion })}</p>
         </article>
         <article>
-          <span>Graph</span>
-          <strong>{draft.nodes.length} nodes / {draft.edges.length} edges</strong>
-          <p>{eligibility.eligible ? "Eligible for server revalidation." : `${eligibility.reasons.length} blocker(s).`}</p>
+          <span>{t($ => $.executor.graph)}</span>
+          <strong>{t($ => $.executor.graphSize, { nodes: draft.nodes.length, edges: draft.edges.length })}</strong>
+          <p>{eligibility.eligible ? t($ => $.executor.eligible) : t($ => $.executor.blockers, { count: eligibility.reasons.length })}</p>
         </article>
         <article>
-          <span>Run store</span>
-          <strong>memory dev / 100 records</strong>
-          <p>Scoped read is available; restart recovery and replay remain disabled.</p>
+          <span>{t($ => $.executor.runStore)}</span>
+          <strong>{t($ => $.executor.memoryDev100Records)}</strong>
+          <p>{t($ => $.executor.scopedReadIsAvailableRestartRecoveryAndReplayRemainDisabled)}</p>
         </article>
         <article>
-          <span>Boundary</span>
-          <strong>Gateway advisory only</strong>
-          <p>No tool, RAG, confirmation commit, business write, or replay access.</p>
+          <span>{t($ => $.executor.boundary)}</span>
+          <strong>{t($ => $.executor.gatewayAdvisoryOnly)}</strong>
+          <p>{t($ => $.executor.noToolRAGConfirmationCommitBusinessWriteOrReplayAccess)}</p>
         </article>
       </div>
 
       <div className="workflow-executor-action-row">
         <button type="button" disabled={pending} onClick={onCreateExecutorDraft}>
-          {t($ => $.appShell.workflowCreateExecutor)}
+          {shellT($ => $.appShell.workflowCreateExecutor)}
         </button>
         <button type="button" disabled={!canStart} onClick={onStartRun}>
-          {consumerState.status === "starting" ? "Running…" : "Start bounded run"}
+          {consumerState.status === "starting" ? t($ => $.executor.running) : t($ => $.executor.start)}
         </button>
         <button type="button" disabled={pending || !record} onClick={onReloadRun}>
-          {consumerState.status === "reading" ? "Reloading…" : "Reload run record"}
+          {consumerState.status === "reading" ? t($ => $.executor.reading) : t($ => $.executor.reload)}
         </button>
       </div>
 
       <div className="workflow-executor-input-grid">
         <label className="workflow-executor-input-field wide">
-          <span>Run input</span>
+          <span>{t($ => $.executor.runInput)}</span>
           <textarea
             rows={4}
             maxLength={8192}
@@ -97,24 +102,24 @@ export function WorkflowExecutorPanel({
             disabled={pending}
             onChange={(event) => onInputTextChange(event.currentTarget.value)}
           />
-          <small>The server records only the byte count; raw input is not written to the run record.</small>
+          <small>{t($ => $.executor.theServerRecordsOnlyTheByteCountRawInputIs)}</small>
         </label>
         <label className="workflow-executor-input-field">
-          <span>Gateway model override</span>
+          <span>{t($ => $.executor.gatewayModelOverride)}</span>
           <input
             type="text"
             maxLength={256}
             value={model}
-            placeholder="Use configured default"
+            placeholder={t($ => $.executor.useConfiguredDefault)}
             disabled={pending}
             onChange={(event) => onModelChange(event.currentTarget.value)}
           />
-          <small>Optional; provider endpoint and credentials cannot be supplied here.</small>
+          <small>{t($ => $.executor.optionalProviderEndpointAndCredentialsCannotBeSuppliedHere)}</small>
         </label>
       </div>
 
       {eligibility.conditionNodeIds.length > 0 ? (
-        <div className="workflow-executor-condition-grid" aria-label="Workflow executor explicit conditions">
+        <div className="workflow-executor-condition-grid" aria-label={t($ => $.executor.workflowExecutorExplicitConditions)}>
           {eligibility.conditionNodeIds.map((nodeId) => (
             <label key={nodeId}>
               <span>{nodeId}</span>
@@ -132,11 +137,11 @@ export function WorkflowExecutorPanel({
       ) : null}
 
       {!eligibility.eligible ? (
-        <div className="workflow-executor-blocker-list" aria-label="Workflow executor eligibility blockers">
+        <div className="workflow-executor-blocker-list" aria-label={t($ => $.executor.workflowExecutorEligibilityBlockers)}>
           {eligibility.reasons.map((reason) => (
             <article key={`${reason.code}-${reason.summary}`}>
               <code>{reason.code}</code>
-              <p>{reason.summary}</p>
+              <p>{executorBlockerMessage(t, reason.code)}</p>
             </article>
           ))}
         </div>
@@ -144,74 +149,74 @@ export function WorkflowExecutorPanel({
 
       <article className="workflow-executor-state-card">
         <div>
-          <span>Consumer state</span>
-          <strong>{consumerState.status}</strong>
+          <span>{t($ => $.executor.consumerState)}</span>
+          <strong>{workflowDraftStatusLabel(t, consumerState.status)}</strong>
         </div>
-        <p>{consumerState.summary}</p>
+        <p>{executorStateMessage(t, consumerState)}</p>
         <dl>
           <div>
-            <dt>Failure</dt>
-            <dd>{consumerState.failureCode ?? "none"}</dd>
+            <dt>{t($ => $.executor.failure)}</dt>
+            <dd>{consumerState.failureCode ?? workflowDraftStatusLabel(t, "none")}</dd>
           </div>
           <div>
-            <dt>Request</dt>
+            <dt>{t($ => $.executor.request)}</dt>
             <dd>{consumerState.requestId}</dd>
           </div>
           <div>
-            <dt>Audit</dt>
+            <dt>{t($ => $.executor.audit)}</dt>
             <dd>{consumerState.auditRef}</dd>
           </div>
         </dl>
       </article>
 
       {record ? (
-        <div className="workflow-executor-record" aria-label="Workflow executor run record">
+        <div className="workflow-executor-record" aria-label={t($ => $.executor.workflowExecutorRunRecord)}>
           <div className="workflow-executor-record-heading">
             <div>
-              <span>Run record</span>
+              <span>{t($ => $.executor.runRecord)}</span>
               <strong>{record.runId}</strong>
             </div>
             <span className={`status-badge ${record.status === "succeeded" ? "good" : "bad"}`}>
-              {record.status}
+              {workflowDraftStatusLabel(t, record.status)}
             </span>
           </div>
           <dl className="workflow-executor-record-meta">
             <div>
-              <dt>Draft version</dt>
+              <dt>{t($ => $.executor.draftVersion)}</dt>
               <dd>{record.draftVersion}</dd>
             </div>
             <div>
-              <dt>Provider</dt>
-              <dd>{record.selectedProvider || "not selected"}</dd>
+              <dt>{t($ => $.executor.provider)}</dt>
+              <dd>{record.selectedProvider || workflowDraftStatusLabel(t, "not_selected")}</dd>
             </div>
             <div>
-              <dt>Profile</dt>
-              <dd>{record.selectedProfile || "none"}</dd>
+              <dt>{t($ => $.executor.profile)}</dt>
+              <dd>{record.selectedProfile || workflowDraftStatusLabel(t, "none")}</dd>
             </div>
             <div>
-              <dt>Model</dt>
-              <dd>{record.selectedModel || "not selected"}</dd>
+              <dt>{t($ => $.executor.model)}</dt>
+              <dd>{record.selectedModel || workflowDraftStatusLabel(t, "not_selected")}</dd>
             </div>
             <div>
-              <dt>Input bytes</dt>
+              <dt>{t($ => $.executor.inputBytes)}</dt>
               <dd>{record.inputBytes}</dd>
             </div>
             <div>
-              <dt>Provider calls</dt>
+              <dt>{t($ => $.executor.providerCalls)}</dt>
               <dd>{record.sideEffects.providerCalls}</dd>
             </div>
             <div>
-              <dt>Tool / confirmation</dt>
+              <dt>{t($ => $.executor.toolConfirmation)}</dt>
               <dd>{record.sideEffects.toolCalls} / {record.sideEffects.confirmationCalls}</dd>
             </div>
             <div>
-              <dt>Business / replay writes</dt>
+              <dt>{t($ => $.executor.businessReplayWrites)}</dt>
               <dd>{record.sideEffects.businessWrites} / {record.sideEffects.replayWrites}</dd>
             </div>
           </dl>
           {record.output ? (
             <div className="workflow-executor-output">
-              <span>Advisory output</span>
+              <span>{t($ => $.executor.advisoryOutput)}</span>
               <pre>{record.output}</pre>
             </div>
           ) : null}
@@ -239,14 +244,16 @@ function ExecutorStatusBadge({
       ? "good"
       : "neutral";
   const label = state.mode === "disabled"
-    ? "dev gate disabled"
+    ? "dev_gate_disabled"
     : state.status === "idle" && eligible
-      ? "ready to run"
+      ? "ready_to_run"
       : state.status;
-  return <span className={`status-badge ${tone}`}>{label}</span>;
+  const { t } = useTranslation("workflow");
+  return <span className={`status-badge ${tone}`}>{workflowDraftStatusLabel(t, label)}</span>;
 }
 
 function WorkflowRunNodeRecordCard({ node }: { node: WorkflowRunNodeRecord }) {
+  const { t } = useTranslation("workflow");
   const tone = node.status === "succeeded"
     ? "good"
     : node.status === "failed"
@@ -256,26 +263,26 @@ function WorkflowRunNodeRecordCard({ node }: { node: WorkflowRunNodeRecord }) {
     <article>
       <div className="workflow-executor-record-heading">
         <div>
-          <span>{node.nodeType}</span>
+          <span>{workflowDraftStatusLabel(t, node.nodeType)}</span>
           <strong>{node.label || node.nodeId}</strong>
         </div>
-        <span className={`status-badge ${tone}`}>{node.status}</span>
+        <span className={`status-badge ${tone}`}>{workflowDraftStatusLabel(t, node.status)}</span>
       </div>
       <dl>
         <div>
-          <dt>Node</dt>
+          <dt>{t($ => $.executor.node)}</dt>
           <dd>{node.nodeId}</dd>
         </div>
         <div>
-          <dt>Duration</dt>
+          <dt>{t($ => $.executor.duration)}</dt>
           <dd>{node.durationMs} ms</dd>
         </div>
         <div>
-          <dt>Failure</dt>
-          <dd>{node.failureCode || "none"}</dd>
+          <dt>{t($ => $.executor.failure)}</dt>
+          <dd>{node.failureCode || workflowDraftStatusLabel(t, "none")}</dd>
         </div>
       </dl>
-      <p>{node.outputPreview || "No output preview was retained."}</p>
+      <p>{node.outputPreview || t($ => $.executor.noPreview)}</p>
     </article>
   );
 }

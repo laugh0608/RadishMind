@@ -2,7 +2,7 @@
 
 更新时间：2026-09-28
 
-状态：A 阶段已完成；公共基座、Prompt 主链双语和切换状态检查已通过，既有英文 Workflow 回归通过。B 阶段草案流程已通过双语验收；全站双语迁移尚未完成。
+状态：A 阶段已完成；公共基座、Prompt 主链双语和切换状态检查已通过，既有英文 Workflow 回归通过。B 阶段草案流程已通过双语验收，候选审查与 Definition 运行已通过双语回归，模板扩展验收待授权；全站双语迁移尚未完成。
 
 ## 目标与职责
 
@@ -235,19 +235,19 @@ npm install --save-exact --ignore-scripts --cache ../../tmp/npm-i18n-cache i18ne
 
 ## B 阶段首个实施范围（2026-09-28）
 
-项目所有者已批准准备 B 阶段并实施首个完整草案流程。B 保持进行中；草案流程已通过双语验收，其它页面未迁移，验证记录见[本周周志](../devlogs/2026-W40.md)。
+项目所有者已批准准备 B 阶段并实施首个完整草案流程。B 保持进行中；草案流程已通过双语验收，候选审查与 Definition 运行已通过双语回归，模板扩展验收待授权，验证记录见[本周周志](../devlogs/2026-W40.md)。
 
 | 流程 | 实际页面与组件 | 必须覆盖的状态 | 顺序 |
 | --- | --- | --- | --- |
 | 草案创建与草案库 | `workflowUserWorkspaceHomePanel`、`useWorkflowSavedDraftLibrary` | 活动 / 归档、筛选、空态、加载、分页、失败、归档确认、解除归档后重新打开 | 本次 |
 | 编辑与保存 | `workflowDraftDesignerPanel`、`workflowNodeDesigner`、`useWorkflowDraftWorkspace` | 节点 / 连线 / 属性 / 端口、未保存、只读、校验、保存等待、双版本冲突与显式恢复 | 本次 |
 | 修订与恢复 | `workflowSavedDraftRevisionPanel` | 历史读取失败、分页、差异、恢复确认、未保存替换、归档禁止恢复 | 本次 |
-| 完整校验与审查 | 校验检查器、计划预览、就绪状态、`workflowReviewHandoffPanel`、`workflowDefinitionPromotionPanel` | 本地 findings、阻断、候选审查、激活与权限失败 | 后续 |
-| 模板与运行 | `workflowTemplateCatalogPanel`、`workflowExecutorPanel`、Definition 运行与精确历史 | 模板目录 / 派生、来源不可用、运行等待、失败恢复、精确版本与运行引用 | 后续 |
+| 完整校验与审查 | 校验检查器、计划预览、就绪状态、`workflowReviewHandoffPanel`、`workflowDefinitionPromotionPanel` | 本地 findings、阻断、候选审查、激活与权限失败 | 操作界面与稳定状态已迁移；离线投影解释仍待迁移 |
+| 模板与运行 | `workflowTemplateCatalogPanel`、`workflowExecutorPanel`、Definition 运行与精确历史 | 模板目录 / 派生、来源不可用、运行等待、失败恢复、精确版本与运行引用 | 已迁移；Definition 已验收，模板待授权验收 |
 | RAG | Snapshot / Editor、Execution、Promotion、Application Runtime 面板 | 材料输入、检索、空结果、来源审查、权限 / 版本失败、运行与恢复 | 后续；评测数据集完整管理归 E |
 | HTTP Tool | Action、Execution、Definition HTTP Tool Runtime 面板 | 计划、显式确认、拒绝、权限漂移、执行、失败与结果 | 后续 |
 
-首个切片贯通创建、节点编辑、校验 / 保存反馈、历史比较、恢复与冲突处理。相邻完整审查、模板、RAG / Tool 与离线证据内容仍登记为未完成，不由首个切片代替 B 验收。
+首个切片贯通创建、节点编辑、校验 / 保存反馈、历史比较、恢复与冲突处理。后续操作界面迁移见下节；RAG / Tool 与离线投影解释仍登记为未完成，不由已完成的切片代替 B 验收。
 
 术语固定为“草案 / Draft”“修订 / Revision”“内容版本 / Content version”“生命周期版本 / Lifecycle version”“打开 / Open”“恢复为新修订 / Restore as a new revision”“节点 / Node”“连线 / Edge”“端口 / Port”。打开不会创建修订；归档不删除内容或停用已晋级定义；恢复须显式确认且不改写历史。
 
@@ -256,6 +256,15 @@ npm install --save-exact --ignore-scripts --cache ../../tmp/npm-i18n-cache i18ne
 验证复用资源完整性、草案消费端与编辑测试；草案两条浏览器流程扩为双语，补编辑 / 等待 / 恢复确认切换和三视口，保留 Prompt 与英文 Definition 运行回归。完整三条 Workflow 双语须在运行与审查迁移后完成；RAG / Tool 另补风险相称的覆盖。包体预算不提高。浏览器窗口使用既有 `npm run test:e2e` 运行器，Web `4100`、Platform `17000`、随机回环固定响应端口和临时 SQLite，结束清理所管进程与数据库；实际授权与验证结果写入本周周志。
 
 本次完整浏览器回归连续两轮共 42 次通过，含 Prompt 24 次与 Workflow 18 次；草案语言切换、作用域隔离、修订冲突、归档与重新打开及三视口检查通过。资源 / 单元 / 覆盖率、类型与构建通过，预算保持不变。报告路径、失败修复与清理证据见本周周志，远端 CI 尚未执行。
+
+
+## B 阶段审查、模板与运行界面（2026-09-28）
+
+项目所有者要求继续推进后，沿既有专题迁移候选创建 / 审查 / 激活、模板候选 / 审查 / 上架 / 派生、执行器和精确运行历史。异步反馈保存稳定消息标识与参数；语言变化不进入请求依赖，不改变候选、指针版本、一次性输入、派生确认或用户理由。结构化输入错误改为内部稳定错误标识，由共享编辑器翻译；字段验证规则和请求内容不变。
+
+校验、计划、就绪和交接的标题、状态、统计、辅助名称已接入双语。三个离线检查组件移出 `App.tsx`，沿既有区域懒加载对应资源，以保持原包体预算；未改变其数据构建或能力门禁。离线投影产生的 `summary`、审阅问题、前置条件与证据长篇解释仍保留源文本，并显示来源说明；这些可达说明仍属待迁移界面，不能以“原始数据”为由宣布完成。用户内容、保存的运行诊断、协议标识与摘要继续保持原文。
+
+中文 Definition 运行不再被浏览器配置跳过，补充审查等待中切换、模板上架 / 派生确认中切换及三视口检查。既有检查器改查资源选择器与组件新位置，能力约束和禁用行为断言保留。原授权范围内含双语 Definition 的 44 次回归通过。审查等待与模板派生切换用例已准备，但模板扩展窗口尚待授权，未执行的流程不计入验收。浏览器范围与实际结果以本周周志为准；模板测试配置使用既有 `--workflow-template-local-product` 开关进入隔离开发测试态，不改变生产配置或能力准入。
 
 ## 验证与验收
 
@@ -293,7 +302,7 @@ npm install --save-exact --ignore-scripts --cache ../../tmp/npm-i18n-cache i18ne
 
 ## 后续进入条件
 
-B 阶段清单与首个草案流程已实施，下一动作是迁移完整校验 / 审查、模板与 Definition 运行，随后进入 RAG / HTTP Tool。不重建 i18n 专题、不增加依赖或提高包体阈值。后续浏览器窗口按届时范围授权，真实模型试用继续暂缓。
+B 阶段草案流程已验收，审查与 Definition 运行已通过双语回归；下一步完成待授权的模板验收，随后进入 RAG / HTTP Tool，离线投影解释继续登记为待迁移。不重建 i18n 专题、不增加依赖或提高包体阈值。后续浏览器窗口按届时范围授权，真实模型试用继续暂缓。
 
 如后续需要账户同步、服务端消息本地化、第三语言或模型输出语言联动，应独立确认协议、权限、成本与验收范围，不作为本专题的隐式续批。
 

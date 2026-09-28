@@ -30,5 +30,7 @@ export const appShell = {
   "blockedDetail": "只读状态引用",
   "auditDetail": "最近列表读取的审计引用",
   "singlePage": "单页"
-}
+},
+  workflows: "工作流",
+  workflowReviewLoading: "正在加载工作流审查交接…",
 } as const;
