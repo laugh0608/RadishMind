@@ -1,3 +1,5 @@
+import "../../i18n/runReviewResources.ts";
+import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 import {
@@ -56,6 +58,7 @@ export default function WorkflowReviewWorkspace({
   controls: ApplicationDevelopmentWorkspaceControls;
   refreshKey: number;
 }) {
+  const { t } = useTranslation("evaluation");
   const [activeSurface, setActiveSurface] = useState<WorkflowReviewSurface | null>(() => (
     workflowReviewSurfaceForHash(window.location.hash)
   ));
@@ -113,20 +116,20 @@ export default function WorkflowReviewWorkspace({
     >
       <header className="workflow-review-heading">
         <div>
-          <p className="eyebrow">S6 · Workflow run and evaluation review</p>
-          <h3 id="workflow-review-workspace-title">Run and evaluation review</h3>
-          <p>Follow exact run evidence into compatible comparison, versioned cases, and digest-bound human judgment.</p>
+          <p className="eyebrow">{t($ => $.runReview.s6WorkflowRunAndEvaluationReview)}</p>
+          <h3 id="workflow-review-workspace-title">{t($ => $.runReview.runAndEvaluationReview)}</h3>
+          <p>{t($ => $.runReview.followExactRunEvidenceIntoCompatibleComparisonVersioned)}</p>
         </div>
         <dl>
-          <div><dt>Application</dt><dd>{context.displayName}</dd></div>
-          <div><dt>Workspace</dt><dd>{context.workspaceId || "unavailable"}</dd></div>
-          <div><dt>Lifecycle</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.lifecycleState}</dd></div>
+          <div><dt>{t($ => $.runReview.application)}</dt><dd>{context.displayName}</dd></div>
+          <div><dt>{t($ => $.runReview.workspace)}</dt><dd>{context.workspaceId || t($ => $.runReview.unavailable)}</dd></div>
+          <div><dt>{t($ => $.runReview.lifecycle)}</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.lifecycleState}</dd></div>
         </dl>
       </header>
 
       <div className="workflow-review-layout">
-        <nav className="workflow-review-path" aria-label="Workflow review tasks">
-          <header><span>Review path</span><strong>One owner at a time</strong></header>
+        <nav className="workflow-review-path" aria-label={t($ => $.runReview.workflowReviewTasks)}>
+          <header><span>{t($ => $.runReview.reviewPath)}</span><strong>{t($ => $.runReview.oneOwnerAtATime)}</strong></header>
           {WORKFLOW_REVIEW_TASKS.map((task) => {
             const selected = task.surface === activeSurface;
             return (
@@ -138,15 +141,14 @@ export default function WorkflowReviewWorkspace({
               >
                 <i aria-hidden="true" />
                 <b>{task.number}</b>
-                <span><strong>{task.label}</strong><small>{task.summary}</small></span>
+                <span><strong>{t($ => $.runReview.surfaces[task.surface].label)}</strong><small>{t($ => $.runReview.surfaces[task.surface].summary)}</small></span>
                 {selected ? <em aria-hidden="true">›</em> : null}
               </a>
             );
           })}
           <p className="workflow-review-boundary">
             <span aria-hidden="true">!</span>
-            Approved is append-only review evidence. It never publishes, deploys, retries, replays, or resumes a run.
-          </p>
+            {t($ => $.runReview.approvedIsAppendOnlyReviewEvidenceItNever)}</p>
         </nav>
 
         <main className="workflow-review-owner" data-owner={activeSurface ?? "inactive"}>
@@ -172,5 +174,6 @@ export default function WorkflowReviewWorkspace({
 }
 
 function WorkflowReviewFallback() {
-  return <div className="workflow-review-loading" role="status">Loading the current workflow review owner…</div>;
+  const { t } = useTranslation("evaluation");
+  return <div className="workflow-review-loading" role="status">{t($ => $.runReview.loadingTheCurrentWorkflowReviewOwner)}</div>;
 }

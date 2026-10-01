@@ -1,3 +1,4 @@
+import type { WorkflowRAGSnapshotFindingMessage } from "./workflowRAGSnapshotFeedback.ts";
 import {
   WORKFLOW_RAG_SNAPSHOT_LIMITS,
   containsWorkflowRAGSecretMaterial,
@@ -24,6 +25,7 @@ const DYNAMIC_IMPORT_FINDINGS = new Set([
 export type WorkflowRAGSnapshotEditorSource = {
   sourceId: string;
   label: string;
+  origin: "manual" | "file" | "record";
   fileBytes: number;
   contentDigest: string;
   sourceType: WorkflowRAGSourceType;
@@ -44,7 +46,7 @@ export type WorkflowRAGSnapshotEditorFinding = {
   code: string;
   target: "snapshot" | "source" | "fragment";
   targetId: string;
-  summary: string;
+  message: WorkflowRAGSnapshotFindingMessage;
 };
 
 export type WorkflowRAGSnapshotEditor = {
@@ -97,6 +99,7 @@ export function createWorkflowRAGSnapshotEditorFromRecord(record: WorkflowRAGSna
       sources.push({
         sourceId,
         label: fragment.sourceRef,
+        origin: "record",
         fileBytes: 0,
         contentDigest: "",
         sourceType: fragment.sourceType,
@@ -132,6 +135,7 @@ export function replaceWorkflowRAGSnapshotEditorWithImport(
   const sources = result.sources.map((source) => ({
     sourceId: source.sourceId,
     label: source.fileName,
+    origin: "file" as const,
     fileBytes: source.fileBytes,
     contentDigest: source.contentDigest,
     sourceType: source.sourceType,
@@ -207,10 +211,10 @@ export function addWorkflowRAGSnapshotManualFragment(editor: WorkflowRAGSnapshot
 export function analyzeWorkflowRAGSnapshotEditor(editor: WorkflowRAGSnapshotEditor): WorkflowRAGSnapshotEditorAnalysis {
   const findings = [...editor.importFindings];
   if (!/^[a-z][a-z0-9_]{2,47}$/u.test(editor.snapshotKey.trim()) || editor.displayName.trim().length < 2 || editor.displayName.trim().length > 120 || containsWorkflowRAGSecretMaterial(editor.displayName)) {
-    findings.push(snapshotFinding("workflow_rag_snapshot_payload_invalid", "Snapshot key、display name 或 classification 不符合既有快照合同。"));
+    findings.push(snapshotFinding("workflow_rag_snapshot_payload_invalid", { key: "metadata" }));
   }
   if (editor.fragments.length < 1 || editor.fragments.length > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragments) {
-    findings.push(snapshotFinding("workflow_rag_snapshot_payload_invalid", `最终 fragment 数必须为 1 至 ${WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragments}。`));
+    findings.push(snapshotFinding("workflow_rag_snapshot_payload_invalid", { key: "fragmentCount", values: { maximum: WORKFLOW_RAG_SNAPSHOT_LIMITS.maxFragments } }));
   }
 
   const sourceDigestOwners = new Map<string, WorkflowRAGSnapshotEditorSource>();
@@ -218,7 +222,7 @@ export function analyzeWorkflowRAGSnapshotEditor(editor: WorkflowRAGSnapshotEdit
     if (!source.contentDigest) continue;
     const previous = sourceDigestOwners.get(source.contentDigest);
     if (previous) {
-      findings.push({ code: "workflow_rag_material_source_duplicate", target: "source", targetId: source.sourceId, summary: `${source.label} 与 ${previous.label} 内容完全重复。` });
+      findings.push({ code: "workflow_rag_material_source_duplicate", target: "source", targetId: source.sourceId, message: { key: "duplicateSource", values: { source: source.label, previous: previous.label } } });
     } else {
       sourceDigestOwners.set(source.contentDigest, source);
     }
@@ -231,35 +235,35 @@ export function analyzeWorkflowRAGSnapshotEditor(editor: WorkflowRAGSnapshotEdit
   for (const fragment of editor.fragments) {
     const source = editor.sources.find((candidate) => candidate.sourceId === fragment.sourceId);
     if (!source) {
-      findings.push(fragmentFinding(fragment, "workflow_rag_fragment_invalid", "Fragment 已失去来源 owner。"));
+      findings.push(fragmentFinding(fragment, "workflow_rag_fragment_invalid", { key: "missingSource" }));
       continue;
     }
     const projected = projectFragment(source, fragment);
     const validationFailure = validateWorkflowRAGFragmentInput(projected);
-    if (validationFailure) findings.push(fragmentFinding(fragment, validationFailure, fragmentFailureSummary(validationFailure)));
+    if (validationFailure) findings.push(fragmentFinding(fragment, validationFailure, fragmentFailureMessage(validationFailure)));
     const normalizedRef = projected.fragmentRef.trim();
     const previousRef = fragmentRefOwners.get(normalizedRef);
     if (previousRef) {
-      findings.push(fragmentFinding(fragment, "workflow_rag_material_fragment_duplicate", `${projected.fragmentRef || "未命名 fragment"} 与 ${previousRef.fragmentRef || "另一 fragment"} 使用重复引用。`));
+      findings.push(fragmentFinding(fragment, "workflow_rag_material_fragment_duplicate", { key: "duplicateRef", values: { fragment: projected.fragmentRef, previous: previousRef.fragmentRef } }));
     } else if (normalizedRef) {
       fragmentRefOwners.set(normalizedRef, fragment);
     }
     const normalizedContent = projected.content.trim();
     const previousContent = contentOwners.get(normalizedContent);
     if (previousContent && normalizedContent) {
-      findings.push(fragmentFinding(fragment, "workflow_rag_material_fragment_duplicate", `${projected.fragmentRef || "未命名 fragment"} 与 ${previousContent.fragmentRef || "另一 fragment"} 正文完全重复。`));
+      findings.push(fragmentFinding(fragment, "workflow_rag_material_fragment_duplicate", { key: "duplicateContent", values: { fragment: projected.fragmentRef, previous: previousContent.fragmentRef } }));
     } else if (normalizedContent) {
       contentOwners.set(normalizedContent, fragment);
     }
     totalContentBytes += encoder.encode(normalizedContent).byteLength;
   }
   if (totalContentBytes > WORKFLOW_RAG_SNAPSHOT_LIMITS.maxTotalContentBytes) {
-    findings.push(snapshotFinding("workflow_rag_budget_exceeded", "最终正文总量超过 1 MiB。"));
+    findings.push(snapshotFinding("workflow_rag_budget_exceeded", { key: "contentBudget" }));
   }
   if (input) {
     const finalFailure = validateWorkflowRAGSnapshotWriteInput(input);
     if (finalFailure && !findings.some((finding) => finding.code === finalFailure)) {
-      findings.push(snapshotFinding(finalFailure, "最终 replacement 未通过既有快照写入校验。"));
+      findings.push(snapshotFinding(finalFailure, { key: "replacementInvalid" }));
     }
   }
   return {
@@ -314,7 +318,7 @@ function withFragments(editor: WorkflowRAGSnapshotEditor, fragments: WorkflowRAG
 }
 
 function manualSource(sequence: number): WorkflowRAGSnapshotEditorSource {
-  return { sourceId: `manual_source_${String(sequence).padStart(3, "0")}`, label: "手工片段", fileBytes: 0, contentDigest: "", sourceType: "manual", sourceRef: "application_manual", isOfficial: true };
+  return { sourceId: `manual_source_${String(sequence).padStart(3, "0")}`, label: "", origin: "manual", fileBytes: 0, contentDigest: "", sourceType: "manual", sourceRef: "application_manual", isOfficial: true };
 }
 
 function manualFragment(sourceId: string, sequence: number): WorkflowRAGSnapshotEditorFragment {
@@ -323,21 +327,21 @@ function manualFragment(sourceId: string, sequence: number): WorkflowRAGSnapshot
 }
 
 function mapImportFinding(finding: WorkflowRAGLocalMaterialFinding): WorkflowRAGSnapshotEditorFinding {
-  if (finding.fragmentRef) return { code: finding.code, target: "fragment", targetId: finding.fragmentRef, summary: finding.summary };
-  if (finding.sourceId) return { code: finding.code, target: "source", targetId: finding.sourceId, summary: finding.summary };
-  return snapshotFinding(finding.code, finding.summary);
+  if (finding.fragmentRef) return { code: finding.code, target: "fragment", targetId: finding.fragmentRef, message: finding.message };
+  if (finding.sourceId) return { code: finding.code, target: "source", targetId: finding.sourceId, message: finding.message };
+  return snapshotFinding(finding.code, finding.message);
 }
 
-function snapshotFinding(code: string, summary: string): WorkflowRAGSnapshotEditorFinding {
-  return { code, target: "snapshot", targetId: "", summary };
+function snapshotFinding(code: string, message: WorkflowRAGSnapshotFindingMessage): WorkflowRAGSnapshotEditorFinding {
+  return { code, target: "snapshot", targetId: "", message };
 }
 
-function fragmentFinding(fragment: WorkflowRAGSnapshotEditorFragment, code: string, summary: string): WorkflowRAGSnapshotEditorFinding {
-  return { code, target: "fragment", targetId: fragment.fragmentId, summary };
+function fragmentFinding(fragment: WorkflowRAGSnapshotEditorFragment, code: string, message: WorkflowRAGSnapshotFindingMessage): WorkflowRAGSnapshotEditorFinding {
+  return { code, target: "fragment", targetId: fragment.fragmentId, message };
 }
 
-function fragmentFailureSummary(code: string): string {
+function fragmentFailureMessage(code: string): WorkflowRAGSnapshotFindingMessage {
   return code === "workflow_rag_secret_material_forbidden"
-    ? "Fragment 的来源引用、页面引用、标题或正文命中敏感材料规则。"
-    : "Fragment 引用、来源、页面、标题、正文或单片段预算不符合既有合同。";
+    ? { key: "fragmentSecret" }
+    : { key: "fragmentInvalid" };
 }

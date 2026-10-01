@@ -113,7 +113,8 @@
       "selectionForWorkflowDefinition(",
       "selectionForRun(",
       "selectionForDraft("
-    ]
+    ],
+    "owner_file": "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts"
   },
   "draft_designer_guard": {
     "file": "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesigner.ts",

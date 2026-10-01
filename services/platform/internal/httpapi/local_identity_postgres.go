@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type postgresLocalIdentityRepository struct {
@@ -456,7 +457,7 @@ func (repository *postgresLocalIdentityRepository) CreateRoleAssignment(ctx cont
 		return errLocalIdentityStoreUnavailable
 	}
 	if !ok || assignment.RoleCatalogVersion != "" || assignment.RoleDefinitionDigest != "" ||
-		localIdentityContainsManagementPermission(grants) ||
+		workspacepolicy.ContainsManagementPermission(grants) ||
 		!validLocalRoleAssignment(assignment) || assignment.LifecycleState != localIdentityStateActive {
 		return errLocalIdentityContractMismatch
 	}

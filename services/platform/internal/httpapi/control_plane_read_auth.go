@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -533,7 +534,7 @@ func validSignedTestWorkspaceMembershipClaims(claims []signedTestWorkspaceMember
 	seen := make(map[string]struct{}, len(claims))
 	for _, claim := range claims {
 		workspaceID := strings.TrimSpace(claim.WorkspaceID)
-		if !validControlPlaneReadAuthReference(workspaceID, false) || !validWorkspacePermissionGrants(claim.Permissions) {
+		if !validControlPlaneReadAuthReference(workspaceID, false) || !workspacepolicy.ValidPermissionGrants(claim.Permissions) {
 			return false
 		}
 		if _, duplicate := seen[workspaceID]; duplicate {

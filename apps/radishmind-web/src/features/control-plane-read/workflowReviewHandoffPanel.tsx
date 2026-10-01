@@ -1,3 +1,7 @@
+import "../../i18n/workflowDraftResources.ts";
+import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
+import "../../i18n/workflowHandoffResources.ts";
+import { useTranslation } from "react-i18next";
 import type {
   WorkflowReviewHandoffActiveDraftReviewSection,
   WorkflowReviewHandoffBoundaryLock,
@@ -26,6 +30,7 @@ export function WorkflowReviewHandoffPanel({
 }: {
   handoff: WorkflowReviewHandoffViewModel;
 }) {
+  const { t } = useTranslation("workflow");
   const primaryEvidence = handoff.evidenceChecklist.slice(0, 11);
   const primaryBoundaries = handoff.boundaryLocks.slice(0, 8);
   const graphFindingGroups = workflowReviewHandoffGraphFindingGroups(handoff);
@@ -38,14 +43,15 @@ export function WorkflowReviewHandoffPanel({
     >
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Workflow Review Handoff</p>
-          <h3 id="workflow-review-handoff-title">Advisory package for human review</h3>
+          <p className="eyebrow">{t($ => $.handoff.workflowReviewHandoff)}</p>
+          <h3 id="workflow-review-handoff-title">{t($ => $.handoff.advisoryPackageForHumanReview)}</h3>
         </div>
         <StatusBadge tone={handoff.canRenderReviewHandoff ? "neutral" : "bad"}>
-          {handoff.canRenderReviewHandoff ? "offline advisory" : "blocked"}
+          {handoff.canRenderReviewHandoff ? "offline_advisory" : "blocked"}
         </StatusBadge>
       </div>
 
+      <p className="boundary-note">{t($ => $.handoff.sourceEvidence)}</p>
       <article className="workflow-user-workspace-home-hero">
         <div>
           <p className="eyebrow">{handoff.handoffMode}</p>
@@ -54,27 +60,27 @@ export function WorkflowReviewHandoffPanel({
         </div>
         <dl className="workflow-user-workspace-home-meta">
           <div>
-            <dt>Application</dt>
+            <dt>{t($ => $.handoff.application)}</dt>
             <dd>{handoff.applicationId}</dd>
           </div>
           <div>
-            <dt>Workflow</dt>
+            <dt>{t($ => $.handoff.workflow)}</dt>
             <dd>{handoff.workflowDefinitionId}</dd>
           </div>
           <div>
-            <dt>Run</dt>
+            <dt>{t($ => $.handoff.run)}</dt>
             <dd>{handoff.runId}</dd>
           </div>
           <div>
-            <dt>Draft</dt>
+            <dt>{t($ => $.handoff.draft)}</dt>
             <dd>{handoff.draftId}</dd>
           </div>
           <div>
-            <dt>Scenario</dt>
+            <dt>{t($ => $.handoff.scenario)}</dt>
             <dd>{handoff.scenarioId}</dd>
           </div>
           <div>
-            <dt>Audit</dt>
+            <dt>{t($ => $.handoff.audit)}</dt>
             <dd>{handoff.auditRef}</dd>
           </div>
         </dl>
@@ -82,10 +88,10 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Active Draft Review Record</p>
-          <h4>Validation, plan, readiness</h4>
+          <p className="eyebrow">{t($ => $.handoff.activeDraftReviewRecord)}</p>
+          <h4>{t($ => $.handoff.validationPlanReadiness)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow review handoff active draft record">
+        <div className="workflow-user-workspace-home-route-grid" aria-label={t($ => $.handoff.workflowReviewHandoffActiveDraftRecord)}>
           {handoff.activeDraftReviewRecord.sections.map((section) => (
             <WorkflowReviewHandoffActiveDraftSectionCard key={section.sectionId} section={section} />
           ))}
@@ -95,8 +101,8 @@ export function WorkflowReviewHandoffPanel({
       {handoff.savedDraftConflictReviewSummary ? (
         <div className="workflow-user-workspace-home-section">
           <div className="workflow-user-workspace-home-subheading">
-            <p className="eyebrow">Saved Draft Conflict Review</p>
-            <h4>Local draft and saved version metadata</h4>
+            <p className="eyebrow">{t($ => $.handoff.savedDraftConflictReview)}</p>
+            <h4>{t($ => $.handoff.localDraftAndSavedVersionMetadata)}</h4>
           </div>
           <WorkflowReviewHandoffSavedDraftConflictCard
             summary={handoff.savedDraftConflictReviewSummary}
@@ -106,31 +112,31 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Node Designer Review Handoff</p>
-          <h4>Canvas overlay, inspector, mapping</h4>
+          <p className="eyebrow">{t($ => $.handoff.nodeDesignerReviewHandoff)}</p>
+          <h4>{t($ => $.handoff.canvasOverlayInspectorMapping)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow node designer review handoff">
+        <div className="workflow-user-workspace-home-route-grid" aria-label={t($ => $.handoff.workflowNodeDesignerReviewHandoff)}>
           {handoff.nodeDesignerReviewRecord.sections.map((section) => (
             <WorkflowReviewHandoffNodeDesignerSectionCard key={section.sectionId} section={section} />
           ))}
         </div>
-        <div className="workflow-review-handoff-graph-summary" aria-label="Workflow node designer graph review summary">
+        <div className="workflow-review-handoff-graph-summary" aria-label={t($ => $.handoff.workflowNodeDesignerGraphReviewSummary)}>
           {graphFindingGroups.map((group) => (
             <article key={group.targetKind}>
-              <span>{group.label}</span>
+              <span>{group.targetKind === "node" ? t($ => $.handoff.nodeFindings) : group.targetKind === "edge" ? t($ => $.handoff.edgeFindings) : t($ => $.handoff.graphFindings)}</span>
               <strong>{group.count}</strong>
             </article>
           ))}
         </div>
-        <div className="workflow-review-handoff-graph-groups" aria-label="Workflow node designer graph review findings">
+        <div className="workflow-review-handoff-graph-groups" aria-label={t($ => $.handoff.workflowNodeDesignerGraphReviewFindings)}>
           {graphFindingGroups.map((group) => (
             <section key={group.targetKind} className="workflow-review-handoff-graph-group">
               <div className="workflow-review-handoff-graph-group-heading">
                 <div>
                   <p className="eyebrow">{group.targetKind}</p>
-                  <h5>{group.label}</h5>
+                  <h5>{group.targetKind === "node" ? t($ => $.handoff.nodeFindings) : group.targetKind === "edge" ? t($ => $.handoff.edgeFindings) : t($ => $.handoff.graphFindings)}</h5>
                 </div>
-                <StatusBadge tone={group.count > 0 ? "neutral" : "good"}>{`${group.count} findings`}</StatusBadge>
+                <StatusBadge tone={group.count > 0 ? "neutral" : "good"}>{t($ => $.handoff.findingCount, { count: group.count })}</StatusBadge>
               </div>
               <div className="workflow-user-workspace-home-readiness-grid">
                 {group.findings.map((finding) => (
@@ -144,10 +150,10 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Review Recipients</p>
-          <h4>Who needs the handoff</h4>
+          <p className="eyebrow">{t($ => $.handoff.reviewRecipients)}</p>
+          <h4>{t($ => $.handoff.whoNeedsTheHandoff)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-application-grid" aria-label="Workflow review handoff recipients">
+        <div className="workflow-user-workspace-home-application-grid" aria-label={t($ => $.handoff.workflowReviewHandoffRecipients)}>
           {handoff.recipients.map((recipient) => (
             <WorkflowReviewHandoffRecipientCard key={recipient.recipientId} recipient={recipient} />
           ))}
@@ -156,10 +162,10 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Key Findings</p>
-          <h4>What the reviewer should read first</h4>
+          <p className="eyebrow">{t($ => $.handoff.keyFindings)}</p>
+          <h4>{t($ => $.handoff.whatTheReviewerShouldReadFirst)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-readiness-grid" aria-label="Workflow review handoff findings">
+        <div className="workflow-user-workspace-home-readiness-grid" aria-label={t($ => $.handoff.workflowReviewHandoffFindings)}>
           {handoff.keyFindings.map((finding) => (
             <WorkflowReviewHandoffFindingCard key={finding.findingId} finding={finding} />
           ))}
@@ -168,10 +174,10 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Evidence Checklist</p>
-          <h4>Read-side route and page evidence</h4>
+          <p className="eyebrow">{t($ => $.handoff.evidenceChecklist)}</p>
+          <h4>{t($ => $.handoff.readSideRouteAndPageEvidence)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-route-grid" aria-label="Workflow review handoff evidence">
+        <div className="workflow-user-workspace-home-route-grid" aria-label={t($ => $.handoff.workflowReviewHandoffEvidence)}>
           {primaryEvidence.map((evidence) => (
             <WorkflowReviewHandoffEvidenceCard key={evidence.evidenceId} evidence={evidence} />
           ))}
@@ -180,10 +186,10 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Decision Blockers</p>
-          <h4>Why this remains advisory-only</h4>
+          <p className="eyebrow">{t($ => $.handoff.decisionBlockers)}</p>
+          <h4>{t($ => $.handoff.whyThisRemainsAdvisoryOnly)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-readiness-grid" aria-label="Workflow review handoff blockers">
+        <div className="workflow-user-workspace-home-readiness-grid" aria-label={t($ => $.handoff.workflowReviewHandoffBlockers)}>
           {handoff.decisionBlockers.map((blocker) => (
             <WorkflowReviewHandoffDecisionBlockerCard key={blocker.blockerId} blocker={blocker} />
           ))}
@@ -192,10 +198,10 @@ export function WorkflowReviewHandoffPanel({
 
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
-          <p className="eyebrow">Boundary Locks</p>
-          <h4>Capabilities that stay closed</h4>
+          <p className="eyebrow">{t($ => $.handoff.boundaryLocks)}</p>
+          <h4>{t($ => $.handoff.capabilitiesThatStayClosed)}</h4>
         </div>
-        <div className="workflow-user-workspace-home-stopline-grid" aria-label="Workflow review handoff boundaries">
+        <div className="workflow-user-workspace-home-stopline-grid" aria-label={t($ => $.handoff.workflowReviewHandoffBoundaries)}>
           {primaryBoundaries.map((boundary) => (
             <WorkflowReviewHandoffBoundaryLockCard key={boundary.boundaryId} boundary={boundary} />
           ))}
@@ -236,6 +242,7 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
 }: {
   summary: WorkflowSavedDraftConflictReviewSummary;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -249,39 +256,39 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Saved version</dt>
+          <dt>{t($ => $.handoff.savedVersion)}</dt>
           <dd>{summary.savedDraftVersion}</dd>
         </div>
         <div>
-          <dt>Updated</dt>
+          <dt>{t($ => $.handoff.updated)}</dt>
           <dd>{summary.savedUpdatedAt}</dd>
         </div>
         <div>
-          <dt>Actor</dt>
+          <dt>{t($ => $.handoff.actor)}</dt>
           <dd>{summary.savedUpdatedByActorRef}</dd>
         </div>
         <div>
-          <dt>Validation</dt>
+          <dt>{t($ => $.handoff.validation)}</dt>
           <dd>{summary.savedValidationState}</dd>
         </div>
         <div>
-          <dt>Blocked</dt>
-          <dd>{summary.savedBlockedCapabilityCount ?? "not loaded"}</dd>
+          <dt>{t($ => $.handoff.blocked)}</dt>
+          <dd>{summary.savedBlockedCapabilityCount ?? workflowDraftStatusLabel(t, "not_loaded")}</dd>
         </div>
         <div>
-          <dt>Metadata</dt>
+          <dt>{t($ => $.handoff.metadata)}</dt>
           <dd>{summary.savedMetadataState}</dd>
         </div>
         <div>
-          <dt>Open</dt>
+          <dt>{t($ => $.handoff.open)}</dt>
           <dd>{summary.openActionState}</dd>
         </div>
         <div>
-          <dt>Local graph</dt>
-          <dd>{`${summary.localNodeCount} nodes / ${summary.localEdgeCount} edges`}</dd>
+          <dt>{t($ => $.handoff.localGraph)}</dt>
+          <dd>{t($ => $.handoff.graphSize, { nodes: summary.localNodeCount, edges: summary.localEdgeCount })}</dd>
         </div>
       </dl>
-      <div className="workflow-workspace-review-token-list" aria-label="Saved draft conflict review locks">
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.savedDraftConflictReviewLocks)}>
         <code>auto_overwrite_locked</code>
         <code>auto_merge_locked</code>
         <code>{summary.openActionState}</code>
@@ -291,10 +298,7 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
       {summary.openUnavailableReason ? (
         <p>{summary.openUnavailableReason}</p>
       ) : (
-        <p>
-          Open saved draft is available from sanitized saved draft metadata; it remains separate from
-          auto overwrite and auto merge.
-        </p>
+        <p>{t($ => $.handoff.openSavedDraftIsAvailableFromSanitizedSavedDraftMetadata)}</p>
       )}
       <p>{summary.nextReviewerStep}</p>
       <p>{summary.reviewerQuestion}</p>
@@ -307,6 +311,7 @@ function WorkflowReviewHandoffActiveDraftSectionCard({
 }: {
   section: WorkflowReviewHandoffActiveDraftReviewSection;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -318,23 +323,23 @@ function WorkflowReviewHandoffActiveDraftSectionCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Primary ref</dt>
+          <dt>{t($ => $.handoff.primaryRef)}</dt>
           <dd>{section.primaryRef}</dd>
         </div>
         <div>
-          <dt>Blockers</dt>
+          <dt>{t($ => $.handoff.blockers)}</dt>
           <dd>{section.blockerCount}</dd>
         </div>
         <div>
-          <dt>Request</dt>
+          <dt>{t($ => $.handoff.request)}</dt>
           <dd>{section.requestId}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.handoff.audit)}</dt>
           <dd>{section.auditRef}</dd>
         </div>
       </dl>
-      <div className="workflow-workspace-review-token-list" aria-label={`${section.label} evidence refs`}>
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.evidenceFor, { label: section.label })}>
         {section.evidenceRefs.map((evidenceRef) => (
           <code key={evidenceRef}>{evidenceRef}</code>
         ))}
@@ -350,6 +355,7 @@ function WorkflowReviewHandoffNodeDesignerSectionCard({
 }: {
   section: WorkflowReviewHandoffNodeDesignerReviewSection;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -361,23 +367,23 @@ function WorkflowReviewHandoffNodeDesignerSectionCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Primary ref</dt>
+          <dt>{t($ => $.handoff.primaryRef)}</dt>
           <dd>{section.primaryRef}</dd>
         </div>
         <div>
-          <dt>Items</dt>
+          <dt>{t($ => $.handoff.items)}</dt>
           <dd>{section.itemCount}</dd>
         </div>
         <div>
-          <dt>Request</dt>
+          <dt>{t($ => $.handoff.request)}</dt>
           <dd>{section.requestId}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.handoff.audit)}</dt>
           <dd>{section.auditRef}</dd>
         </div>
       </dl>
-      <div className="workflow-workspace-review-token-list" aria-label={`${section.label} evidence refs`}>
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.evidenceFor, { label: section.label })}>
         {section.evidenceRefs.map((evidenceRef) => (
           <code key={evidenceRef}>{evidenceRef}</code>
         ))}
@@ -393,6 +399,7 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
 }: {
   finding: WorkflowReviewHandoffNodeDesignerGraphFinding;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -404,42 +411,42 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Check</dt>
+          <dt>{t($ => $.handoff.check)}</dt>
           <dd>{finding.sourceCheckId}</dd>
         </div>
         <div>
-          <dt>Severity</dt>
+          <dt>{t($ => $.handoff.severity)}</dt>
           <dd>{finding.severity}</dd>
         </div>
         <div>
-          <dt>Target</dt>
+          <dt>{t($ => $.handoff.target)}</dt>
           <dd>{finding.targetSummary}</dd>
         </div>
         <div>
-          <dt>Handoff path</dt>
+          <dt>{t($ => $.handoff.handoffPath)}</dt>
           <dd>{finding.handoffPath}</dd>
         </div>
       </dl>
       <div className="workflow-review-handoff-graph-card-traces">
         <div>
-          <span>Target refs</span>
-          <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} target refs`}>
+          <span>{t($ => $.handoff.targetRefs)}</span>
+          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.targetsFor, { label: finding.label })}>
             {finding.targetRefs.map((targetRef) => (
               <code key={targetRef}>{targetRef}</code>
             ))}
           </div>
         </div>
         <div>
-          <span>Handoff path refs</span>
-          <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} handoff path refs`}>
+          <span>{t($ => $.handoff.handoffPathRefs)}</span>
+          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.pathFor, { label: finding.label })}>
             {finding.handoffPathRefs.map((handoffPathRef) => (
               <code key={handoffPathRef}>{handoffPathRef}</code>
             ))}
           </div>
         </div>
         <div>
-          <span>Evidence refs</span>
-          <div className="workflow-workspace-review-token-list" aria-label={`${finding.label} evidence refs`}>
+          <span>{t($ => $.handoff.evidenceRefs)}</span>
+          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.evidenceFor, { label: finding.label })}>
             {finding.evidenceRefs.map((evidenceRef) => (
               <code key={evidenceRef}>{evidenceRef}</code>
             ))}
@@ -457,6 +464,7 @@ function WorkflowReviewHandoffRecipientCard({
 }: {
   recipient: WorkflowReviewHandoffRecipient;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -468,11 +476,11 @@ function WorkflowReviewHandoffRecipientCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Recipient</dt>
+          <dt>{t($ => $.handoff.recipient)}</dt>
           <dd>{recipient.recipientId}</dd>
         </div>
         <div>
-          <dt>Evidence</dt>
+          <dt>{t($ => $.handoff.evidence)}</dt>
           <dd>{recipient.evidenceRefs.join(", ")}</dd>
         </div>
       </dl>
@@ -486,6 +494,7 @@ function WorkflowReviewHandoffFindingCard({
 }: {
   finding: WorkflowReviewHandoffFinding;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -497,7 +506,7 @@ function WorkflowReviewHandoffFindingCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Evidence</dt>
+          <dt>{t($ => $.handoff.evidence)}</dt>
           <dd>{finding.evidenceRef}</dd>
         </div>
       </dl>
@@ -512,6 +521,7 @@ function WorkflowReviewHandoffEvidenceCard({
 }: {
   evidence: WorkflowReviewHandoffEvidence;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -523,15 +533,15 @@ function WorkflowReviewHandoffEvidenceCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Route/page</dt>
+          <dt>{t($ => $.handoff.routePage)}</dt>
           <dd>{evidence.routeOrPageId}</dd>
         </div>
         <div>
-          <dt>Request</dt>
+          <dt>{t($ => $.handoff.request)}</dt>
           <dd>{evidence.requestId}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.handoff.audit)}</dt>
           <dd>{evidence.auditRef}</dd>
         </div>
       </dl>
@@ -545,6 +555,7 @@ function WorkflowReviewHandoffDecisionBlockerCard({
 }: {
   blocker: WorkflowReviewHandoffDecisionBlocker;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
@@ -556,11 +567,11 @@ function WorkflowReviewHandoffDecisionBlockerCard({
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
-          <dt>Missing</dt>
+          <dt>{t($ => $.handoff.missing)}</dt>
           <dd>{blocker.missingPrerequisite}</dd>
         </div>
       </dl>
-      <div className="workflow-workspace-review-token-list" aria-label={`${blocker.label} audit refs`}>
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.auditFor, { label: blocker.label })}>
         {blocker.auditRefs.map((auditRef) => (
           <code key={auditRef}>{auditRef}</code>
         ))}
@@ -590,7 +601,8 @@ function WorkflowReviewHandoffBoundaryLockCard({
 }
 
 function StatusBadge({ children, tone }: { children: string; tone: StatusBadgeTone }) {
-  return <span className={`status-badge ${tone}`}>{children}</span>;
+  const { t } = useTranslation("workflow");
+  return <span className={`status-badge ${tone}`}>{workflowDraftStatusLabel(t, children)}</span>;
 }
 
 function workflowReviewHandoffTone(status: WorkflowReviewHandoffStatus): StatusBadgeTone {

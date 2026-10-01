@@ -149,12 +149,12 @@ schema 固定为 `application_publish_candidate.v1`，包含：
 - 真实浏览器已完成 `app_flow_copilot` 草案保存、Responses 单次响应、同一 `request_id` 请求历史详情、候选版本创建、第二标签页批准、第一标签页过期审查冲突恢复，以及切换到 `app_docs_assistant` 后旧候选版本 / 原因 / 证据清空。
 - 已批准候选版本仍稳定显示 `promotion_blocked`，并列出正式应用存储库、生产认证、发布所有者和晋级运行时未成立的四项阻塞；没有发生正式应用变更。
 - 浏览器控制台无错误 / 警告，URL 只保留稳定区段锚点，`localStorage` 与 `sessionStorage` 均为空。
-- 2026-07-14 已补齐 SQLite 开发持久化：发布候选通过共享 runtime 使用独立 migration 和 repository，保持不可变创建、稳定列表、只追加审查、审查 CAS、终态、草案漂移和晋级阻塞语义；selector 同时复验配置草案与候选 migration，真实文件覆盖跨组件重启、并发审查、关闭失败和敏感材料禁入。该能力不启用正式晋级，也不替代 PostgreSQL 专属验证。
+- 2026-07-14 已补齐 SQLite 开发持久化：发布候选通过共享运行时使用独立迁移和存储库，保持不可变创建、稳定列表、只追加审查、审查 CAS、终态、草案漂移和晋级阻塞语义；选择器同时复验配置草案与候选迁移，真实文件覆盖跨组件重启、并发审查、关闭失败和敏感材料禁入。该能力不启用正式晋级，也不替代 PostgreSQL 专属验证。
 - 2026-07-15 的 API 密钥本地产品档会同时启用应用目录、配置草案和发布审查，以便同一应用完成配置、候选审查和调用验证；发布候选只保存脱敏 `request_id` 引用，不接收 API 密钥、`Authorization`、模型目录凭据或 Gateway 输入输出。
-- 2026-07-18 已完成 RAG binding 组合：未绑定候选继续使用 `application_publish_candidate.v1`，绑定候选使用 v2 且只复制草案中的 `binding_id / binding_version / binding_digest`。create、approve 与 read-time eligibility 均由服务端重读 exact draft / digest、不可变 binding 和全部知识权威来源；取消、漂移、归档或 store failure 映射为稳定 blocker。
-- 2026-07-21 已完成 Prompt Application 组合：绑定精确 Template Version 的候选使用 `application_publish_candidate.v3`，只保存 draft 与 template ref / digest。create、approve 与 read-time eligibility 均由服务端重读 exact draft、不可变 Template Version、应用类型与作用域；源码审查额外要求 `prompt_application_templates:read_source`。
-- v3 继续复用本专题唯一候选创建与人工审查状态机，不建立模板审批副本。批准只产生候选审查结论，不自动创建或替换 Prompt Runtime Assignment；assignment 必须由独立权限和 expected-version 决策显式完成。
-- 发布 Web 会在创建前展示草案的 exact binding，在详情和列表中展示 `RAG bound` 与动态 blocker。真实浏览器已验证 promotion approve、草案 attach、发布候选 create / approve 仍为三个独立动作；审查通过后继续保留正式存储库、生产认证、发布所有者和晋级运行时四项 blocker，没有发生正式应用变更。
+- 2026-07-18 已完成 RAG 绑定组合：未绑定候选继续使用 `application_publish_candidate.v1`，绑定候选使用 v2 且只复制草案中的 `binding_id / binding_version / binding_digest`。创建、批准与读取时资格核验均由服务端重读精确草案和摘要、不可变绑定和全部知识权威来源；取消、漂移、归档或存储故障映射为稳定阻塞项。
+- 2026-07-21 已完成 Prompt Application 组合：绑定精确 Template Version 的候选使用 `application_publish_candidate.v3`，只保存草案与模板引用、摘要。创建、批准与读取时资格核验均由服务端重读 exact draft、不可变模板版本、应用类型与作用域；源码审查额外要求 `prompt_application_templates:read_source`。
+- v3 继续复用本专题唯一候选创建与人工审查状态机，不建立模板审批副本。批准只产生候选审查结论，不自动创建或替换 Prompt Runtime Assignment；运行绑定必须由独立权限和预期版本决策显式完成。
+- 发布 Web 会在创建前展示草案的精确绑定，在详情和列表中展示 `RAG bound` 与动态阻塞项。真实浏览器已验证晋级候选批准、草案附着、发布候选创建和批准仍为三个独立动作；审查通过后继续保留正式存储库、生产认证、发布所有者和晋级运行时四项阻塞项，没有发生正式应用变更。
 
 ## 停止线
 
@@ -169,4 +169,4 @@ schema 固定为 `application_publish_candidate.v1`，包含：
 
 应用目录与开发测试态 API 密钥专题现已完成，并通过本地产品档与本专题组合。应用目录提供当前活跃基线，API 密钥只负责 Gateway 调用身份，发布治理继续只管理不可变候选、审查历史、漂移和阻塞式晋级资格；三者不共享凭据字段，也不由候选批准触发正式应用更新。
 
-[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)另外定义 ref-only current assignment。只有显式 `activate / replace` 后，API key 调用才可解析 approved v2 candidate；publish approve 不自动建立 assignment，assignment revoke 也不修改候选或其 production blockers。生产认证、成员关系、正式应用存储库、发布所有者、生产 API 密钥、配额和计费仍需各自独立设计。
+[Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1](../workflow/workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)另外定义仅保存引用的当前运行绑定。只有显式 `activate / replace` 后，API 密钥调用才可解析已批准的 v2 候选版本；发布候选批准不自动建立运行绑定，运行绑定撤销也不修改候选或其生产准入阻塞项。生产认证、成员关系、正式应用存储库、发布所有者、生产 API 密钥、配额和计费仍需各自独立设计。

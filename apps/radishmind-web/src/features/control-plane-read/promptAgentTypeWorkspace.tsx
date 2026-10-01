@@ -1,3 +1,6 @@
+import "../../i18n/promptWorkspaceResources.ts";
+import { useTranslation } from "react-i18next";
+import "../../i18n/promptResources.ts";
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { ApplicationConfigurationBaseline } from "./applicationConfigurationDraftConsumer.ts";
@@ -49,6 +52,7 @@ export default function PromptAgentTypeWorkspace({
   onRunRecorded?: (runId: string) => void;
   onOpenRun?: (runId: string) => void;
 }) {
+  const { t } = useTranslation("applications");
   const [activeSurface, setActiveSurface] = useState<PromptAgentTypeWorkspaceSurface | null>(() => (
     promptAgentTypeWorkspaceSurfaceForHash(window.location.hash, context.surfaceKind, activeStage)
   ));
@@ -73,11 +77,30 @@ export default function PromptAgentTypeWorkspace({
 
   if (!activeSurface) return null;
   const currentTask = tasks.find((task) => task.surface === activeSurface) ?? null;
-  const typeLabel = context.surfaceKind === "prompt_application" ? "Prompt Application" : "Agent / Copilot";
-  const sourceLabel = context.surfaceKind === "prompt_application" ? "Template" : "Profile";
-  const runProfile = context.surfaceKind === "prompt_application"
-    ? "Run v6 · Comparison v5"
-    : "Run v7 · Comparison v6";
+  const isPrompt = context.surfaceKind === "prompt_application";
+  const typeLabel = isPrompt ? t($ => $.promptWorkspace.promptApplication) : t($ => $.promptWorkspace.agentCopilot);
+  const sourceLabel = isPrompt ? t($ => $.promptWorkspace.template) : t($ => $.promptWorkspace.profile);
+  const runProfile = isPrompt ? t($ => $.promptWorkspace.runComparisonPrompt) : t($ => $.promptWorkspace.runComparisonAgent);
+  const taskLabels = {
+    source: isPrompt ? t($ => $.promptWorkspace.promptSourceLabel) : t($ => $.promptWorkspace.agentSourceLabel),
+    configuration: t($ => $.promptWorkspace.promptConfigurationLabel),
+    candidate: t($ => $.promptWorkspace.candidateLabel),
+    assignment: t($ => $.promptWorkspace.assignmentLabel),
+    access: t($ => $.promptWorkspace.accessLabel),
+    controlled_use: isPrompt ? t($ => $.promptWorkspace.promptControlledUseLabel) : t($ => $.promptWorkspace.agentControlledUseLabel),
+    session: t($ => $.promptWorkspace.sessionLabel),
+    evaluation: t($ => $.promptWorkspace.evaluationLabel),
+  } satisfies Record<PromptAgentTypeWorkspaceSurface, string>;
+  const taskSummaries = {
+    source: isPrompt ? t($ => $.promptWorkspace.promptSourceSummary) : t($ => $.promptWorkspace.agentSourceSummary),
+    configuration: isPrompt ? t($ => $.promptWorkspace.promptConfigurationSummary) : t($ => $.promptWorkspace.agentConfigurationSummary),
+    candidate: t($ => $.promptWorkspace.candidateSummary),
+    assignment: t($ => $.promptWorkspace.assignmentSummary),
+    access: isPrompt ? t($ => $.promptWorkspace.promptAccessSummary) : t($ => $.promptWorkspace.agentAccessSummary),
+    controlled_use: isPrompt ? t($ => $.promptWorkspace.promptControlledUseSummary) : t($ => $.promptWorkspace.agentControlledUseSummary),
+    session: t($ => $.promptWorkspace.sessionSummary),
+    evaluation: isPrompt ? t($ => $.promptWorkspace.promptEvaluationSummary) : t($ => $.promptWorkspace.agentEvaluationSummary),
+  } satisfies Record<PromptAgentTypeWorkspaceSurface, string>;
   const ownerBlocked = currentTask?.availability === "blocked";
 
   return (
@@ -90,21 +113,21 @@ export default function PromptAgentTypeWorkspace({
     >
       <header className="prompt-agent-type-heading">
         <div>
-          <p className="eyebrow">S8 · Type workspace · dev / test</p>
-          <h3 id="prompt-agent-type-workspace-title">{typeLabel} workspace</h3>
-          <p>Move through exact {sourceLabel} authority, human governance, controlled use, and evaluation without duplicating an owner.</p>
+          <p className="eyebrow">{t($ => $.promptWorkspace.typeWorkspaceEyebrow)}</p>
+          <h3 id="prompt-agent-type-workspace-title">{t($ => $.promptWorkspace.typeWorkspaceTitle, { type: typeLabel })}</h3>
+          <p>{t($ => $.promptWorkspace.typeWorkspaceDescription, { source: sourceLabel })}</p>
         </div>
         <dl>
-          <div><dt>Application</dt><dd>{context.displayName}</dd></div>
-          <div><dt>Source</dt><dd>{sourceLabel} owner</dd></div>
-          <div><dt>Evidence</dt><dd>{runProfile}</dd></div>
-          <div><dt>Lifecycle</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.lifecycleState}</dd></div>
+          <div><dt>{t($ => $.promptWorkspace.application)}</dt><dd>{context.displayName}</dd></div>
+          <div><dt>{t($ => $.promptWorkspace.source)}</dt><dd>{t($ => $.promptWorkspace.sourceOwner, { source: sourceLabel })}</dd></div>
+          <div><dt>{t($ => $.promptWorkspace.evidence)}</dt><dd>{runProfile}</dd></div>
+          <div><dt>{t($ => $.promptWorkspace.lifecycle)}</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.lifecycleState === "active" ? t($ => $.promptWorkspace.statusActive) : context.lifecycleState === "archived" ? t($ => $.promptWorkspace.statusArchived) : t($ => $.promptWorkspace.statusUnavailable)}</dd></div>
         </dl>
       </header>
 
       <div className="prompt-agent-type-layout">
-        <nav className="prompt-agent-type-path" aria-label={`${typeLabel} tasks`}>
-          <header><span>Type path</span><strong>One owner at a time</strong></header>
+        <nav className="prompt-agent-type-path" aria-label={t($ => $.promptWorkspace.typeTasks, { type: typeLabel })}>
+          <header><span>{t($ => $.promptWorkspace.typePath)}</span><strong>{t($ => $.promptWorkspace.oneOwnerAtTime)}</strong></header>
           {tasks.map((task) => {
             const selected = task.surface === activeSurface;
             const content = (
@@ -112,8 +135,11 @@ export default function PromptAgentTypeWorkspace({
                 <i aria-hidden="true" />
                 <b>{task.number}</b>
                 <span>
-                  <strong>{task.label}</strong>
-                  <small>{task.availability === "blocked" ? "archived · blocked" : task.availability === "read_only" ? "archived · read only" : task.summary}</small>
+                  <strong>{taskLabels[task.surface]}</strong>
+                  <small>{task.availability === "available" ? taskSummaries[task.surface] : t($ => $.promptWorkspace.taskSummaryWithAvailability, {
+                    availability: task.availability === "blocked" ? t($ => $.promptWorkspace.archivedBlocked) : t($ => $.promptWorkspace.archivedReadOnly),
+                    summary: taskSummaries[task.surface],
+                  })}</small>
                 </span>
                 {selected ? <em aria-hidden="true">›</em> : null}
               </>
@@ -133,8 +159,7 @@ export default function PromptAgentTypeWorkspace({
           })}
           <p className="prompt-agent-type-boundary">
             <span aria-hidden="true">!</span>
-            Approval never activates the next owner. Input and output remain volatile; production authorization stays closed.
-          </p>
+            {t($ => $.promptWorkspace.approvalBoundary)}</p>
         </nav>
 
         <main className="prompt-agent-type-owner" data-owner={activeSurface}>
@@ -243,15 +268,17 @@ export default function PromptAgentTypeWorkspace({
 }
 
 function BlockedTypeOwner({ typeLabel }: { typeLabel: string }) {
+  const { t } = useTranslation("applications");
   return (
     <article className="prompt-agent-type-blocked" role="status">
-      <p className="eyebrow">Lifecycle enforcement</p>
-      <h4>{typeLabel} controlled use is blocked</h4>
-      <p>Archived applications retain sanitized source and run evidence, but cannot start an invocation, Session, or provider side effect.</p>
+      <p className="eyebrow">{t($ => $.promptWorkspace.lifecycleEnforcement)}</p>
+      <h4>{t($ => $.promptWorkspace.blockedControlledUse, { type: typeLabel })}</h4>
+      <p>{t($ => $.promptWorkspace.archivedControlledUseBlocked)}</p>
     </article>
   );
 }
 
 function TypeOwnerFallback() {
-  return <div className="prompt-agent-type-loading" role="status">Loading the current type owner…</div>;
+  const { t } = useTranslation("applications");
+  return <div className="prompt-agent-type-loading" role="status">{t($ => $.promptWorkspace.loadingTypeOwner)}</div>;
 }

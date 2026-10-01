@@ -1,3 +1,5 @@
+import "../../i18n/workspacePanelResources.ts";
+import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
@@ -79,6 +81,8 @@ type RepresentativeContribution = {
   status: ApplicationDevelopmentEvidenceStatus;
   coverage: ApplicationDevelopmentReadinessSource["coverage"];
   description: string;
+  descriptionKind: "raw" | "reference" | "no_owner_required" | "not_loaded";
+  reference: string;
   nextAnchor: string;
 };
 
@@ -98,6 +102,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
     controls: ApplicationDevelopmentWorkspaceControls,
   ) => ReactNode;
 }) {
+  const { t } = useTranslation("applications");
   const [routeState, setRouteState] = useState(() => initialApplicationDevelopmentRouteState(context, ""));
   const routeStateRef = useRef(routeState);
   routeStateRef.current = routeState;
@@ -121,6 +126,13 @@ export default function ApplicationDevelopmentWorkspacePanel({
   const activeStage = routeState.activeStage;
   const currentStageIndex = context.stages.findIndex((stage) => stage.stageId === activeStage);
   const currentStage = currentStageIndex >= 0 ? context.stages[currentStageIndex] : null;
+  const stageLabels = {
+    configure_build: t($ => $.workspacePanel.stageConfigureBuild),
+    human_promotion: t($ => $.workspacePanel.stageHumanPromotion),
+    controlled_test: t($ => $.workspacePanel.stageControlledTest),
+    evidence_review: t($ => $.workspacePanel.stageEvidenceReview),
+    release_readiness: t($ => $.workspacePanel.stageReleaseReadiness),
+  } satisfies Record<ApplicationDevelopmentStageId, string>;
   const readiness = useMemo(
     () => buildApplicationDevelopmentReadinessViewModel(evidenceState),
     [evidenceState],
@@ -219,11 +231,11 @@ export default function ApplicationDevelopmentWorkspacePanel({
       data-publishable={String(readiness.canPublish)}
     >
       <header className="application-development-heading">
-        <h3 id="application-development-workspace-title">Application Workspace</h3>
-        <span>{readiness.sources.length} source groups · {APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length} contributions</span>
+        <h3 id="application-development-workspace-title">{t($ => $.workspacePanel.applicationWorkspace)}</h3>
+        <span>{t($ => $.workspacePanel.countSourceContributions, { sourceCount: readiness.sources.length, contributionCount: APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length })}</span>
       </header>
 
-      <section className="application-development-context" aria-label="Application development context">
+      <section className="application-development-context" aria-label={t($ => $.workspacePanel.applicationDevelopmentContext)}>
         <div className="application-development-entity">
           <span className="application-development-entity-mark" aria-hidden="true">
             {applicationInitials(context.displayName)}
@@ -232,26 +244,26 @@ export default function ApplicationDevelopmentWorkspacePanel({
             <div className="application-development-entity-name">
               <strong>{context.displayName}</strong>
               <span className={`application-development-state ${context.status}`}>
-                <i aria-hidden="true" />{context.status}
+                <i aria-hidden="true" />{context.status === "active" ? t($ => $.workspacePanel.statusActive) : context.status === "archived" ? t($ => $.workspacePanel.statusArchived) : t($ => $.workspacePanel.statusUnavailable)}
               </span>
             </div>
-            <small>{context.applicationKind} · {context.applicationId || "application scope unavailable"}</small>
+            <small>{context.applicationKind} · {context.applicationId || t($ => $.workspacePanel.applicationScopeUnavailable)}</small>
           </div>
         </div>
         <dl className="application-development-context-facts">
           <div>
-            <dt>Revision</dt>
-            <dd>{context.recordVersion > 0 ? `v${context.recordVersion}` : "Unavailable"}</dd>
+            <dt>{t($ => $.workspacePanel.revision)}</dt>
+            <dd>{context.recordVersion > 0 ? `v${context.recordVersion}` : t($ => $.workspacePanel.unavailable)}</dd>
           </div>
           <div>
-            <dt>Readiness</dt>
+            <dt>{t($ => $.workspacePanel.readiness)}</dt>
             <dd className={applicationSource?.coverage === "complete" ? "available" : "partial"}>
-              {applicationSource?.coverage ?? "none"}
+              {applicationSource?.coverage === "complete" ? t($ => $.workspacePanel.coverageComplete) : applicationSource?.coverage === "partial" ? t($ => $.workspacePanel.coveragePartial) : t($ => $.workspacePanel.coverageNone)}
             </dd>
           </div>
           <div>
-            <dt>Current stage</dt>
-            <dd>{currentStage?.label ?? "Choose a stage"}</dd>
+            <dt>{t($ => $.workspacePanel.currentStage)}</dt>
+            <dd>{currentStage ? stageLabels[currentStage.stageId] : t($ => $.workspacePanel.chooseStage)}</dd>
           </div>
         </dl>
       </section>
@@ -265,7 +277,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
         >
           <span className="application-development-mobile-stage-current">
             <b>{currentStageIndex >= 0 ? String(currentStageIndex + 1).padStart(2, "0") : "—"}</b>
-            <strong>{currentStage?.label ?? "Choose a stage"}</strong>
+            <strong>{currentStage ? stageLabels[currentStage.stageId] : t($ => $.workspacePanel.chooseStage)}</strong>
           </span>
           <span className="application-development-stage-segments" aria-label={`${currentStageIndex + 1} of ${context.stages.length}`}>
             {context.stages.map((stage, index) => (
@@ -275,11 +287,12 @@ export default function ApplicationDevelopmentWorkspacePanel({
           <span aria-hidden="true">⌄</span>
         </button>
         {stageMenuOpen ? (
-          <nav id="application-development-mobile-stage-menu" aria-label="Application development stages">
+          <nav id="application-development-mobile-stage-menu" aria-label={t($ => $.workspacePanel.developmentStages)}>
             {context.stages.map((stage, index) => (
               <ApplicationDevelopmentStageLink
                 key={stage.stageId}
                 stage={stage}
+                label={stageLabels[stage.stageId]}
                 index={index}
                 active={stage.stageId === activeStage}
                 onNavigate={() => navigateToStage(stage)}
@@ -290,16 +303,17 @@ export default function ApplicationDevelopmentWorkspacePanel({
       </div>
 
       <div className="application-development-workbench">
-        <aside className="application-development-stage-rail" aria-label="Application development path">
+        <aside className="application-development-stage-rail" aria-label={t($ => $.workspacePanel.developmentPathAria)}>
           <header>
-            <span>Development path</span>
-            <div><strong>Review path</strong><b>{currentStageIndex >= 0 ? String(currentStageIndex + 1).padStart(2, "0") : "—"} / {String(context.stages.length).padStart(2, "0")}</b></div>
+            <span>{t($ => $.workspacePanel.developmentPath)}</span>
+            <div><strong>{t($ => $.workspacePanel.reviewPath)}</strong><b>{currentStageIndex >= 0 ? String(currentStageIndex + 1).padStart(2, "0") : "—"} / {String(context.stages.length).padStart(2, "0")}</b></div>
           </header>
-          <nav className="application-development-stages" aria-label="Application development stages">
+          <nav className="application-development-stages" aria-label={t($ => $.workspacePanel.developmentStages)}>
             {context.stages.map((stage, index) => (
               <ApplicationDevelopmentStageLink
                 key={stage.stageId}
                 stage={stage}
+                label={stageLabels[stage.stageId]}
                 index={index}
                 active={stage.stageId === activeStage}
                 onNavigate={() => navigateToStage(stage)}
@@ -307,8 +321,8 @@ export default function ApplicationDevelopmentWorkspacePanel({
             ))}
           </nav>
           <footer>
-            <span>Current step</span>
-            <strong>{currentStage?.label ?? "No active stage"}</strong>
+            <span>{t($ => $.workspacePanel.currentStep)}</span>
+            <strong>{currentStage ? stageLabels[currentStage.stageId] : t($ => $.workspacePanel.noActiveStage)}</strong>
             <div className="application-development-stage-segments" aria-hidden="true">
               {context.stages.map((stage, index) => (
                 <i key={stage.stageId} className={index === currentStageIndex ? "current" : ""} />
@@ -317,14 +331,14 @@ export default function ApplicationDevelopmentWorkspacePanel({
           </footer>
         </aside>
 
-        <section className="application-development-contribution-pane" aria-label="Current stage owner contributions">
+        <section className="application-development-contribution-pane" aria-label={t($ => $.workspacePanel.currentStageOwnerContributions)}>
           <header>
             <div>
               <div>
-                <h4>{currentStage?.label ?? "Choose an application development stage"}</h4>
-                {currentStage ? <span>current</span> : null}
+                <h4>{currentStage ? stageLabels[currentStage.stageId] : t($ => $.workspacePanel.chooseDevelopmentStage)}</h4>
+                {currentStage ? <span>{t($ => $.workspacePanel.current)}</span> : null}
               </div>
-              <p>{representativeContributions.length} representative items · {APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length} total contributions</p>
+              <p>{t($ => $.workspacePanel.countRepresentativeContributions, { representativeCount: representativeContributions.length, contributionCount: APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length })}</p>
             </div>
             <button
               type="button"
@@ -333,7 +347,7 @@ export default function ApplicationDevelopmentWorkspacePanel({
               aria-controls="application-development-owner-surface"
               onClick={() => setOwnerSurfaceOpen((open) => !open)}
             >
-              {ownerSurfaceOpen ? "Close review" : "Open review"}<span aria-hidden="true">↗</span>
+              {ownerSurfaceOpen ? t($ => $.workspacePanel.closeReview) : t($ => $.workspacePanel.openReview)}<span aria-hidden="true">↗</span>
             </button>
           </header>
 
@@ -345,77 +359,76 @@ export default function ApplicationDevelopmentWorkspacePanel({
 
           <footer className="application-development-contribution-window">
             <div>
-              <span><strong>Contribution window</strong><small>{representativeContributions.length} representative items · {APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length} total</small></span>
-              <a href="#application-development-readiness-all-sources">View all <span aria-hidden="true">→</span></a>
+              <span><strong>{t($ => $.workspacePanel.contributionWindow)}</strong><small>{t($ => $.workspacePanel.countRepresentativeTotal, { representativeCount: representativeContributions.length, contributionCount: APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length })}</small></span>
+              <a href="#application-development-readiness-all-sources">{t($ => $.workspacePanel.viewAll)}<span aria-hidden="true">→</span></a>
             </div>
             <div className="application-development-contribution-labels">
-              <span>{String(representativeContributions.length).padStart(2, "0")} shown</span>
-              <span>{String(APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length - representativeContributions.length).padStart(2, "0")} additional</span>
+              <span>{t($ => $.workspacePanel.countShown, { value: String(representativeContributions.length).padStart(2, "0") })}</span>
+              <span>{t($ => $.workspacePanel.countAdditional, { value: String(APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length - representativeContributions.length).padStart(2, "0") })}</span>
             </div>
-            <div className="application-development-contribution-segments" aria-label={`${representativeContributions.length} of ${APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length} contributions shown`}>
+            <div className="application-development-contribution-segments" aria-label={t($ => $.workspacePanel.countContributionsShown, { shownCount: representativeContributions.length, totalCount: APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.length })}>
               {APPLICATION_DEVELOPMENT_CONTRIBUTION_IDS.map((contributionId, index) => (
                 <i key={contributionId} className={index < representativeContributions.length ? "shown" : ""} />
               ))}
             </div>
-            <small>Across the current {readiness.sources.length} source groups</small>
+            <small>{t($ => $.workspacePanel.countAcrossSources, { count: readiness.sources.length })}</small>
           </footer>
         </section>
 
-        <aside className="application-development-readiness-pane" aria-label="Evidence and release readiness">
+        <aside className="application-development-readiness-pane" aria-label={t($ => $.workspacePanel.evidenceReadinessAria)}>
           <header>
-            <div><h4>Evidence / readiness</h4><span>Read-only projection · current owners</span></div>
-            <b>live view</b>
+            <div><h4>{t($ => $.workspacePanel.evidenceReadiness)}</h4><span>{t($ => $.workspacePanel.readonlyProjection)}</span></div>
+            <b>{t($ => $.workspacePanel.liveView)}</b>
           </header>
 
           <div className="application-development-readiness-signal">
             <div className="application-development-readiness-coverage">
-              <span>Owner references</span>
+              <span>{t($ => $.workspacePanel.ownerReferences)}</span>
               <div>
                 <strong>{referencedSourceCount}<small> / {readiness.sources.length}</small></strong>
-                <em>groups referenced</em>
-                <div className="application-development-readiness-matrix" aria-label={`${referencedSourceCount} source groups referenced`}>
+                <em>{t($ => $.workspacePanel.countSourcesReferenced, { count: referencedSourceCount })}</em>
+                <div className="application-development-readiness-matrix" aria-label={t($ => $.workspacePanel.countSourcesReferenced, { count: referencedSourceCount })}>
                   {orderedSources.map((source) => <i key={source.sourceGroupId} className={source.status} />)}
                 </div>
               </div>
             </div>
             <dl className="application-development-readiness-risks">
-              <div><dt>Blocked<small>authority</small></dt><dd>{blockedSourceCount}</dd></div>
-              <div><dt>Missing<small>references</small></dt><dd>{readiness.missingCount}</dd></div>
+              <div><dt>{t($ => $.workspacePanel.blocked)}<small>{t($ => $.workspacePanel.authority)}</small></dt><dd>{blockedSourceCount}</dd></div>
+              <div><dt>{t($ => $.workspacePanel.missing)}<small>{t($ => $.workspacePanel.references)}</small></dt><dd>{readiness.missingCount}</dd></div>
             </dl>
           </div>
 
-          <span className="application-development-source-label">Source groups · current window</span>
+          <span className="application-development-source-label">{t($ => $.workspacePanel.sourceGroupsCurrentWindow)}</span>
           <div className="application-development-source-preview">
             {orderedSources.slice(0, 5).map((source) => <ReadinessSourceRow key={source.sourceGroupId} source={source} />)}
           </div>
 
           <details className="application-development-all-sources" id="application-development-readiness-all-sources">
-            <summary>View all {readiness.sources.length} source groups <span aria-hidden="true">→</span></summary>
+            <summary>{t($ => $.workspacePanel.viewAllSources, { count: readiness.sources.length })}<span aria-hidden="true">→</span></summary>
             <div>
               {orderedSources.map((source) => <ReadinessSourceRow key={source.sourceGroupId} source={source} />)}
             </div>
           </details>
 
-          <section className="application-development-authorization-path" aria-label="Authorization path">
-            <header><strong>Authorization path</strong><span>read only</span></header>
+          <section className="application-development-authorization-path" aria-label={t($ => $.workspacePanel.authorizationPath)}>
+            <header><strong>{t($ => $.workspacePanel.authorizationPath)}</strong><span>{t($ => $.workspacePanel.readOnly)}</span></header>
             <dl>
-              <div><dt>01 Evidence</dt><dd>{referencedSourceCount} referenced</dd></div>
-              <div><dt>02 Review</dt><dd>Human</dd></div>
-              <div><dt>03 Production</dt><dd>Closed</dd></div>
+              <div><dt>{t($ => $.workspacePanel.evidenceStep)}</dt><dd>{t($ => $.workspacePanel.countReferenced, { count: referencedSourceCount })}</dd></div>
+              <div><dt>{t($ => $.workspacePanel.reviewStep)}</dt><dd>{t($ => $.workspacePanel.human)}</dd></div>
+              <div><dt>{t($ => $.workspacePanel.productionStep)}</dt><dd>{t($ => $.workspacePanel.closed)}</dd></div>
             </dl>
           </section>
 
           <p className="application-development-stop-line">
             <span aria-hidden="true">!</span>
-            This projection is volatile, read-only and not publishable. Production authorization remains closed.
-          </p>
+            {t($ => $.workspacePanel.projectionBoundary)}</p>
         </aside>
 
         <section
           className="application-development-owner-surface"
           id="application-development-owner-surface"
           hidden={!ownerSurfaceOpen}
-          aria-label="Current stage owner surface"
+          aria-label={t($ => $.workspacePanel.currentStageOwnerSurface)}
         >
           {renderStageSurfaces?.(activeStage, routeState.surfaceKey, controls)}
         </section>
@@ -427,21 +440,24 @@ export default function ApplicationDevelopmentWorkspacePanel({
 
 function ApplicationDevelopmentStageLink({
   stage,
+  label,
   index,
   active,
   onNavigate,
 }: {
   stage: ApplicationDevelopmentStage;
+  label: string;
   index: number;
   active: boolean;
   onNavigate: () => void;
 }) {
+  const { t } = useTranslation("applications");
   const blocked = stage.availability === "blocked";
   const content = (
     <>
       <i className="application-development-stage-accent" aria-hidden="true" />
       <b>{String(index + 1).padStart(2, "0")}</b>
-      <span><strong>{stage.label}</strong><small>{active ? "current" : stage.availability.replace("_", " ")}</small></span>
+      <span><strong>{label}</strong><small>{active ? t($ => $.workspacePanel.current) : stage.availability === "available" ? t($ => $.workspacePanel.statusAvailable) : stage.availability === "read_only" ? t($ => $.workspacePanel.statusReadOnly) : t($ => $.workspacePanel.statusBlocked)}</small></span>
       {active ? <em aria-hidden="true">›</em> : null}
     </>
   );
@@ -461,29 +477,61 @@ function ApplicationDevelopmentStageLink({
 }
 
 function RepresentativeContributionRow({ contribution }: { contribution: RepresentativeContribution }) {
-  const status = contributionStatusLabel(contribution.status, contribution.coverage);
+  const { t } = useTranslation("applications");
+  const status = contribution.status === "not_started" ? t($ => $.workspacePanel.missing)
+    : contribution.status === "incomplete" ? contribution.coverage === "partial" ? t($ => $.workspacePanel.coveragePartial) : t($ => $.workspacePanel.missing)
+      : contribution.status === "available" ? t($ => $.workspacePanel.statusAvailable)
+        : contribution.status === "blocked" ? t($ => $.workspacePanel.statusBlocked) : t($ => $.workspacePanel.statusPartialFailure);
+  const label = contribution.id === "publish_candidate" ? t($ => $.workspacePanel.applicationCandidate)
+    : contribution.id === "workflow_definition" ? t($ => $.workspacePanel.workflowDefinition)
+      : t($ => $.workspacePanel.ragAuthority);
+  const owner = contribution.id === "publish_candidate" ? t($ => $.workspacePanel.applicationOwner)
+    : contribution.id === "workflow_definition" ? t($ => $.workspacePanel.workflowOwner)
+      : t($ => $.workspacePanel.ragAuthority);
   return (
     <article className="application-development-contribution" data-status={contribution.status}>
       <span className={`application-development-contribution-mark ${contribution.status}`} aria-hidden="true">
         {contribution.mark}
       </span>
       <div>
-        <header><strong>{contribution.label}</strong><span className={contribution.status}>{status}</span></header>
-        <p>{contribution.description}</p>
-        <footer><small>{contribution.owner}</small><a href={`#${contribution.nextAnchor}`} aria-label={`Open ${contribution.label} owner`}>↗</a></footer>
+        <header><strong>{label}</strong><span className={contribution.status}>{status}</span></header>
+        <p>{contribution.descriptionKind === "reference"
+          ? t($ => $.workspacePanel.evidenceAvailableFromOwner, { reference: contribution.reference })
+          : contribution.descriptionKind === "no_owner_required"
+            ? t($ => $.workspacePanel.noOwnerEvidenceRequired)
+            : contribution.descriptionKind === "not_loaded"
+              ? t($ => $.workspacePanel.ownerEvidenceNotLoaded)
+              : contribution.description}</p>
+        <footer><small>{owner}</small><a href={`#${contribution.nextAnchor}`} aria-label={t($ => $.workspacePanel.openContributionOwner, { label })}>↗</a></footer>
       </div>
     </article>
   );
 }
 
 function ReadinessSourceRow({ source }: { source: ApplicationDevelopmentReadinessSource }) {
+  const { t } = useTranslation("applications");
+  const labels = {
+    application: t($ => $.workspacePanel.sourceApplication),
+    configuration_candidate: t($ => $.workspacePanel.sourceConfigurationCandidate),
+    workflow_authority: t($ => $.workspacePanel.sourceWorkflowAuthority),
+    rag_authority: t($ => $.workspacePanel.sourceRagAuthority),
+    prompt_authority: t($ => $.workspacePanel.sourcePromptAuthority),
+    agent_authority: t($ => $.workspacePanel.sourceAgentAuthority),
+    controlled_test: t($ => $.workspacePanel.sourceControlledTest),
+    evaluation: t($ => $.workspacePanel.sourceEvaluation),
+    operations: t($ => $.workspacePanel.sourceOperations),
+  } satisfies Record<ApplicationDevelopmentSourceGroupId, string>;
+  const status = source.status === "available" ? t($ => $.workspacePanel.statusAvailable)
+    : source.status === "blocked" ? t($ => $.workspacePanel.statusBlocked)
+      : source.status === "not_started" ? t($ => $.workspacePanel.statusNotStarted)
+        : source.status === "incomplete" ? t($ => $.workspacePanel.statusIncomplete) : t($ => $.workspacePanel.statusPartialFailure);
   return (
     <div className="application-development-source-row">
-      <span><i className={source.status} aria-hidden="true" />{source.label}</span>
+      <span><i className={source.status} aria-hidden="true" />{labels[source.sourceGroupId]}</span>
       {source.status === "available" ? (
-        <strong className={source.status}>{source.status}</strong>
+        <strong className={source.status}>{status}</strong>
       ) : (
-        <a className={source.status} href={`#${source.nextAnchor}`}>{source.status.replace("_", " ")}</a>
+        <a className={source.status} href={`#${source.nextAnchor}`}>{status}</a>
       )}
     </div>
   );
@@ -506,6 +554,12 @@ function buildRepresentativeContributions(
       status: evidence.status,
       coverage: evidence.coverage,
       description: evidenceDescription(evidence),
+      descriptionKind: evidence.blockers[0] || evidence.missingEvidence[0] ? "raw"
+        : evidence.evidenceRefs[0] ? "reference"
+          : evidence.status === "available" ? "no_owner_required" : "not_loaded",
+      reference: evidence.evidenceRefs[0]
+        ? `${evidence.evidenceRefs[0].kind}:${evidence.evidenceRefs[0].id}${evidence.evidenceRefs[0].version ? ` · v${evidence.evidenceRefs[0].version}` : ""}`
+        : "",
       nextAnchor: evidence.nextAnchor,
     };
   });
@@ -525,15 +579,6 @@ function evidenceDescription(
   if (ref) return `${ref.kind}:${ref.id}${ref.version ? ` · v${ref.version}` : ""} is available from its current owner.`;
   if (evidence.status === "available") return "No owner evidence is required for this Application kind.";
   return "Owner evidence has not been loaded for the current Application generation.";
-}
-
-function contributionStatusLabel(
-  status: ApplicationDevelopmentEvidenceStatus,
-  coverage: ApplicationDevelopmentReadinessSource["coverage"],
-): string {
-  if (status === "not_started") return "missing";
-  if (status === "incomplete") return coverage === "partial" ? "partial" : "missing";
-  return status.replace("_", " ");
 }
 
 function applicationInitials(displayName: string): string {

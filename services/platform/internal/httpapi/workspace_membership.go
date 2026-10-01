@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -13,77 +15,6 @@ const (
 	controlPlaneReadDevMembershipPermHeader = "X-RadishMind-Dev-Read-Membership-Permissions"
 	workspaceMembershipPolicyVersion        = "workspace_membership_dev_test_v1"
 )
-
-var workspacePermissionAllowlist = map[string]struct{}{
-	"applications:read":                        {},
-	"applications:write":                       {},
-	"applications:archive":                     {},
-	"api_keys:read":                            {},
-	"api_keys:write":                           {},
-	"api_keys:revoke":                          {},
-	"usage:read":                               {},
-	"runs:read":                                {},
-	"workflow_drafts:read":                     {},
-	"workflow_drafts:write":                    {},
-	"workflow_drafts:archive":                  {},
-	"application_drafts:read":                  {},
-	"application_drafts:write":                 {},
-	"application_publish_candidates:read":      {},
-	"application_publish_candidates:write":     {},
-	"application_publish_candidates:review":    {},
-	"workflow_definitions:write":               {},
-	"workflow_definitions:review":              {},
-	"workflow_definitions:activate":            {},
-	"workflow_definitions:read":                {},
-	"workflow_runs:execute":                    {},
-	"workflow_runs:read":                       {},
-	"application_sessions:read":                {},
-	"application_sessions:write":               {},
-	"application_sessions:execute":             {},
-	"application_result_artifacts:archive":     {},
-	"application_result_artifacts:export":      {},
-	"prompt_application_templates:read":        {},
-	"prompt_application_templates:read_source": {},
-	"prompt_application_templates:write":       {},
-	"prompt_application_templates:version":     {},
-	"prompt_application_templates:bind":        {},
-	"prompt_application_runtime:read":          {},
-	"agent_copilot_profiles:read":              {},
-	"agent_copilot_profiles:read_source":       {},
-	"agent_copilot_profiles:write":             {},
-	"agent_copilot_profiles:version":           {},
-	"agent_copilot_profiles:bind":              {},
-	"prompt_application_runtime:write":         {},
-	"agent_copilot_runtime:write":              {},
-	"workflow_rag_evaluation_datasets:read":    {},
-	"workflow_rag_evaluation_datasets:write":   {},
-	"workflow_rag_evaluation_datasets:review":  {},
-	"workflow_rag_evaluation_datasets:archive": {},
-	"workflow_rag_snapshots:read":              {},
-	"workflow_rag_snapshots:write":             {},
-	"workflow_rag_snapshots:archive":           {},
-	"workflow_rag_promotions:read":             {},
-	"workflow_rag_promotions:write":            {},
-	"workflow_rag_promotions:review":           {},
-	"workflow_rag_promotions:bind":             {},
-	"workflow_rag_runtime:write":               {},
-	"workflow_rag:execute":                     {},
-	"workflow_tool_actions:plan":               {},
-	"workflow_tool_actions:confirm":            {},
-	"workflow_tool_actions:execute":            {},
-	"workflow_evaluations:write":               {},
-	"application_evaluations:read":             {},
-	"application_evaluations:write":            {},
-	"application_evaluations:execute":          {},
-	"admin_gateway_quotas:read":                {},
-	"admin_gateway_quotas:write":               {},
-	"admin_gateway_pricing:read":               {},
-	"admin_gateway_pricing:write":              {},
-	localIdentityPermissionMembersRead:         {},
-	localIdentityPermissionMembershipsWrite:    {},
-	localIdentityPermissionRolesRead:           {},
-	localIdentityPermissionRolesAssign:         {},
-}
 
 type VerifiedWorkspaceMembershipAssertion struct {
 	TenantRef        string
@@ -137,7 +68,7 @@ func (provider deterministicDevTestWorkspaceMembershipProvider) AuthorizeWorkspa
 	if !validControlPlaneReadAuthReference(workspaceID, false) {
 		return workspaceMembershipFailure("workspace_binding_mismatch", http.StatusForbidden)
 	}
-	permissions, valid := normalizeRequiredWorkspacePermissions(request.RequiredPermissions)
+	permissions, valid := workspacepolicy.NormalizeRequiredPermissions(request.RequiredPermissions)
 	if !valid {
 		return workspaceMembershipFailure("workspace_permission_denied", http.StatusForbidden)
 	}
@@ -173,46 +104,8 @@ func (provider deterministicDevTestWorkspaceMembershipProvider) AuthorizeWorkspa
 	return workspaceMembershipFailure("workspace_membership_denied", http.StatusForbidden)
 }
 
-func normalizeRequiredWorkspacePermissions(required []string) ([]string, bool) {
-	if len(required) == 0 {
-		return nil, false
-	}
-	permissions := make([]string, 0, len(required))
-	seen := make(map[string]struct{}, len(required))
-	for _, raw := range required {
-		permission := strings.TrimSpace(raw)
-		if _, allowed := workspacePermissionAllowlist[permission]; !allowed {
-			return nil, false
-		}
-		if _, duplicate := seen[permission]; duplicate {
-			continue
-		}
-		seen[permission] = struct{}{}
-		permissions = append(permissions, permission)
-	}
-	return permissions, len(permissions) > 0
-}
-
 func workspaceMembershipFailure(code string, status int) WorkspaceMembershipDecision {
 	return WorkspaceMembershipDecision{FailureCode: code, HTTPStatus: status}
-}
-
-func validWorkspacePermissionGrants(grants []string) bool {
-	if len(grants) == 0 {
-		return false
-	}
-	seen := make(map[string]struct{}, len(grants))
-	for _, raw := range grants {
-		grant := strings.TrimSpace(raw)
-		if _, allowed := workspacePermissionAllowlist[grant]; !allowed {
-			return false
-		}
-		if _, duplicate := seen[grant]; duplicate {
-			return false
-		}
-		seen[grant] = struct{}{}
-	}
-	return true
 }
 
 func workspaceMembershipsFromDevHeaders(
@@ -222,7 +115,7 @@ func workspaceMembershipsFromDevHeaders(
 ) []VerifiedWorkspaceMembershipAssertion {
 	workspaceID := strings.TrimSpace(request.Header.Get(controlPlaneReadDevMembershipHeader))
 	permissions := splitControlPlaneReadDevScopes(request.Header.Get(controlPlaneReadDevMembershipPermHeader))
-	if workspaceID == "" || !validControlPlaneReadAuthReference(workspaceID, false) || !validWorkspacePermissionGrants(permissions) {
+	if workspaceID == "" || !validControlPlaneReadAuthReference(workspaceID, false) || !workspacepolicy.ValidPermissionGrants(permissions) {
 		return nil
 	}
 	return []VerifiedWorkspaceMembershipAssertion{{

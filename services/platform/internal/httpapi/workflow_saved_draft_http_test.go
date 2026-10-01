@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 func TestSavedWorkflowDraftHTTPRoutes(t *testing.T) {
@@ -438,7 +439,7 @@ func setSavedWorkflowDraftDevHeaders(req *http.Request, scopes string) {
 	membershipPermissions := make([]string, 0)
 	for _, scope := range strings.Split(scopes, ",") {
 		scope = strings.TrimSpace(scope)
-		if _, allowed := workspacePermissionAllowlist[scope]; allowed {
+		if workspacepolicy.ValidPermissionGrants([]string{scope}) {
 			membershipPermissions = append(membershipPermissions, scope)
 		}
 	}

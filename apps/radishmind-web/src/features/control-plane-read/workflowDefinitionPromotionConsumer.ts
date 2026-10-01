@@ -190,6 +190,16 @@ export type WorkflowDefinitionActivation = {
   auditRef: string;
 };
 
+export class WorkflowDefinitionPromotionFailure extends Error {
+  readonly failureCode: string;
+
+  constructor(failureCode: string, summary: string) {
+    super(`${failureCode}: ${summary}`);
+    this.name = "WorkflowDefinitionPromotionFailure";
+    this.failureCode = failureCode;
+  }
+}
+
 export class WorkflowDefinitionPromotionConflict extends Error {
   readonly failureCode: string;
   readonly currentReviewVersion: number;
@@ -570,10 +580,12 @@ function isVersionListEnvelope(value: unknown, config: WorkflowDefinitionPromoti
 
 function isRunEnvelope(value: unknown, config: WorkflowDefinitionPromotionConfig, applicationId: string): value is { request_id: string; workspace_id: string; application_id: string; run: unknown | null; advisory_output?: string; failure_code: string | null; failure_summary: string; audit_ref: string } {
   const keys = value && typeof value === "object" && "advisory_output" in value
-    ? ["request_id", "workspace_id", "application_id", "run", "advisory_output", "failure_code", "failure_summary", "audit_ref"]
-    : ["request_id", "workspace_id", "application_id", "run", "failure_code", "failure_summary", "audit_ref"];
+    ? ["request_id", "workspace_id", "application_id", "run", "action_safety", "advisory_output", "failure_code", "failure_summary", "audit_ref"]
+    : ["request_id", "workspace_id", "application_id", "run", "action_safety", "failure_code", "failure_summary", "audit_ref"];
   if (!strictObject(value, keys) || containsForbiddenResponseKey(value)) return false;
   const item = value as Record<string, unknown>;
+  // v5 / v8 do not own an Action Safety projection; the HTTP owner emits null.
+  if (item.action_safety !== null) return false;
   return item.workspace_id === config.workspaceId && item.application_id === applicationId && typeof item.request_id === "string" && typeof item.audit_ref === "string" && typeof item.failure_summary === "string" && (item.advisory_output === undefined || typeof item.advisory_output === "string") && (item.failure_code === null || typeof item.failure_code === "string") && (item.run === null || typeof item.run === "object");
 }
 
@@ -729,7 +741,7 @@ function mapActivation(value: ActivationDocument): WorkflowDefinitionActivation 
 function mapSnapshot(value: SnapshotDocument): WorkflowDefinitionSnapshot { return { schemaVersion: value.schema_version, name: value.name, description: value.description, nodes: value.nodes.map((node) => ({ nodeId: String(node.node_id), nodeType: node.node_type as WorkflowDefinitionSnapshot["nodes"][number]["nodeType"], label: String(node.label), inputSummary: String(node.input_summary), outputSummary: String(node.output_summary), inputContractRef: String(node.input_contract_ref), outputContractRef: String(node.output_contract_ref), inputContractFields: [...node.input_contract_fields as string[]], outputContractFields: [...node.output_contract_fields as string[]], outputMappingSummary: String(node.output_mapping_summary), providerRef: String(node.provider_ref), toolRef: String(node.tool_ref), ragRef: String(node.rag_ref), riskLevel: String(node.risk_level), requiresConfirmation: Boolean(node.requires_confirmation) })), edges: value.edges.map((edge) => ({ edgeId: String(edge.edge_id), fromNodeId: String(edge.from_node_id), toNodeId: String(edge.to_node_id), conditionSummary: String(edge.condition_summary) })), inputContract: value.schema_version === "saved_workflow_draft.v2" ? parseStructuredRuntimeInputContractDocument(value.input_contract)! : mapContract(value.input_contract), outputContract: mapContract(value.output_contract), providerRefs: [...value.provider_refs], toolRefs: [...value.tool_refs], ragRefs: [...value.rag_refs], requestedCapabilities: [...value.requested_capabilities], executionProfile: value.execution_profile }; }
 function mapContract(value: Record<string, unknown>) { return { contractId: String(value.contract_id), requiredFields: [...value.required_fields as string[]], summary: String(value.summary) }; }
 function requireCandidate(value: ReleaseEnvelope): WorkflowDefinitionCandidate { if (!value.candidate) throw responseError(value, "candidate"); return mapCandidate(value.candidate); }
-function responseError(value: unknown, operation: string): Error { if (value && typeof value === "object") { const item = value as Record<string, unknown>; if (typeof item.failure_code === "string") return new Error(`${item.failure_code}: ${typeof item.failure_summary === "string" ? item.failure_summary : operation}`); } return new Error(`${operation} failed`); }
+function responseError(value: unknown, operation: string): Error { if (value && typeof value === "object") { const item = value as Record<string, unknown>; if (typeof item.failure_code === "string") return new WorkflowDefinitionPromotionFailure(item.failure_code, typeof item.failure_summary === "string" ? item.failure_summary : operation); } return new Error(`${operation} failed`); }
 function strictObject(value: unknown, keys: string[]): value is Record<string, unknown> { return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.keys(value as Record<string, unknown>).length === keys.length && Object.keys(value as Record<string, unknown>).every((key) => keys.includes(key)); }
 function containsForbiddenResponseKey(value: unknown): boolean { if (Array.isArray(value)) return value.some(containsForbiddenResponseKey); if (!value || typeof value !== "object") return false; return Object.entries(value as Record<string, unknown>).some(([key, nested]) => FORBIDDEN_RESPONSE_KEYS.has(key.toLowerCase()) || containsForbiddenResponseKey(nested)); }
 function id(value: unknown): value is string { return typeof value === "string" && ID_PATTERN.test(value); }

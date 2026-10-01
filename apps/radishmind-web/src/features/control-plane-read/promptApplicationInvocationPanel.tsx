@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
@@ -29,6 +30,7 @@ export default function PromptApplicationInvocationPanel({
   onOpenRun?: (runId: string) => void;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
+  const { t } = useTranslation("prompt");
   const credentialRef = useRef("");
   const abortRef = useRef<AbortController | null>(null);
   const [apiKeyId, setAPIKeyId] = useState("");
@@ -115,28 +117,27 @@ export default function PromptApplicationInvocationPanel({
   }
 
   return (
-    <section className="prompt-application-invocation-panel" id="prompt-application-invocation" aria-label="Prompt Application controlled invocation">
+    <section className="prompt-application-invocation-panel" id="prompt-application-invocation" aria-label={t($ => $.invocationRegion)}>
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Prompt Application Controlled Test</p><h4>Exact authority invocation and Run v6 handoff</h4></div>
-        <span className={`status-badge ${result.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.status}</span>
+        <div><p className="eyebrow">{t($ => $.invocationHeading)}</p><h4>{t($ => $.invocationTitle)}</h4></div>
+        <span className={`status-badge ${result.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{t($ => $.states[result.status])}</span>
       </div>
       <div className="application-publish-scope">
-        <article><span>Application</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
-        <article><span>Credential</span><strong>{apiKeyId || "not handed off"}</strong><p>raw token 仅存在于组件内存。</p></article>
-        <article><span>Idempotency</span><strong>{clientInvocationKey}</strong><p>终态重试不会恢复 output。</p></article>
+        <article><span>{t($ => $.application)}</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
+        <article><span>{t($ => $.credential)}</span><strong>{apiKeyId || t($ => $.noCredential)}</strong><p>{t($ => $.credentialPrivacy)}</p></article>
+        <article><span>{t($ => $.idempotency)}</span><strong>{clientInvocationKey}</strong><p>{t($ => $.terminalRetry)}</p></article>
       </div>
       <div className="application-publish-layout">
         <article className="application-publish-create">
           <label>
-            Template variables (JSON object)
-            <textarea
+            {t($ => $.templateVariables)}<textarea
               rows={8}
               value={variablesText}
               onChange={(event) => setVariablesText(event.target.value)}
               disabled={result.status === "running"}
             />
           </label>
-          {variables.failureCode ? <p className="failure-summary">{variables.failureCode}</p> : null}
+          {variables.failureCode ? <p className="failure-summary">{variables.failureCode} · {t($ => $.invalidVariables)}</p> : null}
           <label>
             client_invocation_key
             <input
@@ -148,38 +149,36 @@ export default function PromptApplicationInvocationPanel({
           </label>
           <div className="application-draft-handoff">
             <button type="button" onClick={() => void invoke()} disabled={!apiKeyId || !variables.isValid || result.status === "running"}>
-              执行受控调用
-            </button>
-            {result.status === "running" ? <button type="button" onClick={() => abortRef.current?.abort()}>取消</button> : null}
+              {t($ => $.invoke)}</button>
+            {result.status === "running" ? <button type="button" onClick={() => abortRef.current?.abort()}>{t($ => $.cancel)}</button> : null}
             <button type="button" className="secondary-action" onClick={() => {
               clearTransient();
               setResult(initialPromptApplicationInvocationResult());
-            }}>清除 transient 状态</button>
+            }}>{t($ => $.clearTransient)}</button>
           </div>
         </article>
         <article className="application-publish-review">
-          <strong>Transient output</strong>
-          <pre>{result.output || "(没有可展示的当前响应 output)"}</pre>
-          {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureSummary}</p> : null}
+          <strong>{t($ => $.transientOutput)}</strong>
+          <pre>{result.output || t($ => $.noOutput)}</pre>
+          {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureCode === "prompt_invocation_output_contract_failed" ? t($ => $.outputRejected) : t($ => $.failureHelp)}</p> : null}
           <ControlledUseFailureGuidance owner="prompt_invocation" failureCode={result.failureCode} />
-          <p className="boundary-note">{result.summary}</p>
+          <p className="boundary-note">{result.status === "idle" && apiKeyId ? t($ => $.credentialReceived) : t($ => $.invocationStates[result.status])}</p>
         </article>
       </div>
       {result.run ? (
         <article className="application-publish-snapshot">
           <div className="application-api-card-heading">
-            <div><p className="eyebrow">Workflow Run Record v6</p><h5>{result.run.runId}</h5></div>
+            <div><p className="eyebrow">{t($ => $.runRecord)}</p><h5>{result.run.runId}</h5></div>
             <span className="status-badge good">{result.run.status}</span>
           </div>
-          <code>{result.run.assignmentId} · assignment v{result.run.assignmentVersion}</code>
-          <code>{result.run.templateId} · template v{result.run.templateVersion}</code>
-          <p>{result.run.selectedProtocol} · {result.run.selectedModel} · provider calls {result.run.providerCalls}</p>
-          <button type="button" onClick={() => onOpenRun?.(result.run!.runId)}>Open exact Run History evidence</button>
+          <code>{result.run.assignmentId} · {t($ => $.assignmentVersion, { version: result.run.assignmentVersion })}</code>
+          <code>{result.run.templateId} · {t($ => $.templateVersionLabel, { version: result.run.templateVersion })}</code>
+          <p>{result.run.selectedProtocol} · {result.run.selectedModel} · {t($ => $.providerCalls, { count: result.run.providerCalls })}</p>
+          <button type="button" onClick={() => onOpenRun?.(result.run!.runId)}>{t($ => $.openExactRun)}</button>
         </article>
       ) : null}
       <p className="boundary-note">
-        页面不提交 model、provider、template、version 或 authority override；Run、History、Comparison、Evaluation 与 Operations 只接收 metadata。
-      </p>
+        {t($ => $.invocationBoundary)}</p>
     </section>
   );
 }

@@ -598,7 +598,8 @@ function applicationCatalogRequestPolicy(config: ApplicationCatalogConfig): Pick
 }
 
 function createRequestId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  // Hex UUIDs cannot accidentally form a credential prefix across separators.
+  return `${prefix}-${crypto.randomUUID()}`;
 }
 
 function containsForbiddenResponse(value: unknown): boolean {

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/sqlitedev"
+	"radishmind.local/services/platform/internal/workspacepolicy"
 	sqlitelocalidentitymigrations "radishmind.local/services/platform/migrations/sqlite/local_identity_records"
 )
 
@@ -75,8 +76,8 @@ func TestSQLiteLocalIdentityDevTestBootstrapCoordinatorIsExplicitAndOneShot(t *t
 		AuditRef: "audit:sqlite-bootstrap-coordinator",
 	}
 	created, err := BootstrapLocalIdentityWorkspaceAdministratorDevTest(context.Background(), options)
-	if err != nil || created.UserID != account.UserID || created.RoleKey != localIdentityRoleWorkspaceAdmin ||
-		created.RoleCatalogVersion != LocalIdentityBuiltInRoleCatalog().CatalogVersion ||
+	if err != nil || created.UserID != account.UserID || created.RoleKey != workspacepolicy.RoleWorkspaceAdmin ||
+		created.RoleCatalogVersion != workspacepolicy.BuiltInRoleCatalog().CatalogVersion ||
 		created.AuditRef != options.AuditRef {
 		t.Fatalf("explicit SQLite bootstrap mismatch: result=%#v err=%v", created, err)
 	}
@@ -255,7 +256,7 @@ func runDurableLocalIdentityAdministrationContract(
 	}
 
 	targetUserID := "usr_0000000000000200"
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	assignment, err := service.AssignWorkspaceRole(ctx, actor, LocalIdentityAssignWorkspaceRoleInput{
 		TenantRef: tenantRef, WorkspaceID: workspaceID, UserID: targetUserID, RoleKey: reader.RoleKey,
 		ExpectedCatalogVersion: reader.CatalogVersion, ExpectedRoleDefinitionDigest: reader.DefinitionDigest,

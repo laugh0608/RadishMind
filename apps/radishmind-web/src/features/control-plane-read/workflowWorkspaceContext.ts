@@ -135,7 +135,7 @@ export type WorkflowWorkspaceContextViewModel = {
 export function buildWorkflowWorkspaceContextViewModel(
   source: WorkflowWorkspaceContextSource,
 ): WorkflowWorkspaceContextViewModel {
-  const selectedApplication = selectApplication(
+  const selectedApplication = selectWorkflowWorkspaceApplication(
     source.workspaceApplications,
     source.selection.applicationRef,
   );
@@ -383,7 +383,7 @@ export function selectionForDraft(
   };
 }
 
-function selectApplication(
+export function selectWorkflowWorkspaceApplication(
   workspaceApplications: WorkspaceApplicationsViewModel,
   selectedApplicationRef: string | null,
 ): WorkspaceApplicationRow {

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type workspaceInvitationRepository interface {
@@ -64,7 +66,7 @@ func (service *workspaceInvitationService) Create(
 	if !input.Confirmed || !ttlValid || !validAuditRef(input.RequestRef) || !validAuditRef(input.AuditRef) {
 		return WorkspaceInvitationCreation{}, errWorkspaceInvitationTransitionInvalid
 	}
-	definition, exists := builtInLocalIdentityRole(input.RoleKey)
+	definition, exists := workspacepolicy.BuiltInRole(input.RoleKey)
 	if !exists || !workspaceInvitationRoleEligible(definition) {
 		return WorkspaceInvitationCreation{}, errWorkspaceInvitationRoleIneligible
 	}
@@ -183,7 +185,7 @@ func (service *workspaceInvitationService) Preview(
 	if invitation.InvitationID != parsed.InvitationID {
 		return WorkspaceInvitationPreview{}, errWorkspaceInvitationInvalid
 	}
-	definition, exists := builtInLocalIdentityRole(invitation.RoleKey)
+	definition, exists := workspacepolicy.BuiltInRole(invitation.RoleKey)
 	if !exists || !workspaceInvitationRoleEligible(definition) ||
 		definition.CatalogVersion != invitation.RoleCatalogVersion ||
 		definition.DefinitionDigest != invitation.RoleDefinitionDigest {

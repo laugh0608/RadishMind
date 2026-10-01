@@ -58,6 +58,7 @@ def assert_fixture_shape(fixture: dict[str, Any]) -> None:
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    app_text += "\n" + "\n".join(read(str(path)) for path in contract["owner_files"])
     panel_text = read(str(contract.get("panel_file")))
     designer_text = read(str(contract.get("designer_file")))
     style_text = read(str(contract.get("style_file")))
@@ -91,10 +92,10 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     )
 
     for edit_handler in (
-        "handleWorkflowDraftLabelChange",
-        "handleWorkflowDraftSummaryChange",
-        "handleWorkflowDraftNodeLabelChange",
-        "handleWorkflowDraftEdgeConditionChange",
+        "onUpdateDraftLabel",
+        "onUpdateDraftSummary",
+        "onUpdateNodeLabel",
+        "onUpdateEdgeCondition",
     ):
         handler_index = app_text.index(edit_handler)
         local_edit_index = app_text.find('localOnlyInteraction: "local_edit"', handler_index)

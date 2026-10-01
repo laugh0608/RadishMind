@@ -58,6 +58,7 @@ def assert_fixture_shape(fixture: dict[str, Any]) -> None:
 def assert_frontend_contract(fixture: dict[str, Any]) -> None:
     contract = fixture.get("frontend_contract") or {}
     app_text = read(str(contract.get("app_file")))
+    app_text += "\n" + "\n".join(read(str(path)) for path in contract["owner_files"])
     context_text = read(str(contract.get("context_file")))
     designer_text = read(str(contract.get("designer_file")))
     home_text = read(str(contract.get("home_file")))

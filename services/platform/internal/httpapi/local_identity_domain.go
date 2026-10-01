@@ -12,6 +12,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -310,7 +312,7 @@ func validLocalRoleAssignment(assignment LocalRoleAssignment) bool {
 		localUserIDPattern.MatchString(assignment.UserID) && validControlPlaneReadAuthReference(assignment.TenantRef, false) &&
 		(assignment.WorkspaceID == "" || validControlPlaneReadAuthReference(assignment.WorkspaceID, false)) &&
 		localRoleKeyPattern.MatchString(assignment.RoleKey) && validLocalIdentityRoleCatalogMetadata(assignment) &&
-		validWorkspacePermissionGrants(assignment.PermissionGrants) &&
+		workspacepolicy.ValidPermissionGrants(assignment.PermissionGrants) &&
 		assignment.RecordVersion > 0 && validAuditRef(assignment.AuditRef) && validOptionalExpiry(assignment.CreatedAt, assignment.ExpiresAt) &&
 		validLifecycleTimes(assignment.LifecycleState, assignment.CreatedAt, assignment.UpdatedAt, assignment.RevokedAt, localIdentityStateRevoked)
 }
@@ -347,7 +349,7 @@ func validAuditRef(value string) bool {
 }
 
 func normalizedPermissionGrants(grants []string) ([]string, bool) {
-	normalized, ok := normalizeRequiredWorkspacePermissions(grants)
+	normalized, ok := workspacepolicy.NormalizeRequiredPermissions(grants)
 	if !ok {
 		return nil, false
 	}

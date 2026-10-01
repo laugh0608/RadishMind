@@ -132,8 +132,10 @@ def assert_context_source(fixture: dict[str, Any]) -> None:
 def assert_app_composition(fixture: dict[str, Any]) -> None:
     app_composition = fixture.get("app_composition") or {}
     app_text = read(str(app_composition.get("file")))
-    require(app_composition.get("required_builder") in app_text, "App must use workflow workspace context builder")
-    require("const workflowWorkspaceContext = useMemo(" in app_text, "App must memoize workflow workspace context")
+    owner_text = read(str(app_composition["owner_file"]))
+    require("useWorkflowDraftWorkspace({" in app_text, "App must use the draft workspace owner")
+    require(app_composition.get("required_builder") in owner_text, "draft owner must use workflow workspace context builder")
+    require("const workflowWorkspaceContext = useMemo(" in owner_text, "App must memoize workflow workspace context")
     require("} = workflowWorkspaceContext;" in app_text, "App must destructure workflow context outputs")
     for helper in app_composition.get("required_selection_helpers") or []:
         require(str(helper) in app_text, f"App missing selection helper: {helper}")

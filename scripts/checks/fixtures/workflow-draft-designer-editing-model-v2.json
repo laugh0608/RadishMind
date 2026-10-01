@@ -38,21 +38,22 @@
       "activeWorkflowDraftValidationInspector",
       "activeWorkflowExecutionPlanPreview",
       "activeWorkflowRuntimeReadinessInspector",
-      "handleWorkflowDraftAddNode",
-      "handleWorkflowDraftMoveNode",
-      "handleWorkflowDraftRemoveNode",
+      "onAddNode",
+      "onMoveNode",
+      "onRemoveNode",
       "buildLocalWorkflowDraftNode",
       "workflowDraftWithStructureEdits",
       "insertWorkflowDraftNode",
       "moveWorkflowDraftNode",
       "canRemoveWorkflowDraftNode",
       "rebuildWorkflowDraftEdges",
-      "onAddNode={handleWorkflowDraftAddNode}",
-      "onMoveNode={handleWorkflowDraftMoveNode}",
-      "onRemoveNode={handleWorkflowDraftRemoveNode}",
+      "const onAddNode:",
+      "onMoveNode={onMoveNode}",
+      "onRemoveNode={onRemoveNode}",
       "inspector={activeWorkflowDraftValidationInspector}",
       "preview={activeWorkflowExecutionPlanPreview}",
-      "readiness={activeWorkflowRuntimeReadinessInspector}"
+      "readiness={activeWorkflowRuntimeReadinessInspector}",
+      "onEditDraft={editWorkflowDraft}"
     ],
     "required_panel_literals": [
       "workflow-designer-node-palette",
@@ -84,6 +85,13 @@
       ".workflow-draft-node-type-button",
       ".workflow-draft-node-actions",
       ".workflow-draft-node-actions button"
+    ],
+    "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftCreation.ts"
     ]
   },
   "required_doc_references": {

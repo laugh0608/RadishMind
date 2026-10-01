@@ -1,3 +1,5 @@
+import "../../i18n/artifactResources.ts";
+import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -34,13 +36,21 @@ export default function ApplicationResultArtifactPanel({
   disabled?: boolean;
   onOpenRun?: (runId: string) => void;
 }) {
+  const { t } = useTranslation("applications");
   const [lifecycleState, setLifecycleState] = useState<ApplicationResultArtifactLifecycleState>("active");
   const [listing, setListing] = useState(() => initialApplicationResultArtifactListResult(config));
   const [items, setItems] = useState<ApplicationResultArtifactSummary[]>([]);
   const [selectedSummary, setSelectedSummary] = useState<ApplicationResultArtifactSummary | null>(null);
   const [readResult, setReadResult] = useState<ApplicationResultArtifactReadResult | null>(null);
   const [pending, setPending] = useState<"" | "list" | "more" | "read" | "transition">("");
-  const [operationSummary, setOperationSummary] = useState("");
+  const [operationNotice, setOperationNotice] = useState<
+    | { kind: "saved"; artifactId: string }
+    | { kind: "read"; artifactId: string }
+    | { kind: "transitioned"; state: ApplicationResultArtifactLifecycleState }
+    | { kind: "conflict"; code: string; state: string; version: string }
+    | { kind: "failure"; code: string }
+    | null
+  >(null);
   const generationRef = useRef(0);
   const requestScopeRef = useRef<ApplicationResultArtifactRequestScope>({
     generation: 0,
@@ -62,7 +72,7 @@ export default function ApplicationResultArtifactPanel({
     setSelectedSummary(null);
     setReadResult(null);
     setPending("");
-    setOperationSummary("");
+    setOperationNotice(null);
     if (config.mode !== "offline" && applicationId && sessionId) {
       void loadArtifacts("active", "", false);
     }
@@ -84,7 +94,7 @@ export default function ApplicationResultArtifactPanel({
 
   useEffect(() => {
     if (!latestArtifact || latestArtifact.applicationId !== applicationId || latestArtifact.sessionId !== sessionId) return;
-    setOperationSummary(`本次成功结果已显式保存为 ${latestArtifact.artifactId}。`);
+    setOperationNotice({ kind: "saved", artifactId: latestArtifact.artifactId });
     if (latestArtifact.lifecycleState === lifecycleState) {
       setItems((current) => mergeArtifactSummaries(current, [latestArtifact]));
       setSelectedSummary(latestArtifact);
@@ -111,7 +121,7 @@ export default function ApplicationResultArtifactPanel({
     setPending("");
     setListing(result);
     setItems((current) => append ? mergeArtifactSummaries(current, result.items) : result.items);
-    setOperationSummary(result.summary);
+    setOperationNotice(result.status === "ready" ? null : { kind: "failure", code: result.failureCode });
     if (!append) {
       setSelectedSummary(null);
       setReadResult(null);
@@ -127,7 +137,7 @@ export default function ApplicationResultArtifactPanel({
     setItems([]);
     setSelectedSummary(null);
     setReadResult(null);
-    setOperationSummary("");
+    setOperationNotice(null);
     void loadArtifacts(next, "", false);
   }
 
@@ -145,7 +155,9 @@ export default function ApplicationResultArtifactPanel({
     abortRef.current = null;
     setPending("");
     setReadResult(result);
-    setOperationSummary(result.summary);
+    setOperationNotice(result.status === "ready" && result.artifact
+      ? { kind: "read", artifactId: result.artifact.artifactId }
+      : { kind: "failure", code: result.failureCode });
   }
 
   async function transitionSelectedArtifact() {
@@ -166,9 +178,10 @@ export default function ApplicationResultArtifactPanel({
     if (!applicationResultArtifactResponseMatchesScope(expected, requestScopeRef.current)) return;
     abortRef.current = null;
     setPending("");
-    setOperationSummary(result.status === "version_conflict" || result.status === "state_conflict"
-      ? `${result.failureCode}：服务端当前为 ${result.currentLifecycleState || "unknown"} v${result.currentLifecycleVersion || "?"}，请刷新当前列表后重试。`
-      : result.summary);
+    setOperationNotice(result.status === "version_conflict" || result.status === "state_conflict"
+      ? { kind: "conflict", code: result.failureCode, state: result.currentLifecycleState || "unknown", version: String(result.currentLifecycleVersion || "?") }
+      : result.status === "ready" && result.lifecycle ? { kind: "transitioned", state: result.lifecycle.lifecycleState }
+      : { kind: "failure", code: result.failureCode });
     if (result.status !== "ready" || !result.lifecycle) {
       if (result.status === "version_conflict" || result.status === "state_conflict") {
         setSelectedSummary(null);
@@ -192,7 +205,7 @@ export default function ApplicationResultArtifactPanel({
       items: targetState === lifecycleState
         ? mergeArtifactSummaries(current.items, [nextSummary])
         : current.items.filter((item) => item.artifactId !== selectedSummary.artifactId),
-      summary: `当前已加载 ${nextItems.length} 条 ${lifecycleState} 结果资产元数据；正文仍需精确读取。`,
+      summary: current.summary,
     }));
     setSelectedSummary(nextSummary);
     setReadResult((current) => current?.artifact ? { ...current, lifecycle: result.lifecycle } : current);
@@ -222,13 +235,31 @@ export default function ApplicationResultArtifactPanel({
     lifecycleState: selectedSummary.lifecycleState,
     lifecycleVersion: selectedSummary.lifecycleVersion,
   } : null);
+  const lifecycleLabel = (state: ApplicationResultArtifactLifecycleState) => state === "active" ? t($ => $.artifact.active) : t($ => $.artifact.archived);
+  const listMessage = listing.status === "failed"
+    ? t($ => $.artifact.listUnavailable, { code: listing.failureCode || t($ => $.artifact.unknownFailure) })
+    : config.mode === "offline" ? t($ => $.artifact.offlineUnavailable)
+    : pending === "list" ? t($ => $.artifact.loading)
+    : listing.requestId ? t($ => $.artifact.loadedMetadata, { count: items.length, state: lifecycleLabel(lifecycleState) })
+    : t($ => $.artifact.selectSession);
+  const operationMessage = operationNotice?.kind === "saved"
+    ? t($ => $.artifact.resultSavedArtifact, { artifactId: operationNotice.artifactId })
+    : operationNotice?.kind === "read"
+      ? t($ => $.artifact.readSucceeded, { artifactId: operationNotice.artifactId })
+      : operationNotice?.kind === "transitioned"
+        ? operationNotice.state === "active" ? t($ => $.artifact.unarchiveSucceeded) : t($ => $.artifact.archiveSucceeded)
+        : operationNotice?.kind === "conflict"
+          ? t($ => $.artifact.lifecycleConflict, { failureCode: operationNotice.code, state: operationNotice.state === "active" || operationNotice.state === "archived" ? lifecycleLabel(operationNotice.state) : t($ => $.artifact.unknown), version: operationNotice.version })
+          : operationNotice?.kind === "failure"
+            ? t($ => $.artifact.operationUnavailable, { code: operationNotice.code || t($ => $.artifact.unknownFailure) })
+            : "";
 
   return (
-    <section className="application-result-artifact-owner" aria-label="Application result artifacts">
+    <section className="application-result-artifact-owner" aria-label={t($ => $.artifact.artifactRegion)}>
       <div className="application-api-card-heading">
-        <div><p className="eyebrow">Explicit result retention</p><h4>Saved result artifacts</h4></div>
+        <div><p className="eyebrow">{t($ => $.artifact.explicitRetention)}</p><h4>{t($ => $.artifact.savedArtifacts)}</h4></div>
         <span className={`status-badge ${latestArtifact ? "good" : latestArtifactFailureCode ? "bad" : "neutral"}`}>
-          {latestArtifact ? "saved" : latestArtifactFailureCode ? "save failed" : "default off"}
+          {latestArtifact ? t($ => $.artifact.saved) : latestArtifactFailureCode ? t($ => $.artifact.saveFailed) : t($ => $.artifact.defaultOff)}
         </span>
       </div>
 
@@ -240,27 +271,25 @@ export default function ApplicationResultArtifactPanel({
           onChange={(event) => onSaveResultChange(event.target.checked)}
         />
         <span>
-          <strong>显式保存下一次成功结果</strong>
-          <small>默认关闭；只保存服务端 canonical result，不保存输入、prompt、provider 原始响应或完整 transcript。</small>
+          <strong>{t($ => $.artifact.saveNextSuccess)}</strong>
+          <small>{t($ => $.artifact.saveBoundary)}</small>
         </span>
       </label>
 
-      {latestArtifactFailureCode ? <p className="failure-summary" role="alert">结果执行成功，但保存失败：{latestArtifactFailureCode}</p> : null}
+      {latestArtifactFailureCode ? <p className="failure-summary" role="alert">{t($ => $.artifact.resultSucceededSaveFailed)}{latestArtifactFailureCode}</p> : null}
       {latestArtifact ? (
         <p className="boundary-note">
-          已保存 <code>{latestArtifact.artifactId}</code> · {latestArtifact.contentType} · {latestArtifact.contentBytes} bytes；正文需精确读取。
-        </p>
+          {t($ => $.artifact.savedPrefix)} <code>{latestArtifact.artifactId}</code> · {latestArtifact.contentType} · {t($ => $.artifact.contentBytes, { count: latestArtifact.contentBytes })}{t($ => $.artifact.bytesExactRead)}</p>
       ) : null}
 
       <div className="application-result-artifact-toolbar">
-        <label>Lifecycle
-          <select
+        <label>{t($ => $.artifact.lifecycle)}<select
             value={lifecycleState}
             disabled={!sessionId || Boolean(pending)}
             onChange={(event) => changeLifecycleState(event.target.value as ApplicationResultArtifactLifecycleState)}
           >
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
+            <option value="active">{t($ => $.artifact.active)}</option>
+            <option value="archived">{t($ => $.artifact.archived)}</option>
           </select>
         </label>
         <button
@@ -269,14 +298,14 @@ export default function ApplicationResultArtifactPanel({
           disabled={!sessionId || Boolean(pending) || config.mode === "offline"}
           onClick={() => void loadArtifacts(lifecycleState, "", false)}
         >
-          {pending === "list" ? "Loading…" : "Refresh artifacts"}
+          {pending === "list" ? t($ => $.artifact.loading) : t($ => $.artifact.refreshArtifacts)}
         </button>
-        <span>{items.length} metadata record(s)</span>
+        <span>{t($ => $.artifact.metadataRecordCount, { count: items.length })}</span>
       </div>
 
       <div className="application-result-artifact-layout">
-        <div className="application-result-artifact-list" aria-label={`${lifecycleState} result artifacts`}>
-          {items.length === 0 ? <p className="empty-state">{listing.summary}</p> : items.map((item) => (
+        <div className="application-result-artifact-list" aria-label={t($ => $.artifact.resultArtifactListLabel, { state: lifecycleLabel(lifecycleState) })}>
+          {items.length === 0 ? <p className="empty-state">{listMessage}</p> : items.map((item) => (
             <button
               type="button"
               key={item.artifactId}
@@ -284,8 +313,8 @@ export default function ApplicationResultArtifactPanel({
               disabled={Boolean(pending)}
               onClick={() => void openArtifact(item)}
             >
-              <span><strong>Turn {item.turnId}</strong><code>{item.artifactId}</code></span>
-              <span><small>{item.contentType} · {item.contentBytes} bytes</small><small>{item.lifecycleState} · v{item.lifecycleVersion}</small></span>
+              <span><strong>{t($ => $.artifact.turnWithId, { turnId: item.turnId })}</strong><code>{item.artifactId}</code></span>
+              <span><small>{item.contentType} · {t($ => $.artifact.contentBytes, { count: item.contentBytes })}</small><small>{t($ => $.artifact.lifecycleVersionValue, { state: lifecycleLabel(item.lifecycleState), version: item.lifecycleVersion })}</small></span>
             </button>
           ))}
           {listing.nextCursor ? (
@@ -295,46 +324,45 @@ export default function ApplicationResultArtifactPanel({
               disabled={Boolean(pending)}
               onClick={() => void loadArtifacts(lifecycleState, listing.nextCursor, true)}
             >
-              {pending === "more" ? "Loading…" : "Load more"}
+              {pending === "more" ? t($ => $.artifact.loading) : t($ => $.artifact.loadMore)}
             </button>
           ) : null}
         </div>
 
         <article className="application-result-artifact-inspector">
           <div className="application-api-card-heading">
-            <div><p className="eyebrow">Exact content read</p><h5>{selectedSummary?.artifactId ?? "No artifact selected"}</h5></div>
+            <div><p className="eyebrow">{t($ => $.artifact.exactContentRead)}</p><h5>{selectedSummary?.artifactId ?? t($ => $.artifact.noArtifactSelected)}</h5></div>
             <span className={`status-badge ${readResult?.artifact ? "good" : readResult?.failureCode ? "bad" : "neutral"}`}>
-              {pending === "read" ? "reading" : currentLifecycle?.lifecycleState ?? "metadata only"}
+              {pending === "read" ? t($ => $.artifact.reading) : currentLifecycle ? lifecycleLabel(currentLifecycle.lifecycleState) : t($ => $.artifact.metadataOnly)}
             </span>
           </div>
           {readResult?.artifact ? (
             <>
               <dl className="tenant-meta">
-                <div><dt>Source</dt><dd>{readResult.artifact.executionProfile}</dd></div>
-                <div><dt>Run</dt><dd>{readResult.artifact.runRef.schemaVersion}</dd></div>
-                <div><dt>Digest</dt><dd><code>{readResult.artifact.contentDigest}</code></dd></div>
-                <div><dt>Lifecycle</dt><dd>{readResult.lifecycle?.lifecycleState} · v{readResult.lifecycle?.lifecycleVersion}</dd></div>
+                <div><dt>{t($ => $.artifact.source)}</dt><dd>{readResult.artifact.executionProfile}</dd></div>
+                <div><dt>{t($ => $.artifact.run)}</dt><dd>{readResult.artifact.runRef.schemaVersion}</dd></div>
+                <div><dt>{t($ => $.artifact.digest)}</dt><dd><code>{readResult.artifact.contentDigest}</code></dd></div>
+                <div><dt>{t($ => $.artifact.lifecycle)}</dt><dd>{readResult.lifecycle ? t($ => $.artifact.lifecycleVersionValue, { state: lifecycleLabel(readResult.lifecycle.lifecycleState), version: readResult.lifecycle.lifecycleVersion }) : ""}</dd></div>
               </dl>
               <pre>{readResult.artifact.content}</pre>
               <div className="application-result-artifact-actions">
-                <button type="button" className="secondary-action" onClick={() => onOpenRun?.(readResult.artifact?.runRef.runId ?? "")}>Open exact run</button>
+                <button type="button" className="secondary-action" onClick={() => onOpenRun?.(readResult.artifact?.runRef.runId ?? "")}>{t($ => $.artifact.openExactRun)}</button>
                 <button type="button" disabled={Boolean(pending)} onClick={() => void transitionSelectedArtifact()}>
-                  {pending === "transition" ? "Updating…" : currentLifecycle?.lifecycleState === "active" ? "Archive artifact" : "Unarchive artifact"}
+                  {pending === "transition" ? t($ => $.artifact.updating) : currentLifecycle?.lifecycleState === "active" ? t($ => $.artifact.archiveArtifact) : t($ => $.artifact.unarchiveArtifact)}
                 </button>
               </div>
             </>
           ) : selectedSummary ? (
-            <p className="empty-state">选择记录后只读取该 artifact 的正文；列表、URL 与浏览器持久存储都不包含正文。</p>
+            <p className="empty-state">{t($ => $.artifact.contentBoundary)}</p>
           ) : (
-            <p className="empty-state">从当前 Session 的 {lifecycleState} 列表中选择一个结果资产。</p>
+            <p className="empty-state">{t($ => $.artifact.selectFromSession, { state: lifecycleLabel(lifecycleState) })}</p>
           )}
           {readResult?.failureCode ? <p className="failure-summary" role="alert">{readResult.failureCode}</p> : null}
         </article>
       </div>
 
-      <p className={listing.failureCode || operationSummary.includes("conflict") ? "failure-summary" : "boundary-note"} aria-live="polite">
-        {operationSummary || listing.summary} Session、application、workspace、identity 或页面切换会清除正文并拒绝迟到响应。
-      </p>
+      <p className={listing.failureCode || operationNotice?.kind === "conflict" || operationNotice?.kind === "failure" ? "failure-summary" : "boundary-note"} aria-live="polite">
+        {operationMessage || listMessage} {t($ => $.artifact.clearOnScopeChange)}</p>
     </section>
   );
 }

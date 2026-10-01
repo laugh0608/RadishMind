@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
+import { lazy, Suspense, useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
 import {
   buildAdminTenantOverviewViewModel,
@@ -15,35 +16,9 @@ import {
   readControlPlaneReadDevLiveConfig,
   type ControlPlaneReadDevLiveLoadState,
 } from "../features/control-plane-read/devLiveReadConsumer";
+import { readWorkflowSavedDraftConsumerConfig } from "../features/control-plane-read/savedWorkflowDraftConsumer";
+import { useWorkflowDraftWorkspace } from "../features/control-plane-read/useWorkflowDraftWorkspace";
 import {
-  archiveWorkflowDraftDevRecord,
-  continueLocalWorkflowDraftAfterVersionConflict,
-  emptyWorkflowSavedDraftLibraryFilters,
-  initialWorkflowSavedDraftLifecycleOperationState,
-  initialWorkflowSavedDraftConsumerState,
-  initialWorkflowSavedDraftListState,
-  listWorkflowDraftDevRecords,
-  mergeWorkflowSavedDraftListPage,
-  nextWorkflowSavedDraftExpectedVersion,
-  openWorkflowDraftDevRecord,
-  readWorkflowDraftDevRecord,
-  readWorkflowSavedDraftConsumerConfig,
-  saveWorkflowDraftDevRecord,
-  unarchiveWorkflowDraftDevRecord,
-  validateWorkflowDraftDevRecord,
-  workflowSavedDraftRequestIsCurrent,
-  workflowSavedDraftConflictRequiresResolution,
-  type WorkflowSavedDraftLibraryFilters,
-  type WorkflowSavedDraftLifecycleOperationState,
-  type WorkflowSavedDraftLifecycleState,
-  type WorkflowSavedDraftListState,
-  type WorkflowSavedDraftSummary,
-  type WorkflowSavedDraftConsumerState,
-  type WorkflowSavedDraftConflictReviewSummary,
-} from "../features/control-plane-read/savedWorkflowDraftConsumer";
-import type { WorkflowSavedDraftRevisionRestoreResult } from "../features/control-plane-read/workflowSavedDraftRevisionConsumer";
-import {
-  buildWorkflowExecutorV0Draft,
   evaluateWorkflowExecutorEligibility,
   initialWorkflowExecutorConsumerState,
   readWorkflowExecutorConsumerConfig,
@@ -51,7 +26,6 @@ import {
   startWorkflowRunDevRecord,
   type WorkflowExecutorConsumerState,
 } from "../features/control-plane-read/workflowExecutorConsumer";
-import { WorkflowExecutorPanel } from "../features/control-plane-read/workflowExecutorPanel";
 import {
   createWorkflowHTTPToolActionPlan,
   decideWorkflowHTTPToolActionPlan,
@@ -131,46 +105,6 @@ import {
   type WorkflowDefinitionDetailViewModel,
 } from "../features/control-plane-read/workflowDefinitionDetail";
 import {
-  type WorkflowDraftDesignerBlockedCapability,
-  type WorkflowDraftDesignerDraft,
-  type WorkflowDraftDesignerEdge,
-  type WorkflowDraftDesignerLayout,
-  type WorkflowDraftDesignerNode,
-  type WorkflowDraftDesignerReadiness,
-  type WorkflowDraftDesignerRisk,
-  type WorkflowDraftDesignerTemplate,
-  type WorkflowDraftDesignerViewModel,
-} from "../features/control-plane-read/workflowDraftDesigner";
-import {
-  buildDerivedWorkflowDraft,
-  canDeriveSavedWorkflowDraft,
-  cloneWorkflowDraftForEditing,
-} from "../features/control-plane-read/workflowSavedDraftDerivation";
-import {
-  type WorkflowDraftBlockedCapabilityCheck,
-  type WorkflowDraftContractCheck,
-  type WorkflowDraftStructuralCheck,
-  type WorkflowDraftValidationInspectorViewModel,
-  type WorkflowDraftValidationSummary,
-} from "../features/control-plane-read/workflowDraftValidationInspector";
-import {
-  type WorkflowExecutionPlanBlockedReason,
-  type WorkflowExecutionPlanGate,
-  type WorkflowExecutionPlanNodeMapping,
-  type WorkflowExecutionPlanPreviewViewModel,
-  type WorkflowExecutionPlanProviderRequirement,
-  type WorkflowExecutionPlanStage,
-  type WorkflowExecutionPlanSummary,
-} from "../features/control-plane-read/workflowExecutionPlanPreview";
-import {
-  type WorkflowRuntimeReadinessBlocker,
-  type WorkflowRuntimeReadinessGate,
-  type WorkflowRuntimeReadinessInspectorViewModel,
-  type WorkflowRuntimeReadinessPrerequisite,
-  type WorkflowRuntimeReadinessStatus,
-  type WorkflowRuntimeReadinessSummary,
-} from "../features/control-plane-read/workflowRuntimeReadinessInspector";
-import {
   type WorkflowSurfaceOverviewBlockedCapability,
   type WorkflowSurfaceOverviewMetric,
   type WorkflowSurfaceOverviewRelation,
@@ -180,7 +114,7 @@ import {
 } from "../features/control-plane-read/workflowSurfaceOverview";
 import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
 import {
-  buildWorkflowWorkspaceContextViewModel,
+  selectWorkflowWorkspaceApplication,
   selectionForApplication,
   selectionForDraft,
   selectionForRun,
@@ -271,60 +205,16 @@ const ApplicationDevelopmentWorkspaceSurface = lazy(() => import("../features/co
 const ApplicationRuntimeReviewWorkspace = lazy(() => import("../features/control-plane-read/applicationRuntimeReviewWorkspace"));
 const WorkflowReviewWorkspace = lazy(() => import("../features/control-plane-read/workflowReviewWorkspace"));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
+const WorkflowExecutorPanel = lazy(() => import("../features/control-plane-read/workflowExecutorPanel").then(module => ({ default: module.WorkflowExecutorPanel })));
+const WorkflowDraftValidationInspectorPanel = lazy(() => import("../features/control-plane-read/workflowInspectionPanels").then(module => ({ default: module.WorkflowDraftValidationInspectorPanel })));
+const WorkflowExecutionPlanPreviewPanel = lazy(() => import("../features/control-plane-read/workflowInspectionPanels").then(module => ({ default: module.WorkflowExecutionPlanPreviewPanel })));
+const WorkflowRuntimeReadinessInspectorPanel = lazy(() => import("../features/control-plane-read/workflowInspectionPanels").then(module => ({ default: module.WorkflowRuntimeReadinessInspectorPanel })));
 const WorkflowReviewHandoffPanel = lazy(() => import("../features/control-plane-read/workflowReviewHandoffPanel").then((module) => ({ default: module.WorkflowReviewHandoffPanel })));
 const DEFAULT_WORKFLOW_EXECUTOR_INPUT = "请根据当前工作流草案生成一条仅供人工审查的建议，并明确说明任何不确定性。";
 
 type ControlPlaneReadCollectionsByRoute = Partial<
   Record<ControlPlaneReadRouteId, ControlPlaneReadCollectionViewModel>
 >;
-
-type WorkflowDraftNodeMoveDirection = "up" | "down";
-
-type WorkflowDraftNodeTypeOption = {
-  nodeType: WorkflowDraftDesignerNode["nodeType"];
-  lane: WorkflowDraftDesignerNode["lane"];
-  label: string;
-  summary: string;
-};
-
-const WORKFLOW_DRAFT_NODE_TYPE_OPTIONS: WorkflowDraftNodeTypeOption[] = [
-  {
-    nodeType: "prompt",
-    lane: "context",
-    label: "Context",
-    summary: "Collects sanitized workspace, selection, and diagnostic context.",
-  },
-  {
-    nodeType: "llm",
-    lane: "model",
-    label: "Model",
-    summary: "Adds advisory reasoning without direct execution.",
-  },
-  {
-    nodeType: "rag_retrieval",
-    lane: "retrieval",
-    label: "RAG Retrieval",
-    summary: "Binds one exact immutable application knowledge snapshot version.",
-  },
-  {
-    nodeType: "condition",
-    lane: "policy",
-    label: "Policy",
-    summary: "Keeps risk and confirmation gates explicit.",
-  },
-  {
-    nodeType: "http_tool",
-    lane: "preview",
-    label: "Preview",
-    summary: "Models tool preview metadata while execution stays blocked.",
-  },
-  {
-    nodeType: "output",
-    lane: "output",
-    label: "Output",
-    summary: "Adds reviewable output or audit projection nodes.",
-  },
-];
 
 export function App() {
   if (!localIdentityGatewayEnabled) return <ProductApp />;
@@ -338,6 +228,7 @@ export function App() {
 }
 
 function ProductApp() {
+  const { t } = useTranslation("shell");
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(
     () => normalizeActiveWorkspaceId(devLiveConfig.workspaceId ?? "") ?? "workspace_demo",
   );
@@ -358,38 +249,6 @@ function ProductApp() {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [selectedWorkflowDraftId, setSelectedWorkflowDraftId] = useState<string | null>(null);
   const [selectedWorkflowScenarioId, setSelectedWorkflowScenarioId] = useState<string | null>(null);
-  const [savedDraftConsumerState, setSavedDraftConsumerState] = useState<WorkflowSavedDraftConsumerState>(() =>
-    initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig),
-  );
-  const [savedDraftLibraryLifecycle, setSavedDraftLibraryLifecycle] =
-    useState<WorkflowSavedDraftLifecycleState>("active");
-  const [savedDraftLibraryFilters, setSavedDraftLibraryFilters] =
-    useState<WorkflowSavedDraftLibraryFilters>(() => emptyWorkflowSavedDraftLibraryFilters());
-  const [savedDraftListStates, setSavedDraftListStates] = useState<
-    Record<WorkflowSavedDraftLifecycleState, WorkflowSavedDraftListState>
-  >(() => ({
-    active: initialWorkflowSavedDraftListState(activeSavedDraftConsumerConfig, "", "active"),
-    archived: initialWorkflowSavedDraftListState(activeSavedDraftConsumerConfig, "", "archived"),
-  }));
-  const savedDraftListRequestGenerationRef = useRef<Record<WorkflowSavedDraftLifecycleState, number>>({
-    active: 0,
-    archived: 0,
-  });
-  const savedDraftLifecycleOperationGenerationRef = useRef(0);
-  const savedDraftOpenRequestGenerationRef = useRef(0);
-  const [savedDraftLifecycleOperation, setSavedDraftLifecycleOperation] =
-    useState<WorkflowSavedDraftLifecycleOperationState>(() =>
-      initialWorkflowSavedDraftLifecycleOperationState()
-    );
-  const savedDraftListState = savedDraftListStates[savedDraftLibraryLifecycle];
-  const activeSavedDraftListState = savedDraftListStates.active;
-  const pendingSavedDraftConsumerStateRef = useRef<{
-    draftId: string;
-    state: WorkflowSavedDraftConsumerState;
-  } | null>(null);
-  const [workspaceCreatedDrafts, setWorkspaceCreatedDrafts] = useState<WorkflowDraftDesignerDraft[]>([]);
-  const [editableWorkflowDraft, setEditableWorkflowDraft] = useState<WorkflowDraftDesignerDraft | null>(null);
-  const [workflowDraftEditDirty, setWorkflowDraftEditDirty] = useState(false);
   const [workflowExecutorState, setWorkflowExecutorState] = useState<WorkflowExecutorConsumerState>(() =>
     initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig),
   );
@@ -581,69 +440,7 @@ function ProductApp() {
       }),
     [tenantOverview, adminAuditLog, modelGatewayRouteEvidence, modelGatewayEvidenceReview, adminOperationsReview],
   );
-  const workflowWorkspaceContext = useMemo(
-    () =>
-      buildWorkflowWorkspaceContextViewModel({
-        workspaceApplications,
-        workspaceApiKeys,
-        workspaceUsageQuota,
-        workspaceWorkflowDefinitions,
-        workspaceRunHistory,
-        localWorkflowDrafts: workspaceCreatedDrafts,
-        activeWorkflowDraftOverride: editableWorkflowDraft,
-        savedDraftConsumerState,
-        savedDraftListStatus: activeSavedDraftListState.status,
-        savedDraftListFailureCode: activeSavedDraftListState.failureCode,
-        savedDraftSummaries: activeSavedDraftListState.summaries,
-        selection: {
-          applicationRef: selectedApplicationRef,
-          workflowDefinitionId: selectedWorkflowDefinitionId,
-          runId: selectedRunId,
-          draftId: selectedWorkflowDraftId,
-          scenarioId: selectedWorkflowScenarioId,
-        },
-      }),
-    [
-      workspaceApplications,
-      workspaceApiKeys,
-      workspaceUsageQuota,
-      workspaceWorkflowDefinitions,
-      workspaceRunHistory,
-      workspaceCreatedDrafts,
-      editableWorkflowDraft,
-      savedDraftConsumerState,
-      activeSavedDraftListState.failureCode,
-      activeSavedDraftListState.status,
-      activeSavedDraftListState.summaries,
-      selectedApplicationRef,
-      selectedWorkflowDefinitionId,
-      selectedRunId,
-      selectedWorkflowDraftId,
-      selectedWorkflowScenarioId,
-    ],
-  );
-  const {
-    selectedApplication,
-    selectedWorkflowDefinition,
-    selectedRun,
-    selectedWorkflowDraft,
-    activeWorkflowDraft,
-    workflowApplicationDetail,
-    workflowDefinitionDetail,
-    workflowRunDetail,
-    workflowBlockedActionPreview,
-    workflowConfirmationPlaceholder,
-    workflowDraftDesigner,
-    workflowDraftValidationInspector: activeWorkflowDraftValidationInspector,
-    workflowExecutionPlanPreview: activeWorkflowExecutionPlanPreview,
-    workflowRuntimeReadinessInspector: activeWorkflowRuntimeReadinessInspector,
-    workflowSurfaceOverview,
-    workflowScenarioInspector,
-    workflowWorkspaceReview,
-    workflowUserWorkspaceHome,
-    savedDraftConflictReviewSummary,
-    workflowReviewHandoff,
-  } = workflowWorkspaceContext;
+  const selectedApplication = selectWorkflowWorkspaceApplication(workspaceApplications, selectedApplicationRef);
   const applicationCatalogLive = applicationCatalogConfig.mode === "dev_application_catalog_http";
   const selectedApplicationCatalogRecord = applicationCatalogSnapshot?.records.find(
     (record) => record.applicationId === selectedApplicationRef,
@@ -690,28 +487,43 @@ function ProductApp() {
     ],
   );
   const workflowScopedApplicationId = applicationDevelopmentWorkspaceContext.applicationId ||
-    (applicationCatalogLive ? "" : activeWorkflowDraft.applicationRef);
-  const savedDraftLibraryScopeKey =
-    `${activeWorkspaceId}:${workflowScopedApplicationId}:${activeSavedDraftConsumerConfig.subjectRef}`;
-  const savedDraftLibraryScopeKeyRef = useRef(savedDraftLibraryScopeKey);
-  savedDraftLibraryScopeKeyRef.current = savedDraftLibraryScopeKey;
-  const savedDraftConflictOpenSummary = useMemo(
-    () =>
-      activeSavedDraftListState.summaries.find(
-        (summary) =>
-          summary.draftId === activeWorkflowDraft.draftId &&
-          summary.applicationRef === activeWorkflowDraft.applicationRef,
-      ) ?? null,
-    [activeSavedDraftListState.summaries, activeWorkflowDraft.applicationRef, activeWorkflowDraft.draftId],
-  );
-  const createdWorkspaceDraftCountsByDefinition = useMemo(
-    () =>
-      workspaceCreatedDrafts.reduce<Record<string, number>>((counts, draft) => {
-        counts[draft.workflowDefinitionId] = (counts[draft.workflowDefinitionId] ?? 0) + 1;
-        return counts;
-      }, {}),
-    [workspaceCreatedDrafts],
-  );
+    (applicationCatalogLive ? "" : selectedApplication.applicationRef);
+  const draftWorkspace = useWorkflowDraftWorkspace({
+    source: {
+      workspaceApplications, workspaceApiKeys, workspaceUsageQuota, workspaceWorkflowDefinitions, workspaceRunHistory,
+      selection: { applicationRef: selectedApplicationRef, workflowDefinitionId: selectedWorkflowDefinitionId,
+        runId: selectedRunId, draftId: selectedWorkflowDraftId, scenarioId: selectedWorkflowScenarioId },
+    },
+    config: activeSavedDraftConsumerConfig, applicationId: workflowScopedApplicationId,
+    generationKey: applicationDevelopmentWorkspaceContext.generationKey,
+    workflowExecutorOperationPending, workflowRAGOperationPending,
+    onSelect: applyWorkflowSelectionPatch,
+    onOpenDesigner: () => { window.location.hash = "#workflow-draft-designer"; },
+  });
+  const {
+    workflowWorkspaceContext, savedDraftConsumerState, workflowDraftEditDirty, savedDraftConflictOpenSummary,
+    createdWorkspaceDraftCountsByDefinition, editWorkflowDraft, handleWorkflowDraftEditReset,
+    handleCreateWorkspaceDraftFromDefinition, handleCreateWorkflowRAGDraft, handleCreateDefinitionDerivedDraft,
+    handleOpenTemplateDerivedDraft, handleDeriveSavedWorkflowDraft, handleOpenSavedWorkflowDraft,
+    handleSavedWorkflowDraftLifecycleTransition, handleContinueLocalWorkflowDraftAfterConflict,
+    handleOpenConflictSavedWorkflowDraft, handleValidateWorkflowDraft, handleSaveWorkflowDraft,
+    handleReadWorkflowDraft, handleWorkflowDraftRevisionRestored,
+  } = draftWorkspace;
+  const {
+    savedDraftListState, savedDraftLibraryLifecycle, savedDraftLibraryFilters, savedDraftLifecycleOperation,
+    handleSavedDraftLibraryLifecycleChange, handleSavedDraftLibraryFiltersChange,
+    handleRefreshSavedWorkflowDraftList, handleLoadMoreSavedWorkflowDrafts,
+  } = draftWorkspace.library;
+  const {
+    selectedWorkflowDefinition, selectedRun, selectedWorkflowDraft, activeWorkflowDraft,
+    workflowApplicationDetail, workflowDefinitionDetail, workflowRunDetail, workflowBlockedActionPreview,
+    workflowConfirmationPlaceholder, workflowDraftDesigner,
+    workflowDraftValidationInspector: activeWorkflowDraftValidationInspector,
+    workflowExecutionPlanPreview: activeWorkflowExecutionPlanPreview,
+    workflowRuntimeReadinessInspector: activeWorkflowRuntimeReadinessInspector,
+    workflowSurfaceOverview, workflowScenarioInspector, workflowWorkspaceReview,
+    workflowUserWorkspaceHome, savedDraftConflictReviewSummary, workflowReviewHandoff,
+  } = workflowWorkspaceContext;
   const workflowExecutorEligibility = useMemo(
     () => evaluateWorkflowExecutorEligibility(activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty),
     [activeWorkflowDraft, savedDraftConsumerState, workflowDraftEditDirty],
@@ -729,26 +541,6 @@ function ProductApp() {
     ),
     [workflowExecutorConditionValues, workflowExecutorEligibility.conditionNodeIds],
   );
-
-  useEffect(() => {
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
-    const pendingConsumerState = pendingSavedDraftConsumerStateRef.current;
-    if (pendingConsumerState) {
-      pendingSavedDraftConsumerStateRef.current = null;
-      if (pendingConsumerState.draftId === selectedWorkflowDraft.draftId) {
-        setSavedDraftConsumerState(pendingConsumerState.state);
-        setWorkflowDraftEditDirty(false);
-        return;
-      }
-    }
-    if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
-      setWorkflowDraftEditDirty(true);
-      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, selectedWorkflowDraft));
-      return;
-    }
-    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig));
-    setWorkflowDraftEditDirty(false);
-  }, [activeSavedDraftConsumerConfig, selectedWorkflowDraft.draftId]);
 
   useEffect(() => {
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
@@ -793,234 +585,6 @@ function ProductApp() {
     };
   }, [selectedWorkflowDraft.applicationRef, selectedWorkflowDraft.draftId]);
 
-  const markWorkflowDraftLocallyEdited = () => {
-    setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState((state) => {
-      if (state.status === "version_conflict") {
-        return {
-          ...state,
-          summary:
-            "Local edits remain active, but the version conflict still requires explicit Continue local draft or Open saved draft before another dev route action.",
-        };
-      }
-      if (state.status === "conflict_local_continued") {
-        return {
-          ...state,
-          summary: `Local draft has unsaved edits after explicit conflict review; the next save will use saved version ${state.currentDraftVersion}.`,
-        };
-      }
-      return {
-        ...state,
-        status: "unsaved_local",
-        sourceLabel: "unsaved local",
-        summary:
-          state.mode === "dev_saved_draft_http"
-            ? "Local draft has unsaved edits; validate or save through the dev-only saved draft route."
-            : "Local draft has unsaved edits and remains in sample-only mode.",
-        failureCode: null,
-        conflictDraftVersion: null,
-      };
-    });
-  };
-
-  const handleWorkflowDraftLabelChange = (label: string) => {
-    setEditableWorkflowDraft((draft) => ({
-      ...(draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft)),
-      label,
-      localOnlyInteraction: "local_edit",
-    }));
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftSummaryChange = (summary: string) => {
-    setEditableWorkflowDraft((draft) => ({
-      ...(draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft)),
-      summary,
-      localOnlyInteraction: "local_edit",
-    }));
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftNodeLabelChange = (nodeId: string, label: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { label });
-  };
-
-  const handleWorkflowDraftNodeInputSummaryChange = (nodeId: string, inputSummary: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { inputSummary });
-  };
-
-  const handleWorkflowDraftNodeOutputSummaryChange = (nodeId: string, outputSummary: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { outputSummary });
-  };
-
-  const handleWorkflowDraftNodeProviderRefChange = (nodeId: string, providerRef: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { providerRef });
-  };
-
-  const handleWorkflowDraftNodeToolRefChange = (nodeId: string, toolRef: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { toolRef });
-  };
-
-  const handleWorkflowDraftNodeRagRefChange = (nodeId: string, ragRef: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { ragRef });
-  };
-
-  const handleWorkflowDraftNodeInputFieldsChange = (nodeId: string, inputFieldsText: string) => {
-    handleWorkflowDraftNodePatch(nodeId, {
-      inputContractFields: parseWorkflowDraftContractFields(inputFieldsText),
-    });
-  };
-
-  const handleWorkflowDraftNodeOutputFieldsChange = (nodeId: string, outputFieldsText: string) => {
-    handleWorkflowDraftNodePatch(nodeId, {
-      outputContractFields: parseWorkflowDraftContractFields(outputFieldsText),
-    });
-  };
-
-  const handleWorkflowDraftNodeOutputMappingChange = (nodeId: string, outputMappingSummary: string) => {
-    handleWorkflowDraftNodePatch(nodeId, { outputMappingSummary });
-  };
-
-  const handleWorkflowDraftNodeDesignerPositionChange = (nodeId: string, x: number, y: number) => {
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      if (!currentDraft.nodes.some((node) => node.nodeId === nodeId)) {
-        return currentDraft;
-      }
-      return {
-        ...currentDraft,
-        localOnlyInteraction: "local_edit",
-        designerLayout: workflowDraftLayoutWithNodePosition(currentDraft, nodeId, x, y),
-      };
-    });
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftNodePatch = (
-    nodeId: string,
-    patch: Partial<WorkflowDraftDesignerNode>,
-  ) => {
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      return {
-        ...currentDraft,
-        localOnlyInteraction: "local_edit",
-        nodes: currentDraft.nodes.map((node) => (node.nodeId === nodeId ? { ...node, ...patch } : node)),
-      };
-    });
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftEdgeConditionChange = (edgeId: string, conditionSummary: string) => {
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      return {
-        ...currentDraft,
-        localOnlyInteraction: "local_edit",
-        edges: currentDraft.edges.map((edge) =>
-          edge.edgeId === edgeId
-            ? {
-                ...edge,
-                conditionSummary: workflowDraftReviewableEdgeConditionSummary(
-                  currentDraft,
-                  edge,
-                  conditionSummary,
-                ),
-              }
-            : edge,
-        ),
-      };
-    });
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftAddEdge = (fromNodeId: string, toNodeId: string): boolean => {
-    if (!buildWorkflowDraftEdgeForConnection(activeWorkflowDraft, fromNodeId, toNodeId)) {
-      return false;
-    }
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      const nextEdge = buildWorkflowDraftEdgeForConnection(currentDraft, fromNodeId, toNodeId);
-      if (!nextEdge) {
-        return currentDraft;
-      }
-      return {
-        ...currentDraft,
-        localOnlyInteraction: "local_edit",
-        edges: [...currentDraft.edges, nextEdge],
-      };
-    });
-    markWorkflowDraftLocallyEdited();
-    return true;
-  };
-
-  const handleWorkflowDraftRemoveEdge = (edgeId: string): boolean => {
-    if (!activeWorkflowDraft.edges.some((edge) => edge.edgeId === edgeId)) {
-      return false;
-    }
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      if (!currentDraft.edges.some((edge) => edge.edgeId === edgeId)) {
-        return currentDraft;
-      }
-      return {
-        ...currentDraft,
-        localOnlyInteraction: "local_edit",
-        edges: currentDraft.edges.filter((edge) => edge.edgeId !== edgeId),
-      };
-    });
-    markWorkflowDraftLocallyEdited();
-    return true;
-  };
-
-  const handleWorkflowDraftAddNode = (nodeType: WorkflowDraftDesignerNode["nodeType"]) => {
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      const nextNode = buildLocalWorkflowDraftNode(currentDraft, nodeType);
-      return workflowDraftWithStructureEdits(currentDraft, insertWorkflowDraftNode(currentDraft.nodes, nextNode));
-    });
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftMoveNode = (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => {
-    if (!canMoveWorkflowDraftNode(activeWorkflowDraft, nodeId, direction)) {
-      return;
-    }
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      return workflowDraftWithStructureEdits(
-        currentDraft,
-        moveWorkflowDraftNode(currentDraft.nodes, nodeId, direction),
-      );
-    });
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftRemoveNode = (nodeId: string) => {
-    if (!canRemoveWorkflowDraftNode(activeWorkflowDraft, nodeId)) {
-      return;
-    }
-    setEditableWorkflowDraft((draft) => {
-      const currentDraft = draft ?? cloneWorkflowDraftForEditing(selectedWorkflowDraft);
-      return workflowDraftWithStructureEdits(
-        currentDraft,
-        currentDraft.nodes.filter((node) => node.nodeId !== nodeId),
-      );
-    });
-    markWorkflowDraftLocallyEdited();
-  };
-
-  const handleWorkflowDraftEditReset = () => {
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(selectedWorkflowDraft));
-    if (selectedWorkflowDraft.localOnlyInteraction === "local_edit") {
-      setWorkflowDraftEditDirty(true);
-      setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, selectedWorkflowDraft));
-      return;
-    }
-    setWorkflowDraftEditDirty(false);
-    setSavedDraftConsumerState(initialWorkflowSavedDraftConsumerState(activeSavedDraftConsumerConfig));
-  };
-
   const canonicalizeApplicationTypeWorkspaceHash = (nextApplicationKind: string) => {
     const canonicalHash = promptAgentTypeWorkspaceCanonicalHashForTypeSwitch(
       window.location.hash,
@@ -1033,7 +597,7 @@ function ProductApp() {
     window.history.replaceState(window.history.state, "", canonicalHash);
     window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL, newURL: window.location.href }));
   };
-  const applyWorkflowSelectionPatch = ({
+  function applyWorkflowSelectionPatch({
     applicationRef,
     workflowDefinitionId,
     runId,
@@ -1045,7 +609,14 @@ function ProductApp() {
     runId: string | null;
     draftId: string | null;
     scenarioId: string | null;
-  }) => {
+  }) {
+    if (
+      applicationRef !== selectedApplicationRef ||
+      workflowDefinitionId !== selectedWorkflowDefinitionId ||
+      draftId !== selectedWorkflowDraftId
+    ) {
+      draftWorkspace.invalidateSelection();
+    }
     setSelectedApplicationRef(applicationRef);
     setSelectedWorkflowDefinitionId(workflowDefinitionId);
     setSelectedRunId(runId);
@@ -1119,686 +690,12 @@ function ProductApp() {
     }
     applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
   };
-  const handleCreateWorkspaceDraftFromDefinition = (workflowDefinitionId: string) => {
-    if (workflowExecutorOperationPending) {
-      return;
-    }
-    const createdDraft = buildWorkspaceCreatedDraft(
-      workflowDefinitionId,
-      workflowDraftDesigner,
-      workspaceCreatedDrafts,
-    );
-    if (!createdDraft) {
-      return;
-    }
-    const nextRun = workspaceRunHistory.runs.find(
-      (run) =>
-        run.applicationRef === createdDraft.applicationRef &&
-        run.workflowDefinitionId === createdDraft.workflowDefinitionId,
-    );
-    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
-    applyWorkflowSelectionPatch({
-      applicationRef: createdDraft.applicationRef,
-      workflowDefinitionId: createdDraft.workflowDefinitionId,
-      runId: nextRun?.runId ?? null,
-      draftId: createdDraft.draftId,
-      scenarioId: null,
-    });
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
-    setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
-  };
   const handleCreateWorkflowExecutorDraft = () => {
-    if (workflowExecutorOperationPending) {
-      return;
-    }
-    const nextDraftNumber = workspaceCreatedDrafts.filter(
-      (draft) =>
-        draft.applicationRef === workflowScopedApplicationId &&
-        draft.executionProfile === "executor_v0",
-    ).length + 1;
-    const createdDraft = buildWorkflowExecutorV0Draft(
-      activeWorkflowDraft,
-      nextDraftNumber,
-      workflowScopedApplicationId,
-    );
-    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
-    applyWorkflowSelectionPatch({
-      applicationRef: createdDraft.applicationRef,
-      workflowDefinitionId: createdDraft.workflowDefinitionId,
-      runId: null,
-      draftId: createdDraft.draftId,
-      scenarioId: null,
-    });
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
-    setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
+    if (!draftWorkspace.handleCreateWorkflowExecutorDraft()) return;
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
     setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
     setWorkflowExecutorModel("");
     setWorkflowExecutorConditionValues({});
-  };
-  const handleCreateWorkflowRAGDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
-    if (workflowRAGOperationPending) return;
-    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
-    applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
-    setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
-  };
-  const handleCreateDefinitionDerivedDraft = (createdDraft: WorkflowDraftDesignerDraft) => {
-    if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
-    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
-    applyWorkflowSelectionPatch({ applicationRef: createdDraft.applicationRef, workflowDefinitionId: createdDraft.workflowDefinitionId, runId: null, draftId: createdDraft.draftId, scenarioId: null });
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
-    setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
-  };
-  const handleOpenTemplateDerivedDraft = (
-    createdDraft: WorkflowDraftDesignerDraft,
-    authority: {
-      draftId: string;
-      draftVersion: number;
-      lifecycleVersion: number;
-      lifecycleState: "active";
-      targetApplicationId: string;
-    },
-  ) => {
-    if (workflowExecutorOperationPending || workflowRAGOperationPending) return;
-    const consumerState = workflowTemplateDerivedConsumerState(
-      activeSavedDraftConsumerConfig,
-      createdDraft,
-      authority,
-    );
-    pendingSavedDraftConsumerStateRef.current = { draftId: authority.draftId, state: consumerState };
-    setWorkspaceCreatedDrafts((drafts) => [
-      ...drafts.filter((draft) => draft.draftId !== authority.draftId),
-      createdDraft,
-    ]);
-    applyWorkflowSelectionPatch({
-      applicationRef: authority.targetApplicationId,
-      workflowDefinitionId: createdDraft.workflowDefinitionId,
-      runId: null,
-      draftId: authority.draftId,
-      scenarioId: null,
-    });
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
-    setWorkflowDraftEditDirty(false);
-    setSavedDraftConsumerState(consumerState);
-    window.location.hash = "#workflow-draft-designer";
-  };
-  const handleDeriveSavedWorkflowDraft = () => {
-    const operationPending = workflowExecutorOperationPending || workflowRAGOperationPending;
-    if (!canDeriveSavedWorkflowDraft(savedDraftConsumerState, workflowDraftEditDirty, operationPending)) {
-      return;
-    }
-    const createdDraft = buildDerivedWorkflowDraft(
-      activeWorkflowDraft,
-      savedDraftConsumerState.currentDraftVersion,
-      workflowDraftDesigner.drafts.map((draft) => draft.draftId),
-    );
-    const derivedConsumerState = workspaceDraftCreatedConsumerState(
-      activeSavedDraftConsumerConfig,
-      createdDraft,
-      savedDraftConsumerState.currentLifecycleVersion,
-    );
-    pendingSavedDraftConsumerStateRef.current = {
-      draftId: createdDraft.draftId,
-      state: derivedConsumerState,
-    };
-    setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
-    applyWorkflowSelectionPatch({
-      applicationRef: createdDraft.applicationRef,
-      workflowDefinitionId: createdDraft.workflowDefinitionId,
-      runId: null,
-      draftId: createdDraft.draftId,
-      scenarioId: null,
-    });
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(createdDraft));
-    setWorkflowDraftEditDirty(true);
-    setSavedDraftConsumerState(derivedConsumerState);
-  };
-  const refreshSavedWorkflowDraftList = (
-    applicationRef: string,
-    lifecycleState: WorkflowSavedDraftLifecycleState = savedDraftLibraryLifecycle,
-    filters: WorkflowSavedDraftLibraryFilters = savedDraftLibraryFilters,
-    append = false,
-  ) => {
-    const generation = savedDraftListRequestGenerationRef.current[lifecycleState] + 1;
-    savedDraftListRequestGenerationRef.current[lifecycleState] = generation;
-    const requestScopeKey = savedDraftLibraryScopeKeyRef.current;
-    if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" || !applicationRef) {
-      setSavedDraftListStates((states) => ({
-        ...states,
-        [lifecycleState]: initialWorkflowSavedDraftListState(
-          activeSavedDraftConsumerConfig,
-          applicationRef,
-          lifecycleState,
-          filters,
-        ),
-      }));
-      return;
-    }
-    const current = savedDraftListStates[lifecycleState];
-    const cursor = append ? current.nextCursor : "";
-    if (append && (!current.hasMore || current.status === "loading")) {
-      return;
-    }
-    setSavedDraftListStates((states) => ({
-      ...states,
-      [lifecycleState]: {
-        ...states[lifecycleState],
-        status: "loading",
-        mode: "dev_saved_draft_http",
-        sourceLabel: cursor ? "loading more" : "loading",
-        summary: cursor
-          ? `Loading more ${lifecycleState} saved drafts.`
-          : `Loading ${lifecycleState} saved drafts for the selected application.`,
-        applicationRef,
-        lifecycleState,
-        filters,
-        failureCode: null,
-        ...(cursor ? {} : { summaries: [], nextCursor: "", hasMore: false }),
-      },
-    }));
-    listWorkflowDraftDevRecords(applicationRef, activeSavedDraftConsumerConfig, {
-      lifecycleState,
-      filters,
-      cursor,
-      limit: 25,
-    })
-      .then((page) => {
-        if (!workflowSavedDraftRequestIsCurrent(
-          generation,
-          savedDraftListRequestGenerationRef.current[lifecycleState],
-          requestScopeKey,
-          savedDraftLibraryScopeKeyRef.current,
-        )) {
-          return;
-        }
-        setSavedDraftListStates((states) => ({
-          ...states,
-          [lifecycleState]: cursor
-            ? mergeWorkflowSavedDraftListPage(states[lifecycleState], page)
-            : page,
-        }));
-      })
-      .catch((error: unknown) => {
-        if (!workflowSavedDraftRequestIsCurrent(
-          generation,
-          savedDraftListRequestGenerationRef.current[lifecycleState],
-          requestScopeKey,
-          savedDraftLibraryScopeKeyRef.current,
-        )) {
-          return;
-        }
-        setSavedDraftListStates((states) => ({
-          ...states,
-          [lifecycleState]: {
-            ...states[lifecycleState],
-            status: "list_failed",
-            sourceLabel: "list_failed",
-            summary: error instanceof Error ? error.message : "Saved draft list failed.",
-            applicationRef,
-            lifecycleState,
-            filters,
-            failureCode: "dev_saved_draft_list_failed",
-            ...(cursor ? {} : { summaries: [], nextCursor: "", hasMore: false }),
-          },
-        }));
-      });
-  };
-  useEffect(() => {
-    savedDraftListRequestGenerationRef.current.active += 1;
-    savedDraftListRequestGenerationRef.current.archived += 1;
-    savedDraftLifecycleOperationGenerationRef.current += 1;
-    savedDraftOpenRequestGenerationRef.current += 1;
-    setSavedDraftLibraryLifecycle("active");
-    setSavedDraftLibraryFilters(emptyWorkflowSavedDraftLibraryFilters());
-    setSavedDraftLifecycleOperation(initialWorkflowSavedDraftLifecycleOperationState());
-    setSavedDraftListStates({
-      active: initialWorkflowSavedDraftListState(
-        activeSavedDraftConsumerConfig,
-        workflowScopedApplicationId,
-        "active",
-      ),
-      archived: initialWorkflowSavedDraftListState(
-        activeSavedDraftConsumerConfig,
-        workflowScopedApplicationId,
-        "archived",
-      ),
-    });
-    refreshSavedWorkflowDraftList(
-      workflowScopedApplicationId,
-      "active",
-      emptyWorkflowSavedDraftLibraryFilters(),
-    );
-  }, [
-    activeSavedDraftConsumerConfig,
-    applicationDevelopmentWorkspaceContext.generationKey,
-    workflowScopedApplicationId,
-  ]);
-  const handleRefreshSavedWorkflowDraftList = () => {
-    refreshSavedWorkflowDraftList(
-      workflowScopedApplicationId,
-      savedDraftLibraryLifecycle,
-      savedDraftLibraryFilters,
-    );
-  };
-  const handleSavedDraftLibraryLifecycleChange = (lifecycleState: WorkflowSavedDraftLifecycleState) => {
-    savedDraftListRequestGenerationRef.current[lifecycleState] += 1;
-    savedDraftLifecycleOperationGenerationRef.current += 1;
-    savedDraftOpenRequestGenerationRef.current += 1;
-    setSavedDraftLibraryLifecycle(lifecycleState);
-    setSavedDraftLifecycleOperation(initialWorkflowSavedDraftLifecycleOperationState());
-    setSavedDraftListStates((states) => ({
-      ...states,
-      [lifecycleState]: initialWorkflowSavedDraftListState(
-        activeSavedDraftConsumerConfig,
-        workflowScopedApplicationId,
-        lifecycleState,
-        savedDraftLibraryFilters,
-      ),
-    }));
-    refreshSavedWorkflowDraftList(
-      workflowScopedApplicationId,
-      lifecycleState,
-      savedDraftLibraryFilters,
-    );
-  };
-  const handleSavedDraftLibraryFiltersChange = (filters: WorkflowSavedDraftLibraryFilters) => {
-    savedDraftListRequestGenerationRef.current.active += 1;
-    savedDraftListRequestGenerationRef.current.archived += 1;
-    savedDraftLifecycleOperationGenerationRef.current += 1;
-    savedDraftOpenRequestGenerationRef.current += 1;
-    setSavedDraftLibraryFilters(filters);
-    setSavedDraftLifecycleOperation(initialWorkflowSavedDraftLifecycleOperationState());
-    setSavedDraftListStates({
-      active: initialWorkflowSavedDraftListState(
-        activeSavedDraftConsumerConfig,
-        workflowScopedApplicationId,
-        "active",
-        filters,
-      ),
-      archived: initialWorkflowSavedDraftListState(
-        activeSavedDraftConsumerConfig,
-        workflowScopedApplicationId,
-        "archived",
-        filters,
-      ),
-    });
-    refreshSavedWorkflowDraftList(workflowScopedApplicationId, savedDraftLibraryLifecycle, filters);
-  };
-  const handleLoadMoreSavedWorkflowDrafts = () => {
-    refreshSavedWorkflowDraftList(
-      workflowScopedApplicationId,
-      savedDraftLibraryLifecycle,
-      savedDraftLibraryFilters,
-      true,
-    );
-  };
-  const handleOpenSavedWorkflowDraft = (summary: WorkflowSavedDraftSummary) => {
-    if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
-      return;
-    }
-    const requestGeneration = savedDraftOpenRequestGenerationRef.current + 1;
-    savedDraftOpenRequestGenerationRef.current = requestGeneration;
-    const requestScopeKey = savedDraftLibraryScopeKeyRef.current;
-    setSavedDraftConsumerState((state) => ({
-      ...state,
-      status: "reading",
-      summary: summary.lifecycleState === "archived"
-        ? `Opening archived saved draft ${summary.draftId} for read-only review.`
-        : `Opening saved draft ${summary.draftId} through the dev-only read route.`,
-      failureCode: null,
-      currentDraftVersion: summary.draftVersion,
-      currentLifecycleVersion: summary.lifecycleVersion,
-      currentLifecycleState: summary.lifecycleState,
-      conflictDraftVersion: null,
-    }));
-    openWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig)
-      .then((result) => {
-        if (!workflowSavedDraftRequestIsCurrent(
-          requestGeneration,
-          savedDraftOpenRequestGenerationRef.current,
-          requestScopeKey,
-          savedDraftLibraryScopeKeyRef.current,
-        )) {
-          return;
-        }
-        setSavedDraftConsumerState(result.state);
-        if (!result.draft) {
-          setSavedDraftListStates((states) => ({
-            ...states,
-            [summary.lifecycleState]: {
-              ...states[summary.lifecycleState],
-              status: "open_failed",
-              sourceLabel: "open_failed",
-              summary: result.state.summary,
-              failureCode: result.state.failureCode ?? "dev_saved_draft_open_failed",
-            },
-          }));
-          return;
-        }
-        const openedDraft = result.draft;
-        pendingSavedDraftConsumerStateRef.current = {
-          draftId: openedDraft.draftId,
-          state: result.state,
-        };
-        const nextRun = workspaceRunHistory.runs.find(
-          (run) =>
-            run.applicationRef === openedDraft.applicationRef &&
-            run.workflowDefinitionId === openedDraft.workflowDefinitionId,
-        );
-        setWorkspaceCreatedDrafts((drafts) => [
-          ...drafts.filter((draft) => draft.draftId !== openedDraft.draftId),
-          openedDraft,
-        ]);
-        applyWorkflowSelectionPatch({
-          applicationRef: openedDraft.applicationRef,
-          workflowDefinitionId: openedDraft.workflowDefinitionId,
-          runId: nextRun?.runId ?? null,
-          draftId: openedDraft.draftId,
-          scenarioId: null,
-        });
-        setEditableWorkflowDraft(cloneWorkflowDraftForEditing(openedDraft));
-        setWorkflowDraftEditDirty(false);
-        window.location.hash = "#workflow-draft-designer";
-      })
-      .catch((error: unknown) => {
-        if (!workflowSavedDraftRequestIsCurrent(
-          requestGeneration,
-          savedDraftOpenRequestGenerationRef.current,
-          requestScopeKey,
-          savedDraftLibraryScopeKeyRef.current,
-        )) {
-          return;
-        }
-        const message = error instanceof Error ? error.message : "Saved draft open failed.";
-        setSavedDraftConsumerState((state) => ({
-          ...state,
-          status: "read_failed",
-          sourceLabel: "open_failed",
-          summary: message,
-          failureCode: "dev_saved_draft_open_failed",
-          conflictDraftVersion: null,
-        }));
-        setSavedDraftListStates((states) => ({
-          ...states,
-          [summary.lifecycleState]: {
-            ...states[summary.lifecycleState],
-            status: "open_failed",
-            sourceLabel: "open_failed",
-            summary: message,
-            failureCode: "dev_saved_draft_open_failed",
-          },
-        }));
-      });
-  };
-  const handleSavedWorkflowDraftLifecycleTransition = async (
-    summary: WorkflowSavedDraftSummary,
-    targetState: WorkflowSavedDraftLifecycleState,
-  ) => {
-    if (activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http") {
-      return;
-    }
-    const operationGeneration = savedDraftLifecycleOperationGenerationRef.current + 1;
-    savedDraftLifecycleOperationGenerationRef.current = operationGeneration;
-    const operationScopeKey = savedDraftLibraryScopeKeyRef.current;
-    if (
-      targetState === "archived" &&
-      activeWorkflowDraft.draftId === summary.draftId &&
-      workflowDraftEditDirty
-    ) {
-      setSavedDraftLifecycleOperation({
-        status: "failed",
-        draftId: summary.draftId,
-        targetState,
-        currentDraftVersion: summary.draftVersion,
-        currentLifecycleVersion: summary.lifecycleVersion,
-        currentLifecycleState: summary.lifecycleState,
-        failureCode: "draft_local_edits_pending",
-        requestId: `saved-draft-${targetState}-${summary.draftId}`,
-        auditRef: "not_sent",
-        summary: "Save or reset local edits before archiving this exact saved draft version.",
-      });
-      return;
-    }
-    setSavedDraftLifecycleOperation({
-      status: "transitioning",
-      draftId: summary.draftId,
-      targetState,
-      currentDraftVersion: summary.draftVersion,
-      currentLifecycleVersion: summary.lifecycleVersion,
-      currentLifecycleState: summary.lifecycleState,
-      failureCode: null,
-      requestId: `saved-draft-${targetState}-${summary.draftId}`,
-      auditRef: "pending",
-      summary: `${targetState === "archived" ? "Archiving" : "Unarchiving"} ${summary.draftId}.`,
-    });
-    try {
-      const result = targetState === "archived"
-        ? await archiveWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig)
-        : await unarchiveWorkflowDraftDevRecord(summary, activeSavedDraftConsumerConfig);
-      if (!workflowSavedDraftRequestIsCurrent(
-        operationGeneration,
-        savedDraftLifecycleOperationGenerationRef.current,
-        operationScopeKey,
-        savedDraftLibraryScopeKeyRef.current,
-      )) {
-        return;
-      }
-      setSavedDraftLifecycleOperation(result);
-      if (result.status === "failed") {
-        return;
-      }
-      if (activeWorkflowDraft.draftId === summary.draftId) {
-        setSavedDraftConsumerState((state) => ({
-          ...state,
-          status: "saved_dev_record",
-          sourceLabel: targetState === "active" ? "reopen required" : "archived read-only",
-          currentDraftVersion: result.currentDraftVersion,
-          currentLifecycleVersion: result.currentLifecycleVersion,
-          currentLifecycleState: targetState === "active" ? "unknown" : result.currentLifecycleState,
-          summary: targetState === "active"
-            ? `${result.summary} The existing browser draft remains read-only until it is opened again.`
-            : result.summary,
-          failureCode: null,
-          requestId: result.requestId,
-          auditRef: result.auditRef,
-        }));
-        setWorkflowDraftEditDirty(false);
-      }
-      refreshSavedWorkflowDraftList(workflowScopedApplicationId, "active", savedDraftLibraryFilters);
-      refreshSavedWorkflowDraftList(workflowScopedApplicationId, "archived", savedDraftLibraryFilters);
-    } catch (error) {
-      if (!workflowSavedDraftRequestIsCurrent(
-        operationGeneration,
-        savedDraftLifecycleOperationGenerationRef.current,
-        operationScopeKey,
-        savedDraftLibraryScopeKeyRef.current,
-      )) {
-        return;
-      }
-      setSavedDraftLifecycleOperation({
-        status: "failed",
-        draftId: summary.draftId,
-        targetState,
-        currentDraftVersion: summary.draftVersion,
-        currentLifecycleVersion: summary.lifecycleVersion,
-        currentLifecycleState: summary.lifecycleState,
-        failureCode: "dev_saved_draft_lifecycle_request_failed",
-        requestId: `saved-draft-${targetState}-${summary.draftId}`,
-        auditRef: "unavailable",
-        summary: error instanceof Error ? error.message : "Saved draft lifecycle request failed.",
-      });
-    }
-  };
-  const handleContinueLocalWorkflowDraftAfterConflict = () => {
-    setSavedDraftConsumerState((state) =>
-      continueLocalWorkflowDraftAfterVersionConflict(state, activeWorkflowDraft),
-    );
-    setWorkflowDraftEditDirty(true);
-  };
-  const handleOpenConflictSavedWorkflowDraft = () => {
-    if (!savedDraftConflictOpenSummary) {
-      return;
-    }
-    handleOpenSavedWorkflowDraft(savedDraftConflictOpenSummary);
-  };
-  const handleValidateWorkflowDraft = () => {
-    if (
-      activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
-      (savedDraftConsumerState.currentDraftVersion > 0 &&
-        savedDraftConsumerState.currentLifecycleState !== "active") ||
-      workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)
-    ) {
-      return;
-    }
-    const currentDraftVersion = savedDraftConsumerState.currentDraftVersion;
-    setSavedDraftConsumerState((state) => ({
-      ...state,
-      status: "validating",
-      summary: "Validating local draft through the dev-only saved draft route.",
-      failureCode: null,
-      conflictDraftVersion: null,
-    }));
-    validateWorkflowDraftDevRecord(
-      activeWorkflowDraft,
-      activeSavedDraftConsumerConfig,
-      currentDraftVersion,
-      savedDraftConsumerState.currentLifecycleVersion,
-      savedDraftConsumerState.currentLifecycleState,
-    )
-      .then(setSavedDraftConsumerState)
-      .catch((error: unknown) => {
-        setSavedDraftConsumerState((state) => ({
-          ...state,
-          status: "validation_failed",
-          sourceLabel: "validation_failed",
-          summary: error instanceof Error ? error.message : "Saved draft validation failed.",
-          failureCode: "dev_saved_draft_consumer_failed",
-          conflictDraftVersion: null,
-        }));
-      });
-  };
-  const handleSaveWorkflowDraft = () => {
-    if (
-      activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
-      (savedDraftConsumerState.currentDraftVersion > 0 &&
-        savedDraftConsumerState.currentLifecycleState !== "active")
-    ) {
-      return;
-    }
-    const expectedDraftVersion = nextWorkflowSavedDraftExpectedVersion(savedDraftConsumerState);
-    if (expectedDraftVersion === null) {
-      return;
-    }
-    setSavedDraftConsumerState((state) => ({
-      ...state,
-      status: "saving",
-      summary: "Saving local draft through the dev-only saved draft route.",
-      failureCode: null,
-      conflictDraftVersion: null,
-    }));
-    saveWorkflowDraftDevRecord(
-      activeWorkflowDraft,
-      activeSavedDraftConsumerConfig,
-      expectedDraftVersion,
-      savedDraftConsumerState.currentLifecycleVersion,
-    )
-      .then((nextState) => {
-        setSavedDraftConsumerState(nextState);
-        if (nextState.status === "version_conflict") {
-          refreshSavedWorkflowDraftList(
-            activeWorkflowDraft.applicationRef,
-            "active",
-            savedDraftLibraryFilters,
-          );
-          return;
-        }
-        if (nextState.status === "saved_dev_record") {
-          setWorkspaceCreatedDrafts((drafts) =>
-            drafts.map((draft) =>
-              draft.draftId === activeWorkflowDraft.draftId
-                ? { ...activeWorkflowDraft, localOnlyInteraction: "inspect_only" }
-                : draft,
-            ),
-          );
-          setEditableWorkflowDraft((draft) =>
-            draft === null ? null : { ...draft, localOnlyInteraction: "inspect_only" },
-          );
-          setWorkflowDraftEditDirty(false);
-          refreshSavedWorkflowDraftList(
-            activeWorkflowDraft.applicationRef,
-            "active",
-            savedDraftLibraryFilters,
-          );
-        }
-      })
-      .catch((error: unknown) => {
-        setSavedDraftConsumerState((state) => ({
-          ...state,
-          status: "save_failed",
-          sourceLabel: "save_failed",
-          summary: error instanceof Error ? error.message : "Saved draft save failed.",
-          failureCode: "dev_saved_draft_consumer_failed",
-          conflictDraftVersion: null,
-        }));
-      });
-  };
-  const handleReadWorkflowDraft = () => {
-    if (
-      activeSavedDraftConsumerConfig.mode !== "dev_saved_draft_http" ||
-      workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState)
-    ) {
-      return;
-    }
-    const currentDraftVersion = savedDraftConsumerState.currentDraftVersion;
-    setSavedDraftConsumerState((state) => ({
-      ...state,
-      status: "reading",
-      summary: "Reading local draft through the dev-only saved draft route.",
-      failureCode: null,
-      conflictDraftVersion: null,
-    }));
-    readWorkflowDraftDevRecord(activeWorkflowDraft, activeSavedDraftConsumerConfig, currentDraftVersion)
-      .then(setSavedDraftConsumerState)
-      .catch((error: unknown) => {
-        setSavedDraftConsumerState((state) => ({
-          ...state,
-          status: "read_failed",
-          sourceLabel: "read_failed",
-          summary: error instanceof Error ? error.message : "Saved draft read failed.",
-          failureCode: "dev_saved_draft_consumer_failed",
-          conflictDraftVersion: null,
-        }));
-      });
-  };
-  const handleWorkflowDraftRevisionRestored = (
-    restoredDraft: WorkflowDraftDesignerDraft,
-    result: WorkflowSavedDraftRevisionRestoreResult,
-  ) => {
-    setWorkspaceCreatedDrafts((drafts) => [
-      ...drafts.filter((draft) => draft.draftId !== restoredDraft.draftId),
-      restoredDraft,
-    ]);
-    setEditableWorkflowDraft(cloneWorkflowDraftForEditing(restoredDraft));
-    setWorkflowDraftEditDirty(false);
-    setSavedDraftConsumerState({
-      status: result.failureCode ? "save_failed" : "saved_dev_record",
-      mode: "dev_saved_draft_http",
-      sourceLabel: result.failureCode ?? "restored revision",
-      summary: result.summary,
-      failureCode: result.failureCode,
-      currentDraftVersion: result.currentDraftVersion,
-      currentLifecycleVersion: result.currentLifecycleVersion,
-      currentLifecycleState: result.currentLifecycleState,
-      conflictDraftVersion: null,
-      auditRef: result.auditRef,
-      requestId: result.requestId,
-    });
-    refreshSavedWorkflowDraftList(restoredDraft.applicationRef, "active", savedDraftLibraryFilters);
   };
   const handleWorkflowExecutorConditionValueChange = (nodeId: string, value: boolean) => {
     setWorkflowExecutorConditionValues((values) => ({ ...values, [nodeId]: value }));
@@ -1954,19 +851,14 @@ function ProductApp() {
     if (normalized === activeWorkspaceId) {
       return true;
     }
+    draftWorkspace.invalidateSelection();
     setSelectedApplicationRef(null);
     setApplicationCatalogSnapshot(null);
     setSelectedWorkflowDefinitionId(null);
     setSelectedRunId(null);
     setSelectedWorkflowDraftId(null);
     setSelectedWorkflowScenarioId(null);
-    setEditableWorkflowDraft(null);
-    setWorkflowDraftEditDirty(false);
-    pendingSavedDraftConsumerStateRef.current = null;
-    savedDraftListRequestGenerationRef.current.active += 1;
-    savedDraftListRequestGenerationRef.current.archived += 1;
-    savedDraftLifecycleOperationGenerationRef.current += 1;
-    savedDraftOpenRequestGenerationRef.current += 1;
+    draftWorkspace.clearWorkspace();
     setActiveWorkspaceId(normalized);
     return true;
   };
@@ -1987,7 +879,7 @@ function ProductApp() {
         onActiveWorkspaceSwitch={handleActiveWorkspaceSwitch}
       />
 
-      <section className="product-workspace" aria-label="Control plane read shell">
+      <section className="product-workspace" aria-label={t($ => $.appShell.controlPlaneShell)}>
         <WorkspaceProductOverviewPanel
           application={applicationDevelopmentWorkspaceContext}
           inbox={workspaceOperationsInbox}
@@ -2055,11 +947,11 @@ function ProductApp() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-applications-title">Applications</h3>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
+              <h3 id="workspace-applications-title">{t($ => $.appShell.applicationsTitle)}</h3>
             </div>
             <StatusBadge tone={workspaceApplications.canRenderApplications ? "good" : "bad"}>
-              {workspaceApplications.canRenderApplications ? "read-only ready" : "blocked"}
+              {workspaceApplications.canRenderApplications ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -2067,7 +959,7 @@ function ProductApp() {
             <article className="applications-route">
               <div className="card-title-row">
                 <div>
-                  <p className="eyebrow">Application Summary List Route</p>
+                  <p className="eyebrow">{t($ => $.appShell.applicationSummaryRoute)}</p>
                   <h4>{workspaceApplications.routeId}</h4>
                 </div>
                 <StatusBadge tone="neutral">{workspaceApplications.requiredScope}</StatusBadge>
@@ -2075,32 +967,32 @@ function ProductApp() {
               <p className="route-path">{workspaceApplications.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceApplications.readModel}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceApplications.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceApplications.nextCursor ?? "none"}</dd>
+                  <dt>{t($ => $.appShell.nextCursor)}</dt>
+                  <dd>{workspaceApplications.nextCursor ?? t($ => $.appShell.none)}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceApplications.auditRef}</dd>
                 </div>
               </dl>
             </article>
 
-            <div className="applications-metrics" aria-label="Workspace application metrics">
+            <div className="applications-metrics" aria-label={t($ => $.appShell.applicationMetrics)}>
               {workspaceApplications.metrics.map((metric) => (
-                <ApplicationMetric key={metric.label} metric={metric} />
+                <ApplicationMetric key={metric.id} metric={metric} />
               ))}
             </div>
           </div>
 
-          <Suspense fallback={<div className="application-catalog-panel"><p>Loading application catalog management…</p></div>}>
+          <Suspense fallback={<div className="application-catalog-panel"><p>{t($ => $.appShell.loadingCatalog)}</p></div>}>
             <ApplicationCatalogPanel
               key={activeWorkspaceId}
               workspaceId={activeWorkspaceId}
@@ -2111,7 +1003,7 @@ function ProductApp() {
           </Suspense>
 
           {!applicationCatalogLive ? (
-            <div className="application-list" aria-label="Workspace applications">
+            <div className="application-list" aria-label={t($ => $.appShell.workspaceApplications)}>
               {workspaceApplications.applications.map((application) => (
                 <ApplicationRow
                   key={application.applicationRef}
@@ -2127,12 +1019,12 @@ function ProductApp() {
             <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
           ) : null}
 
-          <Suspense fallback={<div className="application-development-workspace"><p>Loading Application Development Workspace…</p></div>}>
+          <Suspense fallback={<div className="application-development-workspace"><p>{t($ => $.appShell.loadingWorkspace)}</p></div>}>
             <ApplicationDevelopmentWorkspacePanel
               key={applicationDevelopmentWorkspaceContext.generationKey}
               context={applicationDevelopmentWorkspaceContext}
               renderStageSurfaces={(activeStage, surfaceKey, controls) => (
-                <Suspense fallback={<div className="application-development-stage-surfaces"><p>Loading Application Development stage surfaces…</p></div>}>
+                <Suspense fallback={<div className="application-development-stage-surfaces"><p>{t($ => $.appShell.loadingStage)}</p></div>}>
                   <ApplicationDevelopmentWorkspaceSurface
                     key={surfaceKey}
                     context={applicationDevelopmentWorkspaceContext}
@@ -2145,9 +1037,7 @@ function ProductApp() {
                     savedDraftVersion={savedDraftConsumerState.currentDraftVersion ?? 0}
                     savedDraftLifecycleVersion={savedDraftConsumerState.currentLifecycleVersion}
                     savedDraftLifecycleState={savedDraftConsumerState.currentLifecycleState}
-                    nextDerivedDraftNumber={workspaceCreatedDrafts.filter(
-                      (draft) => draft.applicationRef === workflowScopedApplicationId && (draft.baseDefinitionVersion ?? 0) > 0,
-                    ).length + 1}
+                    nextDerivedDraftNumber={draftWorkspace.nextDefinitionDerivedDraftNumber}
                     onDerivedDraft={handleCreateDefinitionDerivedDraft}
                     onTemplateDerivedDraft={handleOpenTemplateDerivedDraft}
                     onRunRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
@@ -2190,11 +1080,11 @@ function ProductApp() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
               <h3 id="workspace-usage-quota-title">Usage Quota</h3>
             </div>
             <StatusBadge tone={workspaceUsageQuota.canRenderQuota ? "good" : "bad"}>
-              {workspaceUsageQuota.canRenderQuota ? "read-only ready" : "blocked"}
+              {workspaceUsageQuota.canRenderQuota ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -2210,7 +1100,7 @@ function ProductApp() {
               <p className="route-path">{workspaceUsageQuota.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceUsageQuota.readModel}</dd>
                 </div>
                 <div>
@@ -2218,11 +1108,11 @@ function ProductApp() {
                   <dd>{workspaceUsageQuota.quota?.period ?? "not available"}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceUsageQuota.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceUsageQuota.auditRef}</dd>
                 </div>
               </dl>
@@ -2261,11 +1151,11 @@ function ProductApp() {
         >
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
-              <h3 id="workspace-workflow-definitions-title">Workflows</h3>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
+              <h3 id="workspace-workflow-definitions-title">{t($ => $.appShell.workflows)}</h3>
             </div>
             <StatusBadge tone={workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "good" : "bad"}>
-              {workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "read-only ready" : "blocked"}
+              {workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -2281,19 +1171,19 @@ function ProductApp() {
               <p className="route-path">{workspaceWorkflowDefinitions.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceWorkflowDefinitions.readModel}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceWorkflowDefinitions.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceWorkflowDefinitions.nextCursor ?? "none"}</dd>
+                  <dt>{t($ => $.appShell.nextCursor)}</dt>
+                  <dd>{workspaceWorkflowDefinitions.nextCursor ?? t($ => $.appShell.none)}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceWorkflowDefinitions.auditRef}</dd>
                 </div>
               </dl>
@@ -2333,27 +1223,8 @@ function ProductApp() {
               savedDraftConflictOpenSummary={savedDraftConflictOpenSummary}
               draftEditDirty={workflowDraftEditDirty}
               executorOperationPending={workflowExecutorOperationPending || workflowHTTPToolOperationPending || workflowRAGOperationPending}
-              nodeTypeOptions={WORKFLOW_DRAFT_NODE_TYPE_OPTIONS}
-              canRemoveNode={(nodeId) => canRemoveWorkflowDraftNode(activeWorkflowDraft, nodeId)}
               onSelectDraft={handleSelectWorkflowDraft}
-              onUpdateDraftLabel={handleWorkflowDraftLabelChange}
-              onUpdateDraftSummary={handleWorkflowDraftSummaryChange}
-              onUpdateNodeLabel={handleWorkflowDraftNodeLabelChange}
-              onUpdateNodeInputSummary={handleWorkflowDraftNodeInputSummaryChange}
-              onUpdateNodeOutputSummary={handleWorkflowDraftNodeOutputSummaryChange}
-              onUpdateNodeProviderRef={handleWorkflowDraftNodeProviderRefChange}
-              onUpdateNodeToolRef={handleWorkflowDraftNodeToolRefChange}
-              onUpdateNodeRagRef={handleWorkflowDraftNodeRagRefChange}
-              onUpdateNodeInputFields={handleWorkflowDraftNodeInputFieldsChange}
-              onUpdateNodeOutputFields={handleWorkflowDraftNodeOutputFieldsChange}
-              onUpdateNodeOutputMapping={handleWorkflowDraftNodeOutputMappingChange}
-              onUpdateNodeDesignerPosition={handleWorkflowDraftNodeDesignerPositionChange}
-              onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}
-              onAddEdge={handleWorkflowDraftAddEdge}
-              onRemoveEdge={handleWorkflowDraftRemoveEdge}
-              onAddNode={handleWorkflowDraftAddNode}
-              onMoveNode={handleWorkflowDraftMoveNode}
-              onRemoveNode={handleWorkflowDraftRemoveNode}
+              onEditDraft={editWorkflowDraft}
               onResetDraftEdits={handleWorkflowDraftEditReset}
               onContinueLocalDraftAfterConflict={handleContinueLocalWorkflowDraftAfterConflict}
               onOpenConflictSavedDraft={handleOpenConflictSavedWorkflowDraft}
@@ -2365,6 +1236,7 @@ function ProductApp() {
           </Suspense>
           <Suspense fallback={<section className="workflow-draft-revision-panel"><p>正在加载草案修订历史工作区…</p></section>}>
             <WorkflowSavedDraftRevisionPanel
+              key={`${draftWorkspace.editorScopeKey}:${savedDraftConsumerState.currentDraftVersion}:${savedDraftConsumerState.currentLifecycleVersion}`}
               draft={activeWorkflowDraft}
               currentDraftVersion={savedDraftConsumerState.currentDraftVersion}
               currentLifecycleVersion={savedDraftConsumerState.currentLifecycleVersion}
@@ -2409,15 +1281,14 @@ function ProductApp() {
               draft={activeWorkflowDraft}
               savedDraftState={savedDraftConsumerState}
               draftEditDirty={workflowDraftEditDirty}
-              nextDraftNumber={workspaceCreatedDrafts.filter(
-                (draft) => draft.applicationRef === workflowScopedApplicationId && draft.executionProfile === "rag_retrieval_v1",
-              ).length + 1}
+              nextDraftNumber={draftWorkspace.nextRAGDraftNumber}
               onCreateDraft={handleCreateWorkflowRAGDraft}
-              onBindRAGRef={handleWorkflowDraftNodeRagRefChange}
+              onBindRAGRef={draftWorkspace.bindRAGRef}
               onPendingChange={setWorkflowRAGOperationPending}
               onExecutionRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
             />
           </Suspense>
+          <Suspense fallback={null}>
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
             consumerState={workflowExecutorState}
@@ -2432,10 +1303,13 @@ function ProductApp() {
             onStartRun={handleStartWorkflowRun}
             onReloadRun={handleReloadWorkflowRun}
           />
+          </Suspense>
+          <Suspense fallback={null}>
           <WorkflowDraftValidationInspectorPanel inspector={activeWorkflowDraftValidationInspector} />
           <WorkflowExecutionPlanPreviewPanel preview={activeWorkflowExecutionPlanPreview} />
           <WorkflowRuntimeReadinessInspectorPanel readiness={activeWorkflowRuntimeReadinessInspector} />
-          <Suspense fallback={<section className="surface-band"><p>Loading workflow review handoff…</p></section>}>
+          </Suspense>
+          <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.workflowReviewLoading)}</p></section>}>
             <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
           </Suspense>
 
@@ -2454,11 +1328,11 @@ function ProductApp() {
           {false && <>
           <div className="section-heading">
             <div>
-              <p className="eyebrow">User Workspace</p>
+              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
               <h3 id="workspace-run-history-title">Run History</h3>
             </div>
             <StatusBadge tone={workspaceRunHistory.canRenderRuns ? "good" : "bad"}>
-              {workspaceRunHistory.canRenderRuns ? "read-only ready" : "blocked"}
+              {workspaceRunHistory.canRenderRuns ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
             </StatusBadge>
           </div>
 
@@ -2474,19 +1348,19 @@ function ProductApp() {
               <p className="route-path">{workspaceRunHistory.routePath}</p>
               <dl className="tenant-meta">
                 <div>
-                  <dt>Model</dt>
+                  <dt>{t($ => $.appShell.model)}</dt>
                   <dd>{workspaceRunHistory.readModel}</dd>
                 </div>
                 <div>
-                  <dt>Request</dt>
+                  <dt>{t($ => $.appShell.request)}</dt>
                   <dd>{workspaceRunHistory.requestId}</dd>
                 </div>
                 <div>
-                  <dt>Next cursor</dt>
-                  <dd>{workspaceRunHistory.nextCursor ?? "none"}</dd>
+                  <dt>{t($ => $.appShell.nextCursor)}</dt>
+                  <dd>{workspaceRunHistory.nextCursor ?? t($ => $.appShell.none)}</dd>
                 </div>
                 <div>
-                  <dt>Audit</dt>
+                  <dt>{t($ => $.appShell.audit)}</dt>
                   <dd>{workspaceRunHistory.auditRef}</dd>
                 </div>
               </dl>
@@ -2559,7 +1433,7 @@ function ProductApp() {
               <h3 id="guard-title">Forbidden output guard</h3>
             </div>
             <StatusBadge tone={shell.forbiddenProjectionBlocked ? "bad" : "good"}>
-              {shell.forbiddenProjectionBlocked ? "blocked" : "clear"}
+              {shell.forbiddenProjectionBlocked ? t($ => $.appShell.blocked) : "clear"}
             </StatusBadge>
           </div>
           <div className="guard-layout">
@@ -3782,1119 +2656,6 @@ function WorkflowDefinitionBlockedActionPreviewCard({
   );
 }
 
-function workspaceDraftCreatedConsumerState(
-  config: ReturnType<typeof readWorkflowSavedDraftConsumerConfig>,
-  draft: WorkflowDraftDesignerDraft,
-  sourceLifecycleVersion = 0,
-): WorkflowSavedDraftConsumerState {
-  const initialState = initialWorkflowSavedDraftConsumerState(config);
-  return {
-    ...initialState,
-    status: "unsaved_local",
-    sourceLabel: "workspace draft",
-    summary:
-      config.mode === "dev_saved_draft_http"
-        ? `Workspace draft ${draft.draftId} is ready for validation or save through the dev-only saved draft route.`
-        : `Workspace draft ${draft.draftId} is local only until the dev-only saved draft route is enabled.`,
-    failureCode: null,
-    currentDraftVersion: 0,
-    currentLifecycleVersion: sourceLifecycleVersion,
-    currentLifecycleState: "active",
-    conflictDraftVersion: null,
-    auditRef: draft.routeMetadata.auditRef,
-    requestId: draft.routeMetadata.requestId,
-  };
-}
-
-function workflowTemplateDerivedConsumerState(
-  config: ReturnType<typeof readWorkflowSavedDraftConsumerConfig>,
-  draft: WorkflowDraftDesignerDraft,
-  authority: {
-    draftId: string;
-    draftVersion: number;
-    lifecycleVersion: number;
-    lifecycleState: "active";
-  },
-): WorkflowSavedDraftConsumerState {
-  return {
-    ...initialWorkflowSavedDraftConsumerState(config),
-    status: "saved_dev_record",
-    sourceLabel: "template-derived saved draft",
-    summary: `Template-derived Saved Draft ${authority.draftId} v${authority.draftVersion} is open from exact server authority.`,
-    failureCode: null,
-    currentDraftVersion: authority.draftVersion,
-    currentLifecycleVersion: authority.lifecycleVersion,
-    currentLifecycleState: authority.lifecycleState,
-    conflictDraftVersion: null,
-    auditRef: draft.routeMetadata.auditRef,
-    requestId: draft.routeMetadata.requestId,
-  };
-}
-
-function buildWorkspaceCreatedDraft(
-  workflowDefinitionId: string,
-  designer: WorkflowDraftDesignerViewModel,
-  existingDrafts: WorkflowDraftDesignerDraft[],
-): WorkflowDraftDesignerDraft | null {
-  const template = designer.templates.find(
-    (draftTemplate) => draftTemplate.workflowDefinitionId === workflowDefinitionId,
-  );
-  const baseDraft = template
-    ? designer.drafts.find((draft) => draft.draftId === template.draftId)
-    : designer.drafts.find((draft) => draft.workflowDefinitionId === workflowDefinitionId);
-  if (!baseDraft) {
-    return null;
-  }
-  const nextDraftNumber =
-    existingDrafts.filter((draft) => draft.workflowDefinitionId === workflowDefinitionId).length + 1;
-  const draftNumberLabel = String(nextDraftNumber).padStart(2, "0");
-  const createdDraftId = `draft_${workflowDefinitionId}_workspace_${draftNumberLabel}`;
-  return {
-    ...cloneWorkflowDraftForEditing(baseDraft),
-    draftId: createdDraftId,
-    templateRef: baseDraft.draftId,
-    label: `${baseDraft.label} workspace ${draftNumberLabel}`,
-    summary: `Workspace-created draft derived from ${workflowDefinitionId}; edit locally, validate, and save through the dev-only saved draft route before review.`,
-    localOnlyInteraction: "local_edit",
-    routeMetadata: {
-      ...baseDraft.routeMetadata,
-      requestId: `${baseDraft.routeMetadata.requestId}_workspace_${draftNumberLabel}`,
-      auditRef: `${baseDraft.routeMetadata.auditRef}_workspace_${draftNumberLabel}`,
-    },
-  };
-}
-
-function buildLocalWorkflowDraftNode(
-  draft: WorkflowDraftDesignerDraft,
-  nodeType: WorkflowDraftDesignerNode["nodeType"],
-): WorkflowDraftDesignerNode {
-  const option = workflowDraftNodeTypeOption(nodeType);
-  const nodeNumber = nextWorkflowDraftNodeNumber(draft, nodeType);
-  const nodeNumberLabel = String(nodeNumber).padStart(2, "0");
-  const requiresConfirmation = nodeType === "condition" || nodeType === "http_tool";
-  return {
-    nodeId: uniqueWorkflowDraftNodeId(draft, nodeType, nodeNumber),
-    label: `${option.label} ${nodeNumberLabel}`,
-    nodeType,
-    lane: option.lane,
-    readiness: requiresConfirmation ? "review_required" : "ready",
-    inputSummary: workflowDraftNodeInputSummary(option),
-    outputSummary: workflowDraftNodeOutputSummary(option),
-    providerRef: workflowDraftNodeProviderRef(option.nodeType),
-    toolRef: option.nodeType === "http_tool" ? "tool:workflow-preview-readonly" : "",
-    ragRef: "",
-    inputContractFields: workflowDraftContractFieldsForNode(option.nodeType, "input"),
-    outputContractFields: workflowDraftContractFieldsForNode(option.nodeType, "output"),
-    outputMappingSummary: workflowDraftNodeOutputMappingSummary(option),
-    riskLevel: requiresConfirmation ? "medium" : "low",
-    requiresConfirmation,
-    previewOnlyReason: "Local structure edit only; workflow execution remains blocked.",
-  };
-}
-
-function parseWorkflowDraftContractFields(fieldsText: string): string[] {
-  const seen = new Set<string>();
-  return fieldsText
-    .split(/[\n,]+/)
-    .map((field) => workflowDraftSafeKey(field, 80))
-    .filter((field) => {
-      if (!field || seen.has(field)) {
-        return false;
-      }
-      seen.add(field);
-      return true;
-    });
-}
-
-function workflowDraftWithStructureEdits(
-  draft: WorkflowDraftDesignerDraft,
-  nodes: WorkflowDraftDesignerNode[],
-): WorkflowDraftDesignerDraft {
-  return {
-    ...draft,
-    nodes,
-    edges: rebuildWorkflowDraftEdges(nodes, draft.edges),
-    designerLayout: workflowDraftLayoutForNodes(draft.designerLayout, nodes),
-    localOnlyInteraction: "local_edit",
-  };
-}
-
-function workflowDraftLayoutForNodes(
-  layout: WorkflowDraftDesignerLayout,
-  nodes: WorkflowDraftDesignerNode[],
-): WorkflowDraftDesignerLayout {
-  const nodeIds = new Set(nodes.map((node) => node.nodeId));
-  return {
-    source: "workflow_node_designer",
-    persistence: "ui_only",
-    nodePositions: layout.nodePositions.filter((position) => nodeIds.has(position.nodeId)),
-  };
-}
-
-function workflowDraftLayoutWithNodePosition(
-  draft: WorkflowDraftDesignerDraft,
-  nodeId: string,
-  x: number,
-  y: number,
-): WorkflowDraftDesignerLayout {
-  const nodeIds = new Set(draft.nodes.map((node) => node.nodeId));
-  const nextPosition = {
-    nodeId,
-    x: workflowDraftDesignerCoordinate(x),
-    y: workflowDraftDesignerCoordinate(y),
-  };
-  const positions = draft.designerLayout.nodePositions
-    .filter((position) => nodeIds.has(position.nodeId) && position.nodeId !== nodeId);
-  return {
-    source: "workflow_node_designer",
-    persistence: "ui_only",
-    nodePositions: [...positions, nextPosition],
-  };
-}
-
-function workflowDraftDesignerCoordinate(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.max(-10000, Math.min(10000, Math.round(value)));
-}
-
-function insertWorkflowDraftNode(
-  nodes: WorkflowDraftDesignerNode[],
-  nextNode: WorkflowDraftDesignerNode,
-): WorkflowDraftDesignerNode[] {
-  if (nextNode.lane === "output") {
-    return [...nodes, nextNode];
-  }
-  const firstOutputIndex = nodes.findIndex((node) => node.lane === "output");
-  if (firstOutputIndex === -1) {
-    return [...nodes, nextNode];
-  }
-  return [...nodes.slice(0, firstOutputIndex), nextNode, ...nodes.slice(firstOutputIndex)];
-}
-
-function canMoveWorkflowDraftNode(
-  draft: WorkflowDraftDesignerDraft,
-  nodeId: string,
-  direction: WorkflowDraftNodeMoveDirection,
-): boolean {
-  const nodeIndex = draft.nodes.findIndex((node) => node.nodeId === nodeId);
-  if (nodeIndex === -1) {
-    return false;
-  }
-  return direction === "up" ? nodeIndex > 0 : nodeIndex < draft.nodes.length - 1;
-}
-
-function moveWorkflowDraftNode(
-  nodes: WorkflowDraftDesignerNode[],
-  nodeId: string,
-  direction: WorkflowDraftNodeMoveDirection,
-): WorkflowDraftDesignerNode[] {
-  const nodeIndex = nodes.findIndex((node) => node.nodeId === nodeId);
-  const nextIndex = direction === "up" ? nodeIndex - 1 : nodeIndex + 1;
-  if (nodeIndex === -1 || nextIndex < 0 || nextIndex >= nodes.length) {
-    return nodes;
-  }
-  const reorderedNodes = [...nodes];
-  const movedNode = reorderedNodes[nodeIndex]!;
-  reorderedNodes[nodeIndex] = reorderedNodes[nextIndex]!;
-  reorderedNodes[nextIndex] = movedNode;
-  return reorderedNodes;
-}
-
-function canRemoveWorkflowDraftNode(draft: WorkflowDraftDesignerDraft, nodeId: string): boolean {
-  const node = draft.nodes.find((candidate) => candidate.nodeId === nodeId);
-  if (!node || draft.nodes.length <= 3) {
-    return false;
-  }
-  const remainingNodes = draft.nodes.filter((candidate) => candidate.nodeId !== nodeId);
-  if (!hasWorkflowDraftLane(remainingNodes, "context") || !hasWorkflowDraftLane(remainingNodes, "model")) {
-    return false;
-  }
-  if (countWorkflowDraftLane(remainingNodes, "output") < 1) {
-    return false;
-  }
-  return rebuildWorkflowDraftEdges(remainingNodes, draft.edges).length >= 3;
-}
-
-function rebuildWorkflowDraftEdges(
-  nodes: WorkflowDraftDesignerNode[],
-  previousEdges: WorkflowDraftDesignerEdge[],
-): WorkflowDraftDesignerEdge[] {
-  const rebuiltEdges = nodes.slice(1).map((node, index) =>
-    buildWorkflowDraftEdge(nodes[index]!, node, previousEdges),
-  );
-  if (rebuiltEdges.some((edge) => edge.edgeKind === "audit")) {
-    return rebuiltEdges;
-  }
-  const outputNodes = nodes.filter((node) => node.lane === "output");
-  if (outputNodes.length < 2) {
-    return rebuiltEdges;
-  }
-  return [
-    ...rebuiltEdges,
-    buildWorkflowDraftEdge(
-      outputNodes[outputNodes.length - 2]!,
-      outputNodes[outputNodes.length - 1]!,
-      previousEdges,
-      "audit",
-    ),
-  ];
-}
-
-function buildWorkflowDraftEdge(
-  fromNode: WorkflowDraftDesignerNode,
-  toNode: WorkflowDraftDesignerNode,
-  previousEdges: WorkflowDraftDesignerEdge[],
-  forcedEdgeKind?: WorkflowDraftDesignerEdge["edgeKind"],
-): WorkflowDraftDesignerEdge {
-  const previousEdge = previousEdges.find(
-    (edge) => edge.fromNodeId === fromNode.nodeId && edge.toNodeId === toNode.nodeId,
-  );
-  const edgeKind = forcedEdgeKind ?? workflowDraftEdgeKindForConnection(fromNode, toNode);
-  return {
-    edgeId: previousEdge?.edgeId ?? workflowDraftEdgeId(fromNode.nodeId, toNode.nodeId, edgeKind),
-    fromNodeId: fromNode.nodeId,
-    toNodeId: toNode.nodeId,
-    edgeKind,
-    conditionSummary:
-      workflowDraftNonEmptyConditionSummary(
-        previousEdge?.conditionSummary,
-        workflowDraftEdgeConditionSummary(fromNode, toNode, edgeKind),
-      ),
-  };
-}
-
-function buildWorkflowDraftEdgeForConnection(
-  draft: WorkflowDraftDesignerDraft,
-  fromNodeId: string,
-  toNodeId: string,
-): WorkflowDraftDesignerEdge | null {
-  if (fromNodeId === toNodeId) {
-    return null;
-  }
-  const fromNode = draft.nodes.find((node) => node.nodeId === fromNodeId);
-  const toNode = draft.nodes.find((node) => node.nodeId === toNodeId);
-  if (!fromNode || !toNode) {
-    return null;
-  }
-  if (draft.edges.some((edge) => edge.fromNodeId === fromNodeId && edge.toNodeId === toNodeId)) {
-    return null;
-  }
-  return buildWorkflowDraftEdge(fromNode, toNode, draft.edges);
-}
-
-function workflowDraftEdgeKindForConnection(
-  fromNode: WorkflowDraftDesignerNode,
-  toNode: WorkflowDraftDesignerNode,
-): WorkflowDraftDesignerEdge["edgeKind"] {
-  if (toNode.lane === "output" && (fromNode.lane === "output" || workflowDraftNodeLooksLikeAudit(toNode))) {
-    return "audit";
-  }
-  if (toNode.lane === "preview" || fromNode.lane === "preview") {
-    return "preview";
-  }
-  if (toNode.lane === "policy" || fromNode.lane === "policy") {
-    return "policy";
-  }
-  return "context";
-}
-
-function workflowDraftEdgeConditionSummary(
-  fromNode: WorkflowDraftDesignerNode,
-  toNode: WorkflowDraftDesignerNode,
-  edgeKind: WorkflowDraftDesignerEdge["edgeKind"],
-): string {
-  if (edgeKind === "audit") {
-    return "Sanitized output metadata remains visible in the audit path after local graph editing.";
-  }
-  if (edgeKind === "preview") {
-    return "Preview-only metadata flows forward while execution stays blocked.";
-  }
-  if (edgeKind === "policy") {
-    return "Risk-bearing output remains behind policy and confirmation review markers.";
-  }
-  return `${fromNode.label} passes sanitized context to ${toNode.label}.`;
-}
-
-function workflowDraftReviewableEdgeConditionSummary(
-  draft: WorkflowDraftDesignerDraft,
-  edge: WorkflowDraftDesignerEdge,
-  conditionSummary: string,
-): string {
-  const fromNode = draft.nodes.find((node) => node.nodeId === edge.fromNodeId);
-  const toNode = draft.nodes.find((node) => node.nodeId === edge.toNodeId);
-  const fallback =
-    fromNode && toNode
-      ? workflowDraftEdgeConditionSummary(fromNode, toNode, edge.edgeKind)
-      : "Draft edge keeps a reviewable condition summary after local graph editing.";
-  return workflowDraftNonEmptyConditionSummary(conditionSummary, fallback);
-}
-
-function workflowDraftNonEmptyConditionSummary(value: string | undefined, fallback: string): string {
-  const normalized = value?.trim();
-  return normalized ? normalized : fallback;
-}
-
-function uniqueWorkflowDraftNodeId(
-  draft: WorkflowDraftDesignerDraft,
-  nodeType: WorkflowDraftDesignerNode["nodeType"],
-  initialNumber: number,
-): string {
-  const draftKey = workflowDraftSafeKey(draft.draftId, 32);
-  let nodeNumber = initialNumber;
-  let candidate = "";
-  const existingNodeIds = new Set(draft.nodes.map((node) => node.nodeId));
-  do {
-    candidate = `node_${draftKey}_${nodeType}_${String(nodeNumber).padStart(2, "0")}`;
-    nodeNumber += 1;
-  } while (existingNodeIds.has(candidate));
-  return candidate;
-}
-
-function workflowDraftEdgeId(
-  fromNodeId: string,
-  toNodeId: string,
-  edgeKind: WorkflowDraftDesignerEdge["edgeKind"],
-): string {
-  return `edge_${workflowDraftSafeKey(fromNodeId, 36)}_to_${workflowDraftSafeKey(toNodeId, 36)}_${edgeKind}`;
-}
-
-function workflowDraftSafeKey(value: string, maxLength: number): string {
-  const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-  return (normalized || "local").slice(0, maxLength);
-}
-
-function nextWorkflowDraftNodeNumber(
-  draft: WorkflowDraftDesignerDraft,
-  nodeType: WorkflowDraftDesignerNode["nodeType"],
-): number {
-  return draft.nodes.filter((node) => node.nodeType === nodeType).length + 1;
-}
-
-function workflowDraftNodeTypeOption(
-  nodeType: WorkflowDraftDesignerNode["nodeType"],
-): WorkflowDraftNodeTypeOption {
-  return WORKFLOW_DRAFT_NODE_TYPE_OPTIONS.find((option) => option.nodeType === nodeType) ??
-    WORKFLOW_DRAFT_NODE_TYPE_OPTIONS[0]!;
-}
-
-function workflowDraftNodeInputSummary(option: WorkflowDraftNodeTypeOption): string {
-  if (option.nodeType === "prompt") {
-    return "Tenant ref, application ref, selection summary, and diagnostic summary.";
-  }
-  if (option.nodeType === "llm") {
-    return "Sanitized prompt context, answer contract, and provider profile reference.";
-  }
-  if (option.nodeType === "condition") {
-    return "Candidate action shape, risk level, and confirmation policy marker.";
-  }
-  if (option.nodeType === "http_tool") {
-    return "Sanitized candidate action payload without raw tool request body.";
-  }
-  return "Answer summary, risk summary, audit refs, and review context.";
-}
-
-function workflowDraftNodeOutputSummary(option: WorkflowDraftNodeTypeOption): string {
-  if (option.nodeType === "prompt") {
-    return "Sanitized context packet for advisory reasoning.";
-  }
-  if (option.nodeType === "llm") {
-    return "Advisory answer, candidate actions, risk summary, and audit refs.";
-  }
-  if (option.nodeType === "condition") {
-    return "Review-required branch metadata without execution unlock.";
-  }
-  if (option.nodeType === "http_tool") {
-    return "Preview-only action metadata and audit reference.";
-  }
-  return "Read-only advisory output or sanitized audit projection.";
-}
-
-function workflowDraftNodeProviderRef(nodeType: WorkflowDraftDesignerNode["nodeType"]): string {
-  if (nodeType === "llm") {
-    return "profile:radishmind-default-workflow";
-  }
-  if (nodeType === "condition") {
-    return "policy:confirmation-gated";
-  }
-  return "";
-}
-
-function workflowDraftContractFieldsForNode(
-  nodeType: WorkflowDraftDesignerNode["nodeType"],
-  contractKind: "input" | "output",
-): string[] {
-  if (contractKind === "input") {
-    if (nodeType === "prompt") {
-      return ["tenant_ref", "application_ref", "selection_summary", "diagnostic_summary"];
-    }
-    if (nodeType === "llm") {
-      return ["prompt_context", "answer_contract", "provider_profile_ref"];
-    }
-    if (nodeType === "condition") {
-      return ["candidate_action", "risk_level", "confirmation_policy"];
-    }
-    if (nodeType === "http_tool") {
-      return ["candidate_action", "audit_refs"];
-    }
-    return ["answer_summary", "risk_summary", "audit_refs"];
-  }
-  if (nodeType === "prompt") {
-    return ["prompt_context"];
-  }
-  if (nodeType === "llm") {
-    return ["answer_summary", "candidate_actions", "risk_summary", "audit_refs"];
-  }
-  if (nodeType === "condition") {
-    return ["policy_result", "requires_confirmation"];
-  }
-  if (nodeType === "http_tool") {
-    return ["preview_action_metadata", "audit_refs"];
-  }
-  return ["answer_summary", "risk_summary", "audit_refs"];
-}
-
-function workflowDraftNodeOutputMappingSummary(option: WorkflowDraftNodeTypeOption): string {
-  if (option.nodeType === "llm") {
-    return "Map advisory answer, candidate actions, risk summary, and audit refs into reviewable output fields.";
-  }
-  if (option.nodeType === "condition") {
-    return "Map policy result into review-required branch metadata without unlocking execution.";
-  }
-  if (option.nodeType === "http_tool") {
-    return "Map preview-only action metadata into audit-visible candidate action fields.";
-  }
-  if (option.nodeType === "output") {
-    return "Map advisory fields into the read-only workspace review surface.";
-  }
-  return "Map sanitized context fields into the next draft node contract.";
-}
-
-function hasWorkflowDraftLane(
-  nodes: WorkflowDraftDesignerNode[],
-  lane: WorkflowDraftDesignerNode["lane"],
-): boolean {
-  return nodes.some((node) => node.lane === lane);
-}
-
-function countWorkflowDraftLane(
-  nodes: WorkflowDraftDesignerNode[],
-  lane: WorkflowDraftDesignerNode["lane"],
-): number {
-  return nodes.filter((node) => node.lane === lane).length;
-}
-
-function workflowDraftNodeLooksLikeAudit(node: WorkflowDraftDesignerNode): boolean {
-  return `${node.nodeId} ${node.label}`.toLowerCase().includes("audit");
-}
-
-function WorkflowDraftValidationInspectorPanel({
-  inspector,
-}: {
-  inspector: WorkflowDraftValidationInspectorViewModel;
-}) {
-  return (
-    <div
-      className="workflow-draft-validation-inspector"
-      id="workflow-draft-validation-inspector"
-      aria-label="Workflow draft validation inspector offline surface"
-    >
-      <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Draft Validation Inspector</p>
-          <h4>{inspector.inspectedDraftId}</h4>
-        </div>
-        <StatusBadge tone={inspector.validationStatus === "blocked" ? "bad" : "neutral"}>
-          {inspector.validationStatus}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-draft-validation-summary-grid" aria-label="Workflow draft validation summary">
-        {inspector.summary.map((summary) => (
-          <WorkflowDraftValidationSummaryCard key={summary.label} summary={summary} />
-        ))}
-      </div>
-
-      <div className="workflow-draft-structural-check-grid" aria-label="Workflow draft structural checks">
-        {inspector.structuralChecks.map((check) => (
-          <WorkflowDraftStructuralCheckCard key={check.checkId} check={check} />
-        ))}
-      </div>
-
-      <div className="workflow-draft-contract-check-grid" aria-label="Workflow draft contract checks">
-        {inspector.contractChecks.map((check) => (
-          <WorkflowDraftContractCheckCard key={check.checkId} check={check} />
-        ))}
-      </div>
-
-      <div
-        className="workflow-draft-validation-blocked-grid"
-        aria-label="Workflow draft validation blocked capability checks"
-      >
-        {inspector.blockedCapabilityChecks.map((check) => (
-          <WorkflowDraftBlockedCapabilityCheckCard key={check.checkId} check={check} />
-        ))}
-      </div>
-
-      <article className="workflow-draft-validation-card">
-        <div className="workflow-draft-validation-row-main">
-          <div>
-            <p className="eyebrow">{inspector.auditMetadata.sourceRouteId}</p>
-            <h5>{inspector.auditMetadata.draftRouteId}</h5>
-          </div>
-          <StatusBadge tone="neutral">offline</StatusBadge>
-        </div>
-        <dl className="workflow-run-guard-meta">
-          <div>
-            <dt>Request</dt>
-            <dd>{inspector.auditMetadata.requestId}</dd>
-          </div>
-          <div>
-            <dt>Audit</dt>
-            <dd>{inspector.auditMetadata.auditRef}</dd>
-          </div>
-          <div>
-            <dt>Draft</dt>
-            <dd>{inspector.auditMetadata.inspectedDraftId}</dd>
-          </div>
-        </dl>
-      </article>
-    </div>
-  );
-}
-
-function WorkflowDraftValidationSummaryCard({ summary }: { summary: WorkflowDraftValidationSummary }) {
-  return (
-    <article className="workflow-draft-validation-card">
-      <span>{summary.label}</span>
-      <strong>{summary.value}</strong>
-      <p>{summary.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowDraftStructuralCheckCard({ check }: { check: WorkflowDraftStructuralCheck }) {
-  return (
-    <article className="workflow-draft-structural-check">
-      <div className="workflow-draft-validation-row-main">
-        <div>
-          <p className="eyebrow">{check.checkId}</p>
-          <h5>{check.label}</h5>
-        </div>
-        <StatusBadge tone={check.status === "blocked" ? "bad" : check.status === "passed" ? "good" : "neutral"}>
-          {check.status}
-        </StatusBadge>
-      </div>
-      <p>{check.summary}</p>
-      <div className="workflow-draft-validation-evidence" aria-label="Workflow draft structural check evidence">
-        {check.evidenceRefs.map((evidenceRef, index) => (
-          <code key={`${evidenceRef}:${index}`}>{evidenceRef}</code>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function WorkflowDraftContractCheckCard({ check }: { check: WorkflowDraftContractCheck }) {
-  return (
-    <article className="workflow-draft-contract-check">
-      <div className="workflow-draft-validation-row-main">
-        <div>
-          <p className="eyebrow">{check.checkId}</p>
-          <h5>{check.label}</h5>
-        </div>
-        <StatusBadge tone={check.status === "passed" ? "good" : "neutral"}>{check.status}</StatusBadge>
-      </div>
-      <p>{check.summary}</p>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Required</dt>
-          <dd>{check.requiredFields.join(", ")}</dd>
-        </div>
-        <div>
-          <dt>Present</dt>
-          <dd>{check.presentFields.join(", ") || "none"}</dd>
-        </div>
-        <div>
-          <dt>Missing</dt>
-          <dd>{check.missingFields.join(", ") || "none"}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function WorkflowDraftBlockedCapabilityCheckCard({
-  check,
-}: {
-  check: WorkflowDraftBlockedCapabilityCheck;
-}) {
-  return (
-    <article className="workflow-draft-validation-blocked-check">
-      <div className="workflow-draft-validation-row-main">
-        <div>
-          <p className="eyebrow">{check.capabilityId}</p>
-          <h5>{check.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{check.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{check.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{check.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{check.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowExecutionPlanPreviewPanel({
-  preview,
-}: {
-  preview: WorkflowExecutionPlanPreviewViewModel;
-}) {
-  return (
-    <div
-      className="workflow-execution-plan-preview"
-      id="workflow-execution-plan-preview"
-      aria-label="Workflow execution plan preview offline surface"
-    >
-      <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Full-runtime Execution Plan Preview</p>
-          <h4>{preview.selectedDraftId}</h4>
-        </div>
-        <StatusBadge tone={preview.canRenderExecutionPlanPreview ? "neutral" : "bad"}>
-          {preview.canRenderExecutionPlanPreview ? "offline preview" : "blocked"}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-execution-plan-summary-grid" aria-label="Workflow execution plan summary">
-        {preview.summary.map((summary) => (
-          <WorkflowExecutionPlanSummaryCard key={summary.label} summary={summary} />
-        ))}
-      </div>
-
-      <div className="workflow-execution-plan-stage-grid" aria-label="Workflow execution plan stage order">
-        {preview.stageOrder.map((stage) => (
-          <WorkflowExecutionPlanStageCard key={stage.stageId} stage={stage} />
-        ))}
-      </div>
-
-      <div className="workflow-execution-plan-node-grid" aria-label="Workflow execution plan node to stage mapping">
-        {preview.nodeStageMappings.map((mapping) => (
-          <WorkflowExecutionPlanNodeMappingCard key={mapping.nodeId} mapping={mapping} />
-        ))}
-      </div>
-
-      <div className="workflow-execution-plan-provider-grid" aria-label="Workflow execution plan provider requirements">
-        {preview.providerProfileRequirements.map((requirement) => (
-          <WorkflowExecutionPlanProviderRequirementCard
-            key={requirement.requirementId}
-            requirement={requirement}
-          />
-        ))}
-      </div>
-
-      <div className="workflow-execution-plan-gate-grid" aria-label="Workflow execution plan confirmation and audit gates">
-        {preview.confirmationAuditGates.map((gate) => (
-          <WorkflowExecutionPlanGateCard key={gate.gateId} gate={gate} />
-        ))}
-      </div>
-
-      <div className="workflow-execution-plan-blocked-grid" aria-label="Workflow execution plan blocked reasons">
-        {preview.blockedPlanReasons.map((reason) => (
-          <WorkflowExecutionPlanBlockedReasonCard key={reason.reasonId} reason={reason} />
-        ))}
-      </div>
-
-      <article className="workflow-execution-plan-card">
-        <div className="workflow-execution-plan-row-main">
-          <div>
-            <p className="eyebrow">{preview.auditMetadata.sourceRouteId}</p>
-            <h5>{preview.auditMetadata.draftRouteId}</h5>
-          </div>
-          <StatusBadge tone="neutral">{preview.validationStatus}</StatusBadge>
-        </div>
-        <dl className="workflow-run-guard-meta">
-          <div>
-            <dt>Validation route</dt>
-            <dd>{preview.auditMetadata.validationRouteId}</dd>
-          </div>
-          <div>
-            <dt>Request</dt>
-            <dd>{preview.auditMetadata.requestId}</dd>
-          </div>
-          <div>
-            <dt>Audit</dt>
-            <dd>{preview.auditMetadata.auditRef}</dd>
-          </div>
-          <div>
-            <dt>Draft</dt>
-            <dd>{preview.auditMetadata.selectedDraftId}</dd>
-          </div>
-        </dl>
-      </article>
-    </div>
-  );
-}
-
-function WorkflowExecutionPlanSummaryCard({ summary }: { summary: WorkflowExecutionPlanSummary }) {
-  return (
-    <article className="workflow-execution-plan-card">
-      <span>{summary.label}</span>
-      <strong>{summary.value}</strong>
-      <p>{summary.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowExecutionPlanStageCard({ stage }: { stage: WorkflowExecutionPlanStage }) {
-  return (
-    <article className="workflow-execution-plan-stage">
-      <div className="workflow-execution-plan-row-main">
-        <div>
-          <p className="eyebrow">
-            {stage.order} / {stage.stageKind}
-          </p>
-          <h5>{stage.label}</h5>
-        </div>
-        <StatusBadge tone={stage.status === "blocked" ? "bad" : stage.status === "ready" ? "good" : "neutral"}>
-          {stage.status}
-        </StatusBadge>
-      </div>
-      <p>{stage.summary}</p>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Nodes</dt>
-          <dd>{stage.nodeIds.join(", ") || "none"}</dd>
-        </div>
-        <div>
-          <dt>Blocked reason</dt>
-          <dd>{stage.blockedReason}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function WorkflowExecutionPlanNodeMappingCard({ mapping }: { mapping: WorkflowExecutionPlanNodeMapping }) {
-  return (
-    <article className="workflow-execution-plan-node">
-      <div className="workflow-execution-plan-row-main">
-        <div>
-          <p className="eyebrow">{mapping.stageId}</p>
-          <h5>{mapping.label}</h5>
-        </div>
-        <StatusBadge tone={mapping.requiresConfirmation ? "bad" : "neutral"}>{mapping.executionMode}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Node</dt>
-          <dd>{mapping.nodeId}</dd>
-        </div>
-        <div>
-          <dt>Type</dt>
-          <dd>{mapping.nodeType}</dd>
-        </div>
-        <div>
-          <dt>Provider</dt>
-          <dd>{mapping.providerProfileRef}</dd>
-        </div>
-        <div>
-          <dt>Input</dt>
-          <dd>{mapping.inputSummary}</dd>
-        </div>
-        <div>
-          <dt>Output</dt>
-          <dd>{mapping.outputSummary}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function WorkflowExecutionPlanProviderRequirementCard({
-  requirement,
-}: {
-  requirement: WorkflowExecutionPlanProviderRequirement;
-}) {
-  return (
-    <article className="workflow-execution-plan-provider">
-      <div className="workflow-execution-plan-row-main">
-        <div>
-          <p className="eyebrow">{requirement.requirementId}</p>
-          <h5>{requirement.label}</h5>
-        </div>
-        <StatusBadge tone={requirement.status === "blocked" ? "bad" : "neutral"}>{requirement.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Profile</dt>
-          <dd>{requirement.providerProfileRef}</dd>
-        </div>
-        <div>
-          <dt>Nodes</dt>
-          <dd>{requirement.nodeIds.join(", ") || "none"}</dd>
-        </div>
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{requirement.missingPrerequisite}</dd>
-        </div>
-      </dl>
-      <p>{requirement.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowExecutionPlanGateCard({ gate }: { gate: WorkflowExecutionPlanGate }) {
-  return (
-    <article className="workflow-execution-plan-gate">
-      <div className="workflow-execution-plan-row-main">
-        <div>
-          <p className="eyebrow">{gate.gateKind}</p>
-          <h5>{gate.label}</h5>
-        </div>
-        <StatusBadge tone={gate.status === "blocked" ? "bad" : "neutral"}>{gate.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Before stage</dt>
-          <dd>{gate.requiredBeforeStageId}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{gate.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{gate.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowExecutionPlanBlockedReasonCard({
-  reason,
-}: {
-  reason: WorkflowExecutionPlanBlockedReason;
-}) {
-  return (
-    <article className="workflow-execution-plan-blocked-reason">
-      <div className="workflow-execution-plan-row-main">
-        <div>
-          <p className="eyebrow">{reason.blockedCapability}</p>
-          <h5>{reason.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{reason.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{reason.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{reason.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{reason.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowRuntimeReadinessInspectorPanel({
-  readiness,
-}: {
-  readiness: WorkflowRuntimeReadinessInspectorViewModel;
-}) {
-  return (
-    <div
-      className="workflow-runtime-readiness-inspector"
-      id="workflow-runtime-readiness-inspector"
-      aria-label="Workflow runtime readiness inspector offline surface"
-    >
-      <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Full-runtime Readiness Inspector</p>
-          <h4>{readiness.selectedDraftId}</h4>
-        </div>
-        <StatusBadge tone={readiness.canRenderRuntimeReadinessInspector ? "bad" : "neutral"}>
-          {readiness.canRenderRuntimeReadinessInspector ? "blocked readiness" : "missing evidence"}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-runtime-readiness-summary-grid" aria-label="Workflow runtime readiness summary">
-        {readiness.summary.map((summary) => (
-          <WorkflowRuntimeReadinessSummaryCard key={summary.label} summary={summary} />
-        ))}
-      </div>
-
-      <div className="workflow-runtime-readiness-prerequisite-grid" aria-label="Workflow runtime prerequisites">
-        {readiness.runtimePrerequisites.map((prerequisite) => (
-          <WorkflowRuntimeReadinessPrerequisiteCard
-            key={prerequisite.prerequisiteId}
-            prerequisite={prerequisite}
-          />
-        ))}
-      </div>
-
-      <div className="workflow-runtime-readiness-blocker-grid" aria-label="Workflow runtime readiness blockers">
-        {readiness.readinessBlockers.map((blocker) => (
-          <WorkflowRuntimeReadinessBlockerCard key={blocker.blockerId} blocker={blocker} />
-        ))}
-      </div>
-
-      <div className="workflow-runtime-readiness-gate-grid" aria-label="Workflow runtime implementation gates">
-        {readiness.implementationGates.map((gate) => (
-          <WorkflowRuntimeReadinessGateCard key={gate.gateId} gate={gate} />
-        ))}
-      </div>
-
-      <article className="workflow-runtime-readiness-card">
-        <div className="workflow-runtime-readiness-row-main">
-          <div>
-            <p className="eyebrow">{readiness.auditMetadata.sourcePageId}</p>
-            <h5>{readiness.auditMetadata.readinessRouteId}</h5>
-          </div>
-          <StatusBadge tone={readiness.forbiddenProjectionBlocked ? "bad" : "neutral"}>
-            {readiness.forbiddenProjectionBlocked ? "guard active" : "metadata only"}
-          </StatusBadge>
-        </div>
-        <dl className="workflow-run-guard-meta">
-          <div>
-            <dt>Plan route</dt>
-            <dd>{readiness.auditMetadata.planRouteId}</dd>
-          </div>
-          <div>
-            <dt>Request</dt>
-            <dd>{readiness.auditMetadata.requestId}</dd>
-          </div>
-          <div>
-            <dt>Audit</dt>
-            <dd>{readiness.auditMetadata.auditRef}</dd>
-          </div>
-          <div>
-            <dt>Draft</dt>
-            <dd>{readiness.auditMetadata.selectedDraftId}</dd>
-          </div>
-        </dl>
-      </article>
-    </div>
-  );
-}
-
-function WorkflowRuntimeReadinessSummaryCard({ summary }: { summary: WorkflowRuntimeReadinessSummary }) {
-  return (
-    <article className="workflow-runtime-readiness-card">
-      <span>{summary.label}</span>
-      <strong>{summary.value}</strong>
-      <p>{summary.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowRuntimeReadinessPrerequisiteCard({
-  prerequisite,
-}: {
-  prerequisite: WorkflowRuntimeReadinessPrerequisite;
-}) {
-  return (
-    <article className="workflow-runtime-readiness-prerequisite">
-      <div className="workflow-runtime-readiness-row-main">
-        <div>
-          <p className="eyebrow">{prerequisite.area}</p>
-          <h5>{prerequisite.label}</h5>
-        </div>
-        <StatusBadge tone={workflowRuntimeReadinessTone(prerequisite.status)}>{prerequisite.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Evidence</dt>
-          <dd>{prerequisite.currentEvidence}</dd>
-        </div>
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{prerequisite.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Source refs</dt>
-          <dd>{prerequisite.sourceRefs.join(", ")}</dd>
-        </div>
-      </dl>
-      <p>{prerequisite.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowRuntimeReadinessBlockerCard({ blocker }: { blocker: WorkflowRuntimeReadinessBlocker }) {
-  return (
-    <article className="workflow-runtime-readiness-blocker">
-      <div className="workflow-runtime-readiness-row-main">
-        <div>
-          <p className="eyebrow">{blocker.area}</p>
-          <h5>{blocker.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{blocker.severity}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Source</dt>
-          <dd>{blocker.sourceRef}</dd>
-        </div>
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{blocker.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{blocker.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{blocker.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowRuntimeReadinessGateCard({ gate }: { gate: WorkflowRuntimeReadinessGate }) {
-  return (
-    <article className="workflow-runtime-readiness-gate">
-      <div className="workflow-runtime-readiness-row-main">
-        <div>
-          <p className="eyebrow">{gate.gateKind}</p>
-          <h5>{gate.label}</h5>
-        </div>
-        <StatusBadge tone={workflowRuntimeReadinessTone(gate.status)}>{gate.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Required before</dt>
-          <dd>{gate.requiredBefore}</dd>
-        </div>
-        <div>
-          <dt>Evidence refs</dt>
-          <dd>{gate.evidenceRefs.join(", ")}</dd>
-        </div>
-      </dl>
-      <p>{gate.summary}</p>
-    </article>
-  );
-}
-
-function workflowRuntimeReadinessTone(status: WorkflowRuntimeReadinessStatus): "good" | "bad" | "neutral" {
-  if (status === "blocked") {
-    return "bad";
-  }
-  if (status === "satisfied") {
-    return "good";
-  }
-  return "neutral";
-}
-
 function WorkflowDefinitionStatePreview({ state }: { state: WorkspaceWorkflowDefinitionsStatePreview }) {
   return (
     <article className="workflow-definition-state">
@@ -5089,11 +2850,16 @@ function WorkflowApplicationBlockedCapabilityCard({
 }
 
 function ApplicationMetric({ metric }: { metric: WorkspaceApplicationsMetric }) {
+  const { t } = useTranslation("shell");
+  const value = metric.id === "cursor" ? t($ => $.appShell.metrics.cursorValues[metric.value === "available" ? "available" : "none"]) : metric.value;
+  const detail = metric.id === "blockedRuns" ? t($ => $.appShell.metrics.blockedDetail)
+    : metric.id === "audit" ? t($ => $.appShell.metrics.auditDetail)
+    : metric.id === "cursor" && metric.value === "none" ? t($ => $.appShell.metrics.singlePage) : metric.detail;
   return (
     <article className="application-metric">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <p>{metric.detail}</p>
+      <span>{t($ => $.appShell.metrics.labels[metric.id])}</span>
+      <strong>{value}</strong>
+      <p>{detail}</p>
     </article>
   );
 }

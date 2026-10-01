@@ -1,6 +1,6 @@
 # 工程健康与产品化整改专题 v1
 
-更新时间：2026-09-06
+更新时间：2026-09-23
 
 状态：`remediation_v1_active_governance`
 
@@ -14,7 +14,7 @@
 
 本次复审确认：开发测试态功能、持久化、安全与版本边界已有连续实现；主要维护风险集中在公共入口承载过多职责、当前文档混入过期断言，以及用户收益和自动浏览器回归证据不足。统计口径、构建与测试结果集中在[2026-W36 周志](../devlogs/2026-W36.md#2026-09-06-全面审阅与文档收敛)。
 
-项目所有者已授权按审阅建议完善项目文档。本节承接后续方向和验收建议，不是模块迁移、依赖安装、CI 变更、服务启动、真实 Provider 或部署授权。R2 至 R6 保持完成，当前邀请批次 E 仍需独立授权；不创建 R7、平行任务卡或新增 checker。
+项目所有者已授权按审阅建议完善项目文档。本节承接后续方向和验收建议，不是模块迁移、依赖安装、CI 变更、服务启动、真实 Provider 或部署授权。R2 至 R6 保持完成；邀请批次 E 已于 2026-09-08 独立获授权并完成，2026-09-09 另行获批收敛前端草案库与 Designer 状态归属，范围与验收见[草案库专题](../features/workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md#草案前端状态归属收敛)。随后另行批准三条 Workflow 自动浏览器回归及现有 PR / Release CI 接入，实施范围见下节。身份 / 成员领域已完成依赖盘点与[包边界方案](#身份与成员领域包边界与实现)，首个策略切片已于 2026-09-14 获授权实施，代码、独立策略与双数据库回归已完成。其它候选未因此自动启动，不创建 R7、平行任务卡或新增 checker。
 
 ### 当前判断
 
@@ -30,13 +30,46 @@
 | --- | --- | --- |
 | 前端工作流状态归属 | 先梳理草案库、Designer、运行审查与应用工作区的状态 / 动作；保持跨 owner 稳定引用交接，不创建通用全局业务 store | 切换 workspace / application、迟到响应、CAS 冲突、恢复和敏感状态清理保持正确；入口包与样式加载报告可比较 |
 | 一个后端领域的包边界 | 身份 / 成员可作为候选；先列明领域类型、应用服务、仓储接口与 HTTP 依赖，评审实际迁移顺序 | 领域规则可独立测试，HTTP 负责传输适配；既有授权、事务、迁移、重启、错误与接口行为不变 |
-| 少量自动浏览器回归 | 优先草案保存 / 双标签冲突、作用域切换 / 迟到响应、受控运行 / 结果恢复、API key 轮换、邀请认领；邀请先完成 E | 环境与数据可重复、测试间隔离、启动清理明确；关键流程进入持续验证，CI 时间与失败诊断可读 |
+| 少量自动浏览器回归 | 优先草案保存 / 双标签冲突、作用域切换 / 迟到响应、受控运行 / 结果恢复、API key 轮换、邀请认领；邀请 E 已完成，可在独立回归任务中选入 | 环境与数据可重复、测试间隔离、启动清理明确；关键流程进入持续验证，CI 时间与失败诊断可读 |
 | 协议与仓储兼容整理 | 盘点 Run v0 至 v9 的写入 / 只读兼容范围与执行类型差异；共享领域校验和仓储行为合同 | 每个版本有明确读写来源与测试，消费者避免重复完整兼容分派；SQLite / PostgreSQL 事务和查询证据分别保留 |
 | 内部真实任务与模型质量 | 按产品范围选择代表任务，确认参与者、数据、模型 / Provider 与运行窗口；首轮先记录基线 | 同时报告独立完成、耗时、求助、人工修改、结构合规、事实正确、建议有用和运行成本来源，不预填收益 |
 | 交付准备 | 有实际运行窗口后再确认产品 Web 包装、镜像架构、运行身份、依赖可复现性、连接预算、恢复与环境隔离 | 在目标环境记录构建、部署、升级 / 恢复和权限验证；生产 secret、认证、quota / billing 各自验收 |
 | 轻量 push 检查评估 | 保持串行 dev 开发模式，先评估本地检查与 PR / release CI 的反馈间隔和执行成本 | 是否增加 push 检查由独立变更确定；当前 workflow 触发器与分支保护保持原状 |
 
 代码体量下降或文件移动不是独立完成标准。每项必须有明确用户或维护问题、边界内的行为证据与可解释结果；一次只推进一个范围清晰的领域，避免同时调整包结构、权限、协议和部署。
+
+### Workflow 自动浏览器回归
+
+2026-09-09 项目所有者批准将已走查的三条用户流程纳入持续验证；范围为草案修订 / 双标签冲突、迟到响应 / 作用域隔离，以及 Definition 人工审查 / 激活至一次 mock 运行和精确历史读取。实现位于 `apps/radishmind-web/tests/e2e/`，复用既有 SQLite 产品入口与领域 API，不新建任务卡或专项 checker。
+
+2026-09-14 项目所有者暂缓真实模型试用，并批准在同一入口补充三条 Prompt Application 回归：模板与配置审核、显式激活和结果保存后刷新读取；输出契约失败不保存且同键不重调；配置变更阻断调用，重新审核并显式替换后创建新 Session 恢复执行。配置准备也通过 UI 完成 API key 向 Playground 的模型目录交接。原三条 Workflow 流程保留，不增加依赖、CI job 或触发器。
+
+2026-09-23 补齐 Prompt 结构化输出编辑，并将既有回归扩为五条：编辑 / 类型切换 / 保存迟到响应保护、非空结果保存恢复、额外字段拒绝、缺字段拒绝、配置漂移后的显式恢复。与原三条 Workflow 连续两轮共 16 次通过，沿用同一运行器与 CI，证据见[2026-W39 周志](../devlogs/2026-W39.md)。
+
+随后 [i18n A 阶段](../features/web-internationalization-zh-en-v1.md)复用本入口：五条 Prompt 基础流程与一条语言切换流程按中英两语执行，原三条 Workflow 保持英文基线；连续两轮共 30 次通过。语言切换检查覆盖 schema / 焦点、保存等待、存储写失败与三视口；同时修复双记录目录中长技术 ID 撑开定义卡片的问题。没有新增 CI job 或真实模型调用，远端 CI 仍未复验。
+
+2026-09-28 i18n B 首个草案流程复用同一入口：原两条草案回归扩为双语，新增编辑 / 保存等待 / 恢复确认切换和归档 / 解除归档后重新打开两条双语流程；Definition 运行暂留英文，Prompt 六条双语继续保留。连续两轮共 42 次通过，运行约 5.3 分钟；临时服务与 SQLite 已清理，报告和请求标识误判修复见[2026-W40 周志](../devlogs/2026-W40.md)。
+
+随后审查 / 模板 / 运行切片取消 Definition 中文跳过，并新增模板审查等待与派生确认语言切换用例。运行器按模板、Prompt / Workflow 两组顺序启动独立临时环境；模板档案使用禁止调用的模型元数据，避免覆盖 Prompt 固定响应档案。模板派生所需的精确 Provider Route 快照由测试通过现有管理 API 准备和严格核对，不跳过原绑定检查。三视口增加长模板 ID 的卡片内部换行检查，实际验收结果见本周周志。RAG 快照切片随后增加第三个独立 `rag` 组，使用既有 `--workflow-rag-dev`；`--suite=templates|workflow|rag` 可选择单组，非法或重复选择器直接拒绝，不放宽零测试失败。RAG 组在单独授权窗口完成中英各两轮共 8 次验收，含版本冲突保留与片段卡片内部溢出检查；本窗口没有重跑前两组，不据此声称同次全量回归通过。
+
+- `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
+- 每组运行分别生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。
+- Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。
+- Web 使用现有 CORS 允许的 `127.0.0.1:4100`，Platform 使用 `127.0.0.1:17000`。任一端口被占用即失败，不复用用户服务；各组清理后顺序复用端口；测试使用单 worker、零重试，以免掩盖不稳定失败。
+- `run.mjs` 拥有启动器与测试运行器的 POSIX 进程组；正常退出、失败、`SIGINT` / `SIGTERM` 均关闭后代进程及本轮 Prompt fixture，限时结束后再删除本轮临时数据库。原生 Windows 暂不支持该清理入口，使用 Linux、macOS 或 WSL。
+- 日志、HTTP 方法 / 路径 / 状态记录和 HTML 报告位于忽略目录 `output/playwright/workflow-e2e/run-*`；另保存不含凭据或正文的 fixture 调用观察；失败保留截图、页面错误上下文与 trace。数据均为本轮合成输入，数据库不进入报告或 CI artifact。
+- `1440 / 1200 / 390px` 断言内部容器边界、链接多点命中、真实导航和整页宽度；检查内部裁切，不能仅依据 `scrollWidth` 判定布局通过。
+- PR 与 Release 新增对称浏览器 job；PR 的 `Candidate Quality` 纳入结果，既有触发器保持不变。失败 / 取消时上传证据，保留七天；本地通过与远端 CI 执行成功分别记录，不互相代替。
+
+首次准备在仓库完成既有 `./scripts/bootstrap-dev.sh` 后执行：
+
+```bash
+cd apps/radishmind-web
+npm ci
+npx playwright install chromium --only-shell
+```
+
+Linux CI 使用 `npx playwright install --with-deps --only-shell chromium` 安装系统依赖。日常运行 `npm run test:e2e`；重复性复验使用 `npm run test:e2e -- --repeat-each=2`，单流程调试可传 `--grep`。该命令会临时启动服务，独立于常规 `check-repo`；退出后应显示已清理进程组与临时目录，失败证据目录会保留。
 
 ### 文档与产品验收的收敛
 
@@ -47,6 +80,74 @@
 用户界面按创建、运行、结果、问题恢复和再次验证组织主流程，工程证据放入明确的诊断入口；信息简化不降低服务端权限或确认要求。内部使用的样本量、环境和失败原因与指标一起记录，详细定义见[产品范围](../radishmind-product-scope.md#使用与效果验收)。
 
 整改目标不是扩大项目范围，而是把已经形成的平台、Workflow、Gateway、评测和安全能力收束成可维护、可复验、可持续迭代的产品基线。
+
+## 身份与成员领域包边界与实现
+
+2026-09-09 以 `e26cad12` 为方案盘点基线；2026-09-14 已按项目所有者授权实施首个策略切片并完成双数据库回归。`internal/workspacepolicy` 已集中工作区权限与内建角色目录，HTTP、身份管理及邀请事务直接消费同一策略来源。身份记录、应用服务与仓储事务继续留在 `httpapi`；本节不表示整个身份领域已拆分。验证记录见[2026-W38 周志](../devlogs/2026-W38.md)。
+
+### 迁移前依赖与保留的事务边界
+
+| 职责 | 当前代码落点（均在 `services/platform/internal/httpapi/`） | 已确认的边界 |
+| --- | --- | --- |
+| HTTP、Session 与请求授权 | `local_identity_http.go`、`local_identity_administration_http.go`、`workspace_invitation_http.go`、`control_plane_read_auth.go` | 恢复 actor、校验 Origin / CSRF / scope、处理状态码；不是领域策略包的依赖 |
+| 工作区权限与角色目录 | `workspace_membership.go`、`local_identity_role_catalog.go` | 68 项 permission allowlist、四个内建角色、目录版本 / digest 与复制规则；当前与 HTTP 成员断言及 assignment 校验混在文件内 |
+| 账户、成员、角色与授权结果 | `local_identity_domain.go`、`local_workspace_membership.go` | `UserAccount`、`WorkspaceMembership`、`LocalRoleAssignment` 与 `LocalWorkspaceAuthorization`；授权 provider 仍接收 HTTP 身份上下文并返回 HTTP 状态 |
+| 身份管理与邀请编排 | `local_identity_administration.go`、`workspace_invitation_service.go` | 调用方权限、近期认证、目录重验、ID / 时钟与错误映射；仓储接口返回现有领域记录 |
+| 事务与内存规则复用 | `local_identity_administration_*write.go`、`workspace_invitation_{memory,sqlite,postgres}.go` | SQL 仓储在事务内加载 scope snapshot，复用 `memoryLocalIdentityRepository` 的规则，再提交受控差量；不是简单 SQL CRUD 适配器 |
+| 构造与生命周期 | `local_identity_store_factory.go`、`server.go` | 同一个 repository 实现 identity、administration、self-service、invitation 接口；SQLite 共享 runtime，PostgreSQL 验证 migration 后持有 pool |
+
+邀请认领是一个不可拆开的提交单元：验证邀请 / 账户 / 当前角色定义，创建 membership 与 assignment，再把 invitation 更新为 claimed。memory 使用同一互斥锁；SQLite 使用同一连接的 `BEGIN IMMEDIATE`；PostgreSQL 先取得 tenant / workspace advisory transaction lock，再以 `FOR UPDATE` 重读邀请。失败不得留下部分授权写入。
+
+管理员 bootstrap 同样一次建立 membership 与 admin assignment；成员撤销同时撤销该 workspace 的 assignments，角色撤销需保护最后管理员。首个切片保留这些操作、锁顺序、版本条件和当前仓储实例，不能把邀请拆成独立 store 或跨包串行三次提交。
+
+### 首个切片：工作区权限与内建角色策略
+
+已新增 `services/platform/internal/workspacepolicy/`，只依赖 Go 标准库。按职责放置 `permissions.go`、`role_catalog.go` 及对应测试；包名只表达工作区策略，不承接登录、Session、成员状态或通用散列工具。
+
+```mermaid
+flowchart LR
+  H["httpapi：HTTP 与请求授权"] --> P["workspacepolicy：权限与角色目录"]
+  S["httpapi：身份管理与邀请服务"] --> P
+  R["httpapi：既有仓储与事务规则"] --> P
+  H --> S
+  S --> R
+```
+
+图中只有 `workspacepolicy` 是本次新增包；其余节点仍在现有 `httpapi` 包内。新包不导入 `httpapi`、`net/http`、SQL、配置或 migration 包，不引入新的服务对象、repository factory 或生命周期。
+
+| 迁出内容 | 新包职责与调用方式 | 留在原处的内容 |
+| --- | --- | --- |
+| permission allowlist 与管理权限常量 | 私有目录；提供排序后的名称副本、请求权限规范化、grants 合法性、是否包含任一管理权限及是否具备全部管理权限的精确判断 | Header / signed-test claim 解析、Session scope 交接、HTTP 失败映射 |
+| 四角色与 canonical catalog | `RoleDefinition`、`RoleCatalog`、`BuiltInRoleCatalog()` 与 `BuiltInRole()`；schema、JSON tags、排序、grants 和 digest 保持一致 | 基于 actor 的目录读取授权、响应 envelope、assignment 与 invitation projection |
+| 角色 grants 合并、目录 digest 与深复制 | 作为策略包私有实现；不暴露可变 map / slice，不导出通用 hash API | `localIdentityDigest` 的 cursor / audit 使用、`isLowerHex` 及 identity record 校验 |
+| 纯策略测试 | 迁入新包，独立验证固定目录与权限处理 | HTTP、身份安全、成员管理和邀请的组合测试继续保留 |
+
+`localIdentityAssignmentCanManage` 的 lifecycle / expiry 判断、assignment 元数据合法性和目录漂移判断仍随身份记录留在 `httpapi`，仅直接读取新包策略；完整管理权限判断由 `HasManagementPermissions` 承载，保持原有精确字符串匹配。目录文件须按职责拆开，不能整文件移动后反向导入 `httpapi`。目录 digest 在新包保留相同算法的私有实现，cursor / audit 继续由现有身份代码处理，不因散列算法相同建立跨领域策略依赖。
+
+调用点一次性改为导入新包；不保留只转发的新旧函数、长期 type alias 或两份 grants 目录。实施前已再次确认 `httpapi` 之外没有 Go 代码消费原角色目录导出符号。依赖方向由 Go 编译约束，不能为了复用旧测试 fixture 引入反向依赖。
+
+### 必须保持的行为
+
+1. 目录继续为 `local_identity_builtin_roles_v2`，整体 digest 为 `sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae`。四角色 grants、显示文本、角色 digest、管理能力和 JSON 输出不变；管理员仍显式覆盖全部 allowlist，不自动从 allowlist 生成管理角色。
+2. 请求权限规范化继续 trim、去重并保留首次出现顺序；grants 合法性检查继续 trim 后判断并拒绝重复，不能将两者合并成同一宽松逻辑。现有排序和空值 / 未知权限拒绝边界不变。
+3. 历史 assignment 允许缺省成对的 catalog metadata，管理资格仍按既有角色、grants、状态与到期规则判断；邀请 create / preview / claim 则要求当前目录版本和 digest 精确一致。不得借迁移收紧历史兼容或重写旧 assignment。
+4. HTTP 状态、公开 failure code、actor / workspace 绑定、权限重验、近期认证、CSRF、最后管理员保护、一次性凭据隐私及失败不回退保持原状。没有 API、schema、数据库 migration、grant 扩张或 production gate 变更。
+
+### 实施顺序与验收
+
+1. 先以现有目录合同和权限规范化测试记录行为基线；提取纯策略实现与测试，再切换全部调用点。新包需在不编译 HTTP、数据库和模型执行代码的情况下单独运行测试。
+2. 独立测试检查目录 / 单角色返回值均不可修改 canonical 数据、角色查找、固定 digest、四角色关系、未知 / 空权限、重复 grants、请求去重顺序及管理权限隔离；已有组合测试不缩减。
+3. 定向执行身份授权、成员管理、邀请的 memory / SQLite 与 HTTP 测试，再执行现有 Platform 全量 race / vet。PostgreSQL 使用现有 `postgres_integration` 产品测试验证目录派生、角色撤销、最后管理员、原子认领、并发单胜者与重启；未启动数据库或被 skip 的用例不能记为通过。
+4. `scripts/checks/platform/check_platform_core_coverage.py` 原来仅统计六个显式包；本次在同一个 checker 中加入 `internal/workspacepolicy`，承接原 `httpapi` 的 `70%` 语句覆盖率下限；原 `httpapi` 及其它阈值不降低，报告迁移前后分母与覆盖率，不以移出已覆盖代码制造改善。预算映射与既有解析测试已同步修改，不新增 checker。
+5. 现有 Go CI 的 `./...` 会发现新包，覆盖率入口复用原 job；不新增 CI job、浏览器框架或依赖。完成后同步架构实际代码映射、身份管理专题、覆盖率说明与周志，运行全量仓库检查。
+
+完成标准是策略具有单一归属、能独立测试，所有原调用方仍遵守相同权限与事务合同；不以减少文件行数或让 `httpapi` 目录变小作为通过依据。
+
+### 实施范围与停止线
+
+项目所有者在 2026-09-09 日终安排首个切片，2026-09-14 恢复并明确授权实施；原交接见[明日事项](../devlogs/2026-W37.md#2026-09-10-明日事项)。本次代码迁移、调用点与覆盖率映射已落地。成员记录、应用服务、memory snapshot 与 SQL 仓储的进一步拆分在本切片完成后重新评估；当前不设必须连续实施的后续批次。
+
+迁移前后 Platform 普通测试、策略独立测试与 race / vet 已通过；覆盖率预算与仓库全量检查亦通过。PostgreSQL 在本任务获得独立授权后完成四项既有身份 / 成员 / 邀请集成测试，零失败、零跳过；临时容器已删除，端口已释放，详细结果见[本周周志](../devlogs/2026-W38.md)。本切片完成，进一步包迁移仍按实际维护问题重新评估。若实施必须改变事务、身份敏感字段可见性或对外契约，先更新方案与范围。
 
 ## 审阅范围与基线
 

@@ -1,3 +1,9 @@
+import { formatDisplayDate } from "../../i18n/formatters.ts";
+import "../../i18n/workflowRevisionResources.ts";
+import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
+import { workflowRevisionHistoryMessage, workflowRevisionOperationMessage, workflowRevisionChangeMessage, type WorkflowRevisionOperation } from "./workflowRevisionMessages.ts";
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowDraftResources.ts";
 import { useEffect, useMemo, useState } from "react";
 
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
@@ -37,12 +43,13 @@ export function WorkflowSavedDraftRevisionPanel({
     result: WorkflowSavedDraftRevisionRestoreResult,
   ) => void;
 }) {
+  const { t, i18n } = useTranslation("workflow");
   const [history, setHistory] = useState<WorkflowSavedDraftRevisionHistoryState>(() =>
     initialWorkflowSavedDraftRevisionHistoryState(config),
   );
   const [selected, setSelected] = useState<WorkflowSavedDraftRevisionDetail | null>(null);
   const [detailStatus, setDetailStatus] = useState<"idle" | "loading" | "ready" | "failed">("idle");
-  const [operationSummary, setOperationSummary] = useState("");
+  const [operation, setOperation] = useState<WorkflowRevisionOperation | null>(null);
   const [confirmVersion, setConfirmVersion] = useState<number | null>(null);
   const [restoring, setRestoring] = useState(false);
   const comparison = useMemo(
@@ -54,7 +61,7 @@ export function WorkflowSavedDraftRevisionPanel({
     setHistory(initialWorkflowSavedDraftRevisionHistoryState(config));
     setSelected(null);
     setDetailStatus("idle");
-    setOperationSummary("");
+    setOperation(null);
     setConfirmVersion(null);
     setRestoring(false);
   }, [config.mode, draft.applicationRef, draft.draftId]);
@@ -75,29 +82,29 @@ export function WorkflowSavedDraftRevisionPanel({
             summary: `已读取 ${state.revisions.length + result.revisions.length} 条不可变修订记录。`,
           }
         : result);
-    } catch (error) {
+    } catch {
       setHistory((state) => ({
         ...state,
         status: "failed",
         failureCode: "draft_revision_history_request_failed",
-        summary: error instanceof Error ? error.message : "修订历史读取失败。",
+        summary: "修订历史读取失败。",
       }));
     }
   };
 
   const selectRevision = async (draftVersion: number) => {
     setDetailStatus("loading");
-    setOperationSummary(`正在读取版本 ${draftVersion}。`);
+    setOperation({ code: "reading", version: draftVersion });
     setConfirmVersion(null);
     try {
       const detail = await readWorkflowSavedDraftRevision(draft, draftVersion, config);
       setSelected(detail);
       setDetailStatus("ready");
-      setOperationSummary(`版本 ${draftVersion} 已加载，可与当前工作区草案比较。`);
-    } catch (error) {
+      setOperation({ code: "ready", version: draftVersion });
+    } catch {
       setSelected(null);
       setDetailStatus("failed");
-      setOperationSummary(error instanceof Error ? error.message : "修订详情读取失败。");
+      setOperation({ code: "read_failed" });
     }
   };
 
@@ -110,7 +117,7 @@ export function WorkflowSavedDraftRevisionPanel({
       lifecycleState !== "active"
     ) return;
     setRestoring(true);
-    setOperationSummary(`正在从版本 ${selected.draftVersion} 创建新修订。`);
+    setOperation({ code: "restoring", version: selected.draftVersion });
     try {
       const result = await restoreWorkflowSavedDraftRevision(
         draft,
@@ -120,16 +127,16 @@ export function WorkflowSavedDraftRevisionPanel({
         config,
       );
       if (!result.draft) {
-        setOperationSummary(result.summary);
+        setOperation({ code: "restore_failed", failureCode: result.failureCode ?? "draft_revision_restore_failed" });
         return;
       }
       onRestored(result.draft, result);
-      setOperationSummary(result.summary);
+      setOperation({ code: "restored", version: result.currentDraftVersion });
       setSelected(null);
       setConfirmVersion(null);
       await loadHistory();
-    } catch (error) {
-      setOperationSummary(error instanceof Error ? error.message : "修订恢复失败。");
+    } catch {
+      setOperation({ code: "restore_failed", failureCode: "draft_revision_restore_request_failed" });
     } finally {
       setRestoring(false);
     }
@@ -138,45 +145,41 @@ export function WorkflowSavedDraftRevisionPanel({
   const canUseHistory = config.mode === "dev_saved_draft_http" && currentDraftVersion > 0;
   const restoreBlocked = lifecycleState !== "active";
   return (
-    <section className="workflow-draft-revision-panel" aria-label="草案修订历史与恢复">
+    <section className="workflow-draft-revision-panel" aria-label={t($ => $.revision.revisionPanel)}>
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Revision History</p>
-          <h4>草案修订历史与恢复</h4>
+          <p className="eyebrow">{t($ => $.revision.revisionHistory)}</p>
+          <h4>{t($ => $.revision.revisionPanel)}</h4>
         </div>
         <span className="status-badge neutral">
           {currentDraftVersion > 0
-            ? `current v${currentDraftVersion} · lifecycle v${currentLifecycleVersion} · ${lifecycleState}`
-            : "尚未保存"}
+            ? t($ => $.revision.revisionCurrent, { content: currentDraftVersion, lifecycle: currentLifecycleVersion, state: workflowDraftStatusLabel(t, lifecycleState) })
+            : t($ => $.revision.neverSaved)}
         </span>
       </div>
       {lifecycleState === "archived" ? (
         <p className="workflow-draft-revision-stopline">
-          归档草案保持历史读取和版本比较能力；恢复历史版本已由 <code>draft_archived</code> 停止线禁用。
+          {t($ => $.revision.archivedRestore)}
         </p>
       ) : null}
-      <p>{history.summary}</p>
+      <p>{workflowRevisionHistoryMessage(t, history)}</p>
       <div className="workflow-draft-action-row">
         <button
           type="button"
           disabled={!canUseHistory || disabled || history.status === "loading" || restoring}
           onClick={() => void loadHistory()}
-        >
-          刷新历史
-        </button>
+        >{t($ => $.revision.refreshHistory)}</button>
         {history.hasMore ? (
           <button
             type="button"
             disabled={disabled || history.status === "loading" || restoring}
             onClick={() => void loadHistory(history.nextCursor)}
-          >
-            读取更早版本
-          </button>
+          >{t($ => $.revision.olderRevisions)}</button>
         ) : null}
       </div>
       {history.revisions.length > 0 ? (
         <div className="workflow-draft-revision-grid">
-          <div className="workflow-draft-revision-list" aria-label="草案修订列表">
+          <div className="workflow-draft-revision-list" aria-label={t($ => $.revision.revisionList)}>
             {history.revisions.map((revision) => (
               <button
                 type="button"
@@ -185,48 +188,44 @@ export function WorkflowSavedDraftRevisionPanel({
                 disabled={disabled || restoring || detailStatus === "loading"}
                 onClick={() => void selectRevision(revision.draftVersion)}
               >
-                <strong>v{revision.draftVersion} · {revision.revisionKind}</strong>
+                <strong>v{revision.draftVersion} · {workflowDraftStatusLabel(t, revision.revisionKind)}</strong>
                 <span>{revision.name}</span>
-                <small>{revision.updatedAt} · {revision.nodeCount} nodes · {revision.edgeCount} edges</small>
-                {revision.restoredFromVersion > 0 ? <small>restored from v{revision.restoredFromVersion}</small> : null}
+                <small title={revision.updatedAt}>{t($ => $.revision.revisionFacts, { time: formatDisplayDate(revision.updatedAt, i18n.language === "en-US" ? "en-US" : "zh-CN") ?? t($ => $.draft.statusUnknown), nodes: revision.nodeCount, edges: revision.edgeCount })}</small>
+                {revision.restoredFromVersion > 0 ? <small>{t($ => $.revision.restoredFrom, { version: revision.restoredFromVersion })}</small> : null}
               </button>
             ))}
           </div>
           <article className="workflow-draft-card workflow-draft-revision-detail">
-            <span>版本比较</span>
+            <span>{t($ => $.revision.comparison)}</span>
             {selected && comparison ? (
               <>
-                <strong>v{selected.draftVersion} → 当前工作区</strong>
+                <strong>{t($ => $.revision.compareCurrent, { version: selected.draftVersion })}</strong>
                 <p>
-                  元数据 {comparison.metadataChangeCount} 项、节点 {comparison.nodeChangeCount} 项、边
-                  {comparison.edgeChangeCount} 项、布局 / 审查上下文
-                  {comparison.reviewContextChangeCount} 项差异。
+                  {t($ => $.revision.differenceCounts, { metadata: comparison.metadataChangeCount, nodes: comparison.nodeChangeCount, edges: comparison.edgeChangeCount, context: comparison.reviewContextChangeCount })}
                 </p>
                 <ul>
                   {comparison.changes.length === 0
-                    ? <li>所选修订与当前工作区草案一致。</li>
+                    ? <li>{t($ => $.revision.sameRevision)}</li>
                     : comparison.changes.slice(0, 12).map((change) => (
                         <li key={`${change.kind}:${change.subject}`}>
-                          <code>{change.subject}</code> {change.summary}
+                          <code>{change.subject}</code> {workflowRevisionChangeMessage(t, change)}
                         </li>
                       ))}
                 </ul>
                 {confirmVersion === selected.draftVersion ? (
                   <div className="workflow-draft-revision-confirm">
                     <p>
-                      确认后会以版本 {selected.draftVersion} 的内容创建版本 {currentDraftVersion + 1}；
-                      现有版本不会被改写{dirty ? "，当前未保存编辑将被替换" : ""}。
+                      {t($ => $.revision.restoreConfirm, { source: selected.draftVersion, next: currentDraftVersion + 1 })}
+                      {dirty ? <strong>{t($ => $.revision.replaceUnsaved)}</strong> : null}
                     </p>
                     <button
                       type="button"
                       disabled={disabled || restoring || restoreBlocked}
                       onClick={() => void restoreSelectedRevision()}
                     >
-                      {restoring ? "正在恢复…" : "确认创建新修订"}
+                      {restoring ? t($ => $.revision.restoring) : t($ => $.revision.confirmRestore)}
                     </button>
-                    <button type="button" disabled={restoring} onClick={() => setConfirmVersion(null)}>
-                      取消
-                    </button>
+                    <button type="button" disabled={restoring} onClick={() => setConfirmVersion(null)}>{t($ => $.draft.cancel)}</button>
                   </div>
                 ) : (
                   <button
@@ -238,25 +237,21 @@ export function WorkflowSavedDraftRevisionPanel({
                       selected.draftVersion === currentDraftVersion
                     }
                     onClick={() => setConfirmVersion(selected.draftVersion)}
-                  >
-                    准备从此版本恢复
-                  </button>
+                  >{t($ => $.revision.prepareRestore)}</button>
                 )}
                 {restoreBlocked ? (
-                  <p>当前 lifecycle 为 {lifecycleState}；只有重新读取后的活动草案可以创建恢复修订。</p>
+                  <p>{t($ => $.revision.restoreUnavailable, { state: workflowDraftStatusLabel(t, lifecycleState) })}</p>
                 ) : null}
               </>
             ) : (
-              <p>{detailStatus === "loading" ? "正在读取修订详情。" : "选择一个历史版本以查看结构化差异。"}</p>
+              <p>{detailStatus === "loading" ? t($ => $.revision.detailLoading) : t($ => $.revision.selectRevision)}</p>
             )}
-            {operationSummary ? <p>{operationSummary}</p> : null}
+            {operation ? <p role="status">{workflowRevisionOperationMessage(t, operation)}</p> : null}
           </article>
         </div>
       ) : null}
-      {history.failureCode ? <p>failure: {history.failureCode}</p> : null}
-      <p className="workflow-draft-revision-stopline">
-        恢复只创建新的当前修订，不会删除、覆盖或就地修改任何历史版本。
-      </p>
+      {history.failureCode ? <p>{t($ => $.draft.failure)}: <code>{history.failureCode}</code></p> : null}
+      <p className="workflow-draft-revision-stopline">{t($ => $.revision.restoreBoundary)}</p>
     </section>
   );
 }

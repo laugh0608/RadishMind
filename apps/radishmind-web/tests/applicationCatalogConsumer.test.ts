@@ -93,6 +93,29 @@ test("list strictly accepts scoped active and archived projections", async () =>
   }
 });
 
+test("echoed catalog request and audit IDs cannot resemble secret material", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalNow = Date.now;
+  const originalRandom = Math.random;
+  // The browser failure used this base-36 timestamp, producing ...pksk-<suffix>.
+  Date.now = () => Number.parseInt("mul7pksk", 36);
+  Math.random = () => 0.5;
+  globalThis.fetch = async (_input, init) => {
+    const requestId = new Headers(init?.headers).get("X-Request-Id")!;
+    return jsonResponse({ ...listEnvelope("active"), request_id: requestId, audit_ref: `audit_${requestId}_application-catalog-list` });
+  };
+  try {
+    const result = await listApplicationCatalogRecords(config, "active");
+    assert.equal(result.status, "ready");
+    assert.equal(result.records.length, 1);
+    assert.equal(result.failureCode, "");
+  } finally {
+    globalThis.fetch = originalFetch;
+    Date.now = originalNow;
+    Math.random = originalRandom;
+  }
+});
+
 test("update preserves a server CAS conflict and lifecycle transitions use exact permissions", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;

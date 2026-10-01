@@ -40,6 +40,7 @@ from .provider_registry import (
     get_provider_spec,
 )
 from .provider_attempt_failure import normalized_provider_attempt_error
+from .prompt_application_inference import build_prompt_application_response, is_prompt_application_request
 
 GUIDED_DECODING_MODE_JSON_SCHEMA = "json_schema"
 StreamHandler = Callable[[dict[str, Any]], None]
@@ -187,6 +188,8 @@ def provider_request_failure(exc: BaseException) -> RuntimeError:
 
 
 def normalize_openai_content(content: str, copilot_request: dict[str, Any]) -> dict[str, Any]:
+    if is_prompt_application_request(copilot_request):
+        return build_prompt_application_response(content, copilot_request)
     normalized = content.strip()
     if normalized.startswith("```"):
         fenced = re.findall(r"```(?:json)?\s*(.*?)```", normalized, flags=re.DOTALL)
@@ -657,7 +660,7 @@ def build_gemini_payload(messages: list[dict[str, str]], temperature: float) -> 
         content = str(message.get("content") or "").strip()
         if not content:
             continue
-        if role == "system":
+        if role in {"system", "developer"}:
             system_texts.append(content)
             continue
         gemini_role = "model" if role == "assistant" else "user"
@@ -692,7 +695,7 @@ def build_anthropic_payload(messages: list[dict[str, str]], model: str, temperat
         content = str(message.get("content") or "").strip()
         if not content:
             continue
-        if role == "system":
+        if role in {"system", "developer"}:
             system_texts.append(content)
             continue
         anthropic_role = "assistant" if role == "assistant" else "user"

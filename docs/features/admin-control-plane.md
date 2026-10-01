@@ -1,6 +1,6 @@
 # Admin Control Plane 设计与开发文档
 
-更新时间：2026-09-05
+更新时间：2026-09-08
 
 ## 功能定位
 
@@ -8,13 +8,13 @@
 
 ## 当前状态
 
-- `apps/radishmind-web/` 已完成 `S7 R1` Admin Control Plane 连续工作面与 `S9 R1` Admin Quota Admission：以 tenant / workspace / auth source / environment 为上下文，Tenant、User、Role、Audit、Provider、Profile、Route 与 Quota 八类资源只挂载一个当前 owner；旧 Operations / Deployment readiness 降为可折叠 supporting evidence，不再与主任务并列。
+- `apps/radishmind-web/` 已完成 `S7 R1` Admin Control Plane 连续工作面与 `S9 R1` Admin Quota Admission：以 tenant / workspace / auth source / environment 为上下文，Tenant、User、Role、Invitations、Audit、Provider、Profile、Route、Quota 与 Pricing 十类资源只挂载一个当前 owner；旧 Operations / Deployment readiness 降为可折叠 supporting evidence，不再与主任务并列。
 - Tenant / Audit 使用既有 authenticated read consumer；Audit 保持 `recorded_at_desc` 严格 cursor current window，并由当前行驱动 metadata-only detail。User / Role 已复用 local identity strict consumer，呈现 exact workspace 的成员目录、selected member detail、canonical 内建角色目录与受控 membership / role assignment create / revoke；它不提供全局账户搜索、批量管理、自定义角色或客户端 grants，没有后端事实时保持真实空状态或 blocked，不用离线 fixture 伪造用户、角色或 membership。
 - Go read handlers 已由 selector 显式路由：Tenant Summary / Audit 使用 PostgreSQL dev/test；五条 workspace operation 已共享 `WorkspaceMembershipProvider`，Applications、API Keys、Workflow Definitions 与 Runs 复用 durable owner。旧 User Workspace `QuotaSummary` 因没有 application 选择与读权限契约继续明确关闭；独立的开发测试态 Admin quota owner 已完成 policy / usage / provider attempt admission 后端，不偷换旧投影。dev / signed-test membership 与 `local_session_dev_test` 本地 membership 已可确定性复验；legacy OIDC integration token 因没有 external identity binding 仍失败关闭，不回退本地 owner。
 - 当前已有本地账户 / Web Session owner、开发测试态 session HTTP、deterministic Radish OIDC resource-server verifier，以及独立 browser Authorization Code + PKCE Relying Party；reviewed Radish client registration、真实 integration evidence、production token / session、secret resolver、deployment preflight 和 production admin 操作仍未完成。
 - [本地用户、角色与工作区成员管理（开发 / 测试态）v1](admin-control-plane/local-user-role-workspace-membership-administration-dev-test-v1.md)已完成批次 A 至 E 并关闭。它复用既有 local identity repository，在 exact tenant / workspace 内提供成员目录、内建角色目录、三存储受控 mutation、显式 bootstrap CLI、七条 strict Admin HTTP、批准 Pencil、S7 User / Role React strict consumer、双数据库产品链、三视口、双标签与隐私审计；HTTP bootstrap、全局账户搜索、客户端 grants、自定义角色、账户安全 mutation 与 production IAM 继续关闭。
 - [本地账户凭证轮换与自助会话治理（开发 / 测试态）v1](admin-control-plane/local-account-credential-rotation-self-service-session-governance-dev-test-v1.md)已完成并关闭批次 A 至 E。现有 `UserAccount`、`LocalCredential` 与 `WebSession` 三存储 owner 已提供当前账户 session directory、exact revoke、revoke others、credential replacement + source-bound local-password session revoke 原子链、四条 local-session-only strict HTTP、批准 Pencil、单一 React strict consumer、双数据库产品链、三视口、双标签和隐私审计；不派生批次 F 或 production auth。
-- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成批次 A 至 C 的 canonical、memory、SQLite / PostgreSQL durable owner 与 local Session strict HTTP，并完成批次 D 的 S7 / Authentication R1 / R25 Pencil 代表面、原生静态 QA 和项目所有者人工批准。invitation aggregate 只保存 pending 授权意图：管理员一次性创建 code，active 本地账户登录后 preview / claim，成功时才在同一 repository transaction 中创建既有 membership 与非管理员 built-in role assignment。邀请码、email、全局目录、自动准入与 production IAM 都不成为新 owner；下一步停在批次 E 独立授权线。
+- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成批次 A 至 E，包括 canonical / 三存储、strict HTTP、完整 Pencil、S7 四态目录与一次性交接、Authentication 显式认领，以及双数据库与浏览器验收。invitation aggregate 只保存待认领授权意图，成功时才在同一 repository transaction 中创建既有 membership 与非管理员 built-in role assignment。任务卡已关闭，不派生批次 F；邀请码、目录搜索、自动准入与 production IAM 不成为新 owner。
 - User Workspace 的 Application Publish Governance 已把正式 application repository、production auth / membership 和发布 owner 明确暴露为 promotion blocker；dev/test candidate approved 不会绕过这些 blocker。
 - [Authenticated Read Store Transition v1](admin-control-plane/authenticated-read-store-transition-v1.md) 第一批 runtime 已完成 shared verified identity / negative auth，第二批已完成 Tenant / Audit PostgreSQL dev/test repository，第三批已完成 OIDC deterministic verifier / auth boundary / operation gate。
 - [Tenant / Audit PostgreSQL Read Repository v1](admin-control-plane/tenant-audit-postgresql-read-repository-v1.md) 已完成两条 Admin operation 的 schema、manual migration、read-only role、routed selector、分页、no-fallback、真实 PostgreSQL、HTTP/Web 与浏览器验收。

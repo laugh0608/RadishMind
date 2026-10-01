@@ -7,15 +7,16 @@ import {
   adminControlPlaneSurfaceForHash,
 } from "../src/features/control-plane-read/adminControlPlaneRoute.ts";
 
-test("Admin Control Plane exposes nine exact resource tasks without merging independent owners", () => {
+test("Admin Control Plane exposes ten exact resource tasks without merging independent owners", () => {
   assert.deepEqual(
     ADMIN_CONTROL_PLANE_RESOURCE_TASKS.map((task) => task.surface),
-    ["tenant", "user", "role", "audit", "provider", "profile", "route", "quota", "pricing"],
+    ["tenant", "user", "role", "invitations", "audit", "provider", "profile", "route", "quota", "pricing"],
   );
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "tenant")?.scope, "tenant:read");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "audit")?.scope, "audit:read");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "user")?.scope, "local identity");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "role")?.scope, "local grants");
+  assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "invitations")?.scope, "one-time claim");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "quota")?.scope, "UTC daily CAS");
   assert.equal(ADMIN_CONTROL_PLANE_RESOURCE_TASKS.find((task) => task.surface === "pricing")?.scope, "USD / 1M CAS");
 });

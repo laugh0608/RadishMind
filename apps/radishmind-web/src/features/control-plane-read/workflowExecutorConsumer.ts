@@ -131,7 +131,7 @@ export function buildWorkflowExecutorV0Draft(
   const numberLabel = String(Math.max(1, draftNumber)).padStart(2, "0");
   const applicationRef = targetApplicationRef.trim() || source.applicationRef;
   const applicationKey = safeWorkflowExecutorKey(applicationRef, 42);
-  const draftId = `draft_${applicationKey}_executor_v0_${numberLabel}`;
+  const draftId = `draft_executor_v0_${crypto.randomUUID()}`;
   const workflowDefinitionId = applicationRef === source.applicationRef
     ? source.workflowDefinitionId
     : `workflow_definition_${applicationKey}_executor_v0`;

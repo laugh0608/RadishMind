@@ -26,10 +26,12 @@ export type StructuredRuntimeInputContract = {
 export type StructuredRuntimeInputDrafts = Record<string, string | boolean | undefined>;
 export type StructuredRuntimeInputValues = Record<string, string | number | boolean>;
 
+export type StructuredRuntimeInputFieldError = "unknown_field" | "required" | "boolean" | "string" | "integer" | "number" | "string_budget" | "secret_material" | "integer_syntax" | "integer_range" | "number_syntax";
+
 export type StructuredRuntimeInputValidation = {
   ok: boolean;
   inputs: StructuredRuntimeInputValues;
-  fieldErrors: Record<string, string>;
+  fieldErrors: Record<string, StructuredRuntimeInputFieldError>;
   failureCode: string;
   summary: string;
 };
@@ -72,38 +74,38 @@ export function validateStructuredRuntimeInputDrafts(
   drafts: StructuredRuntimeInputDrafts,
 ): StructuredRuntimeInputValidation {
   const allowedNames = new Set(contract.fields.map((field) => field.name));
-  const fieldErrors: Record<string, string> = {};
+  const fieldErrors: Record<string, StructuredRuntimeInputFieldError> = {};
   const inputs: StructuredRuntimeInputValues = {};
   let valueFailureCode = "workflow_input_value_type_invalid";
 
   for (const name of Object.keys(drafts)) {
     if (!allowedNames.has(name)) {
-      return failure("workflow_input_unknown_field", `输入包含合同之外的字段：${name}。`, { [name]: "该字段不属于当前输入合同。" });
+      return failure("workflow_input_unknown_field", `输入包含合同之外的字段：${name}。`, { [name]: "unknown_field" });
     }
   }
 
   for (const field of contract.fields) {
     const provided = Object.hasOwn(drafts, field.name) && drafts[field.name] !== undefined;
     if (!provided) {
-      if (field.required) fieldErrors[field.name] = "这是必填字段。";
+      if (field.required) fieldErrors[field.name] = "required";
       continue;
     }
     const draft = drafts[field.name];
     if (field.valueType === "boolean") {
-      if (typeof draft !== "boolean") fieldErrors[field.name] = "请选择 true 或 false。";
+      if (typeof draft !== "boolean") fieldErrors[field.name] = "boolean";
       else inputs[field.name] = draft;
       continue;
     }
     if (typeof draft !== "string") {
-      fieldErrors[field.name] = `该字段必须是 ${field.valueType}。`;
+      fieldErrors[field.name] = field.valueType;
       continue;
     }
     if (field.valueType === "string") {
       if (utf8Length(draft) > MAX_STRING_BYTES) {
-        fieldErrors[field.name] = `文本不得超过 ${MAX_STRING_BYTES} bytes。`;
+        fieldErrors[field.name] = "string_budget";
         valueFailureCode = "workflow_input_budget_exceeded";
       } else if (containsSensitiveText(draft)) {
-        fieldErrors[field.name] = "输入中不得包含凭据、token、密码或连接串。";
+        fieldErrors[field.name] = "secret_material";
         valueFailureCode = "workflow_input_secret_material_forbidden";
       }
       else inputs[field.name] = draft;
@@ -111,21 +113,21 @@ export function validateStructuredRuntimeInputDrafts(
     }
     if (field.valueType === "integer") {
       if (!/^-?(?:0|[1-9][0-9]*)$/u.test(draft)) {
-        fieldErrors[field.name] = "请输入十进制整数。";
+        fieldErrors[field.name] = "integer_syntax";
       } else {
         const number = Number(draft);
-        if (!Number.isSafeInteger(number) || Math.abs(number) > MAX_SAFE_RUNTIME_INTEGER) fieldErrors[field.name] = "整数超出安全范围。";
+        if (!Number.isSafeInteger(number) || Math.abs(number) > MAX_SAFE_RUNTIME_INTEGER) fieldErrors[field.name] = "integer_range";
         else inputs[field.name] = number;
       }
       continue;
     }
     const number = Number(draft);
-    if (!/^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/u.test(draft) || !Number.isFinite(number)) fieldErrors[field.name] = "请输入 JSON 有限数值。";
+    if (!/^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/u.test(draft) || !Number.isFinite(number)) fieldErrors[field.name] = "number_syntax";
     else inputs[field.name] = Object.is(number, -0) ? 0 : number;
   }
 
   if (Object.keys(fieldErrors).length > 0) {
-    const missingRequired = contract.fields.some((field) => field.required && fieldErrors[field.name] === "这是必填字段。");
+    const missingRequired = contract.fields.some((field) => field.required && fieldErrors[field.name] === "required");
     return failure(missingRequired ? "workflow_input_required_field_missing" : valueFailureCode, "请修正结构化输入中的字段错误。", fieldErrors);
   }
   const inputBytes = utf8Length(JSON.stringify(inputs));
@@ -137,7 +139,7 @@ export function structuredRuntimeInputAuthorityKey(contract: StructuredRuntimeIn
   return `${contract.contractId}:${contract.contractDigest}`;
 }
 
-function failure(failureCode: string, summary: string, fieldErrors: Record<string, string> = {}): StructuredRuntimeInputValidation {
+function failure(failureCode: string, summary: string, fieldErrors: Record<string, StructuredRuntimeInputFieldError> = {}): StructuredRuntimeInputValidation {
   return { ok: false, inputs: {}, fieldErrors, failureCode, summary };
 }
 

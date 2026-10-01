@@ -10,75 +10,9 @@ import (
 	"sync"
 	"testing"
 	"time"
-)
 
-func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
-	catalog := LocalIdentityBuiltInRoleCatalog()
-	if catalog.DefinitionDigest != "sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae" {
-		t.Fatalf("role catalog changed without an explicit catalog version decision: %s", catalog.DefinitionDigest)
-	}
-	if catalog.SchemaVersion != localIdentityRoleCatalogSchemaVersion ||
-		catalog.CatalogVersion != localIdentityRoleCatalogVersion ||
-		len(catalog.Roles) != 4 || !strings.HasPrefix(catalog.DefinitionDigest, "sha256:") {
-		t.Fatalf("role catalog contract drifted: %#v", catalog)
-	}
-	byKey := make(map[string]LocalIdentityRoleDefinition, len(catalog.Roles))
-	for _, definition := range catalog.Roles {
-		if definition.CatalogVersion != catalog.CatalogVersion ||
-			!localRoleKeyPattern.MatchString(definition.RoleKey) ||
-			definition.DisplayName == "" || definition.Summary == "" ||
-			!slices.IsSorted(definition.PermissionGrants) ||
-			len(definition.PermissionGrants) == 0 || !strings.HasPrefix(definition.DefinitionDigest, "sha256:") {
-			t.Fatalf("invalid role definition: %#v", definition)
-		}
-		for _, grant := range definition.PermissionGrants {
-			if _, allowed := workspacePermissionAllowlist[grant]; !allowed {
-				t.Fatalf("role %s contains undeclared grant %q", definition.RoleKey, grant)
-			}
-		}
-		if _, duplicate := byKey[definition.RoleKey]; duplicate {
-			t.Fatalf("duplicate role key: %s", definition.RoleKey)
-		}
-		byKey[definition.RoleKey] = definition
-	}
-	reader := byKey[localIdentityRoleWorkspaceReader]
-	builder := byKey[localIdentityRoleWorkspaceBuilder]
-	reviewer := byKey[localIdentityRoleWorkspaceReviewer]
-	administrator := byKey[localIdentityRoleWorkspaceAdmin]
-	for _, permission := range []string{"application_publish_candidates:read", "prompt_application_runtime:read"} {
-		if !slices.Contains(reader.PermissionGrants, permission) {
-			t.Fatalf("workspace_reader must cover owner read permission %s", permission)
-		}
-	}
-	if !localIdentityGrantSubset(reader.PermissionGrants, builder.PermissionGrants) ||
-		!localIdentityGrantSubset(builder.PermissionGrants, reviewer.PermissionGrants) ||
-		!localIdentityGrantSubset(reviewer.PermissionGrants, administrator.PermissionGrants) {
-		t.Fatal("built-in role grants are not cumulative")
-	}
-	allowed := make([]string, 0, len(workspacePermissionAllowlist))
-	for permission := range workspacePermissionAllowlist {
-		allowed = append(allowed, permission)
-	}
-	slices.Sort(allowed)
-	if !slices.Equal(administrator.PermissionGrants, allowed) {
-		t.Fatalf("workspace_admin must deliberately cover the complete allowlist:\nwant=%v\n got=%v", allowed, administrator.PermissionGrants)
-	}
-	for _, definition := range catalog.Roles {
-		wantManagement := definition.RoleKey == localIdentityRoleWorkspaceAdmin
-		if definition.CanManageLocalIdentity != wantManagement {
-			t.Fatalf("identity management capability drifted for %s", definition.RoleKey)
-		}
-		for _, permission := range localIdentityManagementPermissions {
-			if slices.Contains(definition.PermissionGrants, permission) != wantManagement {
-				t.Fatalf("management permission %s leaked into role %s", permission, definition.RoleKey)
-			}
-		}
-	}
-	catalog.Roles[0].PermissionGrants[0] = "applications:archive"
-	if LocalIdentityBuiltInRoleCatalog().Roles[0].PermissionGrants[0] == "applications:archive" {
-		t.Fatal("role catalog caller mutated canonical grants")
-	}
-}
+	"radishmind.local/services/platform/internal/workspacepolicy"
+)
 
 func TestMemoryLocalIdentityAdministrationPaginationCursorAndSanitizedDetail(t *testing.T) {
 	fixture := newLocalIdentityAdministrationTestFixture(t)
@@ -239,7 +173,7 @@ func TestMemoryLocalIdentityAdministrationMutationSafety(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create member: %v", err)
 	}
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	assignment, err := fixture.service.AssignWorkspaceRole(ctx, fixture.actor, LocalIdentityAssignWorkspaceRoleInput{
 		TenantRef:                    fixture.actor.TenantRef,
 		WorkspaceID:                  fixture.actor.WorkspaceID,
@@ -332,7 +266,7 @@ func TestMemoryLocalIdentityAdministrationMutationSafety(t *testing.T) {
 		UserID:           targetUserID,
 		TenantRef:        fixture.actor.TenantRef,
 		WorkspaceID:      fixture.actor.WorkspaceID,
-		RoleKey:          localIdentityRoleWorkspaceReader,
+		RoleKey:          workspacepolicy.RoleWorkspaceReader,
 		PermissionGrants: []string{"applications:read"},
 		LifecycleState:   localIdentityStateActive,
 		RecordVersion:    1,
@@ -396,7 +330,7 @@ func TestMemoryLocalIdentityAdministrationLastAdminAndConcurrentCAS(t *testing.T
 	if err != nil {
 		t.Fatalf("create concurrent target member: %v", err)
 	}
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	assignment, err := fixture.service.AssignWorkspaceRole(ctx, fixture.actor, LocalIdentityAssignWorkspaceRoleInput{
 		TenantRef:                    fixture.actor.TenantRef,
 		WorkspaceID:                  fixture.actor.WorkspaceID,
@@ -493,7 +427,7 @@ func TestMemoryLocalIdentityAdministrationMutationRechecksActorAuthorization(t *
 	}); err != nil {
 		t.Fatalf("create second administrator membership: %v", err)
 	}
-	administrator, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceAdmin)
+	administrator, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceAdmin)
 	if _, err := fixture.service.AssignWorkspaceRole(ctx, fixture.actor, LocalIdentityAssignWorkspaceRoleInput{
 		TenantRef:                    fixture.actor.TenantRef,
 		WorkspaceID:                  fixture.actor.WorkspaceID,
@@ -568,7 +502,7 @@ func TestMemoryLocalIdentityAdministrationRoleRevocationCASSingleWinner(t *testi
 	}); err != nil {
 		t.Fatalf("create role CAS member: %v", err)
 	}
-	reader, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceReader)
+	reader, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceReader)
 	assignment, err := fixture.service.AssignWorkspaceRole(ctx, fixture.actor, LocalIdentityAssignWorkspaceRoleInput{
 		TenantRef:                    fixture.actor.TenantRef,
 		WorkspaceID:                  fixture.actor.WorkspaceID,
@@ -764,13 +698,4 @@ func createLocalIdentityAdministrationTestAccount(
 	if err := repository.CreateAccount(context.Background(), account, credential); err != nil {
 		t.Fatalf("create administration test account %s: %v", userID, err)
 	}
-}
-
-func localIdentityGrantSubset(subset []string, superset []string) bool {
-	for _, grant := range subset {
-		if !slices.Contains(superset, grant) {
-			return false
-		}
-	}
-	return true
 }

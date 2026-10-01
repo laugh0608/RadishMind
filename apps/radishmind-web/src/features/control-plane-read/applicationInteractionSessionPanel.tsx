@@ -1,3 +1,4 @@
+import type { StructuredRuntimeInputFieldError } from "./structuredRuntimeInput.ts";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -73,7 +74,7 @@ export default function ApplicationInteractionSessionPanel({
   const [definitionId, setDefinitionId] = useState(suggestedDefinitionId);
   const [input, setInput] = useState("");
   const [structuredInputDrafts, setStructuredInputDrafts] = useState<StructuredRuntimeInputDrafts>({});
-  const [structuredInputErrors, setStructuredInputErrors] = useState<Record<string, string>>({});
+  const [structuredInputErrors, setStructuredInputErrors] = useState<Record<string, StructuredRuntimeInputFieldError>>({});
   const [conditionValues, setConditionValues] = useState("{}");
   const [model, setModel] = useState("");
   const [temperature, setTemperature] = useState("");

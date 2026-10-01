@@ -1,6 +1,6 @@
 # 应用受控运行开发测试态指南
 
-更新时间：2026-09-01
+更新时间：2026-09-09
 
 ## 适用范围
 
@@ -64,13 +64,19 @@ launcher 会组合必要的 Platform gate、Web source、workspace / application
 
 ## Application Evaluation 定时回归后端边界
 
-Application Evaluation Schedule 的 Batch A 至 C 已形成开发测试态后端能力，但尚未进入 React 产品面。本专题只允许 Prompt Application exact Plan version、受限 `daily_utc`、最多 `20` 个 item 和每个 occurrence 最多一次既有 Campaign handoff；Plan、Campaign、Run、quota、Comparison、Case、Suite 与 decision 继续由原 owner 持有真相。
+Application Evaluation Schedule 的 Batch A 至 D 已完成开发测试态后端、React 消费层、双数据库产品链与浏览器验收。本专题只允许 Prompt Application exact Plan version、受限 `daily_utc`、最多 `20` 个 item 和每个 occurrence 最多一次既有 Campaign handoff；Plan、Campaign、Run、quota、Comparison、Case、Suite 与 decision 继续由原 owner 持有真相。
 
 Schedule route 位于 `/v1/user-workspace/applications/{application_id}/evaluation-schedules*`，包含 create / list / exact read / revise / activate / pause / resume / archive、exact version read 与 occurrence read。它复用 Workflow Run Store 的 memory / SQLite / PostgreSQL selector，不新增数据库连接或 fallback。
 
 后台 worker 默认关闭。只有 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV=true`、既有 Campaign dev、本地身份 HTTP 与 `local_session_dev_test` 同时成立时才启动；固定 `30s` 单 worker 每批最多处理 `50` 条 due / open 投影，并在 Server 关闭时先 cancel / join。每个 occurrence 重新读取 delegated user 的账户、workspace membership、两项 permission、exact active Plan / assignment、actor-owned API Key 与 quota；任何漂移都在 Provider 前失败关闭。claim 后崩溃只观察 deterministic Campaign key，不重放 Provider。完整合同、失败语义和准入状态见[定时回归评测专题](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。
 
-当前没有 Schedule / Occurrence React consumer、Pencil 批准或产品 launcher。不要为了试用 worker 手工拼接缺失身份、Campaign、quota 或 store 前置条件；Batch D 获批前只允许按专题和测试验证后端边界。
+Schedule / Occurrence 的设计与 React 产品面已完成。SQLite 产品入口为：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --application-evaluation-schedule-local-product
+```
+
+该入口显式开启本地 Web Session 与开发测试 runner；本地账户、管理员初始化、Plan / assignment、actor-owned API Key 和 quota 仍须按专题准备。不要手工省略前置条件，也不要把 mock 产品验收视为真实 Provider 或生产调度验收。
 
 ## Application Development Workspace 使用方式
 

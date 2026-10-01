@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 type memoryWorkspaceInvitation struct {
@@ -41,8 +43,8 @@ func (repository *memoryLocalIdentityRepository) CreateWorkspaceInvitation(
 		invitation.TenantRef,
 		invitation.WorkspaceID,
 		now,
-		localIdentityPermissionMembershipsWrite,
-		localIdentityPermissionRolesAssign,
+		workspacepolicy.PermissionMembershipsWrite,
+		workspacepolicy.PermissionRolesAssign,
 	); err != nil {
 		return err
 	}
@@ -77,8 +79,8 @@ func (repository *memoryLocalIdentityRepository) ListWorkspaceInvitations(
 		filter.TenantRef,
 		filter.WorkspaceID,
 		filter.authorizedAt,
-		localIdentityPermissionMembersRead,
-		localIdentityPermissionRolesRead,
+		workspacepolicy.PermissionMembersRead,
+		workspacepolicy.PermissionRolesRead,
 	); err != nil {
 		return WorkspaceInvitationPage{}, err
 	}
@@ -152,8 +154,8 @@ func (repository *memoryLocalIdentityRepository) RevokeWorkspaceInvitation(
 		input.TenantRef,
 		input.WorkspaceID,
 		now,
-		localIdentityPermissionMembershipsWrite,
-		localIdentityPermissionRolesAssign,
+		workspacepolicy.PermissionMembershipsWrite,
+		workspacepolicy.PermissionRolesAssign,
 	); err != nil {
 		return WorkspaceInvitation{}, err
 	}
@@ -299,7 +301,7 @@ func (repository *memoryLocalIdentityRepository) ClaimWorkspaceInvitation(
 		repository.roleAssignments[assignmentID].AssignmentID != "" {
 		return WorkspaceInvitation{}, WorkspaceMembership{}, LocalRoleAssignment{}, errWorkspaceInvitationStoreUnavailable
 	}
-	definition, exists := builtInLocalIdentityRole(stored.invitation.RoleKey)
+	definition, exists := workspacepolicy.BuiltInRole(stored.invitation.RoleKey)
 	if !exists || !workspaceInvitationRoleEligible(definition) ||
 		definition.CatalogVersion != stored.invitation.RoleCatalogVersion ||
 		definition.DefinitionDigest != stored.invitation.RoleDefinitionDigest {
@@ -430,7 +432,7 @@ func (repository *memoryLocalIdentityRepository) validateWorkspaceInvitationMemb
 }
 
 func workspaceInvitationMatchesCurrentRole(invitation WorkspaceInvitation) bool {
-	definition, exists := builtInLocalIdentityRole(invitation.RoleKey)
+	definition, exists := workspacepolicy.BuiltInRole(invitation.RoleKey)
 	return exists && workspaceInvitationRoleEligible(definition) &&
 		definition.CatalogVersion == invitation.RoleCatalogVersion &&
 		definition.DefinitionDigest == invitation.RoleDefinitionDigest

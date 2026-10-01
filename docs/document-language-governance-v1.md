@@ -1,6 +1,6 @@
 # 文档语言治理 v1
 
-更新时间：2026-07-13
+更新时间：2026-09-23
 
 状态锚点：`doc_language_governance_topic_v1_defined`
 
@@ -81,6 +81,23 @@
 本批把标题、目标、流程、职责表、状态说明、验收方式和停止线中的英文工程短语改为中文，字段、状态值、API 路由、schema、接口名、配置键、文件名与机器检查依赖文本继续保留原文。历史兼容索引只保留为机器证据，不纳入本批机械翻译范围。
 
 治理完成后，下一功能设计使用同一口径编写“用户工作区应用目录与生命周期（开发/测试态）v1”。本批不改变产品优先级、协议、schema、运行时行为或生产声明，也不派生新的同层检查器。
+
+## 2026-09-23 常读文档定向整理
+
+项目所有者批准先整理当前常读文档，再推进 Web 中英 i18n。此轮沿用既有语言治理规则，不新增术语规则、状态锚点、任务卡或检查器；不扩展到历史任务卡和周志的全文翻译。
+
+本轮已完成以下 15 份文档的定向整理：
+
+| 阅读链路 | 范围 |
+| --- | --- |
+| 当前入口 | [文档入口](README.md)、[功能入口](features/README.md)、[用户工作区](features/user-workspace.md)、[用户工作区专题入口](features/user-workspace/README.md)、[当前焦点](radishmind-current-focus.md)、[路线图](radishmind-roadmap.md) |
+| 使用与技术边界 | [项目指南](radishmind-project-guide.md)、[系统架构](radishmind-architecture.md)、[集成契约](radishmind-integration-contracts.md) |
+| 应用与 Prompt | [API 接入](features/user-workspace/application-api-integration-invocation-v1.md)、[配置草案](features/user-workspace/application-configuration-draft-review-v1.md)、[发布治理](features/user-workspace/application-publish-governance-promotion-v1.md)、[Prompt 模板与受控调用](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md)、[Prompt 使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md) |
+| 下一重点 | [Web 中英国际化与本地化](features/web-internationalization-zh-en-v1.md) |
+
+整理对象为正文说明、职责、流程、结论和中英混写。命令、代码示例、协议字段、状态值、文件路径、链接目标和历史兼容材料保留；使用指南中的英文按钮名继续对应当前界面，不能用中文译名伪装尚未实现的中文 UI。对仍被引用的标题保留锚点兼容性，遇到检查器固定文本不通过删除约束或隐藏失真文本来处理。
+
+本专题与[本周周志](devlogs/2026-W39.md)记录范围及审核结果，不计入上述 15 份阅读文档。验证记录以周志为准；此轮完成也不代表全仓历史文档已完成中文化。界面 i18n 继续由独立功能专题维护，文档中文化不批准依赖安装、运行代码或产品行为变化。
 
 ## 停止线
 

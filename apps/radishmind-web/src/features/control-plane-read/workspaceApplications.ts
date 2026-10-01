@@ -19,6 +19,7 @@ export type WorkspaceApplicationsStateId =
   | "forbidden_projection";
 
 export type WorkspaceApplicationsMetric = {
+  id: "applications" | "cursor" | "blockedRuns" | "audit";
   label: string;
   value: string;
   detail: string;
@@ -212,21 +213,25 @@ function buildMetrics(
   const blockedCount = applications.filter((application) => application.lastRunStatus === "blocked").length;
   return [
     {
+      id: "applications",
       label: "Applications",
       value: String(collection.itemCount),
       detail: collection.tenantRef,
     },
     {
+      id: "cursor",
       label: "Cursor",
       value: collection.nextCursor ? "available" : "none",
       detail: collection.nextCursor ?? "single page",
     },
     {
+      id: "blockedRuns",
       label: "Blocked runs",
       value: String(blockedCount),
       detail: "read-only status reference",
     },
     {
+      id: "audit",
       label: "Audit",
       value: collection.auditRef,
       detail: "latest list read audit reference",

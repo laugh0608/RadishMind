@@ -410,7 +410,7 @@ def assert_required_files(fixture: dict[str, Any]) -> None:
 
 
 def assert_source_boundaries(fixture: dict[str, Any]) -> None:
-    app_source = read("apps/radishmind-web/src/app/App.tsx")
+    app_source = read("apps/radishmind-web/src/app/App.tsx") + "\n" + read("apps/radishmind-web/src/features/control-plane-read/workflowInspectionPanels.tsx")
     workflow_context_source = read("apps/radishmind-web/src/features/control-plane-read/workflowWorkspaceContext.ts")
     styles = read("apps/radishmind-web/src/styles.css")
     workflow_sources: list[str] = []

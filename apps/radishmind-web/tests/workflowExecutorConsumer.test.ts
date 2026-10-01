@@ -21,7 +21,7 @@ const executorConfig = {
 test("executor v0 draft builder produces a saved-draft-compatible bounded graph", () => {
   const draft = buildWorkflowExecutorV0Draft(sourceDraft(), 2);
 
-  assert.equal(draft.draftId, "draft_app_flow_copilot_executor_v0_02");
+  assert.match(draft.draftId, /^draft_executor_v0_[0-9a-f-]{36}$/u);
   assert.equal(draft.executionProfile, "executor_v0");
   assert.deepEqual(draft.nodes.map((node) => node.nodeType), ["prompt", "llm", "output"]);
   assert.equal(draft.edges.length, 2);
@@ -36,11 +36,20 @@ test("executor v0 draft builder produces a saved-draft-compatible bounded graph"
 test("executor v0 draft builder rebinds a fallback draft to the selected application", () => {
   const draft = buildWorkflowExecutorV0Draft(sourceDraft(), 1, "app_new_workspace");
 
-  assert.equal(draft.draftId, "draft_app_new_workspace_executor_v0_01");
+  assert.match(draft.draftId, /^draft_executor_v0_[0-9a-f-]{36}$/u);
   assert.equal(draft.applicationRef, "app_new_workspace");
   assert.equal(draft.workflowDefinitionId, "workflow_definition_app_new_workspace_executor_v0");
   assert.equal(draft.templateRef, sourceDraft().draftId);
   assert.deepEqual(draft.nodes.map((node) => node.nodeType), ["prompt", "llm", "output"]);
+});
+
+test("executor draft identity remains independent after refresh or across tabs with the same display number", () => {
+  const existing = buildWorkflowExecutorV0Draft(sourceDraft(), 2);
+  const afterRefresh = buildWorkflowExecutorV0Draft(existing, 2);
+  const otherTab = buildWorkflowExecutorV0Draft(sourceDraft(), 2);
+  assert.equal(new Set([existing.draftId, afterRefresh.draftId, otherTab.draftId]).size, 3);
+  assert.equal(afterRefresh.applicationRef, existing.applicationRef);
+  assert.equal(afterRefresh.localOnlyInteraction, "local_edit");
 });
 
 test("executor eligibility requires the exact saved clean graph", () => {

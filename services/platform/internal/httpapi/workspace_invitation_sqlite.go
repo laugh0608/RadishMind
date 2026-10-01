@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const sqliteWorkspaceInvitationSelect = `SELECT
@@ -75,7 +77,7 @@ func (repository *sqliteLocalIdentityRepository) ListWorkspaceInvitations(
 	}
 	if err = snapshot.authorizeWorkspaceInvitationAdministratorLocked(
 		strings.TrimSpace(actorUserID), filter.TenantRef, filter.WorkspaceID, filter.authorizedAt,
-		localIdentityPermissionMembersRead, localIdentityPermissionRolesRead,
+		workspacepolicy.PermissionMembersRead, workspacepolicy.PermissionRolesRead,
 	); err != nil {
 		return WorkspaceInvitationPage{}, err
 	}

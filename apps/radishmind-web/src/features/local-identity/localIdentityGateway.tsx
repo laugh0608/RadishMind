@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "../../i18n/LanguageSelector.tsx";
 import {
-  createContext,
+  lazy,
+  Suspense,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -24,6 +27,10 @@ import {
 } from "./localIdentityConsumer.ts";
 import { LocalIdentitySelfServiceSecurityPanel } from "./localIdentitySelfServiceSecurityPanel.tsx";
 import { localIdentitySelfServiceSecurityScopeKey } from "./localIdentitySelfServiceSecurityState.ts";
+import { LocalIdentityContext, type LocalIdentityContextValue } from "./localIdentityContext.ts";
+export { useLocalIdentity } from "./localIdentityContext.ts";
+
+const WorkspaceInvitationClaimPanel = lazy(() => import("./workspaceInvitationClaimPanel.tsx").then((module) => ({ default: module.WorkspaceInvitationClaimPanel })));
 
 type LocalIdentityGatewayState =
   | { status: "probing" }
@@ -31,39 +38,57 @@ type LocalIdentityGatewayState =
   | { status: "ready"; profile: LocalIdentityAccountProfile }
   | { status: "failed"; message: string; code: string };
 
-type LocalIdentityContextValue = {
-  config: LocalIdentityConsumerConfig;
-  profile: LocalIdentityAccountProfile;
-  refresh: () => Promise<void>;
-  linkOIDC: () => Promise<void>;
-  revokeExternalIdentity: (bindingId: string, expectedRecordVersion: number) => Promise<void>;
-};
-
-const LocalIdentityContext = createContext<LocalIdentityContextValue | null>(null);
-
-export function useLocalIdentity(): LocalIdentityContextValue | null {
-  return useContext(LocalIdentityContext);
-}
-
 export function LocalIdentityGateway({ children }: { children: ReactNode }) {
+  const { t } = useTranslation("identity");
   const config = useMemo(() => readLocalIdentityConsumerConfig(), []);
   const [state, setState] = useState<LocalIdentityGatewayState>({ status: "probing" });
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
+  const [accountTask, setAccountTask] = useState<"security" | "claim">("security");
   const [accountAction, setAccountAction] = useState<"" | "link" | "logout" | "revoke">("");
   const [accountActionError, setAccountActionError] = useState("");
   const [securityInvalidation, setSecurityInvalidation] = useState(0);
+  const authorityRevision = useRef(0);
+  const sessionGeneration = useRef(0);
+  const sessionController = useRef<AbortController | null>(null);
+  const currentActor = useRef("");
+  const workspaceScope = useRef("");
+  const readAuthorityRevision = useCallback(() => authorityRevision.current, []);
+  const invalidateAuthority = useCallback(() => {
+    authorityRevision.current += 1;
+    setSecurityInvalidation(authorityRevision.current);
+  }, []);
+  const onWorkspaceScopeChange = useCallback((tenantRef: string, workspaceId: string) => {
+    const scope = JSON.stringify([tenantRef, workspaceId]);
+    if (workspaceScope.current === scope) return;
+    workspaceScope.current = scope;
+    invalidateAuthority();
+  }, [invalidateAuthority]);
 
   const refresh = useCallback(async () => {
     if (config.mode !== "local_identity_dev") return;
+    const generation = ++sessionGeneration.current;
+    sessionController.current?.abort();
+    const controller = new AbortController();
+    sessionController.current = controller;
+    const isCurrent = () => !controller.signal.aborted && sessionGeneration.current === generation;
     try {
-      const authentication = await probeLocalIdentitySession(config);
+      const authentication = await probeLocalIdentitySession(config, controller.signal);
+      if (!isCurrent()) return;
       if (!authentication) {
+        invalidateAuthority();
+        currentActor.current = "";
         setState({ status: "unauthenticated" });
         return;
       }
-      const profile = await readLocalIdentityAccountProfile(config);
+      const profile = await readLocalIdentityAccountProfile(config, controller.signal);
+      if (!isCurrent()) return;
+      const actor = JSON.stringify([profile.account.userId, profile.account.lifecycleState, profile.session,
+        profile.capabilities.recentAuthentication]);
+      if (actor !== currentActor.current) { invalidateAuthority(); currentActor.current = actor; }
       setState({ status: "ready", profile });
     } catch (error) {
+      if (!isCurrent()) return;
+      invalidateAuthority();
       const failure = identityFailure(error);
       if (failure.code === "LOCAL_IDENTITY_AUTHENTICATION_REQUIRED") {
         setState({ status: "unauthenticated" });
@@ -71,44 +96,31 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
       }
       setState({ status: "failed", ...failure });
     }
-  }, [config]);
+  }, [config, invalidateAuthority]);
 
   useEffect(() => {
     if (config.mode !== "local_identity_dev") return;
-    const controller = new AbortController();
-    void (async () => {
-      try {
-        const authentication = await probeLocalIdentitySession(config, controller.signal);
-        if (!authentication) {
-          setState({ status: "unauthenticated" });
-          return;
-        }
-        const profile = await readLocalIdentityAccountProfile(config, controller.signal);
-        setState({ status: "ready", profile });
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        const failure = identityFailure(error);
-        setState({ status: "failed", ...failure });
-      }
-    })();
-    return () => controller.abort();
-  }, [config]);
+    void refresh();
+    return () => { sessionGeneration.current += 1; sessionController.current?.abort(); };
+  }, [config, refresh]);
 
   useEffect(() => {
     if (config.mode !== "local_identity_dev" || typeof BroadcastChannel === "undefined") return;
     const channel = new BroadcastChannel("radishmind-local-identity-v1");
     channel.onmessage = (event: MessageEvent<unknown>) => {
       if (isSessionChangedEvent(event.data)) {
-        setSecurityInvalidation((current) => current + 1);
+        invalidateAuthority();
+        setState({ status: "probing" });
         void refresh();
       }
     };
     return () => channel.close();
-  }, [config.mode, refresh]);
+  }, [config.mode, refresh, invalidateAuthority]);
 
   useEffect(() => {
     if (!accountPanelOpen) return;
     const closeForRouteChange = () => {
+      invalidateAuthority();
       setAccountPanelOpen(false);
       setAccountActionError("");
     };
@@ -118,7 +130,7 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
       window.removeEventListener("hashchange", closeForRouteChange);
       window.removeEventListener("popstate", closeForRouteChange);
     };
-  }, [accountPanelOpen]);
+  }, [accountPanelOpen, invalidateAuthority]);
 
   if (config.mode !== "local_identity_dev") return <>{children}</>;
   if (state.status === "probing") return <LocalIdentityLoading />;
@@ -156,11 +168,16 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   }
 
   async function handleLogout() {
+    invalidateAuthority();
+    sessionGeneration.current += 1;
+    sessionController.current?.abort();
     setAccountAction("logout");
     setAccountActionError("");
     try {
       await logoutLocalIdentity(config);
       broadcastSessionChanged();
+      currentActor.current = "";
+      setAccountAction("");
       setAccountPanelOpen(false);
       setState({ status: "unauthenticated" });
     } catch (error) {
@@ -170,6 +187,9 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   }
 
   function handleAuthenticationRequired() {
+    invalidateAuthority();
+    sessionGeneration.current += 1;
+    sessionController.current?.abort();
     setAccountPanelOpen(false);
     setAccountAction("");
     setAccountActionError("");
@@ -177,12 +197,16 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
   }
 
   function handleSessionChanged() {
+    invalidateAuthority();
     broadcastSessionChanged();
   }
 
   const contextValue: LocalIdentityContextValue = {
     config,
     profile: state.profile,
+    authorityRevision: securityInvalidation,
+    readAuthorityRevision,
+    onWorkspaceScopeChange,
     refresh,
     linkOIDC: handleLinkOIDC,
     revokeExternalIdentity: handleRevokeExternalIdentity,
@@ -190,34 +214,48 @@ export function LocalIdentityGateway({ children }: { children: ReactNode }) {
 
   return (
     <LocalIdentityContext.Provider value={contextValue}>
-      {children}
+      <div inert={accountPanelOpen && accountTask === "claim"}>{children}</div>
       <aside className="local-identity-account-control" aria-label="Local identity session">
         <button
           type="button"
           className="local-identity-account-trigger"
+          aria-label={`${state.profile.account.displayName} ${state.profile.session.authenticationMethod === "oidc" ? "Radish OIDC" : "Local session"}`}
           aria-expanded={accountPanelOpen}
           onClick={() => {
             setAccountActionError("");
+            setAccountTask("security");
             setAccountPanelOpen(true);
           }}
           disabled={accountPanelOpen}
         >
           <span aria-hidden="true">{state.profile.account.displayName.slice(0, 1).toUpperCase()}</span>
           <strong>{state.profile.account.displayName}</strong>
-          <small>{state.profile.session.authenticationMethod === "oidc" ? "Radish OIDC" : "Local session"}</small>
+          <small>{state.profile.session.authenticationMethod === "oidc" ? "Radish OIDC" : t($ => $.localSession)}</small>
         </button>
-        {accountPanelOpen ? (
+        {accountPanelOpen && accountTask === "claim" ? (
+          <Suspense fallback={<div className="local-identity-security-surface" role="status">Loading invitation claim…</div>}>
+            <WorkspaceInvitationClaimPanel
+              key={localIdentitySelfServiceSecurityScopeKey(state.profile, securityInvalidation)}
+              identity={contextValue}
+              onClose={() => { invalidateAuthority(); setAccountPanelOpen(false); }}
+              onOpenSecurity={() => { invalidateAuthority(); setAccountTask("security"); }}
+              onLogout={handleLogout}
+            />
+          </Suspense>
+        ) : accountPanelOpen ? (
           <LocalIdentitySelfServiceSecurityPanel
             key={localIdentitySelfServiceSecurityScopeKey(state.profile, securityInvalidation)}
             config={config}
             profile={state.profile}
             onClose={() => {
+              invalidateAuthority();
               setAccountPanelOpen(false);
               setAccountActionError("");
             }}
             onRefreshProfile={refresh}
             onAuthenticationRequired={handleAuthenticationRequired}
             onSessionChanged={handleSessionChanged}
+            onClaimInvitation={() => { invalidateAuthority(); setAccountTask("claim"); }}
             onLinkOIDC={handleLinkOIDC}
             onLogout={handleLogout}
             accountAction={accountAction}
@@ -236,6 +274,7 @@ function LocalIdentityAuthenticationSurface({
   config: LocalIdentityConsumerConfig;
   onAuthenticated: () => Promise<void>;
 }) {
+  const { t } = useTranslation("identity");
   const [intent, setIntent] = useState<"login" | "register">("login");
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -260,7 +299,7 @@ function LocalIdentityAuthenticationSurface({
       await onAuthenticated();
     } catch (submitError) {
       setPassword("");
-      setError(identityFailure(submitError).message);
+      setError(identityFailure(submitError).code);
     } finally {
       setBusy("");
     }
@@ -273,7 +312,7 @@ function LocalIdentityAuthenticationSurface({
       const authorization = await startLocalIdentityOIDC(config, "login", localIdentityReturnTarget(window.location));
       window.location.assign(authorization.authorizationUrl);
     } catch (oidcError) {
-      setError(identityFailure(oidcError).message);
+      setError(identityFailure(oidcError).code);
       setBusy("");
     }
   }
@@ -281,53 +320,52 @@ function LocalIdentityAuthenticationSurface({
   return (
     <main className="local-identity-gateway" data-rd-profile="workbench">
       <header className="local-identity-gateway-header">
-        <a href="/" className="local-identity-wordmark" aria-label="RadishMind home">
+        <a href="/" className="local-identity-wordmark" aria-label={t($ => $.home)}>
           <span aria-hidden="true">R</span><strong>RadishMind</strong>
         </a>
-        <em>Development / Test authentication</em>
+        <em>{t($ => $.development)}</em>
+        <LanguageSelector />
       </header>
       <div className="local-identity-gateway-layout">
-        <aside className="local-identity-trust-rail" aria-label="Identity trust boundary">
-          <p className="eyebrow">Identity trust boundary</p>
-          <h1>One local account.<br />Explicit trust.</h1>
+        <aside className="local-identity-trust-rail" aria-label={t($ => $.trustBoundary)}>
+          <p className="eyebrow">{t($ => $.trustBoundary)}</p>
+          <h1>{t($ => $.oneAccount)}<br />{t($ => $.explicitTrust)}</h1>
           <p>
-            RadishMind owns its local account, Web session, membership and grant records. Radish OIDC is an optional
-            login method bound by reviewed issuer and subject evidence.
-          </p>
+            {t($ => $.ownership)}</p>
           <ol>
-            <li><span>01</span><div><strong>Local session</strong><small>HttpOnly cookie; no browser token persistence.</small></div></li>
-            <li><span>02</span><div><strong>Explicit binding</strong><small>Issuer + subject resolve one local user ID.</small></div></li>
-            <li><span>03</span><div><strong>Local grants</strong><small>Never inferred from upstream claims or role names.</small></div></li>
+            <li><span>01</span><div><strong>{t($ => $.localSession)}</strong><small>{t($ => $.cookieBoundary)}</small></div></li>
+            <li><span>02</span><div><strong>{t($ => $.binding)}</strong><small>{t($ => $.bindingDescription)}</small></div></li>
+            <li><span>03</span><div><strong>{t($ => $.grants)}</strong><small>{t($ => $.grantBoundary)}</small></div></li>
           </ol>
           <div className="local-identity-stop-line">
-            <strong>Current stop line</strong>
-            <p>Development/test only. Production authentication, MFA, automated recovery and real Radish evidence remain closed.</p>
+            <strong>{t($ => $.stopLine)}</strong>
+            <p>{t($ => $.developmentBoundary)}</p>
           </div>
         </aside>
 
         <section className="local-identity-form-zone" aria-labelledby="local-identity-form-title">
           <form className="local-identity-card" onSubmit={(event) => void handleSubmit(event)}>
             <header>
-              <p className="eyebrow">Secure workspace access</p>
-              <h2 id="local-identity-form-title">{intent === "login" ? "Welcome back" : "Create a local account"}</h2>
-              <p>{intent === "login" ? "Use a reviewed local login method to continue." : "Register a development/test account with an explicit local credential."}</p>
+              <p className="eyebrow">{t($ => $.secureAccess)}</p>
+              <h2 id="local-identity-form-title">{intent === "login" ? t($ => $.welcome) : t($ => $.createAccountTitle)}</h2>
+              <p>{intent === "login" ? t($ => $.loginDescription) : t($ => $.registerDescription)}</p>
             </header>
-            <div className="local-identity-tabs" role="tablist" aria-label="Authentication mode">
-              <button type="button" role="tab" aria-selected={intent === "login"} onClick={() => { setIntent("login"); setError(""); }}>Sign in</button>
-              <button type="button" role="tab" aria-selected={intent === "register"} onClick={() => { setIntent("register"); setError(""); }}>Register</button>
+            <div className="local-identity-tabs" role="tablist" aria-label={t($ => $.authenticationMode)}>
+              <button type="button" role="tab" aria-selected={intent === "login"} onClick={() => { setIntent("login"); setError(""); }}>{t($ => $.signIn)}</button>
+              <button type="button" role="tab" aria-selected={intent === "register"} onClick={() => { setIntent("register"); setError(""); }}>{t($ => $.register)}</button>
             </div>
             {intent === "register" ? (
               <label>
-                <span>Display name</span>
+                <span>{t($ => $.displayName)}</span>
                 <input autoComplete="name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required maxLength={120} />
               </label>
             ) : null}
             <label>
-              <span>Local ID</span>
+              <span>{t($ => $.localId)}</span>
               <input autoComplete="username" value={loginIdentifier} onChange={(event) => setLoginIdentifier(event.target.value)} required maxLength={254} />
             </label>
             <label>
-              <span>Password</span>
+              <span>{t($ => $.password)}</span>
               <input
                 type="password"
                 autoComplete={intent === "login" ? "current-password" : "new-password"}
@@ -337,23 +375,21 @@ function LocalIdentityAuthenticationSurface({
                 minLength={12}
                 maxLength={1024}
               />
-              <small>Minimum 12 characters. The password never returns from the server.</small>
+              <small>{t($ => $.passwordHelp)}</small>
             </label>
-            {error ? <p className="local-identity-form-error" role="alert">{error}</p> : null}
+            {error ? <p className="local-identity-form-error" role="alert"><IdentityFailureMessage code={error} /></p> : null}
             <button type="submit" className="local-identity-primary-action" disabled={busy !== ""}>
-              {busy === "password" ? "Verifying…" : intent === "login" ? "Sign in securely" : "Create local account"}
+              {busy === "password" ? t($ => $.verifying) : intent === "login" ? t($ => $.signInSecurely) : t($ => $.createAccount)}
             </button>
-            <div className="local-identity-divider"><span>or</span></div>
+            <div className="local-identity-divider"><span>{t($ => $.or)}</span></div>
             <button type="button" className="local-identity-oidc-action" onClick={() => void handleOIDCLogin()} disabled={busy !== ""}>
-              <span aria-hidden="true">R</span>{busy === "oidc" ? "Opening Radish…" : "Continue with Radish"}
+              <span aria-hidden="true">R</span>{busy === "oidc" ? t($ => $.openingRadish) : t($ => $.continueRadish)}
             </button>
             <p className="local-identity-recovery-note">
-              Account disabled or login method unavailable? Contact the local development administrator. No automated recovery path is enabled.
-            </p>
+              {t($ => $.recoveryHelp)}</p>
           </form>
           <p className="local-identity-narrow-boundary">
-            Session credentials stay in HttpOnly cookies; claims do not grant local permissions.
-          </p>
+            {t($ => $.sessionBoundary)}</p>
         </section>
       </div>
     </main>
@@ -361,9 +397,11 @@ function LocalIdentityAuthenticationSurface({
 }
 
 function LocalIdentityLoading() {
+  const { t } = useTranslation("identity");
   return (
     <main className="local-identity-status-surface" data-rd-profile="workbench">
-      <div><span className="local-identity-status-mark" aria-hidden="true">R</span><p>Restoring the reviewed local session…</p></div>
+      <LanguageSelector />
+      <div><span className="local-identity-status-mark" aria-hidden="true">R</span><p>{t($ => $.restoring)}</p></div>
     </main>
   );
 }
@@ -375,15 +413,17 @@ function LocalIdentityFailureSurface({
   failure: { message: string; code: string };
   onRetry: () => Promise<void>;
 }) {
+  const { t } = useTranslation("identity");
   return (
     <main className="local-identity-status-surface" data-rd-profile="workbench">
+      <LanguageSelector />
       <div className="local-identity-failure-card">
-        <p className="eyebrow">Local identity unavailable</p>
-        <h1>Access remains closed</h1>
-        <p>{failure.message}</p>
+        <p className="eyebrow">{t($ => $.unavailable)}</p>
+        <h1>{t($ => $.accessClosed)}</h1>
+        <p><IdentityFailureMessage code={failure.code} /></p>
         <small>{failure.code}</small>
-        <button type="button" onClick={() => void onRetry()}>Retry session check</button>
-        <p className="local-identity-account-boundary">No fallback identity or development header will be substituted.</p>
+        <button type="button" onClick={() => void onRetry()}>{t($ => $.retrySession)}</button>
+        <p className="local-identity-account-boundary">{t($ => $.noFallback)}</p>
       </div>
     </main>
   );
@@ -414,4 +454,13 @@ function isSessionChangedEvent(value: unknown): boolean {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const record = value as Record<string, unknown>;
   return Object.keys(record).length === 2 && record.kind === "session_changed" && record.version === 1;
+}
+
+function IdentityFailureMessage({ code }: { code: string }) {
+  const { t } = useTranslation("identity");
+  const message = code === "LOCAL_IDENTITY_AUTHENTICATION_FAILED" ? t($ => $.authenticationFailed)
+    : code === "LOCAL_IDENTITY_ACCOUNT_CHANGE_REQUIRES_RECENT_AUTHENTICATION" ? t($ => $.recentAuthentication)
+    : code === "LOCAL_IDENTITY_LAST_LOGIN_METHOD_REMOVAL_DENIED" ? t($ => $.keepLoginMethod)
+    : t($ => $.serviceFailure);
+  return <>{message} <code>{code}</code></>;
 }

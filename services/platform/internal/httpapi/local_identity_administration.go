@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 const (
@@ -215,7 +217,7 @@ func (service *localIdentityAdministrationService) ListWorkspaceMembers(
 	query LocalIdentityWorkspaceMemberListQuery,
 ) (LocalIdentityWorkspaceMemberPage, error) {
 	now := service.currentTime()
-	if err := service.authorize(ctx, actor, query.TenantRef, query.WorkspaceID, false, localIdentityPermissionMembersRead); err != nil {
+	if err := service.authorize(ctx, actor, query.TenantRef, query.WorkspaceID, false, workspacepolicy.PermissionMembersRead); err != nil {
 		return LocalIdentityWorkspaceMemberPage{}, err
 	}
 	query.asOf = now
@@ -234,7 +236,7 @@ func (service *localIdentityAdministrationService) ReadWorkspaceMember(
 	userID string,
 ) (LocalIdentityWorkspaceMemberDetail, error) {
 	now := service.currentTime()
-	if err := service.authorize(ctx, actor, tenantRef, workspaceID, false, localIdentityPermissionMembersRead); err != nil {
+	if err := service.authorize(ctx, actor, tenantRef, workspaceID, false, workspacepolicy.PermissionMembersRead); err != nil {
 		return LocalIdentityWorkspaceMemberDetail{}, err
 	}
 	if !localUserIDPattern.MatchString(strings.TrimSpace(userID)) {
@@ -250,11 +252,11 @@ func (service *localIdentityAdministrationService) ReadWorkspaceMember(
 func (service *localIdentityAdministrationService) ReadRoleCatalog(
 	ctx context.Context,
 	actor LocalIdentityAdministrationActor,
-) (LocalIdentityRoleCatalog, error) {
-	if err := service.authorize(ctx, actor, actor.TenantRef, actor.WorkspaceID, false, localIdentityPermissionRolesRead); err != nil {
-		return LocalIdentityRoleCatalog{}, err
+) (workspacepolicy.RoleCatalog, error) {
+	if err := service.authorize(ctx, actor, actor.TenantRef, actor.WorkspaceID, false, workspacepolicy.PermissionRolesRead); err != nil {
+		return workspacepolicy.RoleCatalog{}, err
 	}
-	return LocalIdentityBuiltInRoleCatalog(), nil
+	return workspacepolicy.BuiltInRoleCatalog(), nil
 }
 
 func (service *localIdentityAdministrationService) CreateWorkspaceMembership(
@@ -263,7 +265,7 @@ func (service *localIdentityAdministrationService) CreateWorkspaceMembership(
 	input LocalIdentityCreateWorkspaceMembershipInput,
 ) (WorkspaceMembership, error) {
 	now := service.currentTime()
-	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, localIdentityPermissionMembershipsWrite); err != nil {
+	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, workspacepolicy.PermissionMembershipsWrite); err != nil {
 		return WorkspaceMembership{}, err
 	}
 	if !localUserIDPattern.MatchString(strings.TrimSpace(input.UserID)) ||
@@ -299,11 +301,11 @@ func (service *localIdentityAdministrationService) AssignWorkspaceRole(
 	input LocalIdentityAssignWorkspaceRoleInput,
 ) (LocalRoleAssignment, error) {
 	now := service.currentTime()
-	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, localIdentityPermissionRolesAssign); err != nil {
+	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, workspacepolicy.PermissionRolesAssign); err != nil {
 		return LocalRoleAssignment{}, err
 	}
-	definition, exists := builtInLocalIdentityRole(input.RoleKey)
-	if !exists || input.ExpectedCatalogVersion != builtInLocalIdentityRoleCatalog.CatalogVersion ||
+	definition, exists := workspacepolicy.BuiltInRole(input.RoleKey)
+	if !exists || input.ExpectedCatalogVersion != workspacepolicy.RoleCatalogVersion ||
 		input.ExpectedRoleDefinitionDigest != definition.DefinitionDigest {
 		return LocalRoleAssignment{}, errLocalIdentityRoleCatalogMismatch
 	}
@@ -344,7 +346,7 @@ func (service *localIdentityAdministrationService) RevokeWorkspaceRole(
 	input LocalIdentityRevokeWorkspaceRoleInput,
 ) (LocalRoleAssignment, error) {
 	now := service.currentTime()
-	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, localIdentityPermissionRolesAssign); err != nil {
+	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, workspacepolicy.PermissionRolesAssign); err != nil {
 		return LocalRoleAssignment{}, err
 	}
 	if !input.Confirmed || !localRoleAssignmentIDPattern.MatchString(strings.TrimSpace(input.AssignmentID)) ||
@@ -373,7 +375,7 @@ func (service *localIdentityAdministrationService) RevokeWorkspaceMembership(
 	input LocalIdentityRevokeWorkspaceMembershipInput,
 ) (LocalIdentityWorkspaceMembershipRevocation, error) {
 	now := service.currentTime()
-	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, localIdentityPermissionMembershipsWrite); err != nil {
+	if err := service.authorize(ctx, actor, input.TenantRef, input.WorkspaceID, true, workspacepolicy.PermissionMembershipsWrite); err != nil {
 		return LocalIdentityWorkspaceMembershipRevocation{}, err
 	}
 	if !input.Confirmed || !localMembershipIDPattern.MatchString(strings.TrimSpace(input.MembershipID)) ||
@@ -414,7 +416,7 @@ func (service *localIdentityAdministrationService) BootstrapWorkspaceAdministrat
 	if err != nil {
 		return LocalIdentityWorkspaceAdministratorBootstrap{}, err
 	}
-	definition, _ := builtInLocalIdentityRole(localIdentityRoleWorkspaceAdmin)
+	definition, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceAdmin)
 	bootstrap := LocalIdentityWorkspaceAdministratorBootstrap{
 		Membership: WorkspaceMembership{
 			SchemaVersion:  localIdentitySchemaVersion,

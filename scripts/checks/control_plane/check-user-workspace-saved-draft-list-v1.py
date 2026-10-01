@@ -108,6 +108,7 @@ def assert_consumer_contract(fixture: dict[str, Any]) -> None:
 def assert_app_and_home_contract(fixture: dict[str, Any]) -> None:
     app_contract = fixture.get("app_contract") or {}
     app_text = read(str(app_contract.get("file")))
+    app_text += "\n" + "\n".join(read(str(path)) for path in app_contract["owner_files"])
     for literal in app_contract.get("required_literals") or []:
         require(str(literal) in app_text, f"App missing saved draft list literal: {literal}")
     require(

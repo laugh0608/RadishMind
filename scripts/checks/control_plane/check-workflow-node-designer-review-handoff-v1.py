@@ -92,9 +92,9 @@ def assert_frontend_contract(fixture: dict[str, Any]) -> None:
         "handoff must build active draft and node designer records before recipients",
     )
     require(
-        panel_text.index("Active Draft Review Record")
-        < panel_text.index("Node Designer Review Handoff")
-        < panel_text.index("Review Recipients"),
+        panel_text.index("$.handoff.activeDraftReviewRecord")
+        < panel_text.index("$.handoff.nodeDesignerReviewHandoff")
+        < panel_text.index("$.handoff.reviewRecipients"),
         "node designer review handoff must render between active draft record and recipients",
     )
 

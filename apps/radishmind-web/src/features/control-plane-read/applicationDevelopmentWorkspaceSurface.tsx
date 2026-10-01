@@ -1,3 +1,5 @@
+import "../../i18n/workspaceSurfaceResources.ts";
+import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 
 import type { WorkspaceApiKeysViewModel } from "./workspaceApiKeys.ts";
@@ -67,6 +69,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   onTemplateDerivedDraft,
   onRunRecorded,
 }: Props) {
+  const { t } = useTranslation("applications");
   const baseline = {
     applicationId: context.applicationId,
     displayName: context.displayName,
@@ -123,16 +126,28 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     controls.pendingHandoff.refKind === "binding"
     ? controls.pendingHandoff
     : null;
+  const readinessStatus = controls.readiness.status === "review_not_started"
+    ? t($ => $.workspaceSurface.readinessNotStarted)
+    : controls.readiness.status === "review_blocked"
+      ? t($ => $.workspaceSurface.readinessBlocked)
+      : controls.readiness.status === "review_incomplete"
+        ? t($ => $.workspaceSurface.readinessIncomplete)
+        : t($ => $.workspaceSurface.readinessReviewable);
+  const readinessSummary = controls.readiness.status === "review_not_started"
+    ? t($ => $.workspaceSurface.readinessNotStartedSummary)
+    : controls.readiness.status === "review_blocked"
+      ? t($ => $.workspaceSurface.readinessBlockedSummary, { count: controls.readiness.blockerCount })
+      : controls.readiness.status === "review_incomplete"
+        ? t($ => $.workspaceSurface.readinessIncompleteSummary, { count: controls.readiness.missingCount })
+        : t($ => $.workspaceSurface.readinessReviewableSummary);
 
   if (!activeStage) {
     return (
       <article className="application-development-stage-paused" role="status">
-        <p className="eyebrow">Application Development Workspace</p>
-        <h4>Stage surface paused</h4>
+        <p className="eyebrow">{t($ => $.workspaceSurface.developmentWorkspace)}</p>
+        <h4>{t($ => $.workspaceSurface.stagePaused)}</h4>
         <p>
-          Return to an Application Development stage to reload its owner-scoped metadata. Pending component
-          state is not retained while another product route is active.
-        </p>
+          {t($ => $.workspaceSurface.stagePausedDescription)}</p>
       </article>
     );
   }
@@ -141,14 +156,14 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     if (activeStage === "release_readiness") {
       return (
         <article className="application-development-stage-paused" role="status">
-          <p className="eyebrow">Release readiness boundary</p>
-          <h4>{controls.readiness.status}</h4>
-          <p>{controls.readiness.summary} The source cards below remain the only readiness projection.</p>
+          <p className="eyebrow">{t($ => $.workspaceSurface.releaseReadinessBoundary)}</p>
+          <h4>{readinessStatus}</h4>
+          <p>{readinessSummary} {t($ => $.workspaceSurface.readinessProjectionOnly)}</p>
         </article>
       );
     }
     return (
-      <Suspense fallback={<StageFallback label="Prompt / Agent type workspace" />}>
+      <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.promptAgentTypeWorkspace)} />}>
         <PromptAgentTypeWorkspace
           context={context}
           activeStage={activeStage}
@@ -169,9 +184,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
   return (
     <div className="application-development-stage-surfaces">
       {activeStage === "configure_build" ? (
-        <StageSurface stage="configure_build" title="Configure and build">
+        <StageSurface stage="configure_build" title={t($ => $.workspaceSurface.configureBuild)}>
           {context.surfaceKind === "workflow_rag" ? (
-            <Suspense fallback={<StageFallback label="application knowledge snapshots" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.knowledgeSnapshots)} />}>
               <WorkflowRAGSnapshotPanel
                 key={`${context.generationKey}:rag-snapshot`}
                 applicationId={context.applicationId}
@@ -187,8 +202,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               fallback={(
                 <StageFallback
                   label={context.status === "archived"
-                    ? "archived configuration history"
-                    : "Application Configuration Draft"}
+                    ? t($ => $.workspaceSurface.archivedConfigurationHistory)
+                    : t($ => $.workspaceSurface.applicationConfigurationDraft)}
                 />
               )}
             >
@@ -208,9 +223,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       ) : null}
 
       {activeStage === "human_promotion" ? (
-        <StageSurface stage="human_promotion" title="Human promotion">
+        <StageSurface stage="human_promotion" title={t($ => $.workspaceSurface.humanPromotion)}>
           {context.surfaceKind === "workflow_rag" ? (
-            <Suspense fallback={<StageFallback label="Workflow RAG promotion and binding review" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.workflowRagPromotion)} />}>
               <WorkflowRAGPromotionPanel
                 key={`${context.generationKey}:rag-promotion`}
                 applicationId={context.applicationId}
@@ -227,7 +242,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             <Suspense
               fallback={(
                 <StageFallback
-                  label={context.status === "archived" ? "archived publish history" : "Application Publish Review"}
+                  label={context.status === "archived" ? t($ => $.workspaceSurface.archivedPublishHistory) : t($ => $.workspaceSurface.applicationPublishReview)}
                 />
               )}
             >
@@ -243,7 +258,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             </Suspense>
           )}
           {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
-            <Suspense fallback={<StageFallback label="Workflow Template Catalog" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.workflowTemplateCatalog)} />}>
               <WorkflowTemplateCatalogPanel
                 key={`${context.generationKey}:workflow-template-catalog`}
                 workspaceId={context.workspaceId}
@@ -255,7 +270,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             </Suspense>
           ) : null}
           {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
-            <Suspense fallback={<StageFallback label="Workflow Definition promotion" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.workflowDefinitionPromotion)} />}>
               <WorkflowDefinitionPromotionPanel
                 key={`${context.generationKey}:workflow-definition-promotion`}
                 workspaceId={context.workspaceId}
@@ -276,7 +291,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       ) : null}
 
       {activeStage === "controlled_test" ? (
-        <StageSurface stage="controlled_test" title="Controlled test">
+        <StageSurface stage="controlled_test" title={t($ => $.workspaceSurface.controlledTest)}>
           {context.status === "unavailable" ? (
             <ControlledTestBlocked status={context.status} />
           ) : (
@@ -288,12 +303,12 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               {context.applicationActive ? (
                 <details className="application-access-related-surfaces">
                   <summary>
-                    <span><strong>Application-specific controlled tests</strong><small>Existing owner surfaces</small></span>
+                    <span><strong>{t($ => $.workspaceSurface.applicationSpecificControlledTests)}</strong><small>{t($ => $.workspaceSurface.existingOwnerSurfaces)}</small></span>
                     <span aria-hidden="true">⌄</span>
                   </summary>
                   <div>
                     {context.surfaceKind === "workflow_rag" ? (
-                      <Suspense fallback={<StageFallback label="Application Interaction" />}>
+                      <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.applicationInteraction)} />}>
                         <ApplicationInteractionSessionPanel
                           key={`${context.generationKey}:interaction`}
                           applicationId={context.applicationId}
@@ -307,7 +322,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                       </Suspense>
                     ) : null}
                     {context.surfaceKind === "workflow_rag" ? (
-                      <Suspense fallback={<StageFallback label="Application RAG Invocation" />}>
+                      <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.applicationRagInvocation)} />}>
                         <ApplicationRAGInvocationPanel
                           key={`${context.generationKey}:rag-invocation`}
                           applicationId={context.applicationId}
@@ -328,8 +343,8 @@ export default function ApplicationDevelopmentWorkspaceSurface({
       ) : null}
 
       {activeStage === "evidence_review" ? (
-        <StageSurface stage="evidence_review" title="Run and evaluation review">
-          <Suspense fallback={<StageFallback label="Application Evaluation Campaign" />}>
+        <StageSurface stage="evidence_review" title={t($ => $.workspaceSurface.runEvaluationReview)}>
+          <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.applicationEvaluationCampaign)} />}>
             <ApplicationEvaluationCampaignPanel
               key={`${context.generationKey}:application-evaluation`}
               applicationId={context.applicationId}
@@ -340,7 +355,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             />
           </Suspense>
           {context.surfaceKind === "workflow_rag" ? (
-            <Suspense fallback={<StageFallback label="Workflow RAG evaluation datasets" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.workflowRagDatasets)} />}>
               <WorkflowRAGEvaluationDatasetPanel
                 key={`${context.generationKey}:rag-evaluation`}
                 applicationId={context.applicationId}
@@ -351,18 +366,18 @@ export default function ApplicationDevelopmentWorkspaceSurface({
             </Suspense>
           ) : null}
           <article className="application-development-stage-paused">
-            <p className="eyebrow">Workflow review path</p>
-            <h4>Run and evaluation owners are task-scoped</h4>
-            <p>Use Runs, Compare, Cases, or Release below. Only the selected owner is mounted.</p>
+            <p className="eyebrow">{t($ => $.workspaceSurface.workflowReviewPath)}</p>
+            <h4>{t($ => $.workspaceSurface.taskScopedReviewOwners)}</h4>
+            <p>{t($ => $.workspaceSurface.reviewOwnerInstruction)}</p>
           </article>
         </StageSurface>
       ) : null}
 
       {activeStage === "release_readiness" ? (
         <article className="application-development-stage-paused" role="status">
-          <p className="eyebrow">Release readiness boundary</p>
-          <h4>{controls.readiness.status}</h4>
-          <p>{controls.readiness.summary} The source cards below remain the only readiness projection.</p>
+          <p className="eyebrow">{t($ => $.workspaceSurface.releaseReadinessBoundary)}</p>
+          <h4>{readinessStatus}</h4>
+          <p>{readinessSummary} {t($ => $.workspaceSurface.readinessProjectionOnly)}</p>
         </article>
       ) : null}
     </div>
@@ -378,6 +393,7 @@ function ApplicationAccessWorkspace({
   context: ApplicationDevelopmentWorkspaceContext;
   offlineApiKeys: WorkspaceApiKeysViewModel;
 }) {
+  const { t } = useTranslation("applications");
   const [activeSurface, setActiveSurface] = useState<ApplicationAccessSurface>(() => (
     accessSurfaceForHash(window.location.hash, context.applicationActive)
   ));
@@ -406,53 +422,53 @@ function ApplicationAccessWorkspace({
     >
       <header className="application-access-heading">
         <div>
-          <p className="eyebrow">S4 · Application access</p>
-          <h3 id="application-access-workspace-title">API Integration &amp; Keys</h3>
-          <p>Choose one access task, keep credentials scoped to this application, then validate through an existing controlled surface.</p>
+          <p className="eyebrow">{t($ => $.workspaceSurface.applicationAccess)}</p>
+          <h3 id="application-access-workspace-title">{t($ => $.workspaceSurface.apiIntegrationKeys)}</h3>
+          <p>{t($ => $.workspaceSurface.accessInstruction)}</p>
         </div>
-        <div className="application-access-boundaries" aria-label="Application access boundaries">
-          <span className="status-badge neutral">dev / test</span>
+        <div className="application-access-boundaries" aria-label={t($ => $.workspaceSurface.accessBoundaries)}>
+          <span className="status-badge neutral">{t($ => $.workspaceSurface.devTest)}</span>
           <span className={`status-badge ${context.applicationActive ? "good" : "neutral"}`}>
-            {context.applicationActive ? "active application" : "archived · read / revoke"}
+            {context.applicationActive ? t($ => $.workspaceSurface.activeApplication) : t($ => $.workspaceSurface.archivedReadRevoke)}
           </span>
         </div>
       </header>
 
       <div className="application-access-workbench">
-        <aside className="application-access-rail" aria-label="Application access tasks">
-          <p>Access path</p>
+        <aside className="application-access-rail" aria-label={t($ => $.workspaceSurface.accessTasks)}>
+          <p>{t($ => $.workspaceSurface.accessPath)}</p>
           <nav>
             {context.applicationActive ? (
               <a href="#application-api-integration" aria-current={activeSurface === "integration" ? "step" : undefined}>
-                <b>01</b><span><strong>Connect API</strong><small>Model, protocol, example</small></span>
+                <b>01</b><span><strong>{t($ => $.workspaceSurface.connectApi)}</strong><small>{t($ => $.workspaceSurface.modelProtocolExample)}</small></span>
               </a>
             ) : (
-              <span className="is-disabled"><b>01</b><span><strong>Connect API</strong><small>Blocked for archived application</small></span></span>
+              <span className="is-disabled"><b>01</b><span><strong>{t($ => $.workspaceSurface.connectApi)}</strong><small>{t($ => $.workspaceSurface.archivedAccessBlocked)}</small></span></span>
             )}
             <a href="#workspace-api-keys" aria-current={activeSurface === "credentials" ? "step" : undefined}>
-              <b>02</b><span><strong>Credentials</strong><small>Issue, inspect, revoke</small></span>
+              <b>02</b><span><strong>{t($ => $.workspaceSurface.credentials)}</strong><small>{t($ => $.workspaceSurface.credentialActions)}</small></span>
             </a>
             {context.applicationActive ? (
               <a href="#model-gateway-playground">
-                <b>03</b><span><strong>Validate</strong><small>Existing Playground</small></span>
+                <b>03</b><span><strong>{t($ => $.workspaceSurface.validate)}</strong><small>{t($ => $.workspaceSurface.existingPlayground)}</small></span>
               </a>
             ) : (
-              <span className="is-disabled"><b>03</b><span><strong>Validate</strong><small>Invocation blocked</small></span></span>
+              <span className="is-disabled"><b>03</b><span><strong>{t($ => $.workspaceSurface.validate)}</strong><small>{t($ => $.workspaceSurface.invocationBlocked)}</small></span></span>
             )}
-            <span><b>04</b><span><strong>Verify / retire</strong><small>Exact Gateway evidence</small></span></span>
+            <span><b>04</b><span><strong>{t($ => $.workspaceSurface.verifyRetire)}</strong><small>{t($ => $.workspaceSurface.exactGatewayEvidence)}</small></span></span>
           </nav>
-          <p className="boundary-note">The path shows task position only. It does not assert production readiness or automatic completion.</p>
+          <p className="boundary-note">{t($ => $.workspaceSurface.accessPathBoundary)}</p>
         </aside>
 
         <main className="application-access-main">
           {!context.applicationActive ? (
             <div className="application-access-archived-boundary" role="status">
-              <strong>Archived application boundary</strong>
-              <span>Sanitized Key metadata remains readable and revocable. Issue, rotation, model loading, and invocation stay blocked.</span>
+              <strong>{t($ => $.workspaceSurface.archivedApplicationBoundary)}</strong>
+              <span>{t($ => $.workspaceSurface.archivedAccessBoundary)}</span>
             </div>
           ) : null}
           <div className="application-access-owner" hidden={activeSurface !== "integration"}>
-            <Suspense fallback={<StageFallback label="Application API Integration" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.applicationApiIntegration)} />}>
               <ApplicationApiIntegrationPanel
                 key={`${context.generationKey}:api-integration`}
                 applicationId={context.applicationId}
@@ -462,7 +478,7 @@ function ApplicationAccessWorkspace({
             </Suspense>
           </div>
           <div className="application-access-owner" hidden={activeSurface !== "credentials"}>
-            <Suspense fallback={<StageFallback label="API key lifecycle" />}>
+            <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.apiKeyLifecycle)} />}>
               <APIKeyLifecyclePanel
                 key={`${context.generationKey}:api-key`}
                 applicationId={context.applicationId}
@@ -485,6 +501,7 @@ function accessSurfaceForHash(hash: string, applicationActive: boolean): Applica
 }
 
 function StageSurface({ stage, title, children }: { stage: string; title: string; children: ReactNode }) {
+  const { t } = useTranslation("applications");
   return (
     <section
       className="application-development-stage-surface"
@@ -492,7 +509,7 @@ function StageSurface({ stage, title, children }: { stage: string; title: string
       aria-label={title}
     >
       <div className="application-development-stage-heading">
-        <p className="eyebrow">Application Development Stage</p>
+        <p className="eyebrow">{t($ => $.workspaceSurface.applicationDevelopmentStage)}</p>
         <h4>{title}</h4>
       </div>
       {children}
@@ -501,32 +518,35 @@ function StageSurface({ stage, title, children }: { stage: string; title: string
 }
 
 function StageFallback({ label }: { label: string }) {
+  const { t } = useTranslation("applications");
   return (
     <div className="application-development-stage-fallback">
-      <p>Loading {label}…</p>
+      <p>{t($ => $.workspaceSurface.loadingOwner, { label })}</p>
     </div>
   );
 }
 
 function UnavailableApplication() {
+  const { t } = useTranslation("applications");
   return (
     <article className="application-catalog-downstream-blocked" role="status">
-      <p className="eyebrow">Lifecycle enforcement</p>
-      <h4>Create or select an active application</h4>
-      <p>The authoritative Application scope is unavailable. Configuration and promotion remain blocked.</p>
+      <p className="eyebrow">{t($ => $.workspaceSurface.lifecycleEnforcement)}</p>
+      <h4>{t($ => $.workspaceSurface.selectActiveApplication)}</h4>
+      <p>{t($ => $.workspaceSurface.scopeUnavailable)}</p>
     </article>
   );
 }
 
 function ControlledTestBlocked({ status }: { status: ApplicationDevelopmentWorkspaceContext["status"] }) {
+  const { t } = useTranslation("applications");
   return (
     <article className="application-catalog-downstream-blocked" role="status">
-      <p className="eyebrow">Lifecycle enforcement</p>
-      <h4>Controlled tests are blocked</h4>
+      <p className="eyebrow">{t($ => $.workspaceSurface.lifecycleEnforcement)}</p>
+      <h4>{t($ => $.workspaceSurface.controlledTestsBlocked)}</h4>
       <p>
         {status === "archived"
-          ? "Archived applications retain read-only evidence but cannot start new controlled tests."
-          : "Select an active Application before opening invocation handoffs."}
+          ? t($ => $.workspaceSurface.archivedTestsBlocked)
+          : t($ => $.workspaceSurface.selectActiveForInvocation)}
       </p>
     </article>
   );

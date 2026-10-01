@@ -1,3 +1,5 @@
+import "../../i18n/configurationResources.ts";
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -61,15 +63,74 @@ export default function ApplicationConfigurationDraftPanel({
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
   onOpenPublishReview?: (draftId: string) => void;
 }) {
+  const { t } = useTranslation("applications");
   const [draft, setDraft] = useState(() => createApplicationConfigurationDraft(config, baseline));
   const [operation, setOperation] = useState(() => initialApplicationConfigurationDraftState(config));
   const [catalog, setCatalog] = useState(() => initialApplicationDraftModelCatalog(config, baseline.applicationId));
   const [list, setList] = useState(() => initialApplicationConfigurationDraftListState(config));
   const [bindings, setBindings] = useState<WorkflowRAGPromotionListResult>(() => initialWorkflowRAGPromotionListResult(promotionConfig));
   const [selectedBindingCandidateId, setSelectedBindingCandidateId] = useState("");
-  const [bindingHandoffState, setBindingHandoffState] = useState("");
+  const [bindingHandoffState, setBindingHandoffState] = useState<{ kind: "readOnly" | "loading" | "reloaded" | "unavailable" | "failed"; candidateId: string; bindingId?: string } | null>(null);
   const catalogController = useRef<AbortController | null>(null);
   const handledHandoffIdRef = useRef("");
+
+  const operationStatusLabel = () => {
+    switch (operation.status) {
+      case "offline": return t($ => $.configuration.offlineStatus);
+      case "unsaved": return t($ => $.configuration.unsaved);
+      case "validating": return t($ => $.configuration.validatingStatus);
+      case "invalid": return t($ => $.configuration.invalidStatus);
+      case "valid": return t($ => $.configuration.validStatus);
+      case "saving": return t($ => $.configuration.savingStatus);
+      case "saved": return t($ => $.configuration.savedStatus);
+      case "loading": return t($ => $.configuration.loadingStatus);
+      case "restored": return t($ => $.configuration.restoredStatus);
+      case "version_conflict": return t($ => $.configuration.versionConflictStatus);
+      case "scope_denied": return t($ => $.configuration.scopeDeniedStatus);
+      case "store_failure": return t($ => $.configuration.storeFailureStatus);
+    }
+  };
+  const operationMessage = () => {
+    if (operation.status === "version_conflict") return t($ => $.configuration.versionConflictNotice);
+    if (operation.status === "scope_denied") return t($ => $.configuration.scopeDeniedNotice);
+    if (operation.status === "store_failure") return t($ => $.configuration.storeFailureNotice);
+    if (operation.failureCode) return t($ => $.configuration.configurationOperationFailed);
+    switch (operation.status) {
+      case "offline": return t($ => $.configuration.offlineDraftNotice);
+      case "unsaved": return t($ => $.configuration.unsavedMemoryEdits);
+      case "validating": return t($ => $.configuration.validatingSanitizedDraft);
+      case "invalid": return t($ => $.configuration.resolveFindingsBeforeSaveOrHandoff);
+      case "valid": return t($ => $.configuration.configurationValidForReview);
+      case "saving": return t($ => $.configuration.savingSanitizedDraft);
+      case "saved": return t($ => $.configuration.savedDraftVersion, { version: operation.currentDraftVersion });
+      case "loading": return t($ => $.configuration.loadingDraftState);
+      case "restored": return t($ => $.configuration.restoredDraftVersion, { version: operation.currentDraftVersion });
+    }
+  };
+  const findingMessage = (code: string, field: string) => {
+    if (code === "application_draft_secret_material_forbidden") return t($ => $.configuration.secretMaterialForbidden);
+    if (code === "application_draft_model_unavailable") return t($ => $.configuration.modelUnavailableFinding);
+    if (code === "application_draft_protocol_incompatible") return t($ => $.configuration.protocolIncompatibleFinding);
+    if (code !== "application_draft_payload_invalid") return t($ => $.configuration.configurationFinding, { field });
+    switch (field) {
+      case "display_name": return t($ => $.configuration.displayNameFinding);
+      case "description": return t($ => $.configuration.descriptionFinding);
+      case "application_kind": return t($ => $.configuration.applicationKindFinding);
+      case "allowed_protocols": return t($ => $.configuration.allowedProtocolsFinding);
+      case "default_model": return t($ => $.configuration.selectValidatedModelFinding);
+      default: return t($ => $.configuration.configurationFinding, { field });
+    }
+  };
+  const listMessage = list.status === "offline" ? t($ => $.configuration.offlineSavedDraftsNotice)
+    : list.status === "idle" ? t($ => $.configuration.loadSavedDraftsNotice)
+      : list.status === "loading" ? t($ => $.configuration.loadingSavedDrafts)
+        : list.status === "failed" ? t($ => $.configuration.savedDraftsLoadFailed)
+          : list.status === "empty" ? t($ => $.configuration.noSavedDrafts)
+            : t($ => $.configuration.loadedSavedDraftCount, { count: list.summaries.length });
+  const catalogMessage = catalog.status === "loading" ? t($ => $.configuration.loadingDraftModels)
+    : catalog.status === "ready" ? t($ => $.configuration.loadedValidatedModelCount, { count: catalog.models.length })
+      : catalog.status === "failed" ? t($ => $.configuration.modelCatalogLoadFailed)
+        : t($ => $.configuration.modelCatalogNotLoaded);
 
   useEffect(() => {
     catalogController.current?.abort();
@@ -80,7 +141,7 @@ export default function ApplicationConfigurationDraftPanel({
     setList(initialApplicationConfigurationDraftListState(config));
     setBindings(initialWorkflowRAGPromotionListResult(promotionConfig));
     setSelectedBindingCandidateId("");
-    setBindingHandoffState("");
+    setBindingHandoffState(null);
     handledHandoffIdRef.current = "";
   }, [baseline.applicationId]);
 
@@ -164,16 +225,16 @@ export default function ApplicationConfigurationDraftPanel({
     if (!handoffId || !handoffBindingCandidateId || handledHandoffIdRef.current === handoffId) return;
     handledHandoffIdRef.current = handoffId;
     if (!bindingEnabled) {
-      setBindingHandoffState(`Binding candidate ${handoffBindingCandidateId} was not loaded because the configuration owner is read-only or offline. No draft was modified.`);
+      setBindingHandoffState({ kind: "readOnly", candidateId: handoffBindingCandidateId });
       onHandoffConsumed?.(handoffId);
       return;
     }
-    setBindingHandoffState(`Loading exact binding candidate ${handoffBindingCandidateId} from RAG Promotion.`);
+    setBindingHandoffState({ kind: "loading", candidateId: handoffBindingCandidateId });
     void loadApprovedBindings(handoffBindingCandidateId)
       .then((selected) => setBindingHandoffState(selected
-        ? `Exact binding ${selected.bindingRef?.bindingId} was reloaded for explicit attach. Restore its source draft before attaching; no draft was modified.`
-        : `Binding candidate ${handoffBindingCandidateId} is unavailable, blocked, or no longer approved in the current Application scope. No fallback binding was selected.`))
-      .catch(() => setBindingHandoffState(`Binding candidate ${handoffBindingCandidateId} could not be reloaded from RAG Promotion. No fallback binding was selected and no draft was modified.`))
+        ? { kind: "reloaded", candidateId: handoffBindingCandidateId, bindingId: selected.bindingRef?.bindingId }
+        : { kind: "unavailable", candidateId: handoffBindingCandidateId }))
+      .catch(() => setBindingHandoffState({ kind: "failed", candidateId: handoffBindingCandidateId }))
       .finally(() => onHandoffConsumed?.(handoffId));
   }, [baseline.applicationId, bindingEnabled, handoffBindingCandidateId, handoffId, onHandoffConsumed]);
 
@@ -302,56 +363,56 @@ export default function ApplicationConfigurationDraftPanel({
   return (
     <section className="application-configuration-draft" id="application-configuration-draft" aria-labelledby="application-configuration-draft-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Application Configuration Draft</p><h4 id="application-configuration-draft-title">Configure, validate, save, and review</h4></div>
-        <span className={`status-badge ${readOnly || operation.status === "saved" || operation.status === "valid" || operation.status === "restored" ? "good" : operation.status === "invalid" || operation.status === "version_conflict" || operation.status === "store_failure" ? "bad" : "neutral"}`}>{readOnly ? "archived read-only" : operation.status}</span>
+        <div><p className="eyebrow">{t($ => $.configuration.configurationDraftTitle)}</p><h4 id="application-configuration-draft-title">{t($ => $.configuration.configurationDraftSubtitle)}</h4></div>
+        <span className={`status-badge ${readOnly || operation.status === "saved" || operation.status === "valid" || operation.status === "restored" ? "good" : operation.status === "invalid" || operation.status === "version_conflict" || operation.status === "store_failure" ? "bad" : "neutral"}`}>{readOnly ? t($ => $.configuration.archivedReadOnly) : operationStatusLabel()}</span>
       </div>
 
       <div className="application-draft-scope">
-        <article><span>Application</span><strong>{baseline.displayName}</strong><code>{baseline.applicationId}</code></article>
-        <article><span>Workspace</span><strong>{config.workspaceId}</strong><p>{enabled ? "dev/test repository enabled" : "offline memory only"}</p></article>
-        <article><span>Version</span><strong>{operation.currentDraftVersion || "unsaved"}</strong><p>Formal application remains read-only.</p></article>
+        <article><span>{t($ => $.configuration.application)}</span><strong>{baseline.displayName}</strong><code>{baseline.applicationId}</code></article>
+        <article><span>{t($ => $.configuration.workspace)}</span><strong>{config.workspaceId}</strong><p>{enabled ? t($ => $.configuration.developmentRepositoryEnabled) : t($ => $.configuration.offlineMemoryOnly)}</p></article>
+        <article><span>{t($ => $.configuration.version)}</span><strong>{operation.currentDraftVersion || t($ => $.configuration.unsaved)}</strong><p>{t($ => $.configuration.formalApplicationReadOnly)}</p></article>
       </div>
-      {bindingHandoffState ? <p className="boundary-note" role="status">{bindingHandoffState}</p> : null}
+      {bindingHandoffState ? <p className="boundary-note" role="status">{bindingHandoffState.kind === "readOnly" ? t($ => $.configuration.bindingHandoffReadOnly, { candidateId: bindingHandoffState.candidateId }) : bindingHandoffState.kind === "loading" ? t($ => $.configuration.loadingExactBindingCandidate, { candidateId: bindingHandoffState.candidateId }) : bindingHandoffState.kind === "reloaded" ? t($ => $.configuration.exactBindingReloaded, { bindingId: bindingHandoffState.bindingId ?? "" }) : bindingHandoffState.kind === "unavailable" ? t($ => $.configuration.bindingUnavailableNoFallback, { candidateId: bindingHandoffState.candidateId }) : t($ => $.configuration.bindingReloadFailedNoFallback, { candidateId: bindingHandoffState.candidateId })}</p> : null}
 
       <div className="application-draft-layout">
         <article className="application-draft-editor">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Sanitized configuration</p><h5>{draft.draftId}</h5></div><span className="status-badge neutral">{draft.schemaVersion}</span></div>
-          <label>Display name<input value={draft.displayName} onChange={(event) => edit({ displayName: event.target.value })} maxLength={120} disabled={readOnly} /></label>
-          <label>Description<textarea value={draft.description} onChange={(event) => edit({ description: event.target.value })} maxLength={1000} rows={4} placeholder="Public application purpose; never paste credentials or request content." disabled={readOnly} /></label>
-          <label>Application kind<select value={draft.applicationKind} onChange={(event) => edit({ applicationKind: event.target.value })} disabled={readOnly}><option value="workflow_copilot">Workflow Copilot</option><option value="docs_qa">Docs QA</option><option value="agent">Agent</option><option value="prompt_application">Prompt Application</option></select></label>
-          <fieldset disabled={readOnly}><legend>Allowed protocols</legend>{protocols.map((protocol) => <label key={protocol.id}><input type="checkbox" checked={draft.allowedProtocols.includes(protocol.id)} onChange={(event) => edit({ allowedProtocols: event.target.checked ? [...draft.allowedProtocols, protocol.id] : draft.allowedProtocols.filter((item) => item !== protocol.id) })} />{protocol.label}</label>)}</fieldset>
-          <label>Default protocol<select value={draft.defaultProtocol} onChange={(event) => edit({ defaultProtocol: event.target.value as ApplicationApiProtocol })} disabled={readOnly}>{protocols.map((protocol) => <option key={protocol.id} value={protocol.id}>{protocol.label}</option>)}</select></label>
-          <label>Default model<select value={draft.defaultModel} disabled={readOnly || catalog.models.length === 0} onChange={(event) => edit({ defaultModel: event.target.value })}><option value="">No validated model</option>{readOnly && draft.defaultModel && !catalog.models.some((model) => model.id === draft.defaultModel) ? <option value={draft.defaultModel}>{draft.defaultModel} · saved draft</option> : null}{catalog.models.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.protocols.join(", ")}</option>)}</select></label>
-          {readOnly ? <p className="boundary-note">Archived application configuration is read-only. Existing saved drafts remain available below.</p> : <div className="application-draft-actions"><button type="button" onClick={() => void loadModels()} disabled={!mutationEnabled || catalog.status === "loading"}>{catalog.status === "loading" ? "Loading models…" : "Load / refresh models"}</button><button type="button" onClick={() => void validateDraft()}>Validate configuration</button><button type="button" onClick={() => void saveDraft()} disabled={!mutationEnabled || operation.status === "saving" || operation.status === "validating" || operation.status === "version_conflict"}>Save draft</button></div>}
-          <p className="boundary-note">{catalog.summary}</p>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.configuration.sanitizedConfiguration)}</p><h5>{draft.draftId}</h5></div><span className="status-badge neutral">{draft.schemaVersion}</span></div>
+          <label>{t($ => $.configuration.displayName)}<input value={draft.displayName} onChange={(event) => edit({ displayName: event.target.value })} maxLength={120} disabled={readOnly} /></label>
+          <label>{t($ => $.configuration.description)}<textarea value={draft.description} onChange={(event) => edit({ description: event.target.value })} maxLength={1000} rows={4} placeholder={t($ => $.configuration.publicPurposePlaceholder)} disabled={readOnly} /></label>
+          <label>{t($ => $.configuration.applicationKind)}<select value={draft.applicationKind} onChange={(event) => edit({ applicationKind: event.target.value })} disabled={readOnly}><option value="workflow_copilot">{t($ => $.configuration.workflowCopilot)}</option><option value="docs_qa">{t($ => $.configuration.docsQa)}</option><option value="agent">{t($ => $.configuration.agent)}</option><option value="prompt_application">{t($ => $.configuration.promptApplication)}</option></select></label>
+          <fieldset disabled={readOnly}><legend>{t($ => $.configuration.allowedProtocols)}</legend>{protocols.map((protocol) => <label key={protocol.id}><input type="checkbox" checked={draft.allowedProtocols.includes(protocol.id)} onChange={(event) => edit({ allowedProtocols: event.target.checked ? [...draft.allowedProtocols, protocol.id] : draft.allowedProtocols.filter((item) => item !== protocol.id) })} />{protocol.label}</label>)}</fieldset>
+          <label>{t($ => $.configuration.defaultProtocol)}<select value={draft.defaultProtocol} onChange={(event) => edit({ defaultProtocol: event.target.value as ApplicationApiProtocol })} disabled={readOnly}>{protocols.map((protocol) => <option key={protocol.id} value={protocol.id}>{protocol.label}</option>)}</select></label>
+          <label>{t($ => $.configuration.defaultModel)}<select value={draft.defaultModel} disabled={readOnly || catalog.models.length === 0} onChange={(event) => edit({ defaultModel: event.target.value })}><option value="">{t($ => $.configuration.noValidatedModel)}</option>{readOnly && draft.defaultModel && !catalog.models.some((model) => model.id === draft.defaultModel) ? <option value={draft.defaultModel}>{draft.defaultModel} {t($ => $.configuration.savedDraftSuffix)}</option> : null}{catalog.models.map((model) => <option key={model.id} value={model.id}>{model.id} · {model.protocols.join(", ")}</option>)}</select></label>
+          {readOnly ? <p className="boundary-note">{t($ => $.configuration.archivedDraftReadOnlyNotice)}</p> : <div className="application-draft-actions"><button type="button" onClick={() => void loadModels()} disabled={!mutationEnabled || catalog.status === "loading"}>{catalog.status === "loading" ? t($ => $.configuration.loadingModels) : t($ => $.configuration.loadOrRefreshModels)}</button><button type="button" onClick={() => void validateDraft()}>{t($ => $.configuration.validateConfiguration)}</button><button type="button" onClick={() => void saveDraft()} disabled={!mutationEnabled || operation.status === "saving" || operation.status === "validating" || operation.status === "version_conflict"}>{t($ => $.configuration.saveDraft)}</button></div>}
+          <p className="boundary-note">{catalogMessage}</p>
         </article>
 
         <article className="application-draft-review">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Review state</p><h5>{operation.summary}</h5></div><span className={`status-badge ${operation.validation.isValid ? "good" : "neutral"}`}>{operation.validation.state}</span></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.configuration.reviewState)}</p><h5>{operationMessage()}</h5></div><span className={`status-badge ${operation.validation.isValid ? "good" : "neutral"}`}>{operation.validation.isValid ? t($ => $.configuration.validStatus) : t($ => $.configuration.invalidStatus)}</span></div>
           {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
-          {operation.validation.findings.length ? <ul className="application-draft-findings">{operation.validation.findings.map((finding) => <li key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong><span>{finding.code}</span><p>{finding.summary}</p></li>)}</ul> : <p className="boundary-note">No validation findings are currently available.</p>}
-          {operation.status === "version_conflict" ? <div className="application-draft-conflict"><strong>Saved version {operation.currentDraftVersion} is newer.</strong><p>Your in-memory edits were not overwritten.</p><button type="button" onClick={continueAfterConflict}>Continue local edits against saved version</button>{list.summaries[0] ? <button type="button" onClick={() => void restoreDraft(list.summaries[0].draftId)}>Restore saved version</button> : null}</div> : null}
-          {!readOnly ? <div className="application-draft-handoff"><button type="button" disabled={!handoffReady} onClick={openIntegration}>Open API Integration</button><button type="button" disabled={!handoffReady} onClick={openPlayground}>Test in Playground</button><button type="button" disabled={operation.status !== "saved" && operation.status !== "restored"} onClick={openPublishReview}>Open Publish Review</button></div> : null}
-          <p className="boundary-note">Handoff contains only application, protocol, and validated model. It never contains form text, credentials, or request input.</p>
+          {operation.validation.findings.length ? <ul className="application-draft-findings">{operation.validation.findings.map((finding) => <li key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong><span>{finding.code}</span><p>{findingMessage(finding.code, finding.field)}</p></li>)}</ul> : <p className="boundary-note">{t($ => $.configuration.noValidationFindings)}</p>}
+          {operation.status === "version_conflict" ? <div className="application-draft-conflict"><strong>{t($ => $.configuration.savedVersionIsNewer, { version: operation.currentDraftVersion })}</strong><p>{t($ => $.configuration.memoryEditsPreserved)}</p><button type="button" onClick={continueAfterConflict}>{t($ => $.configuration.continueLocalEdits)}</button>{list.summaries[0] ? <button type="button" onClick={() => void restoreDraft(list.summaries[0].draftId)}>{t($ => $.configuration.restoreSavedVersion)}</button> : null}</div> : null}
+          {!readOnly ? <div className="application-draft-handoff"><button type="button" disabled={!handoffReady} onClick={openIntegration}>{t($ => $.configuration.openApiIntegration)}</button><button type="button" disabled={!handoffReady} onClick={openPlayground}>{t($ => $.configuration.testInPlayground)}</button><button type="button" disabled={operation.status !== "saved" && operation.status !== "restored"} onClick={openPublishReview}>{t($ => $.configuration.openPublishReview)}</button></div> : null}
+          <p className="boundary-note">{t($ => $.configuration.handoffScopeNotice)}</p>
         </article>
       </div>
 
       <div className="application-draft-lower-grid">
-        <article className="application-draft-diff"><div className="application-api-card-heading"><div><p className="eyebrow">Configuration comparison</p><h5>Read model → draft</h5></div><span className="status-badge neutral">{differences.filter((item) => item.changed).length} changed</span></div>{differences.map((difference) => <div className={difference.changed ? "changed" : "unchanged"} key={difference.field}><strong>{difference.field}</strong><span>{difference.before}</span><span>→</span><span>{difference.after}</span></div>)}</article>
-        <article className="application-draft-saved"><div className="application-api-card-heading"><div><p className="eyebrow">Saved dev/test drafts</p><h5>{list.summary}</h5></div><button type="button" onClick={() => void refreshList()} disabled={!enabled || list.status === "loading"}>Refresh</button></div>{list.failureCode ? <p className="failure-summary">{list.failureCode}</p> : null}{list.summaries.map((summary) => <button type="button" className="application-draft-summary" key={summary.draftId} onClick={() => void restoreDraft(summary.draftId)}><strong>{summary.displayName}</strong><span>v{summary.draftVersion} · {summary.defaultProtocol} · {summary.defaultModel}</span><small>{summary.updatedAt} · {summary.updatedByActorRef}</small></button>)}</article>
+        <article className="application-draft-diff"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.configuration.configurationComparison)}</p><h5>{t($ => $.configuration.readModelToDraft)}</h5></div><span className="status-badge neutral">{differences.filter((item) => item.changed).length} {t($ => $.configuration.changed)}</span></div>{differences.map((difference) => <div className={difference.changed ? "changed" : "unchanged"} key={difference.field}><strong>{difference.field}</strong><span>{difference.before}</span><span>→</span><span>{difference.after}</span></div>)}</article>
+        <article className="application-draft-saved"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.configuration.savedDevelopmentDrafts)}</p><h5>{listMessage}</h5></div><button type="button" onClick={() => void refreshList()} disabled={!enabled || list.status === "loading"}>{t($ => $.configuration.refresh)}</button></div>{list.failureCode ? <p className="failure-summary">{list.failureCode}</p> : null}{list.summaries.map((summary) => <button type="button" className="application-draft-summary" key={summary.draftId} onClick={() => void restoreDraft(summary.draftId)}><strong>{summary.displayName}</strong><span>v{summary.draftVersion} · {summary.defaultProtocol} · {summary.defaultModel}</span><small>{summary.updatedAt} · {summary.updatedByActorRef}</small></button>)}</article>
       </div>
 
       {baseline.applicationKind === "workflow_copilot" || baseline.applicationKind === "docs_qa" ? <article className="application-draft-rag-binding">
-        <div className="application-api-card-heading"><div><p className="eyebrow">Workflow RAG binding</p><h5>Explicit attach or replace</h5></div><button type="button" onClick={() => void loadApprovedBindings()} disabled={!bindingEnabled}>Load approved bindings</button></div>
-        <label>Eligible immutable binding<select value={selectedBindingCandidateId} onChange={(event) => setSelectedBindingCandidateId(event.target.value)} disabled={!bindingEnabled || bindings.summaries.length === 0}><option value="">No approved binding selected</option>{bindings.summaries.map((item) => <option key={item.candidateId} value={item.candidateId} disabled={item.candidateState !== "approved" || item.eligibilityStatus !== "eligible" || !item.bindingRef}>{item.bindingRef?.bindingId ?? item.candidateId} · {item.candidateState} · {item.eligibilityStatus}</option>)}</select></label>
-        {selectedBinding ? <div className="application-draft-binding-evidence"><strong>Source draft {selectedBinding.sourceDraft.draftId} · v{selectedBinding.sourceDraft.draftVersion}</strong><code>{selectedBinding.sourceDraft.draftDigest}</code><code>{selectedBinding.bindingRef?.bindingDigest}</code></div> : <p className="boundary-note">Approve a promotion candidate first. Approval does not attach anything automatically.</p>}
+        <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.configuration.workflowRagBinding)}</p><h5>{t($ => $.configuration.explicitAttachOrReplace)}</h5></div><button type="button" onClick={() => void loadApprovedBindings()} disabled={!bindingEnabled}>{t($ => $.configuration.loadApprovedBindings)}</button></div>
+        <label>{t($ => $.configuration.eligibleImmutableBinding)}<select value={selectedBindingCandidateId} onChange={(event) => setSelectedBindingCandidateId(event.target.value)} disabled={!bindingEnabled || bindings.summaries.length === 0}><option value="">{t($ => $.configuration.noApprovedBindingSelected)}</option>{bindings.summaries.map((item) => <option key={item.candidateId} value={item.candidateId} disabled={item.candidateState !== "approved" || item.eligibilityStatus !== "eligible" || !item.bindingRef}>{item.bindingRef?.bindingId ?? item.candidateId} · {item.candidateState} · {item.eligibilityStatus}</option>)}</select></label>
+        {selectedBinding ? <div className="application-draft-binding-evidence"><strong>{t($ => $.configuration.sourceDraft)}{selectedBinding.sourceDraft.draftId} · v{selectedBinding.sourceDraft.draftVersion}</strong><code>{selectedBinding.sourceDraft.draftDigest}</code><code>{selectedBinding.bindingRef?.bindingDigest}</code></div> : <p className="boundary-note">{t($ => $.configuration.approvePromotionCandidateFirst)}</p>}
         {bindings.failureCode ? <p className="failure-summary">{bindings.failureCode}</p> : null}
-        <div className="application-draft-actions"><button type="button" onClick={() => void restoreBindingSource()} disabled={!selectedBinding}>Restore exact source draft</button><button type="button" onClick={() => void attachBinding()} disabled={!bindingSourceReady || !selectedBinding?.bindingRef}>Attach immutable binding</button></div>
-        {draft.workflowRAGBindingRef ? <p className="binding-status"><strong>Current draft binding</strong><code>{draft.workflowRAGBindingRef.bindingId} · v{draft.workflowRAGBindingRef.bindingVersion}</code><code>{draft.workflowRAGBindingRef.bindingDigest}</code></p> : null}
-        <p className="boundary-note">Attach creates a new draft version through existing CAS. It cannot carry configuration edits, and it does not create a publish candidate.</p>
+        <div className="application-draft-actions"><button type="button" onClick={() => void restoreBindingSource()} disabled={!selectedBinding}>{t($ => $.configuration.restoreExactSourceDraft)}</button><button type="button" onClick={() => void attachBinding()} disabled={!bindingSourceReady || !selectedBinding?.bindingRef}>{t($ => $.configuration.attachImmutableBinding)}</button></div>
+        {draft.workflowRAGBindingRef ? <p className="binding-status"><strong>{t($ => $.configuration.currentDraftBinding)}</strong><code>{draft.workflowRAGBindingRef.bindingId} · v{draft.workflowRAGBindingRef.bindingVersion}</code><code>{draft.workflowRAGBindingRef.bindingDigest}</code></p> : null}
+        <p className="boundary-note">{t($ => $.configuration.attachBindingCasNotice)}</p>
       </article> : null}
 
-      <p className="boundary-note">Drafts do not create, publish, delete, or update formal applications. Offline edits stay in memory; production authorization, API keys, quota, billing, provider credentials, fallback, and load balancing remain disabled.</p>
+      <p className="boundary-note">{t($ => $.configuration.draftBoundaryNotice)}</p>
     </section>
   );
 }

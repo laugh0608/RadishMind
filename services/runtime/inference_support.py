@@ -12,6 +12,7 @@ from urllib import error, request
 import jsonschema
 
 from .artifact_summary import extract_artifact_summary_metadata
+from .prompt_application_inference import build_prompt_application_messages, is_prompt_application_request
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -1293,6 +1294,8 @@ def build_ghost_completion_messages(copilot_request: dict[str, Any]) -> list[dic
 
 
 def build_messages(copilot_request: dict[str, Any]) -> list[dict[str, str]]:
+    if is_prompt_application_request(copilot_request):
+        return build_prompt_application_messages(copilot_request)
     project = str(copilot_request.get("project") or "").strip()
     task = str(copilot_request.get("task") or "").strip()
     if project == "radish" and task == "answer_docs_question":

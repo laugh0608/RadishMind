@@ -168,6 +168,33 @@ test("Prompt Session v2 rejects v1 schema and replay output", async () => {
   );
 });
 
+test("Prompt Session v2 preserves pre-execution authority failure without accepting unbound output", async () => {
+  const blocked = {
+    ...turnEnvelope(), session: null, turn: null, action_safety: null,
+    prompt_output: undefined, result_artifact: undefined,
+    failure_code: "application_session_authority_changed",
+  };
+  const execute = () => executePromptApplicationSessionTurn(config, mapFixtureSession(), { question: "审查" }, "blocked-turn");
+  globalThis.fetch = async () => jsonResponse(blocked);
+  const result = await execute();
+  assert.equal(result.status, "blocked");
+  assert.equal(result.failureCode, "application_session_authority_changed");
+  assert.equal(result.session, null);
+  assert.equal(result.turn, null);
+  assert.equal(result.output, "");
+  assert.equal(result.resultArtifact, null);
+  for (const patch of [
+    { failure_code: null }, { failure_code: "" }, { idempotent_replay: true },
+    { session_id: "appsess_bbbbbbbbbbbbbbbb" }, { application_id: "app_other" },
+    { turn: turnEnvelope().turn }, { prompt_output: "unbound answer" },
+    { result_artifact: artifactSummary() }, { result_artifact_failure_code: "save_failed" },
+    { variables: { question: "private" } },
+  ]) {
+    globalThis.fetch = async () => jsonResponse({ ...blocked, ...patch });
+    assert.equal((await execute()).failureCode, "application_session_response_invalid");
+  }
+});
+
 test("Prompt Session v2 rejects raw variable material in response metadata", async () => {
   const invalid = turnEnvelope();
   invalid.turn.variables = { question: "不应回流" };

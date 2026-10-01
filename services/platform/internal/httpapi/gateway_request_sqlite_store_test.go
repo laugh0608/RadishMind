@@ -325,10 +325,15 @@ func TestGatewayProviderAttemptSQLiteCheckpointHasOneConcurrentWinner(t *testing
 	root := gatewayRequestTestRecord(ctx, plan.RootRequestID, time.Now().UTC())
 	record, err := newGatewayProviderAttemptHistoryRecord(root, plan)
 	store := newSQLiteGatewayRequestStore(runtime.DB())
-	if err != nil || store.CreateRequest(ctx, &record) != nil {
+	if err != nil {
 		t.Fatalf("create concurrent SQLite v3 root: %v", err)
 	}
-	service := newGatewayProviderAttemptHistoryService(store)
+	if err = store.CreateRequest(ctx, &record); err != nil {
+		t.Fatalf("store concurrent SQLite v3 root: %v", err)
+	}
+	barrierStore := &gatewayProviderAttemptReadBarrierStore{gatewayRequestStore: store}
+	barrierStore.readers.Add(2)
+	service := newGatewayProviderAttemptHistoryService(barrierStore)
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var wait sync.WaitGroup
@@ -353,6 +358,8 @@ func TestGatewayProviderAttemptSQLiteCheckpointHasOneConcurrentWinner(t *testing
 			successes++
 		} else if errors.Is(result, errGatewayRequestStoreConflict) {
 			conflicts++
+		} else {
+			t.Fatalf("unexpected SQLite checkpoint error: %v", result)
 		}
 	}
 	if successes != 1 || conflicts != 1 {

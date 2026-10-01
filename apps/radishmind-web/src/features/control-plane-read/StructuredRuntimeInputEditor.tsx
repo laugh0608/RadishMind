@@ -1,3 +1,7 @@
+import type { TFunction } from "i18next";
+import type { StructuredRuntimeInputFieldError } from "./structuredRuntimeInput.ts";
+import "../../i18n/workflowInputResources.ts";
+import { useTranslation } from "react-i18next";
 import type {
   StructuredRuntimeInputContract,
   StructuredRuntimeInputDrafts,
@@ -6,12 +10,13 @@ import type {
 type Props = {
   contract: StructuredRuntimeInputContract;
   drafts: StructuredRuntimeInputDrafts;
-  fieldErrors: Record<string, string>;
+  fieldErrors: Record<string, StructuredRuntimeInputFieldError>;
   disabled?: boolean;
   onChange: (drafts: StructuredRuntimeInputDrafts) => void;
 };
 
 export default function StructuredRuntimeInputEditor({ contract, drafts, fieldErrors, disabled = false, onChange }: Props) {
+  const { t } = useTranslation("workflow");
   function update(name: string, value: string | boolean | undefined) {
     const next = { ...drafts };
     if (value === undefined) delete next[name];
@@ -20,7 +25,7 @@ export default function StructuredRuntimeInputEditor({ contract, drafts, fieldEr
   }
 
   return <fieldset className="structured-runtime-input" disabled={disabled}>
-    <legend>结构化运行输入</legend>
+    <legend>{t($ => $.input.structuredRuntimeInput)}</legend>
     <div className="structured-runtime-input-contract">
       <strong>{contract.contractId}</strong>
       <span>{contract.summary}</span>
@@ -37,10 +42,10 @@ export default function StructuredRuntimeInputEditor({ contract, drafts, fieldEr
         </div>
         {field.description ? <p>{field.description}</p> : null}
         {field.valueType === "boolean" ? <div className="structured-runtime-boolean" role="group" aria-labelledby={`structured-runtime-input-${field.name}-label`}>
-          <span>未设置</span>
+          <span>{t($ => $.input.notSet)}</span>
           <label><input type="radio" name={`structured-runtime-input-${field.name}`} checked={drafts[field.name] === true} onChange={() => update(field.name, true)} />true</label>
           <label><input type="radio" name={`structured-runtime-input-${field.name}`} checked={drafts[field.name] === false} onChange={() => update(field.name, false)} />false</label>
-          {Object.hasOwn(drafts, field.name) ? <button type="button" className="text-button" onClick={() => update(field.name, undefined)}>清除</button> : null}
+          {Object.hasOwn(drafts, field.name) ? <button type="button" className="text-button" onClick={() => update(field.name, undefined)}>{t($ => $.input.clear)}</button> : null}
         </div> : <input
           id={`structured-runtime-input-${field.name}`}
           type="text"
@@ -50,13 +55,29 @@ export default function StructuredRuntimeInputEditor({ contract, drafts, fieldEr
           aria-describedby={fieldErrors[field.name] ? `structured-runtime-input-${field.name}-error` : undefined}
           onChange={(event) => update(field.name, event.currentTarget.value)}
         />}
-        {fieldErrors[field.name] ? <p className="structured-runtime-input-error" id={`structured-runtime-input-${field.name}-error`} role="alert">{fieldErrors[field.name]}</p> : null}
+        {fieldErrors[field.name] ? <p className="structured-runtime-input-error" id={`structured-runtime-input-${field.name}-error`} role="alert">{structuredInputErrorMessage(t, fieldErrors[field.name])}</p> : null}
       </div>)}
     </div>
-    <p className="structured-runtime-input-boundary">输入只在当前请求期间保留；持久化记录仅保存合同、字段名／类型、bytes 与 digest。</p>
+    <p className="structured-runtime-input-boundary">{t($ => $.input.inputsAreRetainedOnlyForTheCurrentRequestDurableRecords)}</p>
   </fieldset>;
 }
 
 function shortDigest(value: string): string {
   return value.length > 24 ? `${value.slice(0, 23)}…` : value;
+}
+
+export function structuredInputErrorMessage(t: TFunction<"workflow">, error: StructuredRuntimeInputFieldError): string {
+  switch (error) {
+    case "unknown_field": return t($ => $.input.error_unknown_field);
+    case "required": return t($ => $.input.error_required);
+    case "boolean": return t($ => $.input.error_boolean);
+    case "string": return t($ => $.input.error_string);
+    case "integer": return t($ => $.input.error_integer);
+    case "number": return t($ => $.input.error_number);
+    case "string_budget": return t($ => $.input.error_string_budget);
+    case "secret_material": return t($ => $.input.error_secret_material);
+    case "integer_syntax": return t($ => $.input.error_integer_syntax);
+    case "integer_range": return t($ => $.input.error_integer_range);
+    case "number_syntax": return t($ => $.input.error_number_syntax);
+  }
 }

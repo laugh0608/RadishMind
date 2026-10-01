@@ -35,21 +35,22 @@
       "activeWorkflowDraftOverride: editableWorkflowDraft",
       "activeWorkflowDraft,",
       "cloneWorkflowDraftForEditing(selectedWorkflowDraft)",
-      "handleWorkflowDraftLabelChange",
-      "handleWorkflowDraftSummaryChange",
-      "handleWorkflowDraftNodeLabelChange",
-      "handleWorkflowDraftEdgeConditionChange",
+      "onUpdateDraftLabel",
+      "onUpdateDraftSummary",
+      "onUpdateNodeLabel",
+      "onUpdateEdgeCondition",
       "handleWorkflowDraftEditReset",
       "localOnlyInteraction: \"local_edit\"",
       "saveWorkflowDraftDevRecord(",
       "validateWorkflowDraftDevRecord(",
       "readWorkflowDraftDevRecord(",
       "setWorkflowDraftEditDirty(false)",
-      "onUpdateDraftLabel={handleWorkflowDraftLabelChange}",
-      "onUpdateDraftSummary={handleWorkflowDraftSummaryChange}",
-      "onUpdateNodeLabel={handleWorkflowDraftNodeLabelChange}",
-      "onUpdateEdgeCondition={handleWorkflowDraftEdgeConditionChange}",
-      "onResetDraftEdits={handleWorkflowDraftEditReset}"
+      "const onUpdateDraftLabel:",
+      "const onUpdateDraftSummary:",
+      "onUpdateNodeLabel={onUpdateNodeLabel}",
+      "const onUpdateEdgeCondition:",
+      "onResetDraftEdits={handleWorkflowDraftEditReset}",
+      "onEditDraft={editWorkflowDraft}"
     ],
     "required_panel_literals": [
       "workflow-draft-edit-grid",
@@ -73,6 +74,13 @@
       ".workflow-draft-node-label-input",
       ".workflow-draft-edge-condition-input",
       ".workflow-draft-edit-state"
+    ],
+    "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
+      "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftEditing.ts",
+      "apps/radishmind-web/src/features/control-plane-read/workflowDraftCreation.ts"
     ]
   },
   "required_doc_references": {

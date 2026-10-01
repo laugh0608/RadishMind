@@ -251,7 +251,7 @@ func (coordinator applicationInteractionTurnCoordinator) executeWorkflowTurn(
 		response.AdvisoryOutput = result.AdvisoryOutput
 		response.FailureCode, response.FailureSummary = "", ""
 	}
-	if input.SaveResult {
+	if input.SaveResult && completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
 		return coordinator.captureResultArtifact(ctx, response, "text/markdown", response.AdvisoryOutput)
 	}
 	return response
@@ -316,7 +316,7 @@ func (coordinator applicationInteractionTurnCoordinator) executePromptTurn(
 		response.PromptOutput = result.Output
 		response.FailureCode, response.FailureSummary = "", ""
 	}
-	if input.SaveResult {
+	if input.SaveResult && completed.Turn != nil && completed.Turn.Status == string(WorkflowRunStatusSucceeded) {
 		return coordinator.captureResultArtifact(ctx, response, "text/markdown", response.PromptOutput)
 	}
 	return response

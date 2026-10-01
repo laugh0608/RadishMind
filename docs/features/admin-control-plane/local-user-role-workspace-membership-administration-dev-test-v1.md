@@ -2,7 +2,7 @@
 
 状态：`local_user_role_workspace_membership_administration_dev_test_v1_completed`
 
-更新时间：2026-08-23
+更新时间：2026-09-14
 
 ## 功能定位
 
@@ -57,7 +57,9 @@
 
 ## 内建角色目录
 
-角色目录是代码内 canonical policy，不是新的数据库 owner。每个定义至少包含：
+角色目录是代码内 canonical policy，不是新的数据库 owner。2026-09-14 已将权限目录与四角色策略集中到 `services/platform/internal/workspacepolicy/`，身份管理、请求授权和邀请直接消费该包。目录版本、digest、JSON 字段及权限矩阵不变；assignment 历史兼容、目录漂移、有效期与最后管理员保护仍由既有身份代码负责，成员撤销、bootstrap 和邀请认领保持原事务。包边界与验证见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)。
+
+每个定义至少包含：
 
 - `catalog_version`
 - `role_key`
