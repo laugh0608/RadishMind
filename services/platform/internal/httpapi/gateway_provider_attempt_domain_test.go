@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -247,10 +248,15 @@ func TestGatewayProviderAttemptMemoryCheckpointHasOneConcurrentWinner(t *testing
 	plan := gatewayProviderAttemptTestPlan(t, "request-concurrent-attempt")
 	record := gatewayRequestTestRecord(ctx, plan.RootRequestID, time.Now().UTC())
 	v3, err := newGatewayProviderAttemptHistoryRecord(record, plan)
-	if err != nil || store.CreateRequest(ctx, &v3) != nil {
+	if err != nil {
 		t.Fatal(err)
 	}
-	service := newGatewayProviderAttemptHistoryService(store)
+	if err = store.CreateRequest(ctx, &v3); err != nil {
+		t.Fatal(err)
+	}
+	barrierStore := &gatewayProviderAttemptReadBarrierStore{gatewayRequestStore: store}
+	barrierStore.readers.Add(2)
+	service := newGatewayProviderAttemptHistoryService(barrierStore)
 	start := make(chan struct{})
 	results := make(chan error, 2)
 	var wait sync.WaitGroup
@@ -267,14 +273,36 @@ func TestGatewayProviderAttemptMemoryCheckpointHasOneConcurrentWinner(t *testing
 	wait.Wait()
 	close(results)
 	successes := 0
+	conflicts := 0
 	for result := range results {
 		if result == nil {
 			successes++
+		} else if errors.Is(result, errGatewayRequestStoreConflict) {
+			conflicts++
+		} else {
+			t.Fatalf("unexpected memory checkpoint error: %v", result)
 		}
 	}
-	if successes != 1 {
-		t.Fatalf("expected one checkpoint winner, got %d", successes)
+	if successes != 1 || conflicts != 1 {
+		t.Fatalf("memory attempt checkpoint CAS drifted: successes=%d conflicts=%d", successes, conflicts)
 	}
+}
+
+// Both contenders must read the same revision before either can write a checkpoint.
+// A start signal alone also permits a later read, which tests a different transition.
+type gatewayProviderAttemptReadBarrierStore struct {
+	gatewayRequestStore
+	readers sync.WaitGroup
+}
+
+func (store *gatewayProviderAttemptReadBarrierStore) ReadRequest(
+	requestContext GatewayRequestContext,
+	requestID string,
+) (GatewayRequestRecord, bool, error) {
+	record, found, err := store.gatewayRequestStore.ReadRequest(requestContext, requestID)
+	store.readers.Done()
+	store.readers.Wait()
+	return record, found, err
 }
 
 func adminProviderRouteV2TestDraftInput(expectedRevision int) AdminProviderRouteDraftInput {
