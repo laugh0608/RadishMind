@@ -41,5 +41,19 @@ export const identity = {
   "authenticationFailed": "本地 ID 或密码无效。停用账户也返回相同提示。",
   "serviceFailure": "无法验证本地身份服务，请重试或联系管理员。",
   "recentAuthentication": "修改登录方式前，请退出并重新认证。",
-  "keepLoginMethod": "至少保留一种有效的本地凭据或外部身份。"
+  "keepLoginMethod": "至少保留一种有效的本地凭据或外部身份。",
+  "sessionControl": "本地身份会话",
+  "loadingClaim": "正在加载邀请认领…",
+  "loadingSecurity": "正在加载账户安全…",
+  "authenticationRequired": "请重新登录后继续。",
+  "scopeDenied": "会话安全校验未通过。请重新加载并登录后重试。",
+  "invalidInput": "请核对必填字段和本地 ID。密码须至少包含 12 个字符。",
+  "invalidReturnTarget": "返回地址无效。请打开 RadishMind 首页后重试。",
+  "accountConflict": "无法创建此账户。请核对本地 ID，或登录已有账户。",
+  "alreadyAuthenticated": "已有有效会话。请重新加载以核对当前账户。",
+  "oidcDisabled": "此环境未开放 Radish 登录。",
+  "identityUnbound": "此 Radish 身份尚未关联。请先使用本地账户登录，再进行关联。",
+  "identityConflict": "身份关联已变更，或与已有关系冲突。请重新加载账户后再试。",
+  "identityDenied": "此身份操作未获授权。请联系本地开发管理员。",
+  "oidcFailed": "无法验证 Radish 登录。请重新发起登录；若仍失败，请联系本地开发管理员。"
 } as const;

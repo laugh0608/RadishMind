@@ -41,5 +41,19 @@ export const identity = {
   "authenticationFailed": "The local ID or password is invalid. Disabled accounts receive the same response.",
   "serviceFailure": "The local identity service could not be verified.",
   "recentAuthentication": "Sign out and authenticate again before changing a login method.",
-  "keepLoginMethod": "Keep at least one active local credential or external identity."
+  "keepLoginMethod": "Keep at least one active local credential or external identity.",
+  "sessionControl": "Local identity session",
+  "loadingClaim": "Loading invitation claim…",
+  "loadingSecurity": "Loading account security…",
+  "authenticationRequired": "Sign in again to continue.",
+  "scopeDenied": "The session security check failed. Reload and sign in again before retrying.",
+  "invalidInput": "Check the required fields and local ID. Passwords must have at least 12 characters.",
+  "invalidReturnTarget": "The return address is invalid. Open the RadishMind home page and try again.",
+  "accountConflict": "This account could not be created. Check the local ID or sign in to an existing account.",
+  "alreadyAuthenticated": "A session is already active. Reload to check the current account.",
+  "oidcDisabled": "Radish sign-in is unavailable in this environment.",
+  "identityUnbound": "This Radish identity is not linked. Sign in with a local account before linking it.",
+  "identityConflict": "The identity binding changed or conflicts with an existing binding. Reload the account before trying again.",
+  "identityDenied": "This identity action is not authorized. Contact the local development administrator.",
+  "oidcFailed": "Radish sign-in could not be verified. Restart sign-in; if it still fails, contact the local development administrator."
 } as const;

@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-项目所有者已指定 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)为下一重点。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；A、B 阶段已完成，草案、Definition、模板、RAG、HTTP Tool 与离线投影解释均通过双语验收；下一步为 C 阶段身份与管理；真实模型手工试用仍暂停。
+项目所有者已指定 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)为下一重点。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；A、B 阶段已完成，草案、Definition、模板、RAG、HTTP Tool 与离线投影解释均通过双语验收；C 阶段认证与账户安全已通过双语验收，下一步为工作区、成员与邀请；真实模型手工试用仍暂停。
 
 [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
 
@@ -38,7 +38,7 @@
 | `Model Gateway / API Distribution` | [模型网关与 API 分发](model-gateway-api-distribution.md) | [提供方、准入、用量、价格与回退](gateway/README.md) |
 | `Workflow / Agent Runtime` | [工作流与运行时](workflow-agent-runtime.md) | [草案、定义、执行、模板与 RAG](workflow/README.md) |
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | 固定响应测试后端与私有存储已完成；真实后端和公开交付独立验收，不另立第五产品主线 |
-| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A、B 阶段完成；下一步为 C 阶段身份与管理，D 至 F 未进入 |
+| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A、B 阶段完成；C 阶段认证与账户安全已验收，下一步为工作区 / 成员 / 邀请；D 至 F 未进入 |
 
 ## 常用用户流程
 

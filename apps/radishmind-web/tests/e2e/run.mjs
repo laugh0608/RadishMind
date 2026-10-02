@@ -18,9 +18,9 @@ await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
 const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
-const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection"];
+const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity"];
 if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
-  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection selector.");
+  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection|identity selector.");
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
@@ -102,8 +102,14 @@ async function runSuite(suite) {
       child.once("error", reject);
       child.once("close", (code, signal) => accept({ code, signal }));
     });
-    // The startup/readiness path awaits this rejection; avoid an unhandled error while wiring output.
+    // A grandchild may keep stdout open after its launcher exits. Observe exit
+    // for liveness, and close only when waiting for cleanup and flushed output.
+    child.exited = new Promise((accept, reject) => {
+      child.once("error", reject);
+      child.once("exit", (code, signal) => accept({ code, signal }));
+    });
     child.finished.catch(() => {});
+    child.exited.catch(() => {});
     if (child.pid) groups.push(child);
     return child;
   }
@@ -125,9 +131,9 @@ async function runSuite(suite) {
   let exitCode = 1;
   try {
     await writeFile(configPath, "{}\n", { mode: 0o600 });
-    promptProvider = await startPromptProvider();
+    if (suite !== "identity") promptProvider = await startPromptProvider();
     if (interrupted) throw new Error("Interrupted during configuration setup.");
-    const launcher = start("bash", [
+    const launcher = start(suite === "identity" ? process.execPath : "bash", suite === "identity" ? [join(webRoot, "tests/e2e/identity-services.mjs")] : [
       join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
       "--mode", "dev-live", ...(suite === "http-tool" ? ["--workflow-definition-http-tool-local-product"] : suite === "rag-application" ? ["--workflow-rag-application-local-product"] : suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", suite === "templates" ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
       "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
@@ -139,13 +145,15 @@ async function runSuite(suite) {
         ...environment,
         RADISHMIND_PLATFORM_CONFIG: configPath,
         RADISHMIND_PLATFORM_PROVIDER: "mock",
-        RADISHMIND_MODEL_PROFILE: "prompt-e2e",
-        RADISHMIND_MODEL_PROFILE_FALLBACKS: "prompt-e2e",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_NAME: "prompt-e2e-model",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_BASE_URL: `${promptProvider.url}/v1`,
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_KEY: "prompt-e2e-fixture-only",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_STYLE: "openai-compatible",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_REQUEST_TIMEOUT_SECONDS: "5",
+        ...(promptProvider ? {
+          RADISHMIND_MODEL_PROFILE: "prompt-e2e",
+          RADISHMIND_MODEL_PROFILE_FALLBACKS: "prompt-e2e",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_NAME: "prompt-e2e-model",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_BASE_URL: `${promptProvider.url}/v1`,
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_KEY: "prompt-e2e-fixture-only",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_STYLE: "openai-compatible",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_REQUEST_TIMEOUT_SECONDS: "5",
+        } : {}),
         RADISHMIND_SQLITE_DEV_DATABASE_PATH: join(runtime, "workflow.db"),
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -169,25 +177,25 @@ async function runSuite(suite) {
       await Promise.race([
         readiness,
         loggingFailure,
-        launcher.finished.then(({ code, signal }) => { throw new Error(`Service launcher exited before readiness (${code ?? signal}). See ${output}/services.`); }),
+        launcher.exited.then(({ code, signal }) => { throw new Error(`Service launcher exited before readiness (${code ?? signal}). See ${output}/services.`); }),
         delay(150_000, null, { signal: startupTimer.signal }).then(() => { throw new Error("Isolated service startup timed out."); }),
       ]);
     } finally {
       startupTimer.abort();
     }
     if (interrupted) throw new Error("Interrupted during startup.");
-    console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000; Prompt fixture ${promptProvider.url}.`);
+    console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000${promptProvider ? `; Prompt fixture ${promptProvider.url}` : "; identity only, no model provider"}.`);
     const tests = start(process.execPath, [
       join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
       "--config", "tests/e2e/playwright.config.ts", ...testArguments,
     ], {
-      env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, RADISHMIND_E2E_PROVIDER_URL: promptProvider.url },
+      env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, ...(promptProvider ? { RADISHMIND_E2E_PROVIDER_URL: promptProvider.url } : {}) },
       stdio: "inherit",
     });
     const result = await Promise.race([
       tests.finished,
       loggingFailure,
-      launcher.finished.then(() => { throw new Error("Services exited while browser tests were running."); }),
+      launcher.exited.then(() => { throw new Error("Services exited while browser tests were running."); }),
     ]);
     exitCode = result.code ?? 1;
   } catch (error) {
