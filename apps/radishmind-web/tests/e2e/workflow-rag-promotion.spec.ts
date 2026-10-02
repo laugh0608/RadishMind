@@ -29,7 +29,12 @@ test("promotion retains evidence and input through locale changes, CAS conflict,
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     expect(requests, "Language changes must not fetch, decide, attach or execute").toHaveLength(count);
   }
-  async function openStage() { await page.locator('a[href="#application-publish-review"]').first().click(); }
+  async function openStage() {
+    await page.locator('a[href="#application-publish-review"]:visible').first().click();
+    const review = page.locator('button[aria-controls="application-development-owner-surface"]');
+    if (await review.getAttribute("aria-expanded") === "false") await review.click();
+    await expect(panel).toBeVisible();
+  }
   await openStage(); await button("load").click(); await expect(button("create")).toBeEnabled();
   const heldCreate = await holdDraftResponse(page, promotionPath, "POST"); let candidateId = "";
   try {
