@@ -54,7 +54,9 @@
 
 RAG 晋级审查沿用同一运行器，增加独立 `rag-promotion` 组与既有 `--workflow-rag-promotion-local-product`，使用临时 SQLite 及合成来源证据。晋级创建、人工决定和配置交接不调用模型；语言切换只验证展示和状态保持。晋级窗口的四组按顺序运行，`--suite` 可选择单组；晋级组中英各两轮共 4 次通过，含等待 / 冲突切换、配置交接零写入和取消后资格失效；三视口已检查，测试服务与临时库已清理。其余组未在同一窗口重跑，证据见[本周周志](../devlogs/2026-W40.md#2026-10-02-rag-晋级审查双语迁移)。
 
-应用 RAG 运行复用相同运行器并新增 `rag-application` 独立组，使用既有 `--workflow-rag-application-local-product`、合成权威来源和临时 SQLite。默认入口顺序执行五组；新增组只扩展既有浏览器 job，不新增依赖、工作流或质量门禁。应用运行组中英各两轮共 4 次通过，三视口已复核，所管服务与临时库已清理；其余组未在同一窗口重跑，详细验收结果见[本周周志](../devlogs/2026-W40.md#2026-10-02-rag-应用运行双语迁移)。
+应用 RAG 运行复用相同运行器并新增 `rag-application` 独立组，使用既有 `--workflow-rag-application-local-product`、合成权威来源和临时 SQLite。该窗口默认入口顺序执行五组；新增组只扩展既有浏览器 job，不新增依赖、工作流或质量门禁。应用运行组中英各两轮共 4 次通过，三视口已复核，所管服务与临时库已清理；其余组未在同一窗口重跑，详细验收结果见[本周周志](../devlogs/2026-W40.md#2026-10-02-rag-应用运行双语迁移)。
+
+HTTP Tool 双语切片新增独立 `http-tool` 组，默认入口现依次运行六组。新组使用既有 `--workflow-definition-http-tool-local-product`，通过公开 API 准备合成图，再从 UI 验证两类来源的计划 / 决定 / 执行。产品传输保留注册的 `.invalid` 目标及网络限制，以一次工具尝试、一次确认、零模型调用的预期传输失败覆盖消费与恢复边界；不添加本地传输白名单或生产能力。两条流程中英各两轮共 8 次通过，三视口与清理已复核；本窗口未重跑其余五组，详见[本周周志](../devlogs/2026-W40.md#2026-10-02-http-tool-双语迁移)。
 
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
 - 每组运行分别生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。

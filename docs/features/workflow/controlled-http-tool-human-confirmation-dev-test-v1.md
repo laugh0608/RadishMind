@@ -247,6 +247,8 @@ Draft Designer / Review Handoff 只在真实 dev source、已保存精确版本�
 
 默认 offline / sample surface 不发送请求，也不得伪造已批准或已执行记录。
 
+2026-10-02 的 [i18n B 阶段](../web-internationalization-zh-en-v1.md#b-阶段-http-tool2026-10-02)已完成计划、确认、执行、失败恢复与只读动作安全说明的中英迁移；工具 `locale`、输入和精确权威引用不随界面语言改变。独立浏览器窗口覆盖草案来源运行 v2 / Definition 来源运行 v9 两条路径、真实版本冲突、预期传输失败及刷新不重试，未重跑或替代原 PostgreSQL / 服务重启验收，也未放宽网络或生产边界。
+
 ## 实施拆分与完成定义
 
 批次 A 当前已完成代码实施与本地可执行证据：版本化 definition / profile / plan / decision / audit / run v2 schema、`tool_version=1` 与摘要绑定、create / detail / decisions route、三种 store、CAS / expiry / invalidation、SQLite 增量 migration、PostgreSQL `0006` migration、Web durable review 与独立 grant 提示均已落地。Go 定向 / race、SQLite restart、契约 checker、Web 92 项测试与 build 已通过。

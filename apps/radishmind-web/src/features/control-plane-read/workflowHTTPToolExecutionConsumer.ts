@@ -27,7 +27,7 @@ const FORBIDDEN_EXECUTION_FIELDS = new Set([
 ]);
 
 export type WorkflowHTTPToolExecutionState = {
-  status: "disabled" | "idle" | "executing" | "succeeded" | "failed" | "outcome_unknown";
+  status: "disabled" | "idle" | "restoring" | "executing" | "succeeded" | "failed" | "outcome_unknown";
   summary: string;
   failureCode: string;
   requestId: string;

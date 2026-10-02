@@ -172,6 +172,8 @@ detail、decision 和 execution 继续复用既有 plan 资源路由。权限要
 
 专题至此关闭；后续产品顺位回到 [功能设计文档入口](../README.md) 选择新的长期功能目标，不从本专题派生批次 E、平行 owner 或同层 gate-only 切片。
 
+2026-10-02 的 [i18n B 阶段](../web-internationalization-zh-en-v1.md#b-阶段-http-tool2026-10-02)已完成计划、确认、执行、失败恢复与只读动作安全说明的中英迁移；工具 `locale`、输入和精确权威引用不随界面语言改变。独立浏览器窗口覆盖草案来源运行 v2 / Definition 来源运行 v9 两条路径、真实版本冲突、预期传输失败及刷新不重试，未重跑或替代原 PostgreSQL / 服务重启验收，也未放宽网络或生产边界。
+
 ## 验收方式
 
 - contract：错误 source union、未知字段、非法 profile、digest 漂移和 forbidden material 全部拒绝。

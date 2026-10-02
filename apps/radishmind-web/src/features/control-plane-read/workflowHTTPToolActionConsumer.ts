@@ -229,6 +229,7 @@ export type WorkflowHTTPToolActionEligibility = {
 };
 
 export type WorkflowHTTPToolPublicArgumentsValidation = {
+  reason: "resource" | "locale" | "sensitive" | "";
   valid: boolean;
   failureCode: string;
   summary: string;
@@ -560,15 +561,16 @@ export function validateWorkflowHTTPToolPublicArguments(
   const resourceKey = input.resourceKey.trim();
   const locale = input.locale?.trim() ?? "";
   if (!SAFE_RESOURCE_KEY_PATTERN.test(resourceKey)) {
-    return invalidArguments("resource_key must be a stable 1–160 character public resource identifier.");
+    return invalidArguments("resource", "resource_key must be a stable 1–160 character public resource identifier.");
   }
   if (locale && !SAFE_LOCALE_PATTERN.test(locale)) {
-    return invalidArguments("locale must be a short language tag such as zh-CN or en.");
+    return invalidArguments("locale", "locale must be a short language tag such as zh-CN or en.");
   }
   if (containsSensitiveText(resourceKey) || containsSensitiveText(locale)) {
-    return invalidArguments("Public arguments contain disallowed transport or secret material.");
+    return invalidArguments("sensitive", "Public arguments contain disallowed transport or secret material.");
   }
   return {
+    reason: "",
     valid: true,
     failureCode: "",
     summary: "Public arguments are valid for server-side definition validation.",
@@ -1138,8 +1140,8 @@ function failedState(
   };
 }
 
-function invalidArguments(summary: string): WorkflowHTTPToolPublicArgumentsValidation {
-  return { valid: false, failureCode: "workflow_tool_arguments_invalid", summary, value: null };
+function invalidArguments(reason: WorkflowHTTPToolPublicArgumentsValidation["reason"], summary: string): WorkflowHTTPToolPublicArgumentsValidation {
+  return { reason, valid: false, failureCode: "workflow_tool_arguments_invalid", summary, value: null };
 }
 
 function containsForbiddenResponse(value: unknown): boolean {

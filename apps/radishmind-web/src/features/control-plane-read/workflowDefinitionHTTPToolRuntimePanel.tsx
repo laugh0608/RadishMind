@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowHTTPToolResources.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -40,6 +42,7 @@ export default function WorkflowDefinitionHTTPToolRuntimePanel({
   onRunRecorded,
   onOpenRun,
 }: Props) {
+  const { t } = useTranslation("workflow");
   const epochRef = useRef(0);
   const liveConfig = useMemo(() => ({ ...config, workspaceId }), [workspaceId]);
   const [actionState, setActionState] = useState(() => initialWorkflowHTTPToolActionConsumerState(liveConfig));
@@ -86,7 +89,7 @@ export default function WorkflowDefinitionHTTPToolRuntimePanel({
       if (epochRef.current !== epoch) return;
       setActionState(state);
       if (state.actionPlan?.status !== "consumed" || !reference.runId) return;
-      setExecutionState((current) => ({ ...current, summary: "Reloading the exact durable v9 run; no execution request is sent." }));
+      setExecutionState((current) => ({ ...current, status: "restoring", summary: "Reloading the exact durable v9 run; no execution request is sent." }));
       const restored = await restoreWorkflowHTTPToolExecutionState(liveConfig, state.actionPlan, reference.runId);
       if (epochRef.current === epoch) setExecutionState(restored);
     });
@@ -150,11 +153,11 @@ export default function WorkflowDefinitionHTTPToolRuntimePanel({
     if (state.run) onRunRecorded(state.run.runId);
   }
 
-  return <div className="workflow-definition-http-tool-runtime" aria-label="Workflow Definition HTTP Tool controlled runtime">
+  return <div className="workflow-definition-http-tool-runtime" aria-label={t($ => $.httpTool.definitionRuntime)}>
     <WorkflowHTTPToolActionPanel
       sectionId="workflow-definition-http-tool-action-review"
       source={{ kind: "workflow_definition", id: version.definitionId, version: version.version,
-        nodeId: toolNode?.nodeId ?? "", toolId: toolNode?.toolRef ?? "", label: "Exact active Definition" }}
+        nodeId: toolNode?.nodeId ?? "", toolId: toolNode?.toolRef ?? "" }}
       consumerState={actionState}
       eligibility={eligibility}
       permissions={permissions}
@@ -177,6 +180,6 @@ export default function WorkflowDefinitionHTTPToolRuntimePanel({
       onModelChange={setModel}
       onExecute={() => void execute()}
     />
-    {executionState.run ? <div className="workflow-executor-action-row"><button type="button" onClick={() => onOpenRun?.(executionState.run!.runId)}>Open v9 evidence in Run History</button></div> : null}
+    {executionState.run ? <div className="workflow-executor-action-row"><button type="button" onClick={() => onOpenRun?.(executionState.run!.runId)}>{t($ => $.httpTool.openRun)}</button></div> : null}
   </div>;
 }

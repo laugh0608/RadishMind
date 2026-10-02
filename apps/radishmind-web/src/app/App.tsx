@@ -40,14 +40,12 @@ import {
   type WorkflowHTTPToolHumanDecision,
   type WorkflowHTTPToolPublicArguments,
 } from "../features/control-plane-read/workflowHTTPToolActionConsumer";
-import { WorkflowHTTPToolActionPanel } from "../features/control-plane-read/workflowHTTPToolActionPanel";
 import {
   executeWorkflowHTTPToolActionPlan,
   initialWorkflowHTTPToolExecutionState,
   restoreWorkflowHTTPToolExecutionState,
   type WorkflowHTTPToolExecutionState,
 } from "../features/control-plane-read/workflowHTTPToolExecutionConsumer.ts";
-import { WorkflowHTTPToolExecutionPanel } from "../features/control-plane-read/workflowHTTPToolExecutionPanel.tsx";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
 import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
@@ -204,6 +202,8 @@ const ApplicationDevelopmentWorkspacePanel = lazy(() => import("../features/cont
 const ApplicationDevelopmentWorkspaceSurface = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspaceSurface"));
 const ApplicationRuntimeReviewWorkspace = lazy(() => import("../features/control-plane-read/applicationRuntimeReviewWorkspace"));
 const WorkflowReviewWorkspace = lazy(() => import("../features/control-plane-read/workflowReviewWorkspace"));
+const WorkflowHTTPToolActionPanel = lazy(() => import("../features/control-plane-read/workflowHTTPToolActionPanel").then(module => ({ default: module.WorkflowHTTPToolActionPanel })));
+const WorkflowHTTPToolExecutionPanel = lazy(() => import("../features/control-plane-read/workflowHTTPToolExecutionPanel").then(module => ({ default: module.WorkflowHTTPToolExecutionPanel })));
 const WorkflowRAGExecutionPanel = lazy(() => import("../features/control-plane-read/workflowRAGExecutionPanel"));
 const WorkflowExecutorPanel = lazy(() => import("../features/control-plane-read/workflowExecutorPanel").then(module => ({ default: module.WorkflowExecutorPanel })));
 const WorkflowDraftValidationInspectorPanel = lazy(() => import("../features/control-plane-read/workflowInspectionPanels").then(module => ({ default: module.WorkflowDraftValidationInspectorPanel })));
@@ -571,6 +571,7 @@ function ProductApp() {
       if (state.actionPlan?.status !== "consumed" || !reference.runId) return;
       setWorkflowHTTPToolExecutionState((current) => ({
         ...current,
+        status: "restoring",
         summary: "Reloading the exact durable v2 run; no execution request is sent.",
       }));
       const restored = await restoreWorkflowHTTPToolExecutionState(
@@ -1252,29 +1253,31 @@ function ProductApp() {
               onRestored={handleWorkflowDraftRevisionRestored}
             />
           </Suspense>
-          <WorkflowHTTPToolActionPanel
-            draft={activeWorkflowDraft}
-            consumerState={workflowHTTPToolActionState}
-            eligibility={workflowHTTPToolActionEligibility}
-            permissions={workflowHTTPToolPermissions}
-            resourceKey={workflowHTTPToolResourceKey}
-            locale={workflowHTTPToolLocale}
-            onResourceKeyChange={setWorkflowHTTPToolResourceKey}
-            onLocaleChange={setWorkflowHTTPToolLocale}
-            onCreatePlan={handleCreateWorkflowHTTPToolActionPlan}
-            onReloadPlan={handleReloadWorkflowHTTPToolActionPlan}
-            onDecision={handleWorkflowHTTPToolActionDecision}
-          />
-          <WorkflowHTTPToolExecutionPanel
-            plan={workflowHTTPToolActionState.actionPlan}
-            state={workflowHTTPToolExecutionState}
-            permissions={workflowHTTPToolPermissions}
-            inputText={workflowHTTPToolExecutionInput}
-            model={workflowHTTPToolExecutionModel}
-            onInputTextChange={setWorkflowHTTPToolExecutionInput}
-            onModelChange={setWorkflowHTTPToolExecutionModel}
-            onExecute={handleRunApprovedHTTPToolActionPlan}
-          />
+          <Suspense fallback={<section className="workflow-executor-v0"><p>{t($ => $.appShell.httpToolLoading)}</p></section>}>
+            <WorkflowHTTPToolActionPanel
+              draft={activeWorkflowDraft}
+              consumerState={workflowHTTPToolActionState}
+              eligibility={workflowHTTPToolActionEligibility}
+              permissions={workflowHTTPToolPermissions}
+              resourceKey={workflowHTTPToolResourceKey}
+              locale={workflowHTTPToolLocale}
+              onResourceKeyChange={setWorkflowHTTPToolResourceKey}
+              onLocaleChange={setWorkflowHTTPToolLocale}
+              onCreatePlan={handleCreateWorkflowHTTPToolActionPlan}
+              onReloadPlan={handleReloadWorkflowHTTPToolActionPlan}
+              onDecision={handleWorkflowHTTPToolActionDecision}
+            />
+            <WorkflowHTTPToolExecutionPanel
+              plan={workflowHTTPToolActionState.actionPlan}
+              state={workflowHTTPToolExecutionState}
+              permissions={workflowHTTPToolPermissions}
+              inputText={workflowHTTPToolExecutionInput}
+              model={workflowHTTPToolExecutionModel}
+              onInputTextChange={setWorkflowHTTPToolExecutionInput}
+              onModelChange={setWorkflowHTTPToolExecutionModel}
+              onExecute={handleRunApprovedHTTPToolActionPlan}
+            />
+          </Suspense>
           <Suspense fallback={<section className="workflow-rag-execution-panel"><p>{t($ => $.appShell.ragExecutionLoading)}</p></section>}>
             <WorkflowRAGExecutionPanel
               applicationRef={workflowScopedApplicationId}

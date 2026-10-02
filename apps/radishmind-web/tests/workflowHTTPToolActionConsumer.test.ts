@@ -638,3 +638,49 @@ function jsonResponse(value: unknown, status = 200): Response {
 function digest(character: string): string {
   return `sha256:${character.repeat(64)}`;
 }
+
+test("HTTP Tool translation preserves exact plans, tool locale and diagnostics without another request", async () => {
+  const { createInstance } = await import("i18next");
+  const { workflowHTTPTool: en } = await import("../src/i18n/locales/en-US/workflowHTTPTool.ts");
+  const { workflowHTTPTool: zh } = await import("../src/i18n/locales/zh-CN/workflowHTTPTool.ts");
+  const { workflowHTTPToolStatus, workflowHTTPToolFailure, workflowHTTPToolActionFeedback, workflowHTTPToolExecutionFeedback, workflowHTTPToolArgumentsFeedback } = await import("../src/features/control-plane-read/workflowHTTPToolMessages.ts");
+  const { initialWorkflowHTTPToolExecutionState } = await import("../src/features/control-plane-read/workflowHTTPToolExecutionConsumer.ts");
+  const i18n = createInstance();
+  await i18n.init({ lng: "en-US", fallbackLng: "en-US", resources: { "en-US": { workflow: { httpTool: en } }, "zh-CN": { workflow: { httpTool: zh } } } });
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  globalThis.fetch = async (_input, init) => { requests.push(String(init?.body)); return jsonResponse(successEnvelope(actionPlanDocument())); };
+  try {
+    const state = await createWorkflowHTTPToolActionPlan(config, {
+      draftId: "draft_http_tool_review", applicationId: "app_flow_copilot", draftVersion: 4, nodeId: "node_http_tool",
+      publicArguments: { resourceKey: "catalog/review:item-1", locale: "zh-CN" },
+    });
+    const original = JSON.stringify(state);
+    const execution = initialWorkflowHTTPToolExecutionState(config);
+    const render = () => {
+      const t = i18n.getFixedT(null, "workflow");
+      return [
+        ...Object.keys(en.status).map(code => workflowHTTPToolStatus(t, code)),
+        ...Object.keys(en.failureText).map(code => workflowHTTPToolFailure(t, code)),
+        ...(["disabled", "idle", "creating", "reading", "deciding", "ready", "conflict_refreshed", "failed"] as const).map(status => workflowHTTPToolActionFeedback(t, { ...state, status })),
+        ...(["disabled", "idle", "restoring", "executing", "succeeded", "failed", "outcome_unknown"] as const).map(status => workflowHTTPToolExecutionFeedback(t, { ...execution, status })),
+        ...(["resource", "locale", "sensitive"] as const).map(reason => workflowHTTPToolArgumentsFeedback(t, { valid: false, reason, failureCode: "workflow_tool_arguments_invalid", summary: "Original diagnostic 原文", value: null })),
+      ];
+    };
+    const english = render(); await i18n.changeLanguage("zh-CN");
+    render().forEach((message, index) => {
+      assert.ok(message); assert.notEqual(message, english[index]);
+      assert.doesNotMatch(message + english[index], /httpTool\.|\{\{|This message is unavailable|此消息暂不可用/);
+    });
+    const t = i18n.getFixedT(null, "workflow");
+    assert.equal(workflowHTTPToolFailure(t, "future_code"), zh.failureText.unknown);
+    assert.equal(workflowHTTPToolArgumentsFeedback(t, validateWorkflowHTTPToolPublicArguments({ resourceKey: "resource", locale: "ja-JP" })), "");
+    assert.equal(workflowHTTPToolActionFeedback(t, { ...state, actionPlan: null }), zh.actionReady.replace("{{status}}", zh.status.unknown));
+    assert.equal(JSON.stringify(state), original);
+    assert.equal(requests.length, 1);
+    assert.deepEqual(JSON.parse(requests[0]!).public_arguments, { resource_key: "catalog/review:item-1", locale: "zh-CN" });
+    assert.equal(validateWorkflowHTTPToolPublicArguments({ resourceKey: "https://invalid" }).reason, "resource");
+    assert.equal(validateWorkflowHTTPToolPublicArguments({ resourceKey: "review", locale: "not a locale" }).reason, "locale");
+    assert.equal(validateWorkflowHTTPToolPublicArguments({ resourceKey: "api_key:private" }).reason, "sensitive");
+  } finally { globalThis.fetch = originalFetch; }
+});

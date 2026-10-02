@@ -1,4 +1,5 @@
 export const appShell = {
+  "httpToolLoading": "Loading HTTP Tool review and execution…",
   ragExecutionLoading: "Loading RAG retrieval execution…",
   workflowCreateExecutor: "Create executor v0 draft",
   "userWorkspace": "User Workspace",

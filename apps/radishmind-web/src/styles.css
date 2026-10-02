@@ -21412,3 +21412,51 @@ textarea {
   overflow-wrap: anywhere;
   color: var(--rm-text-primary);
 }
+
+/* HTTP Tool records follow their owner width, including nested Definition panels. */
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) {
+  min-width: 0;
+  background: var(--rm-bg-canvas);
+  border-color: var(--rm-border-soft);
+  color: var(--rm-text-primary);
+  overflow-wrap: anywhere;
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) :is(.workflow-executor-summary-grid, .workflow-executor-input-grid, .workflow-executor-record-meta, .workflow-executor-state-card dl) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) :is(article, input, textarea, button) {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--rm-bg-surface);
+  border-color: var(--rm-border-soft);
+  color: var(--rm-text-primary);
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) :is(dl > div, .prompt-template-summary) {
+  min-width: 0;
+  background: var(--rm-bg-canvas);
+  color: var(--rm-text-primary);
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) :is(strong, dd, code) {
+  color: var(--rm-text-primary);
+  overflow-wrap: anywhere;
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) :is(span, p, small, dt) {
+  color: var(--rm-text-secondary);
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) :is(input, textarea, button):focus-visible {
+  outline: 2px solid var(--rm-border-strong);
+  outline-offset: 2px;
+}
+
+:is(.workflow-http-tool-action-review, .workflow-http-tool-execution) .workflow-executor-state-card > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
