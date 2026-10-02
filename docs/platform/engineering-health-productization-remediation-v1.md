@@ -1,6 +1,6 @@
 # 工程健康与产品化整改专题 v1
 
-更新时间：2026-09-23
+更新时间：2026-10-02
 
 状态：`remediation_v1_active_governance`
 
@@ -64,12 +64,13 @@ C 阶段新增第八组 `identity`：沿用同一监督器与进程组清理入�
 
 
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
-- 每组运行分别生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。
+- 当前默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity` 八组，`--suite=<组名>` 可选单组。每组生成临时 SQLite，不读取用户 Platform 配置或 Web `.env`；身份组使用显式测试配置，其余组由空 Platform 配置和指定产品档启动。
+- 前七组通过 UI 创建独立应用，必要的合成来源证据再通过公开 API 准备，不直接写数据库；双标签在同一测试内共享该应用。它们的浏览器请求由公共测试夹具限制为本轮两个回环地址。身份组独立注册合成账户，通过额外 API 会话和双标签验证撤销与轮换，不创建应用，也未复用前七组的请求拦截夹具。
 - Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。
 - Web 使用现有 CORS 允许的 `127.0.0.1:4100`，Platform 使用 `127.0.0.1:17000`。任一端口被占用即失败，不复用用户服务；各组清理后顺序复用端口；测试使用单 worker、零重试，以免掩盖不稳定失败。
 - `run.mjs` 拥有启动器与测试运行器的 POSIX 进程组；正常退出、失败、`SIGINT` / `SIGTERM` 均关闭后代进程及本轮 Prompt fixture，限时结束后再删除本轮临时数据库。原生 Windows 暂不支持该清理入口，使用 Linux、macOS 或 WSL。
-- 日志、HTTP 方法 / 路径 / 状态记录和 HTML 报告位于忽略目录 `output/playwright/workflow-e2e/run-*`；另保存不含凭据或正文的 fixture 调用观察；失败保留截图、页面错误上下文与 trace。数据均为本轮合成输入，数据库不进入报告或 CI artifact。
-- `1440 / 1200 / 390px` 断言内部容器边界、链接多点命中、真实导航和整页宽度；检查内部裁切，不能仅依据 `scrollWidth` 判定布局通过。
+- 日志与 HTML 报告位于忽略目录 `output/playwright/workflow-e2e/run-*`；前七组还记录 HTTP 方法 / 路径 / 状态及不含凭据或正文的提供方调用观察。身份组只记录测试所需方法 / 路径，关闭 trace，并避免密码输入值进入步骤标题。其余组失败时保留截图、页面错误上下文与 trace。数据均为合成输入，数据库不进入报告或 CI 产物；凭据不能因其为测试数据而进入报告。
+- 当前双语切片以 `1440 / 720 / 390px` 检查内部容器、整页宽度和代表截图；已有 Prompt 场景另含 `1200px` 及链接多点命中检查。按各用例的实际断言记录证据，不能仅依据 `scrollWidth` 判定布局通过。
 - PR 与 Release 新增对称浏览器 job；PR 的 `Candidate Quality` 纳入结果，既有触发器保持不变。失败 / 取消时上传证据，保留七天；本地通过与远端 CI 执行成功分别记录，不互相代替。
 
 首次准备在仓库完成既有 `./scripts/bootstrap-dev.sh` 后执行：

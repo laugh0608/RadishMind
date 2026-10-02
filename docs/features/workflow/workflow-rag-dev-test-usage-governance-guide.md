@@ -1,6 +1,6 @@
 # Workflow RAG 开发测试态使用与资源治理指南
 
-更新时间：2026-07-19
+更新时间：2026-10-02
 
 ## 适用范围
 
@@ -11,10 +11,12 @@
 3. Run History、Comparison、Evaluation、Baseline 与 Suite 对 RAG run v3 的审查；
 4. synthetic-public 离线质量评测；
 5. 应用作用域 durable evaluation dataset 与 baseline / candidate snapshot review；
-6. 人工 knowledge promotion、不可变 application binding、配置草案 attach 与发布候选重校验。
-7. memory current runtime assignment、API key `application_rag:invoke` 与 metadata-only run v4。
+6. 人工 knowledge promotion、不可变 application binding、配置草案 attach 与发布候选重校验；
+7. memory / SQLite / PostgreSQL 当前运行分配、API key `application_rag:invoke`、Web 受控调用及仅含元数据的 run v4。
 
-这些能力只属于内部开发测试态。已批准的 publish candidate 仍不能直接调用；操作者必须先显式 `activate / replace` current runtime assignment，随后同应用且含 `application_rag:invoke` 的 API key 才能沿独立 route 发起一次受控调用。批次 A 当前只支持 memory workflow backend；SQLite / PostgreSQL、Web、Run History / Evaluation 扩展和重启恢复仍未实现，既有 Saved Workflow Draft retrieval execution route保持独立。
+这些能力只属于内部开发测试态。已批准的发布候选仍不能直接调用；操作者必须先显式 `activate / replace` 当前运行分配，随后同应用且含 `application_rag:invoke` 的 API key 才能沿独立路由发起一次受控调用。[应用运行专题](workflow-rag-application-runtime-activation-controlled-invocation-dev-test-v1.md)的 A 至 C 已完成，包含三种仓储、Web、v4 运行审查和重启恢复；既有 Saved Workflow Draft 检索执行路由继续独立。
+
+截至 2026-10-02，知识快照、检索执行、晋级审查和应用运行已按独立窗口完成双语验收；完整数据集与评测页面仍属于 i18n E 阶段。界面语言不改动查询、用户材料、人工理由、答案、引用、请求字段或精确资源绑定。覆盖与证据见[中英国际化专题](../web-internationalization-zh-en-v1.md)。
 
 ## 资源链与真相源
 
@@ -85,6 +87,30 @@ pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowRAGPromotionLo
 
 以上步骤互不自动触发。promotion approve 不等于 attach，attach 不等于 publish approve，publish approve 也不等于正式发布或运行时激活。
 
+### 应用运行分配与 run v4
+
+SQLite 本地产品档使用：
+
+```bash
+./scripts/run-radishmind-web-dev.sh --mode dev-live --workflow-rag-application-local-product
+```
+
+Windows / PowerShell：
+
+```powershell
+pwsh ./scripts/run-radishmind-web-dev.ps1 -Mode dev-live -WorkflowRAGApplicationLocalProduct
+```
+
+该入口启用应用、配置与发布审查、RAG 知识证据、API key、运行分配、受控调用及运行历史 / 评测的共享 SQLite 产品链。默认使用 mock；启动与清理遵循上文开发服务边界。
+
+1. 完成知识晋级、显式配置绑定和发布候选人工批准；发布候选仍保留生产发布阻塞项。
+2. 在发布审查区审查精确候选，填写理由并显式激活或替换当前应用的运行分配；版本冲突后重新读取，理由保留，不自动重提。
+3. 签发同一应用且含 `application_rag:invoke` 的 API key，经一次性内存交接进入应用 RAG 调用面板。
+4. 提交有界输入并显式调用；服务端从当前运行分配选择精确知识、模型与配置。成功回答及引用只留在当前易失界面，run v4 保存可审查元数据；无匹配证据时不调用模型。
+5. 可打开运行历史进行 v4 审查；显式撤销运行分配后，后续调用被拒绝。清除敏感内存或切换应用后，迟到回答不得重新出现。
+
+2026-10-02 双语回归验证了 SQLite 下的等待切换、真实版本冲突、撤销、原文保持与敏感内存清理。它不替代此前专题中的 PostgreSQL / 重启证据，也不证明真实模型答案质量。
+
 ## 开发身份与权限
 
 当前管理与 Saved Draft retrieval execution 都使用受验证的开发身份头，不接受 API key：
@@ -140,7 +166,7 @@ OIDC integration test 或 production auth 不会因这些开发权限自动启�
 | `POST /v1/user-workspace/applications/{application_id}/workflow-rag-runtime-assignment/decisions` | 人工 `activate / replace / revoke` 与 expected-version CAS |
 | `POST /v1/application-rag/invocations` | API key 受控调用；body 只允许 `input` |
 
-请求体使用 strict JSON，未知字段会被拒绝。精确字段和 schema 以 `contracts/workflow-rag-*.schema.json`、`contracts/workflow-run-record-v3.schema.json`、`contracts/workflow-run-record-v4.schema.json` 及对应 Go request type 为准。application RAG gate 为 `RADISHMIND_WORKFLOW_RAG_APPLICATION_INVOCATION_DEV=1`，批次 A 只允许 `memory_dev` workflow backend；其它 backend 不回退 memory。
+请求体使用 strict JSON，未知字段会被拒绝。精确字段和 schema 以 `contracts/workflow-rag-*.schema.json`、`contracts/workflow-run-record-v3.schema.json`、`contracts/workflow-run-record-v4.schema.json` 及对应 Go request type 为准。应用 RAG 的显式开发开关为 `RADISHMIND_WORKFLOW_RAG_APPLICATION_INVOCATION_DEV=1`；可使用已配置的 `memory_dev / sqlite_dev / postgres_dev_test` 工作流仓储，数据库不可用时不会回退内存。
 
 ## 离线质量资产
 
@@ -159,13 +185,13 @@ CLI 每个样本只调用一次既有确定性 lexical ranker，不调用 Gatewa
 
 ## 持久化与迁移
 
-| 模式 | 用途 | 当前 Workflow RAG schema |
+| 模式 | 用途 | RAG 相关迁移与持久化边界 |
 | --- | --- | --- |
-| `memory_dev` | 单元测试、快速领域验证与批次 A application RAG invocation | assignment、event、audit 与 run v4 进程退出后不保留 |
-| `sqlite_dev` | 本地连续开发，共享一个 workflow database | `0005` execution audit、`0007` evaluation dataset、`0008` promotion；marker `workflow_run_store_sqlite_v8` |
-| `postgres_dev_test` | migration、角色、方言、并发与重启同构验证 | `0009` execution audit、`0010` evaluation dataset、`0011` promotion；marker `workflow_run_store_v11` |
+| `memory_dev` | 单元测试与快速领域验证 | 运行分配、事件、审计与 run v4 在进程退出后不保留 |
+| `sqlite_dev` | 本地连续开发，共享工作流数据库 | `0005` 执行审计、`0007` 评测数据集、`0008` 晋级、`0009` 应用运行分配与 run 来源迁移 |
+| `postgres_dev_test` | 迁移、受限角色、并发与重启同构验证 | `0009` 执行审计、`0010` 评测数据集、`0011` 晋级、`0012` 应用运行分配与 run 来源迁移 |
 
-三种模式复用现有 workflow backend selector。SQLite 只通过 shared local-product runtime 启用；PostgreSQL 只复用既有 workflow pool。当前 application RAG runtime gate 只接受 `memory_dev`，SQLite `0009` 与 PostgreSQL `0012` 将由批次 B 追加；在此之前以 durable backend 开启该 gate 会明确失败。缺少 marker、database / pool、checksum 不一致、未知 selector 或记录损坏时启动或请求失败，不创建平行数据库、DSN、pool 或 memory fallback。
+三种模式复用现有工作流仓储选择器。SQLite 使用共享本地产品数据库；PostgreSQL 复用既有工作流连接池。表中列出 RAG 引入的迁移，不代表整个数据库的最新版本；后续功能迁移继续由 [SQLite 注册表](../../../services/platform/migrations/sqlite/workflow_runs/migrations.go)和 [PostgreSQL 注册表](../../../services/platform/migrations/workflow_runs/migrations.go)统一管理。缺少 marker、数据库 / 连接池、checksum 不一致、未知选择器或记录损坏时启动或请求失败，不创建平行数据库、DSN、连接池或内存回退。
 
 PostgreSQL 专项验证继续使用统一 runner：
 
@@ -179,7 +205,7 @@ PostgreSQL 专项验证继续使用统一 runner：
 ## 隐私、失败与副作用
 
 - snapshot exact detail 和 dataset content detail 是仅有的受权限正文读取路径；list、candidate review、promotion list、audit、日志、普通 Run History 与 Gateway history 均保持 metadata-only。
-- 不保存真实用户 query、运行输入、fragment 正文、excerpt、prompt、完整 answer、模型原始响应、token、credential 或 secret。
+- 运行记录、责任链、审计与日志不保存真实用户查询、运行输入、片段正文、摘录、prompt、完整答案、模型原始响应、token、credential 或 secret；知识快照与评测数据集自身的授权正文存储仍按各自契约管理。
 - v3 成功执行固定 `retrieval_calls=1`、`provider_calls=1`；`tool_calls`、`confirmation_calls`、`business_writes` 与 `replay_writes` 为 0。
 - candidate review 每个样本对 baseline 与 candidate 各调用一次 ranker，Gateway 与 workflow run 调用数为 0。
 - promotion、binding attach 与 publish review 的 retrieval、Gateway、workflow run、业务写入和 replay 调用数均为 0。
@@ -196,7 +222,7 @@ PostgreSQL 专项验证继续使用统一 runner：
 | version conflict | 读取当前 latest / record version 后重新人工决定，不盲目重试 |
 | promotion eligibility 出现 blocker | 检查 dataset / review / snapshots / profile / source draft / application 是否漂移、取消或归档 |
 | store unavailable / schema mismatch | 检查 backend selector、shared database / pool、migration marker 和 checksum；不会回退 memory |
-| publish approved 但无法用 API key RAG 调用 | 检查 memory workflow backend、独立 gate、active runtime assignment、应用状态和 API key `application_rag:invoke`；approve 本身不会自动激活 |
+| publish approved 但无法用 API key RAG 调用 | 检查受支持的工作流仓储及其迁移、独立开发开关、有效运行分配、应用状态和 API key `application_rag:invoke`；approve 本身不会自动激活 |
 
 ## 相关设计与契约
 

@@ -1,6 +1,6 @@
 # Workflow Definition 绑定受控 HTTP Tool 的版本化发布与人工确认执行（开发 / 测试态）v1
 
-更新时间：2026-08-15
+更新时间：2026-10-02
 
 状态：`workflow_definition_http_tool_v1_completed`
 

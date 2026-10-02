@@ -1,6 +1,6 @@
 # Workflow RAG 知识基线晋级与应用配置绑定审查 v1
 
-更新时间：2026-08-09
+更新时间：2026-10-02
 
 状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`
 

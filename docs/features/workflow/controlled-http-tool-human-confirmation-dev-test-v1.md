@@ -1,6 +1,6 @@
 # Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1
 
-更新时间：2026-07-17
+更新时间：2026-10-02
 
 状态：`workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`
 

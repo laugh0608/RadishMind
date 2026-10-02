@@ -1,6 +1,6 @@
 # Workflow Node Designer Review Handoff v1 专题
 
-更新时间：2026-08-08
+更新时间：2026-10-02
 
 状态：`workflow_node_designer_review_handoff_v1_implemented`
 
@@ -22,6 +22,8 @@
 - `Workflow Node Designer Graph Review Handoff Refinement v1` 已把 validation overlay detail review 收束为 `graphReviewFindings`，按 node-targeted、edge-targeted 和 graph-level finding 展示 source check、severity、target refs、summary 和 reviewer question，并在面板中提供 graph review summary 与分组阅读路径。
 - 2026-07-04 已补 `handoffPath` 与 `handoffPathRefs`，让每条 graph review finding 显示 validation overlay、node inspector / edge review / runtime readiness 与 evidence refs 的 handoff path；该路径只属于只读审查视图，不保存、不导出、不写入 saved draft。
 - 新增 `workflow-node-designer-review-handoff-v1` fixture / checker，并接入 fast baseline。
+
+2026-10-02 画布审查摘要、阅读路径、阻塞与人工问题已随离线投影完成双语迁移，沿用[活动草案审查交接](review-handoff-active-draft-v1.md#当前实现)的展示描述边界。节点 / 连线引用、用户标签、原始诊断、定位和保存字段保持原样；语言变化不产生交接、确认或执行副作用。
 
 ## 数据边界
 

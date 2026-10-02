@@ -1,6 +1,6 @@
 # Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1
 
-更新时间：2026-07-19
+更新时间：2026-10-02
 
 状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`
 

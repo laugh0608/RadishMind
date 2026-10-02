@@ -1,6 +1,6 @@
 # RadishMind 本地账户与 Radish OIDC 联合登录 v1
 
-更新时间：2026-08-23
+更新时间：2026-10-02
 
 状态：`local_account_radish_oidc_federated_login_v1_batch_d_completed_batch_e_external_blocked`
 
@@ -30,6 +30,8 @@
 - `GET /v1/auth/account` 已通过唯一 repository projection 返回当前会话的本地账户、外部身份、角色分配、workspace membership 与受控 capability；memory、SQLite、PostgreSQL 均在同一读取事务内形成确定性排序，不返回登录标识、issuer、subject、credential、token、raw claim 或 audit ref。
 - `POST /v1/auth/external-identities/{binding_id}/revoke` 已实现同源 Origin、CSRF、近期认证、当前账户 ownership、record version CAS 与最后登录方式保护；不存在或不属于当前账户的 binding 不泄露其事实。
 - Web 仅在 `VITE_RADISHMIND_LOCAL_IDENTITY_MODE=local_identity_dev` 显式启用本地身份 gateway；consumer 使用 credentialed cookie transport、严格 exact response shape 与敏感字段拒绝，不写 Web Storage。本专题批次 D 当时把 S7 User / Role 改为只消费当前本地账户 owner；没有 assignment / membership 时显示真实空状态，不构造目录、角色或成员 fixture。随后独立的本地成员管理专题已在同一 S7 任务结构上接入 workspace 成员 / 角色目录与受控 mutation，不改变本专题的账户和 external identity owner。
+
+2026-10-02 本地注册 / 登录、会话恢复和账户操作反馈已接入双语资源；已知失败按稳定代码给出恢复提示，未知失败使用通用说明，后端原始错误文案不进入账户展示状态。隔离 SQLite 浏览器验证覆盖等待切换、登录失败、实际 OIDC 关闭响应及双标签重新登录；真实 Radish OIDC 仍为 `real_radish_integration_deferred`。账户安全范围与证据见[中英国际化专题](../web-internationalization-zh-en-v1.md#c-阶段覆盖清单2026-10-02)，不改变本专题 A 至 E 的历史完成边界。
 
 ## 批次 A 实现状态
 

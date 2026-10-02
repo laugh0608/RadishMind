@@ -1,6 +1,6 @@
 # Workflow RAG Retrieval 与应用知识快照（开发 / 测试态）v1
 
-更新时间：2026-07-18
+更新时间：2026-10-02
 
 状态：`workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`
 
@@ -11,6 +11,8 @@
 首版必须同时覆盖知识资产生命周期、检索执行、引用约束、三种开发测试态 store 和 Web 连续链，不能把预置 fixture、请求内塞入的“已召回文本”或单纯打开 `allow_retrieval=true` 当成真实 RAG 完成。
 
 2026-07-18 三个批次已全部完成。批次 C 把精确 `rag_ref` 绑定、Web 显式 execution、严格 v3 消费、授权 512 字符 preview 与 SQLite / PostgreSQL 真实浏览器创建、执行、归档、重启、恢复和 no-fallback 串成连续证据链；query、fragment 正文、prompt packet、credential、模型原始响应和 answer 正文仍未进入 run、audit、日志或普通 history。专题状态为 `workflow_rag_retrieval_application_knowledge_snapshot_dev_test_v1_completed`，不继续派生批次 D，也不据此启用生产 RAG。
+
+2026-10-02 检索执行界面已完成双语验收，覆盖精确绑定、资格、等待、无证据、版本漂移及失败恢复；切换语言不重发请求，查询、答案和引用保持原文。Web 严格消费既有响应中的 `action_safety: null`，缺失或非空动作字段均拒绝，不因此开放动作安全能力。此轮为 SQLite / mock 浏览器证据，不替代原双数据库与重启验收；范围见[中英国际化专题](../web-internationalization-zh-en-v1.md#b-阶段-rag-检索执行2026-10-02)。
 
 ## 用户价值与适用范围
 
