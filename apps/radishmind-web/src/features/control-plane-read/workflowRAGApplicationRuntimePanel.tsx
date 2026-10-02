@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowRAGApplicationResources.ts";
+import { workflowRAGApplicationStatus, workflowRAGAssignmentFeedback, workflowRAGInvocationFeedback } from "./workflowRAGApplicationMessages.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -31,6 +34,7 @@ export function WorkflowRAGRuntimeAssignmentPanel({
   readOnly?: boolean;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
+  const { t } = useTranslation("workflow");
   const [runtime, setRuntime] = useState<WorkflowRAGApplicationRuntimeResult>(() => initialWorkflowRAGApplicationRuntimeResult(config));
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<"" | "read" | "decision">("");
@@ -98,35 +102,36 @@ export function WorkflowRAGRuntimeAssignmentPanel({
   return (
     <article className="workflow-rag-runtime-assignment" aria-labelledby="workflow-rag-runtime-assignment-title">
       <div className="application-api-card-heading">
-        <div><p className="eyebrow">Application RAG runtime</p><h5 id="workflow-rag-runtime-assignment-title">Explicit assignment</h5></div>
+        <div><p className="eyebrow">{t($ => $.ragApplication.assignment.eyebrow)}</p><h5 id="workflow-rag-runtime-assignment-title">{t($ => $.ragApplication.assignment.title)}</h5></div>
         <span className={`status-badge ${runtime.assignment?.state === "active" ? "good" : runtime.status === "failed" ? "bad" : "neutral"}`}>
-          {runtime.assignment?.state ?? runtime.status}
+          {workflowRAGApplicationStatus(t, busy === "read" ? "loading" : busy === "decision" ? "recording" : runtime.assignment?.state ?? (!runtime.failureCode ? "idle" : runtime.status))}
         </span>
       </div>
-      <p className="boundary-note">Publish approval and runtime activation remain separate. The server reloads the exact candidate, draft, binding, promotion, dataset, snapshots, and profile before every decision.</p>
+      <p className="boundary-note">{t($ => $.ragApplication.assignment.boundary)}</p>
       <button type="button" onClick={() => void loadAssignment()} disabled={busy !== "" || config.mode === "offline"}>
-        {busy === "read" ? "Loading assignment…" : "Load current assignment"}
+        {busy === "read" ? t($ => $.ragApplication.assignment.loading) : t($ => $.ragApplication.assignment.load)}
       </button>
       {runtime.assignment ? (
         <dl className="workflow-rag-runtime-metadata">
-          <div><dt>Assignment</dt><dd>{runtime.assignment.assignmentId} · v{runtime.assignment.recordVersion}</dd></div>
-          <div><dt>Candidate</dt><dd>{runtime.assignment.publishCandidateId} · review v{runtime.assignment.publishReviewVersion}</dd></div>
-          <div><dt>Draft</dt><dd>{runtime.assignment.draftId} · v{runtime.assignment.draftVersion}</dd></div>
-          <div><dt>Binding</dt><dd>{runtime.assignment.bindingRef.bindingId} · v{runtime.assignment.bindingRef.bindingVersion}</dd></div>
-          <div><dt>Updated</dt><dd>{runtime.assignment.updatedAt} · {runtime.assignment.updatedByActorRef}</dd></div>
+          <div><dt>{t($ => $.ragApplication.assignment.assignment)}</dt><dd>{runtime.assignment.assignmentId} · v{runtime.assignment.recordVersion}</dd></div>
+          <div><dt>{t($ => $.ragApplication.assignment.candidate)}</dt><dd>{runtime.assignment.publishCandidateId} · {t($ => $.ragApplication.assignment.reviewVersion, { version: runtime.assignment.publishReviewVersion })}</dd></div>
+          <div><dt>{t($ => $.ragApplication.assignment.draft)}</dt><dd>{runtime.assignment.draftId} · v{runtime.assignment.draftVersion}</dd></div>
+          <div><dt>{t($ => $.ragApplication.assignment.binding)}</dt><dd>{runtime.assignment.bindingRef.bindingId} · v{runtime.assignment.bindingRef.bindingVersion}</dd></div>
+          <div><dt>{t($ => $.ragApplication.assignment.updated)}</dt><dd>{runtime.assignment.updatedAt} · {runtime.assignment.updatedByActorRef}</dd></div>
         </dl>
       ) : null}
       {!readOnly ? (
         <div className="workflow-rag-runtime-decision">
-          <label>Sanitized decision reason<textarea value={reason} onChange={(event) => setReason(event.target.value)} rows={3} maxLength={500} placeholder="Explain why this exact approved candidate should be activated, replaced, or revoked." /></label>
+          <label>{t($ => $.ragApplication.assignment.reason)}<textarea value={reason} onChange={(event) => setReason(event.target.value)} rows={3} maxLength={500} placeholder={t($ => $.ragApplication.assignment.reasonPlaceholder)} /></label>
+          {reason && !validReason ? <p className="failure-summary">{t($ => $.ragApplication.assignment.invalidReason)}</p> : null}
           <button type="button" onClick={() => void decide()} disabled={!decisionAllowed || busy !== ""}>
-            {busy === "decision" ? "Recording decision…" : `${proposedDecision} runtime assignment`}
+            {busy === "decision" ? t($ => $.ragApplication.assignment.recording) : proposedDecision === "activate" ? t($ => $.ragApplication.assignment.activate) : proposedDecision === "replace" ? t($ => $.ragApplication.assignment.replace) : t($ => $.ragApplication.assignment.revoke)}
           </button>
         </div>
       ) : null}
-      {runtime.failureCode ? <p className="failure-summary">{runtime.failureCode}: {runtime.summary}</p> : <p className="boundary-note">{runtime.summary}</p>}
-      {runtime.status === "version_conflict" ? <button type="button" onClick={() => void loadAssignment(true)} disabled={busy !== ""}>Refresh current version and keep reason</button> : null}
-      {!candidateApproved ? <p className="failure-summary">Only an approved publish candidate can be selected for runtime assignment.</p> : null}
+      {runtime.failureCode ? <p className="failure-summary"><code>{runtime.failureCode}</code>: {workflowRAGAssignmentFeedback(t, runtime)}</p> : <p className="boundary-note">{workflowRAGAssignmentFeedback(t, runtime)}</p>}
+      {runtime.status === "version_conflict" ? <button type="button" onClick={() => void loadAssignment(true)} disabled={busy !== ""}>{t($ => $.ragApplication.assignment.refresh)}</button> : null}
+      {!candidateApproved ? <p className="failure-summary">{t($ => $.ragApplication.assignment.notApproved)}</p> : null}
     </article>
   );
 }
@@ -146,6 +151,7 @@ export default function ApplicationRAGInvocationPanel({
   onOpenRun?: (runId: string) => void;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
+  const { t } = useTranslation("workflow");
   const [credential, setCredential] = useState<{ apiKeyId: string; token: string } | null>(null);
   const [input, setInput] = useState("");
   const [result, setResult] = useState<WorkflowRAGApplicationInvocationResult>(() => initialWorkflowRAGApplicationInvocationResult(config));
@@ -221,31 +227,32 @@ export default function ApplicationRAGInvocationPanel({
   return (
     <section className="surface-band workflow-rag-application-invocation" id="application-rag-invocation" aria-labelledby="application-rag-invocation-title">
       <div className="section-heading">
-        <div><p className="eyebrow">User Workspace</p><h3 id="application-rag-invocation-title">Application RAG Invocation</h3></div>
-        <span className={`status-badge ${result.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.status}</span>
+        <div><p className="eyebrow">{t($ => $.ragApplication.invocation.eyebrow)}</p><h3 id="application-rag-invocation-title">{t($ => $.ragApplication.invocation.title)}</h3></div>
+        <span className={`status-badge ${result.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{workflowRAGApplicationStatus(t, busy ? "invoking" : !result.failureCode && !result.runId ? "idle" : result.status)}</span>
       </div>
       <div className="workflow-rag-runtime-scope">
-        <article><span>Application</span><strong>{applicationName || "No application selected"}</strong><code>{applicationId || "unbound"}</code></article>
-        <article><span>Credential</span><strong>{credential?.apiKeyId ?? "No one-time handoff"}</strong><p>Raw token remains only in current component memory.</p></article>
-        <article><span>Authority</span><strong>Server selected</strong><p>Model, protocol, candidate, binding, snapshot, profile, ranking, and citations are not client controls.</p></article>
+        <article><span>{t($ => $.ragApplication.invocation.application)}</span><strong>{applicationName || t($ => $.ragApplication.invocation.noApplication)}</strong><code>{applicationId || t($ => $.ragApplication.invocation.unbound)}</code></article>
+        <article><span>{t($ => $.ragApplication.invocation.credential)}</span><strong>{credential?.apiKeyId ?? t($ => $.ragApplication.invocation.noCredential)}</strong><p>{t($ => $.ragApplication.invocation.memory)}</p></article>
+        <article><span>{t($ => $.ragApplication.invocation.authority)}</span><strong>{t($ => $.ragApplication.invocation.serverSelected)}</strong><p>{t($ => $.ragApplication.invocation.authorityNote)}</p></article>
       </div>
-      <label>Bounded input<textarea value={input} onChange={(event) => setInput(event.target.value)} rows={5} maxLength={4096} disabled={!credential || !applicationActive || busy} placeholder="Ask one bounded question against the active candidate snapshot. Do not include credentials or URLs." /></label>
+      <label>{t($ => $.ragApplication.invocation.input)}<textarea value={input} onChange={(event) => setInput(event.target.value)} rows={5} maxLength={4096} disabled={!credential || !applicationActive || busy} placeholder={t($ => $.ragApplication.invocation.inputPlaceholder)} /></label>
       <div className="workflow-rag-runtime-actions">
-        <button type="button" onClick={() => void invoke()} disabled={!credential || !input.trim() || !applicationActive || busy || config.mode === "offline"}>{busy ? "Invoking…" : "Invoke active RAG assignment"}</button>
-        <button type="button" className="secondary-action" onClick={() => { generation.current += 1; setCredential(null); setInput(""); setResult(initialWorkflowRAGApplicationInvocationResult(config)); }} disabled={!credential && !input && !result.answer}>Clear sensitive memory</button>
-        {result.runId ? <button type="button" className="secondary-action" onClick={() => onOpenRun?.(result.runId)}>Open Run History</button> : null}
+        <button type="button" onClick={() => void invoke()} disabled={!credential || !input.trim() || !applicationActive || busy || config.mode === "offline"}>{busy ? t($ => $.ragApplication.invocation.invoking) : t($ => $.ragApplication.invocation.invoke)}</button>
+        <button type="button" className="secondary-action" onClick={() => { generation.current += 1; setCredential(null); setInput(""); setResult(initialWorkflowRAGApplicationInvocationResult(config)); setBusy(false); }} disabled={!credential && !input && !result.answer}>{t($ => $.ragApplication.invocation.clear)}</button>
+        {result.runId ? <button type="button" className="secondary-action" onClick={() => onOpenRun?.(result.runId)}>{t($ => $.ragApplication.invocation.history)}</button> : null}
       </div>
       {result.answer ? (
         <article className="workflow-rag-application-answer" aria-live="polite">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Advisory answer</p><h4>{result.answer.confidence} confidence</h4></div><code>{result.runId}</code></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragApplication.invocation.answer)}</p><h4>{result.answer.confidence === "high" ? t($ => $.ragApplication.invocation.high) : result.answer.confidence === "medium" ? t($ => $.ragApplication.invocation.medium) : t($ => $.ragApplication.invocation.low)}</h4></div><code>{result.runId}</code></div>
           <p>{result.answer.answer}</p>
-          <h5>Citations</h5>
+          <h5>{t($ => $.ragApplication.invocation.citations)}</h5>
           <ul>{result.answer.citations.map((citation) => <li key={citation.fragmentRef}><code>{citation.fragmentRef}</code><span>{citation.claimSummary}</span></li>)}</ul>
-          {result.answer.limitations.length ? <><h5>Limitations</h5><ul>{result.answer.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></> : null}
+          {result.answer.limitations.length ? <><h5>{t($ => $.ragApplication.invocation.limitations)}</h5><ul>{result.answer.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></> : null}
         </article>
       ) : null}
-      {result.failureCode ? <p className="failure-summary" role="alert">{result.failureCode}: {result.failureSummary || result.summary}</p> : <p className="boundary-note">{result.summary}</p>}
-      <p className="boundary-note">Input, answer, token, selected fragment content, prompt packet, and provider response are not written to URL, browser storage, logs, assignment history, or Workflow Run History.</p>
+      {result.failureCode ? <p className="failure-summary" role="alert"><code>{result.failureCode}</code>: {workflowRAGInvocationFeedback(t, result)}</p> : <p className="boundary-note">{workflowRAGInvocationFeedback(t, result)}</p>}
+      {result.failureCode && result.failureSummary ? <details><summary>{t($ => $.ragApplication.invocation.diagnostic)}</summary><p>{result.failureSummary}</p></details> : null}
+      <p className="boundary-note">{t($ => $.ragApplication.invocation.privacy)}</p>
     </section>
   );
 }

@@ -17,6 +17,9 @@ export async function promotionRequest(page: Page, applicationId: string, path: 
     ...(path.startsWith("/v1/user-workspace/application-drafts") ? {
       "X-RadishMind-Dev-Application-Draft-Workspace": "workspace_demo", "X-RadishMind-Dev-Application-Draft-Application": applicationId,
     } : {}),
+    ...(path.startsWith("/v1/user-workspace/application-publish-candidates") ? {
+      "X-RadishMind-Dev-Application-Publish-Workspace": "workspace_demo", "X-RadishMind-Dev-Application-Publish-Application": applicationId,
+    } : {}),
     "X-RadishMind-Dev-Read-Membership-Workspace": "workspace_demo", "X-RadishMind-Dev-Read-Membership-Permissions": scopes.join(","),
   };
   const response = data ? await page.request.post(`${base}${path}`, { headers, data }) : await page.request.get(`${base}${path}`, { headers });
@@ -26,7 +29,7 @@ export async function promotionRequest(page: Page, applicationId: string, path: 
   return body;
 }
 
-export async function preparePromotionEvidence(page: Page, application: Application) {
+export async function preparePromotionEvidence(page: Page, application: Application, model = "profile:prompt-e2e") {
   const scope = { workspace_id: "workspace_demo", application_id: application.id };
   const query = new URLSearchParams({ workspace_id: scope.workspace_id });
   const app = await promotionRequest(page, application.id, `/v1/user-workspace/applications/${application.id}?${query}`, ["applications:read"]);
@@ -36,7 +39,7 @@ export async function preparePromotionEvidence(page: Page, application: Applicat
       ...scope, draft_id: draftId, base_application_updated_at: app.record.updated_at,
       schema_version: "application_configuration_draft.v1", display_name: application.name,
       description: "Synthetic promotion evidence", application_kind: application.kind,
-      default_protocol: "chat_completions", default_model: "profile:prompt-e2e", allowed_protocols: ["chat_completions"],
+      default_protocol: "chat_completions", default_model: model, allowed_protocols: ["chat_completions"],
     },
   });
   expect(draft.draft.validation_summary.state).toBe("valid");

@@ -6564,9 +6564,12 @@ dd {
 .workflow-rag-runtime-assignment,
 .workflow-rag-application-invocation,
 .workflow-rag-application-answer {
-  border: 1px solid var(--line);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--rm-text-primary);
+  border: 1px solid var(--rm-border-soft);
   border-radius: 18px;
-  background: color-mix(in srgb, var(--panel) 94%, var(--accent) 6%);
+  background: var(--rm-bg-surface);
 }
 
 .workflow-rag-runtime-assignment {
@@ -6578,7 +6581,7 @@ dd {
 .workflow-rag-runtime-metadata,
 .workflow-rag-runtime-scope {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
   gap: 10px;
   margin: 0;
 }
@@ -6589,14 +6592,14 @@ dd {
   gap: 5px;
   min-width: 0;
   padding: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--rm-border-soft);
   border-radius: 12px;
-  background: var(--panel);
+  background: var(--rm-bg-canvas);
 }
 
 .workflow-rag-runtime-metadata dt,
 .workflow-rag-runtime-scope span {
-  color: var(--muted);
+  color: var(--rm-text-secondary);
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -6623,7 +6626,14 @@ dd {
 
 .workflow-rag-runtime-decision textarea,
 .workflow-rag-application-invocation textarea {
+  min-width: 0;
   width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 10px;
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-surface);
+  font: inherit;
   resize: vertical;
 }
 
@@ -6650,6 +6660,44 @@ dd {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.workflow-rag-runtime-assignment .application-api-card-heading,
+.workflow-rag-application-answer .application-api-card-heading,
+.workflow-rag-application-invocation > .section-heading {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+:is(.workflow-rag-runtime-assignment, .workflow-rag-application-invocation) button {
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 10px;
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-surface);
+  font: inherit;
+  cursor: pointer;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+:is(.workflow-rag-runtime-assignment, .workflow-rag-application-invocation) button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.workflow-rag-application-invocation {
+  padding: 18px;
+}
+
+:is(.workflow-rag-runtime-assignment, .workflow-rag-application-invocation) button:hover:not(:disabled) {
+  background: var(--rm-action-soft);
+}
+
+:is(.workflow-rag-runtime-assignment, .workflow-rag-application-invocation) :is(button, textarea):focus-visible {
+  outline: 2px solid var(--rm-focus-ring);
+  outline-offset: 2px;
 }
 
 .application-interaction-session {

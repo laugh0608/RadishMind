@@ -59,7 +59,7 @@
 
 已接入简体中文与英文选择器：桌面位于导航底部，窄屏位于菜单内，未登录时位于认证页页头。浏览器只保存 `radishmind.uiLocale.v1` 语言枚举；未显式选择时采用浏览器首个受支持语言，无匹配时使用中文。存储不可用时仅对当前页面生效并显示未保存提示。
 
-目前已完成公共导航、基础认证与 Prompt 主链展示的 A 阶段，以及 B 阶段草案编辑 / 恢复、候选审查 / 激活、Definition 运行、模板派生与 RAG 快照、检索执行与晋级审查的双语流程验收。RAG 应用运行、HTTP Tool 和离线投影解释仍待迁移；账户安全与管理仍由后续 C 阶段验收，其它页面仍在分阶段迁移，不能视为全站双语完成。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
+目前已完成公共导航、基础认证与 Prompt 主链展示的 A 阶段，以及 B 阶段草案编辑 / 恢复、候选审查 / 激活、Definition 运行、模板派生与 RAG 快照、检索执行、晋级审查与应用运行的双语流程验收。HTTP Tool 和离线投影解释仍待迁移；账户安全与管理仍由后续 C 阶段验收，其它页面仍在分阶段迁移，不能视为全站双语完成。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
 
 ## 当前五条主线
 
@@ -297,7 +297,7 @@ Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同�
 
 Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 配置可写入 `memory_dev`、`sqlite_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
 
-自动浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`，默认顺序运行 `templates`、`workflow`、`rag`、`rag-promotion` 四组；可用 `-- --suite=rag --repeat-each=2 --max-failures=1` 定向执行，`--suite` 也接受 `templates`、`workflow` 或 `rag-promotion`。四组各自使用临时 SQLite、Web / Platform 与回环固定响应服务，前一组清理后才复用端口；不接真实模型，退出时清理所管进程和临时数据库，保留报告。模板组覆盖审查 / 上架 / 显式派生；Workflow 组覆盖 Prompt、草案修订 / 冲突、Definition 受控运行与切换状态保持；RAG 组覆盖材料导入、快照版本 / CAS 冲突 / 归档与检索执行；晋级组使用 `--workflow-rag-promotion-local-product`，覆盖候选创建、人工决定、冲突、配置交接与取消。当前中英两语各两轮的通过证据为模板与 Workflow 同窗口 48 次、RAG 独立窗口 12 次；晋级审查独立窗口 4 次，尚未同窗口执行四组完整回归，详见[本周周志](devlogs/2026-W40.md)。服务启动仍遵循[协作规则](agent-collaboration.md#服务启动与真实联调)；首次准备、固定端口和平台限制见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。普通 `npm test` 不启动这些服务，远端 CI 首跑仍待执行。
+自动浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`，默认顺序运行 `templates`、`workflow`、`rag`、`rag-promotion`、`rag-application` 五组；可用 `-- --suite=rag --repeat-each=2 --max-failures=1` 定向执行，`--suite` 也接受 `templates`、`workflow`、`rag-promotion` 或 `rag-application`。五组各自使用临时 SQLite、Web / Platform 与回环固定响应服务，前一组清理后才复用端口；不接真实模型，退出时清理所管进程和临时数据库，保留报告。模板组覆盖审查 / 上架 / 显式派生；Workflow 组覆盖 Prompt、草案修订 / 冲突、Definition 受控运行与切换状态保持；RAG 组覆盖材料导入、快照版本 / CAS 冲突 / 归档与检索执行；晋级组使用 `--workflow-rag-promotion-local-product`，覆盖候选创建、人工决定、冲突、配置交接与取消；应用运行组使用 `--workflow-rag-application-local-product`，覆盖精确激活、一次性凭据交接、调用等待切换、失败、冲突恢复、内存清理及撤销。当前中英两语各两轮的通过证据为模板与 Workflow 同窗口 48 次、RAG 独立窗口 12 次；晋级审查独立窗口 4 次，应用运行组独立窗口 4 次通过，尚未同窗口执行五组完整回归，详见[本周周志](devlogs/2026-W40.md)。服务启动仍遵循[协作规则](agent-collaboration.md#服务启动与真实联调)；首次准备、固定端口和平台限制见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。普通 `npm test` 不启动这些服务，远端 CI 首跑仍待执行。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的活动草案列表，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；打开当前 saved record 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback；不可变 revision 恢复仍使用独立历史流程。
 
