@@ -18,9 +18,9 @@ await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
 const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
-const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool"];
+const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection"];
 if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
-  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool selector.");
+  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection selector.");
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));

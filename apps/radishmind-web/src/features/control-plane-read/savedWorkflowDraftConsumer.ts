@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy, WorkflowProjectionMessage } from "./workflowProjectionCopy.ts";
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 import type {
   WorkflowDraftDesignerDraft,
@@ -174,7 +175,7 @@ export type WorkflowSavedDraftOpenResult = {
   draft: WorkflowDraftDesignerDraft | null;
 };
 
-export type WorkflowSavedDraftConflictReviewSummary = {
+export type WorkflowSavedDraftConflictReviewSummary = WorkflowProjectionCopy & {
   reviewId: "saved_draft_conflict_review";
   status: "needs_review" | "local_draft_continued";
   failureCode: "draft_version_conflict";
@@ -776,7 +777,36 @@ export function buildWorkflowSavedDraftConflictReviewSummary(
     openActionState,
     openUnavailableReason,
     localDraftPreservationSummary,
+    localDraftPreservationSummaryMessage: status === "local_draft_continued"
+      ? {
+        key: "conflictContinued", values: {
+          draft: draft.draftId, version: savedDraftVersion
+        }
+      }
+      : {
+        key: "conflictPreserved", values: {
+          draft: draft.draftId
+        }
+      },
     nextReviewerStep,
+    nextReviewerStepMessage: status === "local_draft_continued" ? {
+      key: "conflictStepContinued"
+    } : savedMetadataLoaded ? {
+      key: "conflictStepLoaded"
+    } : conflictNextStepMessage(savedMetadataState),
+    summaryMessage: savedSummary
+      ? {
+        key: "conflictSummaryLoaded", values: {
+          draft: draft.draftId, nodes: draft.nodes.length, edges: draft.edges.length, version: savedSummary.draftVersion, updated: savedSummary.updatedAt, actor: savedSummary.updatedByActorRef
+        }
+      }
+      : {
+        key: "conflictSummaryMissing", values: {
+          draft: draft.draftId, nodes: draft.nodes.length, edges: draft.edges.length, version: savedDraftVersion
+        }
+      },
+    reviewerQuestionMessage: { key: "conflictQuestion" },
+    openUnavailableReasonMessage: savedMetadataLoaded ? undefined : conflictOpenReasonMessage(savedMetadataState, savedDraftListFailureCode),
     requestId: state.requestId,
     auditRef: state.auditRef,
     summary: `Version conflict review keeps local draft ${draft.draftId} active with ${draft.nodes.length} nodes and ${draft.edges.length} edges while ${savedMetadataLabel} remains the remote saved draft source.`,
@@ -787,6 +817,15 @@ export function buildWorkflowSavedDraftConflictReviewSummary(
     canAutoOverwriteLocalDraft: false,
     canAutoMergeDraft: false,
   };
+}
+
+function conflictOpenReasonMessage(state: WorkflowSavedDraftConflictMetadataState, code: string | null | undefined): WorkflowProjectionMessage {
+  if (state === "failed") return { key: "conflictOpen_failed", values: { code: code ?? "unknown_failure" } };
+  return { key: `conflictOpen_${state === "loaded" ? "refreshing" : state}` };
+}
+
+function conflictNextStepMessage(state: WorkflowSavedDraftConflictMetadataState): WorkflowProjectionMessage {
+  return { key: `conflictStep_${state === "loaded" ? "refreshing" : state}` };
 }
 
 function conflictMetadataStateFromSavedDraftListStatus(
@@ -1368,7 +1407,9 @@ export function workflowDraftFromSavedWorkflowDraftDocument(
       label: capability.capability_id,
       status: "blocked",
       missingPrerequisite: capability.missing_prerequisite ?? "independent workflow runtime target",
+      missingPrerequisiteMessage: capability.missing_prerequisite == null ? { key: "savedDraftRuntimeTarget" } : undefined,
       summary: capability.summary ?? "Capability remains blocked after the saved draft is opened.",
+      summaryMessage: capability.summary == null ? { key: "savedDraftCapabilityBlocked" } : undefined,
       auditRef: document.request_audit_metadata?.audit_ref ?? "audit_saved_draft_open",
     })),
     routeMetadata: {

@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -6,7 +7,7 @@ import {
   type WorkflowDefinitionSummary,
 } from "../../../../../contracts/typescript/control-plane-read-api";
 
-export type WorkflowDefinitionDetailNode = {
+export type WorkflowDefinitionDetailNode = WorkflowProjectionCopy & {
   nodeId: string;
   label: string;
   nodeType: "prompt" | "rag_retrieval" | "llm" | "http_tool" | "condition" | "output";
@@ -23,13 +24,13 @@ export type WorkflowDefinitionDetailEdge = {
   conditionSummary: string;
 };
 
-export type WorkflowDefinitionDetailSchemaSummary = {
+export type WorkflowDefinitionDetailSchemaSummary = WorkflowProjectionCopy & {
   label: string;
   summary: string;
   fields: string[];
 };
 
-export type WorkflowDefinitionBlockedActionPreview = {
+export type WorkflowDefinitionBlockedActionPreview = WorkflowProjectionCopy & {
   toolActionId: string;
   nodeId: string;
   toolRef: string;
@@ -347,6 +348,7 @@ function buildBlockedActionPreview(applicationRef: string): WorkflowDefinitionBl
       riskLevel: "low",
       requiresConfirmation: true,
       policyReason: "Docs answers remain advisory; publishing or writing answer state requires a future policy and writeback gate.",
+      policyReasonMessage: { key: "tool_action_preview_docs_answer_publish_policyReason" },
       blockedState: "blocked_executor_not_available",
       auditRef: "audit_docs_answer_publish_blocked_demo",
     };
@@ -359,6 +361,7 @@ function buildBlockedActionPreview(applicationRef: string): WorkflowDefinitionBl
     riskLevel: "medium",
     requiresConfirmation: true,
     policyReason: "Candidate action remains blocked until a future confirmation flow and executor are implemented.",
+    policyReasonMessage: { key: "tool_action_preview_reconnect_stream_policyReason" },
     blockedState: "blocked_executor_not_available",
     auditRef: "audit_tool_action_preview_demo",
   };

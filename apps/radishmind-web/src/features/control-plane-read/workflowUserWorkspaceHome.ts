@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import type { WorkspaceApiKeysViewModel } from "./workspaceApiKeys";
 import type { WorkspaceApplicationsViewModel } from "./workspaceApplications";
 import type { WorkspaceRunHistoryViewModel } from "./workspaceRunHistory";
@@ -33,7 +34,7 @@ export type WorkflowUserWorkspaceHomeSource = {
   workflowScenarioInspector: WorkflowScenarioInspectorViewModel;
 };
 
-export type WorkflowUserWorkspaceHomeMetric = {
+export type WorkflowUserWorkspaceHomeMetric = WorkflowProjectionCopy & {
   metricId: string;
   label: string;
   value: string;
@@ -41,7 +42,7 @@ export type WorkflowUserWorkspaceHomeMetric = {
   summary: string;
 };
 
-export type WorkflowUserWorkspaceHomeApplication = {
+export type WorkflowUserWorkspaceHomeApplication = WorkflowProjectionCopy & {
   applicationRef: string;
   displayName: string;
   applicationKind: string;
@@ -53,7 +54,7 @@ export type WorkflowUserWorkspaceHomeApplication = {
   auditRef: string;
 };
 
-export type WorkflowUserWorkspaceHomeRun = {
+export type WorkflowUserWorkspaceHomeRun = WorkflowProjectionCopy & {
   runId: string;
   applicationRef: string;
   workflowDefinitionId: string;
@@ -65,7 +66,7 @@ export type WorkflowUserWorkspaceHomeRun = {
   summary: string;
 };
 
-export type WorkflowUserWorkspaceHomeReadiness = {
+export type WorkflowUserWorkspaceHomeReadiness = WorkflowProjectionCopy & {
   readinessId: string;
   label: string;
   value: string;
@@ -75,7 +76,7 @@ export type WorkflowUserWorkspaceHomeReadiness = {
   auditRef: string;
 };
 
-export type WorkflowUserWorkspaceHomeRouteEvidence = {
+export type WorkflowUserWorkspaceHomeRouteEvidence = WorkflowProjectionCopy & {
   evidenceId: string;
   label: string;
   routeId: string;
@@ -347,56 +348,68 @@ function buildRouteEvidence(source: WorkflowUserWorkspaceHomeSource): WorkflowUs
     {
       evidenceId: "applications_route",
       label: "Applications",
+      labelMessage: { key: "applications_route_label" },
       routeId: source.workspaceApplications.routeId,
       requestId: source.workspaceApplications.requestId,
       auditRef: source.workspaceApplications.auditRef,
       status: source.workspaceApplications.canRenderApplications ? "ready" : "blocked",
       summary: "Application summary list is consumed as read-side workspace context.",
+      summaryMessage: { key: "applications_route_summary" },
     },
     {
       evidenceId: "workflow_definitions_route",
       label: "Workflow definitions",
+      labelMessage: { key: "workflow_definitions_route_label" },
       routeId: source.workspaceWorkflowDefinitions.routeId,
       requestId: source.workspaceWorkflowDefinitions.requestId,
       auditRef: source.workspaceWorkflowDefinitions.auditRef,
       status: source.workspaceWorkflowDefinitions.canRenderWorkflowDefinitions ? "ready" : "blocked",
       summary: "Definition summaries connect applications to workflow detail and draft inspection.",
+      summaryMessage: { key: "workflow_definitions_route_summary" },
     },
     {
       evidenceId: "run_history_route",
       label: "Run history",
+      labelMessage: { key: "run_history_route_label" },
       routeId: source.workspaceRunHistory.routeId,
       requestId: source.workspaceRunHistory.requestId,
       auditRef: source.workspaceRunHistory.auditRef,
       status: source.workspaceRunHistory.canRenderRuns ? "ready" : "blocked",
       summary: "Run history supplies status, trace, failure code, and cost summary without executor access.",
+      summaryMessage: { key: "run_history_route_summary" },
     },
     {
       evidenceId: "api_keys_route",
       label: "API keys",
+      labelMessage: { key: "api_keys_route_label" },
       routeId: source.workspaceApiKeys.routeId,
       requestId: source.workspaceApiKeys.requestId,
       auditRef: source.workspaceApiKeys.auditRef,
       status: source.workspaceApiKeys.canRenderApiKeys ? "offline_only" : "blocked",
       summary: "API key summaries expose scope and state without key values or lifecycle mutation.",
+      summaryMessage: { key: "api_keys_route_summary" },
     },
     {
       evidenceId: "quota_route",
       label: "Usage quota",
+      labelMessage: { key: "quota_route_label" },
       routeId: source.workspaceUsageQuota.routeId,
       requestId: source.workspaceUsageQuota.requestId,
       auditRef: source.workspaceUsageQuota.auditRef,
       status: source.workspaceUsageQuota.canRenderQuota ? "offline_only" : "blocked",
       summary: "Quota summary is displayed without enforcement, rate limit, or cost record writes.",
+      summaryMessage: { key: "quota_route_summary" },
     },
     {
       evidenceId: "review_workspace",
       label: "Workflow review",
+      labelMessage: { key: "review_workspace_label_2" },
       routeId: source.workflowWorkspaceReview.pageId,
       requestId: source.workflowWorkspaceReview.requestId,
       auditRef: source.workflowWorkspaceReview.auditRef,
       status: source.workflowWorkspaceReview.canRenderWorkspaceReview ? "offline_only" : "blocked",
       summary: "Review workspace rolls up context, stages, blockers, and stop lines for the selected scenario.",
+      summaryMessage: { key: "review_workspace_summary_2" },
     },
   ];
 }

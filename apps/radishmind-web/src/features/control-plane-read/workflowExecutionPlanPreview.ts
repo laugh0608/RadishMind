@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy, WorkflowProjectionMessage } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -19,14 +20,14 @@ import {
 export type WorkflowExecutionPlanStageKind = "context" | "model" | "policy" | "preview" | "output" | "audit";
 export type WorkflowExecutionPlanStatus = "ready" | "review_required" | "blocked";
 
-export type WorkflowExecutionPlanSummary = {
+export type WorkflowExecutionPlanSummary = WorkflowProjectionCopy & {
   label: string;
   value: string;
   status: WorkflowExecutionPlanStatus;
   summary: string;
 };
 
-export type WorkflowExecutionPlanStage = {
+export type WorkflowExecutionPlanStage = WorkflowProjectionCopy & {
   stageId: string;
   order: number;
   label: string;
@@ -37,7 +38,7 @@ export type WorkflowExecutionPlanStage = {
   blockedReason: string;
 };
 
-export type WorkflowExecutionPlanNodeMapping = {
+export type WorkflowExecutionPlanNodeMapping = WorkflowProjectionCopy & {
   nodeId: string;
   label: string;
   stageId: string;
@@ -50,7 +51,7 @@ export type WorkflowExecutionPlanNodeMapping = {
   outputSummary: string;
 };
 
-export type WorkflowExecutionPlanProviderRequirement = {
+export type WorkflowExecutionPlanProviderRequirement = WorkflowProjectionCopy & {
   requirementId: string;
   label: string;
   providerProfileRef: string;
@@ -60,7 +61,7 @@ export type WorkflowExecutionPlanProviderRequirement = {
   summary: string;
 };
 
-export type WorkflowExecutionPlanGate = {
+export type WorkflowExecutionPlanGate = WorkflowProjectionCopy & {
   gateId: string;
   label: string;
   gateKind: "policy" | "confirmation" | "audit" | "runtime";
@@ -70,7 +71,7 @@ export type WorkflowExecutionPlanGate = {
   auditRef: string;
 };
 
-export type WorkflowExecutionPlanBlockedReason = {
+export type WorkflowExecutionPlanBlockedReason = WorkflowProjectionCopy & {
   reasonId: string;
   label: string;
   blockedCapability: "runtime" | "publish" | "writeback" | "replay";
@@ -89,7 +90,7 @@ export type WorkflowExecutionPlanAuditMetadata = {
   selectedDraftId: string;
 };
 
-export type WorkflowExecutionPlanPreviewViewModel = {
+export type WorkflowExecutionPlanPreviewViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-execution-plan-preview-offline";
   sourcePageId: "workflow-draft-validation-inspector-offline";
   sourceRouteId: "workflow-definition-summary-list-route";
@@ -199,33 +200,43 @@ function buildSummary(
   return [
     {
       label: "Selected draft",
+      labelMessage: { key: "planDraft" },
       value: draft.draftId,
       status: validationStatus === "blocked" ? "blocked" : "review_required",
       summary: "Execution plan preview is derived from the selected offline draft and validation inspector.",
+      summaryMessage: { key: "planDraftSummary" },
     },
     {
       label: "Stage order",
+      labelMessage: { key: "stageOrder" },
       value: String(stageOrder.length),
       status: stageOrder.some((stage) => stage.status === "blocked") ? "blocked" : "review_required",
       summary: "Stages show future execution order without creating an executable runtime plan.",
+      summaryMessage: { key: "planStagesSummary" },
     },
     {
       label: "Provider requirements",
+      labelMessage: { key: "providerRequirements" },
       value: String(providerProfileRequirements.length),
       status: "review_required",
       summary: "Provider profile and tool adapter requirements stay visible before any future runtime work.",
+      summaryMessage: { key: "planProviderSummary" },
     },
     {
       label: "Blocked reasons",
+      labelMessage: { key: "blockedReasons" },
       value: String(blockedPlanReasons.length),
       status: "blocked",
       summary: "Runtime, publish, writeback, and replay remain blocked by explicit prerequisites.",
+      summaryMessage: { key: "planBlockedSummary" },
     },
     {
       label: "Gates",
+      labelMessage: { key: "gates" },
       value: String(confirmationAuditGates.length),
       status: "review_required",
       summary: "Policy, confirmation, audit, and runtime gates are rendered as metadata only.",
+      summaryMessage: { key: "planGatesSummary" },
     },
   ];
 }
@@ -254,12 +265,30 @@ function buildStage(
     stageId,
     order,
     label,
+    labelMessage: { key: `stageLabel_${stageKind}` },
     stageKind,
     status,
     nodeIds: nodes.map((node) => node.nodeId),
     summary: stageSummary(stageKind, nodes),
+    summaryMessage: stageSummaryMessage(stageKind, nodes),
     blockedReason: stageBlockedReason(stageKind),
+    blockedReasonMessage: stageBlockedReasonMessage(stageKind),
   };
+}
+
+function stageSummaryMessage(stageKind: WorkflowExecutionPlanStageKind, nodes: WorkflowDraftDesignerNode[]): WorkflowProjectionMessage | undefined {
+  if (stageKind === "preview") return { key: "stagePreview" };
+  if (stageKind === "audit") return { key: "stageAudit" };
+  return nodes.map(node => node.label).join(", ").length > 0 ? undefined : { key: "stageEmpty" };
+}
+
+function stageBlockedReasonMessage(stageKind: WorkflowExecutionPlanStageKind): WorkflowProjectionMessage {
+  switch (stageKind) {
+    case "preview": return { key: "stageBlockedPreview" };
+    case "policy": return { key: "stageBlockedPolicy" };
+    case "audit": return { key: "stageBlockedAudit" };
+    default: return { key: "stageLocalAllowed" };
+  }
 }
 
 function nodesForStage(
@@ -324,6 +353,7 @@ function buildNodeStageMappings(
     return {
       nodeId: node.nodeId,
       label: node.label,
+      labelMessage: node.labelMessage,
       stageId: stage.stageId,
       stageOrder: stage.order,
       nodeType: node.nodeType,
@@ -366,15 +396,19 @@ function buildProviderProfileRequirements(
     {
       requirementId: "provider_profile_model_stage",
       label: "Model provider profile",
+      labelMessage: { key: "provider_profile_model_stage_label" },
       providerProfileRef: providerRequirementRef(nodeStageMappings, modelNodeIds, draft.providerProfileRef),
       nodeIds: modelNodeIds,
       status: "defined_not_connected",
       missingPrerequisite: "workflow runtime provider binding task card",
+      missingPrerequisiteMessage: { key: "provider_profile_model_stage_missingPrerequisite" },
       summary: "The model profile is shown as a future requirement; no model runtime call is made by this preview.",
+      summaryMessage: { key: "provider_profile_model_stage_summary" },
     },
     {
       requirementId: "tool_adapter_preview_stage",
       label: "Tool adapter",
+      labelMessage: { key: "tool_adapter_preview_stage_label" },
       providerProfileRef: providerRequirementRef(
         nodeStageMappings,
         toolNodeIds,
@@ -383,16 +417,21 @@ function buildProviderProfileRequirements(
       nodeIds: toolNodeIds,
       status: "blocked",
       missingPrerequisite: "tool executor adapter implementation gate",
+      missingPrerequisiteMessage: { key: "tool_adapter_preview_stage_missingPrerequisite" },
       summary: "Tool action preview nodes cannot execute until the executor and confirmation gates exist.",
+      summaryMessage: { key: "tool_adapter_preview_stage_summary" },
     },
     {
       requirementId: "policy_confirmation_profile",
       label: "Policy and confirmation profile",
+      labelMessage: { key: "policy_confirmation_profile_label" },
       providerProfileRef: "policy:confirmation-gated",
       nodeIds: policyNodeIds,
       status: "defined_not_connected",
       missingPrerequisite: "confirmation decision store and policy audit gate",
+      missingPrerequisiteMessage: { key: "policy_confirmation_profile_missingPrerequisite" },
       summary: "Policy and confirmation nodes remain visible but disconnected from execution unlock.",
+      summaryMessage: { key: "policy_confirmation_profile_summary" },
     },
   ];
 }
@@ -417,37 +456,45 @@ function buildConfirmationAuditGates(
     {
       gateId: "gate_validation_before_plan",
       label: "Validation inspector gate",
+      labelMessage: { key: "gate_validation_before_plan_label" },
       gateKind: "policy",
       status: validationInspector.validationStatus === "blocked" ? "blocked" : "review_required",
       requiredBeforeStageId: "stage_policy_gate",
       summary: "The offline validation inspector must remain visible before a future executable plan can exist.",
+      summaryMessage: { key: "gate_validation_before_plan_summary" },
       auditRef: validationInspector.auditRef,
     },
     {
       gateId: "gate_confirmation_before_tool",
       label: "Confirmation before tool preview",
+      labelMessage: { key: "gate_confirmation_before_tool_label" },
       gateKind: "confirmation",
       status: "blocked",
       requiredBeforeStageId: "stage_tool_preview",
       summary: "Human confirmation shape is displayed, but no decision can be submitted or persisted.",
+      summaryMessage: { key: "gate_confirmation_before_tool_summary" },
       auditRef: findAuditRef(draft.blockedCapabilities, "blocked_confirmation_decision"),
     },
     {
       gateId: "gate_audit_projection",
       label: "Audit projection",
+      labelMessage: { key: "gate_audit_projection_label" },
       gateKind: "audit",
       status: "review_required",
       requiredBeforeStageId: "stage_audit_projection",
       summary: "Plan preview includes request and audit refs without exposing raw prompt, token, or tool payloads.",
+      summaryMessage: { key: "gate_audit_projection_summary" },
       auditRef: draft.routeMetadata.auditRef,
     },
     {
       gateId: "gate_runtime_execution",
       label: "Runtime execution gate",
+      labelMessage: { key: "gate_runtime_execution_label" },
       gateKind: "runtime",
       status: "blocked",
       requiredBeforeStageId: "stage_model_reasoning",
       summary: "Executor, durable run store, result materialization, and replay gates are not implemented.",
+      summaryMessage: { key: "gate_runtime_execution_summary" },
       auditRef: findAuditRef(draft.blockedCapabilities, "blocked_runtime"),
     },
   ];
@@ -460,37 +507,49 @@ function buildBlockedPlanReasons(
     {
       reasonId: "blocked_runtime",
       label: "Runtime execution",
+      labelMessage: { key: "blocked_runtime_label" },
       blockedCapability: "runtime",
       status: "blocked",
       missingPrerequisite: findMissingPrerequisite(blockedCapabilities, "blocked_runtime"),
+      missingPrerequisiteMessage: blockedCapabilities.find(capability => capability.capabilityId === "blocked_runtime")?.missingPrerequisiteMessage ?? (blockedCapabilities.some(capability => capability.capabilityId === "blocked_runtime") ? undefined : { key: "findBlockedReason_missingPrerequisite" }),
       summary: "No workflow executor, node executor, tool executor, or agent loop is available.",
+      summaryMessage: { key: "blocked_runtime_summary" },
       auditRef: findAuditRef(blockedCapabilities, "blocked_runtime"),
     },
     {
       reasonId: "blocked_publish",
       label: "Workflow publish",
+      labelMessage: { key: "blocked_publish_label" },
       blockedCapability: "publish",
       status: "blocked",
       missingPrerequisite: findMissingPrerequisite(blockedCapabilities, "blocked_publish"),
+      missingPrerequisiteMessage: blockedCapabilities.find(capability => capability.capabilityId === "blocked_publish")?.missingPrerequisiteMessage ?? (blockedCapabilities.some(capability => capability.capabilityId === "blocked_publish") ? undefined : { key: "findBlockedReason_missingPrerequisite" }),
       summary: "The preview is derived from an offline draft and cannot publish workflow versions.",
+      summaryMessage: { key: "blocked_publish_summary" },
       auditRef: findAuditRef(blockedCapabilities, "blocked_publish"),
     },
     {
       reasonId: "blocked_writeback",
       label: "Business writeback",
+      labelMessage: { key: "blocked_writeback_label" },
       blockedCapability: "writeback",
       status: "blocked",
       missingPrerequisite: "business writeback policy and confirmation execution gate",
+      missingPrerequisiteMessage: { key: "blocked_writeback_missingPrerequisite" },
       summary: "Candidate actions remain advisory and cannot write to upstream project truth sources.",
+      summaryMessage: { key: "blocked_writeback_summary" },
       auditRef: "audit_execution_plan_writeback_blocked",
     },
     {
       reasonId: "blocked_replay",
       label: "Run replay",
+      labelMessage: { key: "blocked_replay_label" },
       blockedCapability: "replay",
       status: "blocked",
       missingPrerequisite: "durable run store, executor, and replay policy gate",
+      missingPrerequisiteMessage: { key: "blocked_replay_missingPrerequisite" },
       summary: "Run replay and resume are not available from an offline execution plan preview.",
+      summaryMessage: { key: "blocked_replay_summary" },
       auditRef: "audit_execution_plan_replay_blocked",
     },
   ];

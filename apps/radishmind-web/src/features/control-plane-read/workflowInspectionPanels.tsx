@@ -1,5 +1,6 @@
 import "../../i18n/workflowDraftResources.ts";
-import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
+import { workflowProjectionText, workflowProjectionStatusLabel } from "./workflowProjectionCopy.ts";
+import "../../i18n/workflowInspectionProjectionResources.ts";
 import "../../i18n/workflowInspectionResources.ts";
 import { useTranslation } from "react-i18next";
 import {
@@ -105,11 +106,12 @@ export function WorkflowDraftValidationInspectorPanel({
 }
 
 function WorkflowDraftValidationSummaryCard({ summary }: { summary: WorkflowDraftValidationSummary }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-draft-validation-card">
-      <span>{summary.label}</span>
+      <span>{workflowProjectionText(t, summary, "label")}</span>
       <strong>{summary.value}</strong>
-      <p>{summary.summary}</p>
+      <p>{workflowProjectionText(t, summary, "summary")}</p>
     </article>
   );
 }
@@ -121,13 +123,13 @@ function WorkflowDraftStructuralCheckCard({ check }: { check: WorkflowDraftStruc
       <div className="workflow-draft-validation-row-main">
         <div>
           <p className="eyebrow">{check.checkId}</p>
-          <h5>{check.label}</h5>
+          <h5>{workflowProjectionText(t, check, "label")}</h5>
         </div>
         <StatusBadge tone={check.status === "blocked" ? "bad" : check.status === "passed" ? "good" : "neutral"}>
           {check.status}
         </StatusBadge>
       </div>
-      <p>{check.summary}</p>
+      <p>{workflowProjectionText(t, check, "summary")}</p>
       <div className="workflow-draft-validation-evidence" aria-label={t($ => $.inspection.workflowDraftStructuralCheckEvidence)}>
         {check.evidenceRefs.map((evidenceRef, index) => (
           <code key={`${evidenceRef}:${index}`}>{evidenceRef}</code>
@@ -144,11 +146,11 @@ function WorkflowDraftContractCheckCard({ check }: { check: WorkflowDraftContrac
       <div className="workflow-draft-validation-row-main">
         <div>
           <p className="eyebrow">{check.checkId}</p>
-          <h5>{check.label}</h5>
+          <h5>{workflowProjectionText(t, check, "label")}</h5>
         </div>
         <StatusBadge tone={check.status === "passed" ? "good" : "neutral"}>{check.status}</StatusBadge>
       </div>
-      <p>{check.summary}</p>
+      <p>{workflowProjectionText(t, check, "summary")}</p>
       <dl className="workflow-run-guard-meta">
         <div>
           <dt>{t($ => $.inspection.required)}</dt>
@@ -156,11 +158,11 @@ function WorkflowDraftContractCheckCard({ check }: { check: WorkflowDraftContrac
         </div>
         <div>
           <dt>{t($ => $.inspection.present)}</dt>
-          <dd>{check.presentFields.join(", ") || workflowDraftStatusLabel(t, "none")}</dd>
+          <dd>{check.presentFields.join(", ") || workflowProjectionStatusLabel(t, "none")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.missing)}</dt>
-          <dd>{check.missingFields.join(", ") || workflowDraftStatusLabel(t, "none")}</dd>
+          <dd>{check.missingFields.join(", ") || workflowProjectionStatusLabel(t, "none")}</dd>
         </div>
       </dl>
     </article>
@@ -178,21 +180,21 @@ function WorkflowDraftBlockedCapabilityCheckCard({
       <div className="workflow-draft-validation-row-main">
         <div>
           <p className="eyebrow">{check.capabilityId}</p>
-          <h5>{check.label}</h5>
+          <h5>{workflowProjectionText(t, check, "label")}</h5>
         </div>
         <StatusBadge tone="bad">{check.status}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
           <dt>{t($ => $.inspection.missingPrerequisite)}</dt>
-          <dd>{check.missingPrerequisite}</dd>
+          <dd>{workflowProjectionText(t, check, "missingPrerequisite")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.audit)}</dt>
           <dd>{check.auditRef}</dd>
         </div>
       </dl>
-      <p>{check.summary}</p>
+      <p>{workflowProjectionText(t, check, "summary")}</p>
     </article>
   );
 }
@@ -291,11 +293,12 @@ export function WorkflowExecutionPlanPreviewPanel({
 }
 
 function WorkflowExecutionPlanSummaryCard({ summary }: { summary: WorkflowExecutionPlanSummary }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-execution-plan-card">
-      <span>{summary.label}</span>
+      <span>{workflowProjectionText(t, summary, "label")}</span>
       <strong>{summary.value}</strong>
-      <p>{summary.summary}</p>
+      <p>{workflowProjectionText(t, summary, "summary")}</p>
     </article>
   );
 }
@@ -307,23 +310,23 @@ function WorkflowExecutionPlanStageCard({ stage }: { stage: WorkflowExecutionPla
       <div className="workflow-execution-plan-row-main">
         <div>
           <p className="eyebrow">
-            {stage.order} / {stage.stageKind}
+            {stage.order} / {workflowProjectionStatusLabel(t, stage.stageKind)}
           </p>
-          <h5>{stage.label}</h5>
+          <h5>{workflowProjectionText(t, stage, "label")}</h5>
         </div>
         <StatusBadge tone={stage.status === "blocked" ? "bad" : stage.status === "ready" ? "good" : "neutral"}>
           {stage.status}
         </StatusBadge>
       </div>
-      <p>{stage.summary}</p>
+      <p>{workflowProjectionText(t, stage, "summary")}</p>
       <dl className="workflow-run-guard-meta">
         <div>
           <dt>{t($ => $.inspection.nodes)}</dt>
-          <dd>{stage.nodeIds.join(", ") || workflowDraftStatusLabel(t, "none")}</dd>
+          <dd>{stage.nodeIds.join(", ") || workflowProjectionStatusLabel(t, "none")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.blockedReason)}</dt>
-          <dd>{stage.blockedReason}</dd>
+          <dd>{workflowProjectionText(t, stage, "blockedReason")}</dd>
         </div>
       </dl>
     </article>
@@ -337,7 +340,7 @@ function WorkflowExecutionPlanNodeMappingCard({ mapping }: { mapping: WorkflowEx
       <div className="workflow-execution-plan-row-main">
         <div>
           <p className="eyebrow">{mapping.stageId}</p>
-          <h5>{mapping.label}</h5>
+          <h5>{workflowProjectionText(t, mapping, "label")}</h5>
         </div>
         <StatusBadge tone={mapping.requiresConfirmation ? "bad" : "neutral"}>{mapping.executionMode}</StatusBadge>
       </div>
@@ -348,7 +351,7 @@ function WorkflowExecutionPlanNodeMappingCard({ mapping }: { mapping: WorkflowEx
         </div>
         <div>
           <dt>{t($ => $.inspection.type)}</dt>
-          <dd>{mapping.nodeType}</dd>
+          <dd>{workflowProjectionStatusLabel(t, mapping.nodeType)}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.provider)}</dt>
@@ -378,7 +381,7 @@ function WorkflowExecutionPlanProviderRequirementCard({
       <div className="workflow-execution-plan-row-main">
         <div>
           <p className="eyebrow">{requirement.requirementId}</p>
-          <h5>{requirement.label}</h5>
+          <h5>{workflowProjectionText(t, requirement, "label")}</h5>
         </div>
         <StatusBadge tone={requirement.status === "blocked" ? "bad" : "neutral"}>{requirement.status}</StatusBadge>
       </div>
@@ -389,14 +392,14 @@ function WorkflowExecutionPlanProviderRequirementCard({
         </div>
         <div>
           <dt>{t($ => $.inspection.nodes)}</dt>
-          <dd>{requirement.nodeIds.join(", ") || workflowDraftStatusLabel(t, "none")}</dd>
+          <dd>{requirement.nodeIds.join(", ") || workflowProjectionStatusLabel(t, "none")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.missingPrerequisite)}</dt>
-          <dd>{requirement.missingPrerequisite}</dd>
+          <dd>{workflowProjectionText(t, requirement, "missingPrerequisite")}</dd>
         </div>
       </dl>
-      <p>{requirement.summary}</p>
+      <p>{workflowProjectionText(t, requirement, "summary")}</p>
     </article>
   );
 }
@@ -407,8 +410,8 @@ function WorkflowExecutionPlanGateCard({ gate }: { gate: WorkflowExecutionPlanGa
     <article className="workflow-execution-plan-gate">
       <div className="workflow-execution-plan-row-main">
         <div>
-          <p className="eyebrow">{gate.gateKind}</p>
-          <h5>{gate.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, gate.gateKind)}</p>
+          <h5>{workflowProjectionText(t, gate, "label")}</h5>
         </div>
         <StatusBadge tone={gate.status === "blocked" ? "bad" : "neutral"}>{gate.status}</StatusBadge>
       </div>
@@ -422,7 +425,7 @@ function WorkflowExecutionPlanGateCard({ gate }: { gate: WorkflowExecutionPlanGa
           <dd>{gate.auditRef}</dd>
         </div>
       </dl>
-      <p>{gate.summary}</p>
+      <p>{workflowProjectionText(t, gate, "summary")}</p>
     </article>
   );
 }
@@ -437,22 +440,22 @@ function WorkflowExecutionPlanBlockedReasonCard({
     <article className="workflow-execution-plan-blocked-reason">
       <div className="workflow-execution-plan-row-main">
         <div>
-          <p className="eyebrow">{reason.blockedCapability}</p>
-          <h5>{reason.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, reason.blockedCapability)}</p>
+          <h5>{workflowProjectionText(t, reason, "label")}</h5>
         </div>
         <StatusBadge tone="bad">{reason.status}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
           <dt>{t($ => $.inspection.missingPrerequisite)}</dt>
-          <dd>{reason.missingPrerequisite}</dd>
+          <dd>{workflowProjectionText(t, reason, "missingPrerequisite")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.audit)}</dt>
           <dd>{reason.auditRef}</dd>
         </div>
       </dl>
-      <p>{reason.summary}</p>
+      <p>{workflowProjectionText(t, reason, "summary")}</p>
     </article>
   );
 }
@@ -541,11 +544,12 @@ export function WorkflowRuntimeReadinessInspectorPanel({
 }
 
 function WorkflowRuntimeReadinessSummaryCard({ summary }: { summary: WorkflowRuntimeReadinessSummary }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-runtime-readiness-card">
-      <span>{summary.label}</span>
+      <span>{workflowProjectionText(t, summary, "label")}</span>
       <strong>{summary.value}</strong>
-      <p>{summary.summary}</p>
+      <p>{workflowProjectionText(t, summary, "summary")}</p>
     </article>
   );
 }
@@ -560,26 +564,26 @@ function WorkflowRuntimeReadinessPrerequisiteCard({
     <article className="workflow-runtime-readiness-prerequisite">
       <div className="workflow-runtime-readiness-row-main">
         <div>
-          <p className="eyebrow">{prerequisite.area}</p>
-          <h5>{prerequisite.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, prerequisite.area)}</p>
+          <h5>{workflowProjectionText(t, prerequisite, "label")}</h5>
         </div>
         <StatusBadge tone={workflowRuntimeReadinessTone(prerequisite.status)}>{prerequisite.status}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
           <dt>{t($ => $.inspection.evidence)}</dt>
-          <dd>{prerequisite.currentEvidence}</dd>
+          <dd>{workflowProjectionText(t, prerequisite, "currentEvidence")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.missingPrerequisite)}</dt>
-          <dd>{prerequisite.missingPrerequisite}</dd>
+          <dd>{workflowProjectionText(t, prerequisite, "missingPrerequisite")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.sourceRefs)}</dt>
           <dd>{prerequisite.sourceRefs.join(", ")}</dd>
         </div>
       </dl>
-      <p>{prerequisite.summary}</p>
+      <p>{workflowProjectionText(t, prerequisite, "summary")}</p>
     </article>
   );
 }
@@ -590,10 +594,10 @@ function WorkflowRuntimeReadinessBlockerCard({ blocker }: { blocker: WorkflowRun
     <article className="workflow-runtime-readiness-blocker">
       <div className="workflow-runtime-readiness-row-main">
         <div>
-          <p className="eyebrow">{blocker.area}</p>
-          <h5>{blocker.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, blocker.area)}</p>
+          <h5>{workflowProjectionText(t, blocker, "label")}</h5>
         </div>
-        <StatusBadge tone="bad">{blocker.severity}</StatusBadge>
+        <StatusBadge tone="bad">{workflowProjectionStatusLabel(t, blocker.severity)}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
@@ -602,14 +606,14 @@ function WorkflowRuntimeReadinessBlockerCard({ blocker }: { blocker: WorkflowRun
         </div>
         <div>
           <dt>{t($ => $.inspection.missingPrerequisite)}</dt>
-          <dd>{blocker.missingPrerequisite}</dd>
+          <dd>{workflowProjectionText(t, blocker, "missingPrerequisite")}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.audit)}</dt>
           <dd>{blocker.auditRef}</dd>
         </div>
       </dl>
-      <p>{blocker.summary}</p>
+      <p>{workflowProjectionText(t, blocker, "summary")}</p>
     </article>
   );
 }
@@ -620,22 +624,22 @@ function WorkflowRuntimeReadinessGateCard({ gate }: { gate: WorkflowRuntimeReadi
     <article className="workflow-runtime-readiness-gate">
       <div className="workflow-runtime-readiness-row-main">
         <div>
-          <p className="eyebrow">{gate.gateKind}</p>
-          <h5>{gate.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, gate.gateKind)}</p>
+          <h5>{workflowProjectionText(t, gate, "label")}</h5>
         </div>
         <StatusBadge tone={workflowRuntimeReadinessTone(gate.status)}>{gate.status}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
           <dt>{t($ => $.inspection.requiredBefore)}</dt>
-          <dd>{gate.requiredBefore}</dd>
+          <dd>{workflowProjectionStatusLabel(t, gate.requiredBefore)}</dd>
         </div>
         <div>
           <dt>{t($ => $.inspection.evidenceRefs)}</dt>
           <dd>{gate.evidenceRefs.join(", ")}</dd>
         </div>
       </dl>
-      <p>{gate.summary}</p>
+      <p>{workflowProjectionText(t, gate, "summary")}</p>
     </article>
   );
 }
@@ -653,5 +657,5 @@ function workflowRuntimeReadinessTone(status: WorkflowRuntimeReadinessStatus): "
 
 function StatusBadge({ children, tone }: { children: string; tone: "good" | "bad" | "neutral" }) {
   const { t } = useTranslation("workflow");
-  return <span className={`status-badge ${tone}`}>{workflowDraftStatusLabel(t, children)}</span>;
+  return <span className={`status-badge ${tone}`}>{workflowProjectionStatusLabel(t, children)}</span>;
 }

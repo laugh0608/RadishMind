@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -12,7 +13,7 @@ export type WorkflowApplicationDetailSourceMetadata = {
   auditRef: string;
 };
 
-export type WorkflowApplicationRiskSummary = {
+export type WorkflowApplicationRiskSummary = WorkflowProjectionCopy & {
   label: string;
   riskLevel: "low" | "medium" | "high";
   requiresConfirmationCapable: boolean;
@@ -28,7 +29,7 @@ export type WorkflowApplicationRouteMetadata = {
   auditRef: string;
 };
 
-export type WorkflowApplicationBlockedCapabilityPreview = {
+export type WorkflowApplicationBlockedCapabilityPreview = WorkflowProjectionCopy & {
   capabilityId: string;
   label: string;
   status: "blocked";
@@ -210,43 +211,58 @@ function buildBlockedCapabilities(
     {
       capabilityId: "blocked_application_mutation",
       label: "Application mutation",
+      labelMessage: { key: "blocked_application_mutation_label" },
       status: "blocked",
       reason: "Create, edit, delete, and publish flows are outside the current read-side surface.",
+      reasonMessage: { key: "blocked_application_mutation_reason" },
       missingPrerequisite: "application lifecycle mutation task card",
+      missingPrerequisiteMessage: { key: "blocked_application_mutation_missingPrerequisite" },
       auditRef: "audit_application_detail_mutation_blocked_demo",
     },
     {
       capabilityId: "blocked_workflow_execution",
       label: "Workflow execution",
+      labelMessage: { key: "blocked_workflow_execution_label" },
       status: "blocked",
       reason: `${application.displayName} can show latest workflow references, but no workflow executor is connected.`,
+      reasonMessage: { key: "blocked_workflow_execution_reason", values: { value1: application.displayName } },
       missingPrerequisite: "workflow executor implementation gate",
+      missingPrerequisiteMessage: { key: "blocked_workflow_execution_missingPrerequisite" },
       auditRef: "audit_application_detail_executor_blocked_demo",
     },
     {
       capabilityId: "blocked_confirmation_decision",
       label: "Confirmation decision",
+      labelMessage: { key: "blocked_confirmation_decision_label_2" },
       status: "blocked",
       reason: enrichment.riskSummary.requiresConfirmationCapable
         ? "Human review is visible as a capability marker only; no decision submission path is available."
         : "This application does not require confirmation today, and the confirmation path is still not implemented.",
+      reasonMessage: { key: enrichment.riskSummary.requiresConfirmationCapable ? "applicationConfirmationRequired" : "applicationConfirmationNotRequired" },
       missingPrerequisite: "confirmation flow implementation gate",
+      missingPrerequisiteMessage: { key: "blocked_confirmation_decision_missingPrerequisite" },
       auditRef: "audit_application_detail_confirmation_blocked_demo",
     },
     {
       capabilityId: "blocked_business_writeback",
       label: "Business writeback",
+      labelMessage: { key: "blocked_business_writeback_label" },
       status: "blocked",
       reason: "Upstream truth sources remain protected; this surface only renders sanitized route, run, and audit metadata.",
+      reasonMessage: { key: "blocked_business_writeback_reason" },
       missingPrerequisite: "business writeback policy and adapter gate",
+      missingPrerequisiteMessage: { key: "blocked_business_writeback_missingPrerequisite" },
       auditRef: "audit_application_detail_writeback_blocked_demo",
     },
     {
       capabilityId: "blocked_run_replay",
       label: "Run replay",
+      labelMessage: { key: "blocked_run_replay_label" },
       status: "blocked",
       reason: "Latest run references are pointers only; replay and resume stay disabled.",
+      reasonMessage: { key: "blocked_run_replay_reason" },
       missingPrerequisite: "durable run store and replay gate",
+      missingPrerequisiteMessage: { key: "blocked_run_replay_missingPrerequisite" },
       auditRef: "audit_application_detail_replay_blocked_demo",
     },
   ];

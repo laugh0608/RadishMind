@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -15,7 +16,7 @@ import { buildWorkflowConfirmationPlaceholderViewModel, type WorkflowConfirmatio
 import { workflowDraftHasLocalWorkspaceIdentity } from "./workflowSavedDraftDerivation";
 import type { WorkspaceWorkflowDefinitionRow } from "./workspaceWorkflowDefinitions";
 
-export type WorkflowDraftDesignerTemplate = {
+export type WorkflowDraftDesignerTemplate = WorkflowProjectionCopy & {
   draftId: string;
   label: string;
   applicationRef: string;
@@ -28,7 +29,7 @@ export type WorkflowDraftDesignerTemplate = {
   status: "ready_for_review" | "needs_policy_review" | "blocked_missing_runtime";
 };
 
-export type WorkflowDraftDesignerNode = {
+export type WorkflowDraftDesignerNode = WorkflowProjectionCopy & {
   nodeId: string;
   label: string;
   nodeType: WorkflowDefinitionDetailNode["nodeType"];
@@ -67,14 +68,14 @@ export type WorkflowDraftDesignerLayout = {
   nodePositions: WorkflowDraftDesignerLayoutPosition[];
 };
 
-export type WorkflowDraftDesignerReadiness = {
+export type WorkflowDraftDesignerReadiness = WorkflowProjectionCopy & {
   checkId: string;
   label: string;
   status: "ready" | "review_required" | "blocked";
   summary: string;
 };
 
-export type WorkflowDraftDesignerRisk = {
+export type WorkflowDraftDesignerRisk = WorkflowProjectionCopy & {
   riskId: string;
   label: string;
   riskLevel: "low" | "medium" | "high";
@@ -82,7 +83,7 @@ export type WorkflowDraftDesignerRisk = {
   summary: string;
 };
 
-export type WorkflowDraftDesignerBlockedCapability = {
+export type WorkflowDraftDesignerBlockedCapability = WorkflowProjectionCopy & {
   capabilityId: string;
   label: string;
   status: "blocked";
@@ -117,7 +118,7 @@ export type WorkflowSavedDraftDerivation =
       sourceDefinitionDigest: string;
     };
 
-export type WorkflowDraftDesignerDraft = {
+export type WorkflowDraftDesignerDraft = WorkflowProjectionCopy & {
   draftId: string;
   templateRef: string;
   label: string;
@@ -529,33 +530,44 @@ function buildBlockedCapabilities(
     {
       capabilityId: "blocked_draft_persistence",
       label: "Draft persistence",
+      labelMessage: { key: "blocked_draft_persistence_label" },
       status: "blocked",
       missingPrerequisite: "workflow builder storage task card",
+      missingPrerequisiteMessage: { key: "blocked_draft_persistence_missingPrerequisite" },
       summary: "The selected draft exists only as an offline view model and is not written to durable storage.",
+      summaryMessage: { key: "blocked_draft_persistence_summary" },
       auditRef: `audit_${template.draftId}_persistence_blocked`,
     },
     {
       capabilityId: "blocked_publish",
       label: "Workflow publish",
+      labelMessage: { key: "blocked_publish_label_2" },
       status: "blocked",
       missingPrerequisite: "workflow lifecycle mutation task card",
+      missingPrerequisiteMessage: { key: "blocked_publish_missingPrerequisite" },
       summary: "Version publishing is outside the current read-side workflow product surface.",
+      summaryMessage: { key: "blocked_publish_summary_2" },
       auditRef: `audit_${template.draftId}_publish_blocked`,
     },
     {
       capabilityId: "blocked_runtime",
       label: "Workflow runtime",
+      labelMessage: { key: "blocked_runtime_label_2" },
       status: "blocked",
       missingPrerequisite: "workflow executor task card",
+      missingPrerequisiteMessage: { key: "blocked_runtime_missingPrerequisite" },
       summary: "The designer cannot start a run or call node executors.",
+      summaryMessage: { key: "blocked_runtime_summary_2" },
       auditRef: `audit_${template.draftId}_runtime_blocked`,
     },
     {
       capabilityId: "blocked_confirmation_decision",
       label: "Confirmation decision",
+      labelMessage: { key: "blocked_confirmation_decision_label" },
       status: "blocked",
       missingPrerequisite: confirmationPlaceholder.confirmationPlaceholderId,
       summary: "Human review shape is visible, but no decision submission or execution unlock path exists.",
+      summaryMessage: { key: "blocked_confirmation_decision_summary" },
       auditRef: confirmationPlaceholder.auditRef,
     },
   ];

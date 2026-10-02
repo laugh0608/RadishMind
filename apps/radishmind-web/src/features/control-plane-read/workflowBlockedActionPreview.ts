@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -7,14 +8,14 @@ import {
 import type { WorkflowDefinitionBlockedActionPreview } from "./workflowDefinitionDetail";
 import type { WorkflowRunDetailGuardPreview } from "./workflowRunDetail";
 
-export type WorkflowBlockedActionRequirement = {
+export type WorkflowBlockedActionRequirement = WorkflowProjectionCopy & {
   requirementId: string;
   label: string;
   status: "missing" | "defined_not_connected" | "blocked";
   summary: string;
 };
 
-export type WorkflowBlockedActionAuditStep = {
+export type WorkflowBlockedActionAuditStep = WorkflowProjectionCopy & {
   stepId: string;
   label: string;
   status: "observed" | "blocked";
@@ -22,7 +23,7 @@ export type WorkflowBlockedActionAuditStep = {
   summary: string;
 };
 
-export type WorkflowConfirmationPlaceholderPreview = {
+export type WorkflowConfirmationPlaceholderPreview = WorkflowProjectionCopy & {
   confirmationPlaceholderId: string;
   requiredActionRef: string;
   riskSummary: string;
@@ -39,7 +40,7 @@ export type WorkflowBlockedActionPreviewContext = {
   auditRef?: string;
 };
 
-export type WorkflowBlockedActionPreviewViewModel = {
+export type WorkflowBlockedActionPreviewViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-blocked-action-preview-read";
   sourcePageId: "workflow-run-detail-read";
   sourceRouteId: "run-record-summary-list-route";
@@ -133,6 +134,7 @@ export function buildWorkflowBlockedActionPreviewViewModel(
     riskLevel: action.riskLevel,
     requiresConfirmation: action.requiresConfirmation,
     policyReason: action.policyReason,
+    policyReasonMessage: action.policyReasonMessage,
     blockedState: action.blockedState,
     missingPrerequisites,
     auditTrail,

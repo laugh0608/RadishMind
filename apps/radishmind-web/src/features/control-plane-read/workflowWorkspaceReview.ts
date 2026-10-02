@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import type { WorkflowApplicationDetailViewModel } from "./workflowApplicationDetail";
 import type { WorkflowDefinitionDetailViewModel } from "./workflowDefinitionDetail";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
@@ -31,7 +32,7 @@ export type WorkflowWorkspaceReviewSource = {
   scenarioInspector: WorkflowScenarioInspectorViewModel;
 };
 
-export type WorkflowWorkspaceReviewContextCard = {
+export type WorkflowWorkspaceReviewContextCard = WorkflowProjectionCopy & {
   contextId: string;
   label: string;
   primaryRef: string;
@@ -41,7 +42,7 @@ export type WorkflowWorkspaceReviewContextCard = {
   auditRef: string;
 };
 
-export type WorkflowWorkspaceReviewStage = {
+export type WorkflowWorkspaceReviewStage = WorkflowProjectionCopy & {
   stageId: string;
   order: number;
   label: string;
@@ -63,7 +64,7 @@ export type WorkflowWorkspaceReviewStage = {
   auditRef: string;
 };
 
-export type WorkflowWorkspaceReviewRelation = {
+export type WorkflowWorkspaceReviewRelation = WorkflowProjectionCopy & {
   relationId: string;
   label: string;
   sourceRef: string;
@@ -73,7 +74,7 @@ export type WorkflowWorkspaceReviewRelation = {
   auditRef: string;
 };
 
-export type WorkflowWorkspaceReviewBlockedCapabilityGroup = {
+export type WorkflowWorkspaceReviewBlockedCapabilityGroup = WorkflowProjectionCopy & {
   groupId: string;
   label: string;
   sourceSurface: string;
@@ -84,7 +85,7 @@ export type WorkflowWorkspaceReviewBlockedCapabilityGroup = {
   auditRefs: string[];
 };
 
-export type WorkflowWorkspaceReviewStopLine = {
+export type WorkflowWorkspaceReviewStopLine = WorkflowProjectionCopy & {
   stopLineId: string;
   label: string;
   sourceSurface: "overview" | "scenario";
@@ -92,7 +93,7 @@ export type WorkflowWorkspaceReviewStopLine = {
   summary: string;
 };
 
-export type WorkflowWorkspaceReviewViewModel = {
+export type WorkflowWorkspaceReviewViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-workspace-review-offline";
   sourcePageIds: string[];
   reviewMode: "offline_read_only_advisory";
@@ -158,6 +159,11 @@ export function buildWorkflowWorkspaceReviewViewModel(
     requestId: source.executionPlanPreview.requestId,
     auditRef: source.runtimeReadinessInspector.auditRef,
     reviewNarrative: buildReviewNarrative(source, blockedCapabilityGroups, stopLines),
+    reviewNarrativeMessage: {
+      key: "reviewNarrative", values: {
+        scenario: source.scenarioInspector.selectedScenario.labelMessage ?? source.scenarioInspector.selectedScenario.label, draft: source.selectedDraft.draftId, stages: source.executionPlanPreview.stageOrder.length, readiness: source.runtimeReadinessInspector.readinessBlockers.length, groups: blockedCapabilityGroups.length, boundaries: stopLines.length
+      }
+    },
     contextCards,
     reviewStages,
     relationMap,
@@ -253,6 +259,7 @@ function buildContextCards(source: WorkflowWorkspaceReviewSource): WorkflowWorks
       secondaryRef: selectedScenario.scenarioKind,
       status: selectedScenario.requiresConfirmation ? "review_required" : "offline_only",
       summary: selectedScenario.intent,
+      summaryMessage: selectedScenario.intentMessage,
       auditRef: source.scenarioInspector.relationMap[0]?.auditRef ?? source.scenarioInspector.selectedScenarioId,
     },
   ];
@@ -270,18 +277,21 @@ function buildReviewStages(
       stageId: "stage_scenario_context",
       order: 1,
       label: "Scenario context",
+      labelMessage: { key: "stage_scenario_context_label" },
       sourceSurface: "scenario",
       primaryRef: selectedScenario.scenarioId,
       status: selectedScenario.requiresConfirmation ? "review_required" : "offline_only",
       blockedCount: source.scenarioInspector.blockedReasons.length,
       summary: selectedScenario.triggerSummary,
       reviewQuestion: "What user-facing scenario is being reviewed in this workspace?",
+      reviewQuestionMessage: { key: "stage_scenario_context_reviewQuestion" },
       auditRef: source.scenarioInspector.relationMap[0]?.auditRef ?? source.runtimeReadinessInspector.auditRef,
     },
     {
       stageId: "stage_application_definition",
       order: 2,
       label: "Application and definition",
+      labelMessage: { key: "stage_application_definition_label" },
       sourceSurface: "application",
       primaryRef: source.applicationDetail.applicationId,
       status:
@@ -290,79 +300,99 @@ function buildReviewStages(
           : "review_required",
       blockedCount: source.applicationDetail.blockedCapabilities.length,
       summary: "Application detail anchors the selected workflow definition without exposing lifecycle mutation.",
+      summaryMessage: { key: "stage_application_definition_summary" },
       reviewQuestion: "Does the selected application point at the definition under review?",
+      reviewQuestionMessage: { key: "stage_application_definition_reviewQuestion" },
       auditRef: source.applicationDetail.auditRef,
     },
     {
       stageId: "stage_definition_to_draft",
       order: 3,
       label: "Definition to draft",
+      labelMessage: { key: "stage_definition_to_draft_label" },
       sourceSurface: "draft",
       primaryRef: source.selectedDraft.draftId,
       status: "offline_only",
       blockedCount: source.selectedDraft.blockedCapabilities.length,
       summary: "Draft nodes and edges are derived from offline definition metadata and stay inspect-only.",
+      summaryMessage: { key: "stage_definition_to_draft_summary" },
       reviewQuestion: "Which draft carries the scenario through the workflow graph?",
+      reviewQuestionMessage: { key: "stage_definition_to_draft_reviewQuestion" },
       auditRef: source.selectedDraft.routeMetadata.auditRef,
     },
     {
       stageId: "stage_draft_validation",
       order: 4,
       label: "Draft validation",
+      labelMessage: { key: "stage_draft_validation_label" },
       sourceSurface: "validation",
       primaryRef: source.validationInspector.inspectedDraftId,
       status: validationStatusToReviewStatus(source.validationInspector.validationStatus),
       blockedCount: source.validationInspector.blockedCapabilityChecks.length,
       summary: "Validation explains structure, contract fields, and blocked capability checks before runtime work.",
+      summaryMessage: { key: "stage_draft_validation_summary" },
       reviewQuestion: "Which checks still need human review or future implementation gates?",
+      reviewQuestionMessage: { key: "stage_draft_validation_reviewQuestion" },
       auditRef: source.validationInspector.auditRef,
     },
     {
       stageId: "stage_execution_plan",
       order: 5,
       label: "Execution plan preview",
+      labelMessage: { key: "stage_execution_plan_label" },
       sourceSurface: "plan",
       primaryRef: source.executionPlanPreview.selectedDraftId,
       status: source.executionPlanPreview.canRenderExecutionPlanPreview ? "offline_only" : "blocked",
       blockedCount: source.executionPlanPreview.blockedPlanReasons.length,
       summary: "Plan preview orders future stages, provider requirements, and confirmation/audit gates without persistence.",
+      summaryMessage: { key: "stage_execution_plan_summary" },
       reviewQuestion: "How would the draft be ordered if a future executor existed?",
+      reviewQuestionMessage: { key: "stage_execution_plan_reviewQuestion" },
       auditRef: source.executionPlanPreview.auditRef,
     },
     {
       stageId: "stage_runtime_readiness",
       order: 6,
       label: "Runtime readiness",
+      labelMessage: { key: "stage_runtime_readiness_label" },
       sourceSurface: "readiness",
       primaryRef: source.runtimeReadinessInspector.readinessRouteId,
       status: "blocked",
       blockedCount: source.runtimeReadinessInspector.readinessBlockers.length,
       summary: "Readiness keeps executor, durable store, confirmation, auth/store, writeback, and replay gates blocked.",
+      summaryMessage: { key: "stage_runtime_readiness_summary" },
       reviewQuestion: "Why can this workflow not start, persist, confirm, write back, or replay?",
+      reviewQuestionMessage: { key: "stage_runtime_readiness_reviewQuestion" },
       auditRef: source.runtimeReadinessInspector.auditRef,
     },
     {
       stageId: "stage_blocked_capability_rollup",
       order: 7,
       label: "Blocked capability rollup",
+      labelMessage: { key: "stage_blocked_capability_rollup_label" },
       sourceSurface: "blocked_capability",
       primaryRef: `${blockedCapabilityGroups.length} groups`,
       status: "blocked",
       blockedCount: blockedCapabilityGroups.reduce((total, group) => total + group.count, 0),
       summary: "Blocked capabilities are grouped across application, draft, plan, readiness, run, and scenario evidence.",
+      summaryMessage: { key: "stage_blocked_capability_rollup_summary" },
       reviewQuestion: "Which missing prerequisites explain every disabled action path?",
+      reviewQuestionMessage: { key: "stage_blocked_capability_rollup_reviewQuestion" },
       auditRef: source.surfaceOverview.auditRef,
     },
     {
       stageId: "stage_stop_lines",
       order: 8,
       label: "Stop lines",
+      labelMessage: { key: "stage_stop_lines_label" },
       sourceSurface: "stop_line",
       primaryRef: `${stopLines.length} locked stop lines`,
       status: "locked",
       blockedCount: stopLines.length,
       summary: "Stop lines close the review by keeping live backend, mutation, execution, persistence, auth/db, and replay out of scope.",
+      summaryMessage: { key: "stage_stop_lines_summary" },
       reviewQuestion: "Which boundaries must remain locked before a future implementation task can start?",
+      reviewQuestionMessage: { key: "stage_stop_lines_reviewQuestion" },
       auditRef: source.runtimeReadinessInspector.auditRef,
     },
   ];
@@ -471,17 +501,27 @@ function buildBlockedCapabilityGroups(
       grouped.set(candidate.sourceSurface, {
         groupId: `blocked_${candidate.sourceSurface}`,
         label: `${candidate.sourceSurface} blockers`,
+        labelMessage: { key: "groupBlockers", values: { surface: { status: candidate.sourceSurface } } },
         sourceSurface: candidate.sourceSurface,
         status: "blocked",
         count: 1,
         missingPrerequisites: [candidate.missingPrerequisite],
+        missingPrerequisiteMessage: { parts: [candidate.missingPrerequisiteMessage ?? candidate.missingPrerequisite], separator: ", " },
         exampleSummary: candidate.summary,
+        exampleSummaryMessage: candidate.summaryMessage,
         auditRefs: [candidate.auditRef],
       });
       continue;
     }
 
     existing.count += 1;
+    if (!existing.missingPrerequisites.includes(candidate.missingPrerequisite) && existing.missingPrerequisites.length < 4) {
+      const previous = existing.missingPrerequisiteMessage;
+      existing.missingPrerequisiteMessage = {
+        parts: [...(previous && "parts" in previous ? previous.parts : existing.missingPrerequisites), candidate.missingPrerequisiteMessage ?? candidate.missingPrerequisite],
+        separator: ", ",
+      };
+    }
     existing.missingPrerequisites = appendUnique(existing.missingPrerequisites, candidate.missingPrerequisite).slice(0, 4);
     existing.auditRefs = appendUnique(existing.auditRefs, candidate.auditRef).slice(0, 4);
   }
@@ -493,7 +533,9 @@ function blockedCapabilityFromOverview(capability: WorkflowSurfaceOverviewBlocke
   return {
     sourceSurface: capability.sourceSurface,
     missingPrerequisite: capability.missingPrerequisite,
+    missingPrerequisiteMessage: capability.missingPrerequisiteMessage,
     summary: capability.summary,
+    summaryMessage: capability.summaryMessage,
     auditRef: capability.auditRef,
   };
 }
@@ -502,7 +544,9 @@ function blockedCapabilityFromScenario(reason: WorkflowScenarioBlockedReason) {
   return {
     sourceSurface: reason.sourceSurface,
     missingPrerequisite: reason.missingPrerequisite,
+    missingPrerequisiteMessage: reason.missingPrerequisiteMessage,
     summary: reason.summary,
+    summaryMessage: reason.summaryMessage,
     auditRef: reason.auditRef,
   };
 }
@@ -515,16 +559,20 @@ function buildStopLines(
     ...overviewStopLines.map((stopLine) => ({
       stopLineId: `overview_${stopLine.stopLineId}`,
       label: stopLine.label,
+      labelMessage: stopLine.labelMessage,
       sourceSurface: "overview" as const,
       status: "locked" as const,
       summary: stopLine.summary,
+      summaryMessage: stopLine.summaryMessage,
     })),
     ...scenarioStopLines.map((stopLine) => ({
       stopLineId: `scenario_${stopLine.stopLineId}`,
       label: stopLine.label,
+      labelMessage: stopLine.labelMessage,
       sourceSurface: "scenario" as const,
       status: "locked" as const,
       summary: stopLine.summary,
+      summaryMessage: stopLine.summaryMessage,
     })),
   ];
 }

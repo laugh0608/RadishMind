@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import type { WorkflowApplicationDetailViewModel } from "./workflowApplicationDetail";
 import type { WorkflowDefinitionDetailViewModel } from "./workflowDefinitionDetail";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner";
@@ -8,7 +9,7 @@ import type { WorkflowRunDetailViewModel } from "./workflowRunDetail";
 
 export type WorkflowSurfaceOverviewStatus = "ready" | "offline_only" | "review_required" | "blocked";
 
-export type WorkflowSurfaceOverviewMetric = {
+export type WorkflowSurfaceOverviewMetric = WorkflowProjectionCopy & {
   metricId: string;
   label: string;
   value: string;
@@ -16,7 +17,7 @@ export type WorkflowSurfaceOverviewMetric = {
   summary: string;
 };
 
-export type WorkflowSurfaceOverviewRelation = {
+export type WorkflowSurfaceOverviewRelation = WorkflowProjectionCopy & {
   relationId: string;
   label: string;
   sourceRef: string;
@@ -26,7 +27,7 @@ export type WorkflowSurfaceOverviewRelation = {
   auditRef: string;
 };
 
-export type WorkflowSurfaceOverviewBlockedCapability = {
+export type WorkflowSurfaceOverviewBlockedCapability = WorkflowProjectionCopy & {
   capabilityId: string;
   label: string;
   sourceSurface: "application" | "draft" | "plan" | "readiness" | "run";
@@ -36,7 +37,7 @@ export type WorkflowSurfaceOverviewBlockedCapability = {
   auditRef: string;
 };
 
-export type WorkflowSurfaceOverviewStopLine = {
+export type WorkflowSurfaceOverviewStopLine = WorkflowProjectionCopy & {
   stopLineId: string;
   label: string;
   status: "locked";
@@ -53,7 +54,7 @@ export type WorkflowSurfaceOverviewSource = {
   runtimeReadinessInspector: WorkflowRuntimeReadinessInspectorViewModel;
 };
 
-export type WorkflowSurfaceOverviewViewModel = {
+export type WorkflowSurfaceOverviewViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-surface-overview-offline";
   sourcePageIds: string[];
   overviewMode: "offline_read_only_advisory";
@@ -270,56 +271,74 @@ function buildBlockedCapabilities(
   const applicationCapabilities = source.applicationDetail.blockedCapabilities.map((capability) => ({
     capabilityId: `application_${capability.capabilityId}`,
     label: capability.label,
+    labelMessage: capability.labelMessage,
     sourceSurface: "application" as const,
     status: "blocked" as const,
     missingPrerequisite: capability.missingPrerequisite,
+    missingPrerequisiteMessage: capability.missingPrerequisiteMessage,
     summary: capability.reason,
+    summaryMessage: capability.reasonMessage,
     auditRef: capability.auditRef,
   }));
   const draftCapabilities = source.selectedDraft.blockedCapabilities.map((capability) => ({
     capabilityId: `draft_${capability.capabilityId}`,
     label: capability.label,
+    labelMessage: capability.labelMessage,
     sourceSurface: "draft" as const,
     status: "blocked" as const,
     missingPrerequisite: capability.missingPrerequisite,
+    missingPrerequisiteMessage: capability.missingPrerequisiteMessage,
     summary: capability.summary,
+    summaryMessage: capability.summaryMessage,
     auditRef: capability.auditRef,
   }));
   const planCapabilities = source.executionPlanPreview.blockedPlanReasons.map((reason) => ({
     capabilityId: `plan_${reason.reasonId}`,
     label: reason.label,
+    labelMessage: reason.labelMessage,
     sourceSurface: "plan" as const,
     status: "blocked" as const,
     missingPrerequisite: reason.missingPrerequisite,
+    missingPrerequisiteMessage: reason.missingPrerequisiteMessage,
     summary: reason.summary,
+    summaryMessage: reason.summaryMessage,
     auditRef: reason.auditRef,
   }));
   const readinessCapabilities = source.runtimeReadinessInspector.readinessBlockers.map((blocker) => ({
     capabilityId: `readiness_${blocker.blockerId}`,
     label: blocker.label,
+    labelMessage: blocker.labelMessage,
     sourceSurface: "readiness" as const,
     status: "blocked" as const,
     missingPrerequisite: blocker.missingPrerequisite,
+    missingPrerequisiteMessage: blocker.missingPrerequisiteMessage,
     summary: blocker.summary,
+    summaryMessage: blocker.summaryMessage,
     auditRef: blocker.auditRef,
   }));
   const runCapabilities: WorkflowSurfaceOverviewBlockedCapability[] = [
     {
       capabilityId: `run_${source.runDetail.blockedResultPreview.guardId}`,
       label: source.runDetail.blockedResultPreview.label,
+      labelMessage: source.runDetail.blockedResultPreview.labelMessage,
       sourceSurface: "run",
       status: "blocked",
       missingPrerequisite: source.runDetail.blockedResultPreview.missingPrerequisite,
+      missingPrerequisiteMessage: source.runDetail.blockedResultPreview.missingPrerequisiteMessage,
       summary: source.runDetail.blockedResultPreview.reason,
+      summaryMessage: source.runDetail.blockedResultPreview.reasonMessage,
       auditRef: source.runDetail.blockedResultPreview.auditRef,
     },
     {
       capabilityId: `run_${source.runDetail.blockedReplayPreview.guardId}`,
       label: source.runDetail.blockedReplayPreview.label,
+      labelMessage: source.runDetail.blockedReplayPreview.labelMessage,
       sourceSurface: "run",
       status: "blocked",
       missingPrerequisite: source.runDetail.blockedReplayPreview.missingPrerequisite,
+      missingPrerequisiteMessage: source.runDetail.blockedReplayPreview.missingPrerequisiteMessage,
       summary: source.runDetail.blockedReplayPreview.reason,
+      summaryMessage: source.runDetail.blockedReplayPreview.reasonMessage,
       auditRef: source.runDetail.blockedReplayPreview.auditRef,
     },
   ];
@@ -338,38 +357,50 @@ function buildStopLines(): WorkflowSurfaceOverviewStopLine[] {
     {
       stopLineId: "offline_only",
       label: "Offline only",
+      labelMessage: { key: "offline_only_label" },
       status: "locked",
       summary: "The overview consumes fixture-derived view models and never requests a live backend.",
+      summaryMessage: { key: "offline_only_summary" },
     },
     {
       stopLineId: "builder_mutation",
       label: "Builder mutation",
+      labelMessage: { key: "builder_mutation_label" },
       status: "locked",
       summary: "Draft selection is local inspection only; no create, edit, save, publish, or lifecycle mutation exists.",
+      summaryMessage: { key: "builder_mutation_summary" },
     },
     {
       stopLineId: "runtime_execution",
       label: "Runtime execution",
+      labelMessage: { key: "runtime_execution_label" },
       status: "locked",
       summary: "Workflow executor, node executor, tool executor, and agent loop remain outside this UI.",
+      summaryMessage: { key: "runtime_execution_summary" },
     },
     {
       stopLineId: "confirmation_decision",
       label: "Confirmation decision",
+      labelMessage: { key: "confirmation_decision_label" },
       status: "locked",
       summary: "Human review shape is visible, but no approve, reject, defer, persist, or execution unlock path exists.",
+      summaryMessage: { key: "confirmation_decision_summary" },
     },
     {
       stopLineId: "writeback_replay",
       label: "Writeback and replay",
+      labelMessage: { key: "writeback_replay_label" },
       status: "locked",
       summary: "Candidate actions stay advisory; business writeback, run replay, and run resume remain blocked.",
+      summaryMessage: { key: "writeback_replay_summary" },
     },
     {
       stopLineId: "auth_database_repository",
       label: "Auth, database, repository",
+      labelMessage: { key: "auth_database_repository_label" },
       status: "locked",
       summary: "Radish auth, database attach, store selector, and repository adapter work need separate implementation triggers.",
+      summaryMessage: { key: "auth_database_repository_summary" },
     },
   ];
 }

@@ -588,15 +588,18 @@ function uniqueWorkflowExecutorReasons(
 
 function workflowExecutorBlockedCapability(
   draftId: string,
-  capabilityId: string,
+  capabilityId: "tool_executor" | "confirmation_commit" | "business_writeback" | "run_replay",
   label: string,
 ): WorkflowDraftDesignerDraft["blockedCapabilities"][number] {
   return {
     capabilityId,
     label,
+    labelMessage: { key: `executorCapability_${capabilityId}` },
     status: "blocked",
     missingPrerequisite: "independent high-risk workflow feature design",
+    missingPrerequisiteMessage: { key: "executorIndependentFeature" },
     summary: `${label} remains outside Workflow Executor v0.`,
+    summaryMessage: { key: "executorExcludedCapability", values: { capability: { key: `executorCapability_${capabilityId}` } } },
     auditRef: `audit_${draftId}_${capabilityId}_blocked`,
   };
 }

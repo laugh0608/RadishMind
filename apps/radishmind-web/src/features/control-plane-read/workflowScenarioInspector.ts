@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   controlPlaneReadResponseHasForbiddenOutput,
@@ -14,7 +15,7 @@ export type WorkflowScenarioKind =
   | "radish_docs_answer"
   | "workflow_advisory_review";
 
-export type WorkflowScenarioInputField = {
+export type WorkflowScenarioInputField = WorkflowProjectionCopy & {
   fieldId: string;
   label: string;
   sourceRef: string;
@@ -22,14 +23,14 @@ export type WorkflowScenarioInputField = {
   summary: string;
 };
 
-export type WorkflowScenarioExpectedOutput = {
+export type WorkflowScenarioExpectedOutput = WorkflowProjectionCopy & {
   outputId: string;
   label: string;
   status: WorkflowScenarioStatus;
   summary: string;
 };
 
-export type WorkflowScenario = {
+export type WorkflowScenario = WorkflowProjectionCopy & {
   scenarioId: string;
   label: string;
   scenarioKind: WorkflowScenarioKind;
@@ -47,14 +48,14 @@ export type WorkflowScenario = {
   sourceRefs: string[];
 };
 
-export type WorkflowScenarioSummary = {
+export type WorkflowScenarioSummary = WorkflowProjectionCopy & {
   label: string;
   value: string;
   status: WorkflowScenarioStatus;
   summary: string;
 };
 
-export type WorkflowScenarioRelation = {
+export type WorkflowScenarioRelation = WorkflowProjectionCopy & {
   relationId: string;
   label: string;
   sourceRef: string;
@@ -64,7 +65,7 @@ export type WorkflowScenarioRelation = {
   auditRef: string;
 };
 
-export type WorkflowScenarioBlockedReason = {
+export type WorkflowScenarioBlockedReason = WorkflowProjectionCopy & {
   reasonId: string;
   label: string;
   sourceSurface: "application" | "definition" | "run" | "draft" | "plan" | "readiness";
@@ -74,14 +75,14 @@ export type WorkflowScenarioBlockedReason = {
   auditRef: string;
 };
 
-export type WorkflowScenarioStopLine = {
+export type WorkflowScenarioStopLine = WorkflowProjectionCopy & {
   stopLineId: string;
   label: string;
   status: "locked";
   summary: string;
 };
 
-export type WorkflowScenarioInspectorViewModel = {
+export type WorkflowScenarioInspectorViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-scenario-inspector-offline";
   sourcePageIds: string[];
   scenarioMode: "offline_read_only_advisory";
@@ -184,6 +185,7 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
     {
       scenarioId: "scenario_radishflow_reconnect_stream_outlet",
       label: "Reconnect stream outlet",
+      labelMessage: { key: "scenario_radishflow_reconnect_stream_outlet_label" },
       scenarioKind: "radishflow_candidate_action",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -191,6 +193,7 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
       runId: source.runDetail.runId,
       intent:
         "Explain a RadishFlow diagnostic gap and prepare a candidate stream reconnect action for human review.",
+      intentMessage: { key: "scenario_radishflow_reconnect_stream_outlet_intent" },
       triggerSummary:
         "A selected outlet stream is disconnected after a simulation diagnostic review and needs an advisory repair candidate.",
       inputContract: [
@@ -239,6 +242,7 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
     {
       scenarioId: "scenario_radishflow_cross_object_warning",
       label: "Cross-object warning review",
+      labelMessage: { key: "scenario_radishflow_cross_object_warning_label" },
       scenarioKind: "workflow_advisory_review",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -246,6 +250,7 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
       runId: source.runDetail.runId,
       intent:
         "Review a cross-object warning and keep the response ordered by evidence, risk, and allowed candidate scope.",
+      intentMessage: { key: "scenario_radishflow_cross_object_warning_intent" },
       triggerSummary:
         "A user selects more than one flowsheet object and needs a single primary actionable target with warnings.",
       inputContract: [
@@ -299,6 +304,7 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
     {
       scenarioId: "scenario_radish_docs_evidence_gap",
       label: "Docs evidence gap",
+      labelMessage: { key: "scenario_radish_docs_evidence_gap_label" },
       scenarioKind: "radish_docs_answer",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -306,6 +312,7 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
       runId: source.runDetail.runId,
       intent:
         "Answer a product documentation question while marking missing evidence instead of inventing a confident answer.",
+      intentMessage: { key: "scenario_radish_docs_evidence_gap_intent" },
       triggerSummary:
         "A docs question has partial evidence, so the workflow should produce an advisory answer with explicit gap markers.",
       inputContract: [
@@ -354,6 +361,7 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
     {
       scenarioId: "scenario_radish_docs_faq_forum_conflict",
       label: "FAQ and forum conflict",
+      labelMessage: { key: "scenario_radish_docs_faq_forum_conflict_label" },
       scenarioKind: "radish_docs_answer",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -361,6 +369,7 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
       runId: source.runDetail.runId,
       intent:
         "Resolve conflicting FAQ and forum signals by explaining the conflict and keeping the answer advisory.",
+      intentMessage: { key: "scenario_radish_docs_faq_forum_conflict_intent" },
       triggerSummary:
         "The available docs and forum summaries disagree, so the response should identify the conflict rather than hide it.",
       inputContract: [
@@ -420,6 +429,7 @@ function buildSummary(
       value: scenario.label,
       status: "offline_only",
       summary: scenario.intent,
+      summaryMessage: scenario.intentMessage,
     },
     {
       label: "Application",
@@ -507,15 +517,18 @@ function buildBlockedReasons(
   ) ?? source.executionPlanPreview.blockedPlanReasons[0];
   const readinessReasons = source.runtimeReadinessInspector.readinessBlockers.slice(0, 3);
 
-  return [
+  const reasons: Array<WorkflowScenarioBlockedReason | undefined> = [
     applicationReason
       ? {
           reasonId: `application_${applicationReason.capabilityId}`,
           label: applicationReason.label,
+          labelMessage: applicationReason.labelMessage,
           sourceSurface: "application",
           status: "blocked",
           missingPrerequisite: applicationReason.missingPrerequisite,
+          missingPrerequisiteMessage: applicationReason.missingPrerequisiteMessage,
           summary: applicationReason.reason,
+          summaryMessage: applicationReason.reasonMessage,
           auditRef: applicationReason.auditRef,
         }
       : undefined,
@@ -523,10 +536,13 @@ function buildBlockedReasons(
       ? {
           reasonId: `draft_${draftReason.capabilityId}`,
           label: draftReason.label,
+          labelMessage: draftReason.labelMessage,
           sourceSurface: "draft",
           status: "blocked",
           missingPrerequisite: draftReason.missingPrerequisite,
+          missingPrerequisiteMessage: draftReason.missingPrerequisiteMessage,
           summary: draftReason.summary,
+          summaryMessage: draftReason.summaryMessage,
           auditRef: draftReason.auditRef,
         }
       : undefined,
@@ -534,32 +550,42 @@ function buildBlockedReasons(
       ? {
           reasonId: `plan_${planReason.reasonId}`,
           label: planReason.label,
+          labelMessage: planReason.labelMessage,
           sourceSurface: "plan",
           status: "blocked",
           missingPrerequisite: planReason.missingPrerequisite,
+          missingPrerequisiteMessage: planReason.missingPrerequisiteMessage,
           summary: planReason.summary,
+          summaryMessage: planReason.summaryMessage,
           auditRef: planReason.auditRef,
         }
       : undefined,
     ...readinessReasons.map((reason) => ({
       reasonId: `readiness_${reason.blockerId}`,
       label: reason.label,
+      labelMessage: reason.labelMessage,
       sourceSurface: "readiness" as const,
       status: "blocked" as const,
       missingPrerequisite: reason.missingPrerequisite,
+      missingPrerequisiteMessage: reason.missingPrerequisiteMessage,
       summary: reason.summary,
+      summaryMessage: reason.summaryMessage,
       auditRef: reason.auditRef,
     })),
     {
       reasonId: `run_${source.runDetail.blockedReplayPreview.guardId}`,
       label: source.runDetail.blockedReplayPreview.label,
+      labelMessage: source.runDetail.blockedReplayPreview.labelMessage,
       sourceSurface: "run",
       status: "blocked",
       missingPrerequisite: source.runDetail.blockedReplayPreview.missingPrerequisite,
+      missingPrerequisiteMessage: source.runDetail.blockedReplayPreview.missingPrerequisiteMessage,
       summary: source.runDetail.blockedReplayPreview.reason,
+      summaryMessage: source.runDetail.blockedReplayPreview.reasonMessage,
       auditRef: source.runDetail.blockedReplayPreview.auditRef,
     },
-  ].filter((reason): reason is WorkflowScenarioBlockedReason => reason !== undefined);
+  ];
+  return reasons.filter((reason): reason is WorkflowScenarioBlockedReason => reason !== undefined);
 }
 
 function buildStopLines(): WorkflowScenarioStopLine[] {
@@ -567,26 +593,34 @@ function buildStopLines(): WorkflowScenarioStopLine[] {
     {
       stopLineId: "offline_scenario_only",
       label: "Offline scenario only",
+      labelMessage: { key: "offline_scenario_only_label" },
       status: "locked",
       summary: "Scenario selection uses fixture-derived view models and never requests a live backend.",
+      summaryMessage: { key: "offline_scenario_only_summary" },
     },
     {
       stopLineId: "no_scenario_persistence",
       label: "No persistence",
+      labelMessage: { key: "no_scenario_persistence_label" },
       status: "locked",
       summary: "Scenario selection changes browser view state only and does not save drafts, plans, readiness, or results.",
+      summaryMessage: { key: "no_scenario_persistence_summary" },
     },
     {
       stopLineId: "no_runtime_start",
       label: "No runtime start",
+      labelMessage: { key: "no_runtime_start_label" },
       status: "locked",
       summary: "The inspector explains intent and blockers; it cannot start workflow, node, tool, or agent execution.",
+      summaryMessage: { key: "no_runtime_start_summary" },
     },
     {
       stopLineId: "no_confirmation_writeback_replay",
       label: "No confirmation, writeback, replay",
+      labelMessage: { key: "no_confirmation_writeback_replay_label" },
       status: "locked",
       summary: "No approve, reject, defer, execution unlock, business writeback, replay, or resume control exists.",
+      summaryMessage: { key: "no_confirmation_writeback_replay_summary" },
     },
   ];
 }

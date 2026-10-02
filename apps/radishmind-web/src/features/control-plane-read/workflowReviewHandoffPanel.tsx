@@ -1,5 +1,6 @@
 import "../../i18n/workflowDraftResources.ts";
-import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
+import { workflowProjectionText, workflowProjectionStatusLabel } from "./workflowProjectionCopy.ts";
+import "../../i18n/workflowHandoffProjectionResources.ts";
 import "../../i18n/workflowHandoffResources.ts";
 import { useTranslation } from "react-i18next";
 import type {
@@ -54,9 +55,9 @@ export function WorkflowReviewHandoffPanel({
       <p className="boundary-note">{t($ => $.handoff.sourceEvidence)}</p>
       <article className="workflow-user-workspace-home-hero">
         <div>
-          <p className="eyebrow">{handoff.handoffMode}</p>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, handoff.handoffMode)}</p>
           <h4>{handoff.handoffPackageId}</h4>
-          <p>{handoff.handoffNarrative}</p>
+          <p>{workflowProjectionText(t, handoff, "handoffNarrative")}</p>
         </div>
         <dl className="workflow-user-workspace-home-meta">
           <div>
@@ -122,7 +123,7 @@ export function WorkflowReviewHandoffPanel({
         </div>
         <div className="workflow-review-handoff-graph-summary" aria-label={t($ => $.handoff.workflowNodeDesignerGraphReviewSummary)}>
           {graphFindingGroups.map((group) => (
-            <article key={group.targetKind}>
+            <article key={workflowProjectionStatusLabel(t, group.targetKind)}>
               <span>{group.targetKind === "node" ? t($ => $.handoff.nodeFindings) : group.targetKind === "edge" ? t($ => $.handoff.edgeFindings) : t($ => $.handoff.graphFindings)}</span>
               <strong>{group.count}</strong>
             </article>
@@ -130,10 +131,10 @@ export function WorkflowReviewHandoffPanel({
         </div>
         <div className="workflow-review-handoff-graph-groups" aria-label={t($ => $.handoff.workflowNodeDesignerGraphReviewFindings)}>
           {graphFindingGroups.map((group) => (
-            <section key={group.targetKind} className="workflow-review-handoff-graph-group">
+            <section key={workflowProjectionStatusLabel(t, group.targetKind)} className="workflow-review-handoff-graph-group">
               <div className="workflow-review-handoff-graph-group-heading">
                 <div>
-                  <p className="eyebrow">{group.targetKind}</p>
+                  <p className="eyebrow">{workflowProjectionStatusLabel(t, group.targetKind)}</p>
                   <h5>{group.targetKind === "node" ? t($ => $.handoff.nodeFindings) : group.targetKind === "edge" ? t($ => $.handoff.edgeFindings) : t($ => $.handoff.graphFindings)}</h5>
                 </div>
                 <StatusBadge tone={group.count > 0 ? "neutral" : "good"}>{t($ => $.handoff.findingCount, { count: group.count })}</StatusBadge>
@@ -269,19 +270,19 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
         </div>
         <div>
           <dt>{t($ => $.handoff.validation)}</dt>
-          <dd>{summary.savedValidationState}</dd>
+          <dd>{workflowProjectionStatusLabel(t, summary.savedValidationState)}</dd>
         </div>
         <div>
           <dt>{t($ => $.handoff.blocked)}</dt>
-          <dd>{summary.savedBlockedCapabilityCount ?? workflowDraftStatusLabel(t, "not_loaded")}</dd>
+          <dd>{summary.savedBlockedCapabilityCount ?? workflowProjectionStatusLabel(t, "not_loaded")}</dd>
         </div>
         <div>
           <dt>{t($ => $.handoff.metadata)}</dt>
-          <dd>{summary.savedMetadataState}</dd>
+          <dd>{workflowProjectionStatusLabel(t, summary.savedMetadataState)}</dd>
         </div>
         <div>
           <dt>{t($ => $.handoff.open)}</dt>
-          <dd>{summary.openActionState}</dd>
+          <dd>{workflowProjectionStatusLabel(t, summary.openActionState)}</dd>
         </div>
         <div>
           <dt>{t($ => $.handoff.localGraph)}</dt>
@@ -291,17 +292,17 @@ function WorkflowReviewHandoffSavedDraftConflictCard({
       <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.savedDraftConflictReviewLocks)}>
         <code>auto_overwrite_locked</code>
         <code>auto_merge_locked</code>
-        <code>{summary.openActionState}</code>
+        <code>{workflowProjectionStatusLabel(t, summary.openActionState)}</code>
       </div>
-      <p>{summary.summary}</p>
-      <p>{summary.localDraftPreservationSummary}</p>
+      <p>{workflowProjectionText(t, summary, "summary")}</p>
+      <p>{workflowProjectionText(t, summary, "localDraftPreservationSummary")}</p>
       {summary.openUnavailableReason ? (
-        <p>{summary.openUnavailableReason}</p>
+        <p>{workflowProjectionText(t, summary, "openUnavailableReason")}</p>
       ) : (
         <p>{t($ => $.handoff.openSavedDraftIsAvailableFromSanitizedSavedDraftMetadata)}</p>
       )}
-      <p>{summary.nextReviewerStep}</p>
-      <p>{summary.reviewerQuestion}</p>
+      <p>{workflowProjectionText(t, summary, "nextReviewerStep")}</p>
+      <p>{workflowProjectionText(t, summary, "reviewerQuestion")}</p>
     </article>
   );
 }
@@ -316,8 +317,8 @@ function WorkflowReviewHandoffActiveDraftSectionCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{section.sourceSurface}</p>
-          <h5>{section.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, section.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, section, "label")}</h5>
         </div>
         <StatusBadge tone={workflowReviewHandoffTone(section.status)}>{section.status}</StatusBadge>
       </div>
@@ -344,8 +345,8 @@ function WorkflowReviewHandoffActiveDraftSectionCard({
           <code key={evidenceRef}>{evidenceRef}</code>
         ))}
       </div>
-      <p>{section.summary}</p>
-      <p>{section.reviewerQuestion}</p>
+      <p>{workflowProjectionText(t, section, "summary")}</p>
+      <p>{workflowProjectionText(t, section, "reviewerQuestion")}</p>
     </article>
   );
 }
@@ -360,8 +361,8 @@ function WorkflowReviewHandoffNodeDesignerSectionCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{section.sourceSurface}</p>
-          <h5>{section.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, section.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, section, "label")}</h5>
         </div>
         <StatusBadge tone={workflowReviewHandoffTone(section.status)}>{section.status}</StatusBadge>
       </div>
@@ -388,8 +389,8 @@ function WorkflowReviewHandoffNodeDesignerSectionCard({
           <code key={evidenceRef}>{evidenceRef}</code>
         ))}
       </div>
-      <p>{section.summary}</p>
-      <p>{section.reviewerQuestion}</p>
+      <p>{workflowProjectionText(t, section, "summary")}</p>
+      <p>{workflowProjectionText(t, section, "reviewerQuestion")}</p>
     </article>
   );
 }
@@ -404,8 +405,8 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{finding.targetKind}</p>
-          <h5>{finding.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, finding.targetKind)}</p>
+          <h5>{workflowProjectionText(t, finding, "label")}</h5>
         </div>
         <StatusBadge tone={workflowReviewHandoffTone(finding.status)}>{finding.status}</StatusBadge>
       </div>
@@ -416,21 +417,21 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
         </div>
         <div>
           <dt>{t($ => $.handoff.severity)}</dt>
-          <dd>{finding.severity}</dd>
+          <dd>{workflowProjectionStatusLabel(t, finding.severity)}</dd>
         </div>
         <div>
           <dt>{t($ => $.handoff.target)}</dt>
-          <dd>{finding.targetSummary}</dd>
+          <dd>{workflowProjectionText(t, finding, "targetSummary")}</dd>
         </div>
         <div>
           <dt>{t($ => $.handoff.handoffPath)}</dt>
-          <dd>{finding.handoffPath}</dd>
+          <dd>{workflowProjectionText(t, finding, "handoffPath")}</dd>
         </div>
       </dl>
       <div className="workflow-review-handoff-graph-card-traces">
         <div>
           <span>{t($ => $.handoff.targetRefs)}</span>
-          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.targetsFor, { label: finding.label })}>
+          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.targetsFor, { label: workflowProjectionText(t, finding, "label") })}>
             {finding.targetRefs.map((targetRef) => (
               <code key={targetRef}>{targetRef}</code>
             ))}
@@ -438,7 +439,7 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
         </div>
         <div>
           <span>{t($ => $.handoff.handoffPathRefs)}</span>
-          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.pathFor, { label: finding.label })}>
+          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.pathFor, { label: workflowProjectionText(t, finding, "label") })}>
             {finding.handoffPathRefs.map((handoffPathRef) => (
               <code key={handoffPathRef}>{handoffPathRef}</code>
             ))}
@@ -446,15 +447,15 @@ function WorkflowReviewHandoffNodeDesignerGraphFindingCard({
         </div>
         <div>
           <span>{t($ => $.handoff.evidenceRefs)}</span>
-          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.evidenceFor, { label: finding.label })}>
+          <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.evidenceFor, { label: workflowProjectionText(t, finding, "label") })}>
             {finding.evidenceRefs.map((evidenceRef) => (
               <code key={evidenceRef}>{evidenceRef}</code>
             ))}
           </div>
         </div>
       </div>
-      <p>{finding.summary}</p>
-      <p>{finding.reviewerQuestion}</p>
+      <p>{workflowProjectionText(t, finding, "summary")}</p>
+      <p>{workflowProjectionText(t, finding, "reviewerQuestion")}</p>
     </article>
   );
 }
@@ -469,8 +470,8 @@ function WorkflowReviewHandoffRecipientCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{recipient.role}</p>
-          <h5>{recipient.label}</h5>
+          <p className="eyebrow">{workflowProjectionText(t, recipient, "role")}</p>
+          <h5>{workflowProjectionText(t, recipient, "label")}</h5>
         </div>
         <StatusBadge tone={workflowReviewHandoffTone(recipient.status)}>{recipient.status}</StatusBadge>
       </div>
@@ -484,7 +485,7 @@ function WorkflowReviewHandoffRecipientCard({
           <dd>{recipient.evidenceRefs.join(", ")}</dd>
         </div>
       </dl>
-      <p>{recipient.handoffNeed}</p>
+      <p>{workflowProjectionText(t, recipient, "handoffNeed")}</p>
     </article>
   );
 }
@@ -499,19 +500,19 @@ function WorkflowReviewHandoffFindingCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{finding.sourceSurface}</p>
-          <h5>{finding.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, finding.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, finding, "label")}</h5>
         </div>
         <StatusBadge tone={workflowReviewHandoffTone(finding.status)}>{finding.status}</StatusBadge>
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
           <dt>{t($ => $.handoff.evidence)}</dt>
-          <dd>{finding.evidenceRef}</dd>
+          <dd>{workflowProjectionText(t, finding, "evidenceRef")}</dd>
         </div>
       </dl>
-      <p>{finding.summary}</p>
-      <p>{finding.humanReviewQuestion}</p>
+      <p>{workflowProjectionText(t, finding, "summary")}</p>
+      <p>{workflowProjectionText(t, finding, "humanReviewQuestion")}</p>
     </article>
   );
 }
@@ -526,8 +527,8 @@ function WorkflowReviewHandoffEvidenceCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{evidence.sourceSurface}</p>
-          <h5>{evidence.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, evidence.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, evidence, "label")}</h5>
         </div>
         <StatusBadge tone={workflowReviewHandoffTone(evidence.status)}>{evidence.status}</StatusBadge>
       </div>
@@ -545,7 +546,7 @@ function WorkflowReviewHandoffEvidenceCard({
           <dd>{evidence.auditRef}</dd>
         </div>
       </dl>
-      <p>{evidence.summary}</p>
+      <p>{workflowProjectionText(t, evidence, "summary")}</p>
     </article>
   );
 }
@@ -560,23 +561,23 @@ function WorkflowReviewHandoffDecisionBlockerCard({
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
-          <p className="eyebrow">{blocker.sourceSurface}</p>
-          <h5>{blocker.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, blocker.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, blocker, "label")}</h5>
         </div>
         <StatusBadge tone="bad">{blocker.status}</StatusBadge>
       </div>
       <dl className="workflow-user-workspace-home-meta">
         <div>
           <dt>{t($ => $.handoff.missing)}</dt>
-          <dd>{blocker.missingPrerequisite}</dd>
+          <dd>{workflowProjectionText(t, blocker, "missingPrerequisite")}</dd>
         </div>
       </dl>
-      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.auditFor, { label: blocker.label })}>
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.handoff.auditFor, { label: workflowProjectionText(t, blocker, "label") })}>
         {blocker.auditRefs.map((auditRef) => (
           <code key={auditRef}>{auditRef}</code>
         ))}
       </div>
-      <p>{blocker.summary}</p>
+      <p>{workflowProjectionText(t, blocker, "summary")}</p>
     </article>
   );
 }
@@ -586,23 +587,24 @@ function WorkflowReviewHandoffBoundaryLockCard({
 }: {
   boundary: WorkflowReviewHandoffBoundaryLock;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-user-workspace-home-card">
       <div className="workflow-user-workspace-home-row-main">
         <div>
           <p className="eyebrow">{boundary.boundaryId}</p>
-          <h5>{boundary.label}</h5>
+          <h5>{workflowProjectionText(t, boundary, "label")}</h5>
         </div>
         <StatusBadge tone="bad">{boundary.status}</StatusBadge>
       </div>
-      <p>{boundary.summary}</p>
+      <p>{workflowProjectionText(t, boundary, "summary")}</p>
     </article>
   );
 }
 
 function StatusBadge({ children, tone }: { children: string; tone: StatusBadgeTone }) {
   const { t } = useTranslation("workflow");
-  return <span className={`status-badge ${tone}`}>{workflowDraftStatusLabel(t, children)}</span>;
+  return <span className={`status-badge ${tone}`}>{workflowProjectionStatusLabel(t, children)}</span>;
 }
 
 function workflowReviewHandoffTone(status: WorkflowReviewHandoffStatus): StatusBadgeTone {
