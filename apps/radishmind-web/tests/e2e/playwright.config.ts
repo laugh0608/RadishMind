@@ -9,7 +9,7 @@ if (baseURL !== "http://127.0.0.1:4100" || !output || !["templates", "workflow",
 
 export default defineConfig({
   testDir: ".",
-  testMatch: suite === "rag" ? "workflow-rag.spec.ts" : suite === "templates" ? "workflow-template.spec.ts" : ["prompt.spec.ts", "workflow.spec.ts"],
+  testMatch: suite === "rag" ? "workflow-rag*.spec.ts" : suite === "templates" ? "workflow-template.spec.ts" : ["prompt.spec.ts", "workflow.spec.ts"],
   projects: [
     { name: "chromium-en-US", use: { locale: "en-US" } },
     { name: "chromium-zh-CN", use: { locale: "zh-CN" } },

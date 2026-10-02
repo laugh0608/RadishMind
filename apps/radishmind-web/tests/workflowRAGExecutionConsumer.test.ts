@@ -152,6 +152,8 @@ test("consumer rejects unselected, duplicate, malformed, and leaking model evide
       (body: any) => { body.retrieval_answer.citations.push({ ...body.retrieval_answer.citations[0] }); },
       (body: any) => { body.retrieval_answer.confidence = "certain"; },
       (body: any) => { body.run.raw_response = "provider material"; },
+      (body: any) => { body.action_safety = { effective_level: "write_allowed_by_policy" }; },
+      (body: any) => { delete body.action_safety; },
     ]) {
       const body = executionEnvelope() as any;
       mutate(body);
@@ -161,7 +163,7 @@ test("consumer rejects unselected, duplicate, malformed, and leaking model evide
       assert.equal(result.answer, null);
       assert.equal(result.record, null);
     }
-    assert.equal(calls, 4);
+    assert.equal(calls, 6);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -191,6 +193,7 @@ function validInput() { return { inputText: "Explain the supported boundary.", m
 
 function executionEnvelope() {
   return {
+    action_safety: null,
     request_id: "request_run_v3", workspace_id: "workspace_demo", application_id: "app_flow_copilot", failure_code: null, failure_summary: "", audit_ref: "audit_run_v3",
     run: {
       schema_version: "workflow_run_record.v3", record_version: 2, run_id: "run_aaaaaaaaaaaaaaaa", tenant_ref: "tenant_demo", workspace_id: "workspace_demo", application_id: "app_flow_copilot",
@@ -206,3 +209,99 @@ function executionEnvelope() {
 }
 
 function response(value: unknown) { return new Response(JSON.stringify(value), { status: 200, headers: { "Content-Type": "application/json" } }); }
+
+test("retained RAG eligibility and outcome messages render in both languages without changing evidence", async () => {
+  const { createUiI18n, initializeUiI18n } = await import("../src/i18n/instance.ts");
+  const { workflowRAGExecution: en } = await import("../src/i18n/locales/en-US/workflowRAGExecution.ts");
+  const { workflowRAGExecution: zh } = await import("../src/i18n/locales/zh-CN/workflowRAGExecution.ts");
+  const { workflowRAGExecutionReasonMessage, workflowRAGExecutionFeedback, workflowRAGExecutionStatus, workflowRAGExecutionFailure, workflowRAGConfidenceLabel } = await import("../src/features/control-plane-read/workflowRAGExecutionMessages.ts");
+  const i18n = createUiI18n(); await initializeUiI18n(i18n, "en-US");
+  i18n.addResourceBundle("en-US", "workflow", { ragExecution: en });
+  i18n.addResourceBundle("zh-CN", "workflow", { ragExecution: zh });
+  const denied = evaluateWorkflowRAGExecutionEligibility(sourceDraft(), savedState(), true, { ...config, mode: "offline", scopes: new Set() });
+  const topology = evaluateWorkflowRAGExecutionEligibility({ ...boundDraft(), edges: [], blockedCapabilities: ["tool"] }, { ...savedState(), currentLifecycleState: "archived" }, false, config);
+  const reasons = [...denied.reasons, ...topology.reasons];
+  assert.equal(new Set(reasons.map(reason => reason.code)).size, 10);
+  const before = JSON.stringify(reasons);
+  const render = () => {
+    const t = i18n.getFixedT(null, "workflow");
+    return [
+      ...reasons.map(reason => workflowRAGExecutionReasonMessage(t, reason)),
+      ...(["offline", "ready", "executing", "succeeded", "localRejected", "failed", "unavailable"] as const).map(message => workflowRAGExecutionFeedback(t, message)),
+      ...Object.keys(en.status).map(status => workflowRAGExecutionStatus(t, status)),
+      ...Object.keys(en.failure).map(code => workflowRAGExecutionFailure(t, code)),
+      ...(["low", "medium", "high"] as const).map(level => workflowRAGConfidenceLabel(t, level)),
+    ];
+  };
+  const english = render();
+  assert.equal(workflowRAGExecutionFailure(i18n.getFixedT(null, "workflow"), "workflow_rag_no_evidence"), "No matching evidence met the retrieval threshold. Review the question and selected snapshot.");
+  assert.match(workflowRAGExecutionReasonMessage(i18n.getFixedT(null, "workflow"), { code: "rag_execution_scope_denied", scope: "workflow_rag:execute" }), /workflow_rag:execute/);
+  await i18n.changeLanguage("zh-CN");
+  assert.equal(workflowRAGExecutionFailure(i18n.getFixedT(null, "workflow"), "workflow_rag_no_evidence"), "没有匹配证据达到检索阈值，请检查问题与所选快照。");
+  assert.equal(workflowRAGExecutionFailure(i18n.getFixedT(null, "workflow"), "unknown_server_failure"), "操作失败，请根据错误码与请求引用检查原因。");
+  render().forEach((message, index) => {
+    assert.ok(message && english[index]);
+    assert.notEqual(message, english[index]);
+    assert.doesNotMatch(message + english[index], /\{\{|ragExecution\.|This message is unavailable|此消息暂不可用/);
+  });
+  assert.equal(JSON.stringify(reasons), before);
+});
+
+test("RAG response wait and language changes preserve exact request, answer and invocation count", async () => {
+  const { createUiI18n, initializeUiI18n } = await import("../src/i18n/instance.ts");
+  const i18n = createUiI18n(); await initializeUiI18n(i18n, "en-US");
+  const originalFetch = globalThis.fetch;
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let calls = 0;
+  let payload: unknown;
+  globalThis.fetch = async (_input, init) => {
+    calls++;
+    payload = JSON.parse(String(init?.body));
+    await pending;
+    return response(executionEnvelope());
+  };
+  try {
+    const draft = boundDraft();
+    const beforeDraft = JSON.stringify(draft);
+    const resultPending = executeWorkflowRAGRetrieval(config, draft, evaluateWorkflowRAGExecutionEligibility(draft, savedState(), false, config), validInput());
+    await i18n.changeLanguage("zh-CN");
+    assert.equal(calls, 1);
+    assert.deepEqual(payload, { workspace_id: "workspace_demo", application_id: "app_flow_copilot", draft_version: 4, input_text: "Explain the supported boundary.", model: "mock-rag", temperature: 0.2 });
+    release();
+    const result = await resultPending;
+    assert.equal(result.message, "succeeded");
+    assert.equal(result.answer?.answer, "The evidence supports this advisory answer.");
+    assert.equal(result.answer?.citations[0]?.fragmentRef, "official_guide");
+    const beforeResult = JSON.stringify(result);
+    await i18n.changeLanguage("en-US");
+    assert.equal(JSON.stringify(result), beforeResult);
+    assert.equal(JSON.stringify(draft), beforeDraft);
+    assert.equal(calls, 1);
+  } finally { release(); globalThis.fetch = originalFetch; }
+});
+
+test("RAG local, transport and server failures retain distinct stable feedback without exposing raw diagnostics", async () => {
+  const originalFetch = globalThis.fetch;
+  const draft = boundDraft();
+  const eligibility = evaluateWorkflowRAGExecutionEligibility(draft, savedState(), false, config);
+  let calls = 0;
+  try {
+    globalThis.fetch = async () => { calls++; throw new Error("private raw transport detail"); };
+    assert.equal((await executeWorkflowRAGRetrieval(config, draft, eligibility, { ...validInput(), inputText: "" })).message, "localRejected");
+    assert.equal(calls, 0);
+    const unavailable = await executeWorkflowRAGRetrieval(config, draft, eligibility, validInput());
+    assert.equal(unavailable.message, "unavailable");
+    assert.equal(calls, 1);
+    assert.ok(!JSON.stringify(unavailable).includes("private raw"));
+    for (const code of ["workflow_rag_no_evidence", "workflow_rag_snapshot_scope_denied", "unknown_server_failure"]) {
+      globalThis.fetch = async () => response({ ...executionEnvelope(), run: null, retrieval_answer: null, failure_code: code, failure_summary: "untranslated server diagnostic" });
+      const failed = await executeWorkflowRAGRetrieval(config, draft, eligibility, validInput());
+      assert.equal(failed.message, "failed");
+      assert.equal(failed.failureCode, code);
+      assert.equal(failed.status, code === "workflow_rag_snapshot_scope_denied" ? "scope_denied" : "failed");
+      assert.equal(failed.requestId, "request_run_v3");
+      assert.ok(!JSON.stringify(failed).includes("untranslated server diagnostic"));
+    }
+  } finally { globalThis.fetch = originalFetch; }
+});

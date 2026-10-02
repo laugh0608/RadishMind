@@ -1275,7 +1275,7 @@ function ProductApp() {
             onModelChange={setWorkflowHTTPToolExecutionModel}
             onExecute={handleRunApprovedHTTPToolActionPlan}
           />
-          <Suspense fallback={<section className="workflow-rag-execution-panel"><p>Loading Workflow RAG execution…</p></section>}>
+          <Suspense fallback={<section className="workflow-rag-execution-panel"><p>{t($ => $.appShell.ragExecutionLoading)}</p></section>}>
             <WorkflowRAGExecutionPanel
               applicationRef={workflowScopedApplicationId}
               draft={activeWorkflowDraft}

@@ -388,4 +388,4 @@ npm run preview
 
 `npm run test:coverage` 是 PR / release 的可发现覆盖率入口，当前预算为行 `90%`、分支 `78%`、函数 `85%`；它约束已进入 Node 严格消费端测试的模块，不替代 React 页面构建和真实浏览器验收。
 
-自动浏览器回归入口为 `npm run test:e2e`，执行独立测试类型检查和模板、Prompt / Workflow 与 RAG 快照双语回归；三组按顺序使用各自的临时 SQLite 与测试模型档案，可用 `npm run test:e2e -- --suite=rag` 选择单组（也支持 `templates` / `workflow`）。RAG 快照中英两轮已通过，当前验收范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md#b-阶段-rag-知识快照入口2026-09-28)；首次安装、端口、失败证据与进程清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 将其作为独立 job 执行，常规 `npm test` 不会启动服务。
+自动浏览器回归入口为 `npm run test:e2e`，执行独立测试类型检查和模板、Prompt / Workflow 与 RAG 快照 / 检索执行双语回归；三组按顺序使用各自的临时 SQLite 与测试模型档案，可用 `npm run test:e2e -- --suite=rag` 选择单组（也支持 `templates` / `workflow`）。RAG 快照与检索执行中英两轮共 12 次已通过，当前验收范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md#b-阶段-rag-检索执行2026-10-02)；首次安装、端口、失败证据与进程清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 将其作为独立 job 执行，常规 `npm test` 不会启动服务。

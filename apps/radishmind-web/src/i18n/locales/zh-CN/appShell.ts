@@ -1,4 +1,5 @@
 export const appShell = {
+  ragExecutionLoading: "正在加载 RAG 检索执行…",
   workflowCreateExecutor: "创建执行器 v0 草案",
   "userWorkspace": "用户工作区",
   "applicationsTitle": "应用",

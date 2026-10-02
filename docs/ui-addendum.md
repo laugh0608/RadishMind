@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-09-28
+更新时间：2026-10-02
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -44,7 +44,7 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 ## 中英界面规划
 
-[Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)统一维护界面语言选择、术语、格式化、迁移与双语验收方案，A 阶段已完成；B 阶段草案库、Designer、节点画布、修订恢复、候选审查 / 激活、Definition 运行、模板派生及 RAG 快照已通过双语验收，RAG 检索 / 晋级 / 应用运行、HTTP Tool 与离线投影解释仍待迁移，其余页面按 C 至 F 继续推进。语言入口位于桌面导航底部、移动菜单内与认证页页头，按完整用户流程迁移；语言变化不得清空表单或改变业务 locale。实施时检查中英文长度差异、窄屏布局和可访问名称，继续沿用本附录的视觉与 token 规则。
+[Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)统一维护界面语言选择、术语、格式化、迁移与双语验收方案，A 阶段已完成；B 阶段草案库、Designer、节点画布、修订恢复、候选审查 / 激活、Definition 运行、模板派生及 RAG 快照与检索执行已通过双语验收，RAG 晋级 / 应用运行、HTTP Tool 与离线投影解释仍待迁移，其余页面按 C 至 F 继续推进。语言入口位于桌面导航底部、移动菜单内与认证页页头，按完整用户流程迁移；语言变化不得清空表单或改变业务 locale。实施时检查中英文长度差异、窄屏布局和可访问名称，继续沿用本附录的视觉与 token 规则。
 
 ## Token 与构建映射
 

@@ -1,3 +1,14 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowRAGExecutionResources.ts";
+import "../../i18n/workflowDraftResources.ts";
+import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
+import {
+  workflowRAGConfidenceLabel,
+  workflowRAGExecutionFailure,
+  workflowRAGExecutionFeedback,
+  workflowRAGExecutionReasonMessage,
+  workflowRAGExecutionStatus,
+} from "./workflowRAGExecutionMessages.ts";
 import { useEffect, useMemo, useState } from "react";
 
 import type { WorkflowSavedDraftConsumerState } from "./savedWorkflowDraftConsumer.ts";
@@ -42,6 +53,7 @@ export default function WorkflowRAGExecutionPanel({
   onPendingChange: (pending: boolean) => void;
   onExecutionRecorded: () => void;
 }) {
+  const { t } = useTranslation("workflow");
   const [executionState, setExecutionState] = useState<WorkflowRAGExecutionState>(() => initialWorkflowRAGExecutionState(config));
   const [inputText, setInputText] = useState(DEFAULT_WORKFLOW_RAG_INPUT);
   const [model, setModel] = useState("");
@@ -132,9 +144,8 @@ export default function WorkflowRAGExecutionPanel({
     setExecutionState((state) => ({
       ...state,
       status: "executing",
-      summary: `Executing exact saved draft ${draft.draftId} version ${eligibility.draftVersion}.`,
+      message: "executing",
       failureCode: "",
-      failureSummary: "",
       record: null,
       answer: null,
     }));
@@ -149,56 +160,60 @@ export default function WorkflowRAGExecutionPanel({
   return (
     <section className="workflow-rag-execution-panel" id="workflow-rag-execution" aria-labelledby="workflow-rag-execution-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Workflow RAG · Draft binding and execution</p><h4 id="workflow-rag-execution-title">精确知识版本与显式执行</h4></div>
-        <span className={`status-badge ${executionState.status === "succeeded" ? "good" : executionState.status === "failed" ? "bad" : "neutral"}`}>{executionState.status}</span>
+        <div><p className="eyebrow">{t($ => $.ragExecution.eyebrow)}</p><h4 id="workflow-rag-execution-title">{t($ => $.ragExecution.heading)}</h4></div>
+        <span className={`status-badge ${executionState.status === "succeeded" ? "good" : executionState.status === "failed" ? "bad" : "neutral"}`}>{workflowRAGExecutionStatus(t, executionState.status)}</span>
       </div>
 
       <div className="workflow-rag-scope-grid">
-        <article><span>Draft profile</span><strong>{draft.executionProfile ?? "review_only"}</strong><small>{draft.draftId}</small></article>
-        <article><span>Saved version</span><strong>{savedDraftState.currentDraftVersion || "not saved"}</strong><small>{draftEditDirty ? "unsaved local changes" : savedDraftState.status}</small></article>
-        <article><span>Exact RAG ref</span><strong>{retrievalNode?.ragRef || "not bound"}</strong><small>{bindingMatchesDraft ? exactSnapshot?.record?.snapshotDigest : "select and read an exact active version"}</small></article>
-        <article><span>Execution boundary</span><strong>1 retrieval · 1 provider</strong><small>0 tool · 0 confirmation · 0 write · 0 replay</small></article>
+        <article><span>{t($ => $.ragExecution.draftProfile)}</span><strong>{draft.executionProfile ?? "review_only"}</strong><small>{draft.draftId}</small></article>
+        <article><span>{t($ => $.ragExecution.savedVersion)}</span><strong>{savedDraftState.currentDraftVersion || t($ => $.ragExecution.notSaved)}</strong><small>{draftEditDirty ? t($ => $.ragExecution.unsaved) : workflowDraftStatusLabel(t, savedDraftState.status)}</small></article>
+        <article><span>{t($ => $.ragExecution.exactRef)}</span><strong>{retrievalNode?.ragRef || t($ => $.ragExecution.notBound)}</strong><small>{bindingMatchesDraft ? exactSnapshot?.record?.snapshotDigest : t($ => $.ragExecution.selectRead)}</small></article>
+        <article><span>{t($ => $.ragExecution.boundary)}</span><strong>{t($ => $.ragExecution.calls)}</strong><small>{t($ => $.ragExecution.sideEffects)}</small></article>
       </div>
 
       <div className="workflow-rag-toolbar">
-        <button type="button" disabled={executionPending} onClick={createDraft}>创建 RAG retrieval v1 草案</button>
-        <button type="button" disabled={!canReadSnapshots || snapshotStatus === "loading" || executionPending} onClick={() => void loadSnapshots()}>刷新 active snapshots</button>
-        <span>{snapshotStatus}{snapshotFailure ? ` · ${snapshotFailure}` : ""}</span>
+        <button type="button" disabled={executionPending} onClick={createDraft}>{t($ => $.ragExecution.createDraft)}</button>
+        <button type="button" disabled={!canReadSnapshots || snapshotStatus === "loading" || executionPending} onClick={() => void loadSnapshots()}>{t($ => $.ragExecution.refresh)}</button>
+        <span role="status">{workflowRAGExecutionStatus(t, snapshotStatus)}</span>
       </div>
 
-      <div className="workflow-rag-binding-grid" aria-label="Draft Designer exact RAG snapshot binding">
+      {snapshotStatus === "empty" ? <p>{t($ => $.ragExecution.emptySnapshots)}</p> : null}
+      {snapshotFailure ? <p className="failure-summary"><code>{snapshotFailure}</code> · {workflowRAGExecutionFailure(t, snapshotFailure)}</p> : null}
+      <div className="workflow-rag-binding-grid" aria-label={t($ => $.ragExecution.bindingLabel)}>
         <label>
-          <span>Active snapshot</span>
+          <span>{t($ => $.ragExecution.snapshot)}</span>
           <select value={selectedSnapshotId} disabled={!retrievalNode || executionPending || snapshotStatus === "loading"} onChange={(event) => {
             const resource = snapshots.find((snapshot) => snapshot.snapshotId === event.currentTarget.value);
             if (resource) void bindExactVersion(resource.snapshotId, resource.latestVersion);
           }}>
-            <option value="">选择 active snapshot</option>
-            {snapshots.map((snapshot) => <option value={snapshot.snapshotId} key={snapshot.snapshotId}>{snapshot.displayName} · {snapshot.snapshotKey} · latest v{snapshot.latestVersion}</option>)}
+            <option value="">{t($ => $.ragExecution.selectSnapshot)}</option>
+            {snapshots.map((snapshot) => <option value={snapshot.snapshotId} key={snapshot.snapshotId}>{t($ => $.ragExecution.snapshotOption, { name: snapshot.displayName, key: snapshot.snapshotKey, version: snapshot.latestVersion })}</option>)}
           </select>
         </label>
         <label>
-          <span>Exact version</span>
+          <span>{t($ => $.ragExecution.version)}</span>
           <select value={selectedVersion || ""} disabled={!selectedResource || executionPending || snapshotStatus === "reading"} onChange={(event) => void bindExactVersion(selectedSnapshotId, Number(event.currentTarget.value))}>
-            <option value="">选择精确版本</option>
+            <option value="">{t($ => $.ragExecution.selectVersion)}</option>
             {selectedResource ? Array.from({ length: selectedResource.latestVersion }, (_, index) => index + 1).map((version) => <option value={version} key={version}>v{version}</option>) : null}
           </select>
         </label>
       </div>
-      <p className="boundary-note">该选择器只写入精确 `rag_ref`；fragment、排名、citation 白名单、snapshot digest 与 profile digest 均由服务端重读。</p>
+      <p className="boundary-note">{t($ => $.ragExecution.bindingNote)}</p>
 
       <div className="workflow-rag-execution-form">
-        <label><span>Question</span><textarea rows={4} maxLength={4096} value={inputText} disabled={executionPending} onChange={(event) => setInputText(event.currentTarget.value)} /></label>
+        <label><span>{t($ => $.ragExecution.question)}</span><textarea rows={4} maxLength={4096} value={inputText} disabled={executionPending} onChange={(event) => setInputText(event.currentTarget.value)} /></label>
         <div className="workflow-rag-binding-grid">
-          <label><span>Model override</span><input value={model} maxLength={256} disabled={executionPending} onChange={(event) => setModel(event.currentTarget.value)} placeholder="configured default" /></label>
-          <label><span>Temperature</span><input type="number" min="0" max="2" step="0.1" value={temperature} disabled={executionPending} onChange={(event) => setTemperature(event.currentTarget.value)} placeholder="configured default" /></label>
+          <label><span>{t($ => $.ragExecution.model)}</span><input value={model} maxLength={256} disabled={executionPending} onChange={(event) => setModel(event.currentTarget.value)} placeholder={t($ => $.ragExecution.defaultValue)} /></label>
+          <label><span>{t($ => $.ragExecution.temperature)}</span><input type="number" min="0" max="2" step="0.1" value={temperature} disabled={executionPending} onChange={(event) => setTemperature(event.currentTarget.value)} placeholder={t($ => $.ragExecution.defaultValue)} /></label>
         </div>
-        <div className="workflow-rag-actions"><button type="button" disabled={executeDisabled} onClick={() => void execute()}>{executionPending ? "执行中…" : "启动一次 retrieval execution"}</button><span>{inputBytes} / 4096 bytes</span></div>
+        <div className="workflow-rag-actions"><button type="button" disabled={executeDisabled} onClick={() => void execute()}>{executionPending ? t($ => $.ragExecution.executing) : t($ => $.ragExecution.execute)}</button><span>{t($ => $.ragExecution.bytes, { count: inputBytes })}</span></div>
       </div>
 
-      {!eligibility.eligible ? <div className="workflow-rag-eligibility" aria-label="RAG execution eligibility blockers">{eligibility.reasons.map((item) => <p key={`${item.code}-${item.summary}`}><code>{item.code}</code> · {item.summary}</p>)}</div> : null}
-      {executionState.failureCode ? <p className="failure-summary"><code>{executionState.failureCode}</code> · {executionState.failureSummary || executionState.summary}</p> : null}
-      {executionState.answer ? <article className="workflow-rag-answer"><div className="card-title-row"><div><p className="eyebrow">Transient workflow_rag_answer.v1</p><h5>{executionState.answer.confidence} confidence</h5></div><span className="status-badge good">validated</span></div><p>{executionState.answer.answer}</p><ul>{executionState.answer.citations.map((citation) => <li key={citation.fragmentRef}><code>{citation.fragmentRef}</code> · {citation.claimSummary}</li>)}</ul>{executionState.answer.limitations.length ? <div>{executionState.answer.limitations.map((limitation) => <p key={limitation}>限制：{limitation}</p>)}</div> : null}<small>回答只保留在当前 execution 响应状态；Run History 仅保存 citation refs 与检索元数据。</small></article> : null}
+      {!eligibility.eligible ? <div className="workflow-rag-eligibility" aria-label={t($ => $.ragExecution.blockers)}>{eligibility.reasons.map((item) => <p key={item.code === "rag_execution_scope_denied" ? `${item.code}-${item.scope}` : item.code}><code>{item.code}</code> · {workflowRAGExecutionReasonMessage(t, item)}</p>)}</div> : null}
+      <p role="status">{workflowRAGExecutionFeedback(t, executionState.message)}</p>
+      {executionState.failureCode ? <p className="failure-summary"><code>{executionState.failureCode}</code> · {workflowRAGExecutionFailure(t, executionState.failureCode)}</p> : null}
+      {executionState.message === "failed" || executionState.message === "succeeded" ? <p className="boundary-note">{t($ => $.ragExecution.request)}: <code>{executionState.requestId}</code> · {t($ => $.ragExecution.audit)}: <code>{executionState.auditRef}</code></p> : null}
+      {executionState.answer ? <article className="workflow-rag-answer"><div className="card-title-row"><div><p className="eyebrow">{t($ => $.ragExecution.transientAnswer)}</p><h5>{t($ => $.ragExecution.confidence, { level: workflowRAGConfidenceLabel(t, executionState.answer.confidence) })}</h5></div><span className="status-badge good">{t($ => $.ragExecution.validated)}</span></div><p>{executionState.answer.answer}</p><ul>{executionState.answer.citations.map((citation) => <li key={citation.fragmentRef}><code>{citation.fragmentRef}</code> · {citation.claimSummary}</li>)}</ul>{executionState.answer.limitations.length ? <div>{executionState.answer.limitations.map((limitation) => <p key={limitation}>{t($ => $.ragExecution.limitation, { text: limitation })}</p>)}</div> : null}<small>{t($ => $.ragExecution.answerNote)}</small></article> : null}
     </section>
   );
 }

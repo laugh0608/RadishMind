@@ -26,7 +26,7 @@ const REFERENCE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$/u;
 const ANSWER_KEYS = ["schema_version", "answer", "citations", "limitations", "confidence"] as const;
 const CITATION_KEYS = ["fragment_ref", "claim_summary"] as const;
 const ENVELOPE_KEYS = [
-  "request_id", "workspace_id", "application_id", "run", "retrieval_answer",
+  "request_id", "workspace_id", "application_id", "run", "action_safety", "retrieval_answer",
   "failure_code", "failure_summary", "audit_ref",
 ] as const;
 
@@ -45,21 +45,24 @@ export type WorkflowRAGAnswer = {
 
 export type WorkflowRAGExecutionState = {
   status: "offline" | "idle" | "executing" | "succeeded" | "failed" | "scope_denied";
-  summary: string;
+  message: "offline" | "ready" | "executing" | "succeeded" | "localRejected" | "failed" | "unavailable";
   failureCode: string;
-  failureSummary: string;
   requestId: string;
   auditRef: string;
   record: WorkflowRunRecord | null;
   answer: WorkflowRAGAnswer | null;
 };
 
+export type WorkflowRAGExecutionReason =
+  | { code: "rag_execution_offline" | "rag_execution_profile_required" | "unsaved_local_changes" | "saved_draft_version_unavailable" | "blocked_capabilities_present" | "rag_execution_topology_invalid" | "rag_ref_invalid" | "rag_execution_node_boundary_invalid" | "rag_execution_edges_invalid" }
+  | { code: "rag_execution_scope_denied"; scope: string };
+
 export type WorkflowRAGExecutionEligibility = {
   eligible: boolean;
   draftVersion: number;
   retrievalNodeId: string;
   ragRef: string;
-  reasons: Array<{ code: string; summary: string }>;
+  reasons: WorkflowRAGExecutionReason[];
 };
 
 export type WorkflowRAGExecutionInput = {
@@ -73,6 +76,7 @@ type WorkflowRAGExecutionEnvelope = {
   workspace_id: string;
   application_id: string;
   run: unknown | null;
+  action_safety: null;
   retrieval_answer?: unknown;
   failure_code: string | null;
   failure_summary: string;
@@ -85,9 +89,8 @@ export function initialWorkflowRAGExecutionState(
   if (config.mode !== "dev_workflow_rag_http") {
     return {
       status: "offline",
-      summary: "Workflow RAG execution remains offline; zero execution requests are sent.",
+      message: "offline",
       failureCode: "workflow_rag_execution_http_disabled",
-      failureSummary: "",
       requestId: "workflow-rag-execution-offline",
       auditRef: "audit-workflow-rag-execution-offline",
       record: null,
@@ -96,9 +99,8 @@ export function initialWorkflowRAGExecutionState(
   }
   return {
     status: "idle",
-    summary: "Bind an exact active snapshot version, save the four-node draft, then start one retrieval execution.",
+    message: "ready",
     failureCode: "",
-    failureSummary: "",
     requestId: "workflow-rag-execution-idle",
     auditRef: "audit-workflow-rag-execution-idle",
     record: null,
@@ -166,32 +168,32 @@ export function evaluateWorkflowRAGExecutionEligibility(
   config: WorkflowRAGSnapshotConfig,
 ): WorkflowRAGExecutionEligibility {
   const reasons: WorkflowRAGExecutionEligibility["reasons"] = [];
-  if (config.mode !== "dev_workflow_rag_http") reasons.push(reason("rag_execution_offline", "RAG execution source is not enabled."));
+  if (config.mode !== "dev_workflow_rag_http") reasons.push({ code: "rag_execution_offline" });
   for (const scope of REQUIRED_EXECUTION_SCOPES) {
-    if (!config.scopes.has(scope)) reasons.push(reason("rag_execution_scope_denied", `Missing exact scope ${scope}.`));
+    if (!config.scopes.has(scope)) reasons.push({ code: "rag_execution_scope_denied", scope });
   }
-  if (draft.executionProfile !== "rag_retrieval_v1") reasons.push(reason("rag_execution_profile_required", "Create or restore a RAG retrieval v1 draft."));
-  if (draftEditDirty) reasons.push(reason("unsaved_local_changes", "Save the current exact draft before execution."));
+  if (draft.executionProfile !== "rag_retrieval_v1") reasons.push({ code: "rag_execution_profile_required" });
+  if (draftEditDirty) reasons.push({ code: "unsaved_local_changes" });
   if (
     savedDraftState.currentDraftVersion < 1 ||
     savedDraftState.currentLifecycleState !== "active" ||
     !["saved_dev_record", "validation_ready"].includes(savedDraftState.status)
   ) {
-    reasons.push(reason("saved_draft_version_unavailable", "Exact valid content and active lifecycle versions are required."));
+    reasons.push({ code: "saved_draft_version_unavailable" });
   }
-  if (draft.blockedCapabilities.length) reasons.push(reason("blocked_capabilities_present", "The saved draft must have zero blocked capabilities."));
+  if (draft.blockedCapabilities.length) reasons.push({ code: "blocked_capabilities_present" });
 
   const prompt = draft.nodes.filter((node) => node.nodeType === "prompt");
   const retrieval = draft.nodes.filter((node) => node.nodeType === "rag_retrieval");
   const llm = draft.nodes.filter((node) => node.nodeType === "llm");
   const output = draft.nodes.filter((node) => node.nodeType === "output");
   const exactNodeSet = draft.nodes.length === 4 && prompt.length === 1 && retrieval.length === 1 && llm.length === 1 && output.length === 1;
-  if (!exactNodeSet) reasons.push(reason("rag_execution_topology_invalid", "The graph must contain exactly one Prompt, RAG Retrieval, LLM, and Output node."));
+  if (!exactNodeSet) reasons.push({ code: "rag_execution_topology_invalid" });
   const retrievalNode = retrieval[0];
   const ragRef = retrievalNode?.ragRef.trim() ?? "";
-  if (!RAG_REF_PATTERN.test(ragRef)) reasons.push(reason("rag_ref_invalid", "Select an exact workflow.rag.<snapshot>.v<version> reference."));
+  if (!RAG_REF_PATTERN.test(ragRef)) reasons.push({ code: "rag_ref_invalid" });
   if (draft.nodes.some((node) => node.toolRef.trim() || node.requiresConfirmation || (node !== retrievalNode && node.ragRef.trim())) || retrievalNode?.riskLevel !== "low") {
-    reasons.push(reason("rag_execution_node_boundary_invalid", "RAG v1 nodes cannot contain tools, confirmations, extra RAG refs, or elevated retrieval risk."));
+    reasons.push({ code: "rag_execution_node_boundary_invalid" });
   }
   if (exactNodeSet) {
     const expected = new Set([
@@ -201,7 +203,7 @@ export function evaluateWorkflowRAGExecutionEligibility(
     ]);
     const actual = new Set(draft.edges.map((edge) => `${edge.fromNodeId}\u0000${edge.toNodeId}`));
     if (draft.edges.length !== 3 || draft.edges.some((edge) => edge.conditionSummary.trim()) || actual.size !== expected.size || [...actual].some((edge) => !expected.has(edge))) {
-      reasons.push(reason("rag_execution_edges_invalid", "The graph must use the three direct edges with empty conditions."));
+      reasons.push({ code: "rag_execution_edges_invalid" });
     }
   }
   return {
@@ -262,12 +264,12 @@ export async function executeWorkflowRAGRetrieval(
     }
     if (value.failure_code === null) {
       if (!response.ok || !record || record.status !== "succeeded" || !answer) throw new Error("workflow RAG execution success evidence is incomplete");
-      return { status: "succeeded", summary: "One lexical retrieval and one Gateway call completed with validated citations.", failureCode: "", failureSummary: "", requestId: value.request_id, auditRef: value.audit_ref, record, answer };
+      return { status: "succeeded", message: "succeeded", failureCode: "", requestId: value.request_id, auditRef: value.audit_ref, record, answer };
     }
     if (answer || (record && record.status === "succeeded")) throw new Error("workflow RAG execution failure envelope contains incompatible success evidence");
-    return { status: value.failure_code === "workflow_rag_snapshot_scope_denied" ? "scope_denied" : "failed", summary: value.failure_summary || "Workflow RAG execution failed without retry or fallback.", failureCode: value.failure_code, failureSummary: value.failure_summary, requestId: value.request_id, auditRef: value.audit_ref, record, answer: null };
-  } catch (error) {
-    return { ...localExecutionFailure("workflow_rag_store_unavailable"), summary: error instanceof Error ? error.message : "Workflow RAG execution failed without fallback." };
+    return { status: value.failure_code === "workflow_rag_snapshot_scope_denied" ? "scope_denied" : "failed", message: "failed", failureCode: value.failure_code, requestId: value.request_id, auditRef: value.audit_ref, record, answer: null };
+  } catch {
+    return { ...localExecutionFailure("workflow_rag_store_unavailable"), message: "unavailable" };
   }
 }
 
@@ -313,15 +315,14 @@ function parseWorkflowRAGAnswer(value: unknown, record: WorkflowRunRecord | null
 function isExecutionEnvelope(value: unknown, config: WorkflowRAGSnapshotConfig, applicationId: string): value is WorkflowRAGExecutionEnvelope {
   if (!isRecord(value) || !hasOnlyKnownKeys(value, ENVELOPE_KEYS) || containsForbiddenResponseField(value)) return false;
   return isReference(value.request_id) && value.workspace_id === config.workspaceId && value.application_id === applicationId &&
-    (value.run === null || isRecord(value.run)) && (value.failure_code === null || typeof value.failure_code === "string") &&
+    value.action_safety === null && (value.run === null || isRecord(value.run)) && (value.failure_code === null || typeof value.failure_code === "string") &&
     typeof value.failure_summary === "string" && isReference(value.audit_ref);
 }
 
 function localExecutionFailure(failureCode: string): WorkflowRAGExecutionState {
-  return { status: "failed", summary: "Workflow RAG execution input was rejected before any request.", failureCode, failureSummary: "", requestId: "workflow-rag-execution-local-failure", auditRef: "audit-workflow-rag-execution-local-failure", record: null, answer: null };
+  return { status: "failed", message: "localRejected", failureCode, requestId: "workflow-rag-execution-local-failure", auditRef: "audit-workflow-rag-execution-local-failure", record: null, answer: null };
 }
 
-function reason(code: string, summary: string) { return { code, summary }; }
 function safeKey(value: string, maxLength: number): string { return value.toLowerCase().replace(/[^a-z0-9]+/gu, "_").replace(/^_+|_+$/gu, "").slice(0, maxLength) || "application"; }
 function isRecord(value: unknown): value is Record<string, unknown> { return Boolean(value) && typeof value === "object" && !Array.isArray(value); }
 function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean { const expected = new Set(allowed); return Object.keys(value).length === allowed.length && Object.keys(value).every((key) => expected.has(key)); }

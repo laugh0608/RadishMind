@@ -963,6 +963,14 @@ h4 {
   line-height: 1.5;
 }
 
+.workflow-rag-execution-panel :is(strong, small, code) {
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-execution-panel .workflow-rag-binding-grid label {
+  min-width: 0;
+}
+
 .workflow-rag-execution-panel button {
   border: 1px solid #9eb9b0;
   border-radius: 7px;
