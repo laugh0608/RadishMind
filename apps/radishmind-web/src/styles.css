@@ -7287,6 +7287,18 @@ dd {
   gap: 16px;
 }
 
+.workflow-rag-promotion-panel {
+  overflow-wrap: anywhere;
+}
+
+.workflow-rag-promotion-panel .application-api-card-heading {
+  flex-wrap: wrap;
+}
+
+.workflow-rag-promotion-panel .application-api-card-heading > div {
+  min-width: 0;
+}
+
 .workflow-rag-promotion-scope {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 18px 0;
@@ -7327,6 +7339,7 @@ dd {
 .workflow-rag-promotion-create select,
 .workflow-rag-promotion-decision select,
 .workflow-rag-promotion-decision textarea {
+  min-width: 0;
   width: 100%;
   padding: 10px 12px;
   border: 1px solid rgba(151, 185, 213, 0.26);
@@ -7342,7 +7355,7 @@ dd {
 
 .workflow-rag-promotion-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 10px;
 }
 

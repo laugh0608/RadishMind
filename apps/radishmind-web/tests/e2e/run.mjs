@@ -18,9 +18,9 @@ await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
 const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
-const availableSuites = ["templates", "workflow", "rag"];
+const availableSuites = ["templates", "workflow", "rag", "rag-promotion"];
 if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
-  throw new Error("Use at most one --suite=templates|workflow|rag selector.");
+  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion selector.");
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
@@ -129,7 +129,7 @@ async function runSuite(suite) {
     if (interrupted) throw new Error("Interrupted during configuration setup.");
     const launcher = start("bash", [
       join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-      "--mode", "dev-live", ...(suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", suite === "templates" ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
+      "--mode", "dev-live", ...(suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", suite === "templates" ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
       "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
       "--timeout-seconds", "120", "--log-dir", join(output, "services"),
       "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),

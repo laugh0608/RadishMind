@@ -195,6 +195,8 @@ Web 在现有 RAG evaluation dataset / candidate review 面板之后增加 lazy-
 - publish panel 展示 exact binding ref 与动态复核 blocker，不能把 `approved` 显示为 published；
 - 应用切换、scope drift、非 2xx、strict schema drift 或 forbidden field 都清除旧交接并失败关闭。
 
+2026-10-02 晋级面板接入中英显示资源：人工决定、等待、状态、失败恢复与动态资格在渲染时翻译，理由、精确引用和摘要保留原文。语言切换不改变请求、版本或交接；批准、显式附加、发布审查仍是独立步骤。浏览器验收进展见 [i18n 专题](../web-internationalization-zh-en-v1.md#b-阶段-rag-晋级审查2026-10-02)。
+
 ## 测试矩阵
 
 | 层级 | 必须覆盖 |

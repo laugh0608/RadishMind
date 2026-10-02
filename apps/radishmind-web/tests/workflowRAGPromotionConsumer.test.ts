@@ -170,3 +170,37 @@ function bindingRefDocument() { return { binding_id: "wragb_aaaaaaaaaaaaaaaa", b
 function digest(seed: string) { return `sha256:${seed.repeat(64)}`; }
 function timestamp() { return "2026-07-18T10:00:00Z"; }
 function jsonResponse(document: unknown): Response { return new Response(JSON.stringify(document), { status: 200, headers: { "Content-Type": "application/json" } }); }
+
+test("promotion translation follows stable state and failures without changing evidence or decisions", async () => {
+  const { createUiI18n, initializeUiI18n } = await import("../src/i18n/instance.ts");
+  const { workflowRAGPromotion: en } = await import("../src/i18n/locales/en-US/workflowRAGPromotion.ts");
+  const { workflowRAGPromotion: zh } = await import("../src/i18n/locales/zh-CN/workflowRAGPromotion.ts");
+  const { workflowRAGPromotionStatus, workflowRAGPromotionFailure, workflowRAGPromotionFeedback } = await import("../src/features/control-plane-read/workflowRAGPromotionMessages.ts");
+  const i18n = createUiI18n(); await initializeUiI18n(i18n, "en-US");
+  i18n.addResourceBundle("en-US", "workflow", { ragPromotion: en });
+  i18n.addResourceBundle("zh-CN", "workflow", { ragPromotion: zh });
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return jsonResponse(promotionEnvelope({ approved: true })); };
+  try {
+    const result = await readWorkflowRAGPromotionCandidate(live, "app_flow_copilot", "wragp_aaaaaaaaaaaaaaaa");
+    const before = JSON.stringify(result);
+    const render = () => {
+      const t = i18n.getFixedT(null, "workflow");
+      return [
+        ...Object.keys(en.status).map(code => workflowRAGPromotionStatus(t, code)),
+        ...Object.keys(en.failure).map(code => workflowRAGPromotionFailure(t, code)),
+        ...(["offline", "scope_denied", "created", "loaded", "decided", "record_version_conflict", "failed"] as const).map(status => workflowRAGPromotionFeedback(t, { ...result, status })),
+        workflowRAGPromotionFeedback(t, { ...result, detail: null }),
+      ];
+    };
+    const english = render(); await i18n.changeLanguage("zh-CN");
+    render().forEach((message, index) => {
+      assert.ok(message); assert.notEqual(message, english[index]);
+      assert.doesNotMatch(message + english[index], /ragPromotion\.|\{\{|This message is unavailable|此消息暂不可用/);
+    });
+    assert.equal(workflowRAGPromotionFailure(i18n.getFixedT(null, "workflow"), "future_code"), zh.failure.unknown);
+    assert.equal(JSON.stringify(result), before);
+    assert.equal(calls, 1);
+  } finally { globalThis.fetch = originalFetch; }
+});

@@ -52,6 +52,8 @@
 
 随后审查 / 模板 / 运行切片取消 Definition 中文跳过，并新增模板审查等待与派生确认语言切换用例。运行器按模板、Prompt / Workflow 两组顺序启动独立临时环境；模板档案使用禁止调用的模型元数据，避免覆盖 Prompt 固定响应档案。模板派生所需的精确 Provider Route 快照由测试通过现有管理 API 准备和严格核对，不跳过原绑定检查。三视口增加长模板 ID 的卡片内部换行检查，实际验收结果见本周周志。RAG 快照切片随后增加第三个独立 `rag` 组，使用既有 `--workflow-rag-dev`；`--suite=templates|workflow|rag` 可选择单组，非法或重复选择器直接拒绝，不放宽零测试失败。RAG 组在单独授权窗口完成中英各两轮共 8 次验收，含版本冲突保留与片段卡片内部溢出检查；本窗口没有重跑前两组，不据此声称同次全量回归通过。 2026-10-02 在同一 RAG 组加入检索执行流程，两语各两轮共 12 次通过，覆盖等待响应切换、无证据零模型调用、真实草案版本漂移拒绝、刷新易失内容清理与精确引用卡片换行；修复消费层对既有 `action_safety: null` 的拒绝，仍拒绝非空动作字段。本轮未重跑其它组，报告与清理记录见[本周周志](../devlogs/2026-W40.md#2026-10-02-rag-检索执行双语迁移)。
 
+RAG 晋级审查沿用同一运行器，增加独立 `rag-promotion` 组与既有 `--workflow-rag-promotion-local-product`，使用临时 SQLite 及合成来源证据。晋级创建、人工决定和配置交接不调用模型；语言切换只验证展示和状态保持。默认四组按顺序运行，`--suite` 可选择单组；新增组的实跑与清理结果见本周周志。
+
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
 - 每组运行分别生成临时 SQLite 与空 Platform 配置，不读取用户的本地 Platform 配置或 Web `.env`。每个测试通过真实 UI 创建独立 Application，双标签在同一测试内共享该 Application；浏览器只允许本轮两个 loopback origin。
 - Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。

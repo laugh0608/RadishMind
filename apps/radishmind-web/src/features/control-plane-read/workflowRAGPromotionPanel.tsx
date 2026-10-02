@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowRAGPromotionResources.ts";
+import { workflowRAGPromotionStatus, workflowRAGPromotionFailure, workflowRAGPromotionFeedback } from "./workflowRAGPromotionMessages.ts";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -42,6 +45,11 @@ type Props = {
 };
 
 export default function WorkflowRAGPromotionPanel({ applicationId, applicationName, applicationActive, onEvidenceChange, onOpenConfigurationAttach }: Props) {
+  const { t } = useTranslation("workflow");
+  const [sourceLoading, setSourceLoading] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+  const [pending, setPending] = useState<"create" | "read" | "decide" | null>(null);
   const [datasets, setDatasets] = useState<WorkflowRAGEvaluationListResult>(() => emptyDatasets());
   const [reviews, setReviews] = useState<WorkflowRAGCandidateReviewListResult>(() => emptyReviews());
   const [drafts, setDrafts] = useState<ApplicationConfigurationDraftListState>(() => initialApplicationConfigurationDraftListState(draftConfig));
@@ -54,6 +62,10 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
   const [reason, setReason] = useState("");
 
   useEffect(() => {
+    setSourceLoading(false);
+    setReviewsLoading(false);
+    setListLoading(false);
+    setPending(null);
     setDatasets(emptyDatasets());
     setReviews(emptyReviews());
     setDrafts(initialApplicationConfigurationDraftListState(draftConfig));
@@ -98,6 +110,7 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
 
   async function loadSources() {
     if (!enabled) return;
+    setSourceLoading(true);
     setDatasets((current) => ({ ...current, status: "empty", resources: [], failureCode: "", summary: "Loading active evaluation datasets." }));
     setDrafts((current) => ({ ...current, status: "loading", summaries: [], failureCode: "", summary: "Loading exact saved drafts." }));
     const [nextDatasets, nextDrafts] = await Promise.all([
@@ -112,6 +125,7 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
     setSelectedDraftId(draft?.draftId ?? "");
     setSelectedReviewId("");
     if (dataset) await loadReviews(dataset.datasetId);
+    setSourceLoading(false);
   }
 
   async function loadReviews(datasetId: string) {
@@ -121,25 +135,31 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
       setReviews(emptyReviews());
       return;
     }
+    setReviewsLoading(true);
     setReviews((current) => ({ ...current, status: "empty", reviews: [], failureCode: "", summary: "Loading metadata-only candidate reviews." }));
     const next = await listWorkflowRAGCandidateReviews(evaluationConfig, applicationId, datasetId);
     setReviews(next);
+    setReviewsLoading(false);
     const review = next.reviews.find((item) => item.candidateStatus === "passed" && (item.conclusion === "improved" || item.conclusion === "unchanged"));
     setSelectedReviewId(review?.reviewId ?? "");
   }
 
   async function refreshPromotions() {
     if (promotionConfig.mode !== "dev_workflow_rag_promotion_http" || !applicationId) return;
+    setListLoading(true);
     setPromotions((current) => ({ ...current, status: "empty", summaries: [], failureCode: "", summary: "Loading knowledge promotion candidates." }));
     setPromotions(await listWorkflowRAGPromotionCandidates(promotionConfig, applicationId));
+    setListLoading(false);
   }
 
   async function createCandidate() {
     if (!enabled || !selectedDataset || !eligibleReview || !selectedDraft || selectedDraft.validationState !== "valid") return;
     setOperation((current) => ({ ...current, status: "loaded", detail: null, failureCode: "", summary: "Creating a candidate from server-reloaded authority records." }));
+    setPending("create");
     const result = await createWorkflowRAGPromotionCandidate(promotionConfig, applicationId, {
       datasetId: selectedDataset.datasetId, datasetVersion: selectedDataset.latestVersion, datasetDigest: selectedDataset.latestDigest,
     }, selectedReview.reviewId, { draftId: selectedDraft.draftId, draftVersion: selectedDraft.draftVersion });
+    setPending(null);
     setOperation(result);
     if (result.detail) {
       setReason("");
@@ -149,14 +169,18 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
 
   async function openCandidate(candidateId: string) {
     setOperation((current) => ({ ...current, status: "loaded", detail: null, failureCode: "", summary: "Loading exact promotion evidence and current blockers." }));
+    setPending("read");
     const result = await readWorkflowRAGPromotionCandidate(promotionConfig, applicationId, candidateId);
+    setPending(null);
     setOperation(result);
     if (result.detail) setDecision(result.detail.candidate.candidateState === "approved" ? "cancel" : "approve");
   }
 
   async function submitDecision() {
     if (!enabled || !detail || !canDecide || reasonFailure) return;
+    setPending("decide");
     const result = await decideWorkflowRAGPromotionCandidate(promotionConfig, applicationId, detail.candidate.candidateId, detail.candidate.recordVersion, decision, reason);
+    setPending(null);
     setOperation(result.status === "record_version_conflict" ? { ...result, detail } : result);
     if (result.detail) {
       setReason("");
@@ -164,39 +188,40 @@ export default function WorkflowRAGPromotionPanel({ applicationId, applicationNa
     }
   }
 
-  if (promotionConfig.mode === "offline") return <section className="workflow-rag-promotion-panel offline" id="workflow-rag-promotion-review" aria-label="Workflow RAG knowledge promotion"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion</p><h4>知识基线晋级审查未启用</h4></div><span className="status-badge neutral">offline</span></div><p>Offline mode sends zero promotion requests. Dataset、草案、decision 与 binding 均不会在浏览器中伪造。</p></section>;
+  if (promotionConfig.mode === "offline") return <section className="workflow-rag-promotion-panel offline" id="workflow-rag-promotion-review" aria-label={t($ => $.ragPromotion.label)}><div className="section-heading compact-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.eyebrow)}</p><h4>{t($ => $.ragPromotion.offlineTitle)}</h4></div><span className="status-badge neutral">{workflowRAGPromotionStatus(t, "offline")}</span></div><p>{t($ => $.ragPromotion.offlineNote)}</p></section>;
 
   return <section className="workflow-rag-promotion-panel" id="workflow-rag-promotion-review" aria-labelledby="workflow-rag-promotion-title">
-    <div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Promotion & binding</p><h4 id="workflow-rag-promotion-title">知识证据晋级、人工决定与配置绑定资格</h4></div><span className={`status-badge ${detail?.eligibility.eligible ? "good" : operation.failureCode ? "bad" : "neutral"}`}>{detail?.candidate.candidateState ?? operation.status}</span></div>
-    <div className="workflow-rag-promotion-scope"><article><span>Application</span><strong>{applicationName || "No application selected"}</strong><code>{applicationId || "none"}</code></article><article><span>Boundary</span><strong>three explicit steps</strong><p>Approve → attach → publish review</p></article><article><span>Automation</span><strong>disabled</strong><p>No baseline, release, or publish mutation.</p></article></div>
+    <div className="section-heading compact-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.eyebrow)}</p><h4 id="workflow-rag-promotion-title">{t($ => $.ragPromotion.heading)}</h4></div><span className={`status-badge ${detail?.eligibility.eligible ? "good" : operation.failureCode ? "bad" : "neutral"}`}>{workflowRAGPromotionStatus(t, detail?.candidate.candidateState ?? operation.status)}</span></div>
+    <div className="workflow-rag-promotion-scope"><article><span>{t($ => $.ragPromotion.application)}</span><strong>{applicationName || t($ => $.ragPromotion.noApplication)}</strong><code>{applicationId || t($ => $.ragPromotion.none)}</code></article><article><span>{t($ => $.ragPromotion.boundary)}</span><strong>{t($ => $.ragPromotion.threeSteps)}</strong><p>{t($ => $.ragPromotion.steps)}</p></article><article><span>{t($ => $.ragPromotion.automation)}</span><strong>{t($ => $.ragPromotion.disabled)}</strong><p>{t($ => $.ragPromotion.noMutation)}</p></article></div>
 
-    {!applicationActive ? <p className="failure-summary">Archived applications keep historical promotion evidence readable but cannot create or decide candidates.</p> : <div className="workflow-rag-promotion-layout">
+    {!applicationActive ? <p className="failure-summary">{t($ => $.ragPromotion.archived)}</p> : <div className="workflow-rag-promotion-layout">
       <article className="workflow-rag-promotion-create">
-        <div className="application-api-card-heading"><div><p className="eyebrow">Exact source bindings</p><h5>Dataset review + source draft</h5></div><button type="button" onClick={() => void loadSources()} disabled={!enabled}>Load sources</button></div>
-        <label>Active dataset<select value={selectedDatasetId} onChange={(event) => void loadReviews(event.target.value)} disabled={!enabled || datasets.resources.length === 0}><option value="">No active dataset selected</option>{datasets.resources.map((item) => <option key={item.datasetId} value={item.datasetId}>{item.datasetId} · v{item.latestVersion}</option>)}</select></label>
-        <label>Eligible candidate review<select value={selectedReviewId} onChange={(event) => setSelectedReviewId(event.target.value)} disabled={!enabled || reviews.reviews.length === 0}><option value="">No eligible review selected</option>{reviews.reviews.map((item) => <option key={item.reviewId} value={item.reviewId} disabled={item.candidateStatus !== "passed" || !["improved", "unchanged"].includes(item.conclusion)}>{item.reviewId} · {item.conclusion} · {item.candidateStatus}</option>)}</select></label>
-        <label>Valid source draft<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)} disabled={!enabled || drafts.summaries.length === 0}><option value="">No saved draft selected</option>{drafts.summaries.map((item) => <option key={item.draftId} value={item.draftId} disabled={item.validationState !== "valid"}>{item.draftId} · v{item.draftVersion} · {item.validationState}</option>)}</select></label>
-        {[datasets.failureCode, reviews.failureCode, drafts.failureCode].filter(Boolean).map((code) => <p className="failure-summary" key={code}>{code}</p>)}
-        <button type="button" onClick={() => void createCandidate()} disabled={!enabled || !eligibleReview || !selectedDraft || selectedDraft.validationState !== "valid"}>Create promotion candidate</button>
-        <p className="boundary-note">Only ids, versions, digests and review refs cross this boundary. The server reloads snapshots, lexical profile and current draft authority.</p>
+        <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.sourceEyebrow)}</p><h5>{t($ => $.ragPromotion.sourceTitle)}</h5></div><button type="button" onClick={() => void loadSources()} disabled={!enabled || sourceLoading}>{t($ => $.ragPromotion.loadSources)}</button></div>
+        <label>{t($ => $.ragPromotion.dataset)}<select value={selectedDatasetId} onChange={(event) => void loadReviews(event.target.value)} disabled={!enabled || datasets.resources.length === 0}><option value="">{t($ => $.ragPromotion.selectDataset)}</option>{datasets.resources.map((item) => <option key={item.datasetId} value={item.datasetId}>{item.datasetId} · v{item.latestVersion}</option>)}</select></label>
+        <label>{t($ => $.ragPromotion.review)}<select value={selectedReviewId} onChange={(event) => setSelectedReviewId(event.target.value)} disabled={!enabled || reviews.reviews.length === 0}><option value="">{t($ => $.ragPromotion.selectReview)}</option>{reviews.reviews.map((item) => <option key={item.reviewId} value={item.reviewId} disabled={item.candidateStatus !== "passed" || !["improved", "unchanged"].includes(item.conclusion)}>{item.reviewId} · {workflowRAGPromotionStatus(t, item.conclusion)} · {workflowRAGPromotionStatus(t, item.candidateStatus)}</option>)}</select></label>
+        <label>{t($ => $.ragPromotion.draft)}<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)} disabled={!enabled || drafts.summaries.length === 0}><option value="">{t($ => $.ragPromotion.selectDraft)}</option>{drafts.summaries.map((item) => <option key={item.draftId} value={item.draftId} disabled={item.validationState !== "valid"}>{item.draftId} · v{item.draftVersion} · {workflowRAGPromotionStatus(t, item.validationState)}</option>)}</select></label>
+        {sourceLoading || reviewsLoading ? <p role="status">{sourceLoading ? t($ => $.ragPromotion.activity.sources) : t($ => $.ragPromotion.activity.reviews)}</p> : null}
+        {[datasets.failureCode, reviews.failureCode, drafts.failureCode].filter(Boolean).map((code) => <p className="failure-summary" key={code}>{workflowRAGPromotionFailure(t, code)} <code>{code}</code></p>)}
+        <button type="button" onClick={() => void createCandidate()} disabled={Boolean(pending) || sourceLoading || reviewsLoading || !enabled || !eligibleReview || !selectedDraft || selectedDraft.validationState !== "valid"}>{t($ => $.ragPromotion.create)}</button>
+        <p className="boundary-note">{t($ => $.ragPromotion.sourceNote)}</p>
       </article>
 
       <article className="workflow-rag-promotion-decision">
-        <div className="application-api-card-heading"><div><p className="eyebrow">Append-only human decision</p><h5>{detail?.candidate.candidateId ?? "No candidate selected"}</h5></div><span className="status-badge neutral">record v{detail?.candidate.recordVersion ?? 0}</span></div>
-        <label>Decision<select value={decision} onChange={(event) => setDecision(event.target.value as WorkflowRAGPromotionDecision)} disabled={!detail}><option value="approve">Approve binding eligibility</option><option value="reject">Reject candidate</option><option value="defer">Defer decision</option><option value="cancel">Cancel candidate or binding</option></select></label>
-        <label>Sanitized reason<textarea rows={4} maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explain the evidence decision without query, fragment, prompt, response, or credentials." /></label>
-        {reason && reasonFailure ? <p className="failure-summary">{reasonFailure}</p> : null}
-        <button type="button" onClick={() => void submitDecision()} disabled={!enabled || !detail || !canDecide || Boolean(reasonFailure)}>Record decision</button>
-        {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
-        <p className="boundary-note">{operation.summary}</p>
-        {operation.status === "record_version_conflict" && detail ? <button type="button" onClick={() => void openCandidate(detail.candidate.candidateId)}>Refresh current record v{operation.currentRecordVersion}</button> : null}
+        <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.decisionEyebrow)}</p><h5>{detail?.candidate.candidateId ?? t($ => $.ragPromotion.noCandidate)}</h5></div><span className="status-badge neutral">{t($ => $.ragPromotion.recordVersion, { version: detail?.candidate.recordVersion ?? 0 })}</span></div>
+        <label>{t($ => $.ragPromotion.decision)}<select value={decision} onChange={(event) => setDecision(event.target.value as WorkflowRAGPromotionDecision)} disabled={!detail || Boolean(pending)}><option value="approve">{t($ => $.ragPromotion.approveOption)}</option><option value="reject">{t($ => $.ragPromotion.rejectOption)}</option><option value="defer">{t($ => $.ragPromotion.deferOption)}</option><option value="cancel">{t($ => $.ragPromotion.cancelOption)}</option></select></label>
+        <label>{t($ => $.ragPromotion.reason)}<textarea rows={4} maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} placeholder={t($ => $.ragPromotion.reasonPlaceholder)} /></label>
+        {reason && reasonFailure ? <p className="failure-summary">{reasonFailure === "workflow_rag_promotion_payload_invalid" ? t($ => $.ragPromotion.reasonInvalid) : workflowRAGPromotionFailure(t, reasonFailure)} <code>{reasonFailure}</code></p> : null}
+        <button type="button" onClick={() => void submitDecision()} disabled={Boolean(pending) || !enabled || !detail || !canDecide || Boolean(reasonFailure)}>{t($ => $.ragPromotion.submit)}</button>
+        {operation.failureCode ? <p className="failure-summary">{workflowRAGPromotionFailure(t, operation.failureCode)} <code>{operation.failureCode}</code></p> : null}
+        <p className="boundary-note">{pending === "create" ? t($ => $.ragPromotion.activity.create) : pending === "read" ? t($ => $.ragPromotion.activity.read) : pending === "decide" ? t($ => $.ragPromotion.activity.decide) : workflowRAGPromotionFeedback(t, operation)}</p>
+        {operation.status === "record_version_conflict" && detail ? <button type="button" onClick={() => void openCandidate(detail.candidate.candidateId)}>{t($ => $.ragPromotion.refreshRecord, { version: operation.currentRecordVersion })}</button> : null}
       </article>
     </div>}
 
     {detail ? <PromotionDetail detail={detail} applicationActive={applicationActive} onOpenConfigurationAttach={onOpenConfigurationAttach} /> : null}
 
-    <article className="workflow-rag-promotion-saved"><div className="application-api-card-heading"><div><p className="eyebrow">Durable candidates</p><h5>{promotions.summary}</h5></div><button type="button" onClick={() => void refreshPromotions()}>Refresh candidates</button></div>{promotions.failureCode ? <p className="failure-summary">{promotions.failureCode}</p> : null}<div className="workflow-rag-promotion-list">{promotions.summaries.map((item) => <button type="button" key={item.candidateId} onClick={() => void openCandidate(item.candidateId)}><strong>{item.candidateId}</strong><span>{item.candidateState} · record v{item.recordVersion} · {item.eligibilityStatus}</span><small>{item.dataset.datasetId} v{item.dataset.datasetVersion} · {item.blockerCount} blocker(s)</small></button>)}</div></article>
-    <p className="boundary-note">Approved means an immutable configuration binding is eligible. It never means attached, released, published, or production-ready.</p>
+    <article className="workflow-rag-promotion-saved"><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.savedEyebrow)}</p><h5>{listLoading ? t($ => $.ragPromotion.activity.list) : promotions.failureCode ? t($ => $.ragPromotion.listFailed) : promotions.summaries.length ? t($ => $.ragPromotion.candidates, { count: promotions.summaries.length }) : t($ => $.ragPromotion.emptyList)}</h5></div><button type="button" onClick={() => void refreshPromotions()} disabled={listLoading}>{t($ => $.ragPromotion.refresh)}</button></div>{promotions.failureCode ? <p className="failure-summary">{workflowRAGPromotionFailure(t, promotions.failureCode)} <code>{promotions.failureCode}</code></p> : null}<div className="workflow-rag-promotion-list">{promotions.summaries.map((item) => <button type="button" key={item.candidateId} onClick={() => void openCandidate(item.candidateId)} disabled={Boolean(pending)}><strong>{item.candidateId}</strong><span>{workflowRAGPromotionStatus(t, item.candidateState)} · {t($ => $.ragPromotion.recordVersion, { version: item.recordVersion })} · {workflowRAGPromotionStatus(t, item.eligibilityStatus)}</span><small>{item.dataset.datasetId} v{item.dataset.datasetVersion} · {t($ => $.ragPromotion.blockers, { count: item.blockerCount })}</small></button>)}</div></article>
+    <p className="boundary-note">{t($ => $.ragPromotion.footer)}</p>
   </section>;
 }
 
@@ -209,11 +234,12 @@ function PromotionDetail({
   applicationActive: boolean;
   onOpenConfigurationAttach: (candidateId: string) => void;
 }) {
+  const { t } = useTranslation("workflow");
   const evidence = detail.candidate.evidence;
   return <div className="workflow-rag-promotion-detail">
-    <article><div className="application-api-card-heading"><div><p className="eyebrow">Immutable evidence</p><h5>{evidence.dataset.datasetId} · v{evidence.dataset.datasetVersion}</h5></div><span className="status-badge neutral">{evidence.candidateReviewId}</span></div><EvidenceRow label="Dataset digest" value={evidence.dataset.datasetDigest} /><EvidenceRow label="Baseline snapshot" value={`${evidence.baselineSnapshot.snapshotId} v${evidence.baselineSnapshot.snapshotVersion} · ${evidence.baselineSnapshot.ragRef}`} /><EvidenceRow label="Baseline digest" value={evidence.baselineSnapshot.snapshotDigest} /><EvidenceRow label="Candidate snapshot" value={`${evidence.candidateSnapshot.snapshotId} v${evidence.candidateSnapshot.snapshotVersion} · ${evidence.candidateSnapshot.ragRef}`} /><EvidenceRow label="Candidate digest" value={evidence.candidateSnapshot.snapshotDigest} /><EvidenceRow label="Lexical profile" value={`${evidence.profile.profileId} v${evidence.profile.profileVersion} · ${evidence.profile.profileDigest}`} /><EvidenceRow label="Source draft" value={`${evidence.sourceDraft.draftId} v${evidence.sourceDraft.draftVersion} · ${evidence.sourceDraft.draftDigest}`} /></article>
-    <article><div className="application-api-card-heading"><div><p className="eyebrow">Dynamic eligibility</p><h5>{detail.eligibility.status}</h5></div><span className={`status-badge ${detail.eligibility.eligible ? "good" : "bad"}`}>{detail.eligibility.blockers.length} blockers</span></div>{detail.eligibility.blockers.length ? <ul>{detail.eligibility.blockers.map((code) => <li key={code}><code>{code}</code></li>)}</ul> : <p>All current authorities still match the approved binding.</p>}{detail.binding ? <div className="workflow-rag-binding-card"><strong>Immutable binding ready for explicit attach</strong><code>{detail.binding.bindingId} · v{detail.binding.bindingVersion}</code><code>{detail.binding.bindingDigest}</code><button type="button" disabled={!applicationActive || !detail.eligibility.eligible} onClick={() => onOpenConfigurationAttach(detail.candidate.candidateId)}>Open configuration draft attach step</button></div> : <p className="boundary-note">No binding exists until an explicit approve decision succeeds.</p>}</article>
-    <article><div className="application-api-card-heading"><div><p className="eyebrow">Decision history</p><h5>{detail.decisions.length} append-only records</h5></div></div>{detail.decisions.length ? detail.decisions.map((item) => <div className="workflow-rag-decision-record" key={item.decisionId}><strong>{item.decision} · v{item.beforeRecordVersion} → v{item.afterRecordVersion}</strong><span>{item.actorRef} · {item.occurredAt}</span><p>{item.reason}</p></div>) : <p className="boundary-note">No human decision recorded.</p>}</article>
+    <article><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.evidence)}</p><h5>{evidence.dataset.datasetId} · v{evidence.dataset.datasetVersion}</h5></div><span className="status-badge neutral">{evidence.candidateReviewId}</span></div><EvidenceRow label={t($ => $.ragPromotion.datasetDigest)} value={evidence.dataset.datasetDigest} /><EvidenceRow label={t($ => $.ragPromotion.baselineSnapshot)} value={`${evidence.baselineSnapshot.snapshotId} v${evidence.baselineSnapshot.snapshotVersion} · ${evidence.baselineSnapshot.ragRef}`} /><EvidenceRow label={t($ => $.ragPromotion.baselineDigest)} value={evidence.baselineSnapshot.snapshotDigest} /><EvidenceRow label={t($ => $.ragPromotion.candidateSnapshot)} value={`${evidence.candidateSnapshot.snapshotId} v${evidence.candidateSnapshot.snapshotVersion} · ${evidence.candidateSnapshot.ragRef}`} /><EvidenceRow label={t($ => $.ragPromotion.candidateDigest)} value={evidence.candidateSnapshot.snapshotDigest} /><EvidenceRow label={t($ => $.ragPromotion.profile)} value={`${evidence.profile.profileId} v${evidence.profile.profileVersion} · ${evidence.profile.profileDigest}`} /><EvidenceRow label={t($ => $.ragPromotion.sourceDraft)} value={`${evidence.sourceDraft.draftId} v${evidence.sourceDraft.draftVersion} · ${evidence.sourceDraft.draftDigest}`} /></article>
+    <article><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.eligibility)}</p><h5>{workflowRAGPromotionStatus(t, detail.eligibility.status)}</h5></div><span className={`status-badge ${detail.eligibility.eligible ? "good" : "bad"}`}>{t($ => $.ragPromotion.blockers, { count: detail.eligibility.blockers.length })}</span></div>{detail.eligibility.blockers.length ? <ul>{detail.eligibility.blockers.map((code) => <li key={code}>{workflowRAGPromotionFailure(t, code)} <code>{code}</code></li>)}</ul> : <p>{t($ => $.ragPromotion.authoritiesMatch)}</p>}{detail.binding ? <div className="workflow-rag-binding-card"><strong>{t($ => $.ragPromotion.bindingReady)}</strong><code>{detail.binding.bindingId} · v{detail.binding.bindingVersion}</code><code>{detail.binding.bindingDigest}</code><button type="button" disabled={!applicationActive || !detail.eligibility.eligible} onClick={() => onOpenConfigurationAttach(detail.candidate.candidateId)}>{t($ => $.ragPromotion.attach)}</button></div> : <p className="boundary-note">{t($ => $.ragPromotion.noBinding)}</p>}</article>
+    <article><div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.ragPromotion.history)}</p><h5>{t($ => $.ragPromotion.records, { count: detail.decisions.length })}</h5></div></div>{detail.decisions.length ? detail.decisions.map((item) => <div className="workflow-rag-decision-record" key={item.decisionId}><strong>{workflowRAGPromotionStatus(t, item.decision)} · v{item.beforeRecordVersion} → v{item.afterRecordVersion}</strong><span>{item.actorRef} · {item.occurredAt}</span><p>{item.reason}</p></div>) : <p className="boundary-note">{t($ => $.ragPromotion.noDecisions)}</p>}</article>
   </div>;
 }
 
