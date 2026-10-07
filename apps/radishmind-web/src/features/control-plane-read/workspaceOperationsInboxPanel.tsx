@@ -1,7 +1,13 @@
+import "../../i18n/operationsInboxResources.ts";
+import "../../i18n/gatewayReviewResources.ts";
+import { useTranslation } from "react-i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import { formatDisplayDate } from "../../i18n/formatters.ts";
+import { gatewayReviewState } from "./gatewayReviewMessages.ts";
+import { inboxItemCopy } from "./workspaceOperationsInboxMessages.ts";
 import { type MouseEvent, useEffect, useState } from "react";
 
 import type {
-  WorkspaceOperationsInboxCoverage,
   WorkspaceOperationsInboxItem,
   WorkspaceOperationsInboxSeverity,
   WorkspaceOperationsInboxViewModel,
@@ -14,6 +20,8 @@ export function WorkspaceOperationsInboxPanel({
   inbox: WorkspaceOperationsInboxViewModel;
   onOpenItem: (item: WorkspaceOperationsInboxItem) => void;
 }) {
+  const { t } = useTranslation("gateway");
+  const { locale } = useLocalePreference();
   const [selectedItemId, setSelectedItemId] = useState(inbox.items[0]?.itemId ?? "");
 
   useEffect(() => {
@@ -37,17 +45,17 @@ export function WorkspaceOperationsInboxPanel({
     >
       <div className="workspace-operations-inbox-heading">
         <div>
-          <h3 id="workspace-operations-inbox-title">Operations inbox</h3>
+          <h3 id="workspace-operations-inbox-title">{t($ => $.operationsInbox.heading)}</h3>
         </div>
         <span className={`status-badge ${inbox.status === "ready" ? "good" : inbox.status === "blocked" ? "bad" : "neutral"}`}>
-          {statusLabel(inbox.status)}
+          {gatewayReviewState(t, inbox.status)}
         </span>
       </div>
 
       <div className="workspace-operations-layout">
         <div className="workspace-operations-list">
           {inbox.items.length > 0 ? (
-            <div className="workspace-operations-inbox-items" aria-label="Workspace operations attention items">
+            <div className="workspace-operations-inbox-items" aria-label={t($ => $.operationsInbox.items)}>
               {inbox.items.map((item) => {
                 const selected = item.itemId === selectedItem?.itemId;
                 return (
@@ -62,11 +70,11 @@ export function WorkspaceOperationsInboxPanel({
                       {sourceSymbol(item.sourceId)}
                     </span>
                     <span className="workspace-operations-inbox-item-copy">
-                      <strong>{item.title}</strong>
-                      <span>{item.summary}</span>
-                      <small>{sourceLabel(item.sourceId)} · {formatObservedTime(item.occurredAt)}</small>
+                      <strong>{inboxItemCopy(t, item).title}</strong>
+                      <span>{inboxItemCopy(t, item).summary}</span>
+                      <small>{t($ => $.operationsInbox.sources[item.sourceId])} · <time dateTime={item.occurredAt} title={item.occurredAt}>{formatDisplayDate(item.occurredAt, locale, { timeZone: "UTC" }) ? `${formatDisplayDate(item.occurredAt, locale, { timeZone: "UTC" })} UTC` : t($ => $.operationsInbox.unavailable)}</time></small>
                     </span>
-                    <span className={`status-badge ${severityTone(item.severity)}`}>{severityLabel(item.severity)}</span>
+                    <span className={`status-badge ${severityTone(item.severity)}`}>{gatewayReviewState(t, item.severity)}</span>
                     <span className="workspace-operations-item-chevron" aria-hidden="true">›</span>
                   </button>
                 );
@@ -75,27 +83,27 @@ export function WorkspaceOperationsInboxPanel({
           ) : (
             <article className="workspace-operations-inbox-empty">
               <span className="workspace-operations-empty-mark" aria-hidden="true">✓</span>
-              <h4>{inbox.currentWindowHasNoAttentionItems ? "No attention items" : "No resource items available"}</h4>
+              <h4>{inbox.currentWindowHasNoAttentionItems ? t($ => $.operationsInbox.noAttention) : t($ => $.operationsInbox.noResources)}</h4>
               <p>
                 {inbox.currentWindowHasNoAttentionItems
-                  ? "The current source windows are complete."
-                  : "Review source coverage before interpreting the empty queue."}
+                  ? t($ => $.operationsInbox.complete)
+                  : t($ => $.operationsInbox.checkCoverage)}
               </p>
             </article>
           )}
 
           <footer className="workspace-operations-inbox-footer">
-            <span>Loaded from {inbox.coverage.length} authorized source projections</span>
+            <span>{t($ => $.operationsInbox.sourceCount, { count: inbox.coverage.length })}</span>
             {selectedItem ? (
               <a
                 className="workspace-operations-mobile-open"
                 href={selectedItem.targetAnchor}
                 onClick={(event) => openInboxItem(event, selectedItem, onOpenItem)}
               >
-                Open selected <span aria-hidden="true">↗</span>
+                {t($ => $.operationsInbox.openSelected)} <span aria-hidden="true">↗</span>
               </a>
             ) : (
-              <a href="#workspace-applications">View workspace <span aria-hidden="true">→</span></a>
+              <a href="#workspace-applications">{t($ => $.operationsInbox.viewWorkspace)} <span aria-hidden="true">→</span></a>
             )}
           </footer>
         </div>
@@ -105,18 +113,18 @@ export function WorkspaceOperationsInboxPanel({
             <>
               <header className="workspace-attention-detail-heading">
                 <div>
-                  <h4>{selectedItem.title}</h4>
+                  <h4>{inboxItemCopy(t, selectedItem).title}</h4>
                 </div>
                 <span className={`status-badge ${severityTone(selectedItem.severity)}`}>
-                  {severityLabel(selectedItem.severity)}
+                  {gatewayReviewState(t, selectedItem.severity)}
                 </span>
               </header>
 
-              <p className="workspace-attention-summary">{selectedItem.summary}</p>
+              <p className="workspace-attention-summary">{inboxItemCopy(t, selectedItem).summary}</p>
 
               <div className="workspace-attention-readonly">
                 <span aria-hidden="true">!</span>
-                <p>Read-only evidence. Review continues in the owning surface; no action is executed here.</p>
+                <p>{t($ => $.operationsInbox.readOnlyEvidence)}</p>
               </div>
 
               <div className="workspace-attention-resource">
@@ -124,34 +132,34 @@ export function WorkspaceOperationsInboxPanel({
                   {sourceSymbol(selectedItem.sourceId)}
                 </span>
                 <span>
-                  <small>{sourceLabel(selectedItem.sourceId)}</small>
+                  <small>{t($ => $.operationsInbox.sources[selectedItem.sourceId])}</small>
                   <strong>{selectedItem.resourceRef}</strong>
                 </span>
               </div>
 
               <section className="workspace-attention-evidence" aria-labelledby="workspace-attention-evidence-title">
-                <h5 id="workspace-attention-evidence-title">Evidence path</h5>
+                <h5 id="workspace-attention-evidence-title">{t($ => $.operationsInbox.evidencePath)}</h5>
                 <div className="workspace-attention-evidence-path">
                   <EvidenceStep
                     index="01"
-                    label="Source projection"
-                    value={selectedCoverage ? coverageStatusLabel(selectedCoverage) : "Unavailable"}
+                    label={t($ => $.operationsInbox.projection)}
+                    value={selectedCoverage ? gatewayReviewState(t, selectedCoverage.status) : t($ => $.operationsInbox.unavailable)}
                     tone={selectedCoverage?.status === "complete_window" ? "good" : selectedCoverage?.status === "unavailable" ? "bad" : "neutral"}
                   />
                   <EvidenceStep
                     index="02"
-                    label="Attention severity"
-                    value={severityLabel(selectedItem.severity)}
+                    label={t($ => $.operationsInbox.severity)}
+                    value={gatewayReviewState(t, selectedItem.severity)}
                     tone={severityTone(selectedItem.severity)}
                   />
-                  <EvidenceStep index="03" label="Authority" value="Read only" tone="neutral" />
+                  <EvidenceStep index="03" label={t($ => $.operationsInbox.authority)} value={t($ => $.operationsInbox.readOnly)} tone="neutral" />
                 </div>
               </section>
 
               <dl className="workspace-attention-boundary">
-                <div><dt>Mutation</dt><dd>{inbox.canMutate ? "Enabled" : "Locked"}</dd></div>
-                <div><dt>Remediation</dt><dd>{inbox.canRemediate ? "Enabled" : "Review only"}</dd></div>
-                <div><dt>Business truth</dt><dd>{inbox.canWriteBusinessTruth ? "Writable" : "Read only"}</dd></div>
+                <div><dt>{t($ => $.operationsInbox.mutation)}</dt><dd>{inbox.canMutate ? t($ => $.operationsInbox.enabled) : t($ => $.operationsInbox.locked)}</dd></div>
+                <div><dt>{t($ => $.operationsInbox.remediation)}</dt><dd>{inbox.canRemediate ? t($ => $.operationsInbox.enabled) : t($ => $.operationsInbox.reviewOnly)}</dd></div>
+                <div><dt>{t($ => $.operationsInbox.businessTruth)}</dt><dd>{inbox.canWriteBusinessTruth ? t($ => $.operationsInbox.writable) : t($ => $.operationsInbox.readOnly)}</dd></div>
               </dl>
 
               <a
@@ -159,13 +167,13 @@ export function WorkspaceOperationsInboxPanel({
                 href={selectedItem.targetAnchor}
                 onClick={(event) => openInboxItem(event, selectedItem, onOpenItem)}
               >
-                Open evidence <span aria-hidden="true">↗</span>
+                {t($ => $.operationsInbox.openEvidence)} <span aria-hidden="true">↗</span>
               </a>
             </>
           ) : (
             <div className="workspace-attention-detail-empty">
               <span aria-hidden="true">◇</span>
-              <p>Select an attention item to inspect its evidence path.</p>
+              <p>{t($ => $.operationsInbox.select)}</p>
             </div>
           )}
         </aside>
@@ -237,19 +245,6 @@ function scrollToInboxTargetWhenRendered(targetAnchor: WorkspaceOperationsInboxI
   window.setTimeout(() => observer.disconnect(), 2_000);
 }
 
-function sourceLabel(sourceId: WorkspaceOperationsInboxItem["sourceId"]): string {
-  switch (sourceId) {
-    case "api_keys":
-      return "API keys";
-    case "workflow_definitions":
-      return "Workflows";
-    case "runs":
-      return "Runs";
-    default:
-      return "Applications";
-  }
-}
-
 function sourceSymbol(sourceId: WorkspaceOperationsInboxItem["sourceId"]): string {
   switch (sourceId) {
     case "api_keys":
@@ -263,45 +258,6 @@ function sourceSymbol(sourceId: WorkspaceOperationsInboxItem["sourceId"]): strin
   }
 }
 
-function coverageStatusLabel(coverage: WorkspaceOperationsInboxCoverage): string {
-  switch (coverage.status) {
-    case "complete_window":
-      return "Ready";
-    case "partial_window":
-      return "Partial";
-    default:
-      return "Blocked";
-  }
-}
-
-function formatObservedTime(value: string): string {
-  const timestamp = Date.parse(value);
-  if (!Number.isFinite(timestamp)) {
-    return value || "Not available";
-  }
-  const elapsedMilliseconds = Math.max(0, Date.now() - timestamp);
-  const minutes = Math.floor(elapsedMilliseconds / 60_000);
-  if (minutes < 1) {
-    return "Now";
-  }
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours} h`;
-  }
-  return `${Math.floor(hours / 24)} d`;
-}
-
 function severityTone(severity: WorkspaceOperationsInboxSeverity): "good" | "bad" | "neutral" {
   return severity === "critical" || severity === "high" ? "bad" : severity === "info" ? "good" : "neutral";
-}
-
-function severityLabel(severity: WorkspaceOperationsInboxSeverity): string {
-  return severity.charAt(0).toUpperCase() + severity.slice(1);
-}
-
-function statusLabel(status: WorkspaceOperationsInboxViewModel["status"]): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
 }

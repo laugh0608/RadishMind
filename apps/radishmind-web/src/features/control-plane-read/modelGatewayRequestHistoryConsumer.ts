@@ -1,3 +1,12 @@
+export class GatewayRequestHistoryError extends Error {
+  readonly code: string;
+  constructor(code: string) {
+    super(code);
+    this.name = "GatewayRequestHistoryError";
+    this.code = code;
+  }
+}
+
 export type ModelGatewayRequestHistoryConfig = {
   mode: "offline" | "dev_gateway_request_history_http";
   baseUrl: string;
@@ -357,12 +366,13 @@ export async function listGatewayRequestHistory(
   });
   const body: unknown = await response.json();
   assertNoForbiddenFields(body);
-  if (!response.ok || !isGatewayRequestListEnvelope(body, config)) {
-    throw new Error(`Gateway request history route failed with HTTP ${response.status}`);
+  if (!isGatewayRequestListEnvelope(body, config)) {
+    throw new GatewayRequestHistoryError("gateway_request_response_invalid");
   }
   if (body.failure_code) {
     return emptyHistoryState("failed", body.request_id, body.audit_ref, body.failure_summary, body.failure_code);
   }
+  if (!response.ok) throw new GatewayRequestHistoryError("gateway_request_store_unavailable");
   const requests = body.requests.map(mapGatewayRequestSummary);
   return {
     status: previousRequests.length + requests.length > 0 ? "ready" : "empty",
@@ -381,7 +391,7 @@ export async function readGatewayRequestHistoryDetail(
   requestId: string,
 ): Promise<GatewayRequestHistoryDetail> {
   if (config.mode !== "dev_gateway_request_history_http") {
-    throw new Error("Gateway request history detail is unavailable in offline mode.");
+    throw new GatewayRequestHistoryError("gateway_request_history_disabled");
   }
   const query = scopedQuery(config);
   const response = await fetch(
@@ -390,12 +400,13 @@ export async function readGatewayRequestHistoryDetail(
   );
   const body: unknown = await response.json();
   assertNoForbiddenFields(body);
-  if (!response.ok || !isGatewayRequestReadEnvelope(body, config)) {
-    throw new Error(`Gateway request detail route failed with HTTP ${response.status}`);
+  if (!isGatewayRequestReadEnvelope(body, config)) {
+    throw new GatewayRequestHistoryError("gateway_request_response_invalid");
   }
   if (body.failure_code || !body.request) {
-    throw new Error(`${body.failure_code || "gateway_request_record_not_found"}: ${body.failure_summary}`);
+    throw new GatewayRequestHistoryError(body.failure_code || "gateway_request_record_not_found");
   }
+  if (!response.ok) throw new GatewayRequestHistoryError("gateway_request_store_unavailable");
   return mapGatewayRequestDetail(body.request);
 }
 

@@ -1,3 +1,10 @@
+import "../../i18n/operationsInboxResources.ts";
+import "../../i18n/operationsOverviewResources.ts";
+import "../../i18n/gatewayReviewResources.ts";
+import { useTranslation } from "react-i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import { formatDisplayDate, formatDisplayNumber } from "../../i18n/formatters.ts";
+import { gatewayReviewState } from "./gatewayReviewMessages.ts";
 import type { ApplicationDevelopmentWorkspaceContext } from "./applicationDevelopmentWorkspace";
 import type {
   ControlPlaneReadDevLiveConfig,
@@ -5,7 +12,6 @@ import type {
 } from "./devLiveReadConsumer";
 import type {
   WorkspaceOperationsInboxCoverage,
-  WorkspaceOperationsInboxCoverageStatus,
   WorkspaceOperationsInboxViewModel,
 } from "./workspaceOperationsInbox";
 
@@ -20,7 +26,9 @@ export function WorkspaceProductOverviewPanel({
   sourceConfig: ControlPlaneReadDevLiveConfig;
   sourceState: ControlPlaneReadDevLiveLoadState;
 }) {
-  const sourceModeLabel = sourceConfig.mode === "dev_live_http" ? "Development / test" : "Offline fixtures";
+  const { t } = useTranslation("gateway");
+  const { locale } = useLocalePreference();
+  const sourceModeLabel = sourceConfig.mode === "dev_live_http" ? t($ => $.operationsOverview.devTest) : t($ => $.operationsOverview.offline);
   const sourceTone = sourceState.status === "failed"
     ? "bad"
     : sourceState.status === "ready" || sourceState.status === "idle"
@@ -36,23 +44,23 @@ export function WorkspaceProductOverviewPanel({
     >
       <header className="workspace-overview-hero">
         <div className="workspace-overview-title">
-          <h2 id="workspace-overview-title">Workspace</h2>
+          <h2 id="workspace-overview-title">{t($ => $.operationsOverview.workspace)}</h2>
         </div>
 
-        <article className="workspace-active-application" aria-label="Active application">
+        <article className="workspace-active-application" aria-label={t($ => $.operationsOverview.activeApplication)}>
           <span className="workspace-active-application-icon" aria-hidden="true">AI</span>
           <span className="workspace-active-application-copy">
-            <small>Active application</small>
-            <strong>{application.displayName || "No application selected"}</strong>
+            <small>{t($ => $.operationsOverview.activeApplication)}</small>
+            <strong>{application.displayName || t($ => $.operationsOverview.noApplication)}</strong>
             <span>
               {application.status === "unavailable"
-                ? "Application context unavailable"
-                : `${application.applicationKind} · revision ${application.recordVersion || "unavailable"}`}
+                ? t($ => $.operationsOverview.noContext)
+                : t($ => $.operationsOverview.revision, { kind: application.applicationKind, version: application.recordVersion || t($ => $.operationsOverview.unavailable) })}
             </span>
           </span>
           <a
             href={application.status === "unavailable" ? "#workspace-applications" : "#application-development-workspace"}
-            aria-label={application.status === "unavailable" ? "Select application" : `Open ${application.displayName}`}
+            aria-label={application.status === "unavailable" ? t($ => $.operationsOverview.select) : t($ => $.operationsOverview.open, { name: application.displayName })}
           >
             <span aria-hidden="true">↗</span>
           </a>
@@ -62,65 +70,65 @@ export function WorkspaceProductOverviewPanel({
       <div className="workspace-overview-grid">
         <article className="workspace-source-pulse">
           <div className="workspace-overview-card-heading">
-            <h3>Workspace pulse</h3>
+            <h3>{t($ => $.operationsOverview.pulse)}</h3>
             <span className={`status-badge ${inbox.status === "ready" ? "good" : inbox.status === "blocked" ? "bad" : "neutral"}`}>
-              {statusLabel(inbox.status)}
+              {gatewayReviewState(t, inbox.status)}
             </span>
           </div>
 
           <div className="workspace-pulse-visual">
             <div className="workspace-pulse-total">
-              <strong>{String(inbox.items.length).padStart(2, "0")}</strong>
-              <span>attention items</span>
-              <small>within the loaded source window</small>
+              <strong>{formatDisplayNumber(inbox.items.length, locale, { minimumIntegerDigits: 2 })}</strong>
+              <span>{t($ => $.operationsOverview.attention)}</span>
+              <small>{t($ => $.operationsOverview.loadedWindow)}</small>
             </div>
-            <div className="workspace-pulse-bars" aria-label="Loaded source distribution">
+            <div className="workspace-pulse-bars" aria-label={t($ => $.operationsOverview.distribution)}>
               {inbox.coverage.map((coverage) => (
                 <div
                   key={coverage.sourceId}
                   className={`workspace-pulse-bar ${coverage.status} load-${Math.min(4, coverage.itemCount)}`}
-                  title={`${coverage.label}: ${coverage.itemCount} items, ${coverageStatusLabel(coverage.status)}`}
+                  title={t($ => $.operationsOverview.coverage, { source: t($ => $.operationsInbox.sources[coverage.sourceId]), count: coverage.itemCount, status: gatewayReviewState(t, coverage.status) })}
                 >
                   <span aria-hidden="true" />
-                  <small>{matrixCoverageLabel(coverage)}</small>
+                  <small>{t($ => $.operationsInbox.sources[coverage.sourceId])}</small>
                 </div>
               ))}
             </div>
           </div>
 
           <dl className="workspace-pulse-metrics">
-            <div><dt>Ready sources</dt><dd>{coverageCounts.ready}</dd></div>
-            <div><dt>Partial sources</dt><dd>{coverageCounts.partial}</dd></div>
-            <div><dt>Unavailable</dt><dd>{coverageCounts.blocked}</dd></div>
+            <div><dt>{t($ => $.operationsOverview.readySources)}</dt><dd>{coverageCounts.ready}</dd></div>
+            <div><dt>{t($ => $.operationsOverview.partialSources)}</dt><dd>{coverageCounts.partial}</dd></div>
+            <div><dt>{t($ => $.operationsOverview.unavailable)}</dt><dd>{coverageCounts.blocked}</dd></div>
           </dl>
         </article>
 
         <article className="workspace-source-evidence">
           <div className="workspace-overview-card-heading">
-            <h3>Source evidence</h3>
-            <span className={`status-badge ${sourceTone}`}>{sourceState.status}</span>
+            <h3>{t($ => $.operationsOverview.evidence)}</h3>
+            <span className={`status-badge ${sourceTone}`}>{gatewayReviewState(t, sourceState.status)}</span>
           </div>
 
-          <div className="workspace-evidence-distribution" aria-label="Source evidence distribution">
-            <div className="ready"><strong>{coverageCounts.ready}</strong><span>Ready</span></div>
-            <div className="partial"><strong>{coverageCounts.partial}</strong><span>Partial</span></div>
-            <div className="blocked"><strong>{coverageCounts.blocked}</strong><span>Blocked</span></div>
+          <div className="workspace-evidence-distribution" aria-label={t($ => $.operationsOverview.evidenceDistribution)}>
+            <div className="ready"><strong>{coverageCounts.ready}</strong><span>{t($ => $.operationsOverview.ready)}</span></div>
+            <div className="partial"><strong>{coverageCounts.partial}</strong><span>{t($ => $.operationsOverview.partial)}</span></div>
+            <div className="blocked"><strong>{coverageCounts.blocked}</strong><span>{t($ => $.operationsOverview.blocked)}</span></div>
           </div>
 
           <div className="workspace-evidence-matrix">
             {inbox.coverage.map((coverage) => (
               <div key={coverage.sourceId}>
                 <span className={`workspace-source-pulse-dot ${coverage.status}`} aria-hidden="true" />
-                <span title={coverage.label}>{matrixCoverageLabel(coverage)}</span>
-                <strong className={coverage.status}>{coverageStatusLabel(coverage.status)}</strong>
+                <span title={t($ => $.operationsInbox.sources[coverage.sourceId])}>{t($ => $.operationsInbox.sources[coverage.sourceId])}</span>
+                <strong className={coverage.status}>{gatewayReviewState(t, coverage.status)}</strong>
               </div>
             ))}
           </div>
 
           <dl className="workspace-source-context">
-            <div><dt>Source</dt><dd>{sourceModeLabel}</dd></div>
-            <div><dt>Workspace</dt><dd>{inbox.activeWorkspaceId}</dd></div>
-            <div><dt>Snapshot</dt><dd>{formatDateTime(inbox.referenceTime)}</dd></div>
+            <div><dt>{t($ => $.operationsOverview.source)}</dt><dd>{sourceModeLabel}</dd></div>
+            <div><dt>{t($ => $.operationsOverview.workspace)}</dt><dd>{inbox.activeWorkspaceId}</dd></div>
+            <div><dt>{t($ => $.operationsOverview.snapshot)}</dt><dd><time dateTime={inbox.referenceTime} title={inbox.referenceTime}>{formatDisplayDate(inbox.referenceTime, locale, { timeZone: "UTC" }) ? `${formatDisplayDate(inbox.referenceTime, locale, { timeZone: "UTC" })} UTC` : t($ => $.operationsOverview.unavailable)}</time></dd></div>
           </dl>
         </article>
       </div>
@@ -142,49 +150,4 @@ function summarizeCoverage(coverage: WorkspaceOperationsInboxCoverage[]) {
     },
     { ready: 0, partial: 0, blocked: 0 },
   );
-}
-
-function shortCoverageLabel(coverage: WorkspaceOperationsInboxCoverage): string {
-  switch (coverage.sourceId) {
-    case "api_keys":
-      return "API keys";
-    case "workflow_definitions":
-      return "Workflows";
-    case "runs":
-      return "Runs";
-    default:
-      return "Applications";
-  }
-}
-
-function matrixCoverageLabel(coverage: WorkspaceOperationsInboxCoverage): string {
-  return coverage.sourceId === "applications" ? "Apps" : shortCoverageLabel(coverage);
-}
-
-function coverageStatusLabel(status: WorkspaceOperationsInboxCoverageStatus): string {
-  switch (status) {
-    case "complete_window":
-      return "Ready";
-    case "partial_window":
-      return "Partial";
-    default:
-      return "Blocked";
-  }
-}
-
-function statusLabel(status: WorkspaceOperationsInboxViewModel["status"]): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function formatDateTime(value: string): string {
-  const timestamp = Date.parse(value);
-  if (!Number.isFinite(timestamp)) {
-    return value || "Not available";
-  }
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(timestamp);
 }

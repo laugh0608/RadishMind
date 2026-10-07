@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   EMPTY_GATEWAY_REQUEST_HISTORY_FILTER,
+  GatewayRequestHistoryError,
   initialGatewayRequestHistoryState,
   listGatewayRequestHistory,
   readGatewayRequestHistoryDetail,
@@ -246,7 +247,7 @@ test("Gateway request history rejects a v3 terminal projection that conflicts wi
   try {
     await assert.rejects(
       () => readGatewayRequestHistoryDetail(live, "request_gateway_v3"),
-      /Gateway request detail route failed/u,
+      /gateway_request_response_invalid/u,
     );
   } finally {
     globalThis.fetch = originalFetch;
@@ -268,7 +269,7 @@ test("Gateway request history rejects inconsistent v3 terminal lineage", async (
   try {
     await assert.rejects(
       () => readGatewayRequestHistoryDetail(live, "request_gateway_v3"),
-      /Gateway request detail route failed/u,
+      /gateway_request_response_invalid/u,
     );
   } finally {
     globalThis.fetch = originalFetch;
@@ -313,7 +314,7 @@ test("Gateway request history rejects partial Provider route lineage", async () 
   try {
     await assert.rejects(
       () => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
-      /Gateway request history route failed/,
+      /gateway_request_response_invalid/,
     );
   } finally {
     globalThis.fetch = originalFetch;
@@ -346,7 +347,7 @@ test("Gateway request history rejects inconsistent reported usage", async () => 
   try {
     await assert.rejects(
       () => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER),
-      /Gateway request history route failed/,
+      /gateway_request_response_invalid/,
     );
   } finally {
     globalThis.fetch = originalFetch;
@@ -402,7 +403,7 @@ test("Gateway request history rejects benign extra cost fields and scope drift",
       failure_summary: "",
       audit_ref: "audit_extra_cost",
     });
-    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), /route failed/);
+    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), /gateway_request_response_invalid/);
 
     globalThis.fetch = async () => jsonResponse({
       request_id: "request_scope_drift",
@@ -415,7 +416,7 @@ test("Gateway request history rejects benign extra cost fields and scope drift",
       failure_summary: "",
       audit_ref: "audit_scope_drift",
     });
-    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), /route failed/);
+    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), /gateway_request_response_invalid/);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -662,3 +663,17 @@ function historyEnvelopeScope() {
 function jsonResponse(body: unknown): Response {
   return new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
 }
+
+
+test("Gateway review exposes stable codes from validated failure envelopes and rejects HTTP success spoofing", async () => {
+  const originalFetch = globalThis.fetch;
+  const failure = { request_id: "failure-envelope", ...historyEnvelopeScope(), failure_code: "gateway_request_scope_denied", failure_summary: "opaque original diagnostic", audit_ref: "audit-failure" };
+  try {
+    globalThis.fetch = async () => new Response(JSON.stringify({ ...failure, requests: [], next_cursor: "", has_more: false }), { status: 403 });
+    assert.equal((await listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER)).failureCode, "gateway_request_scope_denied");
+    globalThis.fetch = async () => new Response(JSON.stringify({ ...failure, request: null }), { status: 403 });
+    await assert.rejects(() => readGatewayRequestHistoryDetail(live, "request_gateway_1"), error => error instanceof GatewayRequestHistoryError && error.code === "gateway_request_scope_denied" && !error.message.includes("opaque"));
+    globalThis.fetch = async () => new Response(JSON.stringify({ ...failure, failure_code: null, requests: [summaryDocument()], next_cursor: "", has_more: false }), { status: 503 });
+    await assert.rejects(() => listGatewayRequestHistory(live, EMPTY_GATEWAY_REQUEST_HISTORY_FILTER), { code: "gateway_request_store_unavailable" });
+  } finally { globalThis.fetch = originalFetch; }
+});

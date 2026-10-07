@@ -115,6 +115,7 @@ export async function finishResponseRender(page: Page, response: Response) {
 }
 
 export async function holdDraftResponse(page: Page, path: string, method: string, injectFailure = false) {
+  let canceled = false;
   let acknowledge: () => void;
   let release: () => void;
   const arrived = new Promise<void>((accept) => { acknowledge = accept; });
@@ -124,6 +125,8 @@ export async function holdDraftResponse(page: Page, path: string, method: string
     const response = injectFailure ? null : await route.fetch();
     acknowledge();
     await gate;
+    // A browser-aborted request has no response to deliver during cleanup.
+    if (canceled) return;
     if (response) await route.fulfill({ response });
     else await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ failure_code: "e2e_delayed_validation_failure" }) });
   };
@@ -136,7 +139,8 @@ export async function holdDraftResponse(page: Page, path: string, method: string
       release!();
       await finishResponseRender(page, await received);
     },
-    async dispose() {
+    async dispose(requestCanceled = false) {
+      canceled = requestCanceled;
       release!();
       await page.unroute(url, handler);
     },

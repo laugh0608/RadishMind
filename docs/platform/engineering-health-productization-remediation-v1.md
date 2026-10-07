@@ -64,7 +64,7 @@ C 阶段新增第八组 `identity`：沿用同一监督器与进程组清理入�
 
 
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
-- 当前默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent` 十组，`--suite=<组名>` 可选单组。每组生成临时 SQLite，不读取用户 Platform 配置或 Web `.env`；身份组使用显式测试配置，其余组由空 Platform 配置和指定产品档启动。
+- 当前默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway` 十一组，`--suite=<组名>` 可选单组。每组生成临时 SQLite，不读取用户 Platform 配置或 Web `.env`；身份组使用显式测试配置，其余组由空 Platform 配置和指定产品档启动。
 - 前七组、管理组与 Agent 组通过 UI 创建独立应用，必要的合成来源证据再通过公开 API 准备，不直接写数据库；双标签在同一测试内共享该应用。它们的浏览器请求由公共测试夹具限制为本轮两个回环地址。身份组独立注册合成账户，通过额外 API 会话和双标签验证撤销与轮换，不创建应用，也未复用前七组的请求拦截夹具。
 - Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。
 - Web 使用现有 CORS 允许的 `127.0.0.1:4100`，Platform 使用 `127.0.0.1:17000`。任一端口被占用即失败，不复用用户服务；各组清理后顺序复用端口；测试使用单 worker、零重试，以免掩盖不稳定失败。
@@ -502,3 +502,8 @@ R6 关闭状态为 `r6_document_checker_asset_convergence_completed`。本次关
 - 不在本轮引入新语言栈、重写 Gateway 或跨工作区修改上层项目。
 - 不把模型建议直接写入上层业务真相源。
 - 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志和 committed 资产。
+
+
+### Gateway 与运营双语回归（2026-10-07）
+
+第十一组 `gateway` 使用既有 `--api-key-local-product` 与 `--workflow-definition-local-product`、mock 和隔离 SQLite，不启动固定响应提供方。三条流程中英各两轮共 12 次通过，覆盖六种协议 / 响应组合、九种 API 示例、凭据交接 / 清理、等待 / 取消 / 校验、历史分页 / 筛选 / 失败恢复与运维只读状态。真实临期 API key 验证收件箱选择保持；真实缺失配额与单独合成只读配额展示分开核验，不将合成响应视为真实配额可用。三视口与内部容器检查通过，trace / 自动截图关闭，仅保存已清除密钥的指定页面截图。服务与临时数据库已清理，隐私审计无命中；详见[本周周志](../devlogs/2026-W41.md#2026-10-07-d-阶段-gateway-与运营双语验收)。当前本地证据为分组分窗口，不代表十一组同窗口或远端 CI 全量通过。

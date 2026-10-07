@@ -45,6 +45,9 @@ export type WorkspaceOperationsInboxItem = {
   severity: WorkspaceOperationsInboxSeverity;
   title: string;
   summary: string;
+  displayName?: string;
+  resourceStatus?: string;
+  failureCode?: string;
   resourceRef: string;
   applicationRef: string;
   workflowDefinitionId: string;
@@ -228,6 +231,7 @@ function buildApplicationItems(
         sourceId: "applications",
         reason: "application_archived",
         severity: "info",
+        displayName: application.displayName,
         title: `${application.displayName} is archived`,
         summary: "Archived applications remain available for read-only history review.",
         resourceRef: application.applicationRef,
@@ -246,6 +250,8 @@ function buildApplicationItems(
         sourceId: "applications",
         reason: "application_run_attention",
         severity: "high",
+        displayName: application.displayName,
+        resourceStatus: application.lastRunStatus,
         title: `${application.displayName} reports ${application.lastRunStatus}`,
         summary: "Open the application and then inspect its authoritative run history.",
         resourceRef: application.applicationRef,
@@ -339,6 +345,7 @@ function buildWorkflowDefinitionItems(
       sourceId: "workflow_definitions" as const,
       reason: "workflow_definition_review" as const,
       severity: "medium" as const,
+      resourceStatus: definition.definitionStatus,
       title: `${definition.workflowDefinitionId} is ${definition.definitionStatus}`,
       summary: "Review the immutable definition state; this inbox cannot approve or activate it.",
       resourceRef: definition.workflowDefinitionId,
@@ -368,6 +375,7 @@ function buildRunItems(source: WorkspaceOperationsInboxSource): WorkspaceOperati
       sourceId: "runs" as const,
       reason: outcomeUnknown ? "run_outcome_unknown" as const : "run_failure" as const,
       severity: outcomeUnknown ? "high" as const : "critical" as const,
+      failureCode: run.failureCode,
       title: outcomeUnknown ? `${run.runId} outcome is unknown` : `${run.runId} requires failure review`,
       summary: outcomeUnknown
         ? "Inspect the run metadata before deciding whether another explicit invocation is appropriate."

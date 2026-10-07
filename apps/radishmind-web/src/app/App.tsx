@@ -85,9 +85,6 @@ import {
 } from "../features/control-plane-read/workspaceApiKeys";
 import {
   buildWorkspaceUsageQuotaViewModel,
-  type WorkspaceUsageQuotaLimit,
-  type WorkspaceUsageQuotaSnapshot,
-  type WorkspaceUsageQuotaStatePreview,
 } from "../features/control-plane-read/workspaceUsageQuota";
 import {
   buildWorkspaceWorkflowDefinitionsViewModel,
@@ -139,8 +136,6 @@ import {
   buildWorkspaceOperationsInboxViewModel,
   type WorkspaceOperationsInboxItem,
 } from "../features/control-plane-read/workspaceOperationsInbox";
-import { WorkspaceOperationsInboxPanel } from "../features/control-plane-read/workspaceOperationsInboxPanel";
-import { WorkspaceProductOverviewPanel } from "../features/control-plane-read/workspaceProductOverviewPanel";
 import {
   type WorkflowRunDetailGuardPreview,
   type WorkflowRunDetailSummary,
@@ -164,6 +159,9 @@ import type {
   ControlPlaneReadRouteId,
 } from "../../../../contracts/typescript/control-plane-read-api";
 
+const WorkspaceUsageQuotaPanel = lazy(() => import("../features/control-plane-read/workspaceUsageQuotaPanel.tsx"));
+const WorkspaceOperationsInboxPanel = lazy(() => import("../features/control-plane-read/workspaceOperationsInboxPanel").then(module => ({ default: module.WorkspaceOperationsInboxPanel })));
+const WorkspaceProductOverviewPanel = lazy(() => import("../features/control-plane-read/workspaceProductOverviewPanel").then(module => ({ default: module.WorkspaceProductOverviewPanel })));
 const shell = buildControlPlaneReadShellViewModel();
 const devLiveConfig = readControlPlaneReadDevLiveConfig();
 const applicationCatalogConfig = readApplicationCatalogConfig();
@@ -881,16 +879,18 @@ function ProductApp() {
       />
 
       <section className="product-workspace" aria-label={t($ => $.appShell.controlPlaneShell)}>
-        <WorkspaceProductOverviewPanel
-          application={applicationDevelopmentWorkspaceContext}
-          inbox={workspaceOperationsInbox}
-          sourceConfig={activeDevLiveConfig}
-          sourceState={devLiveState}
-        />
-        <WorkspaceOperationsInboxPanel
-          inbox={workspaceOperationsInbox}
-          onOpenItem={handleOpenWorkspaceOperationsInboxItem}
-        />
+        <Suspense fallback={null}>
+          <WorkspaceProductOverviewPanel
+            application={applicationDevelopmentWorkspaceContext}
+            inbox={workspaceOperationsInbox}
+            sourceConfig={activeDevLiveConfig}
+            sourceState={devLiveState}
+          />
+          <WorkspaceOperationsInboxPanel
+            inbox={workspaceOperationsInbox}
+            onOpenItem={handleOpenWorkspaceOperationsInboxItem}
+          />
+        </Suspense>
         <Suspense fallback={<section className="surface-band"><p>Loading Saved Draft Library…</p></section>}>
           <WorkflowUserWorkspaceHomePanel
             home={workflowUserWorkspaceHome}
@@ -1074,76 +1074,9 @@ function ProductApp() {
           </div>
         </section>
 
-        <section
-          className="surface-band workspace-usage-quota"
-          id="workspace-usage-quota"
-          aria-labelledby="workspace-usage-quota-title"
-        >
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">{t($ => $.appShell.userWorkspace)}</p>
-              <h3 id="workspace-usage-quota-title">Usage Quota</h3>
-            </div>
-            <StatusBadge tone={workspaceUsageQuota.canRenderQuota ? "good" : "bad"}>
-              {workspaceUsageQuota.canRenderQuota ? t($ => $.appShell.readOnlyReady) : t($ => $.appShell.blocked)}
-            </StatusBadge>
-          </div>
-
-          <div className="usage-quota-summary">
-            <article className="usage-quota-route">
-              <div className="card-title-row">
-                <div>
-                  <p className="eyebrow">Quota Summary Route</p>
-                  <h4>{workspaceUsageQuota.routeId}</h4>
-                </div>
-                <StatusBadge tone="neutral">{workspaceUsageQuota.requiredScope}</StatusBadge>
-              </div>
-              <p className="route-path">{workspaceUsageQuota.routePath}</p>
-              <dl className="tenant-meta">
-                <div>
-                  <dt>{t($ => $.appShell.model)}</dt>
-                  <dd>{workspaceUsageQuota.readModel}</dd>
-                </div>
-                <div>
-                  <dt>Period</dt>
-                  <dd>{workspaceUsageQuota.quota?.period ?? "not available"}</dd>
-                </div>
-                <div>
-                  <dt>{t($ => $.appShell.request)}</dt>
-                  <dd>{workspaceUsageQuota.requestId}</dd>
-                </div>
-                <div>
-                  <dt>{t($ => $.appShell.audit)}</dt>
-                  <dd>{workspaceUsageQuota.auditRef}</dd>
-                </div>
-              </dl>
-            </article>
-
-            <div className="usage-quota-snapshot" aria-label="Workspace usage quota snapshot">
-              {workspaceUsageQuota.usageSnapshot.map((snapshot) => (
-                <UsageQuotaSnapshot key={snapshot.label} snapshot={snapshot} />
-              ))}
-            </div>
-          </div>
-
-          <div className="usage-quota-limits" aria-label="Workspace usage quota limits">
-            {workspaceUsageQuota.limits.map((limit) => (
-              <UsageQuotaLimit key={limit.label} limit={limit} />
-            ))}
-          </div>
-
-          <div className="usage-quota-failure">
-            <span>Over quota failure code</span>
-            <strong>{workspaceUsageQuota.overQuotaFailureCode}</strong>
-            <p>Displayed as read-side metadata only; enforcement, rate limit and cost record writes remain outside this page.</p>
-          </div>
-
-          <div className="usage-quota-states" aria-label="Workspace usage quota states">
-            {workspaceUsageQuota.statePreviews.map((state) => (
-              <UsageQuotaStatePreview key={state.id} state={state} />
-            ))}
-          </div>
-        </section>
+        <Suspense fallback={null}>
+          <WorkspaceUsageQuotaPanel view={workspaceUsageQuota} />
+        </Suspense>
 
         <section
           className="surface-band workspace-workflow-definitions"
@@ -2662,43 +2595,6 @@ function WorkflowDefinitionBlockedActionPreviewCard({
 function WorkflowDefinitionStatePreview({ state }: { state: WorkspaceWorkflowDefinitionsStatePreview }) {
   return (
     <article className="workflow-definition-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
-}
-
-function UsageQuotaLimit({ limit }: { limit: WorkspaceUsageQuotaLimit }) {
-  return (
-    <article className="usage-quota-limit">
-      <span>{limit.label}</span>
-      <strong>{limit.used}</strong>
-      <p>
-        limit {limit.value} / {limit.detail}
-      </p>
-    </article>
-  );
-}
-
-function UsageQuotaSnapshot({ snapshot }: { snapshot: WorkspaceUsageQuotaSnapshot }) {
-  return (
-    <article className="usage-quota-snapshot-card">
-      <span>{snapshot.label}</span>
-      <strong>{snapshot.value}</strong>
-      <p>{snapshot.detail}</p>
-    </article>
-  );
-}
-
-function UsageQuotaStatePreview({ state }: { state: WorkspaceUsageQuotaStatePreview }) {
-  return (
-    <article className="usage-quota-state">
       <div>
         <strong>{state.label}</strong>
         <span>{state.status}</span>

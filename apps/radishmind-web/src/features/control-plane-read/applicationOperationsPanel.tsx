@@ -1,3 +1,10 @@
+import "../../i18n/operationsResources.ts";
+import "../../i18n/gatewayReviewResources.ts";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import { formatDisplayDate, formatDisplayNumber, formatMicroUSD } from "../../i18n/formatters.ts";
+import { gatewayReviewState } from "./gatewayReviewMessages.ts";
 import { useEffect, useState } from "react";
 
 import {
@@ -30,6 +37,9 @@ export default function ApplicationOperationsPanel({
   onOpenGatewayRequest?: (requestId: string, consumerRef: string) => void;
   onOpenWorkflowRun?: (runId: string) => void;
 }) {
+  const { t } = useTranslation("gateway");
+  const { locale } = useLocalePreference();
+  const number = (value: number) => formatDisplayNumber(value, locale) ?? t($ => $.review.states.unavailable);
   const [refreshKey, setRefreshKey] = useState(0);
   const [state, setState] = useState<ApplicationOperationsState>(() =>
     initialApplicationOperationsState(applicationId, gatewayConfig, workflowConfig)
@@ -92,29 +102,29 @@ export default function ApplicationOperationsPanel({
     <section className="surface-band application-operations" id="application-operations" aria-labelledby="application-operations-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">User Workspace · Application Operations</p>
-          <h3 id="application-operations-title">运行观测、用量与成本证据</h3>
+          <p className="eyebrow">{t($ => $.operations.eyebrow)}</p>
+          <h3 id="application-operations-title">{t($ => $.operations.heading)}</h3>
           <p>
-            {applicationName || "No selected application"} · <code>{state.applicationId || "application unavailable"}</code> · current consumer <code>{gatewayConfig.consumerRef}</code>
+            {applicationName || t($ => $.operations.noApplication)} · <code>{state.applicationId || t($ => $.operations.applicationUnavailable)}</code> · {t($ => $.operations.consumer, { consumer: gatewayConfig.consumerRef })}
           </p>
         </div>
         <div className="application-operations-actions">
           <StatusBadge status={state.status} />
           <button type="button" className="secondary-action" disabled={refreshDisabled} onClick={() => setRefreshKey((key) => key + 1)}>
-            Refresh observations
+            {t($ => $.operations.refresh)}
           </button>
         </div>
       </div>
 
       {!workspaceScopeMatches ? (
         <p className="application-operations-failure" role="alert">
-          Workspace boundary: {workspaceScopeFailureSummary}. Current Application Workspace is {workspaceId || "unavailable"}. No observation request is sent.
+          {t($ => $.operations.workspaceBoundary, { gateway: gatewayConfig.workspaceId, workflow: workflowConfig.workspaceId, workspace: workspaceId || t($ => $.operations.unavailable) })}
         </p>
       ) : null}
 
-      <div className="application-operations-coverage" aria-label="Application operations source coverage">
+      <div className="application-operations-coverage" aria-label={t($ => $.operations.sourceCoverage)}>
         <ChannelCoverage
-          label="Gateway requests"
+          label={t($ => $.operations.requests)}
           status={state.gateway.status}
           loaded={metrics.gatewayLoaded}
           hasMore={state.gateway.hasMore}
@@ -123,7 +133,7 @@ export default function ApplicationOperationsPanel({
           failureCode={state.gateway.failureCode}
         />
         <ChannelCoverage
-          label="Workflow runs"
+          label={t($ => $.operations.runs)}
           status={state.workflow.status}
           loaded={metrics.workflowLoaded}
           hasMore={state.workflow.hasMore}
@@ -133,67 +143,67 @@ export default function ApplicationOperationsPanel({
         />
       </div>
 
-      {state.failureSummary && <p className="application-operations-failure" role="alert">{state.failureSummary}</p>}
+      {state.status === "failed" || state.status === "partial_failure" ? <p className="application-operations-failure" role="alert">{t($ => $.operations.sourceFailure)}</p> : null}
 
-      <div className="application-operations-metrics" aria-label="Application operations attribution summary">
+      <div className="application-operations-metrics" aria-label={t($ => $.operations.attribution)}>
         <MetricCard
-          label="Gateway status"
-          value={`${metrics.gatewaySucceeded} succeeded`}
-          detail={`${metrics.gatewayFailed} failed · ${metrics.gatewayCanceled} canceled · ${metrics.gatewayStarted} started`}
+          label={t($ => $.operations.gatewayStatus)}
+          value={t($ => $.operations.succeededCount, { displayCount: number(metrics.gatewaySucceeded) })}
+          detail={t($ => $.operations.gatewayCounts, { failed: number(metrics.gatewayFailed), canceled: number(metrics.gatewayCanceled), started: number(metrics.gatewayStarted) })}
         />
         <MetricCard
-          label="Gateway usage availability"
-          value={`${metrics.gatewayUsageReported} reported`}
-          detail={`${metrics.gatewayUsageNotReported} not reported · ${metrics.gatewayUsageNotApplicable} not applicable`}
+          label={t($ => $.operations.gatewayUsage)}
+          value={t($ => $.operations.reportedCount, { displayCount: number(metrics.gatewayUsageReported) })}
+          detail={t($ => $.operations.usageCounts, { missing: number(metrics.gatewayUsageNotReported), na: number(metrics.gatewayUsageNotApplicable) })}
         />
         <MetricCard
-          label="Provider-reported tokens"
-          value={`${metrics.gatewayTotalTokens} total`}
-          detail={`${metrics.gatewayInputTokens} input · ${metrics.gatewayOutputTokens} output · loaded window`}
+          label={t($ => $.operations.tokens)}
+          value={t($ => $.operations.totalCount, { displayCount: number(metrics.gatewayTotalTokens) })}
+          detail={t($ => $.operations.tokenCounts, { input: number(metrics.gatewayInputTokens), output: number(metrics.gatewayOutputTokens) })}
         />
         <MetricCard
-          label="Loaded-window estimate"
-          value={formatCostMicros(metrics.gatewayEstimatedCostMicros)}
-          detail={`${metrics.gatewayCostEstimated} terminal estimates · ${metrics.gatewayCostPartial} partial attempt coverage · ${state.gateway.hasMore ? "partial window" : "loaded window complete"}`}
+          label={t($ => $.operations.estimate)}
+          value={formatMicroUSD(metrics.gatewayEstimatedCostMicros, locale) ?? t($ => $.operations.unavailable)}
+          detail={t($ => $.operations.estimateCounts, { estimated: number(metrics.gatewayCostEstimated), partial: number(metrics.gatewayCostPartial), window: state.gateway.hasMore ? t($ => $.operations.partialWindow) : t($ => $.operations.completeWindows) })}
         />
         <MetricCard
-          label="Workflow status"
-          value={`${metrics.workflowSucceeded} succeeded`}
-          detail={`${metrics.workflowFailed} failed · ${metrics.workflowCanceled} canceled · ${metrics.workflowRunning} running · ${metrics.workflowOutcomeUnknown} unknown`}
+          label={t($ => $.operations.workflowStatus)}
+          value={t($ => $.operations.succeededCount, { displayCount: number(metrics.workflowSucceeded) })}
+          detail={t($ => $.operations.workflowCounts, { failed: number(metrics.workflowFailed), canceled: number(metrics.workflowCanceled), running: number(metrics.workflowRunning), unknown: number(metrics.workflowOutcomeUnknown) })}
         />
         <MetricCard
-          label="Workflow observed calls"
-          value={`${metrics.workflowProviderCalls} provider · ${metrics.workflowRetrievalCalls} retrieval`}
-          detail={`${metrics.workflowToolCalls} tool · ${metrics.workflowConfirmationCalls} confirmation`}
+          label={t($ => $.operations.workflowCalls)}
+          value={t($ => $.operations.observedCalls, { provider: number(metrics.workflowProviderCalls), retrieval: number(metrics.workflowRetrievalCalls) })}
+          detail={t($ => $.operations.otherCalls, { tool: number(metrics.workflowToolCalls), confirmation: number(metrics.workflowConfirmationCalls) })}
         />
       </div>
 
-      <div className="application-operations-cost-coverage" aria-label="Gateway cost availability coverage">
-        <p className="eyebrow">Cost availability · current Gateway window</p>
+      <div className="application-operations-cost-coverage" aria-label={t($ => $.operations.costCoverage)}>
+        <p className="eyebrow">{t($ => $.operations.costWindow)}</p>
         <div>
-          <CostCoverage label="Estimated" value={metrics.gatewayCostEstimated} tone="ready" />
-          <CostCoverage label="Partial attempts" value={metrics.gatewayCostPartial} tone="attention" />
-          <CostCoverage label="Usage missing" value={metrics.gatewayCostUsageNotReported} tone="neutral" />
-          <CostCoverage label="Price missing" value={metrics.gatewayCostPriceNotConfigured} tone="attention" />
-          <CostCoverage label="Price unavailable" value={metrics.gatewayCostPriceUnavailable} tone="blocked" />
-          <CostCoverage label="Not applicable" value={metrics.gatewayCostNotApplicable} tone="neutral" />
-          <CostCoverage label="Legacy" value={metrics.gatewayCostLegacyNotCaptured} tone="neutral" />
+          <CostCoverage label={t($ => $.operations.estimated)} value={metrics.gatewayCostEstimated} tone="ready" />
+          <CostCoverage label={t($ => $.operations.partialAttempts)} value={metrics.gatewayCostPartial} tone="attention" />
+          <CostCoverage label={t($ => $.operations.usageMissing)} value={metrics.gatewayCostUsageNotReported} tone="neutral" />
+          <CostCoverage label={t($ => $.operations.priceMissing)} value={metrics.gatewayCostPriceNotConfigured} tone="attention" />
+          <CostCoverage label={t($ => $.operations.priceUnavailable)} value={metrics.gatewayCostPriceUnavailable} tone="blocked" />
+          <CostCoverage label={t($ => $.operations.notApplicable)} value={metrics.gatewayCostNotApplicable} tone="neutral" />
+          <CostCoverage label={t($ => $.operations.legacy)} value={metrics.gatewayCostLegacyNotCaptured} tone="neutral" />
         </div>
-        <p>{state.gateway.hasMore ? "has_more: subtotal and coverage exclude earlier pages." : "The loaded Gateway window is complete for this request."}</p>
+        <p>{state.gateway.hasMore ? t($ => $.operations.hasMore) : t($ => $.operations.completeGateway)}</p>
       </div>
 
       {(metrics.workflowBusinessWrites > 0 || metrics.workflowReplayWrites > 0) && (
         <p className="application-operations-stop-line" role="alert">
-          Stop-line violation observed: {metrics.workflowBusinessWrites} business writes and {metrics.workflowReplayWrites} replay writes.
+          {t($ => $.operations.stopLine, { business: number(metrics.workflowBusinessWrites), replay: number(metrics.workflowReplayWrites) })}
         </p>
       )}
 
       <div className="application-operations-timeline-heading">
         <div>
-          <p className="eyebrow">Loaded-window timeline</p>
-          <h4>Gateway 与 Workflow 独立观测记录</h4>
+          <p className="eyebrow">{t($ => $.operations.timeline)}</p>
+          <h4>{t($ => $.operations.independentRecords)}</h4>
         </div>
-        <span>{state.loadedWindowComplete ? "current windows complete" : "more records available"}</span>
+        <span>{state.loadedWindowComplete ? t($ => $.operations.completeWindows) : t($ => $.operations.moreAvailable)}</span>
       </div>
 
       {state.timeline.length > 0 ? (
@@ -209,12 +219,12 @@ export default function ApplicationOperationsPanel({
         </ol>
       ) : (
         <p className="application-operations-empty">
-          {emptyMessage(state)}
+          {emptyMessage(t, state)}
         </p>
       )}
 
       <p className="boundary-note">
-        两个通道只在应用作用域下并列展示，不建立一对一关联。金额只汇总当前已加载 Gateway 窗口中的不可变请求级估算，不与 Workflow 相加，不是全历史、Provider invoice、quota 或 billing；输入、回答、凭据和 provider 原始材料不会进入该视图。
+        {t($ => $.operations.boundary)}
       </p>
     </section>
   );
@@ -237,14 +247,17 @@ function ChannelCoverage({
   auditRef: string;
   failureCode: string;
 }) {
+  const { t } = useTranslation("gateway");
+  const { locale } = useLocalePreference();
+  const number = (value: number) => formatDisplayNumber(value, locale) ?? t($ => $.review.states.unavailable);
   return (
     <article>
-      <div className="card-title-row"><h4>{label}</h4><span>{status}</span></div>
-      <p><strong>{loaded}</strong> loaded · {hasMore ? "more available" : "window complete"}</p>
+      <div className="card-title-row"><h4>{label}</h4><span>{gatewayReviewState(t, status)}</span></div>
+      <p>{t($ => $.operations.loaded, { displayCount: number(loaded), window: hasMore ? t($ => $.operations.moreAvailable) : t($ => $.operations.completeWindows) })}</p>
       <dl>
-        <div><dt>Request</dt><dd>{requestId}</dd></div>
-        <div><dt>Audit</dt><dd>{auditRef}</dd></div>
-        <div><dt>Failure</dt><dd>{failureCode || "none"}</dd></div>
+        <div><dt>{t($ => $.operations.request)}</dt><dd>{requestId}</dd></div>
+        <div><dt>{t($ => $.operations.audit)}</dt><dd>{auditRef}</dd></div>
+        <div><dt>{t($ => $.operations.failure)}</dt><dd>{failureCode || t($ => $.operations.none)}</dd></div>
       </dl>
     </article>
   );
@@ -263,50 +276,53 @@ function TimelineEntry({
   onOpenGatewayRequest?: (requestId: string, consumerRef: string) => void;
   onOpenWorkflowRun?: (runId: string) => void;
 }) {
+  const { t } = useTranslation("gateway");
+  const { locale } = useLocalePreference();
+  const cost = (value: number | null) => value === null ? t($ => $.operations.unavailable) : formatMicroUSD(value, locale) ?? t($ => $.review.states.unavailable);
   return (
     <li data-source={entry.source} data-status={entry.status}>
       <div className="application-operations-timeline-marker" aria-hidden="true" />
       <article>
         <div className="card-title-row">
-          <div><p className="eyebrow">{entry.source.replace("_", " ")}</p><h4>{entry.operation || "unavailable"}</h4></div>
-          <span className={`application-operations-status ${entry.status}`}>{entry.status}</span>
+          <div><p className="eyebrow">{entry.source === "gateway_request" ? t($ => $.operations.requests) : t($ => $.operations.runs)}</p><h4>{entry.operation || t($ => $.operations.unavailable)}</h4></div>
+          <span className={`application-operations-status ${entry.status}`}>{gatewayReviewState(t, entry.status)}</span>
         </div>
-        <p><code>{entry.recordId}</code> · {formatTimestamp(entry.startedAt)} · {entry.durationMs} ms</p>
+        <p><code>{entry.recordId}</code> · <time dateTime={entry.startedAt} title={entry.startedAt}>{formatDisplayDate(entry.startedAt, locale) ?? t($ => $.operations.unavailable)}</time> · {entry.durationMs} ms</p>
         <dl>
-          <div><dt>Contract</dt><dd>{entry.contract || "unavailable"}</dd></div>
-          <div><dt>Route</dt><dd>{entry.provider || "unavailable"} / {entry.profile || "default"} / {entry.model || "unavailable"}{entry.providerAttempts ? ` · ${entry.providerAttempts} attempts${entry.fallbackUsed ? " · fallback used" : ""}` : ""}</dd></div>
-          <div><dt>Failure</dt><dd>{entry.failureCode || "none"} · {entry.failureBoundary || "none"}</dd></div>
-          <div><dt>Request / audit</dt><dd>{entry.requestId} · {entry.auditRef}</dd></div>
+          <div><dt>{t($ => $.operations.contract)}</dt><dd>{entry.contract || t($ => $.operations.unavailable)}</dd></div>
+          <div><dt>{t($ => $.operations.route)}</dt><dd>{entry.provider || t($ => $.operations.unavailable)} / {entry.profile || t($ => $.operations.default)} / {entry.model || t($ => $.operations.unavailable)}{entry.providerAttempts ? t($ => $.operations.entryAttempts, { count: entry.providerAttempts, fallback: entry.fallbackUsed ? t($ => $.operations.fallbackUsed) : t($ => $.operations.fallbackNotUsed) }) : ""}</dd></div>
+          <div><dt>{t($ => $.operations.failure)}</dt><dd>{entry.failureCode || t($ => $.operations.none)} · {entry.failureBoundary || t($ => $.operations.none)}</dd></div>
+          <div><dt>{t($ => $.operations.requestAudit)}</dt><dd>{entry.requestId} · {entry.auditRef}</dd></div>
           {entry.source === "gateway_request" ? (
             <>
               <div>
-                <dt>Usage</dt>
+                <dt>{t($ => $.operations.usage)}</dt>
                 <dd>
                   {entry.usageAvailability === "reported"
-                    ? `${entry.totalTokens} total · ${entry.inputTokens} input · ${entry.outputTokens} output · ${entry.usageSource}`
-                    : entry.usageAvailability}
+                    ? t($ => $.operations.entryTokens, { total: entry.totalTokens, input: entry.inputTokens, output: entry.outputTokens, source: entry.usageSource })
+                    : gatewayReviewState(t, entry.usageAvailability ?? "unavailable")}
                 </dd>
               </div>
               <div>
-                <dt>Cost</dt>
+                <dt>{t($ => $.operations.cost)}</dt>
                 <dd>{entry.attemptCostCoverage
-                  ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} known · ${entry.attemptCostCoverage} attempt coverage`
+                  ? t($ => $.operations.entryCost, { cost: cost(entry.estimatedCostMicros), coverage: gatewayReviewState(t, entry.attemptCostCoverage) })
                   : entry.costAvailability === "estimated"
-                    ? `${formatCostMicros(entry.estimatedCostMicros ?? 0)} · policy v${entry.pricingPolicyVersion}`
-                    : `${entry.costAvailability} · ${entry.costReason}`}</dd>
+                    ? t($ => $.operations.entryPolicy, { cost: cost(entry.estimatedCostMicros), version: entry.pricingPolicyVersion ?? t($ => $.operations.unavailable) })
+                    : `${gatewayReviewState(t, entry.costAvailability ?? "unavailable")} · ${entry.costReason}`}</dd>
               </div>
             </>
           ) : (
-            <div><dt>Calls</dt><dd>{entry.providerCalls} provider · {entry.retrievalCalls} retrieval · {entry.toolCalls} tool</dd></div>
+            <div><dt>{t($ => $.operations.calls)}</dt><dd>{t($ => $.operations.entryCalls, { provider: entry.providerCalls, retrieval: entry.retrievalCalls, tool: entry.toolCalls })}</dd></div>
           )}
         </dl>
         {entry.source === "gateway_request" && onOpenGatewayRequest ? (
           <button type="button" className="secondary-action" onClick={() => onOpenGatewayRequest(entry.recordId, gatewayConfig.consumerRef)}>
-            Open exact request
+            {t($ => $.operations.openRequest)}
           </button>
         ) : entry.source === "workflow_run" && onOpenWorkflowRun ? (
           <button type="button" className="secondary-action" onClick={() => onOpenWorkflowRun(entry.recordId)}>
-            Open exact run
+            {t($ => $.operations.openRun)}
           </button>
         ) : null}
       </article>
@@ -315,9 +331,10 @@ function TimelineEntry({
 }
 
 function StatusBadge({ status }: { status: ApplicationOperationsState["status"] }) {
+  const { t } = useTranslation("gateway");
   const tone = status === "ready" || status === "empty" ? "good" :
     status === "failed" || status === "application_unavailable" ? "bad" : "neutral";
-  return <span className={`status-badge ${tone}`}>{status.replaceAll("_", " ")}</span>;
+  return <span className={`status-badge ${tone}`}>{gatewayReviewState(t, status)}</span>;
 }
 
 function CostCoverage({
@@ -332,20 +349,10 @@ function CostCoverage({
   return <span data-tone={tone}><strong>{value}</strong>{label}</span>;
 }
 
-function emptyMessage(state: ApplicationOperationsState): string {
-  if (state.status === "offline") return "Offline mode keeps both observation sources at zero requests.";
-  if (state.status === "application_unavailable") return "Select an application before loading operations.";
-  if (state.status === "loading") return "Loading application-scoped observations…";
-  if (state.status === "failed") return "Both enabled observation sources failed closed.";
-  return "No records are available in the current observation windows.";
-}
-
-function formatTimestamp(value: string): string {
-  if (!value) return "unavailable";
-  const timestamp = new Date(value);
-  return Number.isNaN(timestamp.valueOf()) ? value : timestamp.toLocaleString();
-}
-
-function formatCostMicros(value: number): string {
-  return `$${(value / 1_000_000).toFixed(6)}`;
+function emptyMessage(t: TFunction<"gateway">, state: ApplicationOperationsState): string {
+  if (state.status === "offline") return t($ => $.operations.emptyOffline);
+  if (state.status === "application_unavailable") return t($ => $.operations.emptyApplication);
+  if (state.status === "loading") return t($ => $.operations.emptyLoading);
+  if (state.status === "failed") return t($ => $.operations.emptyFailed);
+  return t($ => $.operations.empty);
 }

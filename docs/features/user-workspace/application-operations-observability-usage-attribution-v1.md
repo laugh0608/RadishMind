@@ -177,3 +177,8 @@ owner 边界继续保持如下：
 - 不逐条读取 Gateway detail 计算 token，不估算 token 或价格。
 - 不启用生产认证、生产 API key、quota enforcement、billing、外部 connector、自动 retry / fallback、业务写回或 replay。
 - 不为普通 UI 聚合新增 task card、fixture 或 checker；现有 Web 测试、build 和仓库门禁足以承载批次 A。
+
+
+## 中英界面验收补充（2026-10-07）
+
+本页面已按[中英国际化专题](../web-internationalization-zh-en-v1.md)的 D 阶段完成双语迁移与两轮浏览器验收。状态和本地恢复说明在渲染时翻译；精确标识、诊断码、输入输出、业务请求和来源边界保持。时间、数字与金额按来源契约格式化，语言切换不新增请求或重置当前选择。三视口与内部容器检查通过，详细范围、合成只读配额说明和清理证据见[本周周志](../../devlogs/2026-W41.md#2026-10-07-d-阶段-gateway-与运营双语验收)。辅助运维证据与完整评测页面继续归 E / F。
