@@ -18,9 +18,9 @@ await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
 const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
-const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity", "admin"];
+const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity", "admin", "agent"];
 if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
-  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection|identity|admin selector.");
+  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection|identity|admin|agent selector.");
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
@@ -131,11 +131,11 @@ async function runSuite(suite) {
   let exitCode = 1;
   try {
     await writeFile(configPath, "{}\n", { mode: 0o600 });
-    if (suite !== "identity" && suite !== "admin") promptProvider = await startPromptProvider();
+    if (suite !== "identity" && suite !== "admin" && suite !== "agent") promptProvider = await startPromptProvider();
     if (interrupted) throw new Error("Interrupted during configuration setup.");
     const launcher = start(suite === "identity" ? process.execPath : "bash", suite === "identity" ? [join(webRoot, "tests/e2e/identity-services.mjs")] : [
       join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-      "--mode", "dev-live", ...(suite === "http-tool" ? ["--workflow-definition-http-tool-local-product"] : suite === "rag-application" ? ["--workflow-rag-application-local-product"] : suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", (suite === "templates" || suite === "admin") ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
+      "--mode", "dev-live", ...(suite === "agent" ? ["--agent-copilot-local-product"] : suite === "http-tool" ? ["--workflow-definition-http-tool-local-product"] : suite === "rag-application" ? ["--workflow-rag-application-local-product"] : suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", (suite === "templates" || suite === "admin") ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
       "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
       "--timeout-seconds", "120", "--log-dir", join(output, "services"),
       "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),

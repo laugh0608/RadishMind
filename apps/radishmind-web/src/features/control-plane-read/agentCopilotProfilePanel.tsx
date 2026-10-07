@@ -1,3 +1,6 @@
+import { profileFindingMessage, profileOperationMessage } from "./agentCopilotMessages.ts";
+import "../../i18n/agentResources.ts";
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -44,17 +47,19 @@ export default function AgentCopilotProfilePanel({
   onOpenPublishReview?: (draftId: string) => void;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
+  const { t } = useTranslation("agent");
   const [input, setInput] = useState(() => createAgentCopilotProfileInput(profileConfig, applicationId));
   const [operation, setOperation] = useState<AgentCopilotProfileOperation>(() => initialOperation());
   const [drafts, setDrafts] = useState<AgentCopilotProfileList>(() => initialProfileList());
   const [versions, setVersions] = useState<AgentCopilotProfileVersionList>(() => initialVersionList());
+  const [validationSource, setValidationSource] = useState<"local" | "remote">("local");
   const [selectedProfileVersion, setSelectedProfileVersion] = useState(0);
   const [applicationDrafts, setApplicationDrafts] = useState<ApplicationConfigurationDraftListState>(
     () => initialApplicationConfigurationDraftListState(draftConfig),
   );
   const [selectedDraftId, setSelectedDraftId] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
-  const [bindingStatus, setBindingStatus] = useState("");
+  const [bindingStatus, setBindingStatus] = useState<{ failureCode: string } | { draftVersion: number; profileId: string; profileVersion: number } | null>(null);
   const [boundProfileRef, setBoundProfileRef] = useState<{ profileId: string; profileVersion: number } | null>(null);
   const localValidation = useMemo(() => validateAgentCopilotProfileLocally(input), [input]);
   const enabled = applicationActive && profileConfig.mode === "dev_agent_copilot_http";
@@ -66,13 +71,14 @@ export default function AgentCopilotProfilePanel({
   useEffect(() => {
     setInput(createAgentCopilotProfileInput(profileConfig, applicationId));
     setOperation(initialOperation());
+    setValidationSource("local");
     setDrafts(initialProfileList());
     setVersions(initialVersionList());
     setApplicationDrafts(initialApplicationConfigurationDraftListState(draftConfig));
     setSelectedDraftId("");
     setSelectedProfileVersion(0);
     setHasUnsavedChanges(true);
-    setBindingStatus("");
+    setBindingStatus(null);
     setBoundProfileRef(null);
   }, [applicationId]);
 
@@ -124,6 +130,7 @@ export default function AgentCopilotProfilePanel({
 
   async function validateRemote() {
     if (!localValidation.isValid) {
+      setValidationSource("local");
       setOperation({
         ...initialOperation(),
         status: "invalid",
@@ -134,12 +141,14 @@ export default function AgentCopilotProfilePanel({
       return;
     }
     setOperation(await validateAgentCopilotProfileRemote(profileConfig, input));
+    setValidationSource("remote");
   }
 
   async function save() {
     if (!enabled || !localValidation.isValid) return;
     const result = await saveAgentCopilotProfile(profileConfig, input, operation.currentDraftVersion);
     setOperation(result);
+    setValidationSource("remote");
     if (result.draft) {
       setInput(draftToInput(result.draft));
       setHasUnsavedChanges(false);
@@ -156,6 +165,7 @@ export default function AgentCopilotProfilePanel({
       operation.currentDraftVersion,
     );
     setOperation(result);
+    setValidationSource("remote");
     if (result.version) {
       setSelectedProfileVersion(result.version.profileVersion);
       await refreshVersions(result.version.profileId);
@@ -170,6 +180,7 @@ export default function AgentCopilotProfilePanel({
   async function restore(profileId: string) {
     const result = await readAgentCopilotProfile(profileConfig, applicationId, profileId);
     setOperation(result);
+    setValidationSource("remote");
     if (result.draft) {
       setInput(draftToInput(result.draft));
       setHasUnsavedChanges(false);
@@ -202,12 +213,10 @@ export default function AgentCopilotProfilePanel({
       selectedVersion.profileVersion,
     );
     if (!result.draft || result.state.status !== "saved") {
-      setBindingStatus(result.state.failureCode || "agent_copilot_profile_binding_ineligible");
+      setBindingStatus({ failureCode: result.state.failureCode || "agent_copilot_profile_binding_ineligible" });
       return;
     }
-    setBindingStatus(
-      `Configuration Draft v${result.state.currentDraftVersion} 已绑定 ${result.draft.agentCopilotProfileRef?.profileId} v${result.draft.agentCopilotProfileRef?.profileVersion}。`,
-    );
+    setBindingStatus({ draftVersion: result.state.currentDraftVersion, profileId: result.draft.agentCopilotProfileRef?.profileId ?? selectedVersion.profileId, profileVersion: result.draft.agentCopilotProfileRef?.profileVersion ?? selectedVersion.profileVersion });
     setBoundProfileRef({
       profileId: result.draft.agentCopilotProfileRef?.profileId ?? selectedVersion.profileId,
       profileVersion: result.draft.agentCopilotProfileRef?.profileVersion ?? selectedVersion.profileVersion,
@@ -224,77 +233,80 @@ export default function AgentCopilotProfilePanel({
     <section className="agent-copilot-profile-panel" id="agent-copilot-profile-workspace" aria-labelledby="agent-profile-title">
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Agent Copilot · Profile owner</p>
-          <h4 id="agent-profile-title">结构化 Profile、不可变版本与配置绑定</h4>
+          <p className="eyebrow">{t($ => $.profile.eyebrow)}</p>
+          <h4 id="agent-profile-title">{t($ => $.profile.title)}</h4>
         </div>
         <span className={`status-badge ${operation.status === "saved" || operation.status === "versioned" ? "good" : operation.failureCode ? "bad" : "neutral"}`}>
-          {operation.status}
+          {t($ => $.states[operation.status])}
         </span>
       </div>
 
       <div className="prompt-template-scope">
-        <article><span>Application</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
-        <article><span>Profile owner</span><strong>{profileConfig.mode}</strong><code>{input.profileId}</code></article>
-        <article><span>Safety</span><strong>advisory only</strong><p>tool、retrieval、write、replay 均关闭。</p></article>
+        <article><span>{t($ => $.profile.application)}</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
+        <article><span>{t($ => $.profile.owner)}</span><strong>{profileConfig.mode}</strong><code>{input.profileId}</code></article>
+        <article><span>{t($ => $.profile.safety)}</span><strong>{t($ => $.profile.advisory)}</strong><p>{t($ => $.profile.safetyNote)}</p></article>
       </div>
 
       <div className="prompt-template-layout">
         <article className="prompt-template-editor">
-          <label>Profile id<input value={input.profileId} onChange={(event) => edit({ profileId: event.target.value })} disabled={operation.currentDraftVersion > 0} /></label>
-          <label>Profile name<input value={input.profileName} maxLength={80} onChange={(event) => edit({ profileName: event.target.value })} /></label>
-          <label>Description<textarea value={input.description} maxLength={512} rows={3} onChange={(event) => edit({ description: event.target.value })} /></label>
-          <label>Project<select value={input.project} onChange={(event) => selectProject(event.target.value as AgentCopilotProject)}><option value="radishflow">radishflow</option><option value="radish">radish</option></select></label>
+          <label>{t($ => $.profile.id)}<input value={input.profileId} onChange={(event) => edit({ profileId: event.target.value })} disabled={operation.currentDraftVersion > 0} /></label>
+          <label>{t($ => $.profile.name)}<input value={input.profileName} maxLength={80} onChange={(event) => edit({ profileName: event.target.value })} /></label>
+          <label>{t($ => $.profile.description)}<textarea value={input.description} maxLength={512} rows={3} onChange={(event) => edit({ description: event.target.value })} /></label>
+          <label>{t($ => $.profile.project)}<select value={input.project} onChange={(event) => selectProject(event.target.value as AgentCopilotProject)}><option value="radishflow">radishflow</option><option value="radish">radish</option></select></label>
           <fieldset>
-            <legend>Canonical tasks</legend>
+            <legend>{t($ => $.profile.tasks)}</legend>
             {AGENT_COPILOT_TASKS[input.project].map((task) => (
               <label key={task}><input type="checkbox" checked={input.allowedTasks.includes(task)} onChange={() => toggleTask(task)} />{task}</label>
             ))}
           </fieldset>
-          <label>Default locale<input value={input.defaultLocale} onChange={(event) => edit({ defaultLocale: event.target.value })} /></label>
-          <label>Allowed locales<input value={input.allowedLocales.join(", ")} onChange={(event) => edit({ allowedLocales: csv(event.target.value) })} /></label>
-          <label>Allowed context fields<textarea rows={3} value={input.contextPolicy.allowedFields.join(", ")} onChange={(event) => edit({ contextPolicy: { ...input.contextPolicy, allowedFields: csv(event.target.value) } })} /></label>
-          <label>Context byte budget<input type="number" min={1} max={131072} value={input.contextPolicy.maxBytes} onChange={(event) => edit({ contextPolicy: { ...input.contextPolicy, maxBytes: Number(event.target.value) } })} /></label>
+          <p className="boundary-note" id="agent-profile-locale-note">{t($ => $.profile.localeNote)}</p>
+          <label>{t($ => $.profile.defaultLocale)}<input aria-describedby="agent-profile-locale-note" value={input.defaultLocale} onChange={(event) => edit({ defaultLocale: event.target.value })} /></label>
+          <label>{t($ => $.profile.allowedLocales)}<input value={input.allowedLocales.join(", ")} onChange={(event) => edit({ allowedLocales: csv(event.target.value) })} /></label>
+          <label>{t($ => $.profile.contextFields)}<textarea rows={3} value={input.contextPolicy.allowedFields.join(", ")} onChange={(event) => edit({ contextPolicy: { ...input.contextPolicy, allowedFields: csv(event.target.value) } })} /></label>
+          <label>{t($ => $.profile.contextBudget)}<input type="number" min={1} max={131072} value={input.contextPolicy.maxBytes} onChange={(event) => edit({ contextPolicy: { ...input.contextPolicy, maxBytes: Number(event.target.value) } })} /></label>
           <div className="application-draft-actions">
-            <button type="button" onClick={() => void validateRemote()} disabled={!applicationActive}>Validate</button>
-            <button type="button" onClick={() => void save()} disabled={!enabled || !localValidation.isValid}>Save with CAS</button>
-            <button type="button" onClick={() => void createVersion()} disabled={!enabled || hasUnsavedChanges || !operation.draft}>Create immutable version</button>
+            <button type="button" onClick={() => void validateRemote()} disabled={!applicationActive}>{t($ => $.profile.validate)}</button>
+            <button type="button" onClick={() => void save()} disabled={!enabled || !localValidation.isValid}>{t($ => $.profile.save)}</button>
+            <button type="button" onClick={() => void createVersion()} disabled={!enabled || hasUnsavedChanges || !operation.draft}>{t($ => $.profile.version)}</button>
           </div>
         </article>
 
         <article className="prompt-template-review">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Deterministic review</p><h5>{operation.summary}</h5></div><span className={`status-badge ${localValidation.isValid ? "good" : "bad"}`}>{localValidation.state}</span></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.profile.review)}</p><h5>{profileOperationMessage(t, operation, hasUnsavedChanges)}</h5></div><span className={`status-badge ${localValidation.isValid ? "good" : "bad"}`}>{t($ => $.states[localValidation.state])}</span></div>
           {operation.failureCode ? <p className="failure-summary">{operation.failureCode}</p> : null}
           {(operation.validation.findings.length ? operation.validation.findings : localValidation.findings).map((finding) => (
-            <p className="failure-summary" key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong> · {finding.code} · {finding.summary}</p>
+            <p className="failure-summary" key={`${finding.code}-${finding.field}`}><strong>{finding.field}</strong> · {finding.code} · {profileFindingMessage(t, finding)}{validationSource === "remote" && operation.validation.findings.length ? <small>{finding.summary}</small> : null}</p>
           ))}
           <dl className="tenant-meta">
-            <div><dt>Safety mode</dt><dd>advisory</dd></div>
-            <div><dt>Action confirmation</dt><dd>required</dd></div>
-            <div><dt>Retrieval</dt><dd>false</dd></div>
-            <div><dt>Tool calls</dt><dd>false</dd></div>
-            <div><dt>Image reasoning</dt><dd>false</dd></div>
+            <div><dt>{t($ => $.profile.safetyMode)}</dt><dd>{t($ => $.profile.advisory)}</dd></div>
+            <div><dt>{t($ => $.profile.confirmation)}</dt><dd>{t($ => $.profile.required)}</dd></div>
+            <div><dt>{t($ => $.profile.retrieval)}</dt><dd>{t($ => $.profile.disabled)}</dd></div>
+            <div><dt>{t($ => $.profile.tools)}</dt><dd>{t($ => $.profile.disabled)}</dd></div>
+            <div><dt>{t($ => $.profile.images)}</dt><dd>{t($ => $.profile.disabled)}</dd></div>
           </dl>
-          <p className="boundary-note">Profile 不接受 system prompt、provider/model/runtime 配置、credential、endpoint 或 DSN。</p>
+          <p className="boundary-note">{t($ => $.profile.boundary)}</p>
         </article>
       </div>
 
       <div className="prompt-template-lower-grid">
         <article>
-          <div className="application-api-card-heading"><div><p className="eyebrow">Saved drafts</p><h5>{drafts.summary}</h5></div><button type="button" onClick={() => void refreshDrafts()}>Refresh</button></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.profile.drafts)}</p><h5>{t($ => $.list[drafts.status], { count: drafts.summaries.length })}</h5></div><button type="button" onClick={() => void refreshDrafts()}>{t($ => $.profile.refresh)}</button></div>
+          {drafts.failureCode ? <p className="failure-summary">{drafts.failureCode}</p> : null}
           {drafts.summaries.map((draft) => <button type="button" className="prompt-template-summary" key={draft.profileId} onClick={() => void restore(draft.profileId)}><strong>{draft.profileName}</strong><span>{draft.profileId} · v{draft.draftVersion}</span><small>{draft.project} · {draft.allowedTasks.join(", ")}</small></button>)}
         </article>
         <article>
-          <div className="application-api-card-heading"><div><p className="eyebrow">Immutable versions</p><h5>{versions.summary}</h5></div><button type="button" onClick={() => void refreshVersions()}>Refresh</button></div>
-          {versions.summaries.map((version) => <button type="button" className={selectedProfileVersion === version.profileVersion ? "prompt-template-summary selected" : "prompt-template-summary"} key={version.profileVersion} onClick={() => setSelectedProfileVersion(version.profileVersion)}><strong>Version {version.profileVersion}</strong><span>{version.profileId} · source v{version.sourceDraftVersion}</span><small>{version.profileDigest}</small></button>)}
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.profile.versions)}</p><h5>{t($ => $.list[versions.status], { count: versions.summaries.length })}</h5></div><button type="button" onClick={() => void refreshVersions()}>{t($ => $.profile.refresh)}</button></div>
+          {versions.failureCode ? <p className="failure-summary">{versions.failureCode}</p> : null}
+          {versions.summaries.map((version) => <button type="button" className={selectedProfileVersion === version.profileVersion ? "prompt-template-summary selected" : "prompt-template-summary"} key={version.profileVersion} onClick={() => setSelectedProfileVersion(version.profileVersion)}><strong>{t($ => $.profile.versionLabel, { version: version.profileVersion })}</strong><span>{version.profileId} · {t($ => $.profile.sourceVersion, { version: version.sourceDraftVersion })}</span><small>{version.profileDigest}</small></button>)}
         </article>
       </div>
 
       <article className="prompt-template-binding">
-        <div className="application-api-card-heading"><div><p className="eyebrow">Configuration Draft v4</p><h5>绑定精确 Profile Version</h5></div><button type="button" onClick={() => void loadApplicationDrafts()} disabled={!enabled}>Load drafts</button></div>
-        <label>Valid Agent draft<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)}><option value="">No draft selected</option>{applicationDrafts.summaries.map((draft) => <option key={draft.draftId} value={draft.draftId} disabled={draft.applicationKind !== "agent" || draft.validationState !== "valid"}>{draft.draftId} · v{draft.draftVersion}{draft.agentCopilotProfileRef ? ` · profile v${draft.agentCopilotProfileRef.profileVersion}` : ""}</option>)}</select></label>
-        <label>Immutable Profile version<select value={selectedProfileVersion} onChange={(event) => setSelectedProfileVersion(Number(event.target.value))}><option value={0}>No version selected</option>{versions.summaries.map((version) => <option key={version.profileVersion} value={version.profileVersion}>{version.profileId} · v{version.profileVersion}</option>)}</select></label>
-        <button type="button" onClick={() => void bindVersion()} disabled={!canBind}>Bind and open Publish Review</button>
-        <p className="boundary-note">{bindingStatus || "Web 只提交 draft/profile 的 id 与 version；digest 与源码由服务端重读。"}</p>
+        <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.profile.binding)}</p><h5>{t($ => $.profile.bindingTitle)}</h5></div><button type="button" onClick={() => void loadApplicationDrafts()} disabled={!enabled}>{t($ => $.profile.loadDrafts)}</button></div>
+        <label>{t($ => $.profile.validDraft)}<select value={selectedDraftId} onChange={(event) => setSelectedDraftId(event.target.value)}><option value="">{t($ => $.profile.noDraft)}</option>{applicationDrafts.summaries.map((draft) => <option key={draft.draftId} value={draft.draftId} disabled={draft.applicationKind !== "agent" || draft.validationState !== "valid"}>{draft.draftId} · v{draft.draftVersion}{draft.agentCopilotProfileRef ? ` · profile v${draft.agentCopilotProfileRef.profileVersion}` : ""}</option>)}</select></label>
+        <label>{t($ => $.profile.immutableVersion)}<select value={selectedProfileVersion} onChange={(event) => setSelectedProfileVersion(Number(event.target.value))}><option value={0}>{t($ => $.profile.noVersion)}</option>{versions.summaries.map((version) => <option key={version.profileVersion} value={version.profileVersion}>{version.profileId} · v{version.profileVersion}</option>)}</select></label>
+        <button type="button" onClick={() => void bindVersion()} disabled={!canBind}>{t($ => $.profile.bind)}</button>
+        <p className="boundary-note">{!bindingStatus ? t($ => $.profile.bindingNote) : "failureCode" in bindingStatus ? <>{t($ => $.profile.bindingFailed)} · {bindingStatus.failureCode}</> : t($ => $.profile.bound, bindingStatus)}</p>
       </article>
     </section>
   );

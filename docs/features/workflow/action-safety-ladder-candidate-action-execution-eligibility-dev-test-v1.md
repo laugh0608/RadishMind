@@ -233,3 +233,8 @@ Agent response 中的 candidate projection 仍是 canonical response owner 的�
 - 不让模型、客户端、Profile、Workflow 草案、candidate decision、assignment 或页面状态自报或提升 effective level。
 - 不写 `RadishFlow`、`Radish`、`RadishCatalyst` 或其它业务真相源，不细化不存在的上层 command handoff。
 - 不打开 production OIDC、production secret、production repository、public API、quota、billing、正式发布或 production capability enablement。
+
+
+## 2026-10-07 Agent 组合运行存储回归修复
+
+Agent 本地产品档的完整浏览器调用发现，invocation 构造未识别组合运行存储中实际 Agent v7 仓储的安全快照能力，导致运行成功但响应安全投影为空，严格 Web consumer 因而拒绝展示。现构造时只读取目标 Agent 仓储的能力，不借用 Workflow / Prompt 能力，也不放宽前端契约。既有 SQLite 快照重启 / 损坏测试改为真实组合构造，并补充缺少 / 不支持 Agent 目标的拒绝用例；HTTP API 回归及双语 Session 浏览器流程通过。修复不新增能力级别、授权、HTTP 字段或迁移；运行分配中既有无快照记录仍按 `not_recorded_legacy` 展示。

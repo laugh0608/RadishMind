@@ -21488,3 +21488,101 @@ textarea {
   flex-wrap: wrap;
   gap: 6px 12px;
 }
+
+/* Agent assignment controls must fit long immutable candidate references. */
+#agent-copilot-runtime-assignment > label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin-block: 16px;
+  color: var(--rm-text-secondary);
+  font-size: 0.86rem;
+}
+
+#agent-copilot-runtime-assignment > label > select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 11px;
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-surface);
+  font: inherit;
+}
+
+#agent-copilot-runtime-assignment > button {
+  max-width: 100%;
+  margin-block: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 11px;
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-muted);
+  font: inherit;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+#agent-copilot-runtime-assignment > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+#agent-copilot-profile-workspace .prompt-template-editor fieldset label {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  overflow-wrap: anywhere;
+}
+
+#agent-copilot-profile-workspace input[type="checkbox"] {
+  width: auto;
+  margin: 2px 0 0;
+}
+
+#agent-copilot-profile-workspace .prompt-template-summary,
+#agent-copilot-profile-workspace .prompt-template-summary > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+#agent-copilot-profile-workspace .prompt-template-summary {
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-surface);
+  border-color: var(--rm-border-strong);
+}
+
+#agent-copilot-profile-workspace .prompt-template-summary.selected {
+  background: var(--rm-bg-muted);
+}
+
+#agent-copilot-profile-workspace button:not(.prompt-template-summary),
+#agent-copilot-invocation .prompt-template-editor > button,
+#agent-copilot-invocation .prompt-template-review > button {
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 11px;
+  color: var(--rm-text-primary);
+  background: var(--rm-bg-surface);
+  font: inherit;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+#agent-copilot-profile-workspace button:disabled,
+#agent-copilot-invocation .prompt-template-editor > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+#agent-copilot-profile-workspace .prompt-template-scope article > *,
+#agent-copilot-runtime-assignment .prompt-template-scope article > *,
+#agent-copilot-invocation .prompt-template-scope article > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#agent-copilot-invocation .prompt-template-review .workflow-user-workspace-home-meta {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}

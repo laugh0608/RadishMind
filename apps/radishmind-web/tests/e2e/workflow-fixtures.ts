@@ -4,7 +4,7 @@ import { test as base, expect, type Page, type Response, type Route } from "@pla
 
 export type Application = { id: string; name: string; kind: string };
 
-export const test = base.extend<{ application: Application; diagnostics: void; applicationKind: "workflow_copilot" | "prompt_application" }>({
+export const test = base.extend<{ application: Application; diagnostics: void; applicationKind: "workflow_copilot" | "prompt_application" | "agent" }>({
   applicationKind: ["workflow_copilot", { option: true }],
   diagnostics: [async ({ context }, use, testInfo) => {
     const failures: string[] = [];

@@ -1,3 +1,6 @@
+import { agentSessionMessage } from "./agentCopilotMessages.ts";
+import "../../i18n/agentResources.ts";
+import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
@@ -27,6 +30,7 @@ export default function AgentCopilotSessionPanel({
   onOpenRun?: (runId: string) => void;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
+  const { t } = useTranslation("agent");
   const [result, setResult] = useState<AgentCopilotSessionResult>(
     () => initialAgentCopilotSessionResult(config),
   );
@@ -36,7 +40,7 @@ export default function AgentCopilotSessionPanel({
     '{\n  "selected_unit_ids": ["unit-101"],\n  "diagnostics": [{"code": "not_converged"}]\n}',
   );
   const [clientTurnKey, setClientTurnKey] = useState(() => createClientTurnKey());
-  const [inputFailure, setInputFailure] = useState("");
+  const [inputFailure, setInputFailure] = useState(false);
   const [saveResult, setSaveResult] = useState(false);
   const [pending, setPending] = useState<"" | "create" | "execute">("");
   const generation = useRef(0);
@@ -51,7 +55,7 @@ export default function AgentCopilotSessionPanel({
     setLocale("zh-CN");
     setContextText('{\n  "selected_unit_ids": ["unit-101"],\n  "diagnostics": [{"code": "not_converged"}]\n}');
     setClientTurnKey(createClientTurnKey());
-    setInputFailure("");
+    setInputFailure(false);
     setSaveResult(false);
     setPending("");
     return () => {
@@ -92,14 +96,14 @@ export default function AgentCopilotSessionPanel({
     try {
       context = JSON.parse(contextText);
     } catch {
-      setInputFailure("Context 必须是 JSON object。");
+      setInputFailure(true);
       return;
     }
     if (!context || typeof context !== "object" || Array.isArray(context)) {
-      setInputFailure("Context 必须是 JSON object。");
+      setInputFailure(true);
       return;
     }
-    setInputFailure("");
+    setInputFailure(false);
     const requestGeneration = generation.current;
     const nextController = replaceController();
     const shouldSaveResult = saveResult;
@@ -153,47 +157,48 @@ export default function AgentCopilotSessionPanel({
   return (
     <section className="prompt-application-session-panel" id="agent-copilot-invocation" aria-labelledby="agent-session-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Agent Copilot · Controlled test</p><h4 id="agent-session-title">Session v3 与单次 advisory suggestion</h4></div>
-        <span className={`status-badge ${result.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.status}</span>
+        <div><p className="eyebrow">{t($ => $.session.eyebrow)}</p><h4 id="agent-session-title">{t($ => $.session.title)}</h4></div>
+        <span className={`status-badge ${result.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{t($ => $.states[result.status])}</span>
       </div>
       <div className="prompt-template-scope" id="agent-copilot-session">
-        <article><span>Application</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
-        <article><span>Session</span><strong>{result.session?.sessionId ?? "not created"}</strong><code>{result.session ? `v${result.session.recordVersion}` : config.mode}</code></article>
-        <article><span>Retention</span><strong>default off</strong><p>Context 与输入 artifact 始终易失；canonical answer 仅在逐 turn 显式选择时另存。</p></article>
+        <article><span>{t($ => $.session.application)}</span><strong>{applicationName}</strong><code>{applicationId}</code></article>
+        <article><span>{t($ => $.session.session)}</span><strong>{result.session?.sessionId ?? t($ => $.session.notCreated)}</strong><code>{result.session ? `v${result.session.recordVersion}` : config.mode}</code></article>
+        <article><span>{t($ => $.session.retention)}</span><strong>{t($ => $.session.defaultOff)}</strong><p>{t($ => $.session.retentionNote)}</p></article>
       </div>
       <div className="application-draft-actions">
-        <button type="button" onClick={() => void createSession()} disabled={Boolean(pending) || config.mode === "offline"}>{pending === "create" ? "Creating…" : "Create exact-authority Session v3"}</button>
-        <button type="button" onClick={cancelRequest} disabled={!pending}>Cancel current request</button>
+        <button type="button" onClick={() => void createSession()} disabled={Boolean(pending) || config.mode === "offline"}>{t($ => pending === "create" ? $.session.creating : $.session.create)}</button>
+        <button type="button" onClick={cancelRequest} disabled={!pending}>{t($ => $.session.cancel)}</button>
       </div>
       {result.session ? (
         <dl className="tenant-meta">
-          <div><dt>Assignment</dt><dd>{result.session.assignmentId} · v{result.session.assignmentVersion}</dd></div>
-          <div><dt>Profile</dt><dd>{result.session.profileId} · v{result.session.profileVersion}</dd></div>
-          <div><dt>Project</dt><dd>{result.session.project}</dd></div>
-          <div><dt>Turns</dt><dd>{result.session.turnCount}</dd></div>
+          <div><dt>{t($ => $.session.assignment)}</dt><dd>{result.session.assignmentId} · v{result.session.assignmentVersion}</dd></div>
+          <div><dt>{t($ => $.session.profile)}</dt><dd>{result.session.profileId} · v{result.session.profileVersion}</dd></div>
+          <div><dt>{t($ => $.session.project)}</dt><dd>{result.session.project}</dd></div>
+          <div><dt>{t($ => $.session.turns)}</dt><dd>{result.session.turnCount}</dd></div>
         </dl>
       ) : null}
       <div className="prompt-template-layout">
         <article className="prompt-template-editor">
-          <label>Canonical task<input value={task} onChange={(event) => setTask(event.target.value)} /></label>
-          <label>Locale<input value={locale} onChange={(event) => setLocale(event.target.value)} /></label>
-          <label>Client turn key<input value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} /></label>
-          <label>Transient context<textarea rows={9} value={contextText} onChange={(event) => { setContextText(event.target.value); setInputFailure(""); }} /></label>
-          <button type="button" onClick={() => void executeTurn()} disabled={!result.session || Boolean(pending)}>{pending === "execute" ? "Invoking once…" : "Execute one controlled turn"}</button>
-          {inputFailure ? <p className="failure-summary">{inputFailure}</p> : null}
+          <label>{t($ => $.session.task)}<input value={task} onChange={(event) => setTask(event.target.value)} /></label>
+          <p className="boundary-note" id="agent-session-locale-note">{t($ => $.session.localeNote)}</p>
+          <label>{t($ => $.session.locale)}<input aria-describedby="agent-session-locale-note" value={locale} onChange={(event) => setLocale(event.target.value)} /></label>
+          <label>{t($ => $.session.key)}<input value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} /></label>
+          <label>{t($ => $.session.context)}<textarea rows={9} value={contextText} onChange={(event) => { setContextText(event.target.value); setInputFailure(false); }} /></label>
+          <button type="button" onClick={() => void executeTurn()} disabled={!result.session || Boolean(pending)}>{t($ => pending === "execute" ? $.session.invoking : $.session.execute)}</button>
+          {inputFailure ? <p className="failure-summary">{t($ => $.session.invalidContext)}</p> : null}
         </article>
         <article className="prompt-template-review">
-          <div className="application-api-card-heading"><div><p className="eyebrow">Current response</p><h5>{result.summary}</h5></div><span className={`status-badge ${result.response ? "good" : result.failureCode ? "bad" : "neutral"}`}>{result.response?.status ?? "none"}</span></div>
+          <div className="application-api-card-heading"><div><p className="eyebrow">{t($ => $.session.response)}</p><h5>{agentSessionMessage(t, result)}</h5></div><span className={`status-badge ${result.response ? "good" : result.failureCode ? "bad" : "neutral"}`}>{t($ => $.states[result.response?.status ?? "none"])}</span></div>
           {result.failureCode ? <p className="failure-summary">{result.failureCode} · {result.failureSummary}</p> : null}
           <ControlledUseFailureGuidance owner="agent_session" failureCode={result.failureCode} />
           {result.response ? (
             <>
               <p>{result.response.summary}</p>
               <dl className="tenant-meta">
-                <div><dt>Answers</dt><dd>{result.response.answers.length}</dd></div>
-                <div><dt>Issues</dt><dd>{result.response.issues.length}</dd></div>
-                <div><dt>Candidate actions</dt><dd>{result.response.proposedActions.length}</dd></div>
-                <div><dt>Confirmation</dt><dd>{String(result.response.requiresConfirmation)}</dd></div>
+                <div><dt>{t($ => $.session.answers)}</dt><dd>{result.response.answers.length}</dd></div>
+                <div><dt>{t($ => $.session.issues)}</dt><dd>{result.response.issues.length}</dd></div>
+                <div><dt>{t($ => $.session.actions)}</dt><dd>{result.response.proposedActions.length}</dd></div>
+                <div><dt>{t($ => $.session.confirmation)}</dt><dd>{String(result.response.requiresConfirmation)}</dd></div>
               </dl>
               {result.response.proposedActions.map((action, index) => (
                 <div className="prompt-template-summary" key={`${action.kind}-${index}`}>
@@ -204,9 +209,9 @@ export default function AgentCopilotSessionPanel({
               ))}
             </>
           ) : null}
-          <ActionSafetyReadPanel projection={result.actionSafety} title="Current response safety" transient />
-          {result.turn?.runId ? <button type="button" onClick={() => onOpenRun?.(result.turn?.runId ?? "")}>Open Run v7 evidence</button> : null}
-          <p className="boundary-note">响应不会写入 URL 或 browser storage；离开 stage、应用 revision 变化或取消请求会清除当前输入与回答并拒绝迟到响应。</p>
+          <ActionSafetyReadPanel projection={result.actionSafety} title={t($ => $.session.safety)} transient />
+          {result.turn?.runId ? <button type="button" onClick={() => onOpenRun?.(result.turn?.runId ?? "")}>{t($ => $.session.openRun)}</button> : null}
+          <p className="boundary-note">{t($ => $.session.boundary)}</p>
         </article>
       </div>
       <ApplicationResultArtifactPanel

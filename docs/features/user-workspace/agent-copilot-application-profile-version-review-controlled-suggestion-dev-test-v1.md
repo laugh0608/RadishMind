@@ -225,3 +225,10 @@ Profile owner 可以保存结构化策略源码，但不得保存 credential、t
 - 不修改 `CopilotRequest / CopilotResponse` 来绕过现有项目、任务、风险和确认边界；新增 canonical task 必须另行设计与评测。
 - 不把 Profile Version、approved candidate 或 assignment 中任一状态单独解释为正式发布；运行资格必须由 exact authority 联合决定。
 - 不从已关闭的 Prompt Application、Application RAG 或 Workflow Definition 专题原地复制一套 Agent 执行器。
+
+
+## 2026-10-07 双语界面与组合存储修复
+
+Profile、版本绑定、运行分配与 Session 的中英展示已按[国际化专题](../web-internationalization-zh-en-v1.md#d-阶段-agent-切片2026-10-07)通过独立双语两轮验收。界面语言不参与请求语言、精确引用、幂等键或权限计算，原始回答与诊断保持不变。
+
+完整浏览器调用发现，Agent invocation 构造时对组合运行存储的能力识别遗漏了其 Agent v7 目标仓储，导致真实响应缺少既定安全投影。现初始化按该目标仓储的快照能力判断，调用仍经过已有规范化和权威重验，响应 / Run 快照随既有事务保存；不改变 API、schema、权限或前端严格校验。SQLite 回归现通过与服务装配一致的组合构造验证响应快照、持久化、重启和损坏拒绝，并验证不从 Workflow / Prompt 仓储推断 Agent 能力。
