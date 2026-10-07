@@ -1,10 +1,14 @@
 # Provider 价格策略版本与应用成本审查（开发 / 测试态）v1
 
-更新时间：2026-08-12
+更新时间：2026-10-07
 
 状态：`provider_pricing_policy_version_application_cost_review_dev_test_v1_completed`
 
 实施任务卡：[Provider 价格策略版本与应用成本审查（开发 / 测试态）v1 实施任务卡](../../task-cards/provider-pricing-policy-version-application-cost-review-dev-test-v1-plan.md)
+
+## 中英界面（2026-10-07）
+
+Admin 价格策略主页面已完成中英迁移，微美元金额以整数生成六位小数显示，表单和请求仍使用原始整数。隔离 SQLite 浏览器验证理由 / 确认保持、真实版本冲突、精确范围变化及三视口；Gateway 与应用成本审查页面继续归后续 D 阶段，不以本轮管理验收替代。范围与验收见[中英国际化专题](../web-internationalization-zh-en-v1.md)及[本周周志](../../devlogs/2026-W41.md)。
 
 ## 功能目标
 

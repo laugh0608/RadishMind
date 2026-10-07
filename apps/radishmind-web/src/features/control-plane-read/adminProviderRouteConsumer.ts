@@ -190,7 +190,13 @@ export type AdminProviderRouteEnvelope = {
 export type AdminProviderRouteValidationFinding = {
   field: string;
   summary: string;
-};
+} & (
+  | { kind: "duplicateProfile"; profileId: string }
+  | { kind: "profileRef"; prefix: string }
+  | { kind: "duplicateRoute"; routeId: string }
+  | { kind: "duplicateBinding"; protocol: string; modelId: string }
+  | { kind: "revision" | "displayName" | "sensitive" | "profileCount" | "routeCount" | "profileIdentifiers" | "profileDisplayName" | "capabilities" | "mixedContracts" | "routeInvalid" | "attemptTargets" | "routeCapability" }
+);
 
 export type AdminProviderRouteDiffItem = {
   kind: "display_name" | "provider_profile" | "model_route";
@@ -282,19 +288,19 @@ export function validateAdminProviderRouteDraft(
 ): AdminProviderRouteValidationFinding[] {
   const findings: AdminProviderRouteValidationFinding[] = [];
   if (draft.expectedRevision < 0 || !Number.isInteger(draft.expectedRevision)) {
-    findings.push({ field: "expected_revision", summary: "Draft revision must be a non-negative integer." });
+    findings.push({ kind: "revision", field: "expected_revision", summary: "Draft revision must be a non-negative integer." });
   }
   if (draft.displayName.trim().length < 2 || draft.displayName.trim().length > 120) {
-    findings.push({ field: "display_name", summary: "Display name must contain 2 to 120 characters." });
+    findings.push({ kind: "displayName", field: "display_name", summary: "Display name must contain 2 to 120 characters." });
   }
   if (containsSensitiveMaterial(JSON.stringify(draft))) {
-    findings.push({ field: "draft", summary: "Credentials, endpoints, authorization material, cookies, and DSNs are forbidden." });
+    findings.push({ kind: "sensitive", field: "draft", summary: "Credentials, endpoints, authorization material, cookies, and DSNs are forbidden." });
   }
   if (draft.providerProfiles.length < 1 || draft.providerProfiles.length > 32) {
-    findings.push({ field: "provider_profiles", summary: "The draft must contain 1 to 32 provider profile assignments." });
+    findings.push({ kind: "profileCount", field: "provider_profiles", summary: "The draft must contain 1 to 32 provider profile assignments." });
   }
   if (draft.modelRoutes.length < 1 || draft.modelRoutes.length > 128) {
-    findings.push({ field: "model_routes", summary: "The draft must contain 1 to 128 model routes." });
+    findings.push({ kind: "routeCount", field: "model_routes", summary: "The draft must contain 1 to 128 model routes." });
   }
   validateProviderProfiles(config, draft.providerProfiles, findings);
   validateModelRoutes(draft.providerProfiles, draft.modelRoutes, findings);
@@ -438,23 +444,23 @@ function validateProviderProfiles(
   for (const [index, profile] of profiles.entries()) {
     const field = `provider_profiles[${index}]`;
     if (!IDENTIFIER.test(profile.profileId) || !IDENTIFIER.test(profile.providerId)) {
-      findings.push({ field, summary: "Profile and provider identifiers do not match the Admin route contract." });
+      findings.push({ kind: "profileIdentifiers", field, summary: "Profile and provider identifiers do not match the Admin route contract." });
     }
     if (profileIds.has(profile.profileId)) {
-      findings.push({ field, summary: `Profile ${profile.profileId} is duplicated.` });
+      findings.push({ kind: "duplicateProfile", profileId: profile.profileId, field, summary: `Profile ${profile.profileId} is duplicated.` });
     }
     profileIds.add(profile.profileId);
     if (profile.displayName.trim().length < 2 || profile.displayName.trim().length > 120) {
-      findings.push({ field, summary: "Profile display name must contain 2 to 120 characters." });
+      findings.push({ kind: "profileDisplayName", field, summary: "Profile display name must contain 2 to 120 characters." });
     }
     if (!profile.runtimeProfileRef.startsWith(expectedPrefix) ||
       !IDENTIFIER.test(profile.runtimeProfileRef.slice(expectedPrefix.length))) {
-      findings.push({ field, summary: `Runtime profile ref must use ${expectedPrefix}<profile>.` });
+      findings.push({ kind: "profileRef", prefix: expectedPrefix, field, summary: `Runtime profile ref must use ${expectedPrefix}<profile>.` });
     }
     if (profile.capabilities.length < 1 || profile.capabilities.length > 8 ||
       new Set(profile.capabilities).size !== profile.capabilities.length ||
       profile.capabilities.some((capability) => !isProtocol(capability))) {
-      findings.push({ field, summary: "Capabilities must be unique supported northbound protocols." });
+      findings.push({ kind: "capabilities", field, summary: "Capabilities must be unique supported northbound protocols." });
     }
   }
 }
@@ -469,20 +475,20 @@ function validateModelRoutes(
   const bindings = new Set<string>();
   const contractVersions = new Set(routes.map((route) => route.contractVersion));
   if (contractVersions.size > 1) {
-    findings.push({ field: "model_routes", summary: "Route v1 and v2 contracts cannot be mixed in one draft." });
+    findings.push({ kind: "mixedContracts", field: "model_routes", summary: "Route v1 and v2 contracts cannot be mixed in one draft." });
   }
   for (const [index, route] of routes.entries()) {
     const field = `model_routes[${index}]`;
     if (!IDENTIFIER.test(route.routeId) || !MODEL_IDENTIFIER.test(route.modelId) || !isProtocol(route.protocol)) {
-      findings.push({ field, summary: "Route identifier, protocol, or model is invalid." });
+      findings.push({ kind: "routeInvalid", field, summary: "Route identifier, protocol, or model is invalid." });
     }
     if (routeIds.has(route.routeId)) {
-      findings.push({ field, summary: `Route ${route.routeId} is duplicated.` });
+      findings.push({ kind: "duplicateRoute", routeId: route.routeId, field, summary: `Route ${route.routeId} is duplicated.` });
     }
     routeIds.add(route.routeId);
     const binding = `${route.protocol}\u0000${route.modelId}`;
     if (bindings.has(binding)) {
-      findings.push({ field, summary: `Protocol and model binding ${route.protocol} / ${route.modelId} is duplicated.` });
+      findings.push({ kind: "duplicateBinding", protocol: route.protocol, modelId: route.modelId, field, summary: `Protocol and model binding ${route.protocol} / ${route.modelId} is duplicated.` });
     }
     bindings.add(binding);
     const targetProfileIds = route.contractVersion === "v1"
@@ -493,14 +499,14 @@ function validateModelRoutes(
       if (route.attemptTargets.length !== expectedTargetCount ||
         route.attemptTargets.some((target, targetIndex) => target.ordinal !== targetIndex + 1) ||
         new Set(targetProfileIds).size !== targetProfileIds.length) {
-        findings.push({ field, summary: "Route v2 requires one or two ordered, distinct Provider Profile targets matching its execution mode." });
+        findings.push({ kind: "attemptTargets", field, summary: "Route v2 requires one or two ordered, distinct Provider Profile targets matching its execution mode." });
       }
     }
     if (targetProfileIds.some((profileId) => {
       const profile = profiles.find((item) => item.profileId === profileId);
       return !IDENTIFIER.test(profileId) || !profileIds.has(profileId) || !profile?.capabilities.includes(route.protocol);
     })) {
-      findings.push({ field, summary: "Every route target must reference a distinct profile assignment with the same protocol capability." });
+      findings.push({ kind: "routeCapability", field, summary: "Every route target must reference a distinct profile assignment with the same protocol capability." });
     }
   }
 }

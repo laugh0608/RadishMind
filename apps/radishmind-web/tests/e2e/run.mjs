@@ -18,9 +18,9 @@ await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
 const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
-const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity"];
+const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity", "admin"];
 if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
-  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection|identity selector.");
+  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection|identity|admin selector.");
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
@@ -131,11 +131,11 @@ async function runSuite(suite) {
   let exitCode = 1;
   try {
     await writeFile(configPath, "{}\n", { mode: 0o600 });
-    if (suite !== "identity") promptProvider = await startPromptProvider();
+    if (suite !== "identity" && suite !== "admin") promptProvider = await startPromptProvider();
     if (interrupted) throw new Error("Interrupted during configuration setup.");
     const launcher = start(suite === "identity" ? process.execPath : "bash", suite === "identity" ? [join(webRoot, "tests/e2e/identity-services.mjs")] : [
       join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-      "--mode", "dev-live", ...(suite === "http-tool" ? ["--workflow-definition-http-tool-local-product"] : suite === "rag-application" ? ["--workflow-rag-application-local-product"] : suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", suite === "templates" ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
+      "--mode", "dev-live", ...(suite === "http-tool" ? ["--workflow-definition-http-tool-local-product"] : suite === "rag-application" ? ["--workflow-rag-application-local-product"] : suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", (suite === "templates" || suite === "admin") ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
       "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
       "--timeout-seconds", "120", "--log-dir", join(output, "services"),
       "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),
@@ -153,6 +153,21 @@ async function runSuite(suite) {
           RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_KEY: "prompt-e2e-fixture-only",
           RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_STYLE: "openai-compatible",
           RADISHMIND_MODEL_PROFILE_PROMPT_E2E_REQUEST_TIMEOUT_SECONDS: "5",
+        } : {}),
+        ...(suite === "admin" ? {
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP: "1",
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE: "1",
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV: "1",
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT: "test",
+          RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP: "1",
+          RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE: "1",
+          RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT: "test",
+          VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_SOURCE: "dev-admin-gateway-request-quota-http",
+          VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_BASE_URL: "http://127.0.0.1:17000",
+          VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_ENVIRONMENT: "test",
+          VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_SOURCE: "dev-admin-gateway-model-pricing-http",
+          VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_BASE_URL: "http://127.0.0.1:17000",
+          VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_ENVIRONMENT: "test",
         } : {}),
         RADISHMIND_SQLITE_DEV_DATABASE_PATH: join(runtime, "workflow.db"),
       },
@@ -184,7 +199,7 @@ async function runSuite(suite) {
       startupTimer.abort();
     }
     if (interrupted) throw new Error("Interrupted during startup.");
-    console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000${promptProvider ? `; Prompt fixture ${promptProvider.url}` : "; identity only, no model provider"}.`);
+    console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000${promptProvider ? `; Prompt fixture ${promptProvider.url}` : "; no callable model provider"}.`);
     const tests = start(process.execPath, [
       join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
       "--config", "tests/e2e/playwright.config.ts", ...testArguments,

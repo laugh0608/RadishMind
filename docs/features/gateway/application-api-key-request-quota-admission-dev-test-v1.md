@@ -1,8 +1,12 @@
 # 应用 API Key 请求配额与 Provider Attempt 准入（开发 / 测试态）v1
 
-更新时间：2026-08-13
+更新时间：2026-10-07
 
 状态：`application_api_key_request_quota_admission_dev_test_v1_completed`
+
+## 中英界面（2026-10-07）
+
+Admin 配额主页面已完成中英迁移，读取、缺失策略、显式确认、版本冲突与恢复提示随界面语言更新。隔离 SQLite 浏览器验证确认状态保留、真实 stale CAS 拒绝与重载后已准入计数不变；不扩展生产配额或执行范围。范围与验收见[中英国际化专题](../web-internationalization-zh-en-v1.md)及[本周周志](../../devlogs/2026-W41.md)。
 
 ## 功能目标
 

@@ -166,6 +166,13 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     workspace_source = read_text(
         "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneWorkspace.tsx"
     )
+    owner_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneReadPanel.tsx"
+    )
+    require(
+        "AdminTenantOwner" in workspace_source and 'import("./adminControlPlaneReadPanel.tsx")' in workspace_source,
+        "Admin read owner must remain mounted through the management workspace",
+    )
     route_source = read_text(
         "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneRoute.ts"
     )
@@ -190,10 +197,10 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     for literal in (
         "AdminTenantOwner",
         "overview.canRenderTenant",
-        "Tenant summary unavailable",
-        "This is a sanitized summary projection.",
+        "$.read.tenantUnavailable",
+        "$.read.tenantBoundary",
     ):
-        require(literal in workspace_source, f"Admin tenant owner missing rendering literal: {literal}")
+        require(literal in owner_source, f"Admin tenant owner missing rendering literal: {literal}")
     require(
         'anchor: "admin-tenant-overview"' in route_source,
         "Admin tenant owner route anchor drifted",

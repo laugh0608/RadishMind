@@ -3,8 +3,8 @@ export const adminShell = {
   "quotaHeader": "S9 · 配额管理",
   "pricingHeader": "S7 · 价格管理",
   "invitations": "工作区邀请",
-  "quota": "应用请求配额",
-  "pricing": "模型提供方价格",
+  "quotaTitle": "应用请求配额",
+  "pricingTitle": "模型提供方价格",
   "administration": "管理与路由",
   "invitationHelp": "为此精确工作区创建一次性、有期限的待认领授权意图。仅在已登录的认领人完成原子认领后，成员资格与角色权限才生效。",
   "quotaHelp": "维护精确的开发／测试态应用策略及配额模块提供的 UTC 用量。",
@@ -86,5 +86,32 @@ export const adminShell = {
     "oidcTest": "OIDC 集成测试",
     "signedTest": "签名测试令牌",
     "devHeaders": "开发身份头"
+  },
+  "control": "开发 / 测试态管理",
+  "offlineOwner": "离线",
+  "loadingProvider": "正在加载受控配置…",
+  "quotaOwner": "配额 · 开发 / 测试",
+  "quotaOwnerTitle": "应用请求配额准入",
+  "quotaOwnerHelp": "读取当前 UTC 窗口配额，再审查并确认一次预期版本更新。",
+  "loadingQuota": "正在加载应用配额…",
+  "pricingOwner": "价格 · 开发 / 测试",
+  "pricingOwnerTitle": "不可变模型价格修订",
+  "pricingOwnerHelp": "读取精确模型提供方 / 配置档案 / 模型的价格策略，再审查并确认用于后续请求的 CAS 修订。",
+  "loadingPricing": "正在加载模型价格…",
+  "loadingRead": "正在加载只读记录…",
+  "developmentOwner": "{{surface}} · 开发 / 测试",
+  "owners": {
+    "provider": {
+      "title": "模型提供方目录边界",
+      "help": "引用已有运行目录，不复制端点或凭据材料。"
+    },
+    "profile": {
+      "title": "模型提供方配置档案分配",
+      "help": "在同一开发 / 测试态配置中绑定稳定配置档案引用及能力。"
+    },
+    "route": {
+      "title": "版本化模型路由",
+      "help": "先审查不可变候选，再显式切换代次，使后续网关请求使用新配置。"
+    }
   }
 } as const;

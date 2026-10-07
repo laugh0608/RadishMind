@@ -1,3 +1,9 @@
+import { useTranslation } from "react-i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import { formatDisplayNumber } from "../../i18n/formatters.ts";
+import { adminDisplayDate } from "./adminManagementFormatters.ts";
+import { quotaNoticeMessage, quotaFailureCopy, type QuotaNotice } from "./adminGatewayManagementMessages.ts";
+import "../../i18n/adminQuotaResources.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -28,6 +34,7 @@ export function AdminGatewayRequestQuotaPanel({
   applications: WorkspaceApplicationRow[];
   onSelectApplication: (applicationId: string) => void;
 }) {
+  const { t } = useTranslation("admin");
   const config = useMemo(
     () => readAdminGatewayRequestQuotaConfig({ tenantRef, workspaceId, applicationId: selectedApplicationId }),
     [selectedApplicationId, tenantRef, workspaceId],
@@ -38,7 +45,7 @@ export function AdminGatewayRequestQuotaPanel({
   const [requestLimitInput, setRequestLimitInput] = useState("");
   const [confirmationLimit, setConfirmationLimit] = useState<number | null>(null);
   const [operationPending, setOperationPending] = useState(false);
-  const [operationMessage, setOperationMessage] = useState("");
+  const [operationNotice, setOperationNotice] = useState<QuotaNotice>(null);
   const [reloadRequired, setReloadRequired] = useState(false);
   const requestGenerationRef = useRef(0);
 
@@ -49,7 +56,7 @@ export function AdminGatewayRequestQuotaPanel({
     setRequestLimitInput("");
     setConfirmationLimit(null);
     setOperationPending(false);
-    setOperationMessage("");
+    setOperationNotice(null);
     setReloadRequired(false);
     void loadQuotaOwner(config, generation);
     return () => {
@@ -77,7 +84,7 @@ export function AdminGatewayRequestQuotaPanel({
   async function loadQuotaOwner(nextConfig = config, generation = ++requestGenerationRef.current) {
     setLoadState("loading");
     setFailureCode(null);
-    setOperationMessage("");
+    setOperationNotice(null);
     try {
       const nextEnvelope = await readAdminGatewayRequestQuota(nextConfig);
       if (requestGenerationRef.current !== generation) return;
@@ -99,21 +106,21 @@ export function AdminGatewayRequestQuotaPanel({
       setEnvelope(null);
       setFailureCode(null);
       setLoadState("failed");
-      setOperationMessage("The quota response failed strict validation. No policy or usage was accepted.");
+      setOperationNotice({ key: "invalidRead" });
     }
   }
 
   function reviewUpdate() {
     const requestLimit = Number(requestLimitInput);
     if (!isValidAdminGatewayRequestQuotaLimit(requestLimit)) {
-      setOperationMessage("Request limit must be a positive integer from 1 to 1,000,000.");
+      setOperationNotice({ key: "invalidLimit" });
       return;
     }
     if (envelope?.policy && requestLimit === envelope.policy.requestLimit) {
-      setOperationMessage("Enter a different request limit before reviewing an update.");
+      setOperationNotice({ key: "unchangedLimit" });
       return;
     }
-    setOperationMessage("");
+    setOperationNotice(null);
     setConfirmationLimit(requestLimit);
   }
 
@@ -121,7 +128,7 @@ export function AdminGatewayRequestQuotaPanel({
     if (confirmationLimit === null || !isValidAdminGatewayRequestQuotaLimit(confirmationLimit)) return;
     const expectedVersion = envelope?.policy?.recordVersion ?? 0;
     setOperationPending(true);
-    setOperationMessage("");
+    setOperationNotice(null);
     try {
       const nextEnvelope = await putAdminGatewayRequestQuota(config, expectedVersion, confirmationLimit);
       if (nextEnvelope.failureCode) {
@@ -129,9 +136,9 @@ export function AdminGatewayRequestQuotaPanel({
         setConfirmationLimit(null);
         if (nextEnvelope.failureCode === "gateway_quota_policy_version_conflict") {
           setReloadRequired(true);
-          setOperationMessage("The expected version is stale. Reload the quota owner before reviewing another update.");
+          setOperationNotice({ key: "conflict" });
         } else {
-          setOperationMessage(failurePresentation(nextEnvelope.failureCode).summary);
+          setOperationNotice({ key: "failure", code: nextEnvelope.failureCode });
         }
         return;
       }
@@ -141,40 +148,41 @@ export function AdminGatewayRequestQuotaPanel({
       setRequestLimitInput(String(nextEnvelope.policy?.requestLimit ?? confirmationLimit));
       setConfirmationLimit(null);
       setReloadRequired(false);
-      setOperationMessage(`Policy version ${nextEnvelope.policy?.recordVersion ?? "unknown"} is now current.`);
+      setOperationNotice({ key: "updated", version: nextEnvelope.policy?.recordVersion ?? null });
     } catch {
-      setOperationMessage("The quota update response failed strict validation. The displayed policy is unchanged.");
+      setOperationNotice({ key: "invalidUpdate" });
     } finally {
       setOperationPending(false);
     }
   }
 
-  const failure = failureCode ? failurePresentation(failureCode) : null;
+  const operationMessage = quotaNoticeMessage(t, operationNotice);
+  const failure = failureCode ? quotaFailureCopy(t, failureCode) : null;
   const policy = envelope?.policy ?? null;
   const usage = envelope?.usage ?? null;
   const selectedStatus = loadState === "ready" && usage?.remainingRequestCount === 0
-    ? "limit reached"
+    ? t($ => $.quota.states.limitReached)
     : loadState === "ready"
-    ? "policy ready"
+    ? t($ => $.quota.states.ready)
     : loadState === "missing"
-    ? "policy missing"
+    ? t($ => $.quota.states.missing)
     : loadState === "loading"
-    ? "loading"
-    : failure?.shortLabel ?? "blocked";
+    ? t($ => $.quota.states.loading)
+    : failure?.shortLabel ?? t($ => $.quota.states.failed);
   const selectedApplication = applicationRows.find(
     (application) => application.applicationRef === selectedApplicationId,
   );
   const selectedApplicationName = selectedApplication?.displayName || selectedApplicationDisplayName ||
-    selectedApplicationId || "Select one application";
+    selectedApplicationId || t($ => $.quota.selectApplication);
 
   return (
     <div className="admin-gateway-quota-workspace" data-load-state={loadState}>
-      <aside className="admin-gateway-quota-applications" aria-label="Application quota policies">
+      <aside className="admin-gateway-quota-applications" aria-label={t($ => $.quota.policiesLabel)}>
         <header>
-          <span>Application policies</span>
-          <strong>{selectedApplicationId ? "One current detail" : "Selection required"}</strong>
+          <span>{t($ => $.quota.policies)}</span>
+          <strong>{selectedApplicationId ? t($ => $.quota.oneDetail) : t($ => $.quota.selectionRequired)}</strong>
         </header>
-        <div role="listbox" aria-label="Applications in the active workspace">
+        <div role="listbox" aria-label={t($ => $.quota.applicationList)}>
           {applicationRows.length ? applicationRows.map((application) => {
             const selected = application.applicationRef === selectedApplicationId;
             return (
@@ -190,32 +198,30 @@ export function AdminGatewayRequestQuotaPanel({
                 <span>
                   <strong>{application.displayName}</strong>
                   <small>{application.applicationRef}</small>
-                  <small>{application.lifecycleState ?? "development/test"}</small>
+                  <small>{application.lifecycleState ? t($ => $.quota.states[application.lifecycleState!]) : t($ => $.quota.devTest)}</small>
                 </span>
                 <em className={selected && usage?.remainingRequestCount === 0 ? "attention" : "neutral"}>
-                  {selected ? selectedStatus : "not loaded"}
+                  {selected ? selectedStatus : t($ => $.quota.notLoaded)}
                 </em>
               </button>
             );
           }) : (
-            <p className="admin-gateway-quota-empty">No application owner exists in the active workspace.</p>
+            <p className="admin-gateway-quota-empty">{t($ => $.quota.noApplications)}</p>
           )}
         </div>
         <p className="admin-gateway-quota-selection-note">
-          Only the application driving this detail receives the ink-blue selection track. Policy state remains a
-          separate text badge.
-        </p>
+          {t($ => $.quota.selectionNote)}</p>
       </aside>
 
       <section className="admin-gateway-quota-detail" aria-labelledby="admin-gateway-quota-detail-title">
         <header className="admin-gateway-quota-context">
           <div>
-            <span>Selected application</span>
+            <span>{t($ => $.quota.selectedApplication)}</span>
             <strong>{selectedApplicationName}</strong>
           </div>
           <div>
             <code>{selectedApplicationId || "selection_required"}</code>
-            <small>authority: admin_gateway_quotas:read / write</small>
+            <small>{t($ => $.quota.authority)}</small>
             <QuotaStatus
               tone={usage?.remainingRequestCount === 0 ? "attention" : loadState === "ready" ? "ready" : "blocked"}
             >
@@ -227,20 +233,20 @@ export function AdminGatewayRequestQuotaPanel({
         <section className="admin-gateway-quota-owner" aria-live="polite">
           <header>
             <div>
-              <p className="eyebrow">Quota · admin_gateway_quotas:read / write</p>
-              <h5 id="admin-gateway-quota-detail-title">UTC daily provider-attempt policy</h5>
-              <p>Usage comes from the quota owner, never from Request History or the legacy QuotaSummary.</p>
+              <p className="eyebrow">{t($ => $.quota.eyebrow)}</p>
+              <h5 id="admin-gateway-quota-detail-title">{t($ => $.quota.title)}</h5>
+              <p>{t($ => $.quota.usageSource)}</p>
             </div>
             <span className="admin-gateway-quota-version">
-              {policy ? `version ${policy.recordVersion}` : loadState.replaceAll("_", " ")}
+              {policy ? t($ => $.quota.version, { version: policy.recordVersion }) : t($ => $.quota.states[loadState])}
             </span>
           </header>
 
           <dl className="admin-gateway-quota-scope">
-            <div><dt>Tenant</dt><dd>{config.tenantRef}</dd></div>
-            <div><dt>Workspace</dt><dd>{config.workspaceId}</dd></div>
-            <div><dt>Environment</dt><dd>{config.environment}</dd></div>
-            <div><dt>Application</dt><dd>{config.applicationId || "selection required"}</dd></div>
+            <div><dt>{t($ => $.quota.tenant)}</dt><dd>{config.tenantRef}</dd></div>
+            <div><dt>{t($ => $.quota.workspace)}</dt><dd>{config.workspaceId}</dd></div>
+            <div><dt>{t($ => $.quota.environment)}</dt><dd>{config.environment}</dd></div>
+            <div><dt>{t($ => $.quota.application)}</dt><dd>{config.applicationId || t($ => $.quota.selectRequired)}</dd></div>
           </dl>
 
           {loadState === "loading" ? <QuotaLoading /> : null}
@@ -284,9 +290,7 @@ export function AdminGatewayRequestQuotaPanel({
 
         <p className="admin-gateway-quota-boundary">
           <span aria-hidden="true">!</span>
-          Production quota, token/cost limits, billing, delete/disable, automatic increase, automatic routing,
-          formal membership and OIDC remain closed.
-        </p>
+          {t($ => $.quota.boundary)}</p>
       </section>
     </div>
   );
@@ -319,29 +323,31 @@ function QuotaReady({
   onConfirmUpdate: () => void;
   onReload: () => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   const fraction = Math.min(100, Math.max(0, (usage.admittedRequestCount / policy.requestLimit) * 100));
   return (
     <div className="admin-gateway-quota-owner-state">
       <div className={`admin-gateway-quota-usage ${usage.remainingRequestCount === 0 ? "is-exceeded" : ""}`}>
         <div>
-          <span>UTC window · {usage.periodStart}</span>
-          <strong>{usage.admittedRequestCount} / {policy.requestLimit}</strong>
-          <small>admitted provider attempts</small>
-          <div className="admin-gateway-quota-progress" aria-label={`${fraction.toFixed(0)}% of the request limit admitted`}>
+          <span title={usage.periodStart}>{t($ => $.quota.window, { periodStart: adminDisplayDate(usage.periodStart, locale) })}</span>
+          <strong>{t($ => $.quota.usage, { admitted: formatDisplayNumber(usage.admittedRequestCount, locale) ?? t($ => $.quota.states.unknown), limit: formatDisplayNumber(policy.requestLimit, locale) ?? t($ => $.quota.states.unknown) })}</strong>
+          <small>{t($ => $.quota.admittedAttempts)}</small>
+          <div className="admin-gateway-quota-progress" aria-label={t($ => $.quota.progress, { percent: fraction.toFixed(0) })}>
             <i style={{ width: `${fraction}%` }} />
           </div>
         </div>
         <aside>
-          <strong>{usage.remainingRequestCount}</strong>
-          <span>remaining today</span>
+          <strong>{formatDisplayNumber(usage.remainingRequestCount, locale)}</strong>
+          <span>{t($ => $.quota.remaining)}</span>
           {usage.remainingRequestCount === 0 ? <small>gateway_quota_exceeded</small> : null}
         </aside>
       </div>
       <dl className="admin-gateway-quota-policy-meta">
-        <div><dt>Policy</dt><dd>{policy.policyId}</dd></div>
-        <div><dt>Period</dt><dd>{policy.period}</dd></div>
-        <div><dt>Record version</dt><dd>{policy.recordVersion}</dd></div>
-        <div><dt>Updated by</dt><dd>{policy.updatedBy}</dd></div>
+        <div><dt>{t($ => $.quota.policy)}</dt><dd>{policy.policyId}</dd></div>
+        <div><dt>{t($ => $.quota.period)}</dt><dd>{policy.period}</dd></div>
+        <div><dt>{t($ => $.quota.recordVersion)}</dt><dd>{policy.recordVersion}</dd></div>
+        <div><dt>{t($ => $.quota.updatedBy)}</dt><dd>{policy.updatedBy}</dd></div>
       </dl>
       <QuotaUpdateEditor
         currentLimit={policy.requestLimit}
@@ -380,15 +386,15 @@ function QuotaMissingPolicy({
   onCancelConfirmation: () => void;
   onConfirmUpdate: () => void;
 }) {
+  const { t } = useTranslation("admin");
   return (
     <div className="admin-gateway-quota-owner-state">
       <div className="admin-gateway-quota-missing">
         <span aria-hidden="true">∅</span>
         <div>
-          <strong>No quota policy exists for this exact application scope</strong>
+          <strong>{t($ => $.quota.missingTitle)}</strong>
           <p>
-            Create a positive UTC daily request limit with <code>expected_version = 0</code>. Missing policy remains
-            fail-closed and is not replaced by Request History or the legacy QuotaSummary.
+            {t($ => $.quota.missingHelp)}
           </p>
         </div>
       </div>
@@ -437,6 +443,8 @@ function QuotaUpdateEditor({
   onConfirmUpdate: () => void;
   onReload: () => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   return (
     <div className="admin-gateway-quota-update-layout">
       <form
@@ -446,12 +454,11 @@ function QuotaUpdateEditor({
           onReviewUpdate();
         }}
       >
-        <span>Policy update</span>
-        <strong>{currentLimit === null ? "Create UTC daily request limit" : "Change UTC daily request limit"}</strong>
-        <small>Positive integers only · 1–1,000,000 · no delete or disable</small>
+        <span>{t($ => $.quota.policyUpdate)}</span>
+        <strong>{currentLimit === null ? t($ => $.quota.createLimit) : t($ => $.quota.changeLimit)}</strong>
+        <small>{t($ => $.quota.limitHelp)}</small>
         <label>
-          Request limit
-          <input
+          {t($ => $.quota.requestLimit)}<input
             type="number"
             min="1"
             max="1000000"
@@ -463,34 +470,31 @@ function QuotaUpdateEditor({
           />
         </label>
         {reloadRequired ? (
-          <button type="button" className="secondary-action" onClick={onReload}>Reload current policy</button>
+          <button type="button" className="secondary-action" onClick={onReload}>{t($ => $.quota.reload)}</button>
         ) : (
-          <button type="submit" className="primary-action" disabled={operationPending}>Review update</button>
+          <button type="submit" className="primary-action" disabled={operationPending}>{t($ => $.quota.reviewUpdate)}</button>
         )}
       </form>
       {confirmationLimit !== null ? (
-        <section className="admin-gateway-quota-confirmation" aria-label="Quota policy update confirmation">
-          <span>Confirmation · expected version {expectedVersion}</span>
-          <strong>{currentLimit === null ? "Create" : `Update ${currentLimit} →`} {confirmationLimit} requests</strong>
+        <section className="admin-gateway-quota-confirmation" aria-label={t($ => $.quota.confirmationLabel)}>
+          <span>{t($ => $.quota.confirmationVersion, { version: expectedVersion })}</span>
+          <strong>{currentLimit === null ? t($ => $.quota.createRequests, { limit: formatDisplayNumber(confirmationLimit, locale) ?? t($ => $.quota.states.unknown) }) : t($ => $.quota.updateRequests, { current: formatDisplayNumber(currentLimit, locale) ?? t($ => $.quota.states.unknown), limit: formatDisplayNumber(confirmationLimit, locale) ?? t($ => $.quota.states.unknown) })}</strong>
           <p>
-            The exact tenant, workspace, environment and application scope changes. The current admitted count is
-            never reset or recalculated.
-          </p>
-          <small>If the expected version is stale, the write is rejected and this owner must be reloaded.</small>
+            {t($ => $.quota.confirmationHelp)}</p>
+          <small>{t($ => $.quota.staleHelp)}</small>
           <div>
             <button type="button" className="secondary-action" disabled={operationPending} onClick={onCancelConfirmation}>
-              Cancel
-            </button>
+              {t($ => $.quota.cancel)}</button>
             <button type="button" className="primary-action" disabled={operationPending} onClick={onConfirmUpdate}>
-              {operationPending ? "Updating…" : "Confirm update"}
+              {operationPending ? t($ => $.quota.updating) : t($ => $.quota.confirmUpdate)}
             </button>
           </div>
         </section>
       ) : (
-        <section className="admin-gateway-quota-cas-summary" aria-label="Quota policy CAS boundary">
-          <span>CAS guard</span>
-          <strong>Expected version {expectedVersion}</strong>
-          <p>Review opens an explicit confirmation. No update is sent from this editor directly.</p>
+        <section className="admin-gateway-quota-cas-summary" aria-label={t($ => $.quota.casLabel)}>
+          <span>{t($ => $.quota.casGuard)}</span>
+          <strong>{t($ => $.quota.expectedVersion, { version: expectedVersion })}</strong>
+          <p>{t($ => $.quota.reviewHelp)}</p>
         </section>
       )}
       {operationMessage ? <p className="admin-gateway-quota-operation" role="status">{operationMessage}</p> : null}
@@ -499,11 +503,12 @@ function QuotaUpdateEditor({
 }
 
 function QuotaLoading() {
+  const { t } = useTranslation("admin");
   return (
     <div className="admin-gateway-quota-loading" aria-live="polite">
-      <span>Loading the exact quota owner…</span>
+      <span>{t($ => $.quota.loading)}</span>
       <i /><i /><i />
-      <small>Policy update remains disabled while the owner is unresolved.</small>
+      <small>{t($ => $.quota.loadingHelp)}</small>
     </div>
   );
 }
@@ -515,12 +520,13 @@ function QuotaFailure({
   onRetry,
 }: {
   config: AdminGatewayRequestQuotaConfig;
-  presentation: ReturnType<typeof failurePresentation> | null;
+  presentation: ReturnType<typeof quotaFailureCopy> | null;
   message: string;
   onRetry: () => void;
 }) {
-  const title = presentation?.title ?? "Quota response unavailable";
-  const summary = message || presentation?.summary || "No policy or usage was accepted.";
+  const { t } = useTranslation("admin");
+  const title = presentation?.title ?? t($ => $.quota.unavailableTitle);
+  const summary = message || presentation?.summary || t($ => $.quota.noAcceptedPolicy);
   return (
     <div className="admin-gateway-quota-failure" role="alert">
       <span aria-hidden="true">!</span>
@@ -529,7 +535,7 @@ function QuotaFailure({
         <p>{summary}</p>
         <small>{presentation?.code ?? "strict_response_validation_failed"}</small>
         {config.mode === "dev_admin_gateway_request_quota_http" ? (
-          <button type="button" className="secondary-action" onClick={onRetry}>Retry exact owner</button>
+          <button type="button" className="secondary-action" onClick={onRetry}>{t($ => $.quota.retry)}</button>
         ) : null}
       </div>
     </div>
@@ -544,69 +550,4 @@ function QuotaStatus({
   children: string;
 }) {
   return <span className={`admin-gateway-quota-status is-${tone}`}>{children}</span>;
-}
-
-function failurePresentation(code: AdminGatewayRequestQuotaFailureCode) {
-  const presentations: Record<AdminGatewayRequestQuotaFailureCode, {
-    code: AdminGatewayRequestQuotaFailureCode;
-    shortLabel: string;
-    title: string;
-    summary: string;
-  }> = {
-    gateway_quota_disabled: {
-      code,
-      shortLabel: "HTTP closed",
-      title: "Development/test quota management is closed",
-      summary: "The Admin read or write gate is disabled. No fallback policy is available.",
-    },
-    gateway_quota_scope_denied: {
-      code,
-      shortLabel: "permission blocked",
-      title: "Quota permission is denied",
-      summary: "The exact admin_gateway_quotas read or write permission is required for this workspace.",
-    },
-    gateway_quota_environment_forbidden: {
-      code,
-      shortLabel: "environment blocked",
-      title: "Environment is outside the development/test boundary",
-      summary: "Only development or test is accepted. Production quota remains closed.",
-    },
-    gateway_quota_payload_invalid: {
-      code,
-      shortLabel: "payload rejected",
-      title: "Quota update payload was rejected",
-      summary: "The owner accepted neither the policy nor the usage response. Review the positive integer limit.",
-    },
-    gateway_quota_policy_not_found: {
-      code,
-      shortLabel: "policy missing",
-      title: "Quota policy is missing",
-      summary: "Create the first policy with expected version 0. Missing policy remains fail-closed.",
-    },
-    gateway_quota_policy_version_conflict: {
-      code,
-      shortLabel: "version conflict",
-      title: "Quota policy version changed",
-      summary: "The stale write was rejected. Reload the exact owner before reviewing another update.",
-    },
-    gateway_quota_attempt_conflict: {
-      code,
-      shortLabel: "attempt conflict",
-      title: "Quota admission attempt conflicts",
-      summary: "The provider attempt did not proceed. Reload the quota owner before another management action.",
-    },
-    gateway_quota_exceeded: {
-      code,
-      shortLabel: "limit reached",
-      title: "UTC daily request limit is reached",
-      summary: "New provider attempts are blocked. The status does not change the selected application.",
-    },
-    gateway_quota_store_unavailable: {
-      code,
-      shortLabel: "store unavailable",
-      title: "Quota store is unavailable",
-      summary: "The exact quota owner cannot be read. The application is not treated as unlimited.",
-    },
-  };
-  return presentations[code];
 }

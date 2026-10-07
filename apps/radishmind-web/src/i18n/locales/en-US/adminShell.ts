@@ -3,8 +3,8 @@ export const adminShell = {
   "quotaHeader": "S9 · Admin Quota Admission",
   "pricingHeader": "S7 · Admin Pricing",
   "invitations": "Workspace invitations",
-  "quota": "Application request quota",
-  "pricing": "Provider model pricing",
+  "quotaTitle": "Application request quota",
+  "pricingTitle": "Provider model pricing",
   "administration": "Administration and routing",
   "invitationHelp": "Issue one-time, time-limited access intent for this exact workspace. Membership and role access begin only after a signed-in claimant completes the atomic claim.",
   "quotaHelp": "Maintain the exact development/test application policy and its quota-owner UTC usage.",
@@ -86,5 +86,32 @@ export const adminShell = {
     "oidcTest": "OIDC integration test",
     "signedTest": "Signed test token",
     "devHeaders": "Development headers"
+  },
+  "control": "dev/test control",
+  "offlineOwner": "offline",
+  "loadingProvider": "Loading controlled configuration owner…",
+  "quotaOwner": "Quota · development / test",
+  "quotaOwnerTitle": "Application request quota admission",
+  "quotaOwnerHelp": "Read the current UTC owner, then review and confirm one expected-version policy update.",
+  "loadingQuota": "Loading application quota owner…",
+  "pricingOwner": "Pricing · development / test",
+  "pricingOwnerTitle": "Immutable model pricing revisions",
+  "pricingOwnerHelp": "Read one exact Provider / Profile / Model owner, then review and confirm a CAS revision for future requests.",
+  "loadingPricing": "Loading model pricing owner…",
+  "loadingRead": "Loading read-only records…",
+  "developmentOwner": "{{surface}} · development / test",
+  "owners": {
+    "provider": {
+      "title": "Provider inventory boundary",
+      "help": "Reference existing runtime inventory without copying endpoint or credential material."
+    },
+    "profile": {
+      "title": "Provider Profile assignments",
+      "help": "Bind stable profile references and capabilities inside one development/test configuration."
+    },
+    "route": {
+      "title": "Versioned model routes",
+      "help": "Review immutable candidates before an explicit generation switch changes later Gateway requests."
+    }
   }
 } as const;

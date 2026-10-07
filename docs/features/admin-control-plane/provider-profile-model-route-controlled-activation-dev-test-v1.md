@@ -1,8 +1,12 @@
 # Provider Profile / Model Route 配置草案、版本审查与受控启用（开发 / 测试态）v1
 
-更新时间：2026-07-26
+更新时间：2026-10-07
 
 状态：`admin_provider_route_controlled_activation_dev_test_v1_completed`
+
+## 中英界面（2026-10-07）
+
+Provider / Profile / Route 草案、候选差异、审查、激活、回滚和代次历史主页面已完成中英迁移。独立管理组通过审查等待时切换、原文保持、显式激活 / 回滚及三视口验收；版本、摘要、请求与权限保持原契约，本轮不执行模型调用。范围与验收见[中英国际化专题](../web-internationalization-zh-en-v1.md)及[本周周志](../../devlogs/2026-W41.md)。
 
 ## 当前结论
 

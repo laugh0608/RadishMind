@@ -21365,6 +21365,12 @@ textarea {
   justify-self: start;
 }
 
+.admin-provider-route-history-list article,
+.admin-provider-route-history-list article > p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .admin-provider-route-handoffs {
   justify-content: flex-start;
 }
