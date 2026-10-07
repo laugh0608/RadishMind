@@ -1,3 +1,10 @@
+import { useTranslation } from "react-i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import { formatDisplayNumber } from "../../i18n/formatters.ts";
+import "../../i18n/identityMemberResources.ts";
+import { identityRoleCopy } from "./localIdentityRoleMessages.ts";
+import { memberFailure, memberFailureCopy, memberSuccessMessage, memberDate, type MemberFailure, type MemberSuccess } from "./localIdentityMemberMessages.ts";
+import type { TFunction } from "i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -6,15 +13,12 @@ import {
   createLocalIdentityWorkspaceMembership,
   isValidLocalIdentityAdministrationUserId,
   listLocalIdentityWorkspaceMembers,
-  localIdentityAdministrationFailureKind,
   normalizeLocalIdentityAdministrationExpiration,
   readLocalIdentityRoleCatalog,
   readLocalIdentityWorkspaceMember,
   revokeLocalIdentityWorkspaceMembership,
   revokeLocalIdentityWorkspaceRole,
-  toLocalIdentityAdministrationError,
   type LocalIdentityAdministrationConfig,
-  type LocalIdentityAdministrationFailureKind,
   type LocalIdentityMembershipState,
   type LocalIdentityRoleCatalog,
   type LocalIdentityRoleDefinition,
@@ -28,12 +32,7 @@ import { useLocalIdentity } from "./localIdentityGateway.tsx";
 
 type LoadStatus = "idle" | "loading" | "ready" | "empty" | "denied" | "unavailable" | "failed";
 
-type LoadFailure = {
-  kind: LocalIdentityAdministrationFailureKind;
-  code: string;
-  message: string;
-  recovery: string;
-};
+type LoadFailure = MemberFailure;
 
 type MutationCandidate =
   | { kind: "membership_create"; userId: string; expiresAt?: string }
@@ -58,14 +57,12 @@ type MutationCandidate =
       expectedRecordVersion: number;
     };
 
-type OperationNotice = {
-  kind: "idle" | "success" | LocalIdentityAdministrationFailureKind;
-  code: string;
-  message: string;
-  recovery: string;
-};
+type OperationNotice =
+  | { kind: "idle"; code: "" }
+  | { kind: "success"; code: "mutation_succeeded"; success: MemberSuccess }
+  | (MemberFailure & { input?: "membership" | "role" });
 
-const EMPTY_OPERATION: OperationNotice = { kind: "idle", code: "", message: "", recovery: "" };
+const EMPTY_OPERATION: OperationNotice = { kind: "idle", code: "" };
 
 export function LocalIdentityAdministrationPanel({
   surface,
@@ -108,6 +105,7 @@ function LocalIdentityAdministrationWorkspace({
   baseConfig: { mode: "disabled" | "local_identity_dev"; baseUrl: string };
   refreshIdentity: () => Promise<void>;
 }) {
+  const { t } = useTranslation("identity");
   const config = useMemo<LocalIdentityAdministrationConfig>(() => ({
     ...baseConfig,
     tenantRef: tenantRef.trim(),
@@ -196,7 +194,7 @@ function LocalIdentityAdministrationWorkspace({
       })
       .catch((error: unknown) => {
         if (isAbort(error) || !mounted.current || directoryGeneration.current !== generation) return;
-        const failure = loadFailure(error);
+        const failure = memberFailure(error);
         setDirectoryStatus(loadStatusForFailure(failure));
         setDirectoryFailure(failure);
       });
@@ -222,7 +220,7 @@ function LocalIdentityAdministrationWorkspace({
       })
       .catch((error: unknown) => {
         if (isAbort(error) || !mounted.current || detailGeneration.current !== generation) return;
-        const failure = loadFailure(error);
+        const failure = memberFailure(error);
         setDetailStatus(loadStatusForFailure(failure));
         setDetailFailure(failure);
       });
@@ -249,7 +247,7 @@ function LocalIdentityAdministrationWorkspace({
       })
       .catch((error: unknown) => {
         if (isAbort(error) || !mounted.current || catalogGeneration.current !== generation) return;
-        const failure = loadFailure(error);
+        const failure = memberFailure(error);
         setCatalogStatus(loadStatusForFailure(failure));
         setCatalogFailure(failure);
       });
@@ -333,7 +331,7 @@ function LocalIdentityAdministrationWorkspace({
       setNextCursor(page.nextCursor);
     } catch (error) {
       if (!mounted.current || directoryGeneration.current !== generation) return;
-      const failure = loadFailure(error);
+      const failure = memberFailure(error);
       setMembers([]);
       setNextCursor("");
       setSelectedUserId("");
@@ -354,8 +352,7 @@ function LocalIdentityAdministrationWorkspace({
       setOperation({
         kind: "failed",
         code: "local_identity_input_invalid",
-        message: "Enter one exact user_id and an optional valid ISO 8601 expiration.",
-        recovery: "correct_request",
+        input: "membership",
       });
       setCandidate(null);
       return;
@@ -371,8 +368,7 @@ function LocalIdentityAdministrationWorkspace({
       setOperation({
         kind: "failed",
         code: "local_identity_input_invalid",
-        message: "Select one canonical role for a member with an effective exact membership.",
-        recovery: "correct_request",
+        input: "role",
       });
       setCandidate(null);
       return;
@@ -414,16 +410,16 @@ function LocalIdentityAdministrationWorkspace({
     setMutationPending(true);
     setOperation(EMPTY_OPERATION);
     try {
-      let message = "";
+      let success: MemberSuccess;
       let preferredUserId = candidate.userId;
       let preferredMembershipId = selectedMembershipId;
       if (candidate.kind === "membership_create") {
         const result = await createLocalIdentityWorkspaceMembership(config, candidate);
-        message = `Membership ${result.membership.membershipId} was created from the canonical response.`;
+        success = { kind: "membershipCreated", membershipId: result.membership.membershipId };
         preferredMembershipId = "";
       } else if (candidate.kind === "membership_revoke") {
         const result = await revokeLocalIdentityWorkspaceMembership(config, candidate);
-        message = `Membership revoked with ${result.revokedRoleAssignments.length} workspace role assignment(s) revoked atomically.`;
+        success = { kind: "membershipRevoked", count: result.revokedRoleAssignments.length };
         preferredUserId = "";
         preferredMembershipId = "";
       } else if (candidate.kind === "role_assign") {
@@ -434,13 +430,13 @@ function LocalIdentityAdministrationWorkspace({
           expectedRoleDefinitionDigest: candidate.role.definitionDigest,
           ...(candidate.expiresAt ? { expiresAt: candidate.expiresAt } : {}),
         });
-        message = `${result.roleAssignment.roleKey} was assigned from the server-owned catalog.`;
+        success = { kind: "roleAssigned", roleKey: result.roleAssignment.roleKey };
       } else {
         const result = await revokeLocalIdentityWorkspaceRole(config, candidate);
-        message = `${result.roleAssignment.roleKey} was revoked at record v${result.roleAssignment.recordVersion}.`;
+        success = { kind: "roleRevoked", roleKey: result.roleAssignment.roleKey, version: result.roleAssignment.recordVersion };
       }
       if (!mounted.current || mutationGeneration.current !== generation) return;
-      setOperation({ kind: "success", code: "mutation_succeeded", message, recovery: "" });
+      setOperation({ kind: "success", code: "mutation_succeeded", success });
       clearMutationDrafts();
       setMutationPending(false);
       preferredSelection.current = { userId: preferredUserId, membershipId: preferredMembershipId };
@@ -452,10 +448,10 @@ function LocalIdentityAdministrationWorkspace({
       void refreshIdentity();
     } catch (error) {
       if (!mounted.current || mutationGeneration.current !== generation) return;
-      const failure = loadFailure(error);
+      const failure = memberFailure(error);
       const kind = failure.kind;
       setCandidate(null);
-      setOperation({ kind, code: failure.code, message: failure.message, recovery: failure.recovery });
+      setOperation(failure);
       if (kind === "denied" || kind === "unavailable") {
         directoryGeneration.current += 1;
         detailGeneration.current += 1;
@@ -494,26 +490,26 @@ function LocalIdentityAdministrationWorkspace({
     >
       <header>
         <div>
-          <p className="eyebrow">{surface === "user" ? "User" : "Role"} · local identity administration</p>
+          <p className="eyebrow">{surface === "user" ? t($ => $.members.user) : t($ => $.members.role)}{t($ => $.members.administrationSuffix)}</p>
           <h4 id="local-identity-administration-title">
-            {surface === "user" ? "Workspace members" : "Member role assignments"}
+            {surface === "user" ? t($ => $.members.members) : t($ => $.members.memberRoles)}
           </h4>
           <p>
             {surface === "user"
-              ? "Inspect one exact workspace directory; selection drives the subordinate member inspector."
-              : "Keep the selected member, compare frozen assignments with the server-owned catalog, then review one mutation."}
+              ? t($ => $.members.membersHelp)
+              : t($ => $.members.rolesHelp)}
           </p>
         </div>
         <span className={`admin-control-status is-${directoryStatus === "ready" ? "ready" : directoryStatus === "denied" || directoryStatus === "unavailable" ? "blocked" : "neutral"}`}>
-          {directoryStatus === "ready" ? "local session" : directoryStatus}
+          {directoryStatus === "ready" ? t($ => $.members.localSession) : t($ => $.members.states[directoryStatus])}
         </span>
       </header>
 
       <dl className="local-identity-administration-scope">
-        <div><dt>Tenant</dt><dd>{config.tenantRef}</dd><small>verified actor scope</small></div>
-        <div><dt>Workspace</dt><dd>{config.workspaceId}</dd><small>active membership</small></div>
-        <div><dt>Permission</dt><dd>{surface === "user" ? "members:read" : "roles:read + assign"}</dd><small>re-read per request</small></div>
-        <div><dt>{surface === "user" ? "Cursor" : "Catalog"}</dt><dd>{surface === "user" ? "filter-bound" : catalog?.catalogVersion ?? catalogStatus}</dd><small>volatile browser state</small></div>
+        <div><dt>{t($ => $.members.tenant)}</dt><dd>{config.tenantRef}</dd><small>{t($ => $.members.verifiedScope)}</small></div>
+        <div><dt>{t($ => $.members.workspace)}</dt><dd>{config.workspaceId}</dd><small>{t($ => $.members.activeMembership)}</small></div>
+        <div><dt>{t($ => $.members.permission)}</dt><dd>{surface === "user" ? "members:read" : "roles:read + assign"}</dd><small>{t($ => $.members.perRequest)}</small></div>
+        <div><dt>{surface === "user" ? t($ => $.members.cursor) : t($ => $.members.catalog)}</dt><dd>{surface === "user" ? t($ => $.members.filterBound) : catalog?.catalogVersion ?? t($ => $.members.states[catalogStatus])}</dd><small>{t($ => $.members.volatileState)}</small></div>
       </dl>
 
       {operation.kind !== "idle" ? (
@@ -611,11 +607,7 @@ function LocalIdentityAdministrationWorkspace({
       ) : null}
 
       <p className="local-identity-administration-boundary">
-        <span aria-hidden="true">!</span>
-        Local development/test authority only. No global account search, email lookup, invite, custom role, client grants,
-        bootstrap HTTP, Radish directory lookup or production IAM is available. Directory and confirmation state remain
-        memory-only and are discarded on workspace, session, authorization or successful mutation change.
-      </p>
+        <span aria-hidden="true">!</span>{t($ => $.members.boundary)}</p>
     </section>
   );
 }
@@ -665,29 +657,31 @@ function MemberDirectory({
   onCreateExpiresAt: (value: string) => void;
   onReviewCreate: () => void;
 }) {
+  const { t } = useTranslation("identity");
+  const { locale } = useLocalePreference();
   return (
     <section className="local-identity-member-directory" aria-labelledby="local-identity-directory-title">
       <header>
-        <div><span>Workspace member directory</span><h5 id="local-identity-directory-title">{membershipState === "active" ? "Active members" : "Revoked membership history"}</h5></div>
+        <div><span>{t($ => $.members.directoryTitle)}</span><h5 id="local-identity-directory-title">{membershipState === "active" ? t($ => $.members.activeMembers) : t($ => $.members.revokedHistory)}</h5></div>
         <button type="button" className="secondary-action" onClick={onToggleCreate} disabled={!mutationsEnabled || mutationPending}>
-          {createOpen ? "Close exact user form" : "Add exact user"}
+          {createOpen ? t($ => $.members.closeUserForm) : t($ => $.members.addExactUser)}
         </button>
       </header>
-      <div className="local-identity-directory-filters" aria-label="Membership lifecycle filter">
-        <button type="button" aria-pressed={membershipState === "active"} onClick={() => onMembershipState("active")}>Active</button>
-        <button type="button" aria-pressed={membershipState === "revoked"} onClick={() => onMembershipState("revoked")}>Revoked</button>
-        <span>membership_state · limit 100</span>
+      <div className="local-identity-directory-filters" aria-label={t($ => $.members.lifecycleFilter)}>
+        <button type="button" aria-pressed={membershipState === "active"} onClick={() => onMembershipState("active")}>{t($ => $.members.activeFilter)}</button>
+        <button type="button" aria-pressed={membershipState === "revoked"} onClick={() => onMembershipState("revoked")}>{t($ => $.members.revokedFilter)}</button>
+        <span>{t($ => $.members.pageLimit)}</span>
       </div>
       {createOpen ? (
         <div className="local-identity-membership-create">
-          <label>Exact user_id<input value={createUserId} onChange={(event) => onCreateUserId(event.target.value)} placeholder="usr_…" autoComplete="off" /></label>
-          <label>Expires at · optional ISO 8601<input value={createExpiresAt} onChange={(event) => onCreateExpiresAt(event.target.value)} placeholder="2026-09-01T00:00:00Z" autoComplete="off" /></label>
-          <button type="button" onClick={onReviewCreate} disabled={!mutationsEnabled || mutationPending}>Review membership</button>
-          <small>Only exact user_id is accepted. No account, email or upstream directory lookup occurs.</small>
+          <label>{t($ => $.members.exactUserId)}<input value={createUserId} onChange={(event) => onCreateUserId(event.target.value)} placeholder="usr_…" autoComplete="off" /></label>
+          <label>{t($ => $.members.expiresInput)}<input value={createExpiresAt} onChange={(event) => onCreateExpiresAt(event.target.value)} placeholder="2026-09-01T00:00:00Z" autoComplete="off" /></label>
+          <button type="button" onClick={onReviewCreate} disabled={!mutationsEnabled || mutationPending}>{t($ => $.members.reviewMembership)}</button>
+          <small>{t($ => $.members.exactUserHelp)}</small>
         </div>
       ) : null}
-      {status === "loading" ? <StateNotice state="loading" title="Loading exact workspace members" /> : null}
-      {status === "empty" ? <StateNotice state="empty" title={`No ${membershipState} memberships are recorded`} /> : null}
+      {status === "loading" ? <StateNotice state="loading" title={t($ => $.members.loadingMembers)} /> : null}
+      {status === "empty" ? <StateNotice state="empty" title={t($ => $.members.emptyMemberships, { state: t($ => $.members.states[membershipState]) })} /> : null}
       {status === "denied" || status === "unavailable" || status === "failed" ? (
         <StateFailure failure={failure} onRetry={onRetry} />
       ) : null}
@@ -705,8 +699,8 @@ function MemberDirectory({
               <span className="local-identity-member-avatar" aria-hidden="true">{initials(member.displayName)}</span>
               <span><strong>{member.displayName}</strong><small>{member.userId}</small></span>
               <span className="local-identity-member-role">
-                <strong>{member.roleKeys[0] ?? "no assignment"}</strong>
-                <small>{member.roleCatalogDrift ? "catalog drift" : member.membershipEffective ? "effective" : member.membershipLifecycleState}</small>
+                <strong>{member.roleKeys[0] ?? t($ => $.members.noAssignment)}</strong>
+                <small>{member.roleCatalogDrift ? t($ => $.members.catalogDrift) : member.membershipEffective ? t($ => $.members.effective) : t($ => $.members.states[member.membershipLifecycleState])}</small>
               </span>
             </button>
           ))}
@@ -714,13 +708,13 @@ function MemberDirectory({
       ) : null}
       {status === "ready" ? (
         <footer>
-          <span>Showing {members.length} · cursor bound to {membershipState.toUpperCase()}</span>
+          <span>{t($ => $.members.showingMembers, { countText: (formatDisplayNumber(members.length, locale) ?? t($ => $.members.unknown)), state: t($ => $.members.states[membershipState]) })}</span>
           <button type="button" className="secondary-action" disabled={!nextCursor || paginationPending} onClick={onLoadMore}>
-            {paginationPending ? "Loading…" : nextCursor ? "Next page" : "End of directory"}
+            {paginationPending ? t($ => $.members.loading) : nextCursor ? t($ => $.members.nextPage) : t($ => $.members.endDirectory)}
           </button>
         </footer>
       ) : null}
-      {candidate?.kind === "membership_create" ? <small className="local-identity-candidate-marker">Membership candidate ready for explicit confirmation.</small> : null}
+      {candidate?.kind === "membership_create" ? <small className="local-identity-candidate-marker">{t($ => $.members.membershipCandidate)}</small> : null}
     </section>
   );
 }
@@ -750,56 +744,56 @@ function MemberInspector({
   onRetry: () => void;
   onReviewRevoke: (membership: LocalIdentityWorkspaceMembershipView) => void;
 }) {
+  const { t } = useTranslation("identity");
+  const { locale } = useLocalePreference();
   if (!summary && status === "idle") {
-    return <section className="local-identity-member-inspector"><StateNotice state="empty" title="Select one exact member" /></section>;
+    return <section className="local-identity-member-inspector"><StateNotice state="empty" title={t($ => $.members.selectMember)} /></section>;
   }
   return (
     <section className="local-identity-member-inspector" aria-labelledby="local-identity-inspector-title">
-      {status === "loading" ? <StateNotice state="loading" title="Loading selected member detail" /> : null}
+      {status === "loading" ? <StateNotice state="loading" title={t($ => $.members.loadingMember)} /> : null}
       {status === "denied" || status === "unavailable" || status === "failed" ? <StateFailure failure={failure} onRetry={onRetry} /> : null}
       {detail ? (
         <>
           <header>
             <span className="local-identity-member-avatar" aria-hidden="true">{initials(detail.displayName)}</span>
-            <div><small>Selected member</small><h5 id="local-identity-inspector-title">{detail.displayName}</h5><p>{detail.userId}</p></div>
-            <em className={membership?.effective ? "is-ready" : "is-revoked"}>{membership?.effective ? "active" : "revoked"}</em>
+            <div><small>{t($ => $.members.selectedMember)}</small><h5 id="local-identity-inspector-title">{detail.displayName}</h5><p>{detail.userId}</p></div>
+            <em className={membership?.effective ? "is-ready" : "is-revoked"}>{membership?.effective ? t($ => $.members.states.active) : t($ => $.members.states.revoked)}</em>
           </header>
           {membership ? (
             <dl className="local-identity-member-facts">
-              <div><dt>Membership</dt><dd>{membership.membershipId} · v{membership.recordVersion}</dd></div>
-              <div><dt>Window</dt><dd>{membership.effective ? "active" : membership.lifecycleState} · {membership.expiresAt ? formatTimestamp(membership.expiresAt) : "no expiry"}</dd></div>
-              <div><dt>Updated</dt><dd>{formatTimestamp(membership.updatedAt)}</dd></div>
-              <div><dt>Account</dt><dd>{detail.accountLifecycleState} · v{detail.accountRecordVersion}</dd></div>
+              <div><dt>{t($ => $.members.membership)}</dt><dd>{membership.membershipId} · v{membership.recordVersion}</dd></div>
+              <div><dt>{t($ => $.members.window)}</dt><dd>{membership.effective ? t($ => $.members.states.active) : t($ => $.members.states[membership.lifecycleState])} · {membership.expiresAt ? <time dateTime={membership.expiresAt} title={membership.expiresAt}>{memberDate(t, membership.expiresAt, locale)}</time> : t($ => $.members.noExpiry)}</dd></div>
+              <div><dt>{t($ => $.members.updated)}</dt><dd><time dateTime={membership.updatedAt} title={membership.updatedAt}>{memberDate(t, membership.updatedAt, locale)}</time></dd></div>
+              <div><dt>{t($ => $.members.account)}</dt><dd>{t($ => $.members.states[detail.accountLifecycleState])} · v{detail.accountRecordVersion}</dd></div>
             </dl>
-          ) : <StateNotice state="empty" title="No matching membership record is available" />}
+          ) : <StateNotice state="empty" title={t($ => $.members.noMatchingMembership)} />}
           <div className="local-identity-assignment-evidence">
-            <header><strong>Role assignments</strong><small>{detail.roleAssignments.length} lifecycle record(s)</small></header>
-            {detail.roleAssignments.length === 0 ? <p>No local role assignment is recorded.</p> : detail.roleAssignments.map((assignment) => (
+            <header><strong>{t($ => $.members.roleAssignments)}</strong><small>{t($ => $.members.lifecycleRecords, { countText: (formatDisplayNumber(detail.roleAssignments.length, locale) ?? t($ => $.members.unknown)) })}</small></header>
+            {detail.roleAssignments.length === 0 ? <p>{t($ => $.members.noRoles)}</p> : detail.roleAssignments.map((assignment) => (
               <article key={assignment.assignmentId}>
                 <span><strong>{assignment.roleKey}</strong><small>{assignment.assignmentId} · v{assignment.recordVersion}</small></span>
-                <em>{assignment.catalogDrift ? "drift" : assignment.lifecycleState}</em>
+                <em>{assignment.catalogDrift ? t($ => $.members.drift) : t($ => $.members.states[assignment.lifecycleState])}</em>
               </article>
             ))}
           </div>
           {detail.userId === actorUserId && membership?.effective ? (
-            <p className="local-identity-protection"><span aria-hidden="true">△</span><strong>Current administrator protected</strong><small>The active actor cannot revoke their own workspace membership.</small></p>
+            <p className="local-identity-protection"><span aria-hidden="true">△</span><strong>{t($ => $.members.currentAdminProtected)}</strong><small>{t($ => $.members.selfRevokeHelp)}</small></p>
           ) : detail.canManageLocalIdentity && membership?.effective ? (
-            <p className="local-identity-protection"><span aria-hidden="true">△</span><strong>Administrator protection is server-owned</strong><small>The transaction will retain the final effective local identity administrator.</small></p>
+            <p className="local-identity-protection"><span aria-hidden="true">△</span><strong>{t($ => $.members.serverAdminProtection)}</strong><small>{t($ => $.members.lastAdminHelp)}</small></p>
           ) : null}
           {membership?.effective ? (
             <div className="local-identity-inspector-action">
-              <span><strong>Mutation boundary</strong><small>Recent auth, Origin, CSRF, confirmation and expected record v{membership.recordVersion}.</small></span>
+              <span><strong>{t($ => $.members.mutationBoundary)}</strong><small>{t($ => $.members.mutationRequirements, { version: membership.recordVersion })}</small></span>
               <button
                 type="button"
                 className="danger-action"
                 disabled={!mutationsEnabled || mutationPending || detail.userId === actorUserId}
                 onClick={() => onReviewRevoke(membership)}
-              >
-                Review membership revoke
-              </button>
+              >{t($ => $.members.reviewMembershipRevoke)}</button>
             </div>
           ) : null}
-          {candidate?.kind === "membership_revoke" ? <small className="local-identity-candidate-marker">Revocation candidate ready; no write has occurred.</small> : null}
+          {candidate?.kind === "membership_revoke" ? <small className="local-identity-candidate-marker">{t($ => $.members.revokeCandidate)}</small> : null}
         </>
       ) : null}
     </section>
@@ -851,32 +845,34 @@ function RoleAssignmentWorkspace({
   onRetryDetail: () => void;
   onRetryCatalog: () => void;
 }) {
+  const { t } = useTranslation("identity");
+  const { locale } = useLocalePreference();
   return (
     <div className="local-identity-role-workspace">
       <section className="local-identity-role-member">
-        <header><span>Selected member</span><a href="#admin-user-directory">Open User directory</a></header>
-        {directoryStatus === "loading" || detailStatus === "loading" ? <StateNotice state="loading" title="Loading selected member context" /> : null}
-        {!selectedSummary && directoryStatus === "empty" ? <StateNotice state="empty" title="No member is available for role review" /> : null}
+        <header><span>{t($ => $.members.selectedMember)}</span><a href="#admin-user-directory">{t($ => $.members.openUserDirectory)}</a></header>
+        {directoryStatus === "loading" || detailStatus === "loading" ? <StateNotice state="loading" title={t($ => $.members.loadingContext)} /> : null}
+        {!selectedSummary && directoryStatus === "empty" ? <StateNotice state="empty" title={t($ => $.members.noMemberForRole)} /> : null}
         {detailStatus === "denied" || detailStatus === "unavailable" || detailStatus === "failed" ? <StateFailure failure={detailFailure} onRetry={onRetryDetail} /> : null}
         {detail ? (
           <>
             <div className="local-identity-role-member-heading">
               <span className="local-identity-member-avatar" aria-hidden="true">{initials(detail.displayName)}</span>
               <div><strong>{detail.displayName}</strong><small>{detail.userId}</small></div>
-              <em>{membership?.effective ? "active" : "revoked"}</em>
+              <em>{membership?.effective ? t($ => $.members.states.active) : t($ => $.members.states.revoked)}</em>
             </div>
             <dl className="local-identity-role-member-facts">
-              <div><dt>Membership</dt><dd>{membership ? `${membership.membershipId} · v${membership.recordVersion}` : "unavailable"}</dd></div>
-              <div><dt>Assignments</dt><dd>{detail.roleAssignments.filter((item) => item.effective).length} active · {detail.roleAssignments.filter((item) => !item.effective).length} retained</dd></div>
+              <div><dt>{t($ => $.members.membership)}</dt><dd>{membership ? `${membership.membershipId} · v${membership.recordVersion}` : t($ => $.members.unavailable)}</dd></div>
+              <div><dt>{t($ => $.members.assignments)}</dt><dd>{t($ => $.members.assignmentCounts, { activeText: (formatDisplayNumber(detail.roleAssignments.filter((item) => item.effective).length, locale) ?? t($ => $.members.unknown)), retainedText: (formatDisplayNumber(detail.roleAssignments.filter((item) => !item.effective).length, locale) ?? t($ => $.members.unknown)) })}</dd></div>
             </dl>
             <div className="local-identity-current-assignments">
-              <header><strong>Current assignments</strong><small>Frozen grants stay server-owned</small></header>
-              {detail.roleAssignments.length === 0 ? <p>No assignment evidence is recorded.</p> : detail.roleAssignments.map((assignment) => (
+              <header><strong>{t($ => $.members.currentAssignments)}</strong><small>{t($ => $.members.frozenGrants)}</small></header>
+              {detail.roleAssignments.length === 0 ? <p>{t($ => $.members.noAssignmentEvidence)}</p> : detail.roleAssignments.map((assignment) => (
                 <article key={assignment.assignmentId} className={assignment.catalogDrift ? "has-drift" : ""}>
-                  <span><strong>{assignment.roleKey}</strong><small>{assignment.assignmentId} · v{assignment.recordVersion} · {assignment.roleCatalogVersion ?? "legacy catalog"}</small></span>
-                  <em>{assignment.catalogDrift ? "catalog drift" : assignment.lifecycleState}</em>
+                  <span><strong>{assignment.roleKey}</strong><small>{assignment.assignmentId} · v{assignment.recordVersion} · {assignment.roleCatalogVersion ?? t($ => $.members.legacyCatalog)}</small></span>
+                  <em>{assignment.catalogDrift ? t($ => $.members.catalogDrift) : t($ => $.members.states[assignment.lifecycleState])}</em>
                   {assignment.effective && assignment.scope === "workspace" ? (
-                    <button type="button" className="secondary-action" disabled={!mutationsEnabled || mutationPending} onClick={() => onReviewRevoke(assignment)}>Review revoke</button>
+                    <button type="button" className="secondary-action" disabled={!mutationsEnabled || mutationPending} onClick={() => onReviewRevoke(assignment)}>{t($ => $.members.reviewRevoke)}</button>
                   ) : null}
                 </article>
               ))}
@@ -886,8 +882,8 @@ function RoleAssignmentWorkspace({
       </section>
 
       <section className="local-identity-role-catalog" aria-labelledby="local-identity-role-catalog-title">
-        <header><div><span>Built-in role catalog</span><h5 id="local-identity-role-catalog-title">Choose one canonical definition</h5></div><em>{catalog ? `${catalog.roles.length} roles` : catalogStatus}</em></header>
-        {catalogStatus === "loading" ? <StateNotice state="loading" title="Loading immutable role catalog" /> : null}
+        <header><div><span>{t($ => $.members.roleCatalog)}</span><h5 id="local-identity-role-catalog-title">{t($ => $.members.chooseDefinition)}</h5></div><em>{catalog ? t($ => $.members.roleCount, { countText: (formatDisplayNumber(catalog.roles.length, locale) ?? t($ => $.members.unknown)) }) : t($ => $.members.states[catalogStatus])}</em></header>
+        {catalogStatus === "loading" ? <StateNotice state="loading" title={t($ => $.members.loadingCatalog)} /> : null}
         {catalogStatus === "denied" || catalogStatus === "unavailable" || catalogStatus === "failed" ? <StateFailure failure={catalogFailure} onRetry={onRetryCatalog} /> : null}
         {catalog ? (
           <>
@@ -901,24 +897,24 @@ function RoleAssignmentWorkspace({
                   onClick={() => onSelectRole(role.roleKey)}
                 >
                   <b>{String(index + 1).padStart(2, "0")}</b>
-                  <span><strong>{role.roleKey}</strong><small>{role.summary}</small></span>
-                  <em>{role.canManageLocalIdentity ? "identity" : roleAlreadyAssigned && selectedRoleKey === role.roleKey ? "assigned" : "available"}</em>
+                  <span><strong>{role.roleKey}</strong><small>{identityRoleCopy(t, role.roleKey).summary}</small></span>
+                  <em>{role.canManageLocalIdentity ? t($ => $.members.identity) : roleAlreadyAssigned && selectedRoleKey === role.roleKey ? t($ => $.members.assigned) : t($ => $.members.available)}</em>
                 </button>
               ))}
             </div>
-            <footer><span>{catalog.catalogVersion}</span><small>{shortDigest(catalog.definitionDigest)} · client grants forbidden</small></footer>
+            <footer><span>{catalog.catalogVersion}</span><small>{shortDigest(catalog.definitionDigest)}{t($ => $.members.noClientGrants)}</small></footer>
             <div className="local-identity-role-candidate-editor">
-              <label>Assignment expiry · optional ISO 8601<input value={roleExpiresAt} onChange={(event) => onRoleExpiresAt(event.target.value)} placeholder="No expiry" autoComplete="off" /></label>
+              <label>{t($ => $.members.assignmentExpiresInput)}<input value={roleExpiresAt} onChange={(event) => onRoleExpiresAt(event.target.value)} placeholder={t($ => $.members.noExpiryPlaceholder)} autoComplete="off" /></label>
               <button type="button" disabled={!selectedRoleKey || roleAlreadyAssigned || !detail || !membership?.effective || !mutationsEnabled || mutationPending} onClick={onReviewAssign}>
-                {roleAlreadyAssigned ? "Role already active" : "Review role assignment"}
+                {roleAlreadyAssigned ? t($ => $.members.alreadyActive) : t($ => $.members.reviewRole)}
               </button>
             </div>
             {detail?.roleAssignments.some((assignment) => assignment.catalogDrift) ? (
-              <p className="local-identity-catalog-drift"><span aria-hidden="true">!</span><strong>Catalog drift evidence</strong><small>Legacy or changed assignment metadata remains visible; the client does not rewrite frozen grants.</small></p>
+              <p className="local-identity-catalog-drift"><span aria-hidden="true">!</span><strong>{t($ => $.members.driftEvidence)}</strong><small>{t($ => $.members.driftHelp)}</small></p>
             ) : null}
           </>
         ) : null}
-        {candidate?.kind === "role_assign" || candidate?.kind === "role_revoke" ? <small className="local-identity-candidate-marker">Assignment candidate ready for explicit confirmation.</small> : null}
+        {candidate?.kind === "role_assign" || candidate?.kind === "role_revoke" ? <small className="local-identity-candidate-marker">{t($ => $.members.assignmentCandidate)}</small> : null}
       </section>
     </div>
   );
@@ -941,20 +937,22 @@ function MutationConfirmation({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation("identity");
+  const { locale } = useLocalePreference();
   const destructive = candidate.kind === "membership_revoke" || candidate.kind === "role_revoke";
   return (
-    <aside className={`local-identity-mutation-confirmation ${destructive ? "is-destructive" : ""}`} aria-label="Local identity mutation confirmation">
-      <header><div><span>Explicit confirmation</span><h5>{candidateTitle(candidate)}</h5></div><em>{recentAuthentication ? "recent auth" : "reauth required"}</em></header>
+    <aside className={`local-identity-mutation-confirmation ${destructive ? "is-destructive" : ""}`} aria-label={t($ => $.members.mutationConfirmation)}>
+      <header><div><span>{t($ => $.members.explicitConfirmation)}</span><h5>{candidateTitle(t, candidate)}</h5></div><em>{recentAuthentication ? t($ => $.members.recentAuth) : t($ => $.members.reauthRequired)}</em></header>
       <dl>
-        <div><dt>Tenant / workspace</dt><dd>{tenantRef} / {workspaceId}</dd></div>
-        <div><dt>Exact user</dt><dd>{candidate.userId}</dd></div>
-        {candidate.kind === "membership_create" ? <div><dt>Expiration</dt><dd>{candidate.expiresAt ?? "none"}</dd></div> : null}
-        {candidate.kind === "membership_revoke" ? <><div><dt>Expected membership</dt><dd>{candidate.membershipId} · v{candidate.expectedRecordVersion}</dd></div><div><dt>Atomic impact</dt><dd>{candidate.activeAssignmentCount} active workspace assignment(s)</dd></div></> : null}
-        {candidate.kind === "role_assign" ? <><div><dt>Expected catalog</dt><dd>{candidate.role.catalogVersion}</dd></div><div><dt>Definition digest</dt><dd>{shortDigest(candidate.role.definitionDigest)}</dd></div></> : null}
-        {candidate.kind === "role_revoke" ? <div><dt>Expected assignment</dt><dd>{candidate.assignmentId} · v{candidate.expectedRecordVersion}</dd></div> : null}
+        <div><dt>{t($ => $.members.tenantWorkspace)}</dt><dd>{tenantRef} / {workspaceId}</dd></div>
+        <div><dt>{t($ => $.members.exactUser)}</dt><dd>{candidate.userId}</dd></div>
+        {candidate.kind === "membership_create" ? <div><dt>{t($ => $.members.expiration)}</dt><dd>{candidate.expiresAt ?? t($ => $.members.none)}</dd></div> : null}
+        {candidate.kind === "membership_revoke" ? <><div><dt>{t($ => $.members.expectedMembership)}</dt><dd>{candidate.membershipId} · v{candidate.expectedRecordVersion}</dd></div><div><dt>{t($ => $.members.atomicImpact)}</dt><dd>{t($ => $.members.atomicAssignments, { countText: (formatDisplayNumber(candidate.activeAssignmentCount, locale) ?? t($ => $.members.unknown)) })}</dd></div></> : null}
+        {candidate.kind === "role_assign" ? <><div><dt>{t($ => $.members.expectedCatalog)}</dt><dd>{candidate.role.catalogVersion}</dd></div><div><dt>{t($ => $.members.definitionDigest)}</dt><dd>{shortDigest(candidate.role.definitionDigest)}</dd></div></> : null}
+        {candidate.kind === "role_revoke" ? <div><dt>{t($ => $.members.expectedAssignment)}</dt><dd>{candidate.assignmentId} · v{candidate.expectedRecordVersion}</dd></div> : null}
       </dl>
-      <p>Origin, CSRF, exact scope and current authorization are re-checked by the server. No client permission grant array is submitted.</p>
-      <div><button type="button" className="secondary-action" onClick={onCancel} disabled={pending}>Cancel</button><button type="button" className={destructive ? "danger-action" : ""} onClick={onConfirm} disabled={pending || !recentAuthentication}>{pending ? "Applying…" : "Confirm mutation"}</button></div>
+      <p>{t($ => $.members.serverRecheck)}</p>
+      <div><button type="button" className="secondary-action" onClick={onCancel} disabled={pending}>{t($ => $.members.cancel)}</button><button type="button" className={destructive ? "danger-action" : ""} onClick={onConfirm} disabled={pending || !recentAuthentication}>{pending ? t($ => $.members.applying) : t($ => $.members.confirmMutation)}</button></div>
     </aside>
   );
 }
@@ -970,44 +968,55 @@ function OperationBanner({
   onReloadCatalog: () => void;
   onRetryAll: () => void;
 }) {
+  const { t } = useTranslation("identity");
+  const { locale } = useLocalePreference();
+  let message = "";
+  if (operation.kind === "success") message = memberSuccessMessage(t, operation.success, locale);
+  else if (operation.kind !== "idle") {
+    const input = operation.input;
+    message = input ? t($ => $.members.inputErrors[input]) : memberFailureCopy(t, operation).message;
+  }
   const action = operation.kind === "catalog_drift"
-    ? { label: "Reload catalog", run: onReloadCatalog }
+    ? { label: t($ => $.members.reloadCatalog), run: onReloadCatalog }
     : operation.kind === "stale_conflict" || operation.kind === "last_admin"
-    ? { label: "Reload member detail", run: onReloadDetail }
+    ? { label: t($ => $.members.reloadMember), run: onReloadDetail }
     : operation.kind === "recent_authentication" || operation.kind === "denied"
-    ? { label: "Refresh local session", run: onRetryAll }
+    ? { label: t($ => $.members.refreshSession), run: onRetryAll }
     : operation.kind === "unavailable" || operation.kind === "invalid_response"
-    ? { label: "Reload exact owners", run: onRetryAll }
+    ? { label: t($ => $.members.reloadOwners), run: onRetryAll }
     : null;
   return (
     <div className={`local-identity-operation is-${operation.kind}`} role={operation.kind === "success" ? "status" : "alert"}>
       <span aria-hidden="true">{operation.kind === "success" ? "✓" : operation.kind === "last_admin" ? "△" : "!"}</span>
-      <div><strong>{operationLabel(operation.kind)}</strong><p>{operation.message}</p><small>{operation.code}{operation.recovery ? ` · ${operation.recovery}` : ""}</small></div>
+      <div><strong>{operationLabel(t, operation.kind)}</strong><p>{message}</p><small>{operation.code}</small></div>
       {action ? <button type="button" className="secondary-action" onClick={action.run}>{action.label}</button> : null}
     </div>
   );
 }
 
 function StateNotice({ state, title }: { state: "loading" | "empty"; title: string }) {
-  return <div className={`local-identity-state-notice is-${state}`}><span aria-hidden="true">{state === "loading" ? "…" : "∅"}</span><div><strong>{title}</strong><p>{state === "loading" ? "Existing browser state is not rendered while the exact owner is re-read." : "No fallback directory or inferred identity fact is shown."}</p></div></div>;
+  const { t } = useTranslation("identity");
+  return <div className={`local-identity-state-notice is-${state}`}><span aria-hidden="true">{state === "loading" ? "…" : "∅"}</span><div><strong>{title}</strong><p>{state === "loading" ? t($ => $.members.readingHelp) : t($ => $.members.emptyHelp)}</p></div></div>;
 }
 
 function StateFailure({ failure, onRetry }: { failure: LoadFailure | null; onRetry: () => void }) {
+  const { t } = useTranslation("identity");
   return (
     <div className="local-identity-state-failure" role="alert">
       <span aria-hidden="true">!</span>
-      <div><strong>{failure ? operationLabel(failure.kind) : "Failed closed"}</strong><p>{failure?.message ?? "The exact local identity owner could not be verified."}</p><small>{failure?.code ?? "local_identity_admin_unavailable"}</small></div>
-      <button type="button" className="secondary-action" onClick={onRetry}>Retry exact read</button>
+      <div><strong>{failure ? operationLabel(t, failure.kind) : t($ => $.members.failedClosed)}</strong><p>{failure ? memberFailureCopy(t, failure).message : t($ => $.members.verifyFailed)}</p><small>{failure?.code ?? "local_identity_admin_unavailable"}</small></div>
+      <button type="button" className="secondary-action" onClick={onRetry}>{t($ => $.members.retryRead)}</button>
     </div>
   );
 }
 
 function DisabledLocalIdentityAdministration({ surface }: { surface: "user" | "role" }) {
+  const { t } = useTranslation("identity");
   return (
     <section className="admin-control-owner-surface local-identity-administration" aria-labelledby="local-identity-administration-title">
-      <header><div><p className="eyebrow">{surface === "user" ? "User" : "Role"} · local identity boundary</p><h4 id="local-identity-administration-title">Local identity administration disabled</h4></div><span className="admin-control-status is-blocked">not connected</span></header>
-      <StateNotice state="empty" title="No workspace identity facts are available" />
-      <p className="local-identity-administration-boundary"><span aria-hidden="true">!</span>Offline fixtures, development headers and upstream claims cannot become a member directory, role catalog or mutation authority.</p>
+      <header><div><p className="eyebrow">{surface === "user" ? t($ => $.members.user) : t($ => $.members.role)}{t($ => $.members.boundarySuffix)}</p><h4 id="local-identity-administration-title">{t($ => $.members.disabled)}</h4></div><span className="admin-control-status is-blocked">{t($ => $.members.notConnected)}</span></header>
+      <StateNotice state="empty" title={t($ => $.members.noIdentityFacts)} />
+      <p className="local-identity-administration-boundary"><span aria-hidden="true">!</span>{t($ => $.members.offlineBoundary)}</p>
     </section>
   );
 }
@@ -1038,39 +1047,23 @@ function effectiveMembership(
     detail.memberships.find((membership) => membership.effective) ?? detail.memberships[0] ?? null;
 }
 
-function loadFailure(error: unknown): LoadFailure {
-  const failure = toLocalIdentityAdministrationError(error);
-  return {
-    kind: localIdentityAdministrationFailureKind(failure),
-    code: failure.code,
-    message: failure.message,
-    recovery: failure.recovery,
-  };
-}
-
 function loadStatusForFailure(failure: LoadFailure): LoadStatus {
   if (failure.kind === "denied") return "denied";
   if (failure.kind === "unavailable") return "unavailable";
   return "failed";
 }
 
-function candidateTitle(candidate: MutationCandidate): string {
-  if (candidate.kind === "membership_create") return `Add ${candidate.userId}`;
-  if (candidate.kind === "membership_revoke") return `Revoke ${candidate.membershipId}`;
+function candidateTitle(t: TFunction<"identity">, candidate: MutationCandidate): string {
+  if (candidate.kind === "membership_create") return t($ => $.members.addUserTitle, { userId: candidate.userId });
+  if (candidate.kind === "membership_revoke") return t($ => $.members.revokeTitle, { reference: candidate.membershipId });
   if (candidate.kind === "role_assign") return `${candidate.role.roleKey} → ${candidate.userId}`;
-  return `Revoke ${candidate.roleKey}`;
+  return t($ => $.members.revokeTitle, { reference: candidate.roleKey });
 }
 
-function operationLabel(kind: OperationNotice["kind"]): string {
-  if (kind === "success") return "Mutation succeeded";
-  if (kind === "denied") return "Authorization denied";
-  if (kind === "unavailable") return "Administration unavailable";
-  if (kind === "stale_conflict") return "Stale CAS conflict";
-  if (kind === "catalog_drift") return "Catalog drift";
-  if (kind === "last_admin") return "Administrator protection";
-  if (kind === "recent_authentication") return "Recent authentication required";
-  if (kind === "invalid_response") return "Invalid response rejected";
-  return "Mutation failed closed";
+function operationLabel(t: TFunction<"identity">, kind: OperationNotice["kind"]): string {
+  if (kind === "success") return t($ => $.members.mutationSucceeded);
+  if (kind === "idle") return "";
+  return t($ => $.members.failures[kind].title);
 }
 
 function initials(displayName: string): string {
@@ -1079,14 +1072,6 @@ function initials(displayName: string): string {
 
 function shortDigest(value: string): string {
   return value.length > 20 ? `${value.slice(0, 12)}…${value.slice(-6)}` : value;
-}
-
-function formatTimestamp(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "UTC",
-  }).format(new Date(value)) + " UTC";
 }
 
 function isAbort(error: unknown): boolean {

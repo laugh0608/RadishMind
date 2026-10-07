@@ -54,7 +54,9 @@ func TestLocalIdentityBrowserServer(t *testing.T) {
 	server := &Server{
 		config:                                  cfg,
 		localIdentityHTTPService:                identity,
+		localIdentityAdministrationService:      newLocalIdentityAdministrationService(repository),
 		localIdentitySelfServiceSecurityService: newLocalIdentitySelfServiceSecurityService(repository),
+		workspaceInvitationService:              newWorkspaceInvitationService(repository),
 	}
 	mux := http.NewServeMux()
 	registerLocalIdentityHTTPRoutes(mux, server)

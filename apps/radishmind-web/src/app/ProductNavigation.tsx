@@ -164,7 +164,7 @@ export function ProductNavigation({
           <span aria-hidden="true">△</span>
           <div>
             <strong>{sourceConfig.mode === "dev_live_http" ? t($ => $.development) : t($ => $.offline)}</strong>
-            <small>{sourceState.status}</small>
+            <small>{t($ => $.sourceStates[sourceState.status])}</small>
           </div>
           <span className="product-nav-guard">{t($ => $.guarded)}</span>
         </div>

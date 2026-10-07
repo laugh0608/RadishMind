@@ -1,3 +1,10 @@
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import type { UiLocale } from "../../i18n/localePreference.ts";
+import { formatDisplayNumber } from "../../i18n/formatters.ts";
+import type { adminShell } from "../../i18n/locales/en-US/adminShell.ts";
+import "../../i18n/adminShellResources.ts";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 
 import {
@@ -87,6 +94,8 @@ export default function AdminControlPlaneWorkspace({
   selectedApplicationDisplayName: string;
   onSelectApplication: (applicationId: string) => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   const localIdentity = useLocalIdentity();
   const [activeSurface, setActiveSurface] = useState<AdminControlPlaneSurface | null>(() =>
     adminControlPlaneSurfaceForHash(window.location.hash),
@@ -177,31 +186,31 @@ export default function AdminControlPlaneWorkspace({
     >
       <header className="admin-control-plane-heading">
         <div>
-          <p className="eyebrow">{quotaActive ? "S9 · Admin Quota Admission" : pricingActive ? "S7 · Admin Pricing" : "S7 · Admin Control Plane"}</p>
+          <p className="eyebrow">{quotaActive ? t($ => $.quotaHeader) : pricingActive ? t($ => $.pricingHeader) : t($ => $.controlPlane)}</p>
           <h3 id="admin-control-plane-title">
-            {invitationsActive ? "Workspace invitations" : quotaActive ? "Application request quota" : pricingActive ? "Provider model pricing" : "Administration and routing"}
+            {invitationsActive ? t($ => $.invitations) : quotaActive ? t($ => $.quota) : pricingActive ? t($ => $.pricing) : t($ => $.administration)}
           </h3>
           <p>
             {invitationsActive
-              ? "Issue one-time, time-limited access intent for this exact workspace. Membership and role access begin only after a signed-in claimant completes the atomic claim."
+              ? t($ => $.invitationHelp)
               : quotaActive
-              ? "Maintain the exact development/test application policy and its quota-owner UTC usage."
+              ? t($ => $.quotaHelp)
               : pricingActive
-              ? "Maintain one exact immutable USD pricing revision for future development/test request snapshots."
-              : "Review scoped identity evidence, then use the explicit development/test configuration owner."}
+              ? t($ => $.pricingHelp)
+              : t($ => $.adminHelp)}
           </p>
         </div>
         <dl>
-          <div><dt>Tenant</dt><dd>{sourceConfig.tenantRef}</dd></div>
-          <div><dt>Workspace</dt><dd>{sourceConfig.workspaceId ?? "unavailable"}</dd></div>
-          <div><dt>Auth source</dt><dd>{adminAuthSourceLabel(sourceConfig, localIdentity !== null)}</dd></div>
-          <div><dt>Environment</dt><dd>{quotaActive ? quotaConfig.environment : pricingActive ? pricingConfig.environment : providerRouteConfig.environment}</dd></div>
+          <div><dt>{t($ => $.tenant)}</dt><dd>{sourceConfig.tenantRef}</dd></div>
+          <div><dt>{t($ => $.workspace)}</dt><dd>{sourceConfig.workspaceId ?? t($ => $.unavailable)}</dd></div>
+          <div><dt>{t($ => $.authSource)}</dt><dd>{t($ => $.auth[adminAuthSourceLabel(sourceConfig, localIdentity !== null)])}</dd></div>
+          <div><dt>{t($ => $.environment)}</dt><dd>{quotaActive ? quotaConfig.environment : pricingActive ? pricingConfig.environment : providerRouteConfig.environment}</dd></div>
         </dl>
       </header>
 
       <div className="admin-control-plane-layout">
-        <nav className="admin-control-plane-path" aria-label="Admin Control Plane resources">
-          <header><span>Resource path</span><strong>One owner at a time</strong></header>
+        <nav className="admin-control-plane-path" aria-label={t($ => $.resourceNavigation)}>
+          <header><span>{t($ => $.resourcePath)}</span><strong>{t($ => $.singleOwner)}</strong></header>
           {ADMIN_CONTROL_PLANE_RESOURCE_TASKS.map((task) => {
             const selected = task.surface === activeSurface;
             const status = statusBySurface[task.surface];
@@ -214,25 +223,24 @@ export default function AdminControlPlaneWorkspace({
               >
                 <i aria-hidden="true" />
                 <b>{task.number}</b>
-                <span><strong>{task.label}</strong><small>{task.scope}</small></span>
-                <em className={status.tone}>{status.label}</em>
+                <span><strong>{t($ => $.tasks[task.surface].label)}</strong><small>{t($ => $.tasks[task.surface].scope)}</small></span>
+                <em className={status.tone}>{resourceStatusLabel(t, status, locale)}</em>
               </a>
             );
           })}
           <p className="admin-control-plane-boundary">
             <span aria-hidden="true">!</span>
-            User and Role consume only the exact workspace member directory and server-owned built-in role catalog.
-            Invitations express one-time access intent. Email delivery, global account search, admin invitations, custom roles, production IAM and bootstrap HTTP stay closed.
+            {t($ => $.boundary)}
           </p>
         </nav>
 
         <main className="admin-control-plane-owner" data-owner={activeSurface ?? "inactive"}>
           {activeSurface === "tenant" ? <AdminTenantOwner overview={tenantOverview} /> : null}
-          {invitationsActive ? <Suspense fallback={<div className="admin-control-plane-loading">Loading workspace invitations…</div>}>
+          {invitationsActive ? <Suspense fallback={<div className="admin-control-plane-loading">{t($ => $.loadingInvitations)}</div>}>
             <WorkspaceInvitationAdminPanel tenantRef={sourceConfig.tenantRef} workspaceId={sourceConfig.workspaceId ?? ""} />
           </Suspense> : null}
           {activeSurface === "user" || activeSurface === "role" ? (
-            <Suspense fallback={<div className="admin-control-plane-loading">Loading local identity administration…</div>}>
+            <Suspense fallback={<div className="admin-control-plane-loading">{t($ => $.loadingIdentity)}</div>}>
               <AdminLocalIdentityOwner
                 surface={activeSurface}
                 tenantRef={sourceConfig.tenantRef}
@@ -276,8 +284,8 @@ export default function AdminControlPlaneWorkspace({
         open={supportingEvidenceOpen}
         onToggle={(event) => setSupportingEvidenceOpen(event.currentTarget.open)}
       >
-        <summary>Supporting readiness and deployment evidence</summary>
-        <Suspense fallback={<div className="admin-control-plane-loading">Loading supporting evidence…</div>}>
+        <summary>{t($ => $.supportingEvidence)}</summary>
+        <Suspense fallback={<div className="admin-control-plane-loading">{t($ => $.loadingEvidence)}</div>}>
           <AdminOperationsReviewPanel review={operationsReview} />
           <AdminProviderDeploymentReviewPanel
             review={providerDeploymentReview}
@@ -289,7 +297,7 @@ export default function AdminControlPlaneWorkspace({
   );
 }
 
-type ResourceStatus = { label: string; tone: "neutral" | "blocked" | "ready" };
+type ResourceStatus = { kind: keyof typeof adminShell.status; count?: number; code?: string; tone: "neutral" | "blocked" | "ready" };
 
 function buildResourceStatuses(
   tenantOverview: AdminTenantOverviewViewModel,
@@ -303,42 +311,52 @@ function buildResourceStatuses(
 ): Record<AdminControlPlaneSurface, ResourceStatus> {
   const liveReady = sourceConfig.mode === "dev_live_http" && sourceState.status === "ready";
   const tenantStatus: ResourceStatus = liveReady && tenantOverview.canRenderTenant
-    ? { label: "authenticated", tone: "ready" }
+    ? { kind: "authenticated", tone: "ready" }
     : tenantOverview.collection.failureCode
-    ? { label: tenantOverview.collection.failureCode, tone: "blocked" }
-    : { label: "offline evidence", tone: "neutral" };
+    ? { kind: "failure", code: tenantOverview.collection.failureCode, tone: "blocked" }
+    : { kind: "offlineEvidence", tone: "neutral" };
   const auditStatus: ResourceStatus = liveReady && auditLog.canRenderAuditLog
-    ? { label: `${auditLog.auditEvents.length} / ${auditLog.nextCursor ? "cursor" : "page"}`, tone: "ready" }
+    ? { kind: auditLog.nextCursor ? "auditCursor" : "auditPage", count: auditLog.auditEvents.length, tone: "ready" }
     : auditLog.collection.failureCode
-    ? { label: auditLog.collection.failureCode, tone: "blocked" }
-    : { label: "offline window", tone: "neutral" };
+    ? { kind: "failure", code: auditLog.collection.failureCode, tone: "blocked" }
+    : { kind: "offlineWindow", tone: "neutral" };
   const routeStatus: ResourceStatus = routeConfig.mode === "dev_admin_provider_route_http"
-    ? { label: "dev/test control", tone: "ready" }
-    : { label: "offline", tone: "neutral" };
+    ? { kind: "devControl", tone: "ready" }
+    : { kind: "offline", tone: "neutral" };
   return {
     tenant: tenantStatus,
-    user: localIdentityReady ? { label: "member directory", tone: "ready" } : { label: "offline", tone: "neutral" },
-    role: localIdentityReady ? { label: "built-in catalog", tone: "ready" } : { label: "offline", tone: "neutral" },
-    invitations: localIdentityReady ? { label: "one-time claim", tone: "ready" } : { label: "offline", tone: "neutral" },
+    user: localIdentityReady ? { kind: "members", tone: "ready" } : { kind: "offline", tone: "neutral" },
+    role: localIdentityReady ? { kind: "roles", tone: "ready" } : { kind: "offline", tone: "neutral" },
+    invitations: localIdentityReady ? { kind: "claim", tone: "ready" } : { kind: "offline", tone: "neutral" },
     audit: auditStatus,
     provider: routeStatus,
     profile: routeStatus,
     route: routeStatus,
     quota: quotaMode === "dev_admin_gateway_request_quota_http"
-      ? { label: "UTC daily CAS", tone: "ready" }
-      : { label: "offline", tone: "neutral" },
+      ? { kind: "quota", tone: "ready" }
+      : { kind: "offline", tone: "neutral" },
     pricing: pricingMode === "dev_admin_gateway_model_pricing_http"
-      ? { label: "USD / 1M CAS", tone: "ready" }
-      : { label: "offline", tone: "neutral" },
+      ? { kind: "pricing", tone: "ready" }
+      : { kind: "offline", tone: "neutral" },
   };
 }
 
-function adminAuthSourceLabel(config: ControlPlaneReadDevLiveConfig, localIdentityReady: boolean): string {
-  if (localIdentityReady) return "local Web session";
-  if (config.mode !== "dev_live_http") return "offline fixtures";
-  if (config.authMode === "radish_oidc_integration_test") return "OIDC integration test";
-  if (config.authMode === "signed_test_token") return "signed test token";
-  return "development headers";
+function resourceStatusLabel(t: TFunction<"admin">, status: ResourceStatus, locale: UiLocale): string {
+  if (status.kind === "failure") return t($ => $.status.failure, { code: status.code ?? "" });
+  if (status.kind === "auditCursor" || status.kind === "auditPage") {
+    const key = status.kind;
+    return t($ => $.status[key], { countText: formatDisplayNumber(status.count, locale) ?? t($ => $.unavailable) });
+  }
+  const key = status.kind;
+  return t($ => $.status[key]);
+}
+
+function adminAuthSourceLabel(config: ControlPlaneReadDevLiveConfig, localIdentityReady: boolean): keyof typeof adminShell.auth {
+  if (localIdentityReady) return "localSession";
+  if (config.mode !== "dev_live_http") return "offlineFixtures";
+  if (config.authMode === "radish_oidc_integration_test") return "oidcTest";
+  if (config.authMode === "signed_test_token") return "signedTest";
+  return "devHeaders";
 }
 
 function AdminTenantOwner({ overview }: { overview: AdminTenantOverviewViewModel }) {

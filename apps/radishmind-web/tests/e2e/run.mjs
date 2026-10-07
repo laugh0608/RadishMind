@@ -189,7 +189,7 @@ async function runSuite(suite) {
       join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
       "--config", "tests/e2e/playwright.config.ts", ...testArguments,
     ], {
-      env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, ...(promptProvider ? { RADISHMIND_E2E_PROVIDER_URL: promptProvider.url } : {}) },
+      env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, ...(suite === "identity" ? { RADISHMIND_IDENTITY_E2E_RUNTIME: runtime, PLAYWRIGHT_NO_COPY_PROMPT: "1" } : {}), ...(promptProvider ? { RADISHMIND_E2E_PROVIDER_URL: promptProvider.url } : {}) },
       stdio: "inherit",
     });
     const result = await Promise.race([

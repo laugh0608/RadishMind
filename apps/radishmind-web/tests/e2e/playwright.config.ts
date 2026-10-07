@@ -9,7 +9,7 @@ if (baseURL !== "http://127.0.0.1:4100" || !output || !["templates", "workflow",
 
 export default defineConfig({
   testDir: ".",
-  testMatch: suite === "identity" ? "identity.spec.ts" : suite === "offline-projection" ? "workflow-projection.spec.ts" : suite === "http-tool" ? "workflow-http-tool.spec.ts" : suite === "rag-application" ? "workflow-rag-application.spec.ts" : suite === "rag-promotion" ? "workflow-rag-promotion.spec.ts" : suite === "rag" ? ["workflow-rag.spec.ts", "workflow-rag-execution.spec.ts"] : suite === "templates" ? "workflow-template.spec.ts" : ["prompt.spec.ts", "workflow.spec.ts"],
+  testMatch: suite === "identity" ? ["identity.spec.ts", "identity-members.spec.ts"] : suite === "offline-projection" ? "workflow-projection.spec.ts" : suite === "http-tool" ? "workflow-http-tool.spec.ts" : suite === "rag-application" ? "workflow-rag-application.spec.ts" : suite === "rag-promotion" ? "workflow-rag-promotion.spec.ts" : suite === "rag" ? ["workflow-rag.spec.ts", "workflow-rag-execution.spec.ts"] : suite === "templates" ? "workflow-template.spec.ts" : ["prompt.spec.ts", "workflow.spec.ts"],
   projects: [
     { name: "chromium-en-US", use: { locale: "en-US" } },
     { name: "chromium-zh-CN", use: { locale: "zh-CN" } },
@@ -28,8 +28,9 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
-    screenshot: "only-on-failure",
-    // Identity request bodies contain passwords; never include them in retained traces.
+    screenshot: suite === "identity" ? "off" : "only-on-failure",
+    // Identity responses can contain one-time invitation codes. Use only explicitly
+    // masked screenshots; never retain automatic screenshots or request traces.
     trace: suite === "identity" ? "off" : "retain-on-failure",
     serviceWorkers: "block",
   },

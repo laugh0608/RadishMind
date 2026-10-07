@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-10-02
+更新时间：2026-10-07
 
 ## 文档职责
 
@@ -11,7 +11,7 @@
 ## 当前结论（默认读取到本节结束）
 
 - 当前成熟度为**内部开发者预览**。工作流、应用运行与评测、模型网关、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实模型提供方、团队试用或生产运行已通过验收。
-- 当前重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，A、B 阶段已完成：Prompt、Workflow、RAG、HTTP Tool 与离线投影解释均按切片通过双语验收。C 阶段认证与账户安全已通过双语验收；下一步为工作区、成员与邀请。分窗口证据见[本周周志](devlogs/2026-W40.md#2026-10-02-认证与账户安全双语迁移)。
+- 当前重点为 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)，A、B 阶段已完成：Prompt、Workflow、RAG、HTTP Tool 与离线投影解释均按切片通过双语验收。C 阶段认证与账户安全已通过双语验收；工作区、成员与邀请已通过双语验收。分窗口证据见[本周周志](devlogs/2026-W41.md)。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
 - 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
 - 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[2026-W38 周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
@@ -21,15 +21,15 @@
 - 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条工作流连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[2026-W39 周志](devlogs/2026-W39.md)，不新增同层任务卡或检查器。
 - 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。这些未满足项分别指生产密钥后端、进程监管、部署环境隔离和控制台生产打包；英文名称保留与现有检查器一致。
 
-## 当前完成与下一动作（2026-10-02）
+## 当前完成与下一动作（2026-10-07）
 
 [Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条工作流与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
 
 项目所有者随后暂停手工测试，指定 i18n 为下一重点；本轮手工测试服务已停止，独立测试库与日志保留，未形成独立用户使用或答案质量验收。
 
-项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)A、B 阶段已完成，保持原包体预算。草案编辑、冲突与修订恢复、候选审查 / 激活、Definition 运行、模板派生、RAG 与 HTTP Tool 已分窗口通过双语验收；离线投影解释于 2026-10-02 完成两语各两轮验收，服务与临时库已清理。C 阶段认证与账户安全已完成两语各两轮验收，会话冲突 / 撤销、密码轮换与双标签重新登录通过，服务与临时库已清理。下一步为工作区 / 成员 / 邀请，随后处理其余管理面；不另起工程批次，D 至 F 仍未进入。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
+项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)A、B 阶段已完成，保持原包体预算。草案编辑、冲突与修订恢复、候选审查 / 激活、Definition 运行、模板派生、RAG 与 HTTP Tool 已分窗口通过双语验收；离线投影解释于 2026-10-02 完成两语各两轮验收，服务与临时库已清理。C 阶段认证与账户安全已完成两语各两轮验收，会话冲突 / 撤销、密码轮换与双标签重新登录通过，服务与临时库已清理。工作区 / 成员 / 邀请已通过双语验收，下一步处理其余管理面；不另起工程批次，D 至 F 仍未进入。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
 
-明日先推进 C 阶段工作区、成员与邀请，具体状态清单、验证与停止线见[明日事项（2026-10-03）](devlogs/2026-W40.md#明日事项2026-10-03)。今日开发到此结束，不在日终文档收口时启动该切片。
+2026-10-07 已完成 C 阶段工作区、成员与邀请双语迁移，身份组六条流程中英各两轮共 24 次通过。范围与证据见[本周周志](devlogs/2026-W41.md)；当前下一动作是其余管理面的 Provider、路由、配额、价格及其详情、失败和确认状态，继续复用现有功能专题。
 
 ## 下一顺位的选择
 

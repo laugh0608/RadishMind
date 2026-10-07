@@ -36,6 +36,8 @@ const backend = start("go", ["test", "-tags=identity_browser_test", "./internal/
 }, join(repoRoot, "services/platform"));
 const frontend = start(process.execPath, [join(webRoot, "node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", "4100", "--config", "tests/e2e/vite.config.ts"], {
   ...process.env,
+  VITE_RADISHMIND_READ_SOURCE: "dev-live-http",
+  VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL: "http://127.0.0.1:17000",
   VITE_RADISHMIND_READ_AUTH_MODE: "local_session_dev_test",
   VITE_RADISHMIND_LOCAL_IDENTITY_MODE: "local_identity_dev",
   VITE_RADISHMIND_LOCAL_IDENTITY_BASE_URL: "http://127.0.0.1:17000",

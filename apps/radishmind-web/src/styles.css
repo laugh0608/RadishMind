@@ -8329,14 +8329,19 @@ dd {
 
 .local-identity-mutation-confirmation {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
+  overflow-wrap: anywhere;
   border-color: var(--rm-action-primary);
 }
 
 .local-identity-mutation-confirmation > header {
-  border-right: 1px solid var(--rm-border-soft);
-  border-bottom: 0;
+  border-bottom: 1px solid var(--rm-border-soft);
+}
+
+.local-identity-mutation-confirmation > header > div,
+.local-identity-mutation-confirmation dl > div {
+  min-width: 0;
 }
 
 .local-identity-mutation-confirmation dl {
@@ -8354,9 +8359,10 @@ dd {
 .local-identity-mutation-confirmation > div {
   align-content: center;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
   padding: 12px;
-  border-left: 1px solid var(--rm-border-soft);
+  border-top: 1px solid var(--rm-border-soft);
 }
 
 .local-identity-operation,

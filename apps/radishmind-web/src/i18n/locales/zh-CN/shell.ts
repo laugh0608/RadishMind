@@ -1,4 +1,5 @@
 export const shell = {
+  sourceStates: { idle: "尚未加载", loading: "正在加载", ready: "已就绪", failed: "失败" },
   "links": {
     "overview": "概览",
     "inbox": "运营收件箱",

@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-项目所有者已指定 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)为下一重点。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；A、B 阶段已完成，草案、Definition、模板、RAG、HTTP Tool 与离线投影解释均通过双语验收；C 阶段认证与账户安全已通过双语验收，下一步为工作区、成员与邀请；真实模型手工试用仍暂停。
+项目所有者已指定 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)为下一重点。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；A、B 阶段已完成，草案、Definition、模板、RAG、HTTP Tool 与离线投影解释均通过双语验收；C 阶段认证、账户安全、工作区与成员邀请已通过双语验收，下一步为其余管理面；真实模型手工试用仍暂停。
 
 [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
 

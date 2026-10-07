@@ -149,6 +149,8 @@ first-admin bootstrap 不注册 HTTP route。`radishmind-local-identity-bootstra
 
 批次 D 复用提交 `72205455` 已批准的设计源 `docs/designs/radishmind-web-family-ui-v1.pen`：Desktop `fFTsy` / `jEmjK`、Narrow `Wrggq` / `LQ297`、Decision `bkvt3`。React 使用单一 strict consumer 接入七条 Admin API；目录保持 dominant、详情为 subordinate inspector，Role 复用同一 selected member 与服务器 canonical 四角色目录。create / revoke 均先形成内存候选再显式确认，成功后失效旧 selection、cursor、表单、确认和迟到响应；目录载荷与确认内容不写入 URL、Web Storage、IndexedDB 或 service worker。
 
+2026-10-07 已沿[中英国际化 C 阶段](../web-internationalization-zh-en-v1.md#c-阶段覆盖清单2026-10-02)完成成员 / 角色展示层双语迁移。成功反馈保存精确引用与数量，失败按稳定代码和分类展示恢复建议；原始响应正文不作为本地化消息。内建角色键、冻结权限、CAS、管理员保护与事务不变。静态验证及隔离 SQLite 浏览器双语验收已通过，证据见[2026-W41](../../devlogs/2026-W41.md)。
+
 ## 实施拆分
 
 ### 批次 A：领域合同、角色目录与 memory 纵向链
