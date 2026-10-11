@@ -1,3 +1,4 @@
+import "../../i18n/workflowReadProjectionResources.ts";
 import "../../i18n/workflowDraftResources.ts";
 import { workflowProjectionText, workflowProjectionStatusLabel } from "./workflowProjectionCopy.ts";
 import "../../i18n/workflowHandoffProjectionResources.ts";

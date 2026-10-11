@@ -59,7 +59,9 @@
 
 已接入简体中文与英文选择器：桌面位于导航底部，窄屏位于菜单内，未登录时位于认证页页头。浏览器只保存 `radishmind.uiLocale.v1` 语言枚举；未显式选择时采用浏览器首个受支持语言，无匹配时使用中文。存储不可用时仅对当前页面生效并显示未保存提示。
 
-目前已完成公共导航、基础认证与 Prompt 主链展示的 A 阶段，以及 B 阶段草案编辑 / 恢复、候选审查 / 激活、Definition 运行、模板派生与 RAG 快照、检索执行、晋级审查与应用运行的双语流程验收。HTTP Tool 与离线投影解释也已通过双语验收，A、B 阶段已完成；C 阶段身份、工作区成员邀请及管理主页面均按切片通过隔离浏览器双语验收，C 阶段完成；D 阶段 Agent Profile、运行分配与 Session 已完成双语两轮验收，Gateway、API 示例、历史 / 用量与运营随后完成双语两轮验收，A 至 D 完成；评测与其余审查面继续按 E / F 迁移，不能视为全站双语完成。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
+A 至 F 在登记的现有可达页面和流程中已按切片完成双语验收，包括 Prompt、Workflow / RAG / HTTP Tool、身份与成员邀请、管理、Agent、Gateway、评测及结果库。F 阶段补齐主壳可达证据和应用交互会话，完成术语与帮助指南同步及三窗口 76 次最终复验；现有范围已关闭。界面语言不会设置模型输出语言或修改业务请求中的 `locale`。范围与停止线见[中英国际化专题](features/web-internationalization-zh-en-v1.md)。
+
+切换语言保留当前选择、未保存编辑及显式确认状态，不触发业务请求。固定状态与恢复建议按界面语言展示；用户内容、模型输出、错误码、路径、ID、摘要和下载 JSON 保持原值。普通日期按界面语言和浏览器本地时区显示；审计、安全和日程等既有 UTC 页面保持 UTC 并标明时区，不能把显示格式变化视为时间值变化；主壳日期可悬停查看原始时间。应用交互会话刷新仅恢复持久元数据，临时对话正文不恢复。
 
 ## 当前五条主线
 
@@ -297,7 +299,7 @@ Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同�
 
 Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 配置可写入 `memory_dev`、`sqlite_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
 
-自动浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`，默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation / results-evidence` 十三组；使用 `-- --suite=admin --repeat-each=2 --max-failures=1` 可定向运行单组。每组使用独立临时 SQLite 和 `4100 / 17000` 回环服务，前一组清理后才复用端口，不复用用户已有服务。身份组使用受构建标签限定的测试宿主，管理组复用产品启动器的不可调用模型元数据，Agent、Gateway 与 Results Evidence 组使用现有 mock，其余组的固定响应环境见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。退出时清理所管进程和临时数据库并保留报告；身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动截图，避免保留密码、邀请码与 API key 原文。Results Evidence 组覆盖结果库 / 导出、RAG 数据集与辅助证据，四条流程中英各两轮共 16 次通过，所属服务和临时库已清理。Evaluation 组三条流程中英各两轮 12 次通过，其中日程 / 发生记录仅为合成投影；其余双语切片已分窗口验收，最新身份组 24 次、管理组 16 次、Agent 组 12 次与 Gateway 组 12 次证据见[本周周志](devlogs/2026-W41.md)，未同窗口执行当前十三组全量回归，远端 CI 首跑仍待执行。服务启动继续遵循[协作规则](agent-collaboration.md#服务启动与真实联调)；普通 `npm test` 不启动这些服务。
+自动浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`，默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation / results-evidence` 十三组；使用 `-- --suite=admin --repeat-each=2 --max-failures=1` 可定向运行单组。每组使用独立临时 SQLite 和 `4100 / 17000` 回环服务，前一组清理后才复用端口，不复用用户已有服务。身份组使用受构建标签限定的测试宿主，管理组复用产品启动器的不可调用模型元数据，Agent、Gateway 与 Results Evidence 组使用现有 mock，其余组的固定响应环境见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。退出时清理所管进程和临时数据库并保留报告；身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动截图，避免保留密码、邀请码与 API key 原文。Results Evidence 组覆盖结果库 / 导出、RAG 数据集、辅助证据、主壳读取面及应用交互会话，六条流程中英各两轮共 24 次通过，所属服务和临时库已清理。Evaluation 组三条流程中英各两轮 12 次通过，其中日程 / 发生记录仅为合成投影；其余双语切片已分窗口验收，最新身份组 24 次、管理组 16 次、Agent 组 12 次与 Gateway 组 12 次证据见[本周周志](devlogs/2026-W41.md)，未同窗口执行当前十三组全量回归，远端 CI 首跑仍待执行。服务启动继续遵循[协作规则](agent-collaboration.md#服务启动与真实联调)；普通 `npm test` 不启动这些服务。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的活动草案列表，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；打开当前 saved record 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback；不可变 revision 恢复仍使用独立历史流程。
 

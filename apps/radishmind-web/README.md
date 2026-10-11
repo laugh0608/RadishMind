@@ -401,4 +401,6 @@ npm run preview
 身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。上述是隔离窗口的验收结果，不是十三组同窗口或远端 CI 全量通过。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。
 
 
-`results-evidence` 是第十三组，命令为 `npm run test:e2e -- --suite=results-evidence --repeat-each=2`。复用 `--workflow-rag-promotion-local-product` 与 `--application-result-artifact-library-local-product`，四条流程中英各两轮共 16 次，覆盖校验下载 / 生命周期 / 冲突 / 迟到回包、RAG 数据集与词法候选审查，以及七个辅助证据面。只使用 mock、合成公开测试记录与临时 SQLite，不启动固定响应提供方、真实模型或调度器；关闭 trace 和自动截图，只保存指定页面与原始测试 JSON 的断言。最终窗口中英各两轮共 16 次通过，三视口与恢复状态已验收，所属服务和临时库已清理；结果见本周周志。
+`results-evidence` 是第十三组，命令为 `npm run test:e2e -- --suite=results-evidence --repeat-each=2`。复用 `--workflow-rag-promotion-local-product` 与 `--application-result-artifact-library-local-product`，六条流程中英各两轮共 24 次，覆盖结果校验下载 / 生命周期 / 冲突 / 迟到回包、RAG 数据集与词法候选审查、七个辅助证据面、主壳七个读取入口及应用交互会话。只使用 mock、合成公开测试记录与临时 SQLite，不启动固定响应提供方、真实模型或调度器；关闭 trace 和自动截图，只保存指定页面与原始测试 JSON 的断言。F 阶段最终窗口 24 次通过，覆盖语言切换零业务请求、会话等待 / 取消 / 元数据恢复和三视口，所属服务与临时库已清理；结果见本周周志。
+
+主要 Prompt / Workflow 基础流程可用 `npm run test:e2e -- --suite=workflow prompt.spec.ts workflow.spec.ts --repeat-each=2` 定向复验，共 44 次。该命令不执行同组的运行审查与用例 / 套件脚本；它们已有独立切片证据。服务启动仍需遵循仓库授权范围。

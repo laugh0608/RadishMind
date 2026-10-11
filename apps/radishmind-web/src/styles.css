@@ -6764,6 +6764,8 @@ dd {
 }
 
 .application-interaction-scope code,
+.application-interaction-scope strong,
+.application-interaction-scope p,
 .application-interaction-authority code,
 .application-interaction-turn-history code {
   overflow-wrap: anywhere;

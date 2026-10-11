@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -18,7 +19,7 @@ export type WorkspaceApplicationsStateId =
   | "partial_failure"
   | "forbidden_projection";
 
-export type WorkspaceApplicationsMetric = {
+export type WorkspaceApplicationsMetric = WorkflowProjectionCopy & {
   id: "applications" | "cursor" | "blockedRuns" | "audit";
   label: string;
   value: string;
@@ -41,12 +42,12 @@ export type WorkspaceApplicationRow = {
   archivedAt?: string | null;
 };
 
-export type WorkspaceApplicationCatalogProjection = {
+export type WorkspaceApplicationCatalogProjection = WorkflowProjectionCopy & {
   records: ApplicationCatalogRecord[];
   summary: string;
 };
 
-export type WorkspaceApplicationsStatePreview = {
+export type WorkspaceApplicationsStatePreview = WorkflowProjectionCopy & {
   id: WorkspaceApplicationsStateId;
   label: string;
   status: string;
@@ -215,26 +216,33 @@ function buildMetrics(
     {
       id: "applications",
       label: "Applications",
+      labelMessage: { key: "workspaceApplications_applications_label" },
       value: String(collection.itemCount),
       detail: collection.tenantRef,
     },
     {
       id: "cursor",
       label: "Cursor",
+      labelMessage: { key: "workspaceApplications_cursor_label" },
       value: collection.nextCursor ? "available" : "none",
+      valueMessage: collection.nextCursor ? { key: "workspaceApplications_cursor_value_yes" } : { key: "workspaceApplications_cursor_value_no" },
       detail: collection.nextCursor ?? "single page",
     },
     {
       id: "blockedRuns",
       label: "Blocked runs",
+      labelMessage: { key: "workspaceApplications_blockedRuns_label" },
       value: String(blockedCount),
       detail: "read-only status reference",
+      detailMessage: { key: "workspaceApplications_blockedRuns_detail" },
     },
     {
       id: "audit",
       label: "Audit",
+      labelMessage: { key: "workspaceApplications_audit_label" },
       value: collection.auditRef,
       detail: "latest list read audit reference",
+      detailMessage: { key: "workspaceApplications_audit_detail" },
     },
   ];
 }
@@ -247,48 +255,60 @@ function buildStatePreviews(
     {
       id: "ready",
       label: "Ready",
+      labelMessage: { key: "workspaceApplications_ready_label" },
       status: collection.statusLabel,
       summary: "Application summaries render from the offline consumer view model.",
+      summaryMessage: { key: "workspaceApplications_ready_summary" },
       itemCount: collection.itemCount,
       failureCode: collection.failureCode ?? "none",
     },
     {
       id: "empty",
       label: "Empty",
+      labelMessage: { key: "workspaceApplications_empty_label" },
       status: "empty",
       summary: "The list keeps filters and route metadata visible when no applications are returned.",
+      summaryMessage: { key: "workspaceApplications_empty_summary" },
       itemCount: 0,
       failureCode: "none",
     },
     {
       id: "denied",
       label: "Denied",
+      labelMessage: { key: "workspaceApplications_denied_label" },
       status: "scope_denied",
       summary: "The page renders a denial state instead of exposing partial application rows.",
+      summaryMessage: { key: "workspaceApplications_denied_summary" },
       itemCount: 0,
       failureCode: "scope_denied",
     },
     {
       id: "stale",
       label: "Stale",
+      labelMessage: { key: "workspaceApplications_stale_label" },
       status: "stale",
       summary: "Cached application summaries remain visibly separated from live workspace data.",
+      summaryMessage: { key: "workspaceApplications_stale_summary" },
       itemCount: collection.itemCount,
       failureCode: "read_store_unavailable",
     },
     {
       id: "partial_failure",
       label: "Partial failure",
+      labelMessage: { key: "workspaceApplications_partial_failure_label" },
       status: "partial_failure",
       summary: "Cursor availability and failure metadata stay explicit when a later page cannot be read.",
+      summaryMessage: { key: "workspaceApplications_partial_failure_summary" },
       itemCount: collection.itemCount,
       failureCode: "read_store_unavailable",
     },
     {
       id: "forbidden_projection",
       label: "Forbidden projection",
+      labelMessage: { key: "workspaceApplications_forbidden_projection_label" },
       status: forbiddenProjectionBlocked ? "blocked" : "clear",
       summary: "Sensitive raw tool payload fields are blocked before application rows can render them.",
+      summaryMessage: { key: "workspaceApplications_forbidden_projection_summary" },
       itemCount: 0,
       failureCode: forbiddenProjectionBlocked ? "forbidden_projection" : "none",
     },

@@ -1,3 +1,4 @@
+import "../../i18n/workflowReadProjectionResources.ts";
 import "../../i18n/workflowWorkspaceProjectionResources.ts";
 import { useTranslation } from "react-i18next";
 import { workflowProjectionText, workflowProjectionMessage, workflowProjectionStatusLabel } from "./workflowProjectionCopy.ts";

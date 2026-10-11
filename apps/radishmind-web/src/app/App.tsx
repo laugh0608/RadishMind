@@ -52,14 +52,10 @@ import { buildModelGatewayUsageAuditEvidenceViewModel } from "../features/contro
 import { buildModelGatewayEvidenceReviewViewModel } from "../features/control-plane-read/modelGatewayEvidenceReview";
 import {
   buildControlPlaneReadShellViewModel,
-  type ControlPlaneReadRouteCard,
-  type ControlPlaneReadStatePreview,
 } from "../features/control-plane-read/readShell";
 import {
   buildWorkspaceApplicationsViewModel,
-  type WorkspaceApplicationRow,
   type WorkspaceApplicationsMetric,
-  type WorkspaceApplicationsStatePreview,
 } from "../features/control-plane-read/workspaceApplications";
 import {
   readApplicationCatalogConfig,
@@ -72,12 +68,6 @@ import {
 } from "../features/control-plane-read/applicationDevelopmentWorkspace";
 import { promptAgentTypeWorkspaceCanonicalHashForTypeSwitch } from "../features/control-plane-read/promptAgentTypeWorkspaceModel";
 import {
-  type WorkflowApplicationBlockedCapabilityPreview,
-  type WorkflowApplicationDetailViewModel,
-  type WorkflowApplicationRiskSummary,
-  type WorkflowApplicationRouteMetadata,
-} from "../features/control-plane-read/workflowApplicationDetail";
-import {
   buildWorkspaceApiKeysViewModel,
 } from "../features/control-plane-read/workspaceApiKeys";
 import {
@@ -85,25 +75,7 @@ import {
 } from "../features/control-plane-read/workspaceUsageQuota";
 import {
   buildWorkspaceWorkflowDefinitionsViewModel,
-  type WorkspaceWorkflowDefinitionRow,
-  type WorkspaceWorkflowDefinitionsMetric,
-  type WorkspaceWorkflowDefinitionsStatePreview,
 } from "../features/control-plane-read/workspaceWorkflowDefinitions";
-import {
-  type WorkflowDefinitionBlockedActionPreview,
-  type WorkflowDefinitionDetailEdge,
-  type WorkflowDefinitionDetailNode,
-  type WorkflowDefinitionDetailSchemaSummary,
-  type WorkflowDefinitionDetailViewModel,
-} from "../features/control-plane-read/workflowDefinitionDetail";
-import {
-  type WorkflowSurfaceOverviewBlockedCapability,
-  type WorkflowSurfaceOverviewMetric,
-  type WorkflowSurfaceOverviewRelation,
-  type WorkflowSurfaceOverviewStatus,
-  type WorkflowSurfaceOverviewStopLine,
-  type WorkflowSurfaceOverviewViewModel,
-} from "../features/control-plane-read/workflowSurfaceOverview";
 import {
   selectWorkflowWorkspaceApplication,
   selectionForApplication,
@@ -111,17 +83,6 @@ import {
   selectionForRun,
   selectionForWorkflowDefinition,
 } from "../features/control-plane-read/workflowWorkspaceContext";
-import {
-  type WorkflowScenario,
-  type WorkflowScenarioBlockedReason,
-  type WorkflowScenarioExpectedOutput,
-  type WorkflowScenarioInputField,
-  type WorkflowScenarioInspectorViewModel,
-  type WorkflowScenarioRelation,
-  type WorkflowScenarioStatus,
-  type WorkflowScenarioStopLine,
-  type WorkflowScenarioSummary,
-} from "../features/control-plane-read/workflowScenarioInspector";
 import {
   buildWorkspaceRunHistoryViewModel,
   type WorkspaceRunHistoryMetric,
@@ -154,6 +115,18 @@ import type {
   ControlPlaneReadCollectionViewModel,
   ControlPlaneReadRouteId,
 } from "../../../../contracts/typescript/control-plane-read-api";
+
+const WorkflowSurfaceOverviewPanel = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.WorkflowSurfaceOverviewPanel })));
+const WorkflowScenarioInspectorPanel = lazy(() => import("../features/control-plane-read/workflowScenarioEvidencePanel.tsx").then(module => ({ default: module.WorkflowScenarioInspectorPanel })));
+const WorkflowApplicationDetailPanel = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.WorkflowApplicationDetailPanel })));
+const WorkflowDefinitionDetailPanel = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.WorkflowDefinitionDetailPanel })));
+const WorkflowDefinitionMetric = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.WorkflowDefinitionMetric })));
+const WorkflowDefinitionRow = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.WorkflowDefinitionRow })));
+const WorkflowDefinitionStatePreview = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.WorkflowDefinitionStatePreview })));
+const ApplicationRow = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.ApplicationRow })));
+const ApplicationStatePreview = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.ApplicationStatePreview })));
+const RouteCard = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.RouteCard })));
+const StatePreview = lazy(() => import("../features/control-plane-read/workflowReadEvidencePanels.tsx").then(module => ({ default: module.StatePreview })));
 
 const WorkspaceUsageQuotaPanel = lazy(() => import("../features/control-plane-read/workspaceUsageQuotaPanel.tsx"));
 const WorkspaceOperationsInboxPanel = lazy(() => import("../features/control-plane-read/workspaceOperationsInboxPanel").then(module => ({ default: module.WorkspaceOperationsInboxPanel })));
@@ -942,12 +915,12 @@ function ProductApp() {
         <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.evidenceLoading)}</p></section>}>
           <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
         </Suspense>
-        <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
-        <WorkflowScenarioInspectorPanel
+        <Suspense fallback={null}><WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} /></Suspense>
+        <Suspense fallback={null}><WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}
           selectedScenarioId={workflowScenarioInspector.selectedScenarioId}
           onSelectScenario={setSelectedWorkflowScenarioId}
-        />
+        /></Suspense>
 
         <section
           className="surface-band workspace-applications"
@@ -1014,18 +987,18 @@ function ProductApp() {
           {!applicationCatalogLive ? (
             <div className="application-list" aria-label={t($ => $.appShell.workspaceApplications)}>
               {workspaceApplications.applications.map((application) => (
-                <ApplicationRow
+                <Suspense key={application.applicationRef} fallback={null}><ApplicationRow
                   key={application.applicationRef}
                   application={application}
                   selected={application.applicationRef === selectedApplication.applicationRef}
                   onSelectApplication={handleSelectApplication}
-                />
+                /></Suspense>
               ))}
             </div>
           ) : null}
 
           {applicationDevelopmentWorkspaceContext.status !== "unavailable" ? (
-            <WorkflowApplicationDetailPanel detail={workflowApplicationDetail} />
+            <Suspense fallback={null}><WorkflowApplicationDetailPanel detail={workflowApplicationDetail} /></Suspense>
           ) : null}
 
           <Suspense fallback={<div className="application-development-workspace"><p>{t($ => $.appShell.loadingWorkspace)}</p></div>}>
@@ -1075,9 +1048,9 @@ function ProductApp() {
             />
           </Suspense>
 
-          <div className="application-states" aria-label="Workspace application states">
+          <div className="application-states" aria-label={t($ => $.appShell.applicationStates)}>
             {workspaceApplications.statePreviews.map((state) => (
-              <ApplicationStatePreview key={state.id} state={state} />
+              <Suspense key={state.id} fallback={null}><ApplicationStatePreview key={state.id} state={state} /></Suspense>
             ))}
           </div>
         </section>
@@ -1105,7 +1078,7 @@ function ProductApp() {
             <article className="workflow-definitions-route">
               <div className="card-title-row">
                 <div>
-                  <p className="eyebrow">Workflow Definition Summary List Route</p>
+                  <p className="eyebrow">{t($ => $.appShell.definitionSummaryRoute)}</p>
                   <h4>{workspaceWorkflowDefinitions.routeId}</h4>
                 </div>
                 <StatusBadge tone="neutral">{workspaceWorkflowDefinitions.requiredScope}</StatusBadge>
@@ -1131,16 +1104,16 @@ function ProductApp() {
               </dl>
             </article>
 
-            <div className="workflow-definitions-metrics" aria-label="Workspace workflow definition metrics">
-              {workspaceWorkflowDefinitions.metrics.map((metric) => (
-                <WorkflowDefinitionMetric key={metric.label} metric={metric} />
+            <div className="workflow-definitions-metrics" aria-label={t($ => $.appShell.definitionMetrics)}>
+              {workspaceWorkflowDefinitions.metrics.map((metric, index) => (
+                <Suspense key={index} fallback={null}><WorkflowDefinitionMetric key={index} metric={metric} /></Suspense>
               ))}
             </div>
           </div>
 
-          <div className="workflow-definition-list" aria-label="Workspace workflow definitions">
+          <div className="workflow-definition-list" aria-label={t($ => $.appShell.definitions)}>
             {workspaceWorkflowDefinitions.workflowDefinitions.map((workflowDefinition) => (
-              <WorkflowDefinitionRow
+              <Suspense key={workflowDefinition.workflowDefinitionId} fallback={null}><WorkflowDefinitionRow
                 key={workflowDefinition.workflowDefinitionId}
                 workflowDefinition={workflowDefinition}
                 selected={workflowDefinition.workflowDefinitionId === selectedWorkflowDefinition.workflowDefinitionId}
@@ -1149,12 +1122,12 @@ function ProductApp() {
                 }
                 onSelectWorkflowDefinition={handleSelectWorkflowDefinition}
                 onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}
-              />
+              /></Suspense>
             ))}
           </div>
 
-          <WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} />
-          <Suspense fallback={<section className="workflow-draft-designer"><p>正在加载 Workflow Designer Workbench…</p></section>}>
+          <Suspense fallback={null}><WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} /></Suspense>
+          <Suspense fallback={<section className="workflow-draft-designer"><p>{t($ => $.appShell.loadingDesigner)}</p></section>}>
             <WorkflowDraftDesignerPanel
               designer={workflowDraftDesigner}
               selectedDraft={activeWorkflowDraft}
@@ -1176,7 +1149,7 @@ function ProductApp() {
               onReadDraft={handleReadWorkflowDraft}
             />
           </Suspense>
-          <Suspense fallback={<section className="workflow-draft-revision-panel"><p>正在加载草案修订历史工作区…</p></section>}>
+          <Suspense fallback={<section className="workflow-draft-revision-panel"><p>{t($ => $.appShell.loadingRevisions)}</p></section>}>
             <WorkflowSavedDraftRevisionPanel
               key={`${draftWorkspace.editorScopeKey}:${savedDraftConsumerState.currentDraftVersion}:${savedDraftConsumerState.currentLifecycleVersion}`}
               draft={activeWorkflowDraft}
@@ -1257,9 +1230,9 @@ function ProductApp() {
             <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
           </Suspense>
 
-          <div className="workflow-definition-states" aria-label="Workspace workflow definition states">
+          <div className="workflow-definition-states" aria-label={t($ => $.appShell.definitionStates)}>
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
-              <WorkflowDefinitionStatePreview key={state.id} state={state} />
+              <Suspense key={state.id} fallback={null}><WorkflowDefinitionStatePreview key={state.id} state={state} /></Suspense>
             ))}
           </div>
         </section>
@@ -1343,14 +1316,14 @@ function ProductApp() {
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Contract Binding</p>
-              <h3 id="routes-title">Route catalog</h3>
+              <p className="eyebrow">{t($ => $.appShell.contractBinding)}</p>
+              <h3 id="routes-title">{t($ => $.appShell.routeCatalog)}</h3>
             </div>
-            <StatusBadge tone="neutral">offline contract</StatusBadge>
+            <StatusBadge tone="neutral">{t($ => $.appShell.offlineContract)}</StatusBadge>
           </div>
           <div className="route-grid">
             {shell.routeCards.map((route) => (
-              <RouteCard key={route.routeId} route={route} />
+              <Suspense key={route.routeId} fallback={null}><RouteCard key={route.routeId} route={route} /></Suspense>
             ))}
           </div>
         </section>
@@ -1358,14 +1331,14 @@ function ProductApp() {
         <section className="surface-band" id="states" aria-labelledby="states-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">State Model</p>
-              <h3 id="states-title">Shared states</h3>
+              <p className="eyebrow">{t($ => $.appShell.stateModel)}</p>
+              <h3 id="states-title">{t($ => $.appShell.sharedStates)}</h3>
             </div>
-            <StatusBadge tone="good">{shell.readyPreview.statusLabel}</StatusBadge>
+            <StatusBadge tone="good">{t($ => $.appShell.readOnlyReady)}</StatusBadge>
           </div>
           <div className="state-grid">
             {shell.statePreviews.map((state) => (
-              <StatePreview key={state.id} state={state} />
+              <Suspense key={state.id} fallback={null}><StatePreview key={state.id} state={state} /></Suspense>
             ))}
           </div>
         </section>
@@ -1373,19 +1346,19 @@ function ProductApp() {
         <section className="surface-band guard-band" id="guard" aria-labelledby="guard-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Sensitive Output</p>
-              <h3 id="guard-title">Forbidden output guard</h3>
+              <p className="eyebrow">{t($ => $.appShell.sensitiveOutput)}</p>
+              <h3 id="guard-title">{t($ => $.appShell.outputGuard)}</h3>
             </div>
             <StatusBadge tone={shell.forbiddenProjectionBlocked ? "bad" : "good"}>
-              {shell.forbiddenProjectionBlocked ? t($ => $.appShell.blocked) : "clear"}
+              {shell.forbiddenProjectionBlocked ? t($ => $.appShell.blocked) : t($ => $.appShell.clear)}
             </StatusBadge>
           </div>
           <div className="guard-layout">
             <div>
               <p className="metric-value">{shell.forbiddenOutputKeys.length}</p>
-              <p className="metric-label">blocked output keys</p>
+              <p className="metric-label">{t($ => $.appShell.blockedKeys)}</p>
             </div>
-            <div className="guard-list" aria-label="Forbidden output keys">
+            <div className="guard-list" aria-label={t($ => $.appShell.forbiddenKeys)}>
               {shell.forbiddenOutputKeys.map((key) => (
                 <code key={key}>{key}</code>
               ))}
@@ -1395,471 +1368,6 @@ function ProductApp() {
       </section>
     </main>
   );
-}
-
-function WorkflowSurfaceOverviewPanel({ overview }: { overview: WorkflowSurfaceOverviewViewModel }) {
-  return (
-    <section
-      className="surface-band workflow-surface-overview"
-      id="workflow-surface-overview"
-      aria-labelledby="workflow-surface-overview-title"
-    >
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Workflow Surface Overview</p>
-          <h3 id="workflow-surface-overview-title">Application, draft, plan, readiness</h3>
-        </div>
-        <StatusBadge tone={overview.canRenderSurfaceOverview ? "neutral" : "bad"}>
-          {overview.canRenderSurfaceOverview ? "offline advisory" : "blocked"}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-surface-overview-summary-grid" aria-label="Workflow surface overview summary">
-        {overview.summary.map((metric) => (
-          <WorkflowSurfaceOverviewMetricCard key={metric.metricId} metric={metric} />
-        ))}
-      </div>
-
-      <article className="workflow-surface-overview-card">
-        <div className="workflow-surface-overview-row-main">
-          <div>
-            <p className="eyebrow">{overview.overviewMode}</p>
-            <h5>{overview.applicationId}</h5>
-          </div>
-          <StatusBadge tone="neutral">inspect only</StatusBadge>
-        </div>
-        <dl className="workflow-run-guard-meta">
-          <div>
-            <dt>Workflow definition</dt>
-            <dd>{overview.workflowDefinitionId}</dd>
-          </div>
-          <div>
-            <dt>Selected draft</dt>
-            <dd>{overview.selectedDraftId}</dd>
-          </div>
-          <div>
-            <dt>Latest run</dt>
-            <dd>{overview.latestRunId}</dd>
-          </div>
-          <div>
-            <dt>Request</dt>
-            <dd>{overview.requestId}</dd>
-          </div>
-          <div>
-            <dt>Audit</dt>
-            <dd>{overview.auditRef}</dd>
-          </div>
-        </dl>
-      </article>
-
-      <div className="workflow-surface-overview-relation-grid" aria-label="Workflow surface overview relationship map">
-        {overview.relationMap.map((relation) => (
-          <WorkflowSurfaceOverviewRelationCard key={relation.relationId} relation={relation} />
-        ))}
-      </div>
-
-      <div
-        className="workflow-surface-overview-blocked-grid"
-        aria-label="Workflow surface overview blocked capabilities"
-      >
-        {overview.blockedCapabilities.map((capability) => (
-          <WorkflowSurfaceOverviewBlockedCapabilityCard
-            key={capability.capabilityId}
-            capability={capability}
-          />
-        ))}
-      </div>
-
-      <div className="workflow-surface-overview-stopline-grid" aria-label="Workflow surface overview stop lines">
-        {overview.stopLines.map((stopLine) => (
-          <WorkflowSurfaceOverviewStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function WorkflowSurfaceOverviewMetricCard({ metric }: { metric: WorkflowSurfaceOverviewMetric }) {
-  return (
-    <article className="workflow-surface-overview-card">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <StatusBadge tone={workflowSurfaceOverviewTone(metric.status)}>{metric.status}</StatusBadge>
-      <p>{metric.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowSurfaceOverviewRelationCard({ relation }: { relation: WorkflowSurfaceOverviewRelation }) {
-  return (
-    <article className="workflow-surface-overview-relation">
-      <div className="workflow-surface-overview-row-main">
-        <div>
-          <p className="eyebrow">{relation.relationId}</p>
-          <h5>{relation.label}</h5>
-        </div>
-        <StatusBadge tone={workflowSurfaceOverviewTone(relation.status)}>{relation.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Source</dt>
-          <dd>{relation.sourceRef}</dd>
-        </div>
-        <div>
-          <dt>Target</dt>
-          <dd>{relation.targetRef}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{relation.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{relation.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowSurfaceOverviewBlockedCapabilityCard({
-  capability,
-}: {
-  capability: WorkflowSurfaceOverviewBlockedCapability;
-}) {
-  return (
-    <article className="workflow-surface-overview-blocked-capability">
-      <div className="workflow-surface-overview-row-main">
-        <div>
-          <p className="eyebrow">{capability.sourceSurface}</p>
-          <h5>{capability.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{capability.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Capability</dt>
-          <dd>{capability.capabilityId}</dd>
-        </div>
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{capability.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{capability.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{capability.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowSurfaceOverviewStopLineCard({ stopLine }: { stopLine: WorkflowSurfaceOverviewStopLine }) {
-  return (
-    <article className="workflow-surface-overview-stopline">
-      <div className="workflow-surface-overview-row-main">
-        <div>
-          <p className="eyebrow">{stopLine.stopLineId}</p>
-          <h5>{stopLine.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{stopLine.status}</StatusBadge>
-      </div>
-      <p>{stopLine.summary}</p>
-    </article>
-  );
-}
-
-function workflowSurfaceOverviewTone(status: WorkflowSurfaceOverviewStatus): "good" | "bad" | "neutral" {
-  if (status === "blocked") {
-    return "bad";
-  }
-  if (status === "ready") {
-    return "good";
-  }
-  return "neutral";
-}
-
-function WorkflowScenarioInspectorPanel({
-  inspector,
-  selectedScenarioId,
-  onSelectScenario,
-}: {
-  inspector: WorkflowScenarioInspectorViewModel;
-  selectedScenarioId: string;
-  onSelectScenario: (scenarioId: string) => void;
-}) {
-  return (
-    <section
-      className="surface-band workflow-scenario-inspector"
-      id="workflow-scenario-inspector"
-      aria-labelledby="workflow-scenario-inspector-title"
-    >
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Workflow Scenario Inspector</p>
-          <h3 id="workflow-scenario-inspector-title">Scenario, input, output, blockers</h3>
-        </div>
-        <StatusBadge tone={inspector.canRenderScenarioInspector ? "neutral" : "bad"}>
-          {inspector.canRenderScenarioInspector ? "offline advisory" : "blocked"}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-scenario-selector-grid" aria-label="Workflow scenario selector">
-        {inspector.scenarios.map((scenario) => (
-          <WorkflowScenarioSelectorCard
-            key={scenario.scenarioId}
-            scenario={scenario}
-            selected={scenario.scenarioId === selectedScenarioId}
-            onSelectScenario={onSelectScenario}
-          />
-        ))}
-      </div>
-
-      <div className="workflow-scenario-summary-grid" aria-label="Workflow scenario summary">
-        {inspector.summary.map((summary) => (
-          <WorkflowScenarioSummaryCard key={summary.label} summary={summary} />
-        ))}
-      </div>
-
-      <WorkflowScenarioDetailCard scenario={inspector.selectedScenario} inspector={inspector} />
-
-      <div className="workflow-scenario-input-grid" aria-label="Workflow scenario input contract">
-        {inspector.selectedScenario.inputContract.map((input) => (
-          <WorkflowScenarioInputCard key={input.fieldId} input={input} />
-        ))}
-      </div>
-
-      <div className="workflow-scenario-output-grid" aria-label="Workflow scenario expected outputs">
-        {inspector.selectedScenario.expectedOutputs.map((output) => (
-          <WorkflowScenarioOutputCard key={output.outputId} output={output} />
-        ))}
-      </div>
-
-      <div className="workflow-scenario-relation-grid" aria-label="Workflow scenario relationship map">
-        {inspector.relationMap.map((relation) => (
-          <WorkflowScenarioRelationCard key={relation.relationId} relation={relation} />
-        ))}
-      </div>
-
-      <div className="workflow-scenario-blocked-grid" aria-label="Workflow scenario blocked reasons">
-        {inspector.blockedReasons.map((reason) => (
-          <WorkflowScenarioBlockedReasonCard key={reason.reasonId} reason={reason} />
-        ))}
-      </div>
-
-      <div className="workflow-scenario-stopline-grid" aria-label="Workflow scenario stop lines">
-        {inspector.stopLines.map((stopLine) => (
-          <WorkflowScenarioStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function WorkflowScenarioSelectorCard({
-  scenario,
-  selected,
-  onSelectScenario,
-}: {
-  scenario: WorkflowScenario;
-  selected: boolean;
-  onSelectScenario: (scenarioId: string) => void;
-}) {
-  return (
-    <article
-      className={`workflow-scenario-selector-card selection-row${selected ? " selected" : ""}`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={selected}
-      onClick={() => onSelectScenario(scenario.scenarioId)}
-      onKeyDown={(event) => handleSelectionRowKeyDown(event, scenario.scenarioId, onSelectScenario)}
-    >
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{scenario.scenarioKind}</p>
-          <h5>{scenario.label}</h5>
-        </div>
-        <StatusBadge tone={selected ? "neutral" : workflowScenarioTone(scenario.requiresConfirmation ? "blocked" : "review_required")}>
-          {selected ? "selected" : scenario.requiresConfirmation ? "confirmation" : "advisory"}
-        </StatusBadge>
-      </div>
-      <p>{scenario.triggerSummary}</p>
-      <small>{scenario.scenarioId}</small>
-    </article>
-  );
-}
-
-function WorkflowScenarioSummaryCard({ summary }: { summary: WorkflowScenarioSummary }) {
-  return (
-    <article className="workflow-scenario-card">
-      <span>{summary.label}</span>
-      <strong>{summary.value}</strong>
-      <StatusBadge tone={workflowScenarioTone(summary.status)}>{summary.status}</StatusBadge>
-      <p>{summary.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowScenarioDetailCard({
-  scenario,
-  inspector,
-}: {
-  scenario: WorkflowScenario;
-  inspector: WorkflowScenarioInspectorViewModel;
-}) {
-  return (
-    <article className="workflow-scenario-card">
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{inspector.scenarioMode}</p>
-          <h5>{scenario.intent}</h5>
-        </div>
-        <StatusBadge tone={workflowScenarioTone(scenario.requiresConfirmation ? "blocked" : "review_required")}>
-          {scenario.requiresConfirmation ? "confirmation required" : "advisory only"}
-        </StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Application</dt>
-          <dd>{scenario.applicationRef}</dd>
-        </div>
-        <div>
-          <dt>Workflow definition</dt>
-          <dd>{scenario.workflowDefinitionId}</dd>
-        </div>
-        <div>
-          <dt>Selected draft</dt>
-          <dd>{scenario.draftId}</dd>
-        </div>
-        <div>
-          <dt>Latest run</dt>
-          <dd>{scenario.runId}</dd>
-        </div>
-        <div>
-          <dt>Risk</dt>
-          <dd>{scenario.riskLevel}</dd>
-        </div>
-        <div>
-          <dt>Scenario</dt>
-          <dd>{inspector.selectedScenarioId}</dd>
-        </div>
-      </dl>
-      <p>{scenario.validationFocus}</p>
-    </article>
-  );
-}
-
-function WorkflowScenarioInputCard({ input }: { input: WorkflowScenarioInputField }) {
-  return (
-    <article className="workflow-scenario-input">
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{input.fieldId}</p>
-          <h5>{input.label}</h5>
-        </div>
-        <StatusBadge tone="neutral">{input.required ? "required" : "optional"}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Source</dt>
-          <dd>{input.sourceRef}</dd>
-        </div>
-      </dl>
-      <p>{input.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowScenarioOutputCard({ output }: { output: WorkflowScenarioExpectedOutput }) {
-  return (
-    <article className="workflow-scenario-output">
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{output.outputId}</p>
-          <h5>{output.label}</h5>
-        </div>
-        <StatusBadge tone={workflowScenarioTone(output.status)}>{output.status}</StatusBadge>
-      </div>
-      <p>{output.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowScenarioRelationCard({ relation }: { relation: WorkflowScenarioRelation }) {
-  return (
-    <article className="workflow-scenario-relation">
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{relation.relationId}</p>
-          <h5>{relation.label}</h5>
-        </div>
-        <StatusBadge tone={workflowScenarioTone(relation.status)}>{relation.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Source</dt>
-          <dd>{relation.sourceRef}</dd>
-        </div>
-        <div>
-          <dt>Target</dt>
-          <dd>{relation.targetRef}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{relation.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{relation.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowScenarioBlockedReasonCard({ reason }: { reason: WorkflowScenarioBlockedReason }) {
-  return (
-    <article className="workflow-scenario-blocked-reason">
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{reason.sourceSurface}</p>
-          <h5>{reason.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{reason.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{reason.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{reason.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{reason.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowScenarioStopLineCard({ stopLine }: { stopLine: WorkflowScenarioStopLine }) {
-  return (
-    <article className="workflow-scenario-stopline">
-      <div className="workflow-scenario-row-main">
-        <div>
-          <p className="eyebrow">{stopLine.stopLineId}</p>
-          <h5>{stopLine.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{stopLine.status}</StatusBadge>
-      </div>
-      <p>{stopLine.summary}</p>
-    </article>
-  );
-}
-
-function workflowScenarioTone(status: WorkflowScenarioStatus): "good" | "bad" | "neutral" {
-  if (status === "blocked") {
-    return "bad";
-  }
-  if (status === "ready") {
-    return "good";
-  }
-  return "neutral";
 }
 
 function RunHistoryMetric({ metric }: { metric: WorkspaceRunHistoryMetric }) {
@@ -2372,390 +1880,6 @@ function RunHistoryStatePreview({ state }: { state: WorkspaceRunHistoryStatePrev
   );
 }
 
-function WorkflowDefinitionMetric({ metric }: { metric: WorkspaceWorkflowDefinitionsMetric }) {
-  return (
-    <article className="workflow-definition-metric">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <p>{metric.detail}</p>
-    </article>
-  );
-}
-
-function WorkflowDefinitionRow({
-  workflowDefinition,
-  selected,
-  createdDraftCount,
-  onSelectWorkflowDefinition,
-  onCreateDraftForWorkflowDefinition,
-}: {
-  workflowDefinition: WorkspaceWorkflowDefinitionRow;
-  selected: boolean;
-  createdDraftCount: number;
-  onSelectWorkflowDefinition: (workflowDefinitionId: string) => void;
-  onCreateDraftForWorkflowDefinition: (workflowDefinitionId: string) => void;
-}) {
-  return (
-    <article
-      className={`workflow-definition-row selection-row${selected ? " selected" : ""}`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={selected}
-      onClick={() => onSelectWorkflowDefinition(workflowDefinition.workflowDefinitionId)}
-      onKeyDown={(event) =>
-        handleSelectionRowKeyDown(event, workflowDefinition.workflowDefinitionId, onSelectWorkflowDefinition)
-      }
-    >
-      <div className="workflow-definition-row-main">
-        <div>
-          <p className="eyebrow">{workflowDefinition.applicationRef}</p>
-          <h4>{workflowDefinition.workflowDefinitionId}</h4>
-        </div>
-        <StatusBadge tone={selected ? "neutral" : workflowDefinition.definitionStatus === "published" ? "good" : "neutral"}>
-          {selected ? "selected" : workflowDefinition.definitionStatus}
-        </StatusBadge>
-      </div>
-      <dl className="workflow-definition-row-meta">
-        <div>
-          <dt>Version</dt>
-          <dd>{workflowDefinition.version}</dd>
-        </div>
-        <div>
-          <dt>Nodes</dt>
-          <dd>{workflowDefinition.nodeCount}</dd>
-        </div>
-        <div>
-          <dt>Risk</dt>
-          <dd>{workflowDefinition.riskLevel}</dd>
-        </div>
-        <div>
-          <dt>Confirmation</dt>
-          <dd>{workflowDefinition.requiresConfirmationCapable ? "capable" : "not required"}</dd>
-        </div>
-        <div>
-          <dt>Updated</dt>
-          <dd>{workflowDefinition.updatedAt}</dd>
-        </div>
-      </dl>
-      <div className="workflow-definition-row-actions">
-        <span>{createdDraftCount} local drafts</span>
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onCreateDraftForWorkflowDefinition(workflowDefinition.workflowDefinitionId);
-          }}
-        >
-          Create draft
-        </button>
-      </div>
-    </article>
-  );
-}
-
-function WorkflowDefinitionDetailPanel({ detail }: { detail: WorkflowDefinitionDetailViewModel }) {
-  return (
-    <div className="workflow-definition-detail" aria-label="Workflow definition detail read surface">
-      <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Workflow Definition Detail</p>
-          <h4>{detail.workflowDefinitionId}</h4>
-        </div>
-        <StatusBadge tone={detail.canRenderDefinitionDetail ? "good" : "bad"}>
-          {detail.canRenderDefinitionDetail ? "detail ready" : "blocked"}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-detail-summary-grid" aria-label="Workflow definition detail summary">
-        <article className="workflow-detail-summary-card">
-          <span>Route</span>
-          <strong>{detail.draftRouteId}</strong>
-          <p>{detail.routePath}</p>
-        </article>
-        <article className="workflow-detail-summary-card">
-          <span>Request</span>
-          <strong>{detail.requestId}</strong>
-          <p>{detail.auditRef}</p>
-        </article>
-        <article className="workflow-detail-summary-card">
-          <span>Risk</span>
-          <strong>{detail.riskLevel}</strong>
-          <p>{detail.requiresConfirmationCapable ? "confirmation capable" : "no confirmation marker"}</p>
-        </article>
-        <article className="workflow-detail-summary-card">
-          <span>Source</span>
-          <strong>{detail.sourceRouteId}</strong>
-          <p>{detail.applicationRef}</p>
-        </article>
-      </div>
-
-      <div className="workflow-detail-schema-grid" aria-label="Workflow definition input and output summaries">
-        <WorkflowDefinitionSchemaSummary summary={detail.inputSummary} />
-        <WorkflowDefinitionSchemaSummary summary={detail.outputSummary} />
-      </div>
-
-      <div className="workflow-detail-node-list" aria-label="Workflow definition nodes">
-        {detail.nodes.map((node) => (
-          <WorkflowDefinitionDetailNodeCard key={node.nodeId} node={node} />
-        ))}
-      </div>
-
-      <div className="workflow-detail-edge-list" aria-label="Workflow definition edges">
-        {detail.edges.map((edge) => (
-          <WorkflowDefinitionDetailEdgeCard key={edge.edgeId} edge={edge} />
-        ))}
-      </div>
-
-      <WorkflowDefinitionBlockedActionPreviewCard preview={detail.blockedActionPreview} />
-    </div>
-  );
-}
-
-function WorkflowDefinitionSchemaSummary({ summary }: { summary: WorkflowDefinitionDetailSchemaSummary }) {
-  return (
-    <article className="workflow-detail-schema-card">
-      <span>{summary.label}</span>
-      <strong>{summary.fields.join(", ")}</strong>
-      <p>{summary.summary}</p>
-    </article>
-  );
-}
-
-function WorkflowDefinitionDetailNodeCard({ node }: { node: WorkflowDefinitionDetailNode }) {
-  return (
-    <article className="workflow-detail-node">
-      <div className="workflow-detail-row-main">
-        <div>
-          <p className="eyebrow">{node.nodeType}</p>
-          <h5>{node.label}</h5>
-        </div>
-        <StatusBadge tone={node.requiresConfirmation ? "neutral" : "good"}>
-          {node.requiresConfirmation ? "confirmation marker" : "read-only"}
-        </StatusBadge>
-      </div>
-      <dl className="workflow-detail-node-meta">
-        <div>
-          <dt>Input</dt>
-          <dd>{node.inputSummary}</dd>
-        </div>
-        <div>
-          <dt>Output</dt>
-          <dd>{node.outputSummary}</dd>
-        </div>
-        <div>
-          <dt>Risk</dt>
-          <dd>{node.riskLevel}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function WorkflowDefinitionDetailEdgeCard({ edge }: { edge: WorkflowDefinitionDetailEdge }) {
-  return (
-    <article className="workflow-detail-edge">
-      <span>{edge.edgeId}</span>
-      <strong>
-        {edge.fromNodeId} to {edge.toNodeId}
-      </strong>
-      <p>{edge.conditionSummary}</p>
-    </article>
-  );
-}
-
-function WorkflowDefinitionBlockedActionPreviewCard({
-  preview,
-}: {
-  preview: WorkflowDefinitionBlockedActionPreview;
-}) {
-  return (
-    <article className="workflow-detail-blocked-action">
-      <div className="workflow-detail-row-main">
-        <div>
-          <p className="eyebrow">{preview.toolRef}</p>
-          <h5>{preview.toolActionId}</h5>
-        </div>
-        <StatusBadge tone="bad">{preview.blockedState}</StatusBadge>
-      </div>
-      <dl className="workflow-detail-node-meta">
-        <div>
-          <dt>Action</dt>
-          <dd>{preview.actionKind}</dd>
-        </div>
-        <div>
-          <dt>Risk</dt>
-          <dd>{preview.riskLevel}</dd>
-        </div>
-        <div>
-          <dt>Confirmation</dt>
-          <dd>{preview.requiresConfirmation ? "legacy requirement only" : "not required"}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{preview.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{preview.policyReason}</p>
-    </article>
-  );
-}
-
-function WorkflowDefinitionStatePreview({ state }: { state: WorkspaceWorkflowDefinitionsStatePreview }) {
-  return (
-    <article className="workflow-definition-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
-}
-
-function WorkflowApplicationDetailPanel({ detail }: { detail: WorkflowApplicationDetailViewModel }) {
-  return (
-    <div
-      className="workflow-application-detail"
-      id="workflow-application-detail"
-      aria-label="Workflow application detail read surface"
-    >
-      <div className="section-heading compact-heading">
-        <div>
-          <p className="eyebrow">Application Detail</p>
-          <h4>{detail.displayName}</h4>
-        </div>
-        <StatusBadge tone={detail.canRenderApplicationDetail ? "good" : "bad"}>
-          {detail.canRenderApplicationDetail ? "detail ready" : "blocked"}
-        </StatusBadge>
-      </div>
-
-      <div className="workflow-application-summary-grid" aria-label="Workflow application identity">
-        <article className="workflow-application-detail-card">
-          <span>Application</span>
-          <strong>{detail.applicationId}</strong>
-          <p>{detail.displayName}</p>
-        </article>
-        <article className="workflow-application-detail-card">
-          <span>Tenant and owner</span>
-          <strong>{detail.tenantRef}</strong>
-          <p>{detail.ownerSubjectRef}</p>
-        </article>
-        <article className="workflow-application-detail-card">
-          <span>Application type</span>
-          <strong>{detail.applicationType}</strong>
-          <p>{detail.lifecycleStatus}</p>
-        </article>
-        <article className="workflow-application-detail-card">
-          <span>Provider profile</span>
-          <strong>{detail.providerProfileRef}</strong>
-          <p>{detail.lastRunStatus}</p>
-        </article>
-      </div>
-
-      <div className="workflow-application-risk-grid" aria-label="Workflow application route and risk metadata">
-        <WorkflowApplicationRiskCard riskSummary={detail.riskSummary} />
-        <WorkflowApplicationRouteMetadataCard routeMetadata={detail.routeMetadata} />
-        <article className="workflow-application-detail-card">
-          <span>Latest workflow</span>
-          <strong>{detail.latestWorkflowDefinitionRef}</strong>
-          <p>updated {detail.updatedAt}</p>
-        </article>
-        <article className="workflow-application-detail-card">
-          <span>Latest run ref</span>
-          <strong>{detail.latestRunRef}</strong>
-          <p>read-only pointer; replay and resume stay blocked</p>
-        </article>
-      </div>
-
-      <div className="workflow-application-blocked-grid" aria-label="Workflow application blocked capabilities">
-        {detail.blockedCapabilities.map((capability) => (
-          <WorkflowApplicationBlockedCapabilityCard key={capability.capabilityId} capability={capability} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function WorkflowApplicationRiskCard({ riskSummary }: { riskSummary: WorkflowApplicationRiskSummary }) {
-  return (
-    <article className="workflow-application-detail-card">
-      <span>{riskSummary.label}</span>
-      <strong>{riskSummary.riskLevel}</strong>
-      <p>{riskSummary.summary}</p>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Confirmation</dt>
-          <dd>{riskSummary.requiresConfirmationCapable ? "capability marker only" : "not required by fixture"}</dd>
-        </div>
-        <div>
-          <dt>Policy</dt>
-          <dd>{riskSummary.policyRef}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function WorkflowApplicationRouteMetadataCard({
-  routeMetadata,
-}: {
-  routeMetadata: WorkflowApplicationRouteMetadata;
-}) {
-  return (
-    <article className="workflow-application-detail-card">
-      <span>Route metadata</span>
-      <strong>{routeMetadata.draftRouteId}</strong>
-      <p>{routeMetadata.routePath}</p>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Source route</dt>
-          <dd>{routeMetadata.sourceRouteId}</dd>
-        </div>
-        <div>
-          <dt>Request</dt>
-          <dd>{routeMetadata.requestId}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{routeMetadata.auditRef}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function WorkflowApplicationBlockedCapabilityCard({
-  capability,
-}: {
-  capability: WorkflowApplicationBlockedCapabilityPreview;
-}) {
-  return (
-    <article className="workflow-application-blocked-capability">
-      <div className="workflow-application-row-main">
-        <div>
-          <p className="eyebrow">{capability.capabilityId}</p>
-          <h5>{capability.label}</h5>
-        </div>
-        <StatusBadge tone="bad">{capability.status}</StatusBadge>
-      </div>
-      <dl className="workflow-run-guard-meta">
-        <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{capability.missingPrerequisite}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{capability.auditRef}</dd>
-        </div>
-      </dl>
-      <p>{capability.reason}</p>
-    </article>
-  );
-}
-
 function ApplicationMetric({ metric }: { metric: WorkspaceApplicationsMetric }) {
   const { t } = useTranslation("shell");
   const value = metric.id === "cursor" ? t($ => $.appShell.metrics.cursorValues[metric.value === "available" ? "available" : "none"]) : metric.value;
@@ -2767,122 +1891,6 @@ function ApplicationMetric({ metric }: { metric: WorkspaceApplicationsMetric }) 
       <span>{t($ => $.appShell.metrics.labels[metric.id])}</span>
       <strong>{value}</strong>
       <p>{detail}</p>
-    </article>
-  );
-}
-
-function ApplicationRow({
-  application,
-  selected,
-  onSelectApplication,
-}: {
-  application: WorkspaceApplicationRow;
-  selected: boolean;
-  onSelectApplication: (applicationRef: string) => void;
-}) {
-  return (
-    <article
-      className={`application-row selection-row${selected ? " selected" : ""}`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={selected}
-      onClick={() => onSelectApplication(application.applicationRef)}
-      onKeyDown={(event) => handleSelectionRowKeyDown(event, application.applicationRef, onSelectApplication)}
-    >
-      <div className="application-row-main">
-        <div>
-          <p className="eyebrow">{application.applicationKind}</p>
-          <h4>{application.displayName}</h4>
-        </div>
-        <StatusBadge tone={selected ? "neutral" : application.lastRunStatus === "blocked" ? "bad" : "good"}>
-          {selected ? "selected" : application.lastRunStatus}
-        </StatusBadge>
-      </div>
-      <dl className="application-row-meta">
-        <div>
-          <dt>Application</dt>
-          <dd>{application.applicationRef}</dd>
-        </div>
-        <div>
-          <dt>Owner</dt>
-          <dd>{application.ownerSubjectRef}</dd>
-        </div>
-        <div>
-          <dt>Workflow</dt>
-          <dd>{application.latestWorkflowDefinitionRef}</dd>
-        </div>
-        <div>
-          <dt>Updated</dt>
-          <dd>{application.updatedAt}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function ApplicationStatePreview({ state }: { state: WorkspaceApplicationsStatePreview }) {
-  return (
-    <article className="application-state">
-      <div>
-        <strong>{state.label}</strong>
-        <span>{state.status}</span>
-      </div>
-      <p>{state.summary}</p>
-      <small>
-        items {state.itemCount} / failure {state.failureCode}
-      </small>
-    </article>
-  );
-}
-
-function RouteCard({ route }: { route: ControlPlaneReadRouteCard }) {
-  return (
-    <article className="route-card">
-      <div className="card-title-row">
-        <h4>{route.label}</h4>
-        <StatusBadge tone="neutral">{route.surface}</StatusBadge>
-      </div>
-      <p className="route-path">{route.path}</p>
-      <dl className="route-meta">
-        <div>
-          <dt>Scope</dt>
-          <dd>{route.requiredScope}</dd>
-        </div>
-        <div>
-          <dt>Model</dt>
-          <dd>{route.readModel}</dd>
-        </div>
-        <div>
-          <dt>Pagination</dt>
-          <dd>{route.pagination}</dd>
-        </div>
-      </dl>
-    </article>
-  );
-}
-
-function StatePreview({ state }: { state: ControlPlaneReadStatePreview }) {
-  return (
-    <article className="state-card">
-      <div className="card-title-row">
-        <h4>{state.label}</h4>
-        <StatusBadge tone={state.tone}>{state.status}</StatusBadge>
-      </div>
-      <p>{state.summary}</p>
-      <dl className="state-meta">
-        <div>
-          <dt>Items</dt>
-          <dd>{state.itemCount}</dd>
-        </div>
-        <div>
-          <dt>Failure</dt>
-          <dd>{state.failureCode ?? "none"}</dd>
-        </div>
-        <div>
-          <dt>Audit</dt>
-          <dd>{state.auditRef}</dd>
-        </div>
-      </dl>
     </article>
   );
 }

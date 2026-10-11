@@ -1,3 +1,4 @@
+import "../../i18n/workflowReadProjectionResources.ts";
 import { formatDisplayDate } from "../../i18n/formatters.ts";
 import "../../i18n/workflowLibraryResources.ts";
 import { workflowDraftStatusLabel, workflowDraftLibraryMessage, workflowDraftLifecycleMessage } from "./workflowDraftMessages.ts";

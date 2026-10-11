@@ -105,10 +105,12 @@ const APPLICATION_DETAIL_ENRICHMENT: Record<string, WorkflowApplicationDetailEnr
     latestRunRef: "run_radishflow_copilot_20260531_001",
     riskSummary: {
       label: "Workflow candidate action risk",
+      labelMessage: { key: "workflowApplicationDetail_view_label" },
       riskLevel: "medium",
       requiresConfirmationCapable: true,
       summary:
         "The application can preview candidate RadishFlow actions, but execution remains blocked until confirmation and executor gates exist.",
+      summaryMessage: { key: "workflowApplicationDetail_view_summary" },
       policyRef: "workflow_function_surface_boundary_v1",
     },
   },
@@ -118,10 +120,12 @@ const APPLICATION_DETAIL_ENRICHMENT: Record<string, WorkflowApplicationDetailEnr
     latestRunRef: "run_radish_docs_qa_20260531_002",
     riskSummary: {
       label: "Docs QA advisory risk",
+      labelMessage: { key: "workflowApplicationDetail_view_label_2" },
       riskLevel: "low",
       requiresConfirmationCapable: false,
       summary:
         "The application only renders advisory document answers and keeps raw prompt, token, and writeback payloads out of the read surface.",
+      summaryMessage: { key: "workflowApplicationDetail_view_summary_2" },
       policyRef: "control_plane_read_workspace_applications_v1",
     },
   },
@@ -194,10 +198,12 @@ function buildFallbackEnrichment(application: WorkspaceApplicationRow): Workflow
     latestRunRef: `run_ref_for_${application.applicationRef}`,
     riskSummary: {
       label: "Read-only application risk",
+      labelMessage: { key: "workflowApplicationDetail_buildFallbackEnrichment_label" },
       riskLevel: application.lastRunStatus === "blocked" ? "medium" : "low",
       requiresConfirmationCapable: application.applicationKind.includes("workflow"),
       summary:
         "Application detail is derived from the summary row and committed offline metadata; execution and writeback stay blocked.",
+      summaryMessage: { key: "workflowApplicationDetail_buildFallbackEnrichment_summary" },
       policyRef: "workflow_application_detail_read_v1",
     },
   };

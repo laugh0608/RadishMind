@@ -1,3 +1,4 @@
+import type { workflowReadProjection } from "../../i18n/locales/en-US/workflowReadProjection.ts";
 import type { workflowWorkspaceProjection } from "../../i18n/locales/en-US/workflowWorkspaceProjection.ts";
 import type { TFunction } from "i18next";
 import type { workflowInspectionProjection } from "../../i18n/locales/en-US/workflowInspectionProjection.ts";
@@ -5,7 +6,7 @@ import type { workflowHandoffProjection } from "../../i18n/locales/en-US/workflo
 
 import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
 
-type WorkflowProjectionResources = typeof workflowInspectionProjection & typeof workflowHandoffProjection & typeof workflowWorkspaceProjection;
+type WorkflowProjectionResources = typeof workflowInspectionProjection & typeof workflowHandoffProjection & typeof workflowWorkspaceProjection & typeof workflowReadProjection;
 
 export type WorkflowProjectionValue = string | number | WorkflowProjectionMessage;
 type MessageParameters<Text extends string> = Text extends `${string}{{${infer Name}}}${infer Rest}`
@@ -22,6 +23,7 @@ export type WorkflowProjectionMessage =
   | { parts: WorkflowProjectionValue[]; separator: string };
 
 export type WorkflowProjectionTextField =
+  | "conditionSummary" | "value" | "detail" | "triggerSummary" | "validationFocus" | "inputSummary" | "outputSummary"
   | "primaryRef" | "secondaryRef" | "targetRef" | "label" | "summary" | "missingPrerequisite" | "currentEvidence" | "blockedReason"
   | "reviewerQuestion" | "humanReviewQuestion" | "reviewQuestion" | "handoffNeed" | "role"
   | "targetSummary" | "handoffPath" | "handoffNarrative" | "reviewNarrative"
