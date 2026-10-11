@@ -1,5 +1,15 @@
 import type { WorkflowExecutorConsumerConfig } from "./workflowExecutorConsumer.ts";
 
+// Stable presentation codes are local metadata, not a new server contract.
+export class WorkflowRunComparisonError extends Error {
+  readonly code: string;
+  constructor(code: string, diagnostic: string) {
+    super(diagnostic);
+    this.name = "WorkflowRunComparisonError";
+    this.code = code;
+  }
+}
+
 export type WorkflowRunComparisonRun = {
   runId: string;
   schemaVersion: string;
@@ -322,22 +332,23 @@ export async function compareWorkflowRuns(
   candidateRunId: string,
   config: WorkflowExecutorConsumerConfig,
 ): Promise<WorkflowRunComparison> {
-  if (config.mode !== "dev_workflow_executor_http") throw new Error("Workflow run comparison is unavailable in offline mode.");
-  if (!baselineRunId || !candidateRunId || baselineRunId === candidateRunId) throw new Error("Choose two different workflow runs.");
+  if (config.mode !== "dev_workflow_executor_http") throw new WorkflowRunComparisonError("offline", "Workflow run comparison is unavailable in offline mode.");
+  if (!baselineRunId || !candidateRunId || baselineRunId === candidateRunId) throw new WorkflowRunComparisonError("selection", "Choose two different workflow runs.");
   const query = new URLSearchParams({ baseline_run_id: baselineRunId, workspace_id: config.workspaceId, application_id: applicationId });
   const response = await fetch(`${config.baseUrl}/v1/user-workspace/workflow-runs/${encodeURIComponent(candidateRunId)}/comparison?${query}`, {
     headers: comparisonHeaders(config, applicationId),
   });
   const body: unknown = await response.json();
-  if (!response.ok || !isComparisonEnvelope(body)) throw new Error(`workflow run comparison route failed with HTTP ${response.status}`);
-  if (body.workspace_id !== config.workspaceId || body.application_id !== applicationId) throw new Error("workflow run comparison response scope drifted");
-  if (body.failure_code || !body.comparison) throw new Error(`${body.failure_code ?? "workflow_run_comparison_unavailable"}: ${body.failure_summary}`);
+  if (!isComparisonEnvelope(body)) throw new WorkflowRunComparisonError("contract", `workflow run comparison route failed with HTTP ${response.status}`);
+  if (body.workspace_id !== config.workspaceId || body.application_id !== applicationId) throw new WorkflowRunComparisonError("scope", "workflow run comparison response scope drifted");
+  if (body.failure_code) throw new WorkflowRunComparisonError(body.failure_code, body.failure_code);
+  if (!response.ok || !body.comparison) throw new WorkflowRunComparisonError("unknown", `workflow run comparison route failed with HTTP ${response.status}`);
   return decodeWorkflowRunComparison(body.comparison);
 }
 
 export function decodeWorkflowRunComparison(value: unknown): WorkflowRunComparison {
   if (hasForbiddenComparisonKey(value) || !isComparisonDocument(value)) {
-    throw new Error("workflow run comparison response failed strict validation");
+    throw new WorkflowRunComparisonError("contract", "workflow run comparison response failed strict validation");
   }
   return mapComparison(value);
 }
@@ -362,7 +373,7 @@ function mapRun(value: ComparisonRunDocument): WorkflowRunComparisonRun {
   if (sideEffects.tool_calls || sideEffects.confirmation_calls || sideEffects.business_writes || sideEffects.replay_writes ||
     !Number.isInteger(retrievalCalls) || retrievalCalls < 0 || retrievalCalls > 1 ||
     (value.schema_version === "workflow_run_record.v3" || value.schema_version === "workflow_run_record.v4" ? false : retrievalCalls !== 0)) {
-    throw new Error("workflow run comparison contains a forbidden side effect count");
+    throw new WorkflowRunComparisonError("contract", "workflow run comparison contains a forbidden side effect count");
   }
   return {
     runId: value.run_id,

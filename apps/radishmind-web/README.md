@@ -392,4 +392,6 @@ npm run preview
 
 身份组使用 `identity_browser_test` 构建标签限定的测试宿主，复用现有身份、成员、邀请服务及 SQLite 仓储；六条流程涵盖账户安全、成员角色和邀请，中英各两轮共 24 次通过。管理组使用不可调用的模板模型元数据和显式配额 / 价格开发测试开关，四条流程共 16 次通过。Agent 与 Gateway 组复用现有 mock 产品档，各三条流程共 12 次通过。Gateway 同时验证请求历史、运营收件箱与用量展示；真实缺失配额和单独合成只读配额展示分别记证据，不据此声明真实配额服务可用。
 
+`workflow` 组还包含 `run-review.spec.ts` 的两条运行审查流程，使用 `npm run test:e2e -- --suite=workflow --grep "run review" --repeat-each=2` 可单独复验。2026-10-11 中英各两轮共 8 次通过，覆盖精确详情 / 对比、切换期间筛选与选择保持、等待 / 失败恢复、迟到响应和三视口内部溢出；不代表整个 `workflow` 组在该窗口重跑。
+
 身份与 Gateway 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。上述是隔离窗口的验收结果，不是十一组同窗口或远端 CI 全量通过。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。

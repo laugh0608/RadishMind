@@ -5282,6 +5282,10 @@ h4 {
   background: #f8fafc;
 }
 
+.workflow-run-comparison code {
+  text-transform: none;
+}
+
 .workflow-run-comparison-findings {
   display: flex;
   flex-wrap: wrap;
@@ -14732,6 +14736,32 @@ dd {
 
 .workflow-review-comparison-detail .workflow-run-comparison {
   min-height: 430px;
+}
+
+/* Comparison cards must fit the owner pane, even beside the selection rail. */
+.workflow-run-comparison .workflow-run-history-node-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workflow-run-comparison .workflow-run-history-node-row {
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-run-comparison .workflow-run-history-node-row > span:first-child,
+.workflow-run-comparison .workflow-run-history-node-row > code {
+  grid-column: 1 / -1;
+}
+
+.workflow-run-comparison .workflow-run-history-node-row :is(strong, small, code) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .workflow-run-comparison .workflow-run-history-node-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .workflow-review-comparison-detail .tenant-meta,
