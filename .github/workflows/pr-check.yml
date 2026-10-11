@@ -88,7 +88,7 @@ jobs:
   web-browser-regression:
     name: Workflow and Prompt Browser Regression
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -125,6 +125,15 @@ jobs:
       - name: Test isolated SQLite Workflow and Prompt paths
         run: npm run test:e2e
         working-directory: apps/radishmind-web
+
+      - name: Upload browser timing summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-timing-summary-${{ github.run_attempt }}
+          path: output/playwright/workflow-e2e/summary-*/summary.json
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload browser failure evidence
         if: failure() || cancelled()

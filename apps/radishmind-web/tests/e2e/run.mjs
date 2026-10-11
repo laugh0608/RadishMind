@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { startPromptProvider } from "./prompt-provider.mjs";
@@ -24,15 +24,62 @@ if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFl
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
-for (const suite of suites) {
-  const code = await runSuite(suite);
-  if (code !== 0) { process.exitCode = code; break; }
+const started = performance.now();
+const summaryDirectory = await mkdtemp(join(artifactRoot, "summary-"));
+const summaryPath = join(summaryDirectory, "summary.json");
+// Only fixed suite names, relative artifact directories, times and outcomes belong here.
+// Never include CLI filters, inherited environment, service errors or application data.
+const summary = {
+  started_at: new Date().toISOString(),
+  status: "running",
+  duration_ms: 0,
+  suites: suites.map(suite => ({ suite, status: "not_run", artifact_directory: null,
+    startup_ms: 0, tests_ms: 0, cleanup_ms: 0, duration_ms: 0,
+    cleanup: "not_started", exit_code: null })),
+};
+async function saveSummary() {
+  summary.duration_ms = Math.round(performance.now() - started);
+  await writeFile(`${summaryPath}.tmp`, `${JSON.stringify(summary, null, 2)}\n`);
+  await rename(`${summaryPath}.tmp`, summaryPath);
 }
+console.log(`[workflow-e2e] Invocation summary: ${summaryPath}`);
+await saveSummary();
+for (const entry of summary.suites) {
+  const suiteStarted = performance.now();
+  entry.status = "running";
+  await saveSummary();
+  try {
+    entry.exit_code = await runSuite(entry);
+  } catch (error) {
+    console.error(`[workflow-e2e] ${error.message}`);
+    entry.exit_code = 1;
+    entry.status = "failed";
+  } finally {
+    entry.duration_ms = Math.round(performance.now() - suiteStarted);
+    await saveSummary();
+    console.log(`[workflow-e2e] ${entry.suite}: ${entry.status}; startup ${entry.startup_ms}ms; tests ${entry.tests_ms}ms; cleanup ${entry.cleanup_ms}ms; total ${entry.duration_ms}ms.`);
+  }
+  if (entry.exit_code !== 0) { process.exitCode = entry.exit_code; break; }
+}
+summary.status = summary.suites.some(entry => entry.status === "interrupted") ? "interrupted"
+  : summary.suites.every(entry => entry.status === "passed") ? "passed" : "failed";
+summary.finished_at = new Date().toISOString();
+await saveSummary();
+console.log(`[workflow-e2e] Invocation ${summary.status} in ${summary.duration_ms}ms; summary: ${summaryPath}`);
 
-async function runSuite(suite) {
-  const output = await mkdtemp(join(artifactRoot, "run-"));
-  const runtime = await mkdtemp(join(tmpdir(), "radishmind-workflow-e2e-"));
-  const configPath = join(runtime, "platform.json");
+async function runSuite(entry) {
+  const { suite } = entry;
+  const startupStarted = performance.now();
+  let testsStarted;
+  let cleanupStarted;
+  let interruptionCode;
+
+  let output;
+  let runtime;
+  let rejectInterruption;
+  const interruption = new Promise((_, reject) => { rejectInterruption = reject; });
+  // A signal may arrive during asynchronous setup, before a race starts observing it.
+  interruption.catch(() => {});
 
   // Pass toolchain settings, not inherited application settings, tokens, or database URLs.
   const environmentKeys = new Set([
@@ -56,6 +103,9 @@ async function runSuite(suite) {
       return true;
     } catch (error) {
       if (error.code === "ESRCH") return false;
+      // kill(0) can report a still-existing group whose remaining members are not
+      // signalable during exit. Keep waiting; only ESRCH proves it has gone.
+      if (error.code === "EPERM") return true;
       throw error;
     }
   }
@@ -64,12 +114,19 @@ async function runSuite(suite) {
     try {
       process.kill(-pid, signal);
     } catch (error) {
-      if (error.code !== "ESRCH") throw error;
+      if (error.code !== "ESRCH") throw new Error(`Cannot send ${signal} to owned process group ${pid}: ${error.message}`, { cause: error });
     }
   }
 
   function stop() {
+    if (!shutdown) {
+      cleanupStarted = performance.now();
+      if (testsStarted === undefined) entry.startup_ms = Math.round(cleanupStarted - startupStarted);
+      else entry.tests_ms = Math.round(cleanupStarted - testsStarted);
+      entry.cleanup = "running";
+    }
     shutdown ??= (async () => {
+      for (const child of groups) await child.spawned;
       for (const child of groups) signalGroup(child.pid, "SIGTERM");
       const deadline = Date.now() + 8_000;
       while (groups.some((child) => groupExists(child.pid)) && Date.now() < deadline) await delay(100);
@@ -89,15 +146,20 @@ async function runSuite(suite) {
           });
         }
       } finally {
-        await rm(runtime, { recursive: true, force: true });
+        if (runtime) await rm(runtime, { recursive: true, force: true });
       }
-      console.log(`[workflow-e2e] Stopped owned process groups; removed temporary runtime ${runtime}`);
+      console.log(runtime ? `[workflow-e2e] Stopped owned process groups; removed temporary runtime ${runtime}` : "[workflow-e2e] Stopped before creating a temporary runtime.");
     })();
     return shutdown;
   }
 
   function start(command, args, options = {}) {
     const child = spawn(command, args, { cwd: webRoot, env: environment, detached: true, ...options });
+    child.spawned = new Promise((accept, reject) => {
+      child.once("spawn", accept);
+      child.once("error", reject);
+    });
+    child.spawned.catch(() => {});
     child.finished = new Promise((accept, reject) => {
       child.once("error", reject);
       child.once("close", (code, signal) => accept({ code, signal }));
@@ -118,19 +180,23 @@ async function runSuite(suite) {
   for (const signal of ["SIGINT", "SIGTERM"]) {
     const handler = () => {
       interrupted = true;
-      void stop().then(() => process.exit(signal === "SIGINT" ? 130 : 143), (error) => {
-        console.error(error);
-        process.exit(1);
-      });
+      interruptionCode = signal === "SIGINT" ? 130 : 143;
+      // Setup must finish handing over any newly created resource before finally closes it.
+      rejectInterruption(new Error(`Interrupted by ${signal}.`));
     };
     signalHandlers.set(signal, handler);
     process.once(signal, handler);
   }
 
-  console.log(`[workflow-e2e] ${suite} artifacts: ${output}`);
   let exitCode = 1;
   try {
+    output = await mkdtemp(join(artifactRoot, "run-"));
+    entry.artifact_directory = basename(output);
+    runtime = await mkdtemp(join(tmpdir(), "radishmind-workflow-e2e-"));
+    const configPath = join(runtime, "platform.json");
+    console.log(`[workflow-e2e] ${suite} artifacts: ${output}`);
     await writeFile(configPath, "{}\n", { mode: 0o600 });
+    if (interrupted) throw new Error("Interrupted during configuration setup.");
     if (suite !== "identity" && suite !== "admin" && suite !== "agent" && suite !== "gateway" && suite !== "results-evidence") promptProvider = await startPromptProvider();
     if (interrupted) throw new Error("Interrupted during configuration setup.");
     const launcher = start(suite === "identity" ? process.execPath : "bash", suite === "identity" ? [join(webRoot, "tests/e2e/identity-services.mjs")] : [
@@ -190,6 +256,7 @@ async function runSuite(suite) {
     const startupTimer = new AbortController();
     try {
       await Promise.race([
+        interruption,
         readiness,
         loggingFailure,
         launcher.exited.then(({ code, signal }) => { throw new Error(`Service launcher exited before readiness (${code ?? signal}). See ${output}/services.`); }),
@@ -200,6 +267,8 @@ async function runSuite(suite) {
     }
     if (interrupted) throw new Error("Interrupted during startup.");
     console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000${promptProvider ? `; Prompt fixture ${promptProvider.url}` : (suite === "agent" || suite === "gateway") ? "; mock runtime; no external model provider" : "; no callable model provider"}.`);
+    entry.startup_ms = Math.round(performance.now() - startupStarted);
+    testsStarted = performance.now();
     const tests = start(process.execPath, [
       join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
       "--config", "tests/e2e/playwright.config.ts", ...testArguments,
@@ -208,6 +277,7 @@ async function runSuite(suite) {
       stdio: "inherit",
     });
     const result = await Promise.race([
+      interruption,
       tests.finished,
       loggingFailure,
       launcher.exited.then(() => { throw new Error("Services exited while browser tests were running."); }),
@@ -216,9 +286,18 @@ async function runSuite(suite) {
   } catch (error) {
     console.error(`[workflow-e2e] ${error.message}`);
   } finally {
-    try { await stop(); } finally {
+    try {
+      await stop();
+      entry.cleanup = "complete";
+    } catch (error) {
+      entry.cleanup = "failed";
+      exitCode = 1;
+      console.error(`[workflow-e2e] ${error.message}`);
+    } finally {
+      entry.cleanup_ms = Math.round(performance.now() - cleanupStarted);
       for (const [signal, handler] of signalHandlers) process.off(signal, handler);
     }
   }
-  return exitCode;
+  entry.status = interrupted ? "interrupted" : exitCode === 0 ? "passed" : "failed";
+  return interruptionCode ?? exitCode;
 }

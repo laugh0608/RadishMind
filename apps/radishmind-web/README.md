@@ -390,6 +390,12 @@ npm run preview
 
 自动浏览器回归入口为 `npm run test:e2e`，先执行独立测试类型检查，再依次运行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation / results-evidence` 十三组。使用 `npm run test:e2e -- --suite=gateway --repeat-each=2 --max-failures=1` 可选择单组连续两轮。各组独占临时 SQLite 与 `4100 / 17000`，结束清理后再复用端口；普通 `npm test` 不启动这些服务。
 
+默认单轮按中英两个 Chromium 项目运行，共 100 次测试；`workflow` 组含 Prompt、Workflow、运行审查及用例 / 套件四个文件，共 30 次。每次调用在 `output/playwright/workflow-e2e/summary-*/summary.json` 保存独立摘要，记录各组启动、测试、清理、总耗时与退出码；失败后未进入的组保留 `not_run`，中断记录 `interrupted`，不将未执行写成通过。运行器总耗时包含十三组启动和清理，不含入口前置的 TypeScript 检查、依赖安装或 CI 上传；整个命令和 CI job 耗时另行记录。摘要只保存固定组名、相对报告目录、时间及状态，不包含参数、环境、错误正文或业务数据。
+
+2026-10-11 最终完整入口中英 100/100 通过，零失败、零跳过、零重试；运行器总耗时 752.850 秒，含前置类型检查的命令耗时 753.71 秒，未包含依赖安装。启动中断、测试中断和正常清理亦已复验；详细分组耗时与过程记录见 [2026-W41](../../docs/devlogs/2026-W41.md#2026-10-11-十三组浏览器回归与-ci-首跑准备)。这份本地 macOS / Node 24 结果不替代 Ubuntu / Node 22 的远端 CI 首跑。
+
+现有 PR / Release 浏览器 job 的总超时为 30 分钟，包含安装与运行；这是首跑预算，仍待远端实测确认。无论结果如何均尝试上传上述摘要，完整报告继续只在失败 / 取消时上传，两类产物保留七天。强制终止或机器丢失时可能仅保留最近一次 `running` 状态，不能据此声明清理完成；依赖安装或前置类型检查失败时可能没有摘要。
+
 身份组使用 `identity_browser_test` 构建标签限定的测试宿主，复用现有身份、成员、邀请服务及 SQLite 仓储；六条流程涵盖账户安全、成员角色和邀请，中英各两轮共 24 次通过。管理组使用不可调用的模板模型元数据和显式配额 / 价格开发测试开关，四条流程共 16 次通过。Agent 与 Gateway 组复用现有 mock 产品档，各三条流程共 12 次通过。Gateway 同时验证请求历史、运营收件箱与用量展示；真实缺失配额和单独合成只读配额展示分别记证据，不据此声明真实配额服务可用。
 
 `workflow` 组还包含 `run-review.spec.ts` 的两条运行审查流程，使用 `npm run test:e2e -- --suite=workflow --grep "run review" --repeat-each=2` 可单独复验。2026-10-11 中英各两轮共 8 次通过，覆盖精确详情 / 对比、切换期间筛选与选择保持、等待 / 失败恢复、迟到响应和三视口内部溢出；不代表整个 `workflow` 组在该窗口重跑。
@@ -398,7 +404,7 @@ npm run preview
 
 新增 `evaluation` 组复用 `--application-evaluation-local-product` 与 `--prompt-application-local-product`，选择命令为 `npm run test:e2e -- --suite=evaluation --repeat-each=2`。三条两语流程覆盖 Plan 真实 CAS、Campaign 顺序执行 / 配对 / 证据交接，以及 Schedule / Occurrence 严格契约合成投影。日程投影不执行真实调度或持久写入，不启用后台 runner；该组三条流程中英各两轮共 12 次通过，覆盖语言切换零增发请求、等待 / 失败重译、输入与确认保持、显式恢复、刷新与三视口。Prompt 准备步骤提取为测试侧共享工具，功能范围不变。
 
-身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。上述是隔离窗口的验收结果，不是十三组同窗口或远端 CI 全量通过。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。
+身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。各切片所列的历史次数属于分窗口验收；十三组同窗口结果以上述 2026-10-11 完整验收为准，远端 CI 仍待执行。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。
 
 
 `results-evidence` 是第十三组，命令为 `npm run test:e2e -- --suite=results-evidence --repeat-each=2`。复用 `--workflow-rag-promotion-local-product` 与 `--application-result-artifact-library-local-product`，六条流程中英各两轮共 24 次，覆盖结果校验下载 / 生命周期 / 冲突 / 迟到回包、RAG 数据集与词法候选审查、七个辅助证据面、主壳七个读取入口及应用交互会话。只使用 mock、合成公开测试记录与临时 SQLite，不启动固定响应提供方、真实模型或调度器；关闭 trace 和自动截图，只保存指定页面与原始测试 JSON 的断言。F 阶段最终窗口 24 次通过，覆盖语言切换零业务请求、会话等待 / 取消 / 元数据恢复和三视口，所属服务与临时库已清理；结果见本周周志。
