@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-02
+更新时间：2026-10-11
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已完成登记范围。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；A、B 阶段已完成，草案、Definition、模板、RAG、HTTP Tool 与离线投影解释均通过双语验收；C 阶段身份、成员邀请与管理主页面均已通过双语验收，D 阶段 Agent、Gateway 与运营亦通过双语验收，E 阶段已登记切片随后完成，F 阶段全站收口及三窗口 76 次最终复验已完成，A 至 F 关闭；真实模型手工试用仍暂停。
+项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端 RAG 晋级列表失败仍待排查，浏览器改为本地按需验证，当前六项组件 CI 已通过。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
 
 [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
 
@@ -38,7 +38,7 @@
 | `Model Gateway / API Distribution` | [模型网关与 API 分发](model-gateway-api-distribution.md) | [提供方、准入、用量、价格与回退](gateway/README.md) |
 | `Workflow / Agent Runtime` | [工作流与运行时](workflow-agent-runtime.md) | [草案、定义、执行、模板与 RAG](workflow/README.md) |
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | 固定响应测试后端与私有存储已完成；真实后端和公开交付独立验收，不另立第五产品主线 |
-| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 D 完成；E 首个运行审查切片已验收；用例与套件已验收；应用评测计划 / 批次 / 调度界面已通过双语验收（日程为合成投影）；结果库 / 导出、RAG 数据集与可达辅助证据两语各两轮 16 次通过；F 全站收口与三窗口 76 次最终复验完成，A 至 F 关闭 |
+| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 F 在登记的可达范围完成关闭；界面语言不改写业务语言、协议字段、用户原文或导出 JSON；日程双语浏览器证据限定合成投影 |
 
 ## 常用用户流程
 

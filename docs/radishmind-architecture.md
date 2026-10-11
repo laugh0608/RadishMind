@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-09-14
+更新时间：2026-10-11
 
 ## 架构职责
 
@@ -22,6 +22,8 @@ RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，�
 | 评测与实验 | `datasets/`、`scripts/eval/`、`training/` | 固定任务、候选记录、离线回归与模型路线证据 |
 
 当前大量领域、存储与执行逻辑仍在 `services/platform/internal/httpapi/` 同包，产品工作区状态也部分集中在 `App.tsx` 和 `features/control-plane-read/`。下文的逻辑职责不表示已经完成 Go 包拆分、前端目录迁移或独立服务部署。
+
+Web 国际化沿现有页面边界按需加载资源。主壳的应用 / 定义详情、状态示例与概览由 `workflowReadEvidencePanels.tsx` 承接，场景审查由 `workflowScenarioEvidencePanel.tsx` 承接，均从 `src/app/App.tsx` 延迟挂载。固定解释使用稳定消息键与参数，渲染时按界面语言翻译；语言偏好不进入业务请求或替代服务端状态，用户原文和协议值保持。该拆分用于保持既有构建预算，不表示整个工作区状态已完成拆分。范围与验收见[国际化专题](features/web-internationalization-zh-en-v1.md)。
 
 Prompt 应用调用在 Python 运行时中由 `prompt_application_inference.py` 解包 Go 已渲染的有序消息，并将答案原文封装回既有规范响应；Go 继续负责精确运行权限、输出契约和结果保存。该适配不是新进程或公开协议，具体边界见[Prompt 提供方适配](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)。
 
