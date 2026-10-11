@@ -10285,8 +10285,8 @@ dd {
   color: var(--rm-text-primary);
   font-family: var(--rm-font-mono);
   font-size: 9px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .application-evaluation-task-switcher {
@@ -10333,6 +10333,8 @@ dd {
 }
 
 .application-evaluation-task-switcher strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 11px;
 }
 
@@ -10340,8 +10342,8 @@ dd {
   overflow: hidden;
   color: var(--rm-text-muted);
   font-size: 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .application-evaluation-workbench {
@@ -10428,8 +10430,8 @@ dd {
 .application-evaluation-plan-list button strong,
 .application-evaluation-plan-list button small {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .application-evaluation-plan-list button strong {
@@ -11597,6 +11599,43 @@ dd {
   .application-evaluation-occurrence-details > div {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
+  }
+}
+
+
+.application-evaluation-campaign-context small {
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.application-evaluation-stage-owner {
+  container-type: inline-size;
+  container-name: evaluation-owner;
+}
+
+@container evaluation-owner (max-width: 760px) {
+  .application-evaluation-schedule-surface,
+  .application-evaluation-campaign-surface,
+  .application-evaluation-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-evaluation-schedule-metrics,
+  .application-evaluation-occurrence-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container evaluation-owner (max-width: 480px) {
+  .application-evaluation-schedule-editor,
+  .application-evaluation-occurrence-reader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .application-evaluation-path .application-evaluation-task-switcher {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

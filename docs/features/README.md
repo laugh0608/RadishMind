@@ -38,7 +38,7 @@
 | `Model Gateway / API Distribution` | [模型网关与 API 分发](model-gateway-api-distribution.md) | [提供方、准入、用量、价格与回退](gateway/README.md) |
 | `Workflow / Agent Runtime` | [工作流与运行时](workflow-agent-runtime.md) | [草案、定义、执行、模板与 RAG](workflow/README.md) |
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | 固定响应测试后端与私有存储已完成；真实后端和公开交付独立验收，不另立第五产品主线 |
-| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 D 完成；E 首个运行审查切片已验收；用例与套件已验收；下一步为应用评测计划 / 批次 / 调度，F 未进入 |
+| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 D 完成；E 首个运行审查切片已验收；用例与套件已验收；应用评测计划 / 批次 / 调度界面已通过双语验收（日程为合成投影），F 未进入 |
 
 ## 常用用户流程
 

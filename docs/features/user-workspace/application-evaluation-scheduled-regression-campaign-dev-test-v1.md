@@ -226,3 +226,8 @@ Batch C runner 已满足：
 - 不自动 retry、fallback、catch-up、resume、replay、baseline、Case / Suite materialize、decision、release 或 deploy。
 - 不创建第二套 Plan、Campaign、Run、quota、route、Action Safety、Comparison、Case、Suite 或 decision owner。
 - 不声明 production authentication、production quota、billing、cost limit、process supervisor 或 production readiness。
+
+
+### 2026-10-11 双语展示迁移
+
+页面已接入随功能加载的中英资源，提示保存稳定状态与参数，界面语言不影响原始输入、精确版本、摘要、权限或显式确认。异常正文不直接展示，保留稳定失败码及本地恢复说明；作用域变化拒绝迟到响应，等待时禁止重复提交。版本冲突保留本地输入，显式重载后须重新审查。完整覆盖与浏览器验收边界见 [i18n 专题](../web-internationalization-zh-en-v1.md#e-阶段-plan--campaign--schedule-覆盖清单2026-10-11)。本批三条流程中英各两轮共 12 次通过，不改变本功能原生产停止线；日程合成投影验证不构成真实调度器验收。

@@ -388,7 +388,7 @@ npm run preview
 
 `npm run test:coverage` 是 PR / release 的可发现覆盖率入口，当前预算为行 `90%`、分支 `78%`、函数 `85%`；它约束已进入 Node 严格消费端测试的模块，不替代 React 页面构建和真实浏览器验收。
 
-自动浏览器回归入口为 `npm run test:e2e`，先执行独立测试类型检查，再依次运行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway` 十一组。使用 `npm run test:e2e -- --suite=gateway --repeat-each=2 --max-failures=1` 可选择单组连续两轮。各组独占临时 SQLite 与 `4100 / 17000`，结束清理后再复用端口；普通 `npm test` 不启动这些服务。
+自动浏览器回归入口为 `npm run test:e2e`，先执行独立测试类型检查，再依次运行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation` 十二组。使用 `npm run test:e2e -- --suite=gateway --repeat-each=2 --max-failures=1` 可选择单组连续两轮。各组独占临时 SQLite 与 `4100 / 17000`，结束清理后再复用端口；普通 `npm test` 不启动这些服务。
 
 身份组使用 `identity_browser_test` 构建标签限定的测试宿主，复用现有身份、成员、邀请服务及 SQLite 仓储；六条流程涵盖账户安全、成员角色和邀请，中英各两轮共 24 次通过。管理组使用不可调用的模板模型元数据和显式配额 / 价格开发测试开关，四条流程共 16 次通过。Agent 与 Gateway 组复用现有 mock 产品档，各三条流程共 12 次通过。Gateway 同时验证请求历史、运营收件箱与用量展示；真实缺失配额和单独合成只读配额展示分别记证据，不据此声明真实配额服务可用。
 
@@ -396,4 +396,6 @@ npm run preview
 
 `evaluation-cases.spec.ts` 在同组覆盖用例创建 / 修订 / 真实版本冲突、历史审查、精确套件版本与人工决定；选择命令为 `npm run test:e2e -- --suite=workflow --grep "evaluation cases" --repeat-each=2`。2026-10-11 独立授权窗口中英各两轮共 8 次通过，覆盖等待切换、保留本地冲突草稿、迟到历史响应隔离、错误恢复、刷新和三视口内部布局；运行器已关闭所属进程并删除临时库。此结果不包含整个 `workflow` 组或其它运行档案。
 
-身份与 Gateway 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。上述是隔离窗口的验收结果，不是十一组同窗口或远端 CI 全量通过。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。
+新增 `evaluation` 组复用 `--application-evaluation-local-product` 与 `--prompt-application-local-product`，选择命令为 `npm run test:e2e -- --suite=evaluation --repeat-each=2`。三条两语流程覆盖 Plan 真实 CAS、Campaign 顺序执行 / 配对 / 证据交接，以及 Schedule / Occurrence 严格契约合成投影。日程投影不执行真实调度或持久写入，不启用后台 runner；该组三条流程中英各两轮共 12 次通过，覆盖语言切换零增发请求、等待 / 失败重译、输入与确认保持、显式恢复、刷新与三视口。Prompt 准备步骤提取为测试侧共享工具，功能范围不变。
+
+身份、Gateway 与 Evaluation 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。上述是隔离窗口的验收结果，不是十二组同窗口或远端 CI 全量通过。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。
