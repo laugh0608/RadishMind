@@ -394,4 +394,6 @@ npm run preview
 
 `workflow` 组还包含 `run-review.spec.ts` 的两条运行审查流程，使用 `npm run test:e2e -- --suite=workflow --grep "run review" --repeat-each=2` 可单独复验。2026-10-11 中英各两轮共 8 次通过，覆盖精确详情 / 对比、切换期间筛选与选择保持、等待 / 失败恢复、迟到响应和三视口内部溢出；不代表整个 `workflow` 组在该窗口重跑。
 
+`evaluation-cases.spec.ts` 在同组覆盖用例创建 / 修订 / 真实版本冲突、历史审查、精确套件版本与人工决定；选择命令为 `npm run test:e2e -- --suite=workflow --grep "evaluation cases" --repeat-each=2`。2026-10-11 独立授权窗口中英各两轮共 8 次通过，覆盖等待切换、保留本地冲突草稿、迟到历史响应隔离、错误恢复、刷新和三视口内部布局；运行器已关闭所属进程并删除临时库。此结果不包含整个 `workflow` 组或其它运行档案。
+
 身份与 Gateway 组关闭 trace 和自动失败截图；身份组还关闭自动页面快照，指定截图遮罩凭据，Gateway 的显式截图只覆盖不显示凭据原文的指定业务面板。其余组保留既有失败证据策略。上述是隔离窗口的验收结果，不是十一组同窗口或远端 CI 全量通过。范围见 [i18n 专题](../../docs/features/web-internationalization-zh-en-v1.md)，分窗口记录见 [2026-W41](../../docs/devlogs/2026-W41.md)；首次安装、端口、隐私与清理要求见[工程健康专题](../../docs/platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。PR 与 Release 沿用既有独立浏览器 job。

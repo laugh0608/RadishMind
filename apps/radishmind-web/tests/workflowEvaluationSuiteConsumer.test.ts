@@ -20,3 +20,11 @@ test("evaluation suite accepts Prompt and Agent case profiles",async()=>{const o
 test("evaluation suite rejects unknown application run profile",async()=>{const original=globalThis.fetch;globalThis.fetch=async()=>new Response(JSON.stringify(envelope({review:{...review,items:[{...review.items[0],run_profile:"agent_loop_v1"}]}})),{status:200});try{await assert.rejects(()=>reviewWorkflowEvaluationSuite("app_demo","suite_1",live),/route failed/)}finally{globalThis.fetch=original}});
 
 test("evaluation suite surfaces decision CAS conflict and rejects forbidden payload",async()=>{const original=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;if(calls===1)return new Response(JSON.stringify(envelope({suite:{...suite,current_decision_version:1,current_decision:"needs_review"},failure_code:"workflow_evaluation_suite_decision_conflict",failure_summary:"changed"})),{status:200});return new Response(JSON.stringify(envelope({suite:{...suite,input_text:"private"}})),{status:200})};try{await assert.rejects(()=>decideWorkflowEvaluationSuite("app_demo","suite_1",0,"approved",digest,live),error=>error instanceof WorkflowEvaluationDecisionConflict&&error.currentSuite.currentDecisionVersion===1);await assert.rejects(()=>createWorkflowEvaluationSuite("app_demo","release review",[{caseId:"eval_1",version:2}],live),/route failed/)}finally{globalThis.fetch=original}});
+
+test("evaluation suite failures discard server prose and retain structured code", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ failure_code: "workflow_evaluation_suite_approval_blocked", failure_summary: "PRIVATE SUITE DIAGNOSTIC" }), { status: 400 });
+  try {
+    await assert.rejects(() => decideWorkflowEvaluationSuite("app_demo", "suite_1", 0, "approved", digest, live), error => error instanceof Error && error.message.includes("workflow_evaluation_suite_approval_blocked") && !error.message.includes("PRIVATE"));
+  } finally { globalThis.fetch = original; }
+});

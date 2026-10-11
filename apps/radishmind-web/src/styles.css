@@ -14785,7 +14785,19 @@ dd {
 
 .workflow-evaluation-expectations .status-badge {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 6px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
+.workflow-evaluation-panel,
+.workflow-evaluation-panel input,
+.workflow-evaluation-panel select,
+.workflow-evaluation-review-item > * {
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -14818,6 +14830,12 @@ dd {
 .workflow-evaluation-case-list article.is-selected {
   border-left: 3px solid var(--rm-action-primary);
   background: var(--rm-bg-muted);
+}
+
+.workflow-evaluation-review-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow-wrap: anywhere;
 }
 
 .workflow-evaluation-case-list span {
