@@ -183,3 +183,8 @@ export query 只允许 `workspace_id`。两个路由均默认关闭，复用 App
 - 不实现 public / signed URL、分享令牌、邮件 / Slack 发送或外部 object storage。
 - 不执行 candidate action，不写 RadishFlow / Radish 业务真相源，不实现 replay / resume / writeback。
 - 不打开 production repository、production auth、production secret、真实 Provider、quota / billing 或公开生产 API。
+
+
+## 中英界面迁移（2026-10-11）
+
+按[中英国际化专题](../web-internationalization-zh-en-v1.md)补齐列表空态、等待、稳定错误码恢复说明、UTC 日期与导出反馈。语言切换保持原始内容、文件名与校验结果，不重新读取或写入。重新准备下载、筛选 / 选择 / 作用域变化和卸载撤销旧 Blob，并丢弃不匹配当前作用域的迟到回复。静态验证及真实隔离 SQLite 浏览器验收已通过，覆盖下载 JSON 与原始响应一致、真实生命周期 CAS 冲突和迟到导出隔离，导出协议、权限与生命周期 CAS 保持不变。

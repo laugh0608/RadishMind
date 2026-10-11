@@ -133,3 +133,8 @@ Web 在应用知识快照面板之后新增 lazy-loaded dataset / candidate revi
 - 不调用 Gateway，不生成 answer，不创建 run，不改变 executor v0 `allow_retrieval=false`。
 - 不自动修改 snapshot、dataset baseline、Evaluation Case / Suite、release decision 或应用发布状态。
 - 不实现自动 baseline、自动 promotion、自动 release、后台调度、retry、replay 或 production enablement。
+
+
+## 中英界面迁移（2026-10-11）
+
+按[中英国际化专题](../web-internationalization-zh-en-v1.md)迁移数据集资源 / 版本、完整 JSON 与阈值、候选审查、历史、生命周期和失败恢复。语言切换只重新渲染稳定状态，不修改查询、人工摘要、快照绑定、摘要或请求；评测仍不调用 Gateway 或创建运行。读写回复须匹配当前作用域代次，版本冲突保留本地输入并禁用再次写入，显式重新加载后才能重审提交。静态验证及真实隔离 SQLite 浏览器验收已通过，覆盖真实创建 / 修订冲突 / 候选审查 / 归档、历史读取失败重译与恢复、原始 JSON 保持及刷新，不替代 PostgreSQL 或生产能力验收。

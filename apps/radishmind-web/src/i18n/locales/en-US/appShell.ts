@@ -1,4 +1,11 @@
 export const appShell = {
+  "evidenceLoading": "Loading evidence…",
+  "loadingSavedDraftLibrary": "Loading Saved Draft Library…",
+  "loadingreviewevidence": "Loading review evidence…",
+  "loadingAdminControlPlane": "Loading Admin Control Plane…",
+  "loadingApplicationRuntimeReview": "Loading Application Runtime Review…",
+  "loadingWorkflowReview": "Loading Workflow Review…",
+
   "httpToolLoading": "Loading HTTP Tool review and execution…",
   ragExecutionLoading: "Loading RAG retrieval execution…",
   workflowCreateExecutor: "Create executor v0 draft",

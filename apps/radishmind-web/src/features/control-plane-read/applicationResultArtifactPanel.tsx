@@ -1,3 +1,5 @@
+import "../../i18n/artifactFeedbackResources.ts";
+import { artifactFailureMessage } from "./artifactFeedback.ts";
 import "../../i18n/artifactResources.ts";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
@@ -237,7 +239,7 @@ export default function ApplicationResultArtifactPanel({
   } : null);
   const lifecycleLabel = (state: ApplicationResultArtifactLifecycleState) => state === "active" ? t($ => $.artifact.active) : t($ => $.artifact.archived);
   const listMessage = listing.status === "failed"
-    ? t($ => $.artifact.listUnavailable, { code: listing.failureCode || t($ => $.artifact.unknownFailure) })
+    ? artifactFailureMessage(t, listing.failureCode)
     : config.mode === "offline" ? t($ => $.artifact.offlineUnavailable)
     : pending === "list" ? t($ => $.artifact.loading)
     : listing.requestId ? t($ => $.artifact.loadedMetadata, { count: items.length, state: lifecycleLabel(lifecycleState) })
@@ -251,7 +253,7 @@ export default function ApplicationResultArtifactPanel({
         : operationNotice?.kind === "conflict"
           ? t($ => $.artifact.lifecycleConflict, { failureCode: operationNotice.code, state: operationNotice.state === "active" || operationNotice.state === "archived" ? lifecycleLabel(operationNotice.state) : t($ => $.artifact.unknown), version: operationNotice.version })
           : operationNotice?.kind === "failure"
-            ? t($ => $.artifact.operationUnavailable, { code: operationNotice.code || t($ => $.artifact.unknownFailure) })
+            ? artifactFailureMessage(t, operationNotice.code)
             : "";
 
   return (
@@ -276,7 +278,7 @@ export default function ApplicationResultArtifactPanel({
         </span>
       </label>
 
-      {latestArtifactFailureCode ? <p className="failure-summary" role="alert">{t($ => $.artifact.resultSucceededSaveFailed)}{latestArtifactFailureCode}</p> : null}
+      {latestArtifactFailureCode ? <p className="failure-summary" role="alert">{t($ => $.artifact.resultSucceededSaveFailed)}{artifactFailureMessage(t, latestArtifactFailureCode)}</p> : null}
       {latestArtifact ? (
         <p className="boundary-note">
           {t($ => $.artifact.savedPrefix)} <code>{latestArtifact.artifactId}</code> · {latestArtifact.contentType} · {t($ => $.artifact.contentBytes, { count: latestArtifact.contentBytes })}{t($ => $.artifact.bytesExactRead)}</p>
@@ -357,7 +359,7 @@ export default function ApplicationResultArtifactPanel({
           ) : (
             <p className="empty-state">{t($ => $.artifact.selectFromSession, { state: lifecycleLabel(lifecycleState) })}</p>
           )}
-          {readResult?.failureCode ? <p className="failure-summary" role="alert">{readResult.failureCode}</p> : null}
+          {readResult?.failureCode ? <p className="failure-summary" role="alert">{artifactFailureMessage(t, readResult.failureCode)}</p> : null}
         </article>
       </div>
 

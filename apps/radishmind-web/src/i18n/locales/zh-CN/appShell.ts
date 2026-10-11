@@ -1,4 +1,11 @@
 export const appShell = {
+  "evidenceLoading": "正在加载证据…",
+  "loadingSavedDraftLibrary": "正在加载已保存草案库…",
+  "loadingreviewevidence": "正在加载审查证据…",
+  "loadingAdminControlPlane": "正在加载管理控制台…",
+  "loadingApplicationRuntimeReview": "正在加载应用运行审查…",
+  "loadingWorkflowReview": "正在加载工作流审查…",
+
   "httpToolLoading": "正在加载 HTTP Tool 审查与执行…",
   ragExecutionLoading: "正在加载 RAG 检索执行…",
   workflowCreateExecutor: "创建执行器 v0 草案",

@@ -1,4 +1,10 @@
 export const workspacePanel = {
+  "ownerEvidenceBlocked": "{{owner}}的证据受阻。请打开对应功能，核对当前失败与恢复操作。{{code}}",
+  "candidateEvidenceMissing": "请在应用功能中审查当前不可变发布候选。",
+  "definitionEvidenceMissing": "请在工作流功能中审查并激活已批准的不可变定义。",
+  "ragAssignmentEvidenceMissing": "请读取并审查当前应用的 RAG 分配。",
+  "ragBindingEvidenceMissing": "请审查精确 RAG 知识绑定及其权威证据。",
+
   "applicationCandidate": "应用候选版本",
   "applicationOwner": "应用模块",
   "workflowDefinition": "工作流定义",

@@ -1,3 +1,6 @@
+import "../../i18n/gatewayOverviewEvidenceResources.ts";
+import { useTranslation } from "react-i18next";
+import { evidenceProjectionText, evidenceProjectionStatus } from "./evidenceProjectionCopy.ts";
 import type {
   ModelGatewayApiSurface,
   ModelGatewayBoundaryLock,
@@ -15,6 +18,7 @@ export function ModelGatewayOverviewPanel({
 }: {
   overview: ModelGatewayOverviewViewModel;
 }) {
+  const { t } = useTranslation("evaluation");
   return (
     <section
       className="surface-band model-gateway-overview"
@@ -23,41 +27,41 @@ export function ModelGatewayOverviewPanel({
     >
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Model Gateway</p>
-          <h3 id="model-gateway-overview-title">API distribution evidence</h3>
+          <p className="eyebrow">{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Model_Gateway)}</p>
+          <h3 id="model-gateway-overview-title">{t($ => $.auxiliary.gatewayOverviewEvidence_ui_API_distribution_evidence)}</h3>
         </div>
         <StatusBadge tone={overview.canRenderModelGatewayOverview ? "neutral" : "bad"}>
-          {overview.canRenderModelGatewayOverview ? "offline evidence" : "blocked"}
+          {overview.canRenderModelGatewayOverview ? t($ => $.auxiliary.gatewayOverviewEvidence_ui_offline_evidence) : t($ => $.auxiliary.gatewayOverviewEvidence_ui_blocked)}
         </StatusBadge>
       </div>
 
       <article className="model-gateway-overview-hero">
         <div>
-          <p className="eyebrow">{overview.overviewMode}</p>
+          <p className="eyebrow">{evidenceProjectionStatus(t, overview.overviewMode)}</p>
           <h4>{overview.tenantRef}</h4>
-          <p>{overview.gatewayNarrative}</p>
+          <p>{evidenceProjectionText(t, overview, "gatewayNarrative")}</p>
         </div>
         <dl className="model-gateway-overview-meta">
           <div>
-            <dt>Request</dt>
+            <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Request)}</dt>
             <dd>{overview.requestId}</dd>
           </div>
           <div>
-            <dt>Audit</dt>
+            <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Audit)}</dt>
             <dd>{overview.auditRef}</dd>
           </div>
           <div>
-            <dt>Dev evidence</dt>
-            <dd>{overview.canConsumeDevReadEvidence ? "available" : "offline fixtures"}</dd>
+            <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Dev_evidence)}</dt>
+            <dd>{overview.canConsumeDevReadEvidence ? t($ => $.auxiliary.gatewayOverviewEvidence_ui_available) : t($ => $.auxiliary.gatewayOverviewEvidence_ui_offline_fixtures)}</dd>
           </div>
           <div>
-            <dt>Production gateway</dt>
-            <dd>{overview.canRequestProductionGateway ? "enabled" : "locked"}</dd>
+            <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Production_gateway)}</dt>
+            <dd>{overview.canRequestProductionGateway ? t($ => $.auxiliary.gatewayOverviewEvidence_ui_enabled) : t($ => $.auxiliary.gatewayOverviewEvidence_ui_locked)}</dd>
           </div>
         </dl>
       </article>
 
-      <div className="model-gateway-overview-metric-grid" aria-label="Model gateway overview metrics">
+      <div className="model-gateway-overview-metric-grid" aria-label={t($ => $.auxiliary.gatewayOverviewEvidence_ui_Model_gateway_overview_metrics)}>
         {overview.metrics.map((metric) => (
           <ModelGatewayMetricCard key={metric.metricId} metric={metric} />
         ))}
@@ -65,10 +69,10 @@ export function ModelGatewayOverviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Northbound API</p>
-          <h4>Compatibility surfaces</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Northbound_API)}</p>
+          <h4>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Compatibility_surfaces)}</h4>
         </div>
-        <div className="model-gateway-overview-surface-grid" aria-label="Model gateway API surfaces">
+        <div className="model-gateway-overview-surface-grid" aria-label={t($ => $.auxiliary.gatewayOverviewEvidence_ui_Model_gateway_API_surfaces)}>
           {overview.apiSurfaces.map((surface) => (
             <ModelGatewayApiSurfaceCard key={surface.surfaceId} surface={surface} />
           ))}
@@ -77,10 +81,10 @@ export function ModelGatewayOverviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Policy Evidence</p>
-          <h4>Keys, quota, trace, audit</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Policy_Evidence)}</p>
+          <h4>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Keys_quota_trace_audit)}</h4>
         </div>
-        <div className="model-gateway-overview-policy-grid" aria-label="Model gateway policy evidence">
+        <div className="model-gateway-overview-policy-grid" aria-label={t($ => $.auxiliary.gatewayOverviewEvidence_ui_Model_gateway_policy_evidence)}>
           {overview.policyEvidence.map((evidence) => (
             <ModelGatewayPolicyEvidenceCard key={evidence.evidenceId} evidence={evidence} />
           ))}
@@ -89,10 +93,10 @@ export function ModelGatewayOverviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Trace Evidence</p>
-          <h4>Read-side usage records</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Trace_Evidence)}</p>
+          <h4>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Read_side_usage_records)}</h4>
         </div>
-        <div className="model-gateway-overview-trace-grid" aria-label="Model gateway trace evidence">
+        <div className="model-gateway-overview-trace-grid" aria-label={t($ => $.auxiliary.gatewayOverviewEvidence_ui_Model_gateway_trace_evidence)}>
           {overview.traceEvidence.map((trace) => (
             <ModelGatewayTraceEvidenceCard key={`${trace.traceId}:${trace.runId}`} trace={trace} />
           ))}
@@ -101,10 +105,10 @@ export function ModelGatewayOverviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Stop Lines</p>
-          <h4>Locked distribution capabilities</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Stop_Lines)}</p>
+          <h4>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Locked_distribution_capabilities)}</h4>
         </div>
-        <div className="model-gateway-overview-lock-grid" aria-label="Model gateway boundary locks">
+        <div className="model-gateway-overview-lock-grid" aria-label={t($ => $.auxiliary.gatewayOverviewEvidence_ui_Model_gateway_boundary_locks)}>
           {overview.boundaryLocks.map((lock) => (
             <ModelGatewayBoundaryLockCard key={lock.lockId} lock={lock} />
           ))}
@@ -115,61 +119,65 @@ export function ModelGatewayOverviewPanel({
 }
 
 function ModelGatewayMetricCard({ metric }: { metric: ModelGatewayOverviewMetric }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-card">
-      <span>{metric.label}</span>
-      <strong>{metric.value}</strong>
-      <StatusBadge tone={modelGatewayTone(metric.status)}>{metric.status}</StatusBadge>
-      <p>{metric.summary}</p>
+      <span>{evidenceProjectionText(t, metric, "label")}</span>
+      <strong>{evidenceProjectionText(t, metric, "value")}</strong>
+      <StatusBadge tone={modelGatewayTone(metric.status)}>{evidenceProjectionStatus(t, metric.status)}</StatusBadge>
+      <p>{evidenceProjectionText(t, metric, "summary")}</p>
     </article>
   );
 }
 
 function ModelGatewayApiSurfaceCard({ surface }: { surface: ModelGatewayApiSurface }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-surface">
       <div className="model-gateway-overview-row-main">
         <div>
           <p className="eyebrow">{surface.surfaceId}</p>
-          <h5>{surface.label}</h5>
+          <h5>{evidenceProjectionText(t, surface, "label")}</h5>
         </div>
-        <StatusBadge tone={modelGatewayTone(surface.status)}>{surface.status}</StatusBadge>
+        <StatusBadge tone={modelGatewayTone(surface.status)}>{evidenceProjectionStatus(t, surface.status)}</StatusBadge>
       </div>
       <p className="route-path">{surface.path}</p>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Evidence</dt>
+          <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Evidence)}</dt>
           <dd>{surface.evidenceRef}</dd>
         </div>
       </dl>
-      <p>{surface.summary}</p>
+      <p>{evidenceProjectionText(t, surface, "summary")}</p>
     </article>
   );
 }
 
 function ModelGatewayPolicyEvidenceCard({ evidence }: { evidence: ModelGatewayPolicyEvidence }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-policy">
       <div className="model-gateway-overview-row-main">
         <div>
           <p className="eyebrow">{evidence.evidenceId}</p>
-          <h5>{evidence.label}</h5>
+          <h5>{evidenceProjectionText(t, evidence, "label")}</h5>
         </div>
-        <StatusBadge tone={modelGatewayTone(evidence.status)}>{evidence.status}</StatusBadge>
+        <StatusBadge tone={modelGatewayTone(evidence.status)}>{evidenceProjectionStatus(t, evidence.status)}</StatusBadge>
       </div>
-      <strong>{evidence.value}</strong>
+      <strong>{evidenceProjectionText(t, evidence, "value")}</strong>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Source</dt>
+          <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Source)}</dt>
           <dd>{evidence.sourceRef}</dd>
         </div>
       </dl>
-      <p>{evidence.summary}</p>
+      <p>{evidenceProjectionText(t, evidence, "summary")}</p>
     </article>
   );
 }
 
 function ModelGatewayTraceEvidenceCard({ trace }: { trace: ModelGatewayTraceEvidence }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-trace">
       <div className="model-gateway-overview-row-main">
@@ -177,44 +185,45 @@ function ModelGatewayTraceEvidenceCard({ trace }: { trace: ModelGatewayTraceEvid
           <p className="eyebrow">{trace.runId}</p>
           <h5>{trace.traceId}</h5>
         </div>
-        <StatusBadge tone={modelGatewayTone(trace.status)}>{trace.status}</StatusBadge>
+        <StatusBadge tone={modelGatewayTone(trace.status)}>{evidenceProjectionStatus(t, trace.status)}</StatusBadge>
       </div>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Cost</dt>
+          <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Cost)}</dt>
           <dd>{trace.cost}</dd>
         </div>
         <div>
-          <dt>Failure</dt>
+          <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Failure)}</dt>
           <dd>{trace.failureCode}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Audit)}</dt>
           <dd>{trace.auditRef}</dd>
         </div>
       </dl>
-      <p>{trace.summary}</p>
+      <p>{evidenceProjectionText(t, trace, "summary")}</p>
     </article>
   );
 }
 
 function ModelGatewayBoundaryLockCard({ lock }: { lock: ModelGatewayBoundaryLock }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-lock">
       <div className="model-gateway-overview-row-main">
         <div>
           <p className="eyebrow">{lock.lockId}</p>
-          <h5>{lock.label}</h5>
+          <h5>{evidenceProjectionText(t, lock, "label")}</h5>
         </div>
-        <StatusBadge tone="bad">{lock.status}</StatusBadge>
+        <StatusBadge tone="bad">{evidenceProjectionStatus(t, lock.status)}</StatusBadge>
       </div>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{lock.missingPrerequisite}</dd>
+          <dt>{t($ => $.auxiliary.gatewayOverviewEvidence_ui_Missing_prerequisite)}</dt>
+          <dd>{evidenceProjectionText(t, lock, "missingPrerequisite")}</dd>
         </div>
       </dl>
-      <p>{lock.summary}</p>
+      <p>{evidenceProjectionText(t, lock, "summary")}</p>
     </article>
   );
 }

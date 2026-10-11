@@ -1,3 +1,4 @@
+import type { EvidenceProjectionCopy, EvidenceProjectionMessage } from "./evidenceProjectionCopy.ts";
 import type { AdminAuditLogViewModel } from "./adminAuditLog";
 import type { AdminOperationsBoundaryLock, AdminOperationsReviewViewModel } from "./adminOperationsReview";
 import type { AdminTenantOverviewViewModel } from "./adminTenantOverview";
@@ -19,7 +20,7 @@ export type AdminProviderDeploymentReviewSource = {
   adminOperationsReview: AdminOperationsReviewViewModel;
 };
 
-export type AdminProviderProfileReadiness = {
+export type AdminProviderProfileReadiness = EvidenceProjectionCopy & {
   readinessId: string;
   providerProfile: string;
   providerId: string;
@@ -32,7 +33,7 @@ export type AdminProviderProfileReadiness = {
   summary: string;
 };
 
-export type AdminModelRouteReadiness = {
+export type AdminModelRouteReadiness = EvidenceProjectionCopy & {
   routeId: string;
   path: string;
   selectedProfileId: string;
@@ -42,7 +43,7 @@ export type AdminModelRouteReadiness = {
   summary: string;
 };
 
-export type AdminSecretDeploymentEvidence = {
+export type AdminSecretDeploymentEvidence = EvidenceProjectionCopy & {
   evidenceId: string;
   label: string;
   evidenceKind: "secret" | "deployment" | "tenant" | "runtime";
@@ -52,7 +53,7 @@ export type AdminSecretDeploymentEvidence = {
   summary: string;
 };
 
-export type AdminProviderDeploymentOperatorRisk = {
+export type AdminProviderDeploymentOperatorRisk = EvidenceProjectionCopy & {
   riskId: string;
   label: string;
   riskSurface: "provider" | "route" | "secret" | "deployment" | "auth_store";
@@ -62,7 +63,7 @@ export type AdminProviderDeploymentOperatorRisk = {
   operatorQuestion: string;
 };
 
-export type AdminProviderDeploymentLock = {
+export type AdminProviderDeploymentLock = EvidenceProjectionCopy & {
   lockId: string;
   label: string;
   lockSurface: "provider" | "route" | "secret" | "deployment" | "auth" | "database" | "repository" | "gateway";
@@ -71,7 +72,7 @@ export type AdminProviderDeploymentLock = {
   summary: string;
 };
 
-export type AdminProviderDeploymentReviewViewModel = {
+export type AdminProviderDeploymentReviewViewModel = EvidenceProjectionCopy & {
   pageId: "admin-provider-deployment-review-offline";
   sourcePageIds: string[];
   reviewMode: "offline_admin_provider_deployment_readiness";
@@ -134,6 +135,7 @@ export function buildAdminProviderDeploymentReviewViewModel(
     auditRef: source.adminAuditLog.auditRef,
     deploymentStatusRef,
     reviewNarrative: buildReviewNarrative(providerProfiles, modelRoutes, operatorRisks, lockedCapabilities),
+    reviewNarrativeMessage: buildReviewNarrativeMessage(providerProfiles, modelRoutes, operatorRisks, lockedCapabilities),
     providerProfiles,
     modelRoutes,
     secretDeploymentEvidence,
@@ -188,6 +190,7 @@ function buildProviderProfiles(
     status: profile.status,
     sourceRef: profile.evidenceRef,
     summary: profile.summary,
+    summaryMessage: profile.summaryMessage,
   }));
 }
 
@@ -200,6 +203,7 @@ function buildModelRoutes(routeBindings: ModelGatewayRouteBindingEvidence[]): Ad
     status: route.status,
     sourceRef: route.evidenceRef,
     summary: route.summary,
+    summaryMessage: route.summaryMessage,
   }));
 }
 
@@ -218,74 +222,97 @@ function buildSecretDeploymentEvidence(
     {
       evidenceId: "tenant_deployment_status",
       label: "Tenant deployment status",
+      labelMessage: { key: "adminDeploymentEvidence_tenant_deployment_status_label" as const },
       evidenceKind: "tenant",
       value: deploymentStatusRef,
       status: "offline_only",
       sourceRef: source.tenantOverview.pageId,
       summary: "Tenant deployment status is a read-side reference and does not launch a deployment preflight.",
+      summaryMessage: { key: "adminDeploymentEvidence_tenant_deployment_status_summary" as const },
     },
     {
       evidenceId: "provider_credential_states",
       label: "Provider credential states",
+      labelMessage: { key: "adminDeploymentEvidence_provider_credential_states_label" as const },
       evidenceKind: "runtime",
       value: `${missingCredentials} missing / ${optionalCredentials} optional`,
+      valueMessage: { key: "adminDeploymentEvidence_provider_credential_states_value" as const, values: { missingCredentials: missingCredentials, optionalCredentials: optionalCredentials } },
       status: missingCredentials > 0 ? "review_required" : "offline_only",
       sourceRef: source.modelGatewayRouteEvidence.pageId,
       summary: "Credential states are rendered as configured, missing, optional_missing, or not_required without exposing values.",
+      summaryMessage: { key: "adminDeploymentEvidence_provider_credential_states_summary" as const },
     },
     {
       evidenceId: "secret_backend_contract",
       label: "Secret backend contract",
+      labelMessage: { key: "adminDeploymentEvidence_secret_backend_contract_label" as const },
       evidenceKind: "secret",
       value: "contract only",
+      valueMessage: { key: "adminDeploymentEvidence_secret_backend_contract_value" as const },
       status: "locked",
       sourceRef: "production-secret-backend-contract",
       summary: "The external secret backend contract exists, while implementation and resolver injection remain absent.",
+      summaryMessage: { key: "adminDeploymentEvidence_secret_backend_contract_summary" as const },
     },
     {
       evidenceId: "secret_backend_implementation",
       label: "Secret backend implementation",
+      labelMessage: { key: "adminDeploymentEvidence_secret_backend_implementation_label" as const },
       evidenceKind: "secret",
       value: "not satisfied",
+      valueMessage: { key: "adminDeploymentEvidence_secret_backend_implementation_value" as const },
       status: "locked",
       sourceRef: "production-secret-backend-implementation-readiness",
       summary: "Backend selection, profile binding, rotation, audit policy, and tests must be resolved before implementation.",
+      summaryMessage: { key: "adminDeploymentEvidence_secret_backend_implementation_summary" as const },
     },
     {
       evidenceId: "secret_reference_schema",
       label: "Secret reference schema",
+      labelMessage: { key: "adminDeploymentEvidence_secret_reference_schema_label" as const },
       evidenceKind: "secret",
       value: "schema evidence",
+      valueMessage: { key: "adminDeploymentEvidence_secret_reference_schema_value" as const },
       status: "locked",
       sourceRef: "production-secret-reference-contract",
       summary: "Secret references can be checked as schema artifacts, but secret values and resolver execution stay unavailable.",
+      summaryMessage: { key: "adminDeploymentEvidence_secret_reference_schema_summary" as const },
     },
     {
       evidenceId: "deployment_static_smoke",
       label: "Deployment static smoke",
+      labelMessage: { key: "adminDeploymentEvidence_deployment_static_smoke_label" as const },
       evidenceKind: "deployment",
       value: "static only",
+      valueMessage: { key: "adminDeploymentEvidence_deployment_static_smoke_value" as const },
       status: "offline_only",
       sourceRef: "production-ops-deployment-readiness-smoke",
       summary: "Deployment readiness covers compose expansion and static checks, not test environment smoke or production preflight.",
+      summaryMessage: { key: "adminDeploymentEvidence_deployment_static_smoke_summary" as const },
     },
     {
       evidenceId: "container_smoke_record",
       label: "Container smoke record",
+      labelMessage: { key: "adminDeploymentEvidence_container_smoke_record_label" as const },
       evidenceKind: "deployment",
       value: "local mock recorded",
+      valueMessage: { key: "adminDeploymentEvidence_container_smoke_record_value" as const },
       status: "offline_only",
       sourceRef: "production-ops-container-smoke-record-template",
       summary: "The local mock container smoke record is audit evidence and cannot be treated as production readiness.",
+      summaryMessage: { key: "adminDeploymentEvidence_container_smoke_record_summary" as const },
     },
     {
       evidenceId: "startup_supervisor_boundary",
       label: "Startup supervisor",
+      labelMessage: { key: "adminDeploymentEvidence_startup_supervisor_boundary_label" as const },
       evidenceKind: "deployment",
       value: "boundary only",
+      valueMessage: { key: "adminDeploymentEvidence_startup_supervisor_boundary_value" as const },
       status: "locked",
       sourceRef: "production-ops-startup-supervisor-boundary",
       summary: "Startup and supervisor evidence documents the boundary without process supervisor implementation.",
+      summaryMessage: { key: "adminDeploymentEvidence_startup_supervisor_boundary_summary" as const },
     },
   ];
 }
@@ -308,11 +335,14 @@ function buildOperatorRisks(source: AdminProviderDeploymentReviewSource): AdminP
     .map((risk) => ({
       riskId: `operations_${risk.riskId}`,
       label: risk.label,
+      labelMessage: risk.labelMessage,
       riskSurface: operationsRiskSurface(risk.sourceSurface),
       status: risk.status,
       evidenceRef: risk.evidenceRef,
       summary: risk.summary,
+      summaryMessage: risk.summaryMessage,
       operatorQuestion: risk.operatorQuestion,
+      operatorQuestionMessage: risk.operatorQuestionMessage,
     }));
 
   return [...profileRisks, ...routeRisks, ...operationsRisks].slice(0, 14);
@@ -338,7 +368,9 @@ function riskFromProfile(profile: ModelGatewayProviderProfileEvidence): AdminPro
     status: profile.status === "blocked" ? "blocked" : "review_required",
     evidenceRef: profile.evidenceRef,
     summary: profile.summary,
+    summaryMessage: profile.summaryMessage,
     operatorQuestion: "Which credential source, provider profile binding, or secret reference must be reviewed first?",
+    operatorQuestionMessage: { key: "adminDeploymentEvidence_riskFromProfile_operatorQuestion" as const },
   };
 }
 
@@ -348,11 +380,14 @@ function riskFromSelectionCase(
   return {
     riskId: `selection_${selectionCase.caseId}`,
     label: selectionCase.label,
+    labelMessage: selectionCase.labelMessage,
     riskSurface: "route",
     status: selectionCase.status === "blocked" ? "blocked" : "review_required",
     evidenceRef: selectionCase.evidenceRef,
     summary: selectionCase.summary,
+    summaryMessage: selectionCase.summaryMessage,
     operatorQuestion: "Should this route input be rejected explicitly before any production provider routing is enabled?",
+    operatorQuestionMessage: { key: "adminDeploymentEvidence_riskFromSelectionCase_operatorQuestion" as const },
   };
 }
 
@@ -368,10 +403,13 @@ function buildLockedCapabilities(source: AdminProviderDeploymentReviewSource): A
     .map((capability) => ({
       lockId: `gateway_${capability.capabilityId}`,
       label: capability.label,
+      labelMessage: capability.labelMessage,
       lockSurface: capability.sourceSurface === "route" ? ("route" as const) : ("gateway" as const),
       status: "locked" as const,
       missingPrerequisite: capability.missingPrerequisite,
+      missingPrerequisiteMessage: capability.missingPrerequisiteMessage,
       summary: capability.summary,
+      summaryMessage: capability.summaryMessage,
     }));
 
   return [...adminLocks, ...gatewayLocks].slice(0, 18);
@@ -384,9 +422,23 @@ function lockFromAdminLock(lock: AdminOperationsBoundaryLock): AdminProviderDepl
   return {
     lockId: `admin_${lock.lockId}`,
     label: lock.label,
+    labelMessage: lock.labelMessage,
     lockSurface,
     status: "locked",
     missingPrerequisite: lock.missingPrerequisite,
+    missingPrerequisiteMessage: lock.missingPrerequisiteMessage,
     summary: lock.summary,
+    summaryMessage: lock.summaryMessage,
   };
+}
+
+function buildReviewNarrativeMessage(
+  providerProfiles: AdminProviderProfileReadiness[],
+  modelRoutes: AdminModelRouteReadiness[],
+  risks: AdminProviderDeploymentOperatorRisk[],
+  locks: AdminProviderDeploymentLock[],
+): EvidenceProjectionMessage {
+  const blockedProfiles = providerProfiles.filter((profile) => profile.status === "blocked").length;
+  const routeReviews = modelRoutes.filter((route) => route.status === "review_required").length;
+  return { key: "adminDeploymentEvidence_reviewNarrative" as const, values: { providerProfilesCount: providerProfiles.length, blockedProfiles: blockedProfiles, modelRoutesCount: modelRoutes.length, routeReviews: routeReviews, risksCount: risks.length, locksCount: locks.length } };
 }

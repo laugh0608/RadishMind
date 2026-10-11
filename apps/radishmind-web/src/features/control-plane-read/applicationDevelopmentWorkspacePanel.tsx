@@ -80,8 +80,8 @@ type RepresentativeContribution = {
   mark: string;
   status: ApplicationDevelopmentEvidenceStatus;
   coverage: ApplicationDevelopmentReadinessSource["coverage"];
-  description: string;
-  descriptionKind: "raw" | "reference" | "no_owner_required" | "not_loaded";
+  failureCode: string;
+  descriptionKind: "blocked" | "missing" | "reference" | "no_owner_required" | "not_loaded";
   reference: string;
   nextAnchor: string;
 };
@@ -501,7 +501,12 @@ function RepresentativeContributionRow({ contribution }: { contribution: Represe
             ? t($ => $.workspacePanel.noOwnerEvidenceRequired)
             : contribution.descriptionKind === "not_loaded"
               ? t($ => $.workspacePanel.ownerEvidenceNotLoaded)
-              : contribution.description}</p>
+              : contribution.descriptionKind === "blocked"
+                ? t($ => $.workspacePanel.ownerEvidenceBlocked, { owner, code: contribution.failureCode })
+                : contribution.id === "publish_candidate" ? t($ => $.workspacePanel.candidateEvidenceMissing)
+                  : contribution.id === "workflow_definition" ? t($ => $.workspacePanel.definitionEvidenceMissing)
+                    : contribution.nextAnchor === "application-rag-invocation" ? t($ => $.workspacePanel.ragAssignmentEvidenceMissing)
+                      : t($ => $.workspacePanel.ragBindingEvidenceMissing)}</p>
         <footer><small>{owner}</small><a href={`#${contribution.nextAnchor}`} aria-label={t($ => $.workspacePanel.openContributionOwner, { label })}>↗</a></footer>
       </div>
     </article>
@@ -553,8 +558,9 @@ function buildRepresentativeContributions(
       mark: definition.mark,
       status: evidence.status,
       coverage: evidence.coverage,
-      description: evidenceDescription(evidence),
-      descriptionKind: evidence.blockers[0] || evidence.missingEvidence[0] ? "raw"
+      failureCode: evidence.blockers[0]?.code || evidence.failureCodes[0] || "",
+      descriptionKind: evidence.blockers[0] || evidence.failureCodes[0] ? "blocked"
+        : evidence.missingEvidence[0] ? "missing"
         : evidence.evidenceRefs[0] ? "reference"
           : evidence.status === "available" ? "no_owner_required" : "not_loaded",
       reference: evidence.evidenceRefs[0]
@@ -563,22 +569,6 @@ function buildRepresentativeContributions(
       nextAnchor: evidence.nextAnchor,
     };
   });
-}
-
-function evidenceDescription(
-  evidence: Pick<
-    ApplicationDevelopmentEvidenceContribution | ApplicationDevelopmentReadinessSource,
-    "status" | "evidenceRefs" | "missingEvidence" | "blockers"
-  >,
-): string {
-  const blocker = evidence.blockers[0]?.summary;
-  if (blocker) return blocker;
-  const missing = evidence.missingEvidence[0];
-  if (missing) return missing;
-  const ref = evidence.evidenceRefs[0];
-  if (ref) return `${ref.kind}:${ref.id}${ref.version ? ` · v${ref.version}` : ""} is available from its current owner.`;
-  if (evidence.status === "available") return "No owner evidence is required for this Application kind.";
-  return "Owner evidence has not been loaded for the current Application generation.";
 }
 
 function applicationInitials(displayName: string): string {

@@ -1146,9 +1146,10 @@ h4 {
 }
 
 .workflow-rag-review-history > button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: 12px;
   text-align: left;
 }
@@ -1156,6 +1157,18 @@ h4 {
 .workflow-rag-review-history > button span {
   display: grid;
   gap: 4px;
+  min-width: 0;
+}
+
+.workflow-rag-evaluation-panel .workflow-rag-list > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workflow-rag-evaluation-panel .workflow-rag-list > button > span:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .workflow-rag-review-history > button.selected {
@@ -3358,6 +3371,7 @@ h4 {
 }
 
 .model-gateway-route-evidence-chip-row code,
+.model-gateway-route-evidence-chip-row .capability-label,
 .model-gateway-usage-audit-evidence-chip-row code {
   max-width: 100%;
   border: 1px solid #d8dee8;

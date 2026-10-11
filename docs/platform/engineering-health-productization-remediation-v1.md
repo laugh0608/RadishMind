@@ -64,7 +64,7 @@ C 阶段新增第八组 `identity`：沿用同一监督器与进程组清理入�
 
 
 - `@playwright/test` 固定为 `1.63.0`，Node 22 类型固定为 `22.20.1`；Chromium 由该版本安装，测试入口先进行独立 TypeScript 检查。Node 单元测试及原覆盖率门禁保持独立。
-- 当前默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation` 十二组，`--suite=<组名>` 可选单组。每组生成临时 SQLite，不读取用户 Platform 配置或 Web `.env`；身份组使用显式测试配置，其余组由空 Platform 配置和指定产品档启动。
+- 当前默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation / results-evidence` 十三组，`--suite=<组名>` 可选单组。每组生成临时 SQLite，不读取用户 Platform 配置或 Web `.env`；身份组使用显式测试配置，其余组由空 Platform 配置和指定产品档启动。
 - 前七组、管理组、Agent、Gateway 与 Evaluation 组通过 UI 创建独立应用，必要的合成来源证据再通过公开 API 准备，不直接写数据库；双标签在同一测试内共享该应用。它们的浏览器请求由公共测试夹具限制为本轮两个回环地址。身份组独立注册合成账户，通过额外 API 会话和双标签验证撤销与轮换，不创建应用，也未复用前七组的请求拦截夹具。
 - Prompt 使用运行器内的动态 loopback HTTP fixture，显式 profile 固定模型、地址和合成凭据；Go → Python → OpenAI 兼容传输仍走实际调用链，fixture 核验模板角色、内容和每样本调用次数。合法输出使用网页配置的五字段诊断契约，分别以缺字段和额外字段覆盖拒绝分支；不代表真实模型能力或诊断答案质量。Workflow 默认 Provider 仍为 mock。
 - Web 使用现有 CORS 允许的 `127.0.0.1:4100`，Platform 使用 `127.0.0.1:17000`。任一端口被占用即失败，不复用用户服务；各组清理后顺序复用端口；测试使用单 worker、零重试，以免掩盖不稳定失败。
@@ -517,3 +517,8 @@ R6 关闭状态为 `r6_document_checker_asset_convergence_completed`。本次关
 ### E 阶段应用评测双语回归（2026-10-11）
 
 新增第十二组 `evaluation`，使用既有应用评测与 Prompt 本地产品档、隔离 SQLite 和固定响应。三条流程已在中英两语各运行两轮，共 12 次通过：Plan 创建 / 修订 / 归档与真实冲突，Campaign 顺序执行 / 配对 / 交接，以及 Schedule / Occurrence 合成契约投影。后者仅验证展示、确认和请求形状，不启用 Schedule runner，不替代真实委托授权或调度验收。该组关闭 trace 与自动截图，只截取不含凭据的指定面板；验收记录和清理审计见[本周周志](../devlogs/2026-W41.md#2026-10-11-e-阶段计划批次与日程双语迁移)。
+
+
+### E 阶段结果库与可达证据双语回归（2026-10-11）
+
+新增第十三组 `results-evidence`，沿用监督器的进程组与临时目录清理，组合既有 RAG 晋级和结果资产库产品档。结果资产库使用已有 SQLite 合成夹具，RAG 数据集与候选审查使用公开 API 创建合成快照；辅助页面只检查现有读侧投影，不新增真实执行能力。四条流程已中英各两轮共 16 次通过，覆盖精确读取、JSON 导出校验、生命周期冲突、作用域切换丢弃迟到导出、数据集 CAS / 候选审查 / 刷新和七个辅助证据面三视口。最终窗口 `run-f4sFMk` 已通过，代表截图已复核；五轮临时运行目录均已删除，`4100 / 17000` 无监听，报告与日志的 106 个文本块未发现固定夹具凭据。不启动固定响应提供方、真实模型或 Schedule runner；不等同于十三组同窗口、PostgreSQL 或远端 CI 验收。

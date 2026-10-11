@@ -47,11 +47,8 @@ import {
   type WorkflowHTTPToolExecutionState,
 } from "../features/control-plane-read/workflowHTTPToolExecutionConsumer.ts";
 import { buildModelGatewayOverviewViewModel } from "../features/control-plane-read/modelGatewayOverview";
-import { ModelGatewayOverviewPanel } from "../features/control-plane-read/modelGatewayOverviewPanel";
 import { buildModelGatewayRouteEvidenceViewModel } from "../features/control-plane-read/modelGatewayRouteEvidence";
-import { ModelGatewayRouteEvidencePanel } from "../features/control-plane-read/modelGatewayRouteEvidencePanel";
 import { buildModelGatewayUsageAuditEvidenceViewModel } from "../features/control-plane-read/modelGatewayUsageAuditEvidence";
-import { ModelGatewayUsageAuditEvidencePanel } from "../features/control-plane-read/modelGatewayUsageAuditEvidencePanel";
 import { buildModelGatewayEvidenceReviewViewModel } from "../features/control-plane-read/modelGatewayEvidenceReview";
 import {
   buildControlPlaneReadShellViewModel,
@@ -107,7 +104,6 @@ import {
   type WorkflowSurfaceOverviewStopLine,
   type WorkflowSurfaceOverviewViewModel,
 } from "../features/control-plane-read/workflowSurfaceOverview";
-import { WorkflowWorkspaceReviewPanel } from "../features/control-plane-read/workflowWorkspaceReviewPanel";
 import {
   selectWorkflowWorkspaceApplication,
   selectionForApplication,
@@ -194,6 +190,10 @@ const LocalIdentityGateway = lazy(() =>
 const localIdentityGatewayEnabled = (import.meta.env as Record<string, string | undefined>)
   .VITE_RADISHMIND_LOCAL_IDENTITY_MODE?.trim() === "local_identity_dev";
 const AdminControlPlaneWorkspace = lazy(() => import("../features/control-plane-read/adminControlPlaneWorkspace"));
+const ModelGatewayOverviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayOverviewPanel").then(module => ({ default: module.ModelGatewayOverviewPanel })));
+const ModelGatewayRouteEvidencePanel = lazy(() => import("../features/control-plane-read/modelGatewayRouteEvidencePanel").then(module => ({ default: module.ModelGatewayRouteEvidencePanel })));
+const ModelGatewayUsageAuditEvidencePanel = lazy(() => import("../features/control-plane-read/modelGatewayUsageAuditEvidencePanel").then(module => ({ default: module.ModelGatewayUsageAuditEvidencePanel })));
+const WorkflowWorkspaceReviewPanel = lazy(() => import("../features/control-plane-read/workflowWorkspaceReviewPanel").then(module => ({ default: module.WorkflowWorkspaceReviewPanel })));
 const ModelGatewayEvidenceReviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayEvidenceReviewPanel").then((module) => ({ default: module.ModelGatewayEvidenceReviewPanel })));
 const ApplicationCatalogPanel = lazy(() => import("../features/control-plane-read/applicationCatalogPanel").then((module) => ({ default: module.ApplicationCatalogPanel })));
 const ApplicationDevelopmentWorkspacePanel = lazy(() => import("../features/control-plane-read/applicationDevelopmentWorkspacePanel"));
@@ -891,7 +891,7 @@ function ProductApp() {
             onOpenItem={handleOpenWorkspaceOperationsInboxItem}
           />
         </Suspense>
-        <Suspense fallback={<section className="surface-band"><p>Loading Saved Draft Library…</p></section>}>
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.loadingSavedDraftLibrary)}</p></section>}>
           <WorkflowUserWorkspaceHomePanel
             home={workflowUserWorkspaceHome}
             createdDraftCountsByWorkflowDefinition={createdWorkspaceDraftCountsByDefinition}
@@ -913,13 +913,19 @@ function ProductApp() {
             }}
           />
         </Suspense>
-        <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
-        <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
-        <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
-        <Suspense fallback={<section className="surface-band"><p>Loading review evidence…</p></section>}>
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.evidenceLoading)}</p></section>}>
+          <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
+        </Suspense>
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.evidenceLoading)}</p></section>}>
+          <ModelGatewayRouteEvidencePanel detail={modelGatewayRouteEvidence} />
+        </Suspense>
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.evidenceLoading)}</p></section>}>
+          <ModelGatewayUsageAuditEvidencePanel evidence={modelGatewayUsageAuditEvidence} />
+        </Suspense>
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.loadingreviewevidence)}</p></section>}>
           <ModelGatewayEvidenceReviewPanel review={modelGatewayEvidenceReview} />
         </Suspense>
-        <Suspense fallback={<section className="surface-band"><p>Loading Admin Control Plane…</p></section>}>
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.loadingAdminControlPlane)}</p></section>}>
           <AdminControlPlaneWorkspace
             tenantOverview={tenantOverview}
             auditLog={adminAuditLog}
@@ -933,7 +939,9 @@ function ProductApp() {
             onSelectApplication={handleSelectAdminQuotaApplication}
           />
         </Suspense>
-        <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
+        <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.evidenceLoading)}</p></section>}>
+          <WorkflowWorkspaceReviewPanel review={workflowWorkspaceReview} />
+        </Suspense>
         <WorkflowSurfaceOverviewPanel overview={workflowSurfaceOverview} />
         <WorkflowScenarioInspectorPanel
           inspector={workflowScenarioInspector}
@@ -1047,14 +1055,14 @@ function ProductApp() {
               )}
               renderPersistentSurfaces={(surfaceKey, controls) => (
                 <>
-                  <Suspense fallback={<div className="application-runtime-review-loading"><p>Loading Application Runtime Review…</p></div>}>
+                  <Suspense fallback={<div className="application-runtime-review-loading"><p>{t($ => $.appShell.loadingApplicationRuntimeReview)}</p></div>}>
                     <ApplicationRuntimeReviewWorkspace
                       context={applicationDevelopmentWorkspaceContext}
                       surfaceKey={surfaceKey}
                       controls={controls}
                     />
                   </Suspense>
-                  <Suspense fallback={<div className="workflow-review-loading"><p>Loading Workflow Review…</p></div>}>
+                  <Suspense fallback={<div className="workflow-review-loading"><p>{t($ => $.appShell.loadingWorkflowReview)}</p></div>}>
                     <WorkflowReviewWorkspace
                       context={applicationDevelopmentWorkspaceContext}
                       surfaceKey={surfaceKey}

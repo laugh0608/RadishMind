@@ -1,4 +1,5 @@
 export const artifactLibrary = {
+  "listLoaded_one": "已读取 {{count}} 条{{state}}结果资产元数据，尚未读取正文。",
   "libraryRegion": "应用结果资产库",
   "workspace": "应用结果工作区",
   "savedAcrossSessions": "跨会话保存的结果",
@@ -50,7 +51,7 @@ export const artifactLibrary = {
   "allProfilesLower": "所有执行配置",
   "allContentTypesLower": "所有内容类型",
   "listUnavailable": "结果资产列表不可用（{{code}}）。",
-  "listLoaded": "已读取 {{count}} 条{{state}}结果资产元数据；正文仍未读取。",
+  "listLoaded_other": "已读取 {{count}} 条{{state}}结果资产元数据；正文仍未读取。",
   "operationUnavailable": "结果资产操作不可用（{{code}}）。",
   "archiveSucceeded": "结果资产已归档；正文和来源保持不变。",
   "unarchiveSucceeded": "结果资产已取消归档并恢复为活跃状态。",

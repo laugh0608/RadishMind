@@ -3,13 +3,13 @@ import { defineConfig } from "@playwright/test";
 const baseURL = process.env.RADISHMIND_E2E_WEB_URL;
 const output = process.env.RADISHMIND_E2E_OUTPUT_DIR;
 const suite = process.env.RADISHMIND_E2E_SUITE;
-if (baseURL !== "http://127.0.0.1:4100" || !output || !["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity", "admin", "agent", "gateway", "evaluation"].includes(suite ?? "")) {
+if (baseURL !== "http://127.0.0.1:4100" || !output || !["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity", "admin", "agent", "gateway", "evaluation", "results-evidence"].includes(suite ?? "")) {
   throw new Error("Run browser regressions with npm run test:e2e so the isolated services are owned and cleaned up.");
 }
 
 export default defineConfig({
   testDir: ".",
-  testMatch: suite === "evaluation" ? ["evaluation-campaign.spec.ts", "evaluation-schedule.spec.ts"] : suite === "gateway" ? "gateway.spec.ts" : suite === "agent" ? "agent.spec.ts" : suite === "admin" ? "admin-management.spec.ts" : suite === "identity" ? ["identity.spec.ts", "identity-members.spec.ts"] : suite === "offline-projection" ? "workflow-projection.spec.ts" : suite === "http-tool" ? "workflow-http-tool.spec.ts" : suite === "rag-application" ? "workflow-rag-application.spec.ts" : suite === "rag-promotion" ? "workflow-rag-promotion.spec.ts" : suite === "rag" ? ["workflow-rag.spec.ts", "workflow-rag-execution.spec.ts"] : suite === "templates" ? "workflow-template.spec.ts" : ["prompt.spec.ts", "workflow.spec.ts", "run-review.spec.ts", "evaluation-cases.spec.ts"],
+  testMatch: suite === "results-evidence" ? ["results-library.spec.ts", "rag-evaluation.spec.ts", "auxiliary-evidence.spec.ts"] : suite === "evaluation" ? ["evaluation-campaign.spec.ts", "evaluation-schedule.spec.ts"] : suite === "gateway" ? "gateway.spec.ts" : suite === "agent" ? "agent.spec.ts" : suite === "admin" ? "admin-management.spec.ts" : suite === "identity" ? ["identity.spec.ts", "identity-members.spec.ts"] : suite === "offline-projection" ? "workflow-projection.spec.ts" : suite === "http-tool" ? "workflow-http-tool.spec.ts" : suite === "rag-application" ? "workflow-rag-application.spec.ts" : suite === "rag-promotion" ? "workflow-rag-promotion.spec.ts" : suite === "rag" ? ["workflow-rag.spec.ts", "workflow-rag-execution.spec.ts"] : suite === "templates" ? "workflow-template.spec.ts" : ["prompt.spec.ts", "workflow.spec.ts", "run-review.spec.ts", "evaluation-cases.spec.ts"],
   projects: [
     { name: "chromium-en-US", use: { locale: "en-US" } },
     { name: "chromium-zh-CN", use: { locale: "zh-CN" } },
@@ -28,10 +28,10 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
-    screenshot: (suite === "identity" || suite === "gateway" || suite === "evaluation") ? "off" : "only-on-failure",
-    // Identity, Gateway and Evaluation responses can contain one-time credentials. Use explicitly
+    screenshot: (suite === "identity" || suite === "gateway" || suite === "evaluation" || suite === "results-evidence") ? "off" : "only-on-failure",
+    // Identity, Gateway, Evaluation and result evidence responses can contain one-time credentials. Use explicitly
     // masked screenshots; never retain automatic screenshots or request traces.
-    trace: (suite === "identity" || suite === "gateway" || suite === "evaluation") ? "off" : "retain-on-failure",
+    trace: (suite === "identity" || suite === "gateway" || suite === "evaluation" || suite === "results-evidence") ? "off" : "retain-on-failure",
     serviceWorkers: "block",
   },
 });

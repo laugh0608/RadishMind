@@ -1,3 +1,6 @@
+import "../../i18n/workflowWorkspaceProjectionResources.ts";
+import { useTranslation } from "react-i18next";
+import { workflowProjectionText, workflowProjectionMessage, workflowProjectionStatusLabel } from "./workflowProjectionCopy.ts";
 import type {
   WorkflowWorkspaceReviewBlockedCapabilityGroup,
   WorkflowWorkspaceReviewContextCard,
@@ -15,6 +18,7 @@ export function WorkflowWorkspaceReviewPanel({
 }: {
   review: WorkflowWorkspaceReviewViewModel;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <section
       className="surface-band workflow-workspace-review"
@@ -23,76 +27,76 @@ export function WorkflowWorkspaceReviewPanel({
     >
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Workflow Review Workspace</p>
-          <h3 id="workflow-workspace-review-title">Context, scenario, draft, blockers</h3>
+          <p className="eyebrow">{t($ => $.projection.workflowWorkspaceProjection_ui_Workflow_Review_Workspace)}</p>
+          <h3 id="workflow-workspace-review-title">{t($ => $.projection.workflowWorkspaceProjection_ui_Context_scenario_draft_blockers)}</h3>
         </div>
         <StatusBadge tone={review.canRenderWorkspaceReview ? "neutral" : "bad"}>
-          {review.canRenderWorkspaceReview ? "offline advisory" : "blocked"}
+          {review.canRenderWorkspaceReview ? t($ => $.projection.workflowWorkspaceProjection_ui_offline_advisory) : t($ => $.projection.workflowWorkspaceProjection_ui_blocked)}
         </StatusBadge>
       </div>
 
       <article className="workflow-workspace-review-hero">
         <div className="workflow-workspace-review-row-main">
           <div>
-            <p className="eyebrow">{review.reviewMode}</p>
+            <p className="eyebrow">{workflowProjectionStatusLabel(t, review.reviewMode)}</p>
             <h5>{review.scenarioId}</h5>
           </div>
-          <StatusBadge tone="neutral">inspect only</StatusBadge>
+          <StatusBadge tone="neutral">{t($ => $.projection.workflowWorkspaceProjection_ui_inspect_only)}</StatusBadge>
         </div>
         <dl className="workflow-run-guard-meta">
           <div>
-            <dt>Application</dt>
+            <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Application)}</dt>
             <dd>{review.applicationId}</dd>
           </div>
           <div>
-            <dt>Workflow definition</dt>
+            <dt>{t($ => $.projection.workspaceReview_selected_definition_label)}</dt>
             <dd>{review.workflowDefinitionId}</dd>
           </div>
           <div>
-            <dt>Run</dt>
+            <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Run)}</dt>
             <dd>{review.runId}</dd>
           </div>
           <div>
-            <dt>Draft</dt>
+            <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Draft)}</dt>
             <dd>{review.draftId}</dd>
           </div>
           <div>
-            <dt>Request</dt>
+            <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Request)}</dt>
             <dd>{review.requestId}</dd>
           </div>
           <div>
-            <dt>Audit</dt>
+            <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Audit)}</dt>
             <dd>{review.auditRef}</dd>
           </div>
         </dl>
-        <p>{review.reviewNarrative}</p>
+        <p>{workflowProjectionText(t, review, "reviewNarrative")}</p>
       </article>
 
-      <div className="workflow-workspace-review-context-grid" aria-label="Workflow review selected context">
+      <div className="workflow-workspace-review-context-grid" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_Workflow_review_selected_context)}>
         {review.contextCards.map((context) => (
           <WorkflowWorkspaceReviewContextCard key={context.contextId} context={context} />
         ))}
       </div>
 
-      <div className="workflow-workspace-review-stage-grid" aria-label="Workflow review stage order">
+      <div className="workflow-workspace-review-stage-grid" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_Workflow_review_stage_order)}>
         {review.reviewStages.map((stage) => (
           <WorkflowWorkspaceReviewStageCard key={stage.stageId} stage={stage} />
         ))}
       </div>
 
-      <div className="workflow-workspace-review-relation-grid" aria-label="Workflow review relationship map">
+      <div className="workflow-workspace-review-relation-grid" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_Workflow_review_relationship_map)}>
         {review.relationMap.map((relation) => (
           <WorkflowWorkspaceReviewRelationCard key={relation.relationId} relation={relation} />
         ))}
       </div>
 
-      <div className="workflow-workspace-review-blocked-grid" aria-label="Workflow review blocked capability rollup">
+      <div className="workflow-workspace-review-blocked-grid" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_Workflow_review_blocked_capability_rollup)}>
         {review.blockedCapabilityGroups.map((group) => (
           <WorkflowWorkspaceReviewBlockedCapabilityGroupCard key={group.groupId} group={group} />
         ))}
       </div>
 
-      <div className="workflow-workspace-review-stopline-grid" aria-label="Workflow review stop lines">
+      <div className="workflow-workspace-review-stopline-grid" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_Workflow_review_stop_lines)}>
         {review.stopLines.map((stopLine) => (
           <WorkflowWorkspaceReviewStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
         ))}
@@ -102,91 +106,94 @@ export function WorkflowWorkspaceReviewPanel({
 }
 
 function WorkflowWorkspaceReviewContextCard({ context }: { context: WorkflowWorkspaceReviewContextCard }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-workspace-review-context">
       <div className="workflow-workspace-review-row-main">
         <div>
           <p className="eyebrow">{context.contextId}</p>
-          <h5>{context.label}</h5>
+          <h5>{workflowProjectionText(t, context, "label")}</h5>
         </div>
-        <StatusBadge tone={workflowWorkspaceReviewTone(context.status)}>{context.status}</StatusBadge>
+        <StatusBadge tone={workflowWorkspaceReviewTone(context.status)}>{workflowProjectionStatusLabel(t, context.status)}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
-          <dt>Primary</dt>
-          <dd>{context.primaryRef}</dd>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Primary)}</dt>
+          <dd>{workflowProjectionText(t, context, "primaryRef")}</dd>
         </div>
         <div>
-          <dt>Secondary</dt>
-          <dd>{context.secondaryRef}</dd>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Secondary)}</dt>
+          <dd>{workflowProjectionText(t, context, "secondaryRef")}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Audit)}</dt>
           <dd>{context.auditRef}</dd>
         </div>
       </dl>
-      <p>{context.summary}</p>
+      <p>{workflowProjectionText(t, context, "summary")}</p>
     </article>
   );
 }
 
 function WorkflowWorkspaceReviewStageCard({ stage }: { stage: WorkflowWorkspaceReviewStage }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-workspace-review-stage">
       <div className="workflow-workspace-review-row-main">
         <div>
           <p className="eyebrow">
-            {stage.order}. {stage.sourceSurface}
+            {stage.order}. {workflowProjectionStatusLabel(t, stage.sourceSurface)}
           </p>
-          <h5>{stage.label}</h5>
+          <h5>{workflowProjectionText(t, stage, "label")}</h5>
         </div>
-        <StatusBadge tone={workflowWorkspaceReviewTone(stage.status)}>{stage.status}</StatusBadge>
+        <StatusBadge tone={workflowWorkspaceReviewTone(stage.status)}>{workflowProjectionStatusLabel(t, stage.status)}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
-          <dt>Primary ref</dt>
-          <dd>{stage.primaryRef}</dd>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Primary_ref)}</dt>
+          <dd>{workflowProjectionText(t, stage, "primaryRef")}</dd>
         </div>
         <div>
-          <dt>Blocked count</dt>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Blocked_count)}</dt>
           <dd>{stage.blockedCount}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Audit)}</dt>
           <dd>{stage.auditRef}</dd>
         </div>
       </dl>
-      <p>{stage.summary}</p>
-      <small>{stage.reviewQuestion}</small>
+      <p>{workflowProjectionText(t, stage, "summary")}</p>
+      <small>{workflowProjectionText(t, stage, "reviewQuestion")}</small>
     </article>
   );
 }
 
 function WorkflowWorkspaceReviewRelationCard({ relation }: { relation: WorkflowWorkspaceReviewRelation }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-workspace-review-relation">
       <div className="workflow-workspace-review-row-main">
         <div>
           <p className="eyebrow">{relation.relationId}</p>
-          <h5>{relation.label}</h5>
+          <h5>{workflowProjectionText(t, relation, "label")}</h5>
         </div>
-        <StatusBadge tone={workflowWorkspaceReviewTone(relation.status)}>{relation.status}</StatusBadge>
+        <StatusBadge tone={workflowWorkspaceReviewTone(relation.status)}>{workflowProjectionStatusLabel(t, relation.status)}</StatusBadge>
       </div>
       <dl className="workflow-run-guard-meta">
         <div>
-          <dt>Source</dt>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Source)}</dt>
           <dd>{relation.sourceRef}</dd>
         </div>
         <div>
-          <dt>Target</dt>
-          <dd>{relation.targetRef}</dd>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Target)}</dt>
+          <dd>{workflowProjectionText(t, relation, "targetRef")}</dd>
         </div>
         <div>
-          <dt>Audit</dt>
+          <dt>{t($ => $.projection.workflowWorkspaceProjection_ui_Audit)}</dt>
           <dd>{relation.auditRef}</dd>
         </div>
       </dl>
-      <p>{relation.summary}</p>
+      <p>{workflowProjectionText(t, relation, "summary")}</p>
     </article>
   );
 }
@@ -196,41 +203,41 @@ function WorkflowWorkspaceReviewBlockedCapabilityGroupCard({
 }: {
   group: WorkflowWorkspaceReviewBlockedCapabilityGroup;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-workspace-review-blocked-group">
       <div className="workflow-workspace-review-row-main">
         <div>
-          <p className="eyebrow">{group.sourceSurface}</p>
-          <h5>{group.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, group.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, group, "label")}</h5>
         </div>
-        <StatusBadge tone="bad">{`${group.count} blocked`}</StatusBadge>
+        <StatusBadge tone="bad">{t($ => $.projection.workflowWorkspaceProjection_ui_count_blocked, { count: group.count })}</StatusBadge>
       </div>
-      <div className="workflow-workspace-review-token-list" aria-label={`${group.label} missing prerequisites`}>
-        {group.missingPrerequisites.map((prerequisite) => (
-          <code key={prerequisite}>{prerequisite}</code>
-        ))}
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_label_missing_prerequisites, { label: workflowProjectionText(t, group, "label") })}>
+        {group.missingPrerequisiteMessage ? <p>{workflowProjectionMessage(t, group.missingPrerequisiteMessage)}</p> : group.missingPrerequisites.map(prerequisite => <code key={prerequisite}>{prerequisite}</code>)}
       </div>
-      <div className="workflow-workspace-review-token-list" aria-label={`${group.label} audit refs`}>
+      <div className="workflow-workspace-review-token-list" aria-label={t($ => $.projection.workflowWorkspaceProjection_ui_label_audit_refs, { label: workflowProjectionText(t, group, "label") })}>
         {group.auditRefs.map((auditRef) => (
           <code key={auditRef}>{auditRef}</code>
         ))}
       </div>
-      <p>{group.exampleSummary}</p>
+      <p>{workflowProjectionText(t, group, "exampleSummary")}</p>
     </article>
   );
 }
 
 function WorkflowWorkspaceReviewStopLineCard({ stopLine }: { stopLine: WorkflowWorkspaceReviewStopLine }) {
+  const { t } = useTranslation("workflow");
   return (
     <article className="workflow-workspace-review-stopline">
       <div className="workflow-workspace-review-row-main">
         <div>
-          <p className="eyebrow">{stopLine.sourceSurface}</p>
-          <h5>{stopLine.label}</h5>
+          <p className="eyebrow">{workflowProjectionStatusLabel(t, stopLine.sourceSurface)}</p>
+          <h5>{workflowProjectionText(t, stopLine, "label")}</h5>
         </div>
-        <StatusBadge tone="bad">{stopLine.status}</StatusBadge>
+        <StatusBadge tone="bad">{workflowProjectionStatusLabel(t, stopLine.status)}</StatusBadge>
       </div>
-      <p>{stopLine.summary}</p>
+      <p>{workflowProjectionText(t, stopLine, "summary")}</p>
     </article>
   );
 }
