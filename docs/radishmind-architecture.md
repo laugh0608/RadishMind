@@ -108,7 +108,7 @@ production secret resolver 与其 audit storage adapter 仍是后置边界；这
 
 2026-09-06 文档审阅建议先保护现有行为，再按一个领域逐步形成实际代码边界。候选包括身份 / 成员领域提取、前端工作流状态归属、严格消费者的版本兼容集中与关键浏览器回归。
 
-前端草案状态收敛、三条 Workflow 与三条 Prompt 自动浏览器回归已完成，并复用既有 PR / Release 配置。2026-09-14 已建立标准库依赖的 `internal/workspacepolicy`，集中权限目录与内建角色策略，并直接迁移调用点；身份记录、应用服务、assignment 生命周期与仓储事务继续保留在 `internal/httpapi`。新包不反向依赖 HTTP 或数据库，不增加转发层、角色来源或运行生命周期。部署形态、权限、API、schema 与数据库角色均未改变；具体边界和验收见[包边界与实现](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)。
+前端草案状态收敛及 Workflow / Prompt 自动浏览器回归已完成，现有十三组入口保留为开发阶段和发布前的本地按需验证；PR / Release 保留构建、单测、数据库与仓库检查。2026-09-14 已建立标准库依赖的 `internal/workspacepolicy`，集中权限目录与内建角色策略，并直接迁移调用点；身份记录、应用服务、assignment 生命周期与仓储事务继续保留在 `internal/httpapi`。新包不反向依赖 HTTP 或数据库，不增加转发层、角色来源或运行生命周期。部署形态、权限、API、schema 与数据库角色均未改变；具体边界和验收见[包边界与实现](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)。
 
 ## 契约与历史证据路由
 

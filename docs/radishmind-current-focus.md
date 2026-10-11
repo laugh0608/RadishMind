@@ -13,10 +13,10 @@
 - 当前成熟度为**内部开发者预览**。工作流、应用运行与评测、模型网关、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实模型提供方、团队试用或生产运行已通过验收。
 - [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)已在登记的现有可达 Web 范围内完成 A 至 F 并关闭。身份、管理、Prompt / Workflow / RAG / HTTP Tool、Agent、Gateway、评测、结果库及主壳证据均按切片通过双语验收；F 最终三窗口 76 次复验、519 项单测、原包体预算与最终仓库检查通过。服务和临时库已清理，分窗口证据见[本周周志](devlogs/2026-W41.md#2026-10-11-f-阶段全站双语收口)。
 - [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
-- 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，并接入现有 PR / Release 配置；远端 CI 尚未执行，详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
+- 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，当时接入 PR / Release 配置；浏览器验证现已改为本地按需运行，历史证据详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
 - 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[2026-W38 周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
 - [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
-- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条工作流浏览器回归已分别获批实施，后者加入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
+- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条工作流浏览器回归已分别获批实施，后者现作为本地按需验证，不再进入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
 - 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [模型提供方消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实模型提供方或人工答案质量验收。
 - 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条工作流连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[2026-W39 周志](devlogs/2026-W39.md)，不新增同层任务卡或检查器。
 - 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。这些未满足项分别指生产密钥后端、进程监管、部署环境隔离和控制台生产打包；英文名称保留与现有检查器一致。
@@ -33,7 +33,7 @@
 
 2026-10-11 已完成 E 阶段覆盖清单及首个运行审查切片：运行历史、精确详情与对比两条浏览器流程中英各两轮共 8 次通过，覆盖语言切换、等待 / 失败恢复、迟到响应隔离与三视口内部布局。隔离服务及临时数据库已清理。Case / Suite 用例与套件随后通过中英各两轮共 8 次浏览器验收，包含真实冲突、等待切换、历史版本、人工决定和三视口，所属服务与临时库已清理；应用评测 Plan / Campaign / Schedule 三条流程中英各两轮共 12 次通过，计划 / 批次使用真实隔离 API，日程 / 发生记录限定为合成投影；结果库 / 导出、RAG 数据集与其余可达辅助证据完成双语迁移，四条流程中英各两轮共 16 次通过，真实隔离 API、导出与冲突恢复及三视口已验收；辅助页面限定读侧投影，所属服务和临时库已清理。E 阶段已登记切片完成，其后 F 补齐主壳 / 会话与术语、帮助指南，最终结果见本节结论。详见[本周周志](devlogs/2026-W41.md#2026-10-11-e-阶段结果库与可达证据双语迁移)。
 
-[十三组浏览器回归与现有 CI 验收](platform/engineering-health-productization-remediation-v1.md#十三组浏览器回归与现有-ci-首跑验收)已完成本地中英 100/100 验收，耗时摘要及中断清理已补齐。远端首跑在英文 HTTP Tool Definition 入口点击时失败；现已定位并修复中栏内部固有宽度越界，中英十三个视口与本地完整十三组复验通过，含类型检查耗时 12 分 31.70 秒，报告和环境清理已核对。项目所有者已授权正常推送，再依次运行现有 PR / Release Checks；若再次失败先说明。真实模型试用继续暂停，详细证据见[本周周志](devlogs/2026-W41.md#2026-10-11-application-workspace-入口遮挡修复与复验)。
+[十三组浏览器回归](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)已完成本地中英 100/100 验收和入口遮挡修复。远端后续重跑在中文 RAG 晋级列表断言处失败，保留为开发阶段待排查项。项目所有者已批准移除 PR / Release 浏览器任务及 `Candidate Quality` 对应依赖，保留本地按需入口和其余六项 CI 检查；本次配置与文档调整验证后正常提交推送，再依次运行两套检查。真实模型试用继续暂停，决策与结果见[本周周志](devlogs/2026-W41.md#2026-10-11-浏览器验证退出-ci-门禁)。
 
 ## 下一顺位的选择
 
@@ -43,7 +43,7 @@
 | --- | --- | --- |
 | 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
 | 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
-| 3 | 持续验证关键浏览器流程 | 沿用现有十三组入口；已登记的 Prompt、Workflow、模板、RAG、HTTP Tool、离线投影、身份、管理、Agent 及 Gateway / 运营流程按各自隔离窗口验收，运行环境与次数见工程专题和周志。新切片按实际风险选择回归，不能把分窗口通过合称一次全量或远端 CI 通过 |
+| 3 | 持续验证关键浏览器流程 | 本地按需使用现有十三组入口，不进入 PR / Release 门禁；已登记的 Prompt、Workflow、模板、RAG、HTTP Tool、离线投影、身份、管理、Agent 及 Gateway / 运营流程按各自隔离窗口验收，运行环境与次数见工程专题和周志。新切片按实际风险选择回归，不能把分窗口通过合称一次全量或远端 CI 通过 |
 | 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / 提供方、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
 | 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
 
