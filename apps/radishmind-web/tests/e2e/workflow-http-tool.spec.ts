@@ -40,6 +40,32 @@ for (const source of ["saved", "definition"] as const) {
     await openDraft(page, draftId);
     let expectedSourceId = draftId;
     if (source === "definition") {
+      // Check the contribution pane itself: page-level overflow misses content hidden under its sibling rail.
+      const pane = page.locator(".application-development-contribution-pane");
+      const owner = pane.getByRole("link", { name: uiText(page, "Open Workflow definition owner"), exact: true });
+      for (const width of [1440, 1280, 1260, 1259, 1200, 1181, 1180, 1024, 960, 900, 760, 720, 390]) {
+        await page.setViewportSize({ width, height: 900 });
+        const overlaps = await pane.evaluate(element => {
+          const bounds = element.getBoundingClientRect();
+          return [...element.children].filter(child => {
+            if (!child.getClientRects().length) return false;
+            const rect = child.getBoundingClientRect();
+            return rect.left < bounds.left - 1 || rect.right > bounds.right + 1 || child.scrollWidth > child.clientWidth + 1;
+          }).map(child => child.className || child.tagName);
+        });
+        expect(overlaps, `${locale} contribution content must fit its pane at ${width}px`).toEqual([]);
+        await owner.scrollIntoViewIfNeeded();
+        const intercepted = await owner.evaluate(element => {
+          const rect = element.getBoundingClientRect();
+          return [0.2, 0.5, 0.8].filter(fraction => !element.contains(document.elementFromPoint(rect.left + rect.width * fraction, rect.top + rect.height / 2)));
+        });
+        expect(intercepted, `${locale} definition link must receive pointer events at ${width}px`).toEqual([]);
+        await owner.click({ trial: true });
+        if ([1440, 1280, 720, 390].includes(width)) {
+          await testInfo.attach(`definition-owner-${locale}-${width}`, { body: await pane.screenshot(), contentType: "image/png" });
+        }
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
       await page.getByRole("link", { name: uiText(page, "Open Workflow definition owner"), exact: true }).click();
       const candidateResponse = page.waitForResponse(value => isEndpoint(value, "/v1/user-workspace/workflow-definition-candidates", "POST"));
       await page.getByRole("button", { name: uiText(page, "Create promotion candidate"), exact: true }).click();

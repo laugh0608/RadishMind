@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-10-02
+更新时间：2026-10-11
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -114,6 +114,7 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - Action Safety Ladder Visual R1 继续复用既有 Family UI / Workflow Workbench，不建立 S11。Builder Desktop `JtBu1` / write-blocked Narrow `EIWxV`、Candidate Review Desktop `l3dr1K` / policy-drift Narrow `wyqof`、Tool Plan & Confirmation Desktop `N0jBm` / confirmation-missing Narrow `CoI4i`、Run History Desktop `rHr7a` / legacy Narrow `XRRpD` 与 R23 Decision `OvCRE` 覆盖六级 ladder、scope denied、Tool unavailable、exact pre-dispatch recheck、零副作用 fail-closed 与冻结历史不反算。R23 五维评分为 `2 / 1 / 2 / 2 / 2 = 9`；9 个根画板、1055 个节点的 Pencil 原生静态 QA 对 placeholder、布局裁切、节点命名和文字填充均为 0 问题，并于 2026-08-29 获项目所有者人工视觉与边界批准。2026-08-30 React 已把代表业务标签映射到真实 Agent Session / Assignment、Workflow HTTP Tool plan / execution 与 Run History owner，使用单一 strict consumer 和共享只读面板；`1440×900`、`720×900`、`390×844` 无横向溢出，窄屏标题与状态自动换行，console 无 warning / error。该实现仍不启用 `write_allowed_by_policy`、通用 handoff 或 production execution。
 - Scheduled Regression Visual R1 复用 S10 Evaluation Campaign Workspace，不建立 S11。Desktop `mLwFB` / Narrow `kpVvO` 保持 selected Schedule 单一 owner、连续 Occurrence rows 与授权 rail；Activation Review Desktop `P1t4Qx`、Authorization Revoked Narrow `z0swDH`、Restart Reconciliation Desktop `o480D`、Missed & Overlap Narrow `iAo9b` 与 R24 Decision `G5YnEE` 固定持续 Provider 消耗确认、双 actor、每次重验、零 replay / catch-up 与 dev/test-only 边界。R24 五维评分为 `1 / 2 / 2 / 1 / 2 = 8`；7 个根画板、784 个节点的 Pencil 原生静态 QA 对布局裁切、placeholder、节点命名、文字内容 / fill 和硬编码 fill / stroke 均为 0 问题。首轮人工审查已把三个 Desktop 画板的步骤轨道及四行统一修正为 `fill_container`，选中高亮占满 `182px` 可用宽度；项目所有者随后完成整体人工视觉与边界审查并批准。2026-09-01 单一 React strict consumer 与开发 / 测试态产品验收完成：`1440×900`、`720×900`、`390×844` 均无横向溢出，selected step 占满对应轨道，双标签 CAS、SQLite 重启、PostgreSQL reconnect / no-fallback 与隐私审计通过；该闭环不扩 production worker 或真实 Provider。
 - Application Workspace 的三列 Workbench 按工作区实际可用宽度重排：具名容器宽度不超过 `928px` 时将证据栏移至下方，既有 `760px` 窄屏顺序保持。2026-09-09 修复了按视口 `1180px` 判断而遗漏产品导航占宽的问题；默认 `1200px` 视口下曾有 `59px` 证据栏被裁切。13 个视口宽度的容器边界与 Definition 链接命中复验通过，四视口三个领域入口的真实点击及桌面 / 窄屏键盘导航通过。此前一次链接被证据栏拦截的现象本轮未稳定复现，不将已修复裁切与该观察断言为同一根因。
+- 2026-10-11 已稳定定位另一项入口遮挡：英文长标题把中栏内部默认 Grid 列撑过其实际宽度，导致领域入口被右侧证据栏拦截。中栏内部列现为 `minmax(0, 1fr)`，标题区使用剩余宽度，使既有省略规则在有限空间内生效；保持外层 `928px` 容器断点和窄屏顺序。现有 HTTP Tool Definition 回归检查中英十三个视口的中栏内部边界、链接命中与正常点击可达性，再完成真实领域流程；八张代表入口截图已复核，未使用强制点击、增加点击超时或提高层叠顺序。证据见[本周周志](devlogs/2026-W41.md#2026-10-11-application-workspace-入口遮挡修复与复验)。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
 

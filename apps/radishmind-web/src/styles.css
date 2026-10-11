@@ -20132,6 +20132,7 @@ textarea {
 
 .application-development-contribution-pane {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(132px, 1fr);
   min-width: 0;
   background: var(--rm-bg-surface);
@@ -20158,7 +20159,12 @@ textarea {
 .application-development-contribution-pane > header > div {
   align-items: flex-start;
   flex-direction: column;
+  flex: 1;
   gap: 6px;
+}
+
+.application-development-contribution-pane > header > div > div {
+  align-self: stretch;
 }
 
 .application-development-contribution-pane h4 {
