@@ -1,6 +1,6 @@
 # 用户工作区细专题入口
 
-更新时间：2026-09-23
+更新时间：2026-10-15
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
@@ -11,7 +11,7 @@
 - [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](application-session-result-artifact-explicit-retention-dev-test-v1.md)：批次 A 至 D 已完成并关闭；默认关闭的显式保存、三种存储中的不可变结果资产、版本化生命周期、共享严格 Web 消费端、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已成立，不改变运行历史 / 会话仅元数据契约，也不派生批次 E、通用结果存储或会话正文。
 - [RadishMind Family UI 参考图产品面映射 v1](radishmind-family-ui-reference-mapping-v1.md)：已把 family-ui `references.md` 的 `ref-01` 至 `ref-27` 逐项映射到 S1–S8 八个产品面，固定实际查看、共享转译、禁止照搬内容、Pencil 构件与版权停止线。
 - [RadishMind Family UI 产品化设计与迁移 v1](radishmind-family-ui-productization-v1.md)：family-ui `v26.7.3` 参考基线、RadishMind Workbench 选择和项目语义层已经对齐；`S1 R8` 至 `S8 R1` 已完成设计、React 与真实浏览器验收，S9 / S10 功能、Pencil Visual R3、React 迁移与真实浏览器复核也已完成。
-- [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](application-evaluation-campaign-controlled-execution-dev-test-v1.md)：后端 A 至 D、S10 React 严格消费端、内存 / SQLite 三视口精确交接和重启恢复均已完成；结构化输入专题又在原负责模块上补齐定义 v2 类型化测试样例、比较 v7、三种存储的连续链与用例 / 套件精确交接。
+- [应用评测计划、受控执行与证据归档（开发 / 测试态）v1](application-evaluation-campaign-controlled-execution-dev-test-v1.md)：后端 A 至 D、S10 React 严格消费端、内存 / SQLite 三视口精确交接和重启恢复均已完成；结构化输入专题又在原负责模块上补齐定义 v2 类型化测试样例、比较 v7、三种存储的连续链与用例 / 套件精确交接。2026-10-15 新增 Prompt 计划结构化编辑已完成前端实现与无服务验证；新增双语连续交互、焦点及三视口浏览器验收尚未执行，不沿用既有 S10 证据作为本次验收。
 - [Prompt / Agent / Copilot 类型工作区产品化 v1](prompt-agent-copilot-type-workspace-productization-v1.md)：S8 已完成。既有模板 / 档案、配置、候选版本、运行时绑定、接入、会话 / 调用、运行记录与评测负责模块被编排为七 / 八任务、单一负责模块的工作区；开发测试态停止线、`A` 级 Pencil 与真实浏览器证据均已关闭。
 - [Workspace-scoped Mutation Authorization / 工作区写入与审查动作成员资格绑定（开发 / 测试态）v1](workspace-scoped-mutation-authorization-dev-test-v1.md)：批次 A 至 E 共 47 条写入操作已完成身份 / 成员资格双重权限、当前活动工作区唯一选择、原子组合与条件权限、稳定拒绝映射和零业务 / 外部副作用证据；专题关闭。
 - [工作区运营收件箱（开发 / 测试态）v1](workspace-operations-inbox-dev-test-v1.md)：批次 A 已完成四类既有负责模块的首分页关注项、来源覆盖、稳定严重度、Web 既有详情跳转和工作区切换失败关闭；不新增运营或修复真相源。

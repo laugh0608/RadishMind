@@ -4,7 +4,7 @@
 
 ## 文档职责
 
-本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W41 周志](devlogs/2026-W41.md)。
+本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W42 周志](devlogs/2026-W42.md)。
 
 正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
@@ -22,7 +22,7 @@
 - 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条工作流连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[2026-W39 周志](devlogs/2026-W39.md)，不新增同层任务卡或检查器。
 - 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。这些未满足项分别指生产密钥后端、进程监管、部署环境隔离和控制台生产打包；英文名称保留与现有检查器一致。
 
-## 当前完成与下一动作（2026-10-11）
+## 当前完成与下一动作（2026-10-15）
 
 [Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条工作流与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
 
@@ -38,9 +38,9 @@
 
 ## 接下来事项（2026-10-15）
 
-1. RAG 晋级列表问题与故障诊断应用的结果资产错配、变量名编辑焦点修复保持完成，相关验证与清理记录见[2026-W42 周志](devlogs/2026-W42.md#2026-10-15-故障诊断应用前端一致性修复)。下一项已选定为 [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)：方案与四块局部 Pencil 已获批准，前端实现、完整 Web 单测和无服务构建验证已完成。下一步是另行授权隔离 `evaluation` 与 `workflow` 的 Prompt 浏览器窗口，核对连续产品链、双语及三视口；当前未启动服务或真实模型，未扩大 API、schema、权限或存储。
+1. RAG 晋级列表问题与故障诊断应用的结果资产错配、变量名编辑焦点修复保持完成，相关验证与清理记录见[2026-W42 周志](devlogs/2026-W42.md#2026-10-15-故障诊断应用前端一致性修复)。下一项已选定为 [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)：方案与四块局部 Pencil 已获批准，前端实现、完整 Web 单测和无服务构建验证已完成。项目所有者决定今晚结束，拟于 2026-10-16 继续验收：先运行隔离 `evaluation`，通过并核对清理后再运行 `workflow` 的 Prompt 子集；核对连续产品链、双语、焦点与三视口。完整命令、运行范围及通过标准见[明日验收建议](devlogs/2026-W42.md#2026-10-16-接下来事项)。服务启动窗口届时确认，今晚不执行；未扩大 API、schema、权限或存储。
 2. 项目所有者明确暂不合入 `master`。后续明确启动阶段整合时，再审查 `dev` 相对 `master` 的完整差异与必要验证，通过 Pull Request 合入；两套手动 CI 检查通过不表示已合并或发布。
-3. 真实模型试用继续暂停，不自动启动服务、新功能批次或生产交付。具体证据、验收要求和停止线见[接下来事项](devlogs/2026-W41.md#2026-10-12-接下来事项)。
+3. 真实模型试用继续暂停，不自动启动服务、新功能批次或生产交付。当前验收要求和停止线见[接下来事项](devlogs/2026-W42.md#2026-10-16-接下来事项)，此前决定保留于 [W41 周志](devlogs/2026-W41.md#2026-10-12-接下来事项)。
 
 ## 下一顺位的选择
 
