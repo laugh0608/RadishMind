@@ -38,7 +38,7 @@
 
 ## 接下来事项（2026-10-15）
 
-1. RAG 晋级列表问题与故障诊断应用的结果资产错配、变量名编辑焦点修复保持完成，相关验证与清理记录见[2026-W42 周志](devlogs/2026-W42.md#2026-10-15-故障诊断应用前端一致性修复)。下一项已选定为 [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)：代码与契约核对、范围和交互方案、四块局部 Pencil 已完成，待项目所有者确认后进入实现。本轮未修改产品代码，不启动服务或真实模型，不扩大 API、schema、权限或存储。
+1. RAG 晋级列表问题与故障诊断应用的结果资产错配、变量名编辑焦点修复保持完成，相关验证与清理记录见[2026-W42 周志](devlogs/2026-W42.md#2026-10-15-故障诊断应用前端一致性修复)。下一项已选定为 [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)：方案与四块局部 Pencil 已获批准，前端实现、完整 Web 单测和无服务构建验证已完成。下一步是另行授权隔离 `evaluation` 与 `workflow` 的 Prompt 浏览器窗口，核对连续产品链、双语及三视口；当前未启动服务或真实模型，未扩大 API、schema、权限或存储。
 2. 项目所有者明确暂不合入 `master`。后续明确启动阶段整合时，再审查 `dev` 相对 `master` 的完整差异与必要验证，通过 Pull Request 合入；两套手动 CI 检查通过不表示已合并或发布。
 3. 真实模型试用继续暂停，不自动启动服务、新功能批次或生产交付。具体证据、验收要求和停止线见[接下来事项](devlogs/2026-W41.md#2026-10-12-接下来事项)。
 

@@ -45,13 +45,58 @@ export async function createPlan(page: Page, applicationId: string, ui: ReturnTy
   await openEvaluation(page, "plan");
   const panel = planOwner(page), copy = ui.copy;
   await panel.getByRole("textbox", { name: copy("Plan name", "计划名称"), exact: true }).fill("Synthetic Plan 原始名称");
-  await panel.getByRole("textbox", { name: copy("Ordered fixtures · 1–20 · strict JSON", "有序夹具 · 1–20 项 · 严格 JSON"), exact: true }).fill(JSON.stringify([{
+  await button(panel, copy("Advanced JSON", "高级 JSON")).click();
+  await panel.getByRole("textbox", { name: copy("Ordered samples · advanced JSON", "有序样本 · 高级 JSON"), exact: true }).fill(JSON.stringify([{
     item_key: "fixture_original", name: "Fixture 原文", expected_classification: "unchanged", workflow_definition: null, application_rag: null,
     prompt_application: { variables: { question: `E2E_CASE:${caseId}:valid`, tone: "E2E_PROMPT_SYSTEM_V1" } }, agent_copilot: null,
   }], null, 2));
-  await button(panel, copy("Review create", "审查创建")).click();
+  await button(panel, copy("Review save", "审查保存")).click();
   const result = await evaluationSubmit(page, button(panel, copy("Confirm Create", "确认创建")), `/v1/user-workspace/applications/${applicationId}/evaluation-plans`);
   expect(result.body.failure_code).toBeNull();
+  await expect(evaluation(page).locator(".application-evaluation-operation")).toContainText(result.body.plan.plan_id);
+  return result;
+}
+
+export async function createStructuredPlan(page: Page, applicationId: string, ui: ReturnType<typeof evaluationLanguage>, caseId: string) {
+  await openEvaluation(page, "plan");
+  const panel = planOwner(page), copy = ui.copy;
+  await button(panel, copy("Read current template", "读取当前模板")).click();
+  await expect(panel.locator(".prompt-plan-reference")).toHaveAttribute("data-reference-state", "ready");
+  await panel.getByRole("textbox", { name: copy("Plan name", "计划名称"), exact: true }).fill("Structured regression 原文");
+  await button(panel, copy("Add sample", "添加样本")).click();
+  await panel.getByRole("textbox", { name: copy("Sample name", "样本名称"), exact: true }).fill("First sample 原文");
+  const question = panel.locator('[data-variable="question"]');
+  await question.getByRole("combobox").selectOption("provided");
+  await question.getByRole("textbox", { name: "question", exact: true }).fill(`E2E_CASE:${caseId}:valid`);
+  const tone = panel.locator('[data-variable="tone"]');
+  await tone.getByRole("combobox").selectOption("provided");
+  await tone.getByRole("textbox", { name: "tone", exact: true }).fill("E2E_PROMPT_SYSTEM_V1");
+  await button(panel, copy("Copy sample", "复制样本")).click();
+  const key = panel.getByRole("textbox", { name: copy("Sample key", "样本标识"), exact: true });
+  await key.fill("");
+  await key.pressSequentially("typed_sample", { delay: 20 });
+  await expect(key).toBeFocused();
+  await expect(key).toHaveValue("typed_sample");
+  await panel.getByRole("textbox", { name: copy("Sample name", "样本名称"), exact: true }).fill("Second sample 原文");
+  await button(panel, copy("Move up", "上移")).click();
+  await ui.switch();
+  await expect(question.getByRole("textbox", { name: "question", exact: true })).toHaveValue(`E2E_CASE:${caseId}:valid`);
+  await button(panel, copy("Copy sample", "复制样本")).click();
+  await button(panel, copy("Delete sample", "删除样本")).click();
+  await button(panel, copy("Advanced JSON", "高级 JSON")).click();
+  const json = panel.getByRole("textbox", { name: copy("Ordered samples · advanced JSON", "有序样本 · 高级 JSON"), exact: true });
+  const values = JSON.parse(await json.inputValue());
+  expect(values.map((item: { item_key: string }) => item.item_key)).toEqual(["typed_sample", "sample_1"]);
+  expect(values[0].prompt_application.variables).toEqual(values[1].prompt_application.variables);
+  await button(panel, copy("Variable form", "变量表单")).click();
+  await button(panel, copy("Review save", "审查保存")).click();
+  await expect(panel.locator(".application-evaluation-confirmation")).toContainText(copy("Matches the editing reference", "与编辑参考匹配"));
+  const result = await evaluationSubmit(page, button(panel, copy("Confirm Create", "确认创建")), `/v1/user-workspace/applications/${applicationId}/evaluation-plans`);
+  expect(result.body.failure_code).toBeNull();
+  expect(result.body.version.items).toHaveLength(2);
+  const request = result.request.postDataJSON();
+  expect(request.target).toEqual({ workflow_definition: null });
+  expect(JSON.stringify(request)).not.toMatch(/editorKey|template_id|assignment_version/);
   await expect(evaluation(page).locator(".application-evaluation-operation")).toContainText(result.body.plan.plan_id);
   return result;
 }

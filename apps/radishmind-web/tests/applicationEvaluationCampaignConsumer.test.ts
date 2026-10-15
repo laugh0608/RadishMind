@@ -32,6 +32,26 @@ const config: ApplicationEvaluationConfig = {
   subjectRef: "subject_demo_user",
 };
 
+test("Prompt plan source reads reject numeric loss and duplicate input keys before exposing a version", async () => {
+  const prompt = applicationEvaluationPlanTemplate("prompt_application_invocation_v1");
+  const envelope = {
+    ...planEnvelope(),
+    plan: { ...planRecord(), execution_profile: prompt.executionProfile },
+    version: { ...planVersion(), execution_profile: prompt.executionProfile, target: { workflow_definition: null }, items: JSON.parse(serializeApplicationEvaluationItems(prompt.items)) },
+  };
+  const originalFetch = globalThis.fetch;
+  try {
+    for (const variables of ['{"weight":0.10000000000000001}', '{"count":9007199254740993}', '{"topic":"a","topic":"b"}']) {
+      const raw = JSON.stringify(envelope).replace('{"topic":"representative evaluation"}', variables);
+      globalThis.fetch = async () => new Response(raw);
+      await assert.rejects(readApplicationEvaluationPlanVersion(config, "plan_demo", 1));
+    }
+    const valid = { ...envelope, version: { ...envelope.version, name: "🥕".repeat(120) }, plan: { ...envelope.plan, name: "🥕".repeat(120) } };
+    globalThis.fetch = async () => jsonResponse(valid);
+    assert.equal((await readApplicationEvaluationPlanVersion(config, "plan_demo", 1)).version?.name, valid.version.name);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test("Application Evaluation list owners remain offline without a request", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
