@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-11
+更新时间：2026-10-15
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端 RAG 晋级列表失败仍待排查，浏览器改为本地按需验证，当前六项组件 CI 已通过。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
+项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端暴露的 RAG 晋级列表失败已修复共享请求标识生成逻辑，并于 2026-10-15 完成四组本地中英 44/44 复验及清理，该开发阶段问题关闭。浏览器保持本地按需验证，既有六项组件 CI 已通过；本轮未重跑远端 CI。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
 
 [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
 

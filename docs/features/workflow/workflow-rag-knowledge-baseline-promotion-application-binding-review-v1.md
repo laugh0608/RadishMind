@@ -1,6 +1,6 @@
 # Workflow RAG 知识基线晋级与应用配置绑定审查 v1
 
-更新时间：2026-10-02
+更新时间：2026-10-15
 
 状态：`workflow_rag_knowledge_baseline_promotion_application_binding_review_v1_completed`
 
@@ -196,6 +196,8 @@ Web 在现有 RAG evaluation dataset / candidate review 面板之后增加 lazy-
 - 应用切换、scope drift、非 2xx、strict schema drift 或 forbidden field 都清除旧交接并失败关闭。
 
 2026-10-02 晋级面板接入中英显示资源：人工决定、等待、状态、失败恢复与动态资格在渲染时翻译，理由、精确引用和摘要保留原文。语言切换不改变请求、版本或交接；批准、显式附加、发布审查仍是独立步骤。浏览器验收进展见 [i18n 专题](../web-internationalization-zh-en-v1.md#b-阶段-rag-晋级审查2026-10-02)。
+
+2026-10-15 已定位并修复远端暴露的晋级列表失败：共享 RAG 请求头以 36 进制时间戳拼接连字符，偶然产生 `sk-`，请求标识及派生审计引用被后端敏感材料检查拒绝。现改用十进制时间戳与十六进制 UUID 随机标识，后端权限、敏感材料检查和业务契约不变。固定失败时刻的单测已证明旧实现失败、修复后通过；浏览器用例补充列表响应的失败码、作用域、候选状态和版本断言。单测、类型检查及修复后的仓库快速 / 全量检查通过；随后依次完成 `rag-promotion`、`rag`、`rag-application` 与 `results-evidence` 四组本地中英各两轮共 44/44 复验，零失败、零跳过、零重试，所属进程、端口及临时数据库已核对清理，该开发阶段问题关闭。本轮未重跑远端 CI，也不代表真实模型或生产验收；完整证据见[2026-W42 周志](../../devlogs/2026-W42.md)。
 
 ## 测试矩阵
 

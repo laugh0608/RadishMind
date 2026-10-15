@@ -1,4 +1,5 @@
 import { test, expect, holdDraftResponse, isEndpoint } from "./workflow-fixtures";
+import type { Response } from "@playwright/test";
 import { setTestLanguage } from "./ui-language";
 import { preparePromotionEvidence, promotionPath, promotionRequest } from "./workflow-rag-promotion-fixtures";
 
@@ -35,15 +36,28 @@ test("promotion retains evidence and input through locale changes, CAS conflict,
     if (await review.getAttribute("aria-expanded") === "false") await review.click();
     await expect(panel).toBeVisible();
   }
+  function waitForCandidateList() {
+    return page.waitForResponse(response => isEndpoint(response, promotionPath, "GET") && new URL(response.url()).searchParams.get("application_id") === application.id);
+  }
+  async function expectCandidateList(response: Response, candidateId: string, candidateState: string, recordVersion: number) {
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    expect(body.failure_code, "Candidate list must succeed before checking rendered rows").toBeNull();
+    expect(body.workspace_id).toBe(evidence.scope.workspace_id);
+    expect(body.application_id).toBe(application.id);
+    expect(body.items).toEqual(expect.arrayContaining([expect.objectContaining({ candidate_id: candidateId, candidate_state: candidateState, record_version: recordVersion })]));
+  }
   await openStage(); await button("load").click(); await expect(button("create")).toBeEnabled();
   const heldCreate = await holdDraftResponse(page, promotionPath, "POST"); let candidateId = "";
   try {
     await button("create").click(); await heldCreate.arrived; await switchLanguage();
     await expect(button("create")).toBeDisabled();
     await expect(select("dataset")).toHaveValue(evidence.datasetId); await expect(select("review")).toHaveValue(evidence.reviewId); await expect(select("draft")).toHaveValue(evidence.draftId);
-    const completion = page.waitForResponse(response => isEndpoint(response, promotionPath, "POST")); await heldCreate.deliver();
+    const completion = page.waitForResponse(response => isEndpoint(response, promotionPath, "POST"));
+    const listed = waitForCandidateList(); await heldCreate.deliver();
     const response = await completion, body = await response.json(); expect(body.failure_code, JSON.stringify(body)).toBeNull(); candidateId = body.candidate.candidate_id;
     expect(response.request().postDataJSON()).toEqual({ ...evidence.scope, dataset_id: evidence.datasetId, dataset_version: 1, dataset_digest: evidence.digest, candidate_review_id: evidence.reviewId, draft_id: evidence.draftId, expected_draft_version: 1 }); expect(body.binding).toBeNull();
+    await expectCandidateList(await listed, candidateId, "pending", 1);
   } finally { await heldCreate.dispose(); }
   await expect(panel.locator(".workflow-rag-promotion-list")).toContainText(candidateId);
   await reasonBox().fill("短"); await expect(panel).toContainText(text("invalidReason")); await switchLanguage();
@@ -60,10 +74,12 @@ test("promotion retains evidence and input through locale changes, CAS conflict,
   try {
     await button("submit").click(); await heldDecision.arrived; await switchLanguage();
     await expect(panel).toContainText(text("pending")); await expect(button("submit")).toBeDisabled(); await expect(reasonBox()).toHaveValue(reason);
-    const completion = page.waitForResponse(response => isEndpoint(response, decisionPath, "POST")); await heldDecision.deliver();
+    const completion = page.waitForResponse(response => isEndpoint(response, decisionPath, "POST"));
+    const listed = waitForCandidateList(); await heldDecision.deliver();
     const response = await completion, body = await response.json(); expect(body.failure_code, JSON.stringify(body)).toBeNull();
     expect(response.request().postDataJSON()).toEqual({ ...evidence.scope, expected_record_version: 2, decision: "approve", reason });
     expect(body.candidate.record_version).toBe(3); expect(body.eligibility.eligible).toBe(true); bindingId = body.binding.binding_id; bindingDigest = body.binding.binding_digest;
+    await expectCandidateList(await listed, candidateId, "approved", 3);
   } finally { await heldDecision.dispose(); }
   await expect(panel.locator(".workflow-rag-promotion-list")).toContainText(candidateId);
   await expect(panel.locator(".workflow-rag-decision-record").last()).toContainText(reason); await switchLanguage();
@@ -80,12 +96,20 @@ test("promotion retains evidence and input through locale changes, CAS conflict,
   expect(requests.filter(value => /POST .*\/application-drafts|POST .*executions|POST .*publish|POST .*releases/.test(value))).toEqual([]);
   const writes = requests.filter(value => value.startsWith("POST ")).length; await button("attach").click();
   await expect(page.locator("#application-configuration-draft")).toContainText(bindingId); expect(requests.filter(value => value.startsWith("POST "))).toHaveLength(writes);
-  await openStage(); await button("refresh").click(); await panel.locator(".workflow-rag-promotion-list button").filter({ hasText: candidateId }).click();
+  await openStage();
+  const refreshed = waitForCandidateList(); await button("refresh").click();
+  await expectCandidateList(await refreshed, candidateId, "approved", 3);
+  await panel.locator(".workflow-rag-promotion-list button").filter({ hasText: candidateId }).click();
   await expect(select("decision")).toHaveValue("cancel"); await reasonBox().fill("Cancel binding eligibility after review.");
-  const canceled = page.waitForResponse(response => isEndpoint(response, decisionPath, "POST")); await button("submit").click(); const canceledBody = await (await canceled).json();
+  const canceled = page.waitForResponse(response => isEndpoint(response, decisionPath, "POST"));
+  const canceledList = waitForCandidateList(); await button("submit").click(); const canceledBody = await (await canceled).json();
   expect(canceledBody.candidate.candidate_state).toBe("canceled"); expect(canceledBody.eligibility.eligible).toBe(false); expect(canceledBody.binding.binding_id).toBe(bindingId);
+  await expectCandidateList(await canceledList, candidateId, "canceled", 4);
   await expect(button("attach")).toBeDisabled(); await expect(panel.locator(".workflow-rag-promotion-list")).toContainText(text("canceled")); await switchLanguage();
   await expect(panel.locator(".section-heading > .status-badge")).toHaveText(text("canceled"));
-  await page.reload(); await openStage(); await button("refresh").click(); await panel.locator(".workflow-rag-promotion-list button").filter({ hasText: candidateId }).click();
+  await page.reload(); await openStage();
+  const reloaded = waitForCandidateList(); await button("refresh").click();
+  await expectCandidateList(await reloaded, candidateId, "canceled", 4);
+  await panel.locator(".workflow-rag-promotion-list button").filter({ hasText: candidateId }).click();
   await expect(panel.locator(".workflow-rag-decision-record")).toHaveCount(3); await expect(panel.locator(".workflow-rag-binding-card")).toContainText(bindingId); await expect(button("attach")).toBeDisabled();
 });
