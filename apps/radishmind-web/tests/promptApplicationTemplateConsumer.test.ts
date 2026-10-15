@@ -12,6 +12,8 @@ import {
   type PromptTemplateConfig,
 } from "../src/features/control-plane-read/promptApplicationTemplateConsumer.ts";
 
+import { createPromptTemplateEditorVariables } from "../src/features/control-plane-read/promptTemplateVariableEditor.ts";
+
 const config: PromptTemplateConfig = {
   mode: "dev_prompt_application_http",
   baseUrl: "http://platform.test",
@@ -38,6 +40,7 @@ test("Prompt Template owner stays offline without fetching", async () => {
 test("Prompt Template local validation and preview are deterministic and fail closed", () => {
   const input = createPromptTemplateDraftInput(config, applicationId);
   input.templateId = templateId;
+  input.variables = createPromptTemplateEditorVariables(input.variables);
   assert.equal(validatePromptTemplateLocally(input).isValid, true);
 
   const preview = renderPromptTemplatePreview(input, {
@@ -90,6 +93,7 @@ test("Prompt Template save sends exact source and CAS scope", async () => {
   assert.equal(captured?.body.template.schema_version, "prompt_application_template_draft.v1");
   assert.equal(captured?.body.template.messages[0].content, "请使用 {{ tone }} 的语气。");
   assert.equal("template_digest" in captured!.body.template, false);
+  assert.equal(JSON.stringify(captured!.body).includes("editorKey"), false);
 });
 
 test("Prompt Template local Session transport keeps product binding and accepts the authenticated owner", async () => {
