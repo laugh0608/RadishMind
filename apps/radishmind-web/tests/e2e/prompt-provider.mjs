@@ -25,7 +25,7 @@ export async function startPromptProvider() {
       try { document = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
       catch { return send(400, { error: "fixture_invalid_json" }); }
       const messages = document.messages;
-      const marker = messages?.[1]?.content?.match(/^E2E_CASE:([a-f0-9-]{36}):(valid|invalid|missing)$/);
+      const marker = messages?.[1]?.content?.match(/^E2E_CASE:([a-f0-9-]{36}):(valid|alternate|invalid|missing)$/);
       const accepted = document.model === "prompt-e2e-model" && Array.isArray(messages) && messages.length === 2
         && messages[0].role === "system" && messages[0].content === "E2E_PROMPT_SYSTEM_V1"
         && messages[1].role === "user" && Boolean(marker);
@@ -38,6 +38,7 @@ export async function startPromptProvider() {
         missing_context: ["Synthetic request trace"],
         uncertainty: "Synthetic evidence is incomplete",
       };
+      if (marker[2] === "alternate") output.diagnosis = "Second synthetic diagnosis";
       if (marker[2] === "invalid") output.unexpected = "E2E_INVALID_OUTPUT";
       if (marker[2] === "missing") delete output.diagnosis;
       const content = JSON.stringify(output);

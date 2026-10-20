@@ -1,6 +1,6 @@
 # 本地账户凭证轮换与自助会话治理（开发 / 测试态）v1
 
-更新时间：2026-08-26
+更新时间：2026-10-02
 
 状态：`local_account_credential_rotation_self_service_session_governance_dev_test_v1_completed`
 
@@ -99,6 +99,8 @@
 - session directory 是主 owner；credential rotation 是从属安全动作。当前 session、其它 active session、expired / revoked history、单项确认和 bulk confirmation 必须保持清楚层级。
 - 密码只存在受控 input state；提交完成、取消、账户 / session 改变、组件卸载和路由离开时立即清空。不得进入 URL、Web Storage、IndexedDB、service worker、日志、截图或跨标签消息。
 - 页面复用 Family UI semantic token、Workbench 连续窗格、单一主对象和职责圆角；危险状态同时使用文字、符号和语义色，不以颜色作为唯一通道。
+
+2026-10-02 会话目录、精确 / 批量撤销、密码轮换及其等待、失败、恢复与确认状态已完成双语验收。异步状态保存代码与业务参数，显示时翻译；语言切换不重挂载安全面板、不重发请求或改变精确目标，密码清理与近期认证边界保持。安全时间按界面语言格式化但固定 UTC，并保留原始时间戳。三条流程两语各两轮在隔离 SQLite 测试宿主通过，含真实版本冲突、双标签撤销和旧密码拒绝；该证据不替代本专题原双数据库验收，详见[中英国际化专题](../web-internationalization-zh-en-v1.md#c-阶段覆盖清单2026-10-02)。
 
 ## 实施拆分
 

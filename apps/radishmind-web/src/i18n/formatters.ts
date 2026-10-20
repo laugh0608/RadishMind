@@ -11,3 +11,12 @@ export function formatDisplayNumber(value: number | bigint | null | undefined, l
   if (value === null || value === undefined || (typeof value === "number" && !Number.isFinite(value))) return null;
   return new Intl.NumberFormat(locale, options).format(value);
 }
+
+// Keep six decimal places from the integer micro-USD contract without a
+// floating-point division. Currency is fixed by the existing Gateway schema.
+export function formatMicroUSD(value: number | bigint, locale: UiLocale): string | null {
+  if (typeof value === "number" && (!Number.isSafeInteger(value) || value < 0)) return null;
+  const micros = BigInt(value);
+  if (micros < 0n) return null;
+  return `USD ${formatDisplayNumber(micros / 1_000_000n, locale)}.${String(micros % 1_000_000n).padStart(6, "0")}`;
+}

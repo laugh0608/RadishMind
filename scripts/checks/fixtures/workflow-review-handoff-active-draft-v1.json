@@ -64,7 +64,7 @@
       "WorkflowReviewHandoffActiveDraftSectionCard",
       "handoff.activeDraftReviewRecord.sections.map",
       "primaryEvidence = handoff.evidenceChecklist.slice(0, 11)",
-      "section.reviewerQuestion"
+      "workflowProjectionText(t, section, \"reviewerQuestion\")"
     ],
     "required_context_literals": [
       "const workflowDraftValidationInspector = buildWorkflowDraftValidationInspectorViewModel(",

@@ -44,5 +44,5 @@ export const workflowInspection = {
   "source": "来源",
   "requiredBefore": "前置要求",
   "evidenceRefs": "证据引用",
-  "sourceEvidence": "证据正文保留来源投影原文；这些离线检查不决定受控运行资格。"
+  sourceEvidence: "这些说明仅描述当前离线检查，不代表其他开发测试或生产流程的能力状态。用户内容、标识符和来源诊断保持原文。"
 } as const;

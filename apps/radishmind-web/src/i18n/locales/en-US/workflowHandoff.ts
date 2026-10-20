@@ -57,7 +57,7 @@ export const workflowHandoff = {
   "evidence": "Evidence",
   "routePage": "Route/page",
   "missing": "Missing",
-  "sourceEvidence": "Evidence text is retained from its source projection. This advisory handoff does not approve, activate or run a definition.",
+  sourceEvidence: "These explanations describe this offline inspection only. They do not determine availability in other development or production flows. User content, identifiers, and source diagnostics remain unchanged.",
   "findingCount": "{{count}} findings",
   "evidenceFor": "Evidence references for {{label}}",
   "targetsFor": "Target references for {{label}}",

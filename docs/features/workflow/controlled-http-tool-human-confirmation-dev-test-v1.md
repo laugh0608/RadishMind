@@ -1,6 +1,6 @@
 # Workflow 受控 HTTP Tool 与人工确认执行（开发 / 测试态）v1
 
-更新时间：2026-07-17
+更新时间：2026-10-02
 
 状态：`workflow_controlled_http_tool_human_confirmation_dev_test_v1_completed`
 
@@ -246,6 +246,8 @@ Draft Designer / Review Handoff 只在真实 dev source、已保存精确版本�
 - Run History 中的确认引用、工具 attempt、受控副作用计数、脱敏结果、失败分类和 `outcome_unknown` 人工审查提示。
 
 默认 offline / sample surface 不发送请求，也不得伪造已批准或已执行记录。
+
+2026-10-02 的 [i18n B 阶段](../web-internationalization-zh-en-v1.md#b-阶段-http-tool2026-10-02)已完成计划、确认、执行、失败恢复与只读动作安全说明的中英迁移；工具 `locale`、输入和精确权威引用不随界面语言改变。独立浏览器窗口覆盖草案来源运行 v2 / Definition 来源运行 v9 两条路径、真实版本冲突、预期传输失败及刷新不重试，未重跑或替代原 PostgreSQL / 服务重启验收，也未放宽网络或生产边界。
 
 ## 实施拆分与完成定义
 

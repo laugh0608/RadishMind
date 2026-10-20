@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   archiveWorkflowRAGSnapshot,
+  buildWorkflowRAGRequestHeaders,
   createWorkflowRAGSnapshot,
   listWorkflowRAGSnapshots,
   readWorkflowRAGSnapshot,
@@ -25,6 +26,26 @@ const config: WorkflowRAGSnapshotConfig = {
     "workflow_rag_snapshots:archive",
   ]),
 };
+
+test("RAG request and audit references avoid secret markers at the captured promotion failure time", (context) => {
+  const failedAt = Date.parse("2026-10-11T13:59:17.540Z");
+  // The former base-36 timestamp ended in `sk`, followed by a hyphen.
+  assert.equal(failedAt.toString(36), "mv3w36sk");
+  context.mock.method(Math, "random", () => 0.5);
+  context.mock.method(globalThis.crypto, "randomUUID", () => "01234567-89ab-4cde-8fab-0123456789ab");
+  for (const offset of [-1, 0, 1]) {
+    const now = context.mock.method(Date, "now", () => failedAt + offset);
+    for (const operation of ["list", "read", "create", "promotion-list", "promotion-create", "promotion-decision", "rag-evaluation-candidate-review", "execute"]) {
+      const headers = buildWorkflowRAGRequestHeaders(config, "app_flow_copilot", ["workflow_rag_snapshots:read"], operation);
+      const requestId = headers["X-Request-Id"]!;
+      for (const reference of [requestId, headers["X-RadishMind-Dev-Read-Audit"]!, `audit_${requestId}_workflow-run-rag-promotion-list`]) {
+        assert.doesNotMatch(reference, /sk-/iu);
+        assert.match(reference, /^[A-Za-z0-9][A-Za-z0-9_.:/-]{2,159}$/u);
+      }
+    }
+    now.mock.restore();
+  }
+});
 
 test("offline and missing scopes send zero knowledge snapshot requests", async () => {
   const originalFetch = globalThis.fetch;

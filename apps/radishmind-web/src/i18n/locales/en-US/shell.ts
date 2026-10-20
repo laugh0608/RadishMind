@@ -1,4 +1,5 @@
 export const shell = {
+  sourceStates: { idle: "Not loaded", loading: "Loading", ready: "Ready", failed: "Failed" },
   "links": {
     "overview": "Overview",
     "inbox": "Operations inbox",

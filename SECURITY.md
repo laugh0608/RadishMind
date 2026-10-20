@@ -6,7 +6,7 @@ RadishMind 当前处于内部开发者预览阶段，尚未承诺长期安全支
 
 请不要为未修复漏洞创建公开 Issue、Pull Request 或讨论，也不要在报告中附带真实密钥、访问令牌、个人数据、生产凭据或未经授权取得的第三方内容。
 
-本仓库已启用 [GitHub Private vulnerability reporting](https://github.com/laugh0608/RadishMind/security/advisories/new)，请优先通过该私密入口报告漏洞。若该入口暂时不可用，可发送邮件至 `laugh0608@foxmail.com`，主题包含 `[RadishMind Security]`。
+本仓库已启用 [GitHub Private vulnerability reporting](https://github.com/laugh0608/RadishMind/security/advisories/new)，请优先通过该私密入口报告漏洞。若该入口暂时不可用，可发送邮件至 `luobo@radishx.com`，主题包含 `[RadishMind Security]`。
 
 报告应尽量包含：
 

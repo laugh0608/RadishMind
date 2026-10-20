@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   controlPlaneReadResponseHasForbiddenOutput,
@@ -14,7 +15,7 @@ export type WorkflowScenarioKind =
   | "radish_docs_answer"
   | "workflow_advisory_review";
 
-export type WorkflowScenarioInputField = {
+export type WorkflowScenarioInputField = WorkflowProjectionCopy & {
   fieldId: string;
   label: string;
   sourceRef: string;
@@ -22,14 +23,14 @@ export type WorkflowScenarioInputField = {
   summary: string;
 };
 
-export type WorkflowScenarioExpectedOutput = {
+export type WorkflowScenarioExpectedOutput = WorkflowProjectionCopy & {
   outputId: string;
   label: string;
   status: WorkflowScenarioStatus;
   summary: string;
 };
 
-export type WorkflowScenario = {
+export type WorkflowScenario = WorkflowProjectionCopy & {
   scenarioId: string;
   label: string;
   scenarioKind: WorkflowScenarioKind;
@@ -47,14 +48,14 @@ export type WorkflowScenario = {
   sourceRefs: string[];
 };
 
-export type WorkflowScenarioSummary = {
+export type WorkflowScenarioSummary = WorkflowProjectionCopy & {
   label: string;
   value: string;
   status: WorkflowScenarioStatus;
   summary: string;
 };
 
-export type WorkflowScenarioRelation = {
+export type WorkflowScenarioRelation = WorkflowProjectionCopy & {
   relationId: string;
   label: string;
   sourceRef: string;
@@ -64,7 +65,7 @@ export type WorkflowScenarioRelation = {
   auditRef: string;
 };
 
-export type WorkflowScenarioBlockedReason = {
+export type WorkflowScenarioBlockedReason = WorkflowProjectionCopy & {
   reasonId: string;
   label: string;
   sourceSurface: "application" | "definition" | "run" | "draft" | "plan" | "readiness";
@@ -74,14 +75,14 @@ export type WorkflowScenarioBlockedReason = {
   auditRef: string;
 };
 
-export type WorkflowScenarioStopLine = {
+export type WorkflowScenarioStopLine = WorkflowProjectionCopy & {
   stopLineId: string;
   label: string;
   status: "locked";
   summary: string;
 };
 
-export type WorkflowScenarioInspectorViewModel = {
+export type WorkflowScenarioInspectorViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-scenario-inspector-offline";
   sourcePageIds: string[];
   scenarioMode: "offline_read_only_advisory";
@@ -184,6 +185,7 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
     {
       scenarioId: "scenario_radishflow_reconnect_stream_outlet",
       label: "Reconnect stream outlet",
+      labelMessage: { key: "scenario_radishflow_reconnect_stream_outlet_label" },
       scenarioKind: "radishflow_candidate_action",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -191,44 +193,47 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
       runId: source.runDetail.runId,
       intent:
         "Explain a RadishFlow diagnostic gap and prepare a candidate stream reconnect action for human review.",
+      intentMessage: { key: "scenario_radishflow_reconnect_stream_outlet_intent" },
       triggerSummary:
         "A selected outlet stream is disconnected after a simulation diagnostic review and needs an advisory repair candidate.",
+      triggerSummaryMessage: { key: "workflowScenarioInspector_scenario_radishflow_reconnect_stream_outlet_triggerSummary" },
       inputContract: [
-        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface."),
+        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface.", { labelMessage: { key: "workflowScenarioInspector_tenant_ref_label" as const }, summaryMessage: { key: "workflowScenarioInspector_tenant_ref_summary" as const } }),
         buildInput(
           "application_ref",
           "Application",
           source.applicationDetail.applicationId,
-          "Current workflow application selected in the workspace.",
+          "Current workflow application selected in the workspace.", { labelMessage: { key: "workflowScenarioInspector_application_ref_label" as const }, summaryMessage: { key: "workflowScenarioInspector_application_ref_summary" as const } }
         ),
         buildInput(
           "selection_summary",
           "Selection",
           "radishflow.selected_stream.outlet",
-          "Selected flowsheet object, stream endpoint, and local diagnostic focus.",
+          "Selected flowsheet object, stream endpoint, and local diagnostic focus.", { labelMessage: { key: "workflowScenarioInspector_selection_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_selection_summary_summary" as const } }
         ),
         buildInput(
           "diagnostic_summary",
           "Diagnostic",
           source.runDetail.failureCode,
-          "Sanitized run or diagnostic summary used to explain why a reconnect candidate is suggested.",
+          "Sanitized run or diagnostic summary used to explain why a reconnect candidate is suggested.", { labelMessage: { key: "workflowScenarioInspector_diagnostic_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_diagnostic_summary_summary" as const } }
         ),
         buildInput(
           "action_policy",
           "Action policy",
           source.definitionDetail.blockedActionPreview.toolRef,
-          "Candidate action schema and confirmation requirement remain visible but blocked.",
+          "Candidate action schema and confirmation requirement remain visible but blocked.", { labelMessage: { key: "workflowScenarioInspector_action_policy_label" as const }, summaryMessage: { key: "workflowScenarioInspector_action_policy_summary" as const } }
         ),
       ],
       expectedOutputs: [
-        buildOutput("answer_summary", "Answer summary", "review_required", "A short explanation of the disconnected outlet and candidate repair path."),
-        buildOutput("candidate_action", "Candidate action", "blocked", "A structured reconnect suggestion that cannot execute from this UI."),
-        buildOutput("risk_summary", "Risk summary", "blocked", "Medium risk action remains behind confirmation and executor gates."),
-        buildOutput("audit_refs", "Audit refs", "offline_only", "Request, run, and policy audit refs stay visible for review."),
+        buildOutput("answer_summary", "Answer summary", "review_required", "A short explanation of the disconnected outlet and candidate repair path.", { labelMessage: { key: "workflowScenarioInspector_answer_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_answer_summary_summary" as const } }),
+        buildOutput("candidate_action", "Candidate action", "blocked", "A structured reconnect suggestion that cannot execute from this UI.", { labelMessage: { key: "workflowScenarioInspector_candidate_action_label" as const }, summaryMessage: { key: "workflowScenarioInspector_candidate_action_summary" as const } }),
+        buildOutput("risk_summary", "Risk summary", "blocked", "Medium risk action remains behind confirmation and executor gates.", { labelMessage: { key: "workflowScenarioInspector_risk_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_risk_summary_summary" as const } }),
+        buildOutput("audit_refs", "Audit refs", "offline_only", "Request, run, and policy audit refs stay visible for review.", { labelMessage: { key: "workflowScenarioInspector_audit_refs_label" as const }, summaryMessage: { key: "workflowScenarioInspector_audit_refs_summary" as const } }),
       ],
       riskLevel: "medium",
       requiresConfirmation: true,
       validationFocus: "Policy gate, action preview shape, confirmation requirement, writeback boundary.",
+      validationFocusMessage: { key: "workflowScenarioInspector_scenario_radishflow_reconnect_stream_outlet_validationFocus" },
       sourceRefs: [
         source.applicationDetail.applicationId,
         source.definitionDetail.workflowDefinitionId,
@@ -239,6 +244,7 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
     {
       scenarioId: "scenario_radishflow_cross_object_warning",
       label: "Cross-object warning review",
+      labelMessage: { key: "scenario_radishflow_cross_object_warning_label" },
       scenarioKind: "workflow_advisory_review",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -246,44 +252,47 @@ function buildRadishFlowScenarios(source: WorkflowSurfaceOverviewSource): Workfl
       runId: source.runDetail.runId,
       intent:
         "Review a cross-object warning and keep the response ordered by evidence, risk, and allowed candidate scope.",
+      intentMessage: { key: "scenario_radishflow_cross_object_warning_intent" },
       triggerSummary:
         "A user selects more than one flowsheet object and needs a single primary actionable target with warnings.",
+      triggerSummaryMessage: { key: "workflowScenarioInspector_scenario_radishflow_cross_object_warning_triggerSummary" },
       inputContract: [
-        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface."),
+        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface.", { labelMessage: { key: "workflowScenarioInspector_tenant_ref_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_tenant_ref_summary_2" as const } }),
         buildInput(
           "application_ref",
           "Application",
           source.applicationDetail.applicationId,
-          "Current workflow application selected in the workspace.",
+          "Current workflow application selected in the workspace.", { labelMessage: { key: "workflowScenarioInspector_application_ref_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_application_ref_summary_2" as const } }
         ),
         buildInput(
           "selection_summary",
           "Selection",
           "radishflow.multi_object_selection",
-          "Selected unit and stream summaries used to choose the primary focus.",
+          "Selected unit and stream summaries used to choose the primary focus.", { labelMessage: { key: "workflowScenarioInspector_selection_summary_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_selection_summary_summary_2" as const } }
         ),
         buildInput(
           "warning_policy",
           "Warning policy",
           "cross_object_warning_citation_ordering",
-          "Risk and citation ordering constraints used before previewing any candidate action.",
+          "Risk and citation ordering constraints used before previewing any candidate action.", { labelMessage: { key: "workflowScenarioInspector_warning_policy_label" as const }, summaryMessage: { key: "workflowScenarioInspector_warning_policy_summary" as const } }
         ),
         buildInput(
           "audit_context",
           "Audit context",
           source.runDetail.traceId,
-          "Trace id and sanitized audit refs for later review.",
+          "Trace id and sanitized audit refs for later review.", { labelMessage: { key: "workflowScenarioInspector_audit_context_label" as const }, summaryMessage: { key: "workflowScenarioInspector_audit_context_summary" as const } }
         ),
       ],
       expectedOutputs: [
-        buildOutput("answer_summary", "Answer summary", "review_required", "A ranked explanation of the warning and primary target."),
-        buildOutput("candidate_action", "Candidate action", "blocked", "At most one advisory candidate action remains preview-only."),
-        buildOutput("risk_summary", "Risk summary", "blocked", "Risk labels keep execution and writeback unavailable."),
-        buildOutput("audit_refs", "Audit refs", "offline_only", "Audit refs stay attached to the read-only warning review."),
+        buildOutput("answer_summary", "Answer summary", "review_required", "A ranked explanation of the warning and primary target.", { labelMessage: { key: "workflowScenarioInspector_answer_summary_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_answer_summary_summary_2" as const } }),
+        buildOutput("candidate_action", "Candidate action", "blocked", "At most one advisory candidate action remains preview-only.", { labelMessage: { key: "workflowScenarioInspector_candidate_action_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_candidate_action_summary_2" as const } }),
+        buildOutput("risk_summary", "Risk summary", "blocked", "Risk labels keep execution and writeback unavailable.", { labelMessage: { key: "workflowScenarioInspector_risk_summary_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_risk_summary_summary_2" as const } }),
+        buildOutput("audit_refs", "Audit refs", "offline_only", "Audit refs stay attached to the read-only warning review.", { labelMessage: { key: "workflowScenarioInspector_audit_refs_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_audit_refs_summary_2" as const } }),
       ],
       riskLevel: "medium",
       requiresConfirmation: true,
       validationFocus: "Primary target selection, citation order, policy gate, and blocked action preview.",
+      validationFocusMessage: { key: "workflowScenarioInspector_scenario_radishflow_cross_object_warning_validationFocus" },
       sourceRefs: [
         source.applicationDetail.applicationId,
         source.definitionDetail.workflowDefinitionId,
@@ -299,6 +308,7 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
     {
       scenarioId: "scenario_radish_docs_evidence_gap",
       label: "Docs evidence gap",
+      labelMessage: { key: "scenario_radish_docs_evidence_gap_label" },
       scenarioKind: "radish_docs_answer",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -306,44 +316,47 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
       runId: source.runDetail.runId,
       intent:
         "Answer a product documentation question while marking missing evidence instead of inventing a confident answer.",
+      intentMessage: { key: "scenario_radish_docs_evidence_gap_intent" },
       triggerSummary:
         "A docs question has partial evidence, so the workflow should produce an advisory answer with explicit gap markers.",
+      triggerSummaryMessage: { key: "workflowScenarioInspector_scenario_radish_docs_evidence_gap_triggerSummary" },
       inputContract: [
-        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface."),
+        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface.", { labelMessage: { key: "workflowScenarioInspector_tenant_ref_label_3" as const }, summaryMessage: { key: "workflowScenarioInspector_tenant_ref_summary_3" as const } }),
         buildInput(
           "application_ref",
           "Application",
           source.applicationDetail.applicationId,
-          "Current docs assistant application selected in the workspace.",
+          "Current docs assistant application selected in the workspace.", { labelMessage: { key: "workflowScenarioInspector_application_ref_label_3" as const }, summaryMessage: { key: "workflowScenarioInspector_application_ref_summary_3" as const } }
         ),
         buildInput(
           "question",
           "Question",
           "radish.docs.question.evidence_gap",
-          "Sanitized user question and document selection summary.",
+          "Sanitized user question and document selection summary.", { labelMessage: { key: "workflowScenarioInspector_question_label" as const }, summaryMessage: { key: "workflowScenarioInspector_question_summary" as const } }
         ),
         buildInput(
           "citation_policy",
           "Citation policy",
           "docs_citation_required",
-          "Citation and evidence gap policy used before rendering an answer.",
+          "Citation and evidence gap policy used before rendering an answer.", { labelMessage: { key: "workflowScenarioInspector_citation_policy_label" as const }, summaryMessage: { key: "workflowScenarioInspector_citation_policy_summary" as const } }
         ),
         buildInput(
           "retrieval_summary",
           "Retrieval summary",
           source.runDetail.failureCode,
-          "Read store status and sanitized document context for local inspection.",
+          "Read store status and sanitized document context for local inspection.", { labelMessage: { key: "workflowScenarioInspector_retrieval_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_retrieval_summary_summary" as const } }
         ),
       ],
       expectedOutputs: [
-        buildOutput("answer_summary", "Answer summary", "review_required", "A concise advisory answer with visible uncertainty."),
-        buildOutput("evidence_gap", "Evidence gap", "review_required", "Missing evidence markers stay explicit beside the answer."),
-        buildOutput("citation_summary", "Citation summary", "offline_only", "Citation refs are shown as sanitized metadata only."),
-        buildOutput("publish_preview", "Publish preview", "blocked", "Publishing or writing answer state remains unavailable."),
+        buildOutput("answer_summary", "Answer summary", "review_required", "A concise advisory answer with visible uncertainty.", { labelMessage: { key: "workflowScenarioInspector_answer_summary_label_3" as const }, summaryMessage: { key: "workflowScenarioInspector_answer_summary_summary_3" as const } }),
+        buildOutput("evidence_gap", "Evidence gap", "review_required", "Missing evidence markers stay explicit beside the answer.", { labelMessage: { key: "workflowScenarioInspector_evidence_gap_label" as const }, summaryMessage: { key: "workflowScenarioInspector_evidence_gap_summary" as const } }),
+        buildOutput("citation_summary", "Citation summary", "offline_only", "Citation refs are shown as sanitized metadata only.", { labelMessage: { key: "workflowScenarioInspector_citation_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_citation_summary_summary" as const } }),
+        buildOutput("publish_preview", "Publish preview", "blocked", "Publishing or writing answer state remains unavailable.", { labelMessage: { key: "workflowScenarioInspector_publish_preview_label" as const }, summaryMessage: { key: "workflowScenarioInspector_publish_preview_summary" as const } }),
       ],
       riskLevel: "low",
       requiresConfirmation: false,
       validationFocus: "Question context, evidence gap markers, citation summary, and blocked publish/writeback path.",
+      validationFocusMessage: { key: "workflowScenarioInspector_scenario_radish_docs_evidence_gap_validationFocus" },
       sourceRefs: [
         source.applicationDetail.applicationId,
         source.definitionDetail.workflowDefinitionId,
@@ -354,6 +367,7 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
     {
       scenarioId: "scenario_radish_docs_faq_forum_conflict",
       label: "FAQ and forum conflict",
+      labelMessage: { key: "scenario_radish_docs_faq_forum_conflict_label" },
       scenarioKind: "radish_docs_answer",
       applicationRef: source.applicationDetail.applicationId,
       workflowDefinitionId: source.definitionDetail.workflowDefinitionId,
@@ -361,44 +375,47 @@ function buildDocsScenarios(source: WorkflowSurfaceOverviewSource): WorkflowScen
       runId: source.runDetail.runId,
       intent:
         "Resolve conflicting FAQ and forum signals by explaining the conflict and keeping the answer advisory.",
+      intentMessage: { key: "scenario_radish_docs_faq_forum_conflict_intent" },
       triggerSummary:
         "The available docs and forum summaries disagree, so the response should identify the conflict rather than hide it.",
+      triggerSummaryMessage: { key: "workflowScenarioInspector_scenario_radish_docs_faq_forum_conflict_triggerSummary" },
       inputContract: [
-        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface."),
+        buildInput("tenant_ref", "Tenant", source.applicationDetail.tenantRef, "Tenant scope for the advisory surface.", { labelMessage: { key: "workflowScenarioInspector_tenant_ref_label_4" as const }, summaryMessage: { key: "workflowScenarioInspector_tenant_ref_summary_4" as const } }),
         buildInput(
           "application_ref",
           "Application",
           source.applicationDetail.applicationId,
-          "Current docs assistant application selected in the workspace.",
+          "Current docs assistant application selected in the workspace.", { labelMessage: { key: "workflowScenarioInspector_application_ref_label_4" as const }, summaryMessage: { key: "workflowScenarioInspector_application_ref_summary_4" as const } }
         ),
         buildInput(
           "question",
           "Question",
           "radish.docs.question.faq_forum_conflict",
-          "Sanitized user question with conflicting source summaries.",
+          "Sanitized user question with conflicting source summaries.", { labelMessage: { key: "workflowScenarioInspector_question_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_question_summary_2" as const } }
         ),
         buildInput(
           "conflict_policy",
           "Conflict policy",
           "docs_faq_forum_conflict_review",
-          "Policy requiring the response to surface conflict instead of selecting a hidden winner.",
+          "Policy requiring the response to surface conflict instead of selecting a hidden winner.", { labelMessage: { key: "workflowScenarioInspector_conflict_policy_label" as const }, summaryMessage: { key: "workflowScenarioInspector_conflict_policy_summary" as const } }
         ),
         buildInput(
           "audit_context",
           "Audit context",
           source.runDetail.traceId,
-          "Trace id and sanitized audit refs for local review.",
+          "Trace id and sanitized audit refs for local review.", { labelMessage: { key: "workflowScenarioInspector_audit_context_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_audit_context_summary_2" as const } }
         ),
       ],
       expectedOutputs: [
-        buildOutput("answer_summary", "Answer summary", "review_required", "A direct answer framed with conflict context."),
-        buildOutput("conflict_summary", "Conflict summary", "review_required", "FAQ/forum disagreement is surfaced for the user."),
-        buildOutput("citation_summary", "Citation summary", "offline_only", "Citation refs remain sanitized and read-only."),
-        buildOutput("publish_preview", "Publish preview", "blocked", "Publishing or writing answer state remains unavailable."),
+        buildOutput("answer_summary", "Answer summary", "review_required", "A direct answer framed with conflict context.", { labelMessage: { key: "workflowScenarioInspector_answer_summary_label_4" as const }, summaryMessage: { key: "workflowScenarioInspector_answer_summary_summary_4" as const } }),
+        buildOutput("conflict_summary", "Conflict summary", "review_required", "FAQ/forum disagreement is surfaced for the user.", { labelMessage: { key: "workflowScenarioInspector_conflict_summary_label" as const }, summaryMessage: { key: "workflowScenarioInspector_conflict_summary_summary" as const } }),
+        buildOutput("citation_summary", "Citation summary", "offline_only", "Citation refs remain sanitized and read-only.", { labelMessage: { key: "workflowScenarioInspector_citation_summary_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_citation_summary_summary_2" as const } }),
+        buildOutput("publish_preview", "Publish preview", "blocked", "Publishing or writing answer state remains unavailable.", { labelMessage: { key: "workflowScenarioInspector_publish_preview_label_2" as const }, summaryMessage: { key: "workflowScenarioInspector_publish_preview_summary_2" as const } }),
       ],
       riskLevel: "low",
       requiresConfirmation: false,
       validationFocus: "Conflict handling, citation visibility, advisory answer boundary, and blocked publish/writeback path.",
+      validationFocusMessage: { key: "workflowScenarioInspector_scenario_radish_docs_faq_forum_conflict_validationFocus" },
       sourceRefs: [
         source.applicationDetail.applicationId,
         source.definitionDetail.workflowDefinitionId,
@@ -417,27 +434,38 @@ function buildSummary(
   return [
     {
       label: "Scenario",
+      labelMessage: { key: "workflowScenarioInspector_buildSummary_label" },
       value: scenario.label,
+      valueMessage: scenario.labelMessage,
       status: "offline_only",
       summary: scenario.intent,
+      summaryMessage: scenario.intentMessage,
     },
     {
       label: "Application",
+      labelMessage: { key: "workflowScenarioInspector_buildSummary_label_2" },
       value: source.applicationDetail.displayName,
       status: source.applicationDetail.canRenderApplicationDetail ? "ready" : "blocked",
       summary: `${scenario.applicationRef} uses ${source.applicationDetail.providerProfileRef}.`,
+      summaryMessage: { key: "workflowScenarioInspector_buildSummary_summary", values: { value1: scenario.applicationRef, value2: source.applicationDetail.providerProfileRef } },
     },
     {
       label: "Validation",
+      labelMessage: { key: "workflowScenarioInspector_buildSummary_label_3" },
       value: source.validationInspector.validationStatus,
+      valueMessage: { status: source.validationInspector.validationStatus },
       status: validationStatusToScenarioStatus(source.validationInspector.validationStatus),
       summary: scenario.validationFocus,
+      summaryMessage: scenario.validationFocusMessage,
     },
     {
       label: "Runtime",
+      labelMessage: { key: "workflowScenarioInspector_buildSummary_label_4" },
       value: `${blockedReasons.length} blockers`,
+      valueMessage: { key: "workflowScenarioInspector_buildSummary_value", values: { value1: blockedReasons.length } },
       status: "blocked",
       summary: "Scenario remains explainable, but runtime execution, persistence, writeback, and replay stay unavailable.",
+      summaryMessage: { key: "workflowScenarioInspector_buildSummary_summary_2" },
     },
   ];
 }
@@ -451,46 +479,56 @@ function buildRelationMap(
     {
       relationId: "scenario_to_application",
       label: "Scenario to application",
+      labelMessage: { key: "workflowScenarioInspector_scenario_to_application_label" },
       sourceRef: scenario.scenarioId,
       targetRef: scenario.applicationRef,
       status: scenario.applicationRef === source.applicationDetail.applicationId ? "ready" : "review_required",
       summary: "The scenario follows the currently selected application context.",
+      summaryMessage: { key: "workflowScenarioInspector_scenario_to_application_summary" },
       auditRef: source.applicationDetail.auditRef,
     },
     {
       relationId: "scenario_to_definition",
       label: "Scenario to definition",
+      labelMessage: { key: "workflowScenarioInspector_scenario_to_definition_label" },
       sourceRef: scenario.scenarioId,
       targetRef: scenario.workflowDefinitionId,
       status: scenario.workflowDefinitionId === source.definitionDetail.workflowDefinitionId ? "ready" : "review_required",
       summary: "Definition detail supplies the node, edge, risk, and blocked action shape.",
+      summaryMessage: { key: "workflowScenarioInspector_scenario_to_definition_summary" },
       auditRef: source.definitionDetail.auditRef,
     },
     {
       relationId: "scenario_to_draft",
       label: "Scenario to draft",
+      labelMessage: { key: "workflowScenarioInspector_scenario_to_draft_label" },
       sourceRef: scenario.scenarioId,
       targetRef: scenario.draftId,
       status: "offline_only",
       summary: "The selected offline draft supplies input, output, and validation evidence for the scenario.",
+      summaryMessage: { key: "workflowScenarioInspector_scenario_to_draft_summary" },
       auditRef: source.selectedDraft.routeMetadata.auditRef,
     },
     {
       relationId: "scenario_to_plan",
       label: "Scenario to plan",
+      labelMessage: { key: "workflowScenarioInspector_scenario_to_plan_label" },
       sourceRef: scenario.scenarioId,
       targetRef: source.executionPlanPreview.draftRouteId,
       status: source.executionPlanPreview.canRenderExecutionPlanPreview ? "offline_only" : "blocked",
       summary: "Execution plan preview explains future stage order without creating a persistent plan.",
+      summaryMessage: { key: "workflowScenarioInspector_scenario_to_plan_summary" },
       auditRef: source.executionPlanPreview.auditRef,
     },
     {
       relationId: "scenario_to_runtime_readiness",
       label: "Scenario to runtime readiness",
+      labelMessage: { key: "workflowScenarioInspector_scenario_to_runtime_readiness_label" },
       sourceRef: scenario.scenarioId,
       targetRef: `${blockedReasons.length} blocked reasons`,
       status: "blocked",
       summary: "Readiness blockers explain why the scenario cannot start, confirm, write back, or replay.",
+      summaryMessage: { key: "workflowScenarioInspector_scenario_to_runtime_readiness_summary" },
       auditRef: source.runtimeReadinessInspector.auditRef,
     },
   ];
@@ -507,15 +545,18 @@ function buildBlockedReasons(
   ) ?? source.executionPlanPreview.blockedPlanReasons[0];
   const readinessReasons = source.runtimeReadinessInspector.readinessBlockers.slice(0, 3);
 
-  return [
+  const reasons: Array<WorkflowScenarioBlockedReason | undefined> = [
     applicationReason
       ? {
           reasonId: `application_${applicationReason.capabilityId}`,
           label: applicationReason.label,
+          labelMessage: applicationReason.labelMessage,
           sourceSurface: "application",
           status: "blocked",
           missingPrerequisite: applicationReason.missingPrerequisite,
+          missingPrerequisiteMessage: applicationReason.missingPrerequisiteMessage,
           summary: applicationReason.reason,
+          summaryMessage: applicationReason.reasonMessage,
           auditRef: applicationReason.auditRef,
         }
       : undefined,
@@ -523,10 +564,13 @@ function buildBlockedReasons(
       ? {
           reasonId: `draft_${draftReason.capabilityId}`,
           label: draftReason.label,
+          labelMessage: draftReason.labelMessage,
           sourceSurface: "draft",
           status: "blocked",
           missingPrerequisite: draftReason.missingPrerequisite,
+          missingPrerequisiteMessage: draftReason.missingPrerequisiteMessage,
           summary: draftReason.summary,
+          summaryMessage: draftReason.summaryMessage,
           auditRef: draftReason.auditRef,
         }
       : undefined,
@@ -534,32 +578,42 @@ function buildBlockedReasons(
       ? {
           reasonId: `plan_${planReason.reasonId}`,
           label: planReason.label,
+          labelMessage: planReason.labelMessage,
           sourceSurface: "plan",
           status: "blocked",
           missingPrerequisite: planReason.missingPrerequisite,
+          missingPrerequisiteMessage: planReason.missingPrerequisiteMessage,
           summary: planReason.summary,
+          summaryMessage: planReason.summaryMessage,
           auditRef: planReason.auditRef,
         }
       : undefined,
     ...readinessReasons.map((reason) => ({
       reasonId: `readiness_${reason.blockerId}`,
       label: reason.label,
+      labelMessage: reason.labelMessage,
       sourceSurface: "readiness" as const,
       status: "blocked" as const,
       missingPrerequisite: reason.missingPrerequisite,
+      missingPrerequisiteMessage: reason.missingPrerequisiteMessage,
       summary: reason.summary,
+      summaryMessage: reason.summaryMessage,
       auditRef: reason.auditRef,
     })),
     {
       reasonId: `run_${source.runDetail.blockedReplayPreview.guardId}`,
       label: source.runDetail.blockedReplayPreview.label,
+      labelMessage: source.runDetail.blockedReplayPreview.labelMessage,
       sourceSurface: "run",
       status: "blocked",
       missingPrerequisite: source.runDetail.blockedReplayPreview.missingPrerequisite,
+      missingPrerequisiteMessage: source.runDetail.blockedReplayPreview.missingPrerequisiteMessage,
       summary: source.runDetail.blockedReplayPreview.reason,
+      summaryMessage: source.runDetail.blockedReplayPreview.reasonMessage,
       auditRef: source.runDetail.blockedReplayPreview.auditRef,
     },
-  ].filter((reason): reason is WorkflowScenarioBlockedReason => reason !== undefined);
+  ];
+  return reasons.filter((reason): reason is WorkflowScenarioBlockedReason => reason !== undefined);
 }
 
 function buildStopLines(): WorkflowScenarioStopLine[] {
@@ -567,26 +621,34 @@ function buildStopLines(): WorkflowScenarioStopLine[] {
     {
       stopLineId: "offline_scenario_only",
       label: "Offline scenario only",
+      labelMessage: { key: "offline_scenario_only_label" },
       status: "locked",
       summary: "Scenario selection uses fixture-derived view models and never requests a live backend.",
+      summaryMessage: { key: "offline_scenario_only_summary" },
     },
     {
       stopLineId: "no_scenario_persistence",
       label: "No persistence",
+      labelMessage: { key: "no_scenario_persistence_label" },
       status: "locked",
       summary: "Scenario selection changes browser view state only and does not save drafts, plans, readiness, or results.",
+      summaryMessage: { key: "no_scenario_persistence_summary" },
     },
     {
       stopLineId: "no_runtime_start",
       label: "No runtime start",
+      labelMessage: { key: "no_runtime_start_label" },
       status: "locked",
       summary: "The inspector explains intent and blockers; it cannot start workflow, node, tool, or agent execution.",
+      summaryMessage: { key: "no_runtime_start_summary" },
     },
     {
       stopLineId: "no_confirmation_writeback_replay",
       label: "No confirmation, writeback, replay",
+      labelMessage: { key: "no_confirmation_writeback_replay_label" },
       status: "locked",
       summary: "No approve, reject, defer, execution unlock, business writeback, replay, or resume control exists.",
+      summaryMessage: { key: "no_confirmation_writeback_replay_summary" },
     },
   ];
 }
@@ -596,8 +658,10 @@ function buildInput(
   label: string,
   sourceRef: string,
   summary: string,
+  copy: WorkflowProjectionCopy,
 ): WorkflowScenarioInputField {
   return {
+    ...copy,
     fieldId,
     label,
     sourceRef,
@@ -611,8 +675,10 @@ function buildOutput(
   label: string,
   status: WorkflowScenarioStatus,
   summary: string,
+  copy: WorkflowProjectionCopy,
 ): WorkflowScenarioExpectedOutput {
   return {
+    ...copy,
     outputId,
     label,
     status,

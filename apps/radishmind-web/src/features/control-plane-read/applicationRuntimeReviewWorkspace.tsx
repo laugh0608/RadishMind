@@ -1,3 +1,7 @@
+import "../../i18n/runtimeReviewResources.ts";
+import { gatewayReviewState } from "./gatewayReviewMessages.ts";
+import "../../i18n/gatewayReviewResources.ts";
+import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 import {
@@ -17,36 +21,26 @@ const ApplicationResultArtifactLibraryPanel = lazy(() => import("./applicationRe
 const RUNTIME_REVIEW_TASKS: ReadonlyArray<{
   surface: ApplicationRuntimeReviewSurface;
   anchor: string;
-  label: string;
-  summary: string;
   number: string;
 }> = [
   {
     surface: "run",
     anchor: "model-gateway-playground",
-    label: "Run request",
-    summary: "Temporary input and output",
     number: "01",
   },
   {
     surface: "request",
     anchor: "model-gateway-request-history",
-    label: "Review request",
-    summary: "Exact sanitized record",
     number: "02",
   },
   {
     surface: "evidence",
     anchor: "application-operations",
-    label: "Application evidence",
-    summary: "Current loaded windows",
     number: "03",
   },
   {
     surface: "results",
     anchor: "application-result-artifact-library",
-    label: "Saved results",
-    summary: "Cross-Session exact artifacts",
     number: "04",
   },
 ];
@@ -60,6 +54,7 @@ export default function ApplicationRuntimeReviewWorkspace({
   surfaceKey: string;
   controls: ApplicationDevelopmentWorkspaceControls;
 }) {
+  const { t } = useTranslation("gateway");
   const [activeSurface, setActiveSurface] = useState<ApplicationRuntimeReviewSurface | null>(() => (
     applicationRuntimeReviewSurfaceForHash(window.location.hash)
   ));
@@ -128,20 +123,20 @@ export default function ApplicationRuntimeReviewWorkspace({
     >
       <header className="application-runtime-review-heading">
         <div>
-          <p className="eyebrow">S5 · Application runtime review</p>
-          <h3 id="application-runtime-review-title">Run, review, and observe</h3>
-          <p>Move from one controlled request to its sanitized record, then inspect the current application windows without implying correlation.</p>
+          <p className="eyebrow">{t($ => $.runtimeReview.eyebrow)}</p>
+          <h3 id="application-runtime-review-title">{t($ => $.runtimeReview.title)}</h3>
+          <p>{t($ => $.runtimeReview.intro)}</p>
         </div>
         <dl>
-          <div><dt>Application</dt><dd>{context.displayName}</dd></div>
-          <div><dt>Workspace</dt><dd>{context.workspaceId || "unavailable"}</dd></div>
-          <div><dt>Lifecycle</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.lifecycleState}</dd></div>
+          <div><dt>{t($ => $.runtimeReview.application)}</dt><dd>{context.displayName}</dd></div>
+          <div><dt>{t($ => $.runtimeReview.workspace)}</dt><dd>{context.workspaceId || t($ => $.runtimeReview.unavailable)}</dd></div>
+          <div><dt>{t($ => $.runtimeReview.lifecycle)}</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{gatewayReviewState(t, context.lifecycleState)}</dd></div>
         </dl>
       </header>
 
       <div className="application-runtime-review-layout">
-        <nav className="application-runtime-review-path" aria-label="Application runtime review tasks">
-          <header><span>Runtime path</span><strong>One task at a time</strong></header>
+        <nav className="application-runtime-review-path" aria-label={t($ => $.runtimeReview.tasks)}>
+          <header><span>{t($ => $.runtimeReview.path)}</span><strong>{t($ => $.runtimeReview.oneTask)}</strong></header>
           {RUNTIME_REVIEW_TASKS.map((task) => {
             const selected = task.surface === activeSurface;
             const blocked = task.surface === "run" && !context.applicationActive;
@@ -149,7 +144,7 @@ export default function ApplicationRuntimeReviewWorkspace({
               <>
                 <i aria-hidden="true" />
                 <b>{task.number}</b>
-                <span><strong>{task.label}</strong><small>{blocked ? "archived · read only" : task.summary}</small></span>
+                <span><strong>{t($ => $.runtimeReview.tasksBySurface[task.surface].label)}</strong><small>{blocked ? t($ => $.runtimeReview.archived) : t($ => $.runtimeReview.tasksBySurface[task.surface].summary)}</small></span>
                 {selected ? <em aria-hidden="true">›</em> : null}
               </>
             );
@@ -168,7 +163,7 @@ export default function ApplicationRuntimeReviewWorkspace({
           })}
           <p className="application-runtime-review-boundary">
             <span aria-hidden="true">!</span>
-            Request input and output are temporary. History is sanitized. Operations combines independent current windows only. Saved results are explicit owner-scoped artifacts.
+            {t($ => $.runtimeReview.boundary)}
           </p>
         </nav>
 
@@ -216,9 +211,10 @@ export default function ApplicationRuntimeReviewWorkspace({
 }
 
 function RuntimeOwnerFallback() {
+  const { t } = useTranslation("gateway");
   return (
     <div className="application-runtime-review-loading" role="status">
-      Loading the current runtime owner…
+      {t($ => $.runtimeReview.loading)}
     </div>
   );
 }

@@ -1,4 +1,8 @@
+import "../../i18n/artifactFeedbackResources.ts";
 import "../../i18n/artifactLibraryResources.ts";
+import { artifactFailureMessage } from "./artifactFeedback.ts";
+import { formatDisplayDate } from "../../i18n/formatters.ts";
+import { resolveUiLocale } from "../../i18n/localePreference.ts";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 
@@ -53,7 +57,7 @@ export default function ApplicationResultArtifactLibraryPanel({
   active: boolean;
   onOpenRun?: (runId: string) => void;
 }) {
-  const { t } = useTranslation("applications");
+  const { t, i18n } = useTranslation("applications");
   const [draftFilters, setDraftFilters] = useState<LibraryFilters>(INITIAL_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<LibraryFilters>(INITIAL_FILTERS);
   const [listing, setListing] = useState<ApplicationResultArtifactListResult>(() => emptyListing());
@@ -93,7 +97,7 @@ export default function ApplicationResultArtifactLibraryPanel({
     void loadArtifacts(INITIAL_FILTERS, "", false);
     return () => {
       abortRef.current?.abort();
-      generationRef.current += 1;
+      requestScopeRef.current = emptyScope(++generationRef.current);
       if (preparedExportRef.current) URL.revokeObjectURL(preparedExportRef.current.objectURL);
       preparedExportRef.current = null;
     };
@@ -196,6 +200,7 @@ export default function ApplicationResultArtifactLibraryPanel({
     const generation = ++generationRef.current;
     const expected = libraryScope(generation, applicationId, appliedFilters, "", artifact.sessionId, artifact.artifactId);
     requestScopeRef.current = expected;
+    discardPreparedExport();
     const controller = beginOperation("export");
     const result = await exportApplicationResultArtifact(config, {
       applicationId,
@@ -260,10 +265,10 @@ export default function ApplicationResultArtifactLibraryPanel({
     ? t($ => $.artifactLibrary.markdown) : contentType === "application/json" ? t($ => $.artifactLibrary.json) : t($ => $.artifactLibrary.allContentTypes);
   const listMessage = config.mode === "offline"
     ? t($ => $.artifactLibrary.offlineNoRequests)
-    : listing.status === "failed" ? t($ => $.artifactLibrary.listUnavailable, { code: listing.failureCode || t($ => $.artifactLibrary.unknownFailure) })
-    : listing.requestId ? t($ => $.artifactLibrary.listLoaded, { count: items.length, state: lifecycleLabel(appliedFilters.lifecycleState) })
+    : listing.status === "failed" ? artifactFailureMessage(t, listing.failureCode)
+    : items.length && listing.requestId ? t($ => $.artifactLibrary.listLoaded, { count: items.length, state: lifecycleLabel(appliedFilters.lifecycleState) })
     : t($ => $.artifactLibrary.noSavedResults);
-  const operationMessage = operationNotice?.kind === "failure" ? t($ => $.artifactLibrary.operationUnavailable, { code: operationNotice.code || t($ => $.artifactLibrary.unknownFailure) })
+  const operationMessage = operationNotice?.kind === "failure" ? artifactFailureMessage(t, operationNotice.code)
     : operationNotice?.kind === "readMismatch" ? t($ => $.artifactLibrary.readMismatch)
     : operationNotice?.kind === "exportMismatch" ? t($ => $.artifactLibrary.exportMismatch)
     : operationNotice?.kind === "transitioned" ? operationNotice.state === "active" ? t($ => $.artifactLibrary.unarchiveSucceeded) : t($ => $.artifactLibrary.archiveSucceeded)
@@ -279,7 +284,7 @@ export default function ApplicationResultArtifactLibraryPanel({
           <p>{t($ => $.artifactLibrary.metadataOnlyDiscovery)}</p>
         </div>
         <span className={`status-badge ${listing.failureCode ? "bad" : items.length ? "good" : "neutral"}`}>
-          {config.mode === "offline" ? t($ => $.artifactLibrary.offline) : listing.failureCode ? t($ => $.artifactLibrary.failed) : t($ => $.artifactLibrary.loadedCount, { count: items.length })}
+          {config.mode === "offline" ? t($ => $.artifactLibrary.offline) : pending === "list" ? t($ => $.artifactLibrary.loading) : listing.failureCode ? t($ => $.artifactLibrary.failed) : t($ => $.artifactLibrary.loadedCount, { count: items.length })}
         </span>
       </div>
 
@@ -336,7 +341,7 @@ export default function ApplicationResultArtifactLibraryPanel({
                 <code>{item.artifactId}</code>
                 <small>{item.sessionId} · {item.contentType}</small>
               </span>
-              <small>{new Date(item.createdAt).toLocaleString()}<br />{t($ => $.artifactLibrary.lifecycleVersionValue, { version: item.lifecycleVersion })}</small>
+              <small title={item.createdAt}>{formatDisplayDate(item.createdAt, resolveUiLocale(i18n.resolvedLanguage, []), { timeZone: "UTC" })}<br />{t($ => $.artifactLibrary.lifecycleVersionValue, { version: item.lifecycleVersion })}</small>
             </button>
           ))}
           {listing.nextCursor ? (
@@ -385,7 +390,7 @@ export default function ApplicationResultArtifactLibraryPanel({
               </div>
             </>
           ) : null}
-          {operationMessage ? <p className={operationNotice?.kind === "failure" || operationNotice?.kind === "readMismatch" || operationNotice?.kind === "exportMismatch" ? "failure-summary" : "boundary-note"}>{operationMessage}</p> : null}
+          {operationMessage ? <p role="status" className={operationNotice?.kind === "failure" || operationNotice?.kind === "readMismatch" || operationNotice?.kind === "exportMismatch" ? "failure-summary" : "boundary-note"}>{operationMessage}</p> : null}
         </article>
       </div>
 

@@ -1,6 +1,6 @@
 # 应用交互会话与受控运行编排（开发 / 测试态）v1
 
-更新时间：2026-07-19
+更新时间：2026-10-11
 
 状态：`application_interaction_session_controlled_runtime_orchestration_dev_test_v1_completed`
 
@@ -146,6 +146,12 @@ turn 不保存 input、answer、prompt、模型原始响应、retrieval context�
 - 批次 E 已完成 macOS / Windows launcher 双 profile 开关、SQLite / PostgreSQL 连续链、服务重启恢复、真实浏览器与敏感内容扫描；Web 会话列表显式消费服务端 `active | closed` 状态过滤，关闭后的 session / turn / run ref 可在重启后只读恢复，不重建 transcript。
 - 真实浏览器同时验证 Workflow Definition v5 与 Application RAG v4 turn、Run History v5 / v4 detail、session close 和零控制台错误；v4 authority snapshot 现按完整 tenant / workspace / application scope 严格解析，作用域漂移失败关闭。
 - 2026-08-19 owner-local 跟进已为 `application_session_authority_not_found`、`application_session_authority_changed` 与 `application_session_profile_ineligible` 增加统一恢复引导：只允许重新加载 metadata，再由用户显式选择当前 authority 下的 Session，或在审查 authority 后新建 Session；不得自动切换 authority、创建 Session、重试 turn 或调用 Provider。该普通 UI / 使用性修正复用既有失败引导，覆盖级别仍为 `C / 直接实现`，不修改 Pencil，也不增加 API、schema、repository、task card、fixture 或 checker。
+
+## 中英界面与请求清理（2026-10-11）
+
+交互会话入口的创建 / 关闭、状态、等待 / 取消、易失会话与持久元数据说明已接入中英资源，失败按稳定错误码显示恢复引导。界面语言切换保留选择、输入和等待状态，不增发业务请求；原始输入、回答、引用及精确 ID 保持原值。结构化提交记录只保存已提交字段名，提示随当前语言重新渲染，不把字段值写入会话展示记录。组件卸载或应用作用域失效时，取消当前操作请求并使请求作用域失效，拒绝迟到响应。
+
+F 阶段新增浏览器流程验证 Workflow Definition v5 的创建等待、非法运行选项零提交、运行中切换 / 取消、重新加载仅恢复元数据、关闭后禁止运行及三视口布局。v4 / v8 沿用既有消费者与结构化输入单测，不声明本轮另跑其端到端；本轮也不扩大数据库、真实模型或生产验收。具体窗口见[全站双语收口记录](../../devlogs/2026-W41.md#2026-10-11-f-阶段全站双语收口)。
 
 ## 实施批次
 

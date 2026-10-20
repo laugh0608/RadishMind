@@ -198,6 +198,8 @@ def assert_required_files(fixture: dict[str, Any]) -> None:
 def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     detail_source = read("apps/radishmind-web/src/features/control-plane-read/workflowDefinitionDetail.ts")
     app_source = read("apps/radishmind-web/src/app/App.tsx")
+    require("WorkflowDefinitionDetailPanel" in app_source, "App.tsx must retain the lazy detail entry")
+    detail_render_source = read("apps/radishmind-web/src/features/control-plane-read/workflowReadEvidencePanels.tsx")
     styles = read("apps/radishmind-web/src/styles.css")
     checked_source = "\n".join([detail_source, app_source])
 
@@ -230,7 +232,7 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "WorkflowDefinitionBlockedActionPreviewCard",
         "workflowDefinitionDetail",
     ):
-        require(literal in app_source, f"App.tsx missing detail render literal: {literal}")
+        require(literal in app_source + "\n" + detail_render_source, f"detail render entry missing detail render literal: {literal}")
 
     for literal in (
         ".workflow-definition-detail",

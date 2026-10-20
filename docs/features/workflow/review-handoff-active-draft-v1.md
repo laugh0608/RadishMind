@@ -1,6 +1,6 @@
 # Workflow Review Handoff Active Draft v1 专题
 
-更新时间：2026-08-08
+更新时间：2026-10-02
 
 ## 专题定位
 
@@ -19,6 +19,8 @@
 - 当 active draft 包含 Node Designer 画布证据时，Review Handoff 会在 `Active Draft Review Record` 后展示 `Node Designer Review Handoff`；两者共享同一 active draft 和 inspector evidence，但 active draft record 仍只解释 validation / plan / readiness 三段主链路。
 - handoff record 只由当前浏览器内 view model 派生，不保存、不导出、不发送、不请求 live backend。
 - 新增 `workflow-review-handoff-active-draft-v1` fixture / checker，固定 handoff 对 active draft 三段 inspector 的消费链、UI 渲染和停止线。
+
+2026-10-02 已完成离线检查与审查交接的双语迁移。本地生成的说明以 `WorkflowProjectionMessage` 保存稳定消息键和参数，在渲染时翻译；原始标题、摘要、诊断和技术标识仍保持来源内容。新增展示描述只存在于浏览器投影，不进入草案保存请求、后端协议或持久化结果。检查器状态、阻塞谓词、来源与冲突操作不变；双语真实保存冲突与恢复证据见[中英国际化专题](../web-internationalization-zh-en-v1.md#b-阶段离线投影解释2026-10-02)。
 
 ## 数据边界
 

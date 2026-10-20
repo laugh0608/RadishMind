@@ -57,7 +57,7 @@ export const workflowHandoff = {
   "evidence": "证据",
   "routePage": "路由／页面",
   "missing": "缺失项",
-  "sourceEvidence": "证据正文保留来源投影原文；本建议交接不会批准、激活或运行定义。",
+  sourceEvidence: "这些说明仅描述当前离线检查，不代表其他开发测试或生产流程的能力状态。用户内容、标识符和来源诊断保持原文。",
   "findingCount": "{{count}} 项发现",
   "evidenceFor": "{{label}}的证据引用",
   "targetsFor": "{{label}}的目标引用",

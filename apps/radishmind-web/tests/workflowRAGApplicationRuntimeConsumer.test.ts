@@ -136,3 +136,43 @@ function invocationEnvelope() {
 function jsonResponse(value: unknown): Response {
   return new Response(JSON.stringify(value), { status: 200, headers: { "Content-Type": "application/json" } });
 }
+
+
+test("runtime locale changes preserve authority references and literal answers without another request", async () => {
+  const { createInstance } = await import("i18next");
+  const { workflowRAGApplication: en } = await import("../src/i18n/locales/en-US/workflowRAGApplication.ts");
+  const { workflowRAGApplication: zh } = await import("../src/i18n/locales/zh-CN/workflowRAGApplication.ts");
+  const { workflowRAGApplicationStatus, workflowRAGApplicationFailure, workflowRAGAssignmentFeedback, workflowRAGInvocationFeedback } = await import("../src/features/control-plane-read/workflowRAGApplicationMessages.ts");
+  const i18n = createInstance();
+  await i18n.init({ lng: "en-US", fallbackLng: "en-US", resources: { "en-US": { workflow: { ragApplication: en } }, "zh-CN": { workflow: { ragApplication: zh } } } });
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async input => { calls += 1; return jsonResponse(String(input).endsWith("/invocations") ? invocationEnvelope() : runtimeEnvelope()); };
+  try {
+    const assignment = await readWorkflowRAGApplicationRuntimeAssignment(config, applicationId);
+    const invocation = await invokeWorkflowRAGApplication(config, { applicationId, apiKeyId, token, text: "Promotion evidence 原始问题" });
+    const before = JSON.stringify({ assignment, invocation });
+    const render = () => {
+      const t = i18n.getFixedT(null, "workflow");
+      return [
+        ...Object.keys(en.status).map(code => workflowRAGApplicationStatus(t, code)),
+        ...Object.keys(en.failure).map(code => workflowRAGApplicationFailure(t, code)),
+        workflowRAGAssignmentFeedback(t, assignment),
+        workflowRAGAssignmentFeedback(t, { ...assignment, assignment: assignment.assignment ? { ...assignment.assignment, state: "revoked" } : null }),
+        workflowRAGAssignmentFeedback(t, { ...assignment, assignment: null }),
+        workflowRAGAssignmentFeedback(t, { ...assignment, failureCode: "workflow_rag_runtime_assignment_version_conflict" }),
+        workflowRAGInvocationFeedback(t, invocation),
+        workflowRAGInvocationFeedback(t, { ...invocation, status: "failed", answer: null, runId: "" }),
+        workflowRAGInvocationFeedback(t, { ...invocation, failureCode: "workflow_rag_runtime_no_evidence" }),
+      ];
+    };
+    const english = render(); await i18n.changeLanguage("zh-CN");
+    render().forEach((message, index) => {
+      assert.ok(message); assert.notEqual(message, english[index]);
+      assert.doesNotMatch(message + english[index], /ragApplication\.|\{\{|This message is unavailable|此消息暂不可用/);
+    });
+    assert.equal(workflowRAGApplicationFailure(i18n.getFixedT(null, "workflow"), "future_code"), zh.failure.unknown);
+    assert.equal(JSON.stringify({ assignment, invocation }), before);
+    assert.equal(calls, 2);
+  } finally { globalThis.fetch = originalFetch; }
+});

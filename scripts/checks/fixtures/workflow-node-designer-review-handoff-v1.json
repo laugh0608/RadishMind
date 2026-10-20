@@ -75,7 +75,7 @@
       "$.handoff.evidenceRefs",
       "handoff.nodeDesignerReviewRecord.sections.map",
       "group.findings.map",
-      "finding.handoffPath",
+      "workflowProjectionText(t, finding, \"handoffPath\")",
       "finding.handoffPathRefs.map",
       "finding.evidenceRefs.map",
       "Node graph findings",

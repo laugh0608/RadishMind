@@ -1,6 +1,8 @@
+import "../../i18n/runEvidenceResources.ts";
+import { runEvidenceState, runEvidenceBoundary, runEvidenceAction, runEvidenceNodeType } from "./runEvidenceMessages.ts";
 import "../../i18n/runReviewResources.ts";
 import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
-import { formatDisplayDate } from "../../i18n/formatters.ts";
+import { formatDisplayDate, formatDisplayNumber } from "../../i18n/formatters.ts";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
@@ -57,7 +59,10 @@ export default function WorkflowReviewOwner({
   const [candidateRunId, setCandidateRunId] = useState("");
   const [comparisonSelection, setComparisonSelection] = useState<{ baseline: string; candidate: string } | null>(null);
   const [diagnosticScenario, setDiagnosticScenario] = useState<WorkflowRunDevFailureScenario>("gateway_timeout");
-  const [diagnosticState, setDiagnosticState] = useState("");
+  const [diagnosticState, setDiagnosticState] = useState<{ kind: "diagnosticNeedsDraft" | "diagnosticWorking" | "diagnosticRecorded" | "diagnosticFailed"; scenario?: string; code?: string } | null>(null);
+  const [detailState, setDetailState] = useState<"idle" | "detailLoading" | "ready" | "detailUnavailable" | "detailFailed">("idle");
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const detailGenerationRef = useRef(0);
   const [handoffState, setHandoffState] = useState<{ kind: "handoffOffline" | "handoffLoading" | "handoffReady" | "handoffUnavailable" | "handoffFailed"; runId: string } | null>(null);
   const [copiedRef, setCopiedRef] = useState("");
   const [retrievalPreviewPending, setRetrievalPreviewPending] = useState(false);
@@ -77,6 +82,9 @@ export default function WorkflowReviewOwner({
     const generation = expectedGeneration ?? ++requestGenerationRef.current;
     const retainedRuns = append ? historyRunsRef.current : [];
     if (!append) {
+      ++detailGenerationRef.current;
+      setDetailState("idle");
+      setPreviewFailed(false);
       setSelectedRunId("");
       setDetail(null);
       setRetrievalPreviewPending(false);
@@ -101,29 +109,48 @@ export default function WorkflowReviewOwner({
     if (initializedOwnerScopeRef.current === ownerScopeKey) return;
     initializedOwnerScopeRef.current = ownerScopeKey;
     const generation = ++requestGenerationRef.current;
+    ++detailGenerationRef.current;
+    setDetailState("idle");
+    setPreviewFailed(false);
     setHistory(initialWorkflowRunHistoryState(config));
     setDetail(null);
     setSelectedRunId("");
     setBaselineRunId("");
     setCandidateRunId("");
     setComparisonSelection(null);
-    setDiagnosticState("");
+    setDiagnosticState(null);
     setHandoffState(null);
     setCopiedRef("");
     setRetrievalPreviewPending(false);
     if (liveScope) void loadHistory("", false, generation);
   }, [applicationId, workspaceId, refreshKey, liveScope, ownerScopeKey]); // Filters are applied explicitly.
 
+  useEffect(() => () => {
+    ++requestGenerationRef.current;
+    ++detailGenerationRef.current;
+    initializedOwnerScopeRef.current = "";
+    handledHandoffIdRef.current = "";
+  }, []);
+
   async function selectRun(run: WorkflowRunHistorySummary) {
     const generation = requestGenerationRef.current;
+    const detailGeneration = ++detailGenerationRef.current;
+    setDetailState("detailLoading");
+    setPreviewFailed(false);
     setSelectedRunId(run.runId);
     setDetail(null);
     setRetrievalPreviewPending(false);
     try {
       const next = await readWorkflowRunHistoryDetail(run, applicationId, config);
-      if (requestGenerationRef.current === generation) setDetail(next);
+      if (requestGenerationRef.current === generation && detailGenerationRef.current === detailGeneration) {
+        setDetail(next);
+        setDetailState(next ? "ready" : "detailUnavailable");
+      }
     } catch {
-      if (requestGenerationRef.current === generation) setDetail(null);
+      if (requestGenerationRef.current === generation && detailGenerationRef.current === detailGeneration) {
+        setDetail(null);
+        setDetailState("detailFailed");
+      }
     }
   }
 
@@ -136,19 +163,24 @@ export default function WorkflowReviewOwner({
       return;
     }
     const generation = requestGenerationRef.current;
+    const detailGeneration = ++detailGenerationRef.current;
+    setDetailState("detailLoading");
+    setPreviewFailed(false);
     setSelectedRunId(handoffRunId);
     setDetail(null);
     setHandoffState({ kind: "handoffLoading", runId: handoffRunId });
     void readWorkflowRunHistoryDetail({ runId: handoffRunId }, applicationId, config)
       .then((record) => {
-        if (requestGenerationRef.current !== generation) return;
+        if (requestGenerationRef.current !== generation || detailGenerationRef.current !== detailGeneration) return;
+        setDetailState(record ? "ready" : "detailUnavailable");
         setDetail(record);
         setHandoffState(record
           ? { kind: "handoffReady", runId: handoffRunId }
           : { kind: "handoffUnavailable", runId: handoffRunId });
       })
       .catch(() => {
-        if (requestGenerationRef.current !== generation) return;
+        if (requestGenerationRef.current !== generation || detailGenerationRef.current !== detailGeneration) return;
+        setDetailState("detailFailed");
         setDetail(null);
         setHandoffState({ kind: "handoffFailed", runId: handoffRunId });
       })
@@ -164,23 +196,23 @@ export default function WorkflowReviewOwner({
   async function generateDiagnosticRun() {
     if (!applicationActive) return;
     if (!filter.draftId.trim()) {
-      setDiagnosticState("Enter an exact saved draft id before generating a diagnostic run.");
+      setDiagnosticState({ kind: "diagnosticNeedsDraft" });
       return;
     }
     const generation = requestGenerationRef.current;
-    setDiagnosticState("Generating deterministic dev/test failure…");
+    setDiagnosticState({ kind: "diagnosticWorking" });
     try {
       const state = await startWorkflowDiagnosticDevRecord(filter.draftId, applicationId, diagnosticScenario, config);
       if (requestGenerationRef.current !== generation) return;
       setDetail(state.record);
       setSelectedRunId(state.record?.runId ?? "");
       setDiagnosticState(state.record
-        ? `${diagnosticScenario} recorded for review.`
-        : `${state.failureCode ?? "workflow_run_unavailable"}: ${state.failureSummary}`);
+        ? { kind: "diagnosticRecorded", scenario: diagnosticScenario }
+        : { kind: "diagnosticFailed", code: state.failureCode ?? "workflow_run_unavailable" });
       await loadHistory();
-    } catch (error) {
+    } catch {
       if (requestGenerationRef.current === generation) {
-        setDiagnosticState(error instanceof Error ? error.message : "Diagnostic run generation failed.");
+        setDiagnosticState({ kind: "diagnosticFailed" });
       }
     }
   }
@@ -189,12 +221,19 @@ export default function WorkflowReviewOwner({
     const run = history.runs.find((item) => item.runId === selectedRunId);
     if (!run || run.schemaVersion !== "workflow_run_record.v3" || !ragConfig.scopes.has("workflow_rag_snapshots:read")) return;
     const generation = requestGenerationRef.current;
+    const detailGeneration = detailGenerationRef.current;
+    setPreviewFailed(false);
     setRetrievalPreviewPending(true);
     try {
       const next = await readWorkflowRunHistoryDetail(run, applicationId, config, true);
-      if (requestGenerationRef.current === generation) setDetail(next);
+      if (requestGenerationRef.current === generation && detailGenerationRef.current === detailGeneration) {
+        if (next) setDetail(next);
+        else setPreviewFailed(true);
+      }
+    } catch {
+      if (requestGenerationRef.current === generation && detailGenerationRef.current === detailGeneration) setPreviewFailed(true);
     } finally {
-      if (requestGenerationRef.current === generation) setRetrievalPreviewPending(false);
+      if (requestGenerationRef.current === generation && detailGenerationRef.current === detailGeneration) setRetrievalPreviewPending(false);
     }
   }
 
@@ -202,7 +241,7 @@ export default function WorkflowReviewOwner({
     return (
       <OwnerBoundary
         title={t($ => $.runReview.workflowReviewScopeMismatch)}
-        copy={`Application Workspace is ${workspaceId || "unavailable"}; Run History is configured for ${config.workspaceId}. Zero owner requests were sent.`}
+        copy={t($ => $.evidence.scopeMismatch, { workspace: workspaceId || t($ => $.evidence.unknown), configured: config.workspaceId })}
       />
     );
   }
@@ -211,7 +250,7 @@ export default function WorkflowReviewOwner({
     return (
       <OwnerBoundary
         title={t($ => $.runReview.workflowReviewIsOffline)}
-        copy="The offline fixture is evidence only and is not projected as current-application history, comparison, evaluation, or release review. Zero owner requests were sent."
+        copy={t($ => $.evidence.offline)}
       />
     );
   }
@@ -241,10 +280,12 @@ export default function WorkflowReviewOwner({
           history={history}
           selectedRunId={selectedRunId}
           detail={detail}
+          detailState={detailState}
+          previewFailed={previewFailed}
           failedCount={failedCount}
           uncertainCount={uncertainCount}
           diagnosticScenario={diagnosticScenario}
-          diagnosticState={diagnosticState}
+          diagnosticState={diagnosticState ? t($ => $.evidence[diagnosticState.kind], { scenario: diagnosticState.scenario ?? "" }) + (diagnosticState.code ? ` (${diagnosticState.code})` : "") : ""}
           copiedRef={copiedRef}
           retrievalPreviewPending={retrievalPreviewPending}
           onFilterChange={setFilter}
@@ -254,7 +295,15 @@ export default function WorkflowReviewOwner({
           onDiagnosticScenarioChange={setDiagnosticScenario}
           onGenerateDiagnostic={() => void generateDiagnosticRun()}
           onCopyReference={(label, value) => {
-            void navigator.clipboard.writeText(value).then(() => setCopiedRef(label));
+            const generation = requestGenerationRef.current;
+            const detailGeneration = detailGenerationRef.current;
+            const showResult = (result: string) => {
+              if (generation === requestGenerationRef.current && detailGeneration === detailGenerationRef.current) setCopiedRef(result);
+            };
+            void (async () => {
+              try { await navigator.clipboard.writeText(value); showResult(label); }
+              catch { showResult("failed"); }
+            })();
           }}
           onLoadRetrievalPreviews={() => void loadRetrievalPreviews()}
         />
@@ -309,6 +358,8 @@ function RunsSurface({
   history,
   selectedRunId,
   detail,
+  detailState,
+  previewFailed,
   failedCount,
   uncertainCount,
   diagnosticScenario,
@@ -330,6 +381,8 @@ function RunsSurface({
   history: ReturnType<typeof initialWorkflowRunHistoryState>;
   selectedRunId: string;
   detail: WorkflowRunRecord | null;
+  detailState: "idle" | "detailLoading" | "ready" | "detailUnavailable" | "detailFailed";
+  previewFailed: boolean;
   failedCount: number;
   uncertainCount: number;
   diagnosticScenario: WorkflowRunDevFailureScenario;
@@ -369,7 +422,8 @@ function RunsSurface({
             <p>{applicationActive ? diagnosticState || t($ => $.runReview.usesTheExactDraftFilterArbitraryFailurePayloads) : t($ => $.runReview.archivedApplicationsCannotCreateDiagnosticRuns)}</p>
           </details>
         ) : null}
-        {history.failureCode ? <p className="failure-summary">{history.failureCode}: {t($ => $.runReview.historyFailed)}</p> : null}
+        {history.failureCode ? <p className="failure-summary" role="alert">{history.failureCode}: {t($ => $.runReview.historyFailed)}</p> : null}
+        <button type="button" disabled={history.status === "loading"} onClick={onApplyFilters}>{t($ => $.evidence.refreshHistory)}</button>
         <div className="workflow-review-run-list" aria-label={t($ => $.runReview.exactWorkflowRunRecords)}>
           {history.runs.map((run) => (
             <button
@@ -380,7 +434,7 @@ function RunsSurface({
               onClick={() => onSelectRun(run)}
             >
               <span><strong>{run.runId}</strong><small>{t($ => $.runReview.sources[runSource(run)])} · {run.executionSourceId || run.ragRef || run.draftId}</small></span>
-              <span className={`workflow-review-run-status status-${t($ => $.runReview.statuses[run.status])}`}>{t($ => $.runReview.statuses[run.status])}{run.staleRunning ? t($ => $.runReview.stale) : ""}</span>
+              <span className={`workflow-review-run-status status-${run.status}`}>{t($ => $.runReview.statuses[run.status])}{run.staleRunning ? t($ => $.runReview.stale) : ""}</span>
               <small>{formatDisplayDate(run.startedAt, locale) ?? t($ => $.runReview.unknownTime)}</small>
             </button>
           ))}
@@ -396,9 +450,12 @@ function RunsSurface({
             detail={detail}
             copiedRef={copiedRef}
             retrievalPreviewPending={retrievalPreviewPending}
+            previewFailed={previewFailed}
             onCopyReference={onCopyReference}
             onLoadRetrievalPreviews={onLoadRetrievalPreviews}
           />
+        ) : detailState !== "idle" && detailState !== "ready" ? (
+          <p role={detailState === "detailLoading" ? "status" : "alert"}>{t($ => $.evidence[detailState])}</p>
         ) : (
           <div className="workflow-review-empty-detail">
             <span aria-hidden="true">◎</span>
@@ -432,7 +489,7 @@ function RunFilters({ filter, onChange, onApply, loading }: { filter: WorkflowRu
   );
 }
 
-function RunDetail({ detail, copiedRef, retrievalPreviewPending, onCopyReference, onLoadRetrievalPreviews }: { applicationId: string; detail: WorkflowRunRecord; copiedRef: string; retrievalPreviewPending: boolean; onCopyReference: (label: string, value: string) => void; onLoadRetrievalPreviews: () => void }) {
+function RunDetail({ detail, copiedRef, retrievalPreviewPending, previewFailed, onCopyReference, onLoadRetrievalPreviews }: { applicationId: string; detail: WorkflowRunRecord; copiedRef: string; retrievalPreviewPending: boolean; previewFailed: boolean; onCopyReference: (label: string, value: string) => void; onLoadRetrievalPreviews: () => void }) {
   const { t } = useTranslation("evaluation");
   const { locale } = useLocalePreference();
   const forbiddenWrites = detail.sideEffects.businessWrites + detail.sideEffects.replayWrites;
@@ -447,37 +504,38 @@ function RunDetail({ detail, copiedRef, retrievalPreviewPending, onCopyReference
       {detail.failureSummary ? <details><summary>{t($ => $.runReview.originalDiagnostic)}</summary><p>{detail.failureSummary}</p></details> : null}
       <dl className="workflow-review-detail-facts">
         <div><dt>{t($ => $.runReview.input)}</dt><dd>{t($ => $.runReview.inputByteCount, { count: detail.inputBytes })}</dd></div>
-        <div><dt>{t($ => $.runReview.recordedWindow)}</dt><dd>{formatDisplayDate(detail.startedAt, locale) ?? t($ => $.runReview.unknownTime)} → {formatDisplayDate(detail.completedAt, locale) ?? t($ => $.runReview.open)}</dd></div>
+        <div><dt>{t($ => $.runReview.recordedWindow)}</dt><dd title={`${detail.startedAt} → ${detail.completedAt || ""}`}>{formatDisplayDate(detail.startedAt, locale) ?? t($ => $.runReview.unknownTime)} → {detail.completedAt ? formatDisplayDate(detail.completedAt, locale) ?? t($ => $.runReview.unknownTime) : t($ => $.runReview.open)}</dd></div>
         <div><dt>{t($ => $.runReview.providerCalls)}</dt><dd>{detail.sideEffects.providerCalls}</dd></div>
         <div><dt>{t($ => $.runReview.forbiddenWrites)}</dt><dd>{forbiddenWrites}</dd></div>
-        {detail.executionSourceId ? <div><dt>{t($ => $.runReview.executionSource)}</dt><dd>{detail.executionSourceKind} · {detail.executionSourceId} · v{detail.executionSourceVersion}</dd></div> : null}
+        {detail.executionSourceId ? <div><dt>{t($ => $.runReview.executionSource)}</dt><dd>{t($ => $.runReview.sources[runSource(detail)])} · {detail.executionSourceId} · v{detail.executionSourceVersion}</dd></div> : null}
         {detail.schemaVersion === "workflow_run_record.v8" ? <><div><dt>{t($ => $.runReview.inputContract)}</dt><dd>{detail.inputContractId} · {detail.inputContractDigest}</dd></div><div><dt>{t($ => $.runReview.inputFields)}</dt><dd>{detail.inputFields?.map((field) => `${field.name}:${field.valueType}`).join(" · ") || t($ => $.runReview.none)}</dd></div></> : null}
-        <div><dt>{t($ => $.runReview.failureBoundary)}</dt><dd>{detail.diagnostic?.failureBoundary || t($ => $.runReview.none)}</dd></div>
+        <div><dt>{t($ => $.runReview.failureBoundary)}</dt><dd>{runEvidenceBoundary(t, detail.diagnostic?.failureBoundary ?? "")}</dd></div>
       </dl>
       {detail.diagnostic ? (
         <section className="workflow-review-diagnostic">
-          <div><strong>{detail.diagnostic.failureBoundary || t($ => $.runReview.noFailure)}</strong><span>{detail.diagnostic.summary}</span></div>
-          <dl><div><dt>{t($ => $.runReview.failedNode)}</dt><dd>{detail.diagnostic.failedNodeId || t($ => $.runReview.none)}</dd></div><div><dt>{t($ => $.runReview.lastCompleted)}</dt><dd>{detail.diagnostic.lastCompletedNodeId || t($ => $.runReview.none)}</dd></div><div><dt>{t($ => $.runReview.reviewAction)}</dt><dd>{detail.diagnostic.recommendedReviewAction || t($ => $.runReview.none)}</dd></div></dl>
+          <div><strong>{runEvidenceBoundary(t, detail.diagnostic.failureBoundary)}</strong><code>{detail.failureCode}</code></div><details><summary>{t($ => $.runReview.originalDiagnostic)}</summary><p>{detail.diagnostic.summary}</p></details>
+          <dl><div><dt>{t($ => $.runReview.failedNode)}</dt><dd>{detail.diagnostic.failedNodeId || t($ => $.runReview.none)}</dd></div><div><dt>{t($ => $.runReview.lastCompleted)}</dt><dd>{detail.diagnostic.lastCompletedNodeId || t($ => $.runReview.none)}</dd></div><div><dt>{t($ => $.runReview.reviewAction)}</dt><dd>{runEvidenceAction(t, detail.diagnostic.recommendedReviewAction)} <code>{detail.diagnostic.recommendedReviewAction}</code></dd></div></dl>
         </section>
       ) : null}
       <details className="workflow-review-disclosure">
         <summary><span>{t($ => $.runReview.nodeEvidence)}</span><small>{t($ => $.runReview.nodeCount, { count: detail.nodes.length })}</small></summary>
         <div className="workflow-review-node-list">
-          {detail.nodes.map((node) => <div key={node.nodeId}><span><strong>{node.label}</strong><small>{node.nodeType}</small></span><span className={`status-${node.status}`}>{node.status}</span><small>{node.durationMs} ms</small></div>)}
+          {detail.nodes.map((node) => <div key={node.nodeId}><span><strong>{node.label}</strong><small>{runEvidenceNodeType(t, node.nodeType)}</small></span><span className={`status-${node.status}`}>{runEvidenceState(t, node.status)}</span><small>{t($ => $.evidence.milliseconds, { value: formatDisplayNumber(node.durationMs, locale) ?? t($ => $.evidence.unknown) })}</small></div>)}
         </div>
       </details>
       {detail.retrievalAttempt ? (
         <details className="workflow-review-disclosure">
-          <summary><span>{t($ => $.runReview.retrievalEvidence)}</span><small>{detail.retrievalAttempt.selectedFragments.length} {t($ => $.runReview.selectedRefs)}</small></summary>
-          <dl className="workflow-review-detail-facts"><div><dt>{t($ => $.runReview.snapshot)}</dt><dd>{detail.ragSnapshot?.snapshotId} · v{detail.ragSnapshot?.snapshotVersion}</dd></div><div><dt>{t($ => $.runReview.query)}</dt><dd>{detail.retrievalAttempt.queryBytes} bytes · {detail.retrievalAttempt.queryDigest}</dd></div><div><dt>{t($ => $.runReview.context)}</dt><dd>{detail.retrievalAttempt.contextBytes} bytes · {detail.retrievalAttempt.citationRefs.length} {t($ => $.runReview.citations)}</dd></div></dl>
+          <summary><span>{t($ => $.runReview.retrievalEvidence)}</span><small>{t($ => $.evidence.selectedRefs, { value: formatDisplayNumber(detail.retrievalAttempt.selectedFragments.length, locale) ?? t($ => $.evidence.unknown) })}</small></summary>
+          <dl className="workflow-review-detail-facts"><div><dt>{t($ => $.runReview.snapshot)}</dt><dd>{detail.ragSnapshot?.snapshotId} · v{detail.ragSnapshot?.snapshotVersion}</dd></div><div><dt>{t($ => $.runReview.query)}</dt><dd>{t($ => $.evidence.bytes, { value: formatDisplayNumber(detail.retrievalAttempt.queryBytes, locale) ?? t($ => $.evidence.unknown) })} · {detail.retrievalAttempt.queryDigest}</dd></div><div><dt>{t($ => $.runReview.context)}</dt><dd>{t($ => $.evidence.bytes, { value: formatDisplayNumber(detail.retrievalAttempt.contextBytes, locale) ?? t($ => $.evidence.unknown) })} · {t($ => $.evidence.citations, { value: formatDisplayNumber(detail.retrievalAttempt.citationRefs.length, locale) ?? t($ => $.evidence.unknown) })}</dd></div></dl>
           <button type="button" disabled={!canReadPreviews || retrievalPreviewPending} onClick={onLoadRetrievalPreviews}>{retrievalPreviewPending ? t($ => $.runReview.loadingPreviews) : t($ => $.runReview.readAuthorizedFragmentPreviews)}</button>
+          {previewFailed ? <p role="alert">{t($ => $.evidence.previewFailed)}</p> : null}
           {detail.retrievalFragmentPreviews.map((preview) => <blockquote key={preview.fragmentRef}><strong>{preview.fragmentRef}</strong><p>{preview.preview}</p></blockquote>)}
         </details>
       ) : null}
       <div className="workflow-review-reference-actions">
         <button type="button" onClick={() => onCopyReference("request", detail.requestId)}>{t($ => $.runReview.copyRequestId)}</button>
         <button type="button" onClick={() => onCopyReference("audit", detail.auditRef)}>{t($ => $.runReview.copyAuditRef)}</button>
-        <span>{copiedRef ? t($ => $.runReview.referenceCopied, { reference: copiedRef }) : t($ => $.runReview.metadataReferencesOnly)}</span>
+        <span>{copiedRef === "failed" ? t($ => $.evidence.copyFailed) : copiedRef === "request" ? t($ => $.evidence.copiedRequest) : copiedRef === "audit" ? t($ => $.evidence.copiedAudit) : t($ => $.runReview.metadataReferencesOnly)}</span>
       </div>
       <p className="workflow-review-stop-line">{t($ => $.runReview.businessWritesAndReplayRemainLockedAt0)}</p>
     </article>
@@ -537,7 +595,7 @@ function OwnerBoundary({ title, copy }: { title: string; copy: string }) {
   );
 }
 
-function runSource(run: WorkflowRunHistorySummary) {
+function runSource(run: Pick<WorkflowRunHistorySummary, "schemaVersion">) {
   switch (run.schemaVersion) {
     case "workflow_run_record.v9": return "httpTool";
     case "workflow_run_record.v8": return "structuredWorkflow";

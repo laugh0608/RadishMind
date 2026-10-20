@@ -216,15 +216,18 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "over_quota_failure_code",
     ):
         require(literal in source, f"workspace usage quota missing source literal: {literal}")
-    for literal in (
-        "Usage Quota",
-        "workspaceUsageQuota.canRenderQuota",
-        "UsageQuotaLimit",
-        "UsageQuotaSnapshot",
-        "UsageQuotaStatePreview",
-        "Over quota failure code",
-    ):
-        require(literal in app_source, f"App.tsx missing workspace usage quota rendering literal: {literal}")
+    require('lazy(() => import("../features/control-plane-read/workspaceUsageQuotaPanel.tsx"))' in app_source,
+            "App.tsx must lazy-load the quota display owner")
+    require('<WorkspaceUsageQuotaPanel view={workspaceUsageQuota} />' in app_source,
+            "App.tsx must pass the existing read-only quota view to its display owner")
+    panel_source = read_text("apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuotaPanel.tsx")
+    for literal in ("view.canRenderQuota", "view.quota", "view.statePreviews", "usage-quota-limits",
+                    "usage-quota-snapshot", "usageQuota.overQuota", "usageQuota.boundary", "usageQuota.noCurrency"):
+        require(literal in panel_source, f"quota display owner missing rendering boundary: {literal}")
+    for locale in ("en-US", "zh-CN"):
+        messages = read_text(f"apps/radishmind-web/src/i18n/locales/{locale}/usageQuota.ts")
+        for key in ('"title"', '"overQuota"', '"boundary"', '"noCurrency"', '"previews"'):
+            require(key in messages, f"quota display owner missing {locale} message: {key}")
     for forbidden_literal in fixture.get("forbidden_source_literals") or []:
         require(str(forbidden_literal) not in source, f"web source contains forbidden literal: {forbidden_literal}")
     for forbidden_literal in fixture.get("forbidden_control_literals") or []:

@@ -1,6 +1,8 @@
+import "../../i18n/artifactFeedbackResources.ts";
+import { artifactFailureMessage } from "./artifactFeedback.ts";
 import "../../i18n/artifactResources.ts";
 import { useTranslation } from "react-i18next";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 import {
   applicationResultArtifactResponseMatchesScope,
@@ -10,10 +12,11 @@ import {
   transitionApplicationResultArtifactLifecycle,
   type ApplicationResultArtifactConfig,
   type ApplicationResultArtifactLifecycleState,
-  type ApplicationResultArtifactReadResult,
   type ApplicationResultArtifactRequestScope,
   type ApplicationResultArtifactSummary,
 } from "./applicationResultArtifactConsumer.ts";
+
+import { reduceApplicationResultArtifactInspection } from "./applicationResultArtifactInspection.ts";
 
 export default function ApplicationResultArtifactPanel({
   config,
@@ -40,8 +43,8 @@ export default function ApplicationResultArtifactPanel({
   const [lifecycleState, setLifecycleState] = useState<ApplicationResultArtifactLifecycleState>("active");
   const [listing, setListing] = useState(() => initialApplicationResultArtifactListResult(config));
   const [items, setItems] = useState<ApplicationResultArtifactSummary[]>([]);
-  const [selectedSummary, setSelectedSummary] = useState<ApplicationResultArtifactSummary | null>(null);
-  const [readResult, setReadResult] = useState<ApplicationResultArtifactReadResult | null>(null);
+  const [inspection, dispatchInspection] = useReducer(reduceApplicationResultArtifactInspection, { generation: 0, summary: null, readResult: null });
+  const { summary: selectedSummary, readResult } = inspection;
   const [pending, setPending] = useState<"" | "list" | "more" | "read" | "transition">("");
   const [operationNotice, setOperationNotice] = useState<
     | { kind: "saved"; artifactId: string }
@@ -69,8 +72,7 @@ export default function ApplicationResultArtifactPanel({
     setLifecycleState("active");
     setListing(initialApplicationResultArtifactListResult(config));
     setItems([]);
-    setSelectedSummary(null);
-    setReadResult(null);
+    dispatchInspection({ type: "select", generation, summary: null });
     setPending("");
     setOperationNotice(null);
     if (config.mode !== "offline" && applicationId && sessionId) {
@@ -97,9 +99,10 @@ export default function ApplicationResultArtifactPanel({
     setOperationNotice({ kind: "saved", artifactId: latestArtifact.artifactId });
     if (latestArtifact.lifecycleState === lifecycleState) {
       setItems((current) => mergeArtifactSummaries(current, [latestArtifact]));
-      setSelectedSummary(latestArtifact);
+      selectArtifact(latestArtifact);
     }
-  }, [applicationId, latestArtifact?.artifactId, latestArtifact?.lifecycleVersion, lifecycleState, sessionId]);
+    // Filter changes reload server metadata; they must not reapply an old save receipt.
+  }, [applicationId, latestArtifact?.artifactId, latestArtifact?.lifecycleVersion, sessionId]);
 
   async function loadArtifacts(
     targetState: ApplicationResultArtifactLifecycleState,
@@ -123,8 +126,7 @@ export default function ApplicationResultArtifactPanel({
     setItems((current) => append ? mergeArtifactSummaries(current, result.items) : result.items);
     setOperationNotice(result.status === "ready" ? null : { kind: "failure", code: result.failureCode });
     if (!append) {
-      setSelectedSummary(null);
-      setReadResult(null);
+      dispatchInspection({ type: "select", generation: expected.generation, summary: null });
     }
   }
 
@@ -135,8 +137,7 @@ export default function ApplicationResultArtifactPanel({
     abortRef.current = null;
     setLifecycleState(next);
     setItems([]);
-    setSelectedSummary(null);
-    setReadResult(null);
+    dispatchInspection({ type: "select", generation: generationRef.current, summary: null });
     setOperationNotice(null);
     void loadArtifacts(next, "", false);
   }
@@ -144,8 +145,7 @@ export default function ApplicationResultArtifactPanel({
   async function openArtifact(summary: ApplicationResultArtifactSummary) {
     const expected = beginOperation("read", lifecycleState, summary.artifactId);
     const controller = abortRef.current!;
-    setSelectedSummary(summary);
-    setReadResult(null);
+    dispatchInspection({ type: "select", generation: expected.generation, summary });
     const result = await readApplicationResultArtifact(config, {
       applicationId,
       sessionId,
@@ -154,17 +154,19 @@ export default function ApplicationResultArtifactPanel({
     if (!applicationResultArtifactResponseMatchesScope(expected, requestScopeRef.current)) return;
     abortRef.current = null;
     setPending("");
-    setReadResult(result);
+    dispatchInspection({ type: "read", generation: expected.generation, result });
     setOperationNotice(result.status === "ready" && result.artifact
       ? { kind: "read", artifactId: result.artifact.artifactId }
       : { kind: "failure", code: result.failureCode });
   }
 
   async function transitionSelectedArtifact() {
-    if (!selectedSummary || pending) return;
-    const lifecycle = readResult?.lifecycle;
-    const currentState = lifecycle?.lifecycleState ?? selectedSummary.lifecycleState;
-    const currentVersion = lifecycle?.lifecycleVersion ?? selectedSummary.lifecycleVersion;
+    if (!selectedSummary || !readResult?.artifact || !readResult.lifecycle ||
+      readResult.artifact.artifactId !== selectedSummary.artifactId ||
+      readResult.lifecycle.artifactId !== selectedSummary.artifactId || pending) return;
+    const lifecycle = readResult.lifecycle;
+    const currentState = lifecycle.lifecycleState;
+    const currentVersion = lifecycle.lifecycleVersion;
     const targetState: ApplicationResultArtifactLifecycleState = currentState === "active" ? "archived" : "active";
     const expected = beginOperation("transition", lifecycleState, selectedSummary.artifactId);
     const controller = abortRef.current!;
@@ -184,8 +186,7 @@ export default function ApplicationResultArtifactPanel({
       : { kind: "failure", code: result.failureCode });
     if (result.status !== "ready" || !result.lifecycle) {
       if (result.status === "version_conflict" || result.status === "state_conflict") {
-        setSelectedSummary(null);
-        setReadResult(null);
+        dispatchInspection({ type: "select", generation: expected.generation, summary: null });
       }
       return;
     }
@@ -207,8 +208,16 @@ export default function ApplicationResultArtifactPanel({
         : current.items.filter((item) => item.artifactId !== selectedSummary.artifactId),
       summary: current.summary,
     }));
-    setSelectedSummary(nextSummary);
-    setReadResult((current) => current?.artifact ? { ...current, lifecycle: result.lifecycle } : current);
+    dispatchInspection({ type: "transition", generation: expected.generation, lifecycle: result.lifecycle });
+  }
+
+  function selectArtifact(summary: ApplicationResultArtifactSummary) {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    const generation = ++generationRef.current;
+    requestScopeRef.current = { generation, applicationId, sessionId, lifecycleState, artifactId: summary.artifactId };
+    dispatchInspection({ type: "select", generation, summary });
+    setPending("");
   }
 
   function beginOperation(
@@ -219,13 +228,14 @@ export default function ApplicationResultArtifactPanel({
     abortRef.current?.abort();
     abortRef.current = new AbortController();
     const expected = {
-      generation: generationRef.current,
+      generation: ++generationRef.current,
       applicationId,
       sessionId,
       lifecycleState: targetState,
       artifactId,
     };
     requestScopeRef.current = expected;
+    dispatchInspection({ type: "begin", generation: expected.generation });
     setPending(nextPending);
     return expected;
   }
@@ -237,7 +247,7 @@ export default function ApplicationResultArtifactPanel({
   } : null);
   const lifecycleLabel = (state: ApplicationResultArtifactLifecycleState) => state === "active" ? t($ => $.artifact.active) : t($ => $.artifact.archived);
   const listMessage = listing.status === "failed"
-    ? t($ => $.artifact.listUnavailable, { code: listing.failureCode || t($ => $.artifact.unknownFailure) })
+    ? artifactFailureMessage(t, listing.failureCode)
     : config.mode === "offline" ? t($ => $.artifact.offlineUnavailable)
     : pending === "list" ? t($ => $.artifact.loading)
     : listing.requestId ? t($ => $.artifact.loadedMetadata, { count: items.length, state: lifecycleLabel(lifecycleState) })
@@ -251,7 +261,7 @@ export default function ApplicationResultArtifactPanel({
         : operationNotice?.kind === "conflict"
           ? t($ => $.artifact.lifecycleConflict, { failureCode: operationNotice.code, state: operationNotice.state === "active" || operationNotice.state === "archived" ? lifecycleLabel(operationNotice.state) : t($ => $.artifact.unknown), version: operationNotice.version })
           : operationNotice?.kind === "failure"
-            ? t($ => $.artifact.operationUnavailable, { code: operationNotice.code || t($ => $.artifact.unknownFailure) })
+            ? artifactFailureMessage(t, operationNotice.code)
             : "";
 
   return (
@@ -276,7 +286,7 @@ export default function ApplicationResultArtifactPanel({
         </span>
       </label>
 
-      {latestArtifactFailureCode ? <p className="failure-summary" role="alert">{t($ => $.artifact.resultSucceededSaveFailed)}{latestArtifactFailureCode}</p> : null}
+      {latestArtifactFailureCode ? <p className="failure-summary" role="alert">{t($ => $.artifact.resultSucceededSaveFailed)}{artifactFailureMessage(t, latestArtifactFailureCode)}</p> : null}
       {latestArtifact ? (
         <p className="boundary-note">
           {t($ => $.artifact.savedPrefix)} <code>{latestArtifact.artifactId}</code> · {latestArtifact.contentType} · {t($ => $.artifact.contentBytes, { count: latestArtifact.contentBytes })}{t($ => $.artifact.bytesExactRead)}</p>
@@ -357,7 +367,7 @@ export default function ApplicationResultArtifactPanel({
           ) : (
             <p className="empty-state">{t($ => $.artifact.selectFromSession, { state: lifecycleLabel(lifecycleState) })}</p>
           )}
-          {readResult?.failureCode ? <p className="failure-summary" role="alert">{readResult.failureCode}</p> : null}
+          {readResult?.failureCode ? <p className="failure-summary" role="alert">{artifactFailureMessage(t, readResult.failureCode)}</p> : null}
         </article>
       </div>
 

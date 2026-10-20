@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -17,7 +18,7 @@ export type WorkspaceWorkflowDefinitionsStateId =
   | "partial_failure"
   | "forbidden_projection";
 
-export type WorkspaceWorkflowDefinitionsMetric = {
+export type WorkspaceWorkflowDefinitionsMetric = WorkflowProjectionCopy & {
   label: string;
   value: string;
   detail: string;
@@ -34,7 +35,7 @@ export type WorkspaceWorkflowDefinitionRow = {
   updatedAt: string;
 };
 
-export type WorkspaceWorkflowDefinitionsStatePreview = {
+export type WorkspaceWorkflowDefinitionsStatePreview = WorkflowProjectionCopy & {
   id: WorkspaceWorkflowDefinitionsStateId;
   label: string;
   status: string;
@@ -174,23 +175,31 @@ function buildMetrics(
   return [
     {
       label: "Definitions",
+      labelMessage: { key: "workspaceWorkflowDefinitions_buildMetrics_label" },
       value: String(collection.itemCount),
       detail: collection.tenantRef,
     },
     {
       label: "Cursor",
+      labelMessage: { key: "workspaceWorkflowDefinitions_buildMetrics_label_2" },
       value: collection.nextCursor ? "available" : "none",
+      valueMessage: collection.nextCursor ? { key: "workspaceWorkflowDefinitions_buildMetrics_value_yes" } : { key: "workspaceWorkflowDefinitions_buildMetrics_value_no" },
       detail: collection.nextCursor ?? "single page",
+      detailMessage: collection.nextCursor ? undefined : { key: "readSinglePage" },
     },
     {
       label: "Published",
+      labelMessage: { key: "workspaceWorkflowDefinitions_buildMetrics_label_3" },
       value: String(publishedCount),
       detail: "read-only lifecycle state",
+      detailMessage: { key: "workspaceWorkflowDefinitions_buildMetrics_detail" },
     },
     {
       label: "Confirmation capable",
+      labelMessage: { key: "workspaceWorkflowDefinitions_buildMetrics_label_4" },
       value: String(confirmationCapableCount),
       detail: "capability marker only",
+      detailMessage: { key: "workspaceWorkflowDefinitions_buildMetrics_detail_2" },
     },
   ];
 }
@@ -203,48 +212,60 @@ function buildStatePreviews(
     {
       id: "ready",
       label: "Ready",
+      labelMessage: { key: "workspaceWorkflowDefinitions_ready_label" },
       status: collection.statusLabel,
       summary: "Workflow definition summaries render from the offline consumer view model.",
+      summaryMessage: { key: "workspaceWorkflowDefinitions_ready_summary" },
       itemCount: collection.itemCount,
       failureCode: collection.failureCode ?? "none",
     },
     {
       id: "empty",
       label: "Empty",
+      labelMessage: { key: "workspaceWorkflowDefinitions_empty_label" },
       status: "empty",
       summary: "The page keeps route metadata visible when no workflow definitions are returned.",
+      summaryMessage: { key: "workspaceWorkflowDefinitions_empty_summary" },
       itemCount: 0,
       failureCode: "none",
     },
     {
       id: "denied",
       label: "Denied",
+      labelMessage: { key: "workspaceWorkflowDefinitions_denied_label" },
       status: "tenant_binding_missing",
       summary: "Tenant binding failure renders without exposing partial workflow definition rows.",
+      summaryMessage: { key: "workspaceWorkflowDefinitions_denied_summary" },
       itemCount: 0,
       failureCode: "tenant_binding_missing",
     },
     {
       id: "stale",
       label: "Stale",
+      labelMessage: { key: "workspaceWorkflowDefinitions_stale_label" },
       status: "stale",
       summary: "Cached definitions stay visibly separated from live workflow builder data.",
+      summaryMessage: { key: "workspaceWorkflowDefinitions_stale_summary" },
       itemCount: collection.itemCount,
       failureCode: "read_store_unavailable",
     },
     {
       id: "partial_failure",
       label: "Partial failure",
+      labelMessage: { key: "workspaceWorkflowDefinitions_partial_failure_label" },
       status: "partial_failure",
       summary: "Cursor and failure metadata stay explicit when a later definition page cannot be read.",
+      summaryMessage: { key: "workspaceWorkflowDefinitions_partial_failure_summary" },
       itemCount: collection.itemCount,
       failureCode: "read_store_unavailable",
     },
     {
       id: "forbidden_projection",
       label: "Forbidden projection",
+      labelMessage: { key: "workspaceWorkflowDefinitions_forbidden_projection_label" },
       status: forbiddenProjectionBlocked ? "blocked" : "clear",
       summary: "Raw tool payload projections are blocked before workflow definition rows can render them.",
+      summaryMessage: { key: "workspaceWorkflowDefinitions_forbidden_projection_summary" },
       itemCount: 0,
       failureCode: forbiddenProjectionBlocked ? "read_store_contract_mismatch" : "none",
     },

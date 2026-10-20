@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { startPromptProvider } from "./prompt-provider.mjs";
@@ -18,21 +18,68 @@ await mkdir(artifactRoot, { recursive: true });
 // Each profile owns a fresh database and releases the shared loopback ports before the next.
 // Template metadata uses a deliberately non-callable provider, unlike the Prompt fixture.
 const suiteFlags = process.argv.slice(2).filter(value => value.startsWith("--suite="));
-const availableSuites = ["templates", "workflow", "rag"];
+const availableSuites = ["templates", "workflow", "rag", "rag-promotion", "rag-application", "http-tool", "offline-projection", "identity", "admin", "agent", "gateway", "evaluation", "results-evidence"];
 if (suiteFlags.length > 1 || (suiteFlags[0] && !availableSuites.includes(suiteFlags[0].slice(8)))) {
-  throw new Error("Use at most one --suite=templates|workflow|rag selector.");
+  throw new Error("Use at most one --suite=templates|workflow|rag|rag-promotion|rag-application|http-tool|offline-projection|identity|admin|agent|gateway|evaluation|results-evidence selector.");
 }
 const suites = suiteFlags.length ? [suiteFlags[0].slice(8)] : availableSuites;
 const testArguments = process.argv.slice(2).filter(value => !value.startsWith("--suite="));
-for (const suite of suites) {
-  const code = await runSuite(suite);
-  if (code !== 0) { process.exitCode = code; break; }
+const started = performance.now();
+const summaryDirectory = await mkdtemp(join(artifactRoot, "summary-"));
+const summaryPath = join(summaryDirectory, "summary.json");
+// Only fixed suite names, relative artifact directories, times and outcomes belong here.
+// Never include CLI filters, inherited environment, service errors or application data.
+const summary = {
+  started_at: new Date().toISOString(),
+  status: "running",
+  duration_ms: 0,
+  suites: suites.map(suite => ({ suite, status: "not_run", artifact_directory: null,
+    startup_ms: 0, tests_ms: 0, cleanup_ms: 0, duration_ms: 0,
+    cleanup: "not_started", exit_code: null })),
+};
+async function saveSummary() {
+  summary.duration_ms = Math.round(performance.now() - started);
+  await writeFile(`${summaryPath}.tmp`, `${JSON.stringify(summary, null, 2)}\n`);
+  await rename(`${summaryPath}.tmp`, summaryPath);
 }
+console.log(`[workflow-e2e] Invocation summary: ${summaryPath}`);
+await saveSummary();
+for (const entry of summary.suites) {
+  const suiteStarted = performance.now();
+  entry.status = "running";
+  await saveSummary();
+  try {
+    entry.exit_code = await runSuite(entry);
+  } catch (error) {
+    console.error(`[workflow-e2e] ${error.message}`);
+    entry.exit_code = 1;
+    entry.status = "failed";
+  } finally {
+    entry.duration_ms = Math.round(performance.now() - suiteStarted);
+    await saveSummary();
+    console.log(`[workflow-e2e] ${entry.suite}: ${entry.status}; startup ${entry.startup_ms}ms; tests ${entry.tests_ms}ms; cleanup ${entry.cleanup_ms}ms; total ${entry.duration_ms}ms.`);
+  }
+  if (entry.exit_code !== 0) { process.exitCode = entry.exit_code; break; }
+}
+summary.status = summary.suites.some(entry => entry.status === "interrupted") ? "interrupted"
+  : summary.suites.every(entry => entry.status === "passed") ? "passed" : "failed";
+summary.finished_at = new Date().toISOString();
+await saveSummary();
+console.log(`[workflow-e2e] Invocation ${summary.status} in ${summary.duration_ms}ms; summary: ${summaryPath}`);
 
-async function runSuite(suite) {
-  const output = await mkdtemp(join(artifactRoot, "run-"));
-  const runtime = await mkdtemp(join(tmpdir(), "radishmind-workflow-e2e-"));
-  const configPath = join(runtime, "platform.json");
+async function runSuite(entry) {
+  const { suite } = entry;
+  const startupStarted = performance.now();
+  let testsStarted;
+  let cleanupStarted;
+  let interruptionCode;
+
+  let output;
+  let runtime;
+  let rejectInterruption;
+  const interruption = new Promise((_, reject) => { rejectInterruption = reject; });
+  // A signal may arrive during asynchronous setup, before a race starts observing it.
+  interruption.catch(() => {});
 
   // Pass toolchain settings, not inherited application settings, tokens, or database URLs.
   const environmentKeys = new Set([
@@ -56,6 +103,9 @@ async function runSuite(suite) {
       return true;
     } catch (error) {
       if (error.code === "ESRCH") return false;
+      // kill(0) can report a still-existing group whose remaining members are not
+      // signalable during exit. Keep waiting; only ESRCH proves it has gone.
+      if (error.code === "EPERM") return true;
       throw error;
     }
   }
@@ -64,12 +114,19 @@ async function runSuite(suite) {
     try {
       process.kill(-pid, signal);
     } catch (error) {
-      if (error.code !== "ESRCH") throw error;
+      if (error.code !== "ESRCH") throw new Error(`Cannot send ${signal} to owned process group ${pid}: ${error.message}`, { cause: error });
     }
   }
 
   function stop() {
+    if (!shutdown) {
+      cleanupStarted = performance.now();
+      if (testsStarted === undefined) entry.startup_ms = Math.round(cleanupStarted - startupStarted);
+      else entry.tests_ms = Math.round(cleanupStarted - testsStarted);
+      entry.cleanup = "running";
+    }
     shutdown ??= (async () => {
+      for (const child of groups) await child.spawned;
       for (const child of groups) signalGroup(child.pid, "SIGTERM");
       const deadline = Date.now() + 8_000;
       while (groups.some((child) => groupExists(child.pid)) && Date.now() < deadline) await delay(100);
@@ -89,21 +146,32 @@ async function runSuite(suite) {
           });
         }
       } finally {
-        await rm(runtime, { recursive: true, force: true });
+        if (runtime) await rm(runtime, { recursive: true, force: true });
       }
-      console.log(`[workflow-e2e] Stopped owned process groups; removed temporary runtime ${runtime}`);
+      console.log(runtime ? `[workflow-e2e] Stopped owned process groups; removed temporary runtime ${runtime}` : "[workflow-e2e] Stopped before creating a temporary runtime.");
     })();
     return shutdown;
   }
 
   function start(command, args, options = {}) {
     const child = spawn(command, args, { cwd: webRoot, env: environment, detached: true, ...options });
+    child.spawned = new Promise((accept, reject) => {
+      child.once("spawn", accept);
+      child.once("error", reject);
+    });
+    child.spawned.catch(() => {});
     child.finished = new Promise((accept, reject) => {
       child.once("error", reject);
       child.once("close", (code, signal) => accept({ code, signal }));
     });
-    // The startup/readiness path awaits this rejection; avoid an unhandled error while wiring output.
+    // A grandchild may keep stdout open after its launcher exits. Observe exit
+    // for liveness, and close only when waiting for cleanup and flushed output.
+    child.exited = new Promise((accept, reject) => {
+      child.once("error", reject);
+      child.once("exit", (code, signal) => accept({ code, signal }));
+    });
     child.finished.catch(() => {});
+    child.exited.catch(() => {});
     if (child.pid) groups.push(child);
     return child;
   }
@@ -112,24 +180,28 @@ async function runSuite(suite) {
   for (const signal of ["SIGINT", "SIGTERM"]) {
     const handler = () => {
       interrupted = true;
-      void stop().then(() => process.exit(signal === "SIGINT" ? 130 : 143), (error) => {
-        console.error(error);
-        process.exit(1);
-      });
+      interruptionCode = signal === "SIGINT" ? 130 : 143;
+      // Setup must finish handing over any newly created resource before finally closes it.
+      rejectInterruption(new Error(`Interrupted by ${signal}.`));
     };
     signalHandlers.set(signal, handler);
     process.once(signal, handler);
   }
 
-  console.log(`[workflow-e2e] ${suite} artifacts: ${output}`);
   let exitCode = 1;
   try {
+    output = await mkdtemp(join(artifactRoot, "run-"));
+    entry.artifact_directory = basename(output);
+    runtime = await mkdtemp(join(tmpdir(), "radishmind-workflow-e2e-"));
+    const configPath = join(runtime, "platform.json");
+    console.log(`[workflow-e2e] ${suite} artifacts: ${output}`);
     await writeFile(configPath, "{}\n", { mode: 0o600 });
-    promptProvider = await startPromptProvider();
     if (interrupted) throw new Error("Interrupted during configuration setup.");
-    const launcher = start("bash", [
+    if (suite !== "identity" && suite !== "admin" && suite !== "agent" && suite !== "gateway" && suite !== "results-evidence") promptProvider = await startPromptProvider();
+    if (interrupted) throw new Error("Interrupted during configuration setup.");
+    const launcher = start(suite === "identity" ? process.execPath : "bash", suite === "identity" ? [join(webRoot, "tests/e2e/identity-services.mjs")] : [
       join(repoRoot, "scripts/run-radishmind-web-dev.sh"),
-      "--mode", "dev-live", ...(suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", suite === "templates" ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
+      "--mode", "dev-live", ...(suite === "results-evidence" ? ["--workflow-rag-promotion-local-product", "--application-result-artifact-library-local-product"] : suite === "evaluation" ? ["--application-evaluation-local-product", "--prompt-application-local-product"] : suite === "gateway" ? ["--api-key-local-product", "--workflow-definition-local-product"] : suite === "agent" ? ["--agent-copilot-local-product"] : suite === "http-tool" ? ["--workflow-definition-http-tool-local-product"] : suite === "rag-application" ? ["--workflow-rag-application-local-product"] : suite === "rag-promotion" ? ["--workflow-rag-promotion-local-product"] : suite === "rag" ? ["--workflow-rag-dev"] : ["--workflow-definition-local-product", (suite === "templates" || suite === "admin") ? "--workflow-template-local-product" : "--prompt-application-local-product"]), "--no-reuse-existing",
       "--frontend-url", "http://127.0.0.1:4100", "--backend-url", "http://127.0.0.1:17000",
       "--timeout-seconds", "120", "--log-dir", join(output, "services"),
       "--frontend-config", join(webRoot, "tests/e2e/vite.config.ts"),
@@ -139,13 +211,30 @@ async function runSuite(suite) {
         ...environment,
         RADISHMIND_PLATFORM_CONFIG: configPath,
         RADISHMIND_PLATFORM_PROVIDER: "mock",
-        RADISHMIND_MODEL_PROFILE: "prompt-e2e",
-        RADISHMIND_MODEL_PROFILE_FALLBACKS: "prompt-e2e",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_NAME: "prompt-e2e-model",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_BASE_URL: `${promptProvider.url}/v1`,
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_KEY: "prompt-e2e-fixture-only",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_STYLE: "openai-compatible",
-        RADISHMIND_MODEL_PROFILE_PROMPT_E2E_REQUEST_TIMEOUT_SECONDS: "5",
+        ...(promptProvider ? {
+          RADISHMIND_MODEL_PROFILE: "prompt-e2e",
+          RADISHMIND_MODEL_PROFILE_FALLBACKS: "prompt-e2e",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_NAME: "prompt-e2e-model",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_BASE_URL: `${promptProvider.url}/v1`,
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_KEY: "prompt-e2e-fixture-only",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_API_STYLE: "openai-compatible",
+          RADISHMIND_MODEL_PROFILE_PROMPT_E2E_REQUEST_TIMEOUT_SECONDS: "5",
+        } : {}),
+        ...(suite === "admin" ? {
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_HTTP: "1",
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_DEV_WRITE: "1",
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_ENFORCEMENT_DEV: "1",
+          RADISHMIND_GATEWAY_REQUEST_QUOTA_ENVIRONMENT: "test",
+          RADISHMIND_GATEWAY_MODEL_PRICING_DEV_HTTP: "1",
+          RADISHMIND_GATEWAY_MODEL_PRICING_DEV_WRITE: "1",
+          RADISHMIND_GATEWAY_MODEL_PRICING_ENVIRONMENT: "test",
+          VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_SOURCE: "dev-admin-gateway-request-quota-http",
+          VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_BASE_URL: "http://127.0.0.1:17000",
+          VITE_RADISHMIND_ADMIN_GATEWAY_QUOTA_ENVIRONMENT: "test",
+          VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_SOURCE: "dev-admin-gateway-model-pricing-http",
+          VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_BASE_URL: "http://127.0.0.1:17000",
+          VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_ENVIRONMENT: "test",
+        } : {}),
         RADISHMIND_SQLITE_DEV_DATABASE_PATH: join(runtime, "workflow.db"),
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -167,35 +256,48 @@ async function runSuite(suite) {
     const startupTimer = new AbortController();
     try {
       await Promise.race([
+        interruption,
         readiness,
         loggingFailure,
-        launcher.finished.then(({ code, signal }) => { throw new Error(`Service launcher exited before readiness (${code ?? signal}). See ${output}/services.`); }),
+        launcher.exited.then(({ code, signal }) => { throw new Error(`Service launcher exited before readiness (${code ?? signal}). See ${output}/services.`); }),
         delay(150_000, null, { signal: startupTimer.signal }).then(() => { throw new Error("Isolated service startup timed out."); }),
       ]);
     } finally {
       startupTimer.abort();
     }
     if (interrupted) throw new Error("Interrupted during startup.");
-    console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000; Prompt fixture ${promptProvider.url}.`);
+    console.log(`[workflow-e2e] SQLite services ready on 4100 and 17000${promptProvider ? `; Prompt fixture ${promptProvider.url}` : (suite === "agent" || suite === "gateway") ? "; mock runtime; no external model provider" : "; no callable model provider"}.`);
+    entry.startup_ms = Math.round(performance.now() - startupStarted);
+    testsStarted = performance.now();
     const tests = start(process.execPath, [
       join(webRoot, "node_modules/@playwright/test/cli.js"), "test",
       "--config", "tests/e2e/playwright.config.ts", ...testArguments,
     ], {
-      env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, RADISHMIND_E2E_PROVIDER_URL: promptProvider.url },
+      env: { ...environment, RADISHMIND_E2E_SUITE: suite, RADISHMIND_E2E_WEB_URL: "http://127.0.0.1:4100", RADISHMIND_E2E_OUTPUT_DIR: output, ...(suite === "identity" ? { RADISHMIND_IDENTITY_E2E_RUNTIME: runtime, PLAYWRIGHT_NO_COPY_PROMPT: "1" } : {}), ...(promptProvider ? { RADISHMIND_E2E_PROVIDER_URL: promptProvider.url } : {}) },
       stdio: "inherit",
     });
     const result = await Promise.race([
+      interruption,
       tests.finished,
       loggingFailure,
-      launcher.finished.then(() => { throw new Error("Services exited while browser tests were running."); }),
+      launcher.exited.then(() => { throw new Error("Services exited while browser tests were running."); }),
     ]);
     exitCode = result.code ?? 1;
   } catch (error) {
     console.error(`[workflow-e2e] ${error.message}`);
   } finally {
-    try { await stop(); } finally {
+    try {
+      await stop();
+      entry.cleanup = "complete";
+    } catch (error) {
+      entry.cleanup = "failed";
+      exitCode = 1;
+      console.error(`[workflow-e2e] ${error.message}`);
+    } finally {
+      entry.cleanup_ms = Math.round(performance.now() - cleanupStarted);
       for (const [signal, handler] of signalHandlers) process.off(signal, handler);
     }
   }
-  return exitCode;
+  entry.status = interrupted ? "interrupted" : exitCode === 0 ? "passed" : "failed";
+  return interruptionCode ?? exitCode;
 }

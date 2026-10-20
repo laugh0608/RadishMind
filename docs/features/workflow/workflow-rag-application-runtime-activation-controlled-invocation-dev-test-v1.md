@@ -1,6 +1,6 @@
 # Workflow RAG 应用运行时激活与受控调用（开发 / 测试态）v1
 
-更新时间：2026-07-19
+更新时间：2026-10-02
 
 状态：`workflow_rag_application_runtime_activation_controlled_invocation_dev_test_v1_completed`
 
@@ -192,6 +192,8 @@ POST /v1/application-rag/invocations
 - 调用面板只显示输入框、active assignment metadata、同步 answer 和调用状态；不允许选择 model、snapshot、`rag_ref` 或排名。输入和回答不写 URL、storage、日志或历史。
 - 成功 / 失败后用 run id 交接既有 Run History，并可继续进入 v4 Comparison / Evaluation；应用切换清除 token、输入、answer、assignment detail、run handoff 和 conflict state。
 - 默认 offline 零请求。真实浏览器必须验证 activation、API key 交接、一次成功、一次无证据或 citation failure、Run History、comparison、revoke 后失败关闭、应用切换和服务重启恢复。
+
+运行分配与调用面板的中英展示迁移及当前验收状态见[国际化专题](../web-internationalization-zh-en-v1.md#b-阶段-rag-应用运行2026-10-02)。界面语言不改变运行权威、协议、理由、输入、回答或原有敏感内存清理边界。
 
 ## 实施批次与准入
 

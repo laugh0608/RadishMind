@@ -1,4 +1,10 @@
 export const workspacePanel = {
+  "ownerEvidenceBlocked": "{{owner}} evidence is blocked. Open its owner to review the current failure and recovery action. {{code}}",
+  "candidateEvidenceMissing": "Review the current immutable Application publish candidate through its owner.",
+  "definitionEvidenceMissing": "Review and activate an approved immutable Workflow Definition through its owner.",
+  "ragAssignmentEvidenceMissing": "Read and review the current Application RAG assignment.",
+  "ragBindingEvidenceMissing": "Review the exact RAG knowledge binding and its authority evidence.",
+
   "applicationCandidate": "Application candidate",
   "applicationOwner": "Application owner",
   "workflowDefinition": "Workflow definition",

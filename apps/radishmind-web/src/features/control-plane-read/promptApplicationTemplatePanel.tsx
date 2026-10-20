@@ -30,11 +30,14 @@ import {
   type PromptTemplateVariableType,
   type PromptTemplateVersionListResult,
 } from "./promptApplicationTemplateConsumer.ts";
+import { createPromptTemplateEditorVariables, type PromptTemplateEditorVariable } from "./promptTemplateVariableEditor.ts";
 import { formatPromptOutputSchema, parsePromptOutputSchema } from "./promptTemplateOutputSchema.ts";
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 
 const templateConfig = readPromptTemplateConfig();
 const draftConfig = readApplicationConfigurationDraftConfig();
+
+type TemplateEditorInput = Omit<PromptTemplateDraftInput, "variables"> & { variables: PromptTemplateEditorVariable[] };
 
 type Props = {
   applicationId: string;
@@ -54,7 +57,7 @@ export default function PromptApplicationTemplatePanel({
   onEvidenceChange,
 }: Props) {
   const { t } = useTranslation("prompt");
-  const [input, setInput] = useState(() => createPromptTemplateDraftInput(templateConfig, applicationId));
+  const [input, setInput] = useState(() => toEditorInput(createPromptTemplateDraftInput(templateConfig, applicationId)));
   const [schemaSource, setSchemaSource] = useState(() => formatPromptOutputSchema());
   const parsedSchema = useMemo(() => parsePromptOutputSchema(schemaSource), [schemaSource]);
   const editRevision = useRef(0);
@@ -76,7 +79,7 @@ export default function PromptApplicationTemplatePanel({
   const [bindingFailure, setBindingFailure] = useState("");
 
   useEffect(() => {
-    setInput(createPromptTemplateDraftInput(templateConfig, applicationId));
+    setInput(toEditorInput(createPromptTemplateDraftInput(templateConfig, applicationId)));
     setSchemaSource(formatPromptOutputSchema());
     setOperation(initialOperation());
     setDrafts(initialDraftList());
@@ -121,7 +124,7 @@ export default function PromptApplicationTemplatePanel({
     });
   }, [onEvidenceChange, operation, selectedVersion]);
 
-  function edit(patch: Partial<PromptTemplateDraftInput>) {
+  function edit(patch: Partial<TemplateEditorInput>) {
     editRevision.current += 1;
     setInput((current) => ({ ...current, ...patch }));
     setHasUnsavedChanges(true);
@@ -155,7 +158,7 @@ export default function PromptApplicationTemplatePanel({
     if (result.draft) {
       // Preserve newer source edits while still advancing the persisted CAS lineage.
       if (revision === editRevision.current) {
-        setInput(draftToInput(result.draft));
+        setInput(toEditorInput(draftToInput(result.draft), input.variables));
         if (result.draft.outputContract.jsonSchema) setSchemaSource(formatPromptOutputSchema(result.draft.outputContract.jsonSchema));
         setHasUnsavedChanges(false);
       }
@@ -174,7 +177,7 @@ export default function PromptApplicationTemplatePanel({
     const result = await readPromptTemplateDraft(templateConfig, applicationId, templateId);
     setOperation(result);
     if (result.draft) {
-      setInput(draftToInput(result.draft));
+      setInput(toEditorInput(draftToInput(result.draft)));
       setSchemaSource(formatPromptOutputSchema(result.draft.outputContract.jsonSchema));
       setHasUnsavedChanges(false);
       await refreshVersions(templateId);
@@ -312,7 +315,7 @@ export default function PromptApplicationTemplatePanel({
           <fieldset>
             <legend>{t($ => $.variables)}</legend>
             {input.variables.map((variable, index) => (
-              <div className="prompt-template-variable" key={`${index}-${variable.name}`}>
+              <div className="prompt-template-variable" key={variable.editorKey}>
                 <input aria-label={t($ => $.variableFields.name, { index: index + 1 })} value={variable.name} onChange={(event) => editVariable(index, { name: event.target.value })} />
                 <select aria-label={t($ => $.variableFields.type, { index: index + 1 })} value={variable.type} onChange={(event) => editVariable(index, { type: event.target.value as PromptTemplateVariableType, defaultValue: undefined })}>
                   <option value="string">string</option><option value="integer">integer</option><option value="number">number</option><option value="boolean">boolean</option><option value="string_list">string_list</option>
@@ -323,7 +326,7 @@ export default function PromptApplicationTemplatePanel({
                 <button type="button" onClick={() => removeVariable(index)}>{t($ => $.remove)}</button>
               </div>
             ))}
-            <button type="button" onClick={() => edit({ variables: [...input.variables, { name: `value${input.variables.length + 1}`, type: "string", required: true, description: "" }] })} disabled={input.variables.length >= 64}>{t($ => $.addVariable)}</button>
+            <button type="button" onClick={() => edit({ variables: [...input.variables, ...createPromptTemplateEditorVariables([{ name: `value${input.variables.length + 1}`, type: "string", required: true, description: "" }])] })} disabled={input.variables.length >= 64}>{t($ => $.addVariable)}</button>
           </fieldset>
 
           <fieldset>
@@ -426,6 +429,10 @@ export default function PromptApplicationTemplatePanel({
         },
     });
   }
+}
+
+function toEditorInput(input: PromptTemplateDraftInput, previous: PromptTemplateEditorVariable[] = []): TemplateEditorInput {
+  return { ...input, variables: createPromptTemplateEditorVariables(input.variables, previous) };
 }
 
 function initialOperation(): PromptTemplateOperation {

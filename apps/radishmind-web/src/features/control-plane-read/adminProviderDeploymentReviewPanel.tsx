@@ -1,3 +1,6 @@
+import "../../i18n/adminDeploymentEvidenceResources.ts";
+import { useTranslation } from "react-i18next";
+import { evidenceProjectionText, evidenceProjectionStatus } from "./evidenceProjectionCopy.ts";
 import { lazy, Suspense } from "react";
 
 import type {
@@ -25,6 +28,7 @@ export function AdminProviderDeploymentReviewPanel({
   review: AdminProviderDeploymentReviewViewModel;
   includeControlledWorkspace?: boolean;
 }) {
+  const { t } = useTranslation("evaluation");
   return (
     <section
       className="surface-band admin-provider-deployment-review model-gateway-overview"
@@ -33,52 +37,52 @@ export function AdminProviderDeploymentReviewPanel({
     >
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Admin Control Plane</p>
-          <h3 id="admin-provider-deployment-review-title">Provider and deployment review</h3>
+          <p className="eyebrow">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Admin_Control_Plane)}</p>
+          <h3 id="admin-provider-deployment-review-title">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Provider_and_deployment_review)}</h3>
         </div>
         <StatusBadge tone={review.canRenderProviderDeploymentReview ? "neutral" : "bad"}>
-          {review.canRenderProviderDeploymentReview ? "offline review" : "blocked"}
+          {review.canRenderProviderDeploymentReview ? t($ => $.auxiliary.adminDeploymentEvidence_ui_offline_review) : t($ => $.auxiliary.adminDeploymentEvidence_ui_blocked)}
         </StatusBadge>
       </div>
 
       <article className="model-gateway-overview-hero">
         <div>
-          <p className="eyebrow">{review.reviewMode}</p>
+          <p className="eyebrow">{evidenceProjectionStatus(t, review.reviewMode)}</p>
           <h4>{review.tenantRef}</h4>
-          <p>{review.reviewNarrative}</p>
+          <p>{evidenceProjectionText(t, review, "reviewNarrative")}</p>
         </div>
         <dl className="model-gateway-overview-meta">
           <div>
-            <dt>Deployment</dt>
+            <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Deployment)}</dt>
             <dd>{review.deploymentStatusRef}</dd>
           </div>
           <div>
-            <dt>Request</dt>
+            <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Request)}</dt>
             <dd>{review.requestId}</dd>
           </div>
           <div>
-            <dt>Audit</dt>
+            <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Audit)}</dt>
             <dd>{review.auditRef}</dd>
           </div>
           <div>
-            <dt>Production gateway</dt>
-            <dd>{review.canRequestProductionGateway ? "enabled" : "locked"}</dd>
+            <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Production_gateway)}</dt>
+            <dd>{review.canRequestProductionGateway ? t($ => $.auxiliary.adminDeploymentEvidence_ui_enabled) : t($ => $.auxiliary.adminDeploymentEvidence_ui_locked)}</dd>
           </div>
         </dl>
       </article>
 
       {includeControlledWorkspace ? (
-        <Suspense fallback={<div className="admin-provider-route-workspace"><p>Loading Provider route workspace…</p></div>}>
+        <Suspense fallback={<div className="admin-provider-route-workspace"><p>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Loading_Provider_route_workspace)}</p></div>}>
           <AdminProviderRouteWorkspacePanel />
         </Suspense>
       ) : null}
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Provider/Profile</p>
-          <h4>Credential state, deployment mode, and runtime profile evidence</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Provider_Profile)}</p>
+          <h4>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Credential_state_deployment_mode_and_runtime_profile_evidence)}</h4>
         </div>
-        <div className="model-gateway-route-evidence-profile-grid" aria-label="Admin provider profile readiness">
+        <div className="model-gateway-route-evidence-profile-grid" aria-label={t($ => $.auxiliary.adminDeploymentEvidence_ui_Admin_provider_profile_readiness)}>
           {review.providerProfiles.map((profile) => (
             <ProviderProfileCard key={profile.readinessId} profile={profile} />
           ))}
@@ -87,10 +91,10 @@ export function AdminProviderDeploymentReviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Model Routes</p>
-          <h4>Northbound route binding and selection evidence</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Model_Routes)}</p>
+          <h4>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Northbound_route_binding_and_selection_evidence)}</h4>
         </div>
-        <div className="model-gateway-overview-policy-grid" aria-label="Admin model route readiness">
+        <div className="model-gateway-overview-policy-grid" aria-label={t($ => $.auxiliary.adminDeploymentEvidence_ui_Admin_model_route_readiness)}>
           {review.modelRoutes.map((route) => (
             <ModelRouteCard key={route.routeId} route={route} />
           ))}
@@ -99,10 +103,10 @@ export function AdminProviderDeploymentReviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Secrets and Deployment</p>
-          <h4>Static readiness evidence and unresolved implementation gates</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Secrets_and_Deployment)}</p>
+          <h4>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Static_readiness_evidence_and_unresolved_implementation_gates)}</h4>
         </div>
-        <div className="model-gateway-overview-metric-grid" aria-label="Admin secret and deployment evidence">
+        <div className="model-gateway-overview-metric-grid" aria-label={t($ => $.auxiliary.adminDeploymentEvidence_ui_Admin_secret_and_deployment_evidence)}>
           {review.secretDeploymentEvidence.map((evidence) => (
             <SecretDeploymentCard key={evidence.evidenceId} evidence={evidence} />
           ))}
@@ -111,10 +115,10 @@ export function AdminProviderDeploymentReviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Operator Risks</p>
-          <h4>Provider, route, secret, deployment, and auth/store risks</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Operator_Risks)}</p>
+          <h4>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Provider_route_secret_deployment_and_auth_store_risks)}</h4>
         </div>
-        <div className="model-gateway-overview-trace-grid" aria-label="Admin provider deployment operator risks">
+        <div className="model-gateway-overview-trace-grid" aria-label={t($ => $.auxiliary.adminDeploymentEvidence_ui_Admin_provider_deployment_operator_risks)}>
           {review.operatorRisks.map((risk) => (
             <OperatorRiskCard key={risk.riskId} risk={risk} />
           ))}
@@ -123,10 +127,10 @@ export function AdminProviderDeploymentReviewPanel({
 
       <div className="model-gateway-overview-section">
         <div className="model-gateway-overview-subheading">
-          <p className="eyebrow">Boundary Locks</p>
-          <h4>Capabilities that remain closed before implementation work</h4>
+          <p className="eyebrow">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Boundary_Locks)}</p>
+          <h4>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Capabilities_that_remain_closed_before_implementation_work)}</h4>
         </div>
-        <div className="model-gateway-overview-lock-grid" aria-label="Admin provider deployment boundary locks">
+        <div className="model-gateway-overview-lock-grid" aria-label={t($ => $.auxiliary.adminDeploymentEvidence_ui_Admin_provider_deployment_boundary_locks)}>
           {review.lockedCapabilities.map((lock) => (
             <BoundaryLockCard key={lock.lockId} lock={lock} />
           ))}
@@ -137,6 +141,7 @@ export function AdminProviderDeploymentReviewPanel({
 }
 
 function ProviderProfileCard({ profile }: { profile: AdminProviderProfileReadiness }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-route-evidence-card">
       <div className="model-gateway-overview-row-main">
@@ -144,113 +149,117 @@ function ProviderProfileCard({ profile }: { profile: AdminProviderProfileReadine
           <p className="eyebrow">{profile.providerId}</p>
           <h5>{profile.providerProfile}</h5>
         </div>
-        <StatusBadge tone={adminProviderDeploymentTone(profile.status)}>{profile.status}</StatusBadge>
+        <StatusBadge tone={adminProviderDeploymentTone(profile.status)}>{evidenceProjectionStatus(t, profile.status)}</StatusBadge>
       </div>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Credential</dt>
-          <dd>{profile.credentialState}</dd>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Credential)}</dt>
+          <dd>{evidenceProjectionStatus(t, profile.credentialState)}</dd>
         </div>
         <div>
-          <dt>Deployment</dt>
-          <dd>{profile.deploymentMode}</dd>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Deployment)}</dt>
+          <dd>{evidenceProjectionStatus(t, profile.deploymentMode)}</dd>
         </div>
         <div>
-          <dt>Auth</dt>
-          <dd>{profile.authMode}</dd>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Auth)}</dt>
+          <dd>{evidenceProjectionStatus(t, profile.authMode)}</dd>
         </div>
         <div>
-          <dt>Streaming</dt>
-          <dd>{profile.streaming}</dd>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Streaming)}</dt>
+          <dd>{evidenceProjectionStatus(t, profile.streaming)}</dd>
         </div>
       </dl>
-      <p className="model-gateway-usage-audit-evidence-source">Source: {profile.sourceRef}</p>
-      <p>{profile.summary}</p>
+      <p className="model-gateway-usage-audit-evidence-source">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Source)}{profile.sourceRef}</p>
+      <p>{evidenceProjectionText(t, profile, "summary")}</p>
     </article>
   );
 }
 
 function ModelRouteCard({ route }: { route: AdminModelRouteReadiness }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-policy">
       <div className="model-gateway-overview-row-main">
         <div>
-          <p className="eyebrow">{route.selectionSource}</p>
+          <p className="eyebrow">{evidenceProjectionStatus(t, route.selectionSource)}</p>
           <h5>{route.path}</h5>
         </div>
-        <StatusBadge tone={adminProviderDeploymentTone(route.status)}>{route.status}</StatusBadge>
+        <StatusBadge tone={adminProviderDeploymentTone(route.status)}>{evidenceProjectionStatus(t, route.status)}</StatusBadge>
       </div>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Route</dt>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Route)}</dt>
           <dd>{route.routeId}</dd>
         </div>
         <div>
-          <dt>Profile</dt>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Profile)}</dt>
           <dd>{route.selectedProfileId}</dd>
         </div>
         <div>
-          <dt>Source</dt>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Source_2)}</dt>
           <dd>{route.sourceRef}</dd>
         </div>
       </dl>
-      <p>{route.summary}</p>
+      <p>{evidenceProjectionText(t, route, "summary")}</p>
     </article>
   );
 }
 
 function SecretDeploymentCard({ evidence }: { evidence: AdminSecretDeploymentEvidence }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-card">
-      <span>{evidence.evidenceKind}</span>
-      <strong>{evidence.label}</strong>
-      <StatusBadge tone={adminProviderDeploymentTone(evidence.status)}>{evidence.status}</StatusBadge>
-      <p className="model-gateway-usage-audit-evidence-source">Value: {evidence.value}</p>
-      <p className="model-gateway-usage-audit-evidence-source">Source: {evidence.sourceRef}</p>
-      <p>{evidence.summary}</p>
+      <span>{evidenceProjectionStatus(t, evidence.evidenceKind)}</span>
+      <strong>{evidenceProjectionText(t, evidence, "label")}</strong>
+      <StatusBadge tone={adminProviderDeploymentTone(evidence.status)}>{evidenceProjectionStatus(t, evidence.status)}</StatusBadge>
+      <p className="model-gateway-usage-audit-evidence-source">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Value)}{evidenceProjectionText(t, evidence, "value")}</p>
+      <p className="model-gateway-usage-audit-evidence-source">{t($ => $.auxiliary.adminDeploymentEvidence_ui_Source)}{evidence.sourceRef}</p>
+      <p>{evidenceProjectionText(t, evidence, "summary")}</p>
     </article>
   );
 }
 
 function OperatorRiskCard({ risk }: { risk: AdminProviderDeploymentOperatorRisk }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-trace">
       <div className="model-gateway-overview-row-main">
         <div>
-          <p className="eyebrow">{risk.riskSurface}</p>
-          <h5>{risk.label}</h5>
+          <p className="eyebrow">{evidenceProjectionStatus(t, risk.riskSurface)}</p>
+          <h5>{evidenceProjectionText(t, risk, "label")}</h5>
         </div>
-        <StatusBadge tone="bad">{risk.status}</StatusBadge>
+        <StatusBadge tone="bad">{evidenceProjectionStatus(t, risk.status)}</StatusBadge>
       </div>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Evidence</dt>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Evidence)}</dt>
           <dd>{risk.evidenceRef}</dd>
         </div>
       </dl>
-      <p>{risk.summary}</p>
-      <p>{risk.operatorQuestion}</p>
+      <p>{evidenceProjectionText(t, risk, "summary")}</p>
+      <p>{evidenceProjectionText(t, risk, "operatorQuestion")}</p>
     </article>
   );
 }
 
 function BoundaryLockCard({ lock }: { lock: AdminProviderDeploymentLock }) {
+  const { t } = useTranslation("evaluation");
   return (
     <article className="model-gateway-overview-lock">
       <div className="model-gateway-overview-row-main">
         <div>
-          <p className="eyebrow">{lock.lockSurface}</p>
-          <h5>{lock.label}</h5>
+          <p className="eyebrow">{evidenceProjectionStatus(t, lock.lockSurface)}</p>
+          <h5>{evidenceProjectionText(t, lock, "label")}</h5>
         </div>
-        <StatusBadge tone="bad">{lock.status}</StatusBadge>
+        <StatusBadge tone="bad">{evidenceProjectionStatus(t, lock.status)}</StatusBadge>
       </div>
       <dl className="model-gateway-overview-meta">
         <div>
-          <dt>Missing prerequisite</dt>
-          <dd>{lock.missingPrerequisite}</dd>
+          <dt>{t($ => $.auxiliary.adminDeploymentEvidence_ui_Missing_prerequisite)}</dt>
+          <dd>{evidenceProjectionText(t, lock, "missingPrerequisite")}</dd>
         </div>
       </dl>
-      <p>{lock.summary}</p>
+      <p>{evidenceProjectionText(t, lock, "summary")}</p>
     </article>
   );
 }

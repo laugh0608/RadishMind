@@ -1,3 +1,6 @@
+import "../../i18n/evaluationScheduleResources.ts";
+import { useTranslation } from "react-i18next";
+import { campaignState, campaignOperation, campaignFailure, campaignMessage, type CampaignMessage } from "./applicationEvaluationMessages.ts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
@@ -41,6 +44,7 @@ export default function ApplicationEvaluationScheduleOwner({
   onSelectPlan: (planId: string) => void;
   onOpenCampaign: (campaignId: string, planId: string) => void;
 }) {
+  const { t } = useTranslation("evaluation");
   const promptPlans = useMemo(
     () => plans.filter((plan) => plan.executionProfile === "prompt_application_invocation_v1"),
     [plans],
@@ -56,16 +60,21 @@ export default function ApplicationEvaluationScheduleOwner({
   const [pending, setPending] = useState<PendingOperation | null>(null);
   const [operationPending, setOperationPending] = useState(false);
   const [failureCode, setFailureCode] = useState<ApplicationEvaluationScheduleFailureCode | null>(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<CampaignMessage | null>(null);
   const [loading, setLoading] = useState(config.mode !== "offline");
   const requestGeneration = useRef(0);
+  const scopeGeneration = useRef(0);
+  const operationInFlight = useRef(false);
+  const planSelection = useRef({ promptPlans, selectedPlan, onSelectPlan });
+  planSelection.current = { promptPlans, selectedPlan, onSelectPlan };
   const requestAbort = useRef<AbortController | null>(null);
 
   const selectedSchedule = schedules.find((schedule) => schedule.scheduleId === selectedScheduleId) ?? null;
   const selectedPromptPlan = selectedPlan?.executionProfile === "prompt_application_invocation_v1" ? selectedPlan : null;
   const exactPromptVersion = selectedPromptPlan && selectedPlanVersion?.planId === selectedPromptPlan.planId &&
     selectedPlanVersion.executionProfile === "prompt_application_invocation_v1" ? selectedPlanVersion : null;
-  const writeBlocked = config.mode === "offline" || !applicationActive || operationPending;
+  const writeBlocked = config.mode === "offline" || !applicationActive || operationPending || loading ||
+    failureCode === "application_evaluation_schedule_version_conflict";
   const definitionBlocked = writeBlocked || !selectedPromptPlan || !exactPromptVersion || !quotaAPIKeyId.trim();
 
   const beginRequest = useCallback(() => {
@@ -81,17 +90,18 @@ export default function ApplicationEvaluationScheduleOwner({
   ) => {
     const controller = beginRequest();
     setSelectedScheduleId(schedule.scheduleId);
+    setPending(null);
     setVersion(null);
     setOccurrence(null);
     setFailureCode(null);
-    setMessage("");
+    setMessage(null);
     setLoading(true);
     try {
       const envelope = await readApplicationEvaluationScheduleVersion(config, schedule.scheduleId, schedule.latestScheduleVersion, controller.signal);
       if (generation !== requestGeneration.current) return;
       if (envelope.failureCode || !envelope.version) {
         setFailureCode(envelope.failureCode);
-        setMessage(envelope.failureSummary || "The exact immutable schedule version is unavailable.");
+        setMessage(envelope.failureCode ? null : { kind: "strictFailure" });
         return;
       }
       setVersion(envelope.version);
@@ -99,17 +109,18 @@ export default function ApplicationEvaluationScheduleOwner({
       setHour(String(envelope.version.schedule.hour).padStart(2, "0"));
       setMinute(String(envelope.version.schedule.minute).padStart(2, "0"));
       setOccurrenceTime(schedule.nextDueAt ?? "");
-      if (promptPlans.some((plan) => plan.planId === schedule.planId) && selectedPlan?.planId !== schedule.planId) {
-        onSelectPlan(schedule.planId);
+      const selection = planSelection.current;
+      if (selection.promptPlans.some((plan) => plan.planId === schedule.planId) && selection.selectedPlan?.planId !== schedule.planId) {
+        selection.onSelectPlan(schedule.planId);
       }
     } catch (error) {
       if (generation !== requestGeneration.current) return;
       if (isAbortError(error)) return;
-      setMessage(strictFailure(error));
+      setMessage({ kind: "strictFailure" });
     } finally {
       if (generation === requestGeneration.current) setLoading(false);
     }
-  }, [beginRequest, config, onSelectPlan, promptPlans, selectedPlan?.planId]);
+  }, [beginRequest, config]);
 
   const loadScheduleOwner = useCallback(async (preferredScheduleId = "") => {
     const generation = ++requestGeneration.current;
@@ -117,7 +128,7 @@ export default function ApplicationEvaluationScheduleOwner({
     setPending(null);
     setLoading(config.mode !== "offline");
     setFailureCode(null);
-    setMessage("");
+    setMessage(null);
     setOccurrence(null);
     try {
       const lifecycleStates = ["draft", "active", "paused", "archived"] as const;
@@ -131,7 +142,7 @@ export default function ApplicationEvaluationScheduleOwner({
         setSelectedScheduleId("");
         setVersion(null);
         setFailureCode(failedEnvelope.failureCode);
-        setMessage(failedEnvelope.failureSummary);
+        setMessage(null);
         return;
       }
       const availableSchedules = envelopes
@@ -151,27 +162,34 @@ export default function ApplicationEvaluationScheduleOwner({
       setSchedules([]);
       setSelectedScheduleId("");
       setVersion(null);
-      setMessage(strictFailure(error));
+      setMessage({ kind: "strictFailure" });
     } finally {
       if (generation === requestGeneration.current) setLoading(false);
     }
   }, [beginRequest, config, loadExactSchedule]);
 
   useEffect(() => {
+    operationInFlight.current = false;
+    setOperationPending(false);
     void loadScheduleOwner();
     return () => {
       requestGeneration.current += 1;
+      scopeGeneration.current += 1;
       requestAbort.current?.abort();
     };
   }, [loadScheduleOwner]);
 
   function startNewSchedule() {
+    if (operationInFlight.current) return;
+    requestGeneration.current += 1;
+    requestAbort.current?.abort();
+    setLoading(false);
     setSelectedScheduleId("");
     setVersion(null);
     setOccurrence(null);
     setPending(null);
     setFailureCode(null);
-    setMessage("New schedule draft. No server mutation has occurred.");
+    setMessage({ kind: "newScheduleMessage" });
     setQuotaAPIKeyId("");
     setHour("02");
     setMinute("30");
@@ -179,28 +197,30 @@ export default function ApplicationEvaluationScheduleOwner({
 
   function reviewOperation(kind: PendingOperation) {
     if ((kind === "create" || kind === "revise") && definitionBlocked) {
-      setMessage("Choose one exact active Prompt plan, actor-owned API key id, and valid UTC cadence before review.");
+      setMessage({ kind: "chooseScheduleInputs" });
       return;
     }
     if (kind !== "create" && !selectedSchedule) {
-      setMessage("Select an exact schedule before reviewing this operation.");
+      setMessage({ kind: "selectSchedule" });
       return;
     }
     if (!validCadence(hour, minute)) {
-      setMessage("Daily UTC hour must be 00–23 and minute must be 00–59.");
+      setMessage({ kind: "invalidCadence" });
       return;
     }
     setPending(kind);
     setFailureCode(null);
-    setMessage("");
+    setMessage(null);
   }
 
   async function confirmOperation() {
-    if (!pending || writeBlocked) return;
+    if (!pending || writeBlocked || operationInFlight.current) return;
+    operationInFlight.current = true;
+    const generation = scopeGeneration.current;
     setOperationPending(true);
     const controller = beginRequest();
     setFailureCode(null);
-    setMessage("");
+    setMessage(null);
     try {
       let envelope;
       if (pending === "create" || pending === "revise") {
@@ -218,31 +238,39 @@ export default function ApplicationEvaluationScheduleOwner({
       } else {
         envelope = await transitionApplicationEvaluationSchedule(config, selectedSchedule as ApplicationEvaluationSchedule, pending, controller.signal);
       }
+      if (generation !== scopeGeneration.current) return;
       if (envelope.failureCode || !envelope.schedule) {
+        setPending(null);
         setFailureCode(envelope.failureCode);
-        setMessage(envelope.failureSummary || "The schedule operation failed closed.");
+        setMessage(envelope.failureCode ? null : { kind: "strictFailure" });
         return;
       }
       const operation = pending;
       setPending(null);
       await loadScheduleOwner(envelope.schedule.scheduleId);
-      setMessage(`${operationLabel(operation)} completed at record v${envelope.schedule.recordVersion}.`);
+      if (generation !== scopeGeneration.current) return;
+      setMessage({ kind: "scheduleSavedMessage", operation, version: envelope.schedule.recordVersion });
     } catch (error) {
+      if (generation !== scopeGeneration.current) return;
       if (isAbortError(error)) return;
-      setMessage(strictFailure(error));
+      setMessage({ kind: "strictFailure" });
     } finally {
-      setOperationPending(false);
+      if (generation === scopeGeneration.current) {
+        operationInFlight.current = false;
+        setOperationPending(false);
+      }
     }
   }
 
   async function loadOccurrence() {
-    if (!selectedSchedule || !version || operationPending) return;
+    if (!selectedSchedule || !version || operationInFlight.current) return;
+    operationInFlight.current = true;
     const generation = ++requestGeneration.current;
     const controller = beginRequest();
     setOperationPending(true);
     setOccurrence(null);
     setFailureCode(null);
-    setMessage("");
+    setMessage(null);
     try {
       const envelope = await readApplicationEvaluationScheduleOccurrence(
         config,
@@ -254,17 +282,20 @@ export default function ApplicationEvaluationScheduleOwner({
       if (generation !== requestGeneration.current) return;
       if (envelope.failureCode || !envelope.occurrence) {
         setFailureCode(envelope.failureCode);
-        setMessage(envelope.failureSummary || "The exact occurrence is unavailable.");
+        setMessage(envelope.failureCode ? null : { kind: "strictFailure" });
         return;
       }
       setOccurrence(envelope.occurrence);
-      setMessage(`Exact occurrence ${envelope.occurrence.scheduledForUTC} loaded; no execution or replay was requested.`);
+      setMessage({ kind: "occurrenceLoadedMessage", time: envelope.occurrence.scheduledForUTC });
     } catch (error) {
       if (generation !== requestGeneration.current) return;
       if (isAbortError(error)) return;
-      setMessage(strictFailure(error));
+      setMessage({ kind: "strictFailure" });
     } finally {
-      if (generation === requestGeneration.current) setOperationPending(false);
+      if (generation === requestGeneration.current) {
+        operationInFlight.current = false;
+        setOperationPending(false);
+      }
     }
   }
 
@@ -278,7 +309,7 @@ export default function ApplicationEvaluationScheduleOwner({
       <ScheduleContext
         schedules={schedules}
         selectedSchedule={selectedSchedule}
-        loading={loading}
+        loading={loading || operationPending}
         onSelect={(scheduleId) => {
           const schedule = schedules.find((candidate) => candidate.scheduleId === scheduleId);
           if (schedule) void loadExactSchedule(schedule);
@@ -323,20 +354,19 @@ export default function ApplicationEvaluationScheduleOwner({
         />
       )}
 
+      {operationPending || loading ? <p role="status">{t($ => $.campaign.pendingOperation)}</p> : null}
+      {!loading && !failureCode && schedules.length === 0 ? <p>{t($ => $.campaign.schedulesEmpty)}</p> : null}
       {failureCode || message ? (
         <div className={`application-evaluation-operation ${failureCode ? "is-failure" : ""}`} role="status">
-          <strong>{failureCode ? scheduleFailureLabel(failureCode) : "Owner update"}</strong>
-          <span>{message}</span>
-          {failureCode === "application_evaluation_schedule_version_conflict" && selectedSchedule ? (
-            <button type="button" onClick={() => void loadScheduleOwner(selectedSchedule.scheduleId)}>Reload exact owner</button>
+          <strong>{failureCode ? campaignFailure(t, failureCode) : t($ => $.campaign.ownerUpdate)}</strong>
+          <span>{campaignMessage(t, message)}</span>{failureCode ? <code>{failureCode}</code> : null}
+          {failureCode || message?.kind === "strictFailure" ? (
+            <button type="button" onClick={() => void loadScheduleOwner(selectedSchedule?.scheduleId ?? "")} disabled={operationPending}>{t($ => $.campaign.reloadOwner)}</button>
           ) : null}
         </div>
       ) : null}
 
-      <p className="application-evaluation-boundary-note">
-        A schedule stores recurring intent and exact references, never a bearer credential. Every occurrence rechecks current account,
-        membership, permissions, Plan authority, actor-owned API Key and quota; retry, replay, catch-up and production remain closed.
-      </p>
+      <p className="application-evaluation-boundary-note">{t($ => $.campaign.scheduleBoundary)}</p>
     </section>
   );
 }
@@ -354,22 +384,23 @@ function ScheduleContext({
   onSelect: (scheduleId: string) => void;
   onNew: () => void;
 }) {
+  const { t } = useTranslation("evaluation");
   return <header className="application-evaluation-schedule-context">
     <div>
-      <span>{selectedSchedule ? "Selected schedule" : "Schedule owner"}</span>
+      <span>{selectedSchedule ? t($ => $.campaign.selectedSchedule) : t($ => $.campaign.scheduleOwner)}</span>
       <label>
-        <select value={selectedSchedule?.scheduleId ?? ""} onChange={(event) => onSelect(event.target.value)} disabled={loading}>
-          <option value="">{loading ? "Loading exact schedules…" : "New schedule draft"}</option>
+        <select aria-label={t($ => $.campaign.selectedSchedule)} value={selectedSchedule?.scheduleId ?? ""} onChange={(event) => onSelect(event.target.value)} disabled={loading}>
+          <option value="">{loading ? t($ => $.campaign.schedulesLoading) : t($ => $.campaign.newScheduleDraft)}</option>
           {schedules.map((schedule) => <option key={schedule.scheduleId} value={schedule.scheduleId}>
-            {schedule.scheduleId} · plan v{schedule.planVersion} · {schedule.lifecycleState}
+            {t($ => $.campaign.scheduleOption, { id: schedule.scheduleId, version: schedule.planVersion, state: campaignState(t, schedule.lifecycleState) })}
           </option>)}
         </select>
       </label>
     </div>
     <div>
-      <strong>{selectedSchedule ? `${selectedSchedule.scheduleId} · version ${selectedSchedule.latestScheduleVersion}` : "No persisted schedule selected"}</strong>
-      <small>{selectedSchedule ? `${selectedSchedule.systemActorRef} + delegated user` : "review before create"}</small>
-      <button type="button" className="secondary-action" onClick={onNew}>New schedule</button>
+      <strong>{selectedSchedule ? t($ => $.campaign.scheduleSelected, { id: selectedSchedule.scheduleId, version: selectedSchedule.latestScheduleVersion }) : t($ => $.campaign.noSchedule)}</strong>
+      <small>{selectedSchedule ? t($ => $.campaign.delegation, { actor: selectedSchedule.systemActorRef }) : t($ => $.campaign.reviewBeforeCreate)}</small>
+      <button type="button" className="secondary-action" onClick={onNew} disabled={loading}>{t($ => $.campaign.newSchedule)}</button>
     </div>
   </header>;
 }
@@ -415,51 +446,53 @@ function ScheduleSurface({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation("evaluation");
+  const { i18n } = useTranslation("evaluation");
   const state = schedule?.lifecycleState ?? "draft";
   const nextAction: ApplicationEvaluationScheduleAction | null = state === "draft" ? "activate" : state === "active" ? "pause" : state === "paused" ? "resume" : null;
   return <div className="application-evaluation-schedule-surface">
     <main className="application-evaluation-schedule-main">
       <header>
-        <div><span>Exact Plan version</span><h4>{selectedPlan?.name ?? "Choose an active Prompt plan"}{selectedPlanVersion ? ` · plan v${selectedPlanVersion.planVersion}` : ""}</h4></div>
+        <div><span>{t($ => $.campaign.exactPlanVersion)}</span><h4>{selectedPlan?.name ?? t($ => $.campaign.choosePromptPlan)}{selectedPlanVersion ? t($ => $.campaign.planSuffix, { version: selectedPlanVersion.planVersion }) : ""}</h4></div>
         <code>{shortRef(version?.planDigest ?? selectedPlanVersion?.planDigest ?? "")}</code>
       </header>
       <div className="application-evaluation-schedule-metrics">
-        <div><strong>{schedule?.nextDueAt ? formatDate(schedule.nextDueAt) : "Daily"}</strong><span>{schedule?.nextDueAt ? `next due · ${formatTime(schedule.nextDueAt)} UTC` : `${hour.padStart(2, "0")}:${minute.padStart(2, "0")} UTC`}</span></div>
-        <div><strong>{version?.itemCount ?? selectedPlan?.itemCount ?? "—"}</strong><span>fixtures</span></div>
-        <div><strong>{version?.maxProviderAttempts ?? selectedPlan?.itemCount ?? "—"}</strong><span>max attempts</span></div>
-        <div><strong>v{schedule?.latestScheduleVersion ?? 1}</strong><span>schedule version</span></div>
+        <div><strong>{schedule?.nextDueAt ? formatDate(schedule.nextDueAt, i18n.language) : t($ => $.campaign.daily)}</strong><span>{schedule?.nextDueAt ? t($ => $.campaign.nextDue, { time: formatTime(schedule.nextDueAt) }) : `${hour.padStart(2, "0")}:${minute.padStart(2, "0")} UTC`}</span></div>
+        <div><strong>{version?.itemCount ?? selectedPlan?.itemCount ?? "—"}</strong><span>{t($ => $.campaign.fixtures)}</span></div>
+        <div><strong>{version?.maxProviderAttempts ?? selectedPlan?.itemCount ?? "—"}</strong><span>{t($ => $.campaign.maxAttempts)}</span></div>
+        <div><strong>v{schedule?.latestScheduleVersion ?? 1}</strong><span>{t($ => $.campaign.scheduleVersion)}</span></div>
       </div>
       <dl className="application-evaluation-schedule-details">
-        <div><dt>Plan</dt><dd>{schedule ? `${schedule.planId} · v${schedule.planVersion}` : selectedPlan ? `${selectedPlan.planId} · v${selectedPlan.latestPlanVersion}` : "not selected"}</dd></div>
-        <div><dt>Actors</dt><dd>{schedule ? `${shortRef(schedule.systemActorRef)} + ${shortRef(schedule.delegatedByUserRef)}` : "system actor + current delegated user"}</dd></div>
-        <div><dt>Quota</dt><dd>{quotaAPIKeyId || "actor-owned API key id required"}</dd></div>
-        <div><dt>Cadence</dt><dd>daily UTC · {hour.padStart(2, "0")}:{minute.padStart(2, "0")}</dd></div>
+        <div><dt>{t($ => $.campaign.plan)}</dt><dd>{schedule ? `${schedule.planId} · v${schedule.planVersion}` : selectedPlan ? `${selectedPlan.planId} · v${selectedPlan.latestPlanVersion}` : t($ => $.campaign.notSelected)}</dd></div>
+        <div><dt>{t($ => $.campaign.actors)}</dt><dd>{schedule ? `${shortRef(schedule.systemActorRef)} + ${shortRef(schedule.delegatedByUserRef)}` : t($ => $.campaign.systemDelegation)}</dd></div>
+        <div><dt>{t($ => $.campaign.quota)}</dt><dd>{quotaAPIKeyId || t($ => $.campaign.keyRequired)}</dd></div>
+        <div><dt>{t($ => $.campaign.cadence)}</dt><dd>{t($ => $.campaign.dailyCadence, { time: `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}` })}</dd></div>
       </dl>
       <div className="application-evaluation-schedule-editor">
-        <label><span>Exact Prompt plan</span><select value={selectedPlan?.planId ?? ""} onChange={(event) => onSelectPlan(event.target.value)} disabled={operationPending}><option value="">Choose active Prompt plan</option>{promptPlans.map((plan) => <option key={plan.planId} value={plan.planId}>{plan.name} · v{plan.latestPlanVersion}</option>)}</select></label>
-        <label><span>Actor-owned API key id</span><input value={quotaAPIKeyId} onChange={(event) => onQuotaChange(event.target.value)} placeholder="key_…" disabled={operationPending} /></label>
-        <label><span>Daily UTC hour</span><input type="number" min="0" max="23" value={hour} onChange={(event) => onHourChange(event.target.value)} disabled={operationPending} /></label>
-        <label><span>Minute</span><input type="number" min="0" max="59" value={minute} onChange={(event) => onMinuteChange(event.target.value)} disabled={operationPending} /></label>
+        <label><span>{t($ => $.campaign.exactPromptPlan)}</span><select value={selectedPlan?.planId ?? ""} onChange={(event) => onSelectPlan(event.target.value)} disabled={operationPending}><option value="">{t($ => $.campaign.chooseActivePromptPlan)}</option>{promptPlans.map((plan) => <option key={plan.planId} value={plan.planId}>{plan.name} · v{plan.latestPlanVersion}</option>)}</select></label>
+        <label><span>{t($ => $.campaign.actorKey)}</span><input value={quotaAPIKeyId} onChange={(event) => onQuotaChange(event.target.value)} placeholder="key_…" disabled={operationPending} /></label>
+        <label><span>{t($ => $.campaign.dailyHour)}</span><input type="number" min="0" max="23" value={hour} onChange={(event) => onHourChange(event.target.value)} disabled={operationPending} /></label>
+        <label><span>{t($ => $.campaign.minute)}</span><input type="number" min="0" max="59" value={minute} onChange={(event) => onMinuteChange(event.target.value)} disabled={operationPending} /></label>
       </div>
       <div className="application-evaluation-schedule-rule">
-        <strong>Occurrence rule</strong>
-        <p>One deterministic occurrence may create at most one existing Campaign. Missed windows are recorded without catch-up; overlap is skipped while a Campaign remains non-terminal.</p>
+        <strong>{t($ => $.campaign.occurrenceRule)}</strong>
+        <p>{t($ => $.campaign.occurrenceRuleBody)}</p>
       </div>
     </main>
 
     <aside className="application-evaluation-schedule-rail">
-      <header><span>Schedule authorization</span><em>{state}</em></header>
+      <header><span>{t($ => $.campaign.scheduleAuthorization)}</span><em>{campaignState(t, state)}</em></header>
       <strong>{hour.padStart(2, "0")}:{minute.padStart(2, "0")}</strong>
-      <small>next due UTC · daily</small>
-      <div><span>Delegated user</span><strong>{shortRef(schedule?.delegatedByUserRef ?? "current user")}</strong><small>system actor remains separate</small></div>
-      <div className="is-attention"><span>Quota consumer</span><strong>{quotaAPIKeyId || "required"}</strong><small>{version?.maxProviderAttempts ?? selectedPlan?.itemCount ?? "—"} attempts maximum</small></div>
+      <small>{t($ => $.campaign.nextDaily)}</small>
+      <div><span>{t($ => $.campaign.delegatedUser)}</span><strong>{shortRef(schedule?.delegatedByUserRef ?? t($ => $.campaign.currentUser))}</strong><small>{t($ => $.campaign.separateActor)}</small></div>
+      <div className="is-attention"><span>{t($ => $.campaign.quotaConsumer)}</span><strong>{quotaAPIKeyId || t($ => $.campaign.required)}</strong><small>{version || selectedPlan ? t($ => $.campaign.maxAttemptCount, { count: version?.maxProviderAttempts ?? selectedPlan?.itemCount ?? 0 }) : t($ => $.campaign.unknownAttempts)}</small></div>
       {!pending ? <div className="application-evaluation-schedule-actions">
-        {!schedule ? <button type="button" onClick={() => onReview("create")} disabled={definitionBlocked}>Review create</button> : null}
-        {schedule && (state === "draft" || state === "paused") ? <button type="button" className="secondary-action" onClick={() => onReview("revise")} disabled={definitionBlocked}>Review revision</button> : null}
-        {schedule && nextAction ? <button type="button" onClick={() => onReview(nextAction)} disabled={writeBlocked}>{operationLabel(nextAction)}</button> : null}
-        {schedule && state !== "archived" ? <button type="button" className="attention-action" onClick={() => onReview("archive")} disabled={writeBlocked}>Review archive</button> : null}
+        {!schedule ? <button type="button" onClick={() => onReview("create")} disabled={definitionBlocked}>{t($ => $.campaign.reviewCreate)}</button> : null}
+        {schedule && (state === "draft" || state === "paused") ? <button type="button" className="secondary-action" onClick={() => onReview("revise")} disabled={definitionBlocked}>{t($ => $.campaign.reviewRevision)}</button> : null}
+        {schedule && nextAction ? <button type="button" onClick={() => onReview(nextAction)} disabled={writeBlocked}>{campaignOperation(t, nextAction)}</button> : null}
+        {schedule && state !== "archived" ? <button type="button" className="attention-action" onClick={() => onReview("archive")} disabled={writeBlocked}>{t($ => $.campaign.reviewArchive)}</button> : null}
       </div> : <ScheduleConfirmation operation={pending} schedule={schedule} version={version} onCancel={onCancel} onConfirm={onConfirm} disabled={writeBlocked} />}
-      <small>CAS · expected record v{schedule?.recordVersion ?? "new"}</small>
+      <small>{schedule ? t($ => $.campaign.expectedRecord, { version: schedule.recordVersion }) : t($ => $.campaign.newRecord)}</small>
     </aside>
   </div>;
 }
@@ -479,15 +512,16 @@ function ScheduleConfirmation({
   onConfirm: () => void;
   disabled: boolean;
 }) {
+  const { t } = useTranslation("evaluation");
   const recurring = operation === "activate" || operation === "resume" || operation === "create" || operation === "revise";
   return <div className="application-evaluation-confirmation">
-    <span>CONFIRM {operation.toUpperCase()}</span>
-    <strong>{schedule?.scheduleId ?? "New daily UTC schedule"}</strong>
+    <span>{t($ => $.campaign.confirmOperation, { operation: campaignOperation(t, operation) })}</span>
+    <strong>{schedule?.scheduleId ?? t($ => $.campaign.newDailySchedule)}</strong>
     <p>{recurring
-      ? `This records recurring intent for at most ${version?.maxProviderAttempts ?? "the exact Plan item count"} Provider attempts per occurrence.`
-      : operation === "archive" ? "No future occurrences will be created. Existing versions and occurrences remain readable." : "The active cadence is paused without replay or catch-up."}</p>
-    <p>Every future occurrence still revalidates current authority and quota. No credential, retry, replay, release or deploy is authorized.</p>
-    <div><button type="button" className="secondary-action" onClick={onCancel}>Cancel</button><button type="button" onClick={onConfirm} disabled={disabled}>Confirm {operation}</button></div>
+      ? version ? t($ => $.campaign.recurringConfirmation, { count: version.maxProviderAttempts }) : t($ => $.campaign.recurringPlanConfirmation)
+      : operation === "archive" ? t($ => $.campaign.scheduleArchive) : t($ => $.campaign.schedulePause)}</p>
+    <p>{t($ => $.campaign.scheduleConfirmBoundary)}</p>
+    <div><button type="button" className="secondary-action" onClick={onCancel} disabled={disabled}>{t($ => $.campaign.cancel)}</button><button type="button" onClick={onConfirm} disabled={disabled}>{t($ => $.campaign.confirmOperation, { operation: campaignOperation(t, operation) })}</button></div>
   </div>;
 }
 
@@ -510,77 +544,55 @@ function OccurrenceSurface({
   onLoad: () => void;
   onOpenCampaign: () => void;
 }) {
+  const { t } = useTranslation("evaluation");
   const terminal = occurrence ? ["succeeded", "failed", "interrupted", "skipped"].includes(occurrence.state) : false;
   return <div className="application-evaluation-occurrence-surface">
     <header>
-      <div><span>Exact occurrence read</span><h4>{occurrence ? formatTimestamp(occurrence.scheduledForUTC) : "Enter the canonical scheduled UTC time"}</h4></div>
-      <em>{occurrence?.state ?? "read only"}</em>
+      <div><span>{t($ => $.campaign.exactOccurrence)}</span><h4>{occurrence ? formatTimestamp(occurrence.scheduledForUTC) : t($ => $.campaign.enterUTC)}</h4></div>
+      <em>{occurrence ? campaignState(t, occurrence.state) : t($ => $.campaign.readOnly)}</em>
     </header>
     <div className="application-evaluation-occurrence-reader">
-      <label><span>Schedule version</span><input value={version ? `v${version.scheduleVersion}` : "—"} readOnly /></label>
+      <label><span>{t($ => $.campaign.scheduleVersionLabel)}</span><input value={version ? `v${version.scheduleVersion}` : "—"} readOnly /></label>
       <label><span>scheduled_for_utc</span><input value={occurrenceTime} onChange={(event) => onOccurrenceTimeChange(event.target.value)} placeholder="2026-08-31T02:30:00Z" disabled={operationPending} /></label>
-      <button type="button" onClick={onLoad} disabled={!schedule || !version || !occurrenceTime.trim() || operationPending}>Read exact occurrence</button>
+      <button type="button" onClick={onLoad} disabled={!schedule || !version || !occurrenceTime.trim() || operationPending}>{t($ => $.campaign.readOccurrence)}</button>
     </div>
     {occurrence ? <>
       <div className="application-evaluation-occurrence-metrics">
-        <div><strong>{occurrence.campaignId ? 1 : 0}</strong><span>Campaign refs</span></div>
-        <div><strong>{occurrence.failureCode ? 1 : 0}</strong><span>fail-closed result</span></div>
-        <div><strong>0</strong><span>client replays</span></div>
-        <div><strong>v{occurrence.recordVersion}</strong><span>record version</span></div>
+        <div><strong>{occurrence.campaignId ? 1 : 0}</strong><span>{t($ => $.campaign.campaignRefs)}</span></div>
+        <div><strong>{occurrence.failureCode ? 1 : 0}</strong><span>{t($ => $.campaign.failClosedResult)}</span></div>
+        <div><strong>0</strong><span>{t($ => $.campaign.clientReplays)}</span></div>
+        <div><strong>v{occurrence.recordVersion}</strong><span>{t($ => $.campaign.recordVersionLabel)}</span></div>
       </div>
       <dl className="application-evaluation-occurrence-details">
-        <div><dt>Exact schedule</dt><dd>{occurrence.scheduleId} · v{occurrence.scheduleVersion}</dd></div>
-        <div><dt>Deterministic key</dt><dd>{occurrence.clientCampaignKey}</dd></div>
-        <div><dt>Actors</dt><dd>{shortRef(occurrence.systemActorRef)} + {shortRef(occurrence.delegatedByUserRef)}</dd></div>
-        <div><dt>Claimed</dt><dd>{occurrence.claimedAt ? formatTimestamp(occurrence.claimedAt) : "not claimed"}</dd></div>
-        <div><dt>Failure code</dt><dd>{occurrence.failureCode ?? "none"}</dd></div>
-        <div><dt>Campaign</dt><dd>{occurrence.campaignId ?? "none created"}</dd></div>
+        <div><dt>{t($ => $.campaign.exactSchedule)}</dt><dd>{occurrence.scheduleId} · v{occurrence.scheduleVersion}</dd></div>
+        <div><dt>{t($ => $.campaign.deterministicKey)}</dt><dd>{occurrence.clientCampaignKey}</dd></div>
+        <div><dt>{t($ => $.campaign.actors)}</dt><dd>{shortRef(occurrence.systemActorRef)} + {shortRef(occurrence.delegatedByUserRef)}</dd></div>
+        <div><dt>{t($ => $.campaign.claimed)}</dt><dd>{occurrence.claimedAt ? formatTimestamp(occurrence.claimedAt) : t($ => $.campaign.notClaimed)}</dd></div>
+        <div><dt>{t($ => $.campaign.failureCode)}</dt><dd>{occurrence.failureCode ? `${campaignFailure(t, occurrence.failureCode)} · ${occurrence.failureCode}` : t($ => $.campaign.none)}</dd></div>
+        <div><dt>{t($ => $.campaign.campaign)}</dt><dd>{occurrence.campaignId ?? t($ => $.campaign.noneCreated)}</dd></div>
       </dl>
       <div className={`application-evaluation-occurrence-result is-${occurrence.state}`}>
-        <div><span>{terminal ? "Terminal evidence" : "Open occurrence"}</span><strong>{occurrence.state}</strong></div>
-        {occurrence.campaignId ? <button type="button" onClick={onOpenCampaign}>Open exact Campaign</button> : <span>No Campaign handoff exists; the browser cannot create or replay one.</span>}
+        <div><span>{terminal ? t($ => $.campaign.terminalEvidence) : t($ => $.campaign.openOccurrence)}</span><strong>{campaignState(t, occurrence.state)}</strong></div>
+        {occurrence.campaignId ? <button type="button" onClick={onOpenCampaign}>{t($ => $.campaign.openCampaign)}</button> : <span>{t($ => $.campaign.noCampaignHandoff)}</span>}
       </div>
-    </> : <div className="application-evaluation-pair-empty"><strong>No occurrence loaded</strong><span>The API intentionally has no occurrence list route. Read only the exact schedule version and canonical UTC identity you intend to inspect.</span></div>}
+    </> : <div className="application-evaluation-pair-empty"><strong>{t($ => $.campaign.noOccurrence)}</strong><span>{t($ => $.campaign.occurrenceReadBoundary)}</span></div>}
   </div>;
 }
 
 function validCadence(hour: string, minute: string): boolean {
+  if (!hour.trim() || !minute.trim()) return false;
   const hourValue = Number(hour);
   const minuteValue = Number(minute);
   return Number.isInteger(hourValue) && hourValue >= 0 && hourValue <= 23 &&
     Number.isInteger(minuteValue) && minuteValue >= 0 && minuteValue <= 59;
 }
 
-function operationLabel(operation: PendingOperation): string {
-  const labels: Record<PendingOperation, string> = {
-    create: "Create schedule",
-    revise: "Revise schedule",
-    activate: "Activate schedule",
-    pause: "Pause schedule",
-    resume: "Resume schedule",
-    archive: "Archive schedule",
-  };
-  return labels[operation];
-}
-
-function scheduleFailureLabel(code: ApplicationEvaluationScheduleFailureCode): string {
-  if (code.includes("version_conflict")) return "Version conflict";
-  if (code.includes("membership_denied")) return "Membership revoked";
-  if (code.includes("authority_changed") || code.includes("plan_changed")) return "Authority changed";
-  if (code.includes("quota")) return "Quota admission denied";
-  if (code.includes("missed_window")) return "Missed window recorded";
-  if (code.includes("overlap_blocked")) return "Overlap skipped";
-  if (code.includes("store")) return "Schedule store unavailable";
-  if (code.includes("not_found")) return "Exact record unavailable";
-  return "Schedule request failed closed";
-}
-
 function formatTimestamp(value: string): string {
   return value.replace("T", " · ").replace("Z", " UTC");
 }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", timeZone: "UTC" }).format(new Date(value));
+function formatDate(value: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", timeZone: "UTC" }).format(new Date(value));
 }
 
 function formatTime(value: string): string {
@@ -590,12 +602,6 @@ function formatTime(value: string): string {
 function shortRef(value: string): string {
   if (!value) return "—";
   return value.length <= 28 ? value : `${value.slice(0, 13)}…${value.slice(-10)}`;
-}
-
-function strictFailure(error: unknown): string {
-  return error instanceof Error
-    ? `${error.message} No response data was accepted and no execution was retried.`
-    : "Schedule strict validation failed. No response data was accepted.";
 }
 
 function isAbortError(error: unknown): boolean {

@@ -1,4 +1,5 @@
 export const artifactLibrary = {
+  "listLoaded_one": "Read {{count}} {{state}} result artifact metadata record; content has not been read.",
   "libraryRegion": "Application result artifact library",
   "workspace": "Application Result Workspace",
   "savedAcrossSessions": "Saved results across Sessions",
@@ -50,7 +51,7 @@ export const artifactLibrary = {
   "allProfilesLower": "all profiles",
   "allContentTypesLower": "all content types",
   "listUnavailable": "The result artifact list is unavailable ({{code}}).",
-  "listLoaded": "Read {{count}} {{state}} result artifact metadata records; content has not been read.",
+  "listLoaded_other": "Read {{count}} {{state}} result artifact metadata records; content has not been read.",
   "operationUnavailable": "The result artifact operation is unavailable ({{code}}).",
   "archiveSucceeded": "The result artifact was archived; its content and source are unchanged.",
   "unarchiveSucceeded": "The result artifact was unarchived and is active again.",

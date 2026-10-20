@@ -1,3 +1,7 @@
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "../../i18n/LanguageSelector.tsx";
+import { identityRoleCopy } from "./localIdentityRoleMessages.ts";
+import "../../i18n/identityInvitationResources.ts";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { LocalIdentityContextValue } from "./localIdentityContext.ts";
 import { readControlPlaneReadDevLiveConfig } from "../control-plane-read/devLiveReadConsumer.ts";
@@ -11,6 +15,7 @@ import { InvitationFacts, InvitationFailureNotice, InvitationNotice, InvitationS
 export function WorkspaceInvitationClaimPanel({ identity, onClose, onOpenSecurity, onLogout }: {
   identity: LocalIdentityContextValue; onClose: () => void; onOpenSecurity: () => void; onLogout: () => Promise<void>;
 }) {
+  const { t } = useTranslation("identity");
   const { profile } = identity;
   const config = { ...identity.config, tenantRef: readControlPlaneReadDevLiveConfig().tenantRef };
   const [code, setCode] = useState("");
@@ -78,7 +83,7 @@ export function WorkspaceInvitationClaimPanel({ identity, onClose, onOpenSecurit
   function handleDialogKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
     if (event.key !== "Tab" || !dialog.current) return;
-    const focusable = Array.from(dialog.current.querySelectorAll<HTMLElement>("button:not(:disabled), input:not(:disabled), a[href], [tabindex='0']"));
+    const focusable = Array.from(dialog.current.querySelectorAll<HTMLElement>("button:not(:disabled), input:not(:disabled), select:not(:disabled), a[href], [tabindex='0']"));
     const first = focusable[0]; const last = focusable.at(-1);
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -89,63 +94,63 @@ export function WorkspaceInvitationClaimPanel({ identity, onClose, onOpenSecurit
   return <section ref={dialog} className="workspace-invitation-claim" role="dialog" aria-modal="true" aria-labelledby="invitation-claim-title" onKeyDown={handleDialogKeyDown}>
     <header className="invitation-claim-header">
       <div className="invitation-brand"><span aria-hidden="true">R</span><strong>RadishMind</strong></div>
-      <div className="invitation-actions"><span className="invitation-state">SIGNED IN · DEV / TEST</span><button type="button" onClick={() => void onLogout()} disabled={Boolean(busy)}>Sign out</button>
-        <button type="button" aria-label="Close invitation claim" onClick={onClose}>×</button></div>
+      <div className="invitation-actions"><LanguageSelector /><span className="invitation-state">{t($ => $.invitations.signedIn)}</span><button type="button" onClick={() => void onLogout()} disabled={Boolean(busy)}>{t($ => $.invitations.signOut)}</button>
+        <button type="button" aria-label={t($ => $.invitations.closeClaim)} onClick={onClose}>×</button></div>
     </header>
     <div className="invitation-claim-body">
-      <aside className="invitation-claim-navigation" aria-label="Signed-in tasks">
-        <span className="invitation-rail-label">SIGNED-IN TASKS</span>
-        <button type="button" onClick={onOpenSecurity}><strong>Account</strong><small>Local identity</small></button>
-        <button type="button" onClick={onOpenSecurity}><strong>Sessions</strong><small>Self-service security</small></button>
-        <button type="button" aria-current="page"><strong>Claim invitation</strong><small>Workspace access</small></button>
-        <InvitationNotice title="Current actor" tone="success"><p>{profile.account.displayName}</p><p>{profile.account.lifecycleState === "active" ? "✓ Active local account" : "Account inactive"}</p>
-          <p>{preview || claimed ? "✓ Same tenant verified by server" : "Tenant verified during preview"}</p><p>{profile.capabilities.recentAuthentication ? "✓ Recent authentication" : "Recent authentication required"}</p></InvitationNotice>
-        <InvitationNotice title={claimed ? "ACCESS COMMITTED" : "NO ACCESS YET"} tone="warning">Code possession and preview are not membership. Only a committed atomic claim grants workspace access.</InvitationNotice>
+      <aside className="invitation-claim-navigation" aria-label={t($ => $.invitations.signedInTasks)}>
+        <span className="invitation-rail-label">{t($ => $.invitations.signedInTasksHeading)}</span>
+        <button type="button" onClick={onOpenSecurity}><strong>{t($ => $.invitations.account)}</strong><small>{t($ => $.invitations.localIdentity)}</small></button>
+        <button type="button" onClick={onOpenSecurity}><strong>{t($ => $.invitations.sessions)}</strong><small>{t($ => $.invitations.selfService)}</small></button>
+        <button type="button" aria-current="page"><strong>{t($ => $.invitations.claimInvitation)}</strong><small>{t($ => $.invitations.workspaceAccess)}</small></button>
+        <InvitationNotice title={t($ => $.invitations.currentActor)} tone="success"><p>{profile.account.displayName}</p><p>{profile.account.lifecycleState === "active" ? t($ => $.invitations.activeAccount) : t($ => $.invitations.inactiveAccount)}</p>
+          <p>{preview || claimed ? t($ => $.invitations.tenantVerified) : t($ => $.invitations.tenantDuringPreview)}</p><p>{profile.capabilities.recentAuthentication ? t($ => $.invitations.recentAuthVerified) : t($ => $.invitations.recentAuth)}</p></InvitationNotice>
+        <InvitationNotice title={claimed ? t($ => $.invitations.accessCommitted) : t($ => $.invitations.noAccessYet)} tone="warning">{t($ => $.invitations.previewBoundary)}</InvitationNotice>
       </aside>
       <main className="invitation-claim-main">
-        <header className="invitation-claim-title"><h2 id="invitation-claim-title">Claim workspace invitation</h2><p>Review the server preview, then explicitly confirm one atomic claim.</p><span className="invitation-state">NO ACTIVE WORKSPACE REQUIRED</span></header>
-        <ol className="invitation-progress invitation-claim-progress">{["Code", "Preview", "Confirm", "Claim"].map((label, index) =>
-          <li key={label} aria-current={step === index ? "step" : undefined}><b>{step > index || claimed ? "✓" : index + 1}</b><span>{label}</span></li>)}</ol>
+        <header className="invitation-claim-title"><h2 id="invitation-claim-title">{t($ => $.invitations.claimTitle)}</h2><p>{t($ => $.invitations.claimHelp)}</p><span className="invitation-state">{t($ => $.invitations.noWorkspaceRequired)}</span></header>
+        <ol className="invitation-progress invitation-claim-progress">{(["code", "preview", "confirm", "claim"] as const).map((stepKey, index) =>
+          <li key={stepKey} aria-current={step === index ? "step" : undefined}><b>{step > index || claimed ? "✓" : index + 1}</b><span>{t($ => $.invitations.steps[stepKey])}</span></li>)}</ol>
         <div className="invitation-claim-workbench">
           <div className="invitation-claim-flow">
             {failure ? <InvitationFailureNotice failure={failure} /> : null}
             {claimed ? <section className="invitation-claim-success" role="status">
-              <header className="invitation-section-header"><h3>Workspace membership created</h3><InvitationStateBadge state="claimed" /></header>
+              <header className="invitation-section-header"><h3>{t($ => $.invitations.membershipCreated)}</h3><InvitationStateBadge state="claimed" /></header>
               <InvitationFacts invitation={claimed} />
-              <p>The full claim committed. The invitation code has been cleared.</p>
-              <p>{busy === "refresh" ? "Reloading available workspaces…" : "Available workspaces reloaded. Choose a workspace explicitly when you return; your active selection has not changed."}</p>
-              {busy !== "refresh" ? <div className="invitation-available-workspaces"><h4>Available workspaces</h4><ul>{availableWorkspaces.map((membership) =>
+              <p>{t($ => $.invitations.claimCommitted)}</p>
+              <p>{busy === "refresh" ? t($ => $.invitations.refreshingWorkspaces) : t($ => $.invitations.workspacesRefreshed)}</p>
+              {busy !== "refresh" ? <div className="invitation-available-workspaces"><h4>{t($ => $.invitations.availableWorkspaces)}</h4><ul>{availableWorkspaces.map((membership) =>
                 <li key={membership.membershipId}>{membership.tenantRef} / <strong>{membership.workspaceId}</strong></li>)}</ul></div> : null}
-              <div className="invitation-actions"><button type="button" onClick={onClose}>Done</button><button type="button" onClick={changeCode} disabled={Boolean(busy)}>Claim another invitation</button></div>
+              <div className="invitation-actions"><button type="button" onClick={onClose}>{t($ => $.invitations.done)}</button><button type="button" onClick={changeCode} disabled={Boolean(busy)}>{t($ => $.invitations.claimAnother)}</button></div>
             </section> : <>
               <section className="invitation-code-entry">
-                <header className="invitation-section-header"><h3>Invitation code</h3>{preview ? <button type="button" onClick={changeCode}>Change code</button> : null}</header>
-                {preview ? <p>Verified code hidden · retained only in this component memory</p> : <form onSubmit={(event) => void verifyCode(event)} className="invitation-form">
-                  <label><span className="invitation-visually-hidden">Invitation code</span><input ref={input} type="password" aria-label="Invitation code" placeholder="Paste invitation code" autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={512} value={code}
+                <header className="invitation-section-header"><h3>{t($ => $.invitations.invitationCode)}</h3>{preview ? <button type="button" onClick={changeCode}>{t($ => $.invitations.changeCode)}</button> : null}</header>
+                {preview ? <p>{t($ => $.invitations.verifiedHidden)}</p> : <form onSubmit={(event) => void verifyCode(event)} className="invitation-form">
+                  <label><span className="invitation-visually-hidden">{t($ => $.invitations.invitationCode)}</span><input ref={input} type="password" aria-label={t($ => $.invitations.invitationCode)} placeholder={t($ => $.invitations.pasteCode)} autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={512} value={code}
                     disabled={Boolean(busy)} onChange={(event) => { setCode(event.target.value); setFailure(null); }} /></label>
-                  <p>Use the code shared by your administrator. Invalid input does not reveal whether an invitation exists.</p>
-                  <button type="submit" className="invitation-primary" disabled={!code.trim() || Boolean(busy)}>{busy === "preview" ? "Verifying…" : "Verify and preview"}</button>
+                  <p>{t($ => $.invitations.codeHelp)}</p>
+                  <button type="submit" className="invitation-primary" disabled={!code.trim() || Boolean(busy)}>{busy === "preview" ? t($ => $.invitations.verifying) : t($ => $.invitations.verifyPreview)}</button>
                 </form>}
               </section>
               {preview ? <>
-                <section className="invitation-preview"><header className="invitation-section-header"><h3>Server preview</h3><InvitationStateBadge state="pending" /></header><InvitationFacts invitation={preview} /><p>{preview.role.summary}</p></section>
-                <section className="invitation-claim-confirmation"><h3>Confirm membership creation</h3><p>One submission · atomic commit · no partial access</p>
-                  {!profile.capabilities.recentAuthentication ? <InvitationNotice title="Recent authentication required" tone="warning">Sign out and authenticate again, then re-enter the invitation code.</InvitationNotice> : null}
+                <section className="invitation-preview"><header className="invitation-section-header"><h3>{t($ => $.invitations.serverPreview)}</h3><InvitationStateBadge state="pending" /></header><InvitationFacts invitation={preview} /><p>{identityRoleCopy(t, preview.role.roleKey).summary}</p></section>
+                <section className="invitation-claim-confirmation"><h3>{t($ => $.invitations.confirmMembership)}</h3><p>{t($ => $.invitations.atomicSubmission)}</p>
+                  {!profile.capabilities.recentAuthentication ? <InvitationNotice title={t($ => $.invitations.recentAuth)} tone="warning">{t($ => $.invitations.claimReauth)}</InvitationNotice> : null}
                   <label className="invitation-confirmation"><input type="checkbox" checked={confirmed} disabled={Boolean(busy) || !profile.capabilities.recentAuthentication} onChange={(event) => setConfirmed(event.target.checked)} />
-                    <span>I understand that a new membership and catalog-derived role assignment are created only if the full claim commits.</span></label>
-                  <p>Success reloads available workspaces but does not select or navigate to the new workspace.</p>
-                  <button type="button" className="invitation-primary" disabled={!confirmed || Boolean(busy) || !profile.capabilities.recentAuthentication} onClick={() => void confirmClaim()}>{busy === "claim" ? "Claiming…" : "Confirm & claim workspace"}</button>
+                    <span>{t($ => $.invitations.claimConfirmation)}</span></label>
+                  <p>{t($ => $.invitations.selectionUnchanged)}</p>
+                  <button type="button" className="invitation-primary" disabled={!confirmed || Boolean(busy) || !profile.capabilities.recentAuthentication} onClick={() => void confirmClaim()}>{busy === "claim" ? t($ => $.invitations.claiming) : t($ => $.invitations.confirmClaim)}</button>
                 </section>
               </> : null}
             </>}
           </div>
-          <aside className="invitation-review-rail" aria-label="Claim effects and recovery">
-            <header className="invitation-section-header"><h3>Claim effects</h3><span className="invitation-state">ATOMIC</span></header>
-            <ol className="invitation-effects"><li><strong>WorkspaceMembership</strong><span>New active membership</span></li><li><strong>LocalRoleAssignment</strong><span>Catalog-derived grants</span></li><li><strong>WorkspaceInvitation</strong><span>Pending → claimed</span></li></ol>
-            <InvitationNotice title="Preview does not reserve access">Later revocation, expiry, role drift or another claim makes this confirmation stale. The server checks the exact version again.</InvitationNotice>
-            <InvitationNotice title="Zero partial writes" tone="warning">Account, tenant, catalog, membership, assignment or store failure rolls back every write.</InvitationNotice>
-            <InvitationNotice title="Recovery">Invalid: re-enter or ask the administrator for a new code. Claimed, revoked, expired or drifted: a new invitation is required.</InvitationNotice>
-            <InvitationNotice title="State invalidation">Actor, tenant, workspace, session or route changes clear the code, preview, confirmation and late responses.</InvitationNotice>
+          <aside className="invitation-review-rail" aria-label={t($ => $.invitations.claimEffectsRecovery)}>
+            <header className="invitation-section-header"><h3>{t($ => $.invitations.claimEffects)}</h3><span className="invitation-state">{t($ => $.invitations.atomic)}</span></header>
+            <ol className="invitation-effects"><li><strong>WorkspaceMembership</strong><span>{t($ => $.invitations.newMembership)}</span></li><li><strong>LocalRoleAssignment</strong><span>{t($ => $.invitations.catalogGrants)}</span></li><li><strong>WorkspaceInvitation</strong><span>{t($ => $.invitations.pendingClaimed)}</span></li></ol>
+            <InvitationNotice title={t($ => $.invitations.previewNoReservation)}>{t($ => $.invitations.previewStaleHelp)}</InvitationNotice>
+            <InvitationNotice title={t($ => $.invitations.noPartialWrites)} tone="warning">{t($ => $.invitations.rollbackHelp)}</InvitationNotice>
+            <InvitationNotice title={t($ => $.invitations.recovery)}>{t($ => $.invitations.recoveryHelp)}</InvitationNotice>
+            <InvitationNotice title={t($ => $.invitations.invalidation)}>{t($ => $.invitations.invalidationHelp)}</InvitationNotice>
           </aside>
         </div>
       </main>

@@ -62,7 +62,7 @@
 
 ### 自动浏览器回归
 
-2026-09-09 另行获批的三条 Workflow 自动回归已覆盖草案修订 / 双标签冲突、迟到保存 / 校验响应隔离，以及受控 Definition 运行至刷新后的精确历史读取；本地连续两轮通过。测试使用独立 SQLite / mock 与 Chromium，已接入 PR / Release 配置，远端尚未运行；详细流程、运行方法和失败证据见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。延迟精确读取、归档响应等其它人工场景未因此自动获得 CI 覆盖。
+2026-09-09 另行获批的三条 Workflow 自动回归已覆盖草案修订 / 双标签冲突、迟到保存 / 校验响应隔离，以及受控 Definition 运行至刷新后的精确历史读取；本地连续两轮通过。测试使用独立 SQLite / mock 与 Chromium，最初接入 PR / Release 配置，2026-10-11 起改为本地按需验证；详细流程、运行方法和失败证据见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。延迟精确读取、归档响应等其它人工场景未因此自动获得 CI 覆盖。
 
 ### 草案流程双语（2026-09-28）
 

@@ -1,6 +1,6 @@
 # Workflow Definition 绑定受控 HTTP Tool 的版本化发布与人工确认执行（开发 / 测试态）v1
 
-更新时间：2026-08-15
+更新时间：2026-10-02
 
 状态：`workflow_definition_http_tool_v1_completed`
 
@@ -171,6 +171,8 @@ detail、decision 和 execution 继续复用既有 plan 资源路由。权限要
 真实内置浏览器已复核 `1440×900`、`1024×768` 与 `390×844`，三种视口均无横向溢出，窄屏保持操作顺序和来源可读性，最终页面控制台 warning / error 为零。URL 只保留本地路由和作用域标识；浏览器会话引用仅保存 workspace / application / Definition / plan / run 短引用及版本指针，这一结构由 strict consumer 测试覆盖，未知字段和不合法 run id 均拒绝。数据库与运行记录继续只保存 digest、字节数、脱敏 attempt / failure 和权威引用，不保存禁止材料。
 
 专题至此关闭；后续产品顺位回到 [功能设计文档入口](../README.md) 选择新的长期功能目标，不从本专题派生批次 E、平行 owner 或同层 gate-only 切片。
+
+2026-10-02 的 [i18n B 阶段](../web-internationalization-zh-en-v1.md#b-阶段-http-tool2026-10-02)已完成计划、确认、执行、失败恢复与只读动作安全说明的中英迁移；工具 `locale`、输入和精确权威引用不随界面语言改变。独立浏览器窗口覆盖草案来源运行 v2 / Definition 来源运行 v9 两条路径、真实版本冲突、预期传输失败及刷新不重试，未重跑或替代原 PostgreSQL / 服务重启验收，也未放宽网络或生产边界。
 
 ## 验收方式
 

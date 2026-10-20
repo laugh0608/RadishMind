@@ -91,3 +91,7 @@ revision 请求必须携带正整数 `expected_version`。memory 与 PostgreSQL 
 
 - Application Evaluation Handoff 要求 baseline / candidate Campaign 都携带当前 `expected_version`，并只把两侧 exact run refs 交给既有 Case owner。每个成功 Case version 立即回写 candidate Campaign 的 partial checkpoint，但 Case family、revision 和 CAS 真相仍完全由本 owner 承载。
 - Handoff 不自动 promotion baseline、不改写既有 Case version、不删除部分成功 evidence；Campaign 只保存 exact case refs 和 partial / complete 状态，不复制 Case 快照或 review body。
+
+## 2026-10-11 双语界面迁移
+
+用例创建、修订、历史审查与状态说明已接入按需加载的中英资源。名称、精确运行引用、版本、协议档案和审计证据保持原值，界面语言不进入请求依赖。版本冲突现在保留本地草稿并阻止继续修订，用户显式载入当前版本后重新审查；不自动合并或重试。写入等待期间禁用重复操作，选择 / 作用域变化和卸载隔离迟到响应。单元、类型、构建和中英各两轮浏览器验收通过，临时环境已清理，详见[国际化专题](../web-internationalization-zh-en-v1.md#e-阶段用例与套件覆盖边界2026-10-11)。

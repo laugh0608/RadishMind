@@ -48,7 +48,7 @@
       "onCreateDraftForWorkflowDefinition={handleCreateWorkspaceDraftFromDefinition}",
       "createdDraftCount=",
       "workflow-definition-row-actions",
-      "Create draft",
+      "$.readEvidence.createDraft",
       "event.stopPropagation()",
       "onEditDraft={editWorkflowDraft}"
     ],
@@ -80,6 +80,7 @@
       ".workflow-definition-row-actions button"
     ],
     "owner_files": [
+      "apps/radishmind-web/src/features/control-plane-read/workflowReadEvidencePanels.tsx",
       "apps/radishmind-web/src/features/control-plane-read/useWorkflowSavedDraftLibrary.ts",
       "apps/radishmind-web/src/features/control-plane-read/useWorkflowDraftWorkspace.ts",
       "apps/radishmind-web/src/features/control-plane-read/workflowDraftDesignerPanel.tsx",

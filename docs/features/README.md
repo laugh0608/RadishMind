@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-09-28
+更新时间：2026-10-15
 
 ## 文档目的
 
@@ -10,13 +10,15 @@
 
 ## 当前目标
 
-项目所有者已指定 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)为下一重点。专题规划覆盖 `zh-CN` / `en-US`、语言偏好、消息与格式化，以及全站分阶段迁移；A 阶段已完成；B 阶段草案、候选审查 / 激活、Definition 运行、模板派生及 RAG 快照已通过双语验收，RAG 检索 / 晋级 / 应用运行、HTTP Tool 与离线投影解释仍待迁移；真实模型手工试用仍暂停。
+项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端暴露的 RAG 晋级列表失败已修复共享请求标识生成逻辑，并于 2026-10-15 完成四组本地中英 44/44 复验及清理，该开发阶段问题关闭。浏览器保持本地按需验证，既有六项组件 CI 已通过；本轮未重跑远端 CI。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
 
 [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
 
 [应用定时回归评测](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[工作区 Workflow 模板目录](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)和[动作安全阶梯（Action Safety Ladder）](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)保持完成关闭。真实 Radish OIDC 为 `real_radish_integration_deferred`，应用运行观测后续仍为 `no_entry`。
 
-前端草案状态收敛、Workflow / Prompt / 模板与 RAG 快照的自动浏览器回归已分窗口完成；后端权限 / 内建角色策略包及双数据库回归已完成；内部故障诊断素材已准备，真实模型试用由项目所有者暂缓，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
+前端草案状态收敛、Workflow / Prompt / 模板与 RAG 快照、检索执行、晋级审查、应用运行、HTTP Tool 及离线投影解释的自动浏览器回归已分窗口完成；后端权限 / 内建角色策略包及双数据库回归已完成；内部故障诊断素材已准备，真实模型试用由项目所有者暂缓，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
+
+2026-10-15 新增的 [Prompt 计划结构化编辑](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#前端实施与无服务验证2026-10-15)已完成前端和无服务验证，新增浏览器与 React 视觉验收待下一窗口；既有完成状态不自动覆盖新增表面。
 
 ## 专题分层
 
@@ -38,7 +40,7 @@
 | `Model Gateway / API Distribution` | [模型网关与 API 分发](model-gateway-api-distribution.md) | [提供方、准入、用量、价格与回退](gateway/README.md) |
 | `Workflow / Agent Runtime` | [工作流与运行时](workflow-agent-runtime.md) | [草案、定义、执行、模板与 RAG](workflow/README.md) |
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | 固定响应测试后端与私有存储已完成；真实后端和公开交付独立验收，不另立第五产品主线 |
-| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 阶段完成；B 草案、Definition、模板及 RAG 快照已验收，检索 / 晋级 / 应用运行、HTTP Tool 与离线投影解释待迁移 |
+| 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 F 在登记的可达范围完成关闭；界面语言不改写业务语言、协议字段、用户原文或导出 JSON；日程双语浏览器证据限定合成投影 |
 
 ## 常用用户流程
 

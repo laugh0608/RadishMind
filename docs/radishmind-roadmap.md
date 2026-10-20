@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-09-28
+更新时间：2026-10-15
 
 ## 文档职责
 
@@ -59,17 +59,21 @@
 
 ## 当前执行顺位
 
-项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。专题规划、首轮常读文档中文化及 A 阶段已完成；B 阶段草案、候选审查 / 激活、Definition 运行、模板派生及 RAG 快照已通过双语验收；后续按既有清单推进 RAG 检索 / 晋级 / 应用运行、HTTP Tool 和离线投影解释。按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行推进；界面语言与业务语言字段 `locale`、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选不与 i18n 同时开工。
+2026-10-15 的 RAG 请求标识与结果资产 / 变量焦点修复已完成分组浏览器复验；下一动作是已实现的 Prompt 计划结构化编辑验收。项目所有者决定于次日继续，运行窗口、命令和停止线只在[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-15)及其周志链接维护；不扩大生产或真实模型范围。
 
-1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与认证认领入口、双数据库产品链、三视口与双标签验收已闭合，后续选题服从当前已指定的 i18n 顺位，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实模型提供方、生产工作进程、真实 Radish 和生产身份与访问管理尚未进入。
+项目所有者于 2026-09-23 暂停手工测试，将 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)指定为下一重点。专题规划、首轮常读文档中文化及 A 阶段已完成；B 阶段草案、候选审查 / 激活、Definition 运行、模板派生及 RAG 快照、检索执行、晋级审查与应用运行已通过双语验收；HTTP Tool 与离线投影解释随后完成验收，B 阶段关闭，C 阶段认证与账户安全、工作区成员邀请及管理主页面均已通过双语验收，C 阶段关闭；D 阶段 Agent、Gateway 与运营随后按切片完成双语两轮验收，E 阶段已登记切片随后完成，F 阶段全站收口与三窗口 76 次最终复验亦已完成，A 至 F 关闭。本次按基座与 Prompt、Workflow、身份管理、Agent / Gateway、评测及全站收口串行完成；界面语言与业务语言字段 `locale`、权限、持久化和模型输出保持独立。下列已完成专题继续关闭，其它候选按下节进入条件选择。
+
+1. 产品线：[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。React 消费层、S7 管理端与认证认领入口、双数据库产品链、三视口与双标签验收已闭合，后续选题服从[当前推进焦点](radishmind-current-focus.md)，不派生邀请批次 F。[应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)保持完成关闭；真实模型提供方、生产工作进程、真实 Radish 和生产身份与访问管理尚未进入。
 2. 工程线：`R2` 至 `R6` 已完成。R6 关闭评审确认活动检查器数量和代码量均下降超过 `15%`；模型提供方、生产运维与控制面正式界面因仍缺少等价行为证据继续保留，不再派生独立清理批次。
 3. `P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`。普通只读控制台页面、证据面板和布局整理不自动形成新任务卡、测试夹具或检查器。
 4. [本地账户与 Radish OIDC 联合登录 v1](features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已完成本地可执行的批次 A 至 D：身份负责模块、三种开发测试存储库、本地 Web 会话 HTTP、确定性 Authorization Code + PKCE、当前账户 / 撤销 API、完整 Pencil、Web 严格消费端、S7 当前账户负责模块与浏览器连续链已经闭合。真实 Radish 批次 E 保持 `real_radish_integration_deferred`，不与当前本地成员管理专题耦合。开发身份头、签名测试成员断言与回环地址签发方不能作为生产授权来源；生产密钥后端、真实提供方凭据 / 端点、自动路由、进程监管、控制台生产打包（console production packaging）、生产认证、生产 API 密钥、生产配额和计费继续为 `not_satisfied`。
 5. 当前没有独立工程整改批次；后续只在真实功能实现中复用、补强或替代相关行为证据，不自动删除历史测试夹具，也不新建同层治理入口。
 
+2026-10-11 E 阶段首个运行历史 / 精确详情 / 对比切片已通过中英各两轮浏览器验收；用例与套件随后亦通过中英各两轮浏览器验收，应用评测计划 / 批次 / 调度界面已通过双语验收（日程为合成投影），结果库 / 导出、RAG 数据集与可达辅助证据四条流程中英各两轮 16 次通过，服务与临时库已清理；F 阶段覆盖、术语与帮助指南收口及三窗口 76 次最终复验亦已完成；沿用既有 i18n 专题，不扩大执行能力。
+
 ## 邀请闭环后的决策顺序
 
-以下是后续选题规则；当前中英 i18n B 阶段仍在进行，下一项为 RAG 检索执行双语迁移，具体安排见[明日事项](devlogs/2026-W40.md#明日事项2026-09-29)。
+以下是后续选题规则；当前中英 i18n A、B、C 阶段已完成，D 阶段 Agent、Gateway 与运营亦完成验收，E 阶段已登记切片随后完成，F 阶段全站收口与三窗口 76 次最终复验亦已完成，A 至 F 关闭，具体证据见[本周周志](devlogs/2026-W41.md)。
 
 2026-09-06 审阅建议已分别推进：邀请批次 E、Workflow 主链阻塞修正、草案前端状态收敛、工作区响应式修正与三条 Workflow 自动浏览器回归均已获批完成，随后补充的三条 Prompt 回归也已通过。后端权限 / 角色策略切片已于 2026-09-14 实施，独立策略、双数据库回归与仓库验证完成；其它候选仍按独立目标进入，R2 至 R6 保持关闭。
 
@@ -77,7 +81,7 @@
 | --- | --- | --- |
 | 1 | 用户主流程阻塞修正 | 在既有专题记录谁执行什么任务、卡在哪里、已有证据与修复后的可重复成功路径 |
 | 2 | 后端领域职责收敛 | 草案前端状态收敛已完成；后端工作区权限 / 内建角色策略包已提取，独立策略与双数据库回归通过，保持身份、成员与邀请事务；进一步迁移按实际维护问题评估 |
-| 3 | 自动浏览器持续验证 | Workflow / Prompt / 模板与 RAG 快照回归已在隔离 SQLite / 固定响应环境分窗口通过，沿用既有 CI 配置；远端首跑仍待执行，新增流程另行确定收益与范围 |
+| 3 | 自动浏览器持续验证 | 沿用现有十三组本地入口，按改动风险选择相关组，较大 UI 变更或发布前按需全量复验；浏览器不进入 PR / Release 门禁，RAG 共享请求标识修复已通过四组本地中英 44/44 复验，新增流程另行确定收益与范围 |
 | 4 | 内部真实任务试用 | 故障诊断素材已准备，真实模型试用暂缓；恢复时确认用户、输入、模型 / 提供方与运行窗口，再记录完成率、耗时、求助点和输出质量 |
 | 5 | 有明确窗口的接入与交付 | 依据试用结论与外部条件选择功能扩展、真实集成或生产验收，不从历史准入尾链自动续批 |
 

@@ -163,7 +163,13 @@ func newAgentCopilotInvocationService(
 		runStore: runStore, bridge: bridgeClient, maxRuntime: agentCopilotInvocationMaxRuntime,
 		now: func() time.Time { return time.Now().UTC() },
 	}
-	if workflowRunStoreSupportsActionSafety(runStore) {
+	// The combined store routes Agent v7 records to its Agent owner. Other
+	// owners (including legacy Prompt records) have different snapshot support.
+	safetyStore := runStore
+	if combined, ok := runStore.(*combinedWorkflowRunStore); ok {
+		safetyStore = combined.agent
+	}
+	if workflowRunStoreSupportsActionSafety(safetyStore) {
 		service.actionSafety = newActionSafetyRuntimeV1("development")
 	}
 	return service

@@ -1,0 +1,138 @@
+.application-evaluation-workbench.is-prompt-plan {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.is-prompt-plan > .application-evaluation-plan-list > div {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  max-height: 180px;
+  overflow: auto;
+}
+
+.prompt-plan-owner {
+  container: prompt-plan / inline-size;
+  color: var(--rm-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.prompt-plan-owner :where(div, section, aside, fieldset, label, details, p, span, code, strong, small) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.prompt-plan-owner h4 { font-size: 22px; }
+.prompt-plan-owner h5 { margin: 0; font-size: 17px; }
+.prompt-plan-owner h6 { margin: 0; font-size: 14px; }
+.prompt-plan-owner :where(p, small, label > span) { color: var(--rm-text-secondary); }
+.prompt-plan-owner small { font-size: 12px; }
+.application-evaluation-owner > .prompt-plan-owner > header p:last-child { font-size: 13px; }
+.prompt-plan-owner code { font-family: var(--rm-font-mono); font-size: 12px; }
+
+.prompt-plan-owner :where(input, textarea, select) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 8px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+}
+
+.prompt-plan-owner textarea { resize: vertical; }
+.prompt-plan-owner button { min-height: 36px; font-size: 13px; white-space: normal; }
+.prompt-plan-owner :where(button, input, select, textarea):focus-visible { outline: 2px solid var(--rm-focus-ring); outline-offset: 2px; }
+.prompt-plan-owner [aria-invalid="true"] { border-color: var(--rm-state-danger); }
+
+.prompt-plan-selected-context, .prompt-plan-sample-heading, .prompt-plan-footer, .prompt-plan-inline-actions, .prompt-plan-modes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.prompt-plan-inline-actions { justify-content: flex-start; }
+.prompt-plan-selected-context > div:first-child { display: grid; gap: 3px; }
+.prompt-plan-selected-context { padding-bottom: 12px; border-bottom: 1px solid var(--rm-border-soft); }
+
+.prompt-plan-meta, .prompt-plan-sample-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.prompt-plan-sample-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 10px; }
+.prompt-plan-owner label { display: grid; gap: 5px; font-size: 13px; }
+.prompt-plan-sample-details summary { color: var(--rm-text-secondary); cursor: pointer; }
+
+.prompt-plan-reference { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; padding: 12px; background: var(--rm-bg-muted); border-radius: 8px; }
+.prompt-plan-reference > div { display: grid; gap: 4px; }
+.prompt-plan-reference > button { align-self: start; }
+.prompt-plan-reference > small { grid-column: 1 / -1; }
+.prompt-plan-reference code { color: var(--rm-text-secondary); }
+.prompt-plan-modes { justify-content: flex-start; }
+.prompt-plan-modes [aria-pressed="true"] { background: var(--rm-action-soft); border-color: var(--rm-action-primary); color: var(--rm-action-primary); }
+.prompt-plan-modes > span { margin-inline-start: auto; font-size: 12px; }
+.prompt-plan-owner .prompt-plan-match { color: var(--rm-state-success); }
+
+.prompt-plan-workbench { display: grid; grid-template-columns: 210px minmax(0, 1fr); border-block: 1px solid var(--rm-border-soft); }
+.prompt-plan-samples { display: grid; align-content: start; gap: 12px; padding: 16px 12px; background: var(--rm-bg-muted); }
+.prompt-plan-samples > button { justify-self: start; }
+.prompt-plan-samples > p { font-size: 12px; }
+.prompt-plan-sample-list { display: grid; align-content: start; gap: 5px; }
+.prompt-plan-sample-list > button { display: grid; justify-items: start; gap: 5px; padding: 12px 10px; border: 0; border-inline-start: 3px solid transparent; border-radius: 8px; background: transparent; color: var(--rm-text-primary); text-align: start; }
+.prompt-plan-sample-list [aria-selected="true"] { border-inline-start-color: var(--rm-action-primary); background: var(--rm-action-soft); color: var(--rm-action-primary); }
+.prompt-plan-sample-select { display: none; }
+.prompt-plan-sample-editor { display: grid; align-content: start; gap: 16px; padding: 18px; }
+.prompt-plan-sample-heading { align-items: start; }
+.prompt-plan-sample-heading .prompt-plan-inline-actions { gap: 5px; }
+.prompt-plan-sample-heading button { padding: 7px 9px; }
+.prompt-plan-note { font-size: 12px; }
+
+.prompt-plan-variables { display: grid; gap: 20px; }
+.prompt-plan-variable { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.prompt-plan-variable legend { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; margin-bottom: 7px; padding: 0; }
+.prompt-plan-variable legend code { color: var(--rm-text-primary); font-size: 14px; font-weight: 600; }
+.prompt-plan-variable legend span { margin-inline-start: auto; color: var(--rm-text-secondary); font-size: 12px; }
+.prompt-plan-variable > p { font-size: 12px; }
+.prompt-plan-presence { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.prompt-plan-presence select { width: auto; min-width: 130px; }
+.prompt-plan-presence small { flex: 1 1 130px; }
+.prompt-plan-string-list { display: grid; gap: 8px; }
+.prompt-plan-list-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: start; gap: 8px; }
+.prompt-plan-list-row > span { padding-top: 9px; font-size: 12px; color: var(--rm-text-secondary); }
+.prompt-plan-list-actions { display: flex; gap: 4px; }
+.prompt-plan-list-actions button { padding: 4px 8px; }
+
+.prompt-plan-json textarea { min-height: 320px; font: 13px/1.6 var(--rm-font-mono); white-space: pre; overflow: auto; }
+.prompt-plan-raw-values { padding: 12px; border-radius: 8px; background: var(--rm-state-warning-soft); }
+.prompt-plan-raw-values pre { max-width: 100%; max-height: 200px; margin: 8px 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 var(--rm-font-mono); }
+.prompt-plan-warning, .prompt-plan-errors { display: grid; gap: 9px; padding: 14px; border-radius: 8px; background: var(--rm-state-warning-soft); }
+.prompt-plan-warning > button { justify-self: start; }
+.prompt-plan-errors { background: var(--rm-state-danger-soft); }
+.prompt-plan-errors ul, .prompt-plan-field-errors { margin: 0; padding-left: 20px; }
+.prompt-plan-field-errors { color: var(--rm-state-danger); font-size: 12px; }
+.prompt-plan-errors li button { display: grid; justify-items: start; width: 100%; border: 0; background: transparent; color: var(--rm-state-danger); text-align: start; }
+.prompt-plan-confirmation { font-size: 14px; }
+.prompt-plan-confirmation strong { font-size: 16px; }
+.prompt-plan-confirmation p, .prompt-plan-confirmation > span { font-size: 13px; text-transform: none; }
+.prompt-plan-owner .application-evaluation-operation { grid-template-columns: minmax(0, 1fr); font-size: 13px; }
+.prompt-plan-footer { padding: 14px 0 0; }
+.prompt-plan-footer > span { color: var(--rm-text-secondary); font-size: 12px; }
+.prompt-plan-execute-link { justify-self: start; }
+
+@container prompt-plan (max-width: 720px) {
+  .prompt-plan-workbench { grid-template-columns: minmax(0, 1fr); }
+  .prompt-plan-samples { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 12px; }
+  .prompt-plan-sample-list, .prompt-plan-samples > p { display: none; }
+  .prompt-plan-sample-select { display: block; grid-column: 1 / -1; }
+  .prompt-plan-sample-editor { padding: 14px 0; }
+  .prompt-plan-sample-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .prompt-plan-sample-meta > label:last-child { grid-column: 1 / -1; }
+}
+
+@container prompt-plan (max-width: 440px) {
+  .prompt-plan-meta, .prompt-plan-sample-meta, .prompt-plan-reference { grid-template-columns: minmax(0, 1fr); }
+  .prompt-plan-reference > button { justify-self: start; }
+  .prompt-plan-modes > span { flex-basis: 100%; margin-inline-start: 0; }
+  .prompt-plan-list-row { grid-template-columns: 18px minmax(0, 1fr); }
+  .prompt-plan-list-actions { grid-column: 2; justify-content: flex-end; }
+  .prompt-plan-selected-context .prompt-plan-inline-actions { width: 100%; }
+}

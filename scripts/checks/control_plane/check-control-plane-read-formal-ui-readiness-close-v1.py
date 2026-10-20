@@ -312,6 +312,13 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
                 expected["summary_binding"] in admin_workspace_source,
                 f"Admin workspace missing rendered binding for {page_id}: {expected['summary_binding']}",
             )
+        elif page_id == "workspace-usage-quota":
+            require(expected["builder"] in app_source, "App must retain the quota read projector")
+            require('<WorkspaceUsageQuotaPanel view={workspaceUsageQuota} />' in app_source,
+                    "App must mount the quota display owner with the existing view")
+            quota_panel = read_text("apps/radishmind-web/src/features/control-plane-read/workspaceUsageQuotaPanel.tsx")
+            for literal in (page_id, "view.quota", "view.canRenderQuota"):
+                require(literal in quota_panel, f"Quota display owner missing rendered binding: {literal}")
         else:
             for literal in (expected["builder"], page_id, expected["summary_binding"]):
                 require(literal in app_source, f"App missing rendered binding for {page_id}: {literal}")

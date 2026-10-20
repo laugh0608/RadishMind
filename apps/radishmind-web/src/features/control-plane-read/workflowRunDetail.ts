@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -6,7 +7,7 @@ import {
 } from "../../../../../contracts/typescript/control-plane-read-api";
 import type { WorkspaceRunRecordRow } from "./workspaceRunHistory";
 
-export type WorkflowRunDetailTimelineEvent = {
+export type WorkflowRunDetailTimelineEvent = WorkflowProjectionCopy & {
   eventId: string;
   label: string;
   state: "queued" | "running" | "tool_preview_blocked" | "completed" | "failed";
@@ -15,13 +16,13 @@ export type WorkflowRunDetailTimelineEvent = {
   auditRef: string;
 };
 
-export type WorkflowRunDetailSummary = {
+export type WorkflowRunDetailSummary = WorkflowProjectionCopy & {
   label: string;
   summary: string;
   fields: string[];
 };
 
-export type WorkflowRunDetailGuardPreview = {
+export type WorkflowRunDetailGuardPreview = WorkflowProjectionCopy & {
   guardId: string;
   label: string;
   status: "blocked";
@@ -134,17 +135,23 @@ export function buildWorkflowRunDetailViewModel(
     blockedResultPreview: {
       guardId: "guard_materialized_result_reader",
       label: "Materialized result reader",
+      labelMessage: { key: "guard_materialized_result_reader_label" },
       status: "blocked",
       reason: "Only summarized run output is available before durable result storage is implemented.",
+      reasonMessage: { key: "guard_materialized_result_reader_reason" },
       missingPrerequisite: "durable result store implementation gate",
+      missingPrerequisiteMessage: { key: "guard_materialized_result_reader_missingPrerequisite" },
       auditRef: "audit_run_detail_blocked_result_demo",
     },
     blockedReplayPreview: {
       guardId: "guard_replay_resume",
       label: "Replay and resume",
+      labelMessage: { key: "guard_replay_resume_label" },
       status: "blocked",
       reason: "Run replay and resume remain disabled until executor, confirmation, and durable run store gates exist.",
+      reasonMessage: { key: "guard_replay_resume_reason" },
       missingPrerequisite: "workflow executor implementation gate",
+      missingPrerequisiteMessage: { key: "guard_replay_resume_missingPrerequisite" },
       auditRef: "audit_run_detail_blocked_replay_demo",
     },
     forbiddenProjectionBlocked,

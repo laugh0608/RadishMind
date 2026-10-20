@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/workflowHTTPToolResources.ts";
+import { workflowHTTPToolStatus, workflowHTTPToolFailure, workflowHTTPToolActionFeedback, workflowHTTPToolArgumentsFeedback } from "./workflowHTTPToolMessages.ts";
 import type { FormEvent } from "react";
 import ActionSafetyReadPanel from "./ActionSafetyReadPanel.tsx";
 
@@ -33,7 +36,6 @@ export function WorkflowHTTPToolActionPanel({
     version: number;
     nodeId: string;
     toolId: string;
-    label: string;
   };
   sectionId?: string;
   consumerState: WorkflowHTTPToolActionConsumerState;
@@ -47,6 +49,7 @@ export function WorkflowHTTPToolActionPanel({
   onReloadPlan: () => void;
   onDecision: (decision: WorkflowHTTPToolHumanDecision) => void;
 }) {
+  const { t } = useTranslation("workflow");
   const pending = consumerState.status === "creating" || consumerState.status === "reading" || consumerState.status === "deciding";
   const argumentValidation = validateWorkflowHTTPToolPublicArguments({ resourceKey, locale });
   const plan = consumerState.actionPlan;
@@ -56,7 +59,6 @@ export function WorkflowHTTPToolActionPanel({
     version: eligibility.draftVersion,
     nodeId: eligibility.nodeId,
     toolId: eligibility.toolId,
-    label: "Exact saved draft",
   };
   const planPermission = sourceView.kind === "workflow_definition" ? permissions.definitionPlan : permissions.plan;
   const executePermission = sourceView.kind === "workflow_definition" ? permissions.definitionExecute : permissions.execute;
@@ -77,90 +79,94 @@ export function WorkflowHTTPToolActionPanel({
     >
       <div className="section-heading compact-heading">
         <div>
-          <p className="eyebrow">Workflow HTTP Tool · Confirmed action</p>
-          <h4 id={`${sectionId}-title`}>Durable action plan review</h4>
+          <p className="eyebrow">{t($ => $.httpTool.actionEyebrow)}</p>
+          <h4 id={`${sectionId}-title`}>{t($ => $.httpTool.actionTitle)}</h4>
         </div>
         <ActionStatusBadge state={consumerState} eligible={eligibility.eligible} />
       </div>
 
       <div className="workflow-executor-summary-grid">
         <article>
-          <span>{sourceView.label}</span>
+          <span>{t($ => sourceView.kind === "workflow_definition" ? $.httpTool.definitionSource : $.httpTool.savedSource)}</span>
           <strong>{sourceView.id}</strong>
-          <p>Version {sourceView.version || "not available"}; authority must stay exact.</p>
+          <p>{t($ => $.httpTool.sourceVersion, { version: sourceView.version || t($ => $.httpTool.unavailable) })}</p>
         </article>
         <article>
-          <span>HTTP Tool node</span>
-          <strong>{sourceView.nodeId || "not eligible"}</strong>
-          <p>{sourceView.toolId || "Select one exact versioned HTTP Tool reference."}</p>
+          <span>{t($ => $.httpTool.toolNode)}</span>
+          <strong>{sourceView.nodeId || t($ => $.httpTool.notEligible)}</strong>
+          <p>{sourceView.toolId || t($ => $.httpTool.toolReference)}</p>
         </article>
         <article>
-          <span>Review lifecycle</span>
-          <strong>Plan → human decision</strong>
-          <p>Every decision uses the displayed durable record version as its CAS boundary.</p>
+          <span>{t($ => $.httpTool.reviewLifecycle)}</span>
+          <strong>{t($ => $.httpTool.planDecision)}</strong>
+          <p>{t($ => $.httpTool.casBoundary)}</p>
         </article>
         <article>
-          <span>Confirmation boundary</span>
-          <strong>Approval is not execution</strong>
-          <p>Approval records qualification only; the separate Batch C panel is the only network-start action.</p>
+          <span>{t($ => $.httpTool.confirmationBoundary)}</span>
+          <strong>{t($ => $.httpTool.approvalNotExecution)}</strong>
+          <p>{t($ => $.httpTool.approvalExplanation)}</p>
         </article>
       </div>
 
-      <div className="workflow-executor-summary-grid" aria-label="Workflow HTTP Tool operation grants">
-        <PermissionCard permission={planPermission} label="Create plan" />
-        <PermissionCard permission={permissions.read} label="Read detail" />
-        <PermissionCard permission={permissions.confirm} label="Human decision" />
-        <PermissionCard permission={executePermission} label="Execute tool" />
+      <div className="workflow-executor-summary-grid" aria-label={t($ => $.httpTool.grants)}>
+        <PermissionCard permission={planPermission} label={t($ => $.httpTool.createGrant)} />
+        <PermissionCard permission={permissions.read} label={t($ => $.httpTool.readGrant)} />
+        <PermissionCard permission={permissions.confirm} label={t($ => $.httpTool.confirmGrant)} />
+        <PermissionCard permission={executePermission} label={t($ => $.httpTool.executeGrant)} />
       </div>
 
       <form onSubmit={submitCreate}>
         <div className="workflow-executor-input-grid">
           <label className="workflow-executor-input-field">
-            <span>Resource key</span>
+            <span id={`${sectionId}-resource-label`}>{t($ => $.httpTool.resourceKey)}</span>
             <input
               type="text"
               maxLength={160}
               autoComplete="off"
+              aria-labelledby={`${sectionId}-resource-label`}
+              aria-describedby={`${sectionId}-resource-hint`}
               value={resourceKey}
               placeholder="reviewed-resource"
               disabled={pending || !planPermission.available}
               onChange={(event) => onResourceKeyChange(event.currentTarget.value)}
             />
-            <small>Required public identifier; only the registered schema field is accepted.</small>
+            <small id={`${sectionId}-resource-hint`}>{t($ => $.httpTool.resourceHint)}</small>
           </label>
           <label className="workflow-executor-input-field">
-            <span>Locale</span>
+            <span id={`${sectionId}-locale-label`}>{t($ => $.httpTool.locale)}</span>
             <input
               type="text"
               maxLength={35}
               autoComplete="off"
+              aria-labelledby={`${sectionId}-locale-label`}
+              aria-describedby={`${sectionId}-locale-hint`}
               value={locale}
               placeholder="zh-CN"
               disabled={pending || !planPermission.available}
               onChange={(event) => onLocaleChange(event.currentTarget.value)}
             />
-            <small>Optional short language tag; it cannot change the server-owned target policy.</small>
+            <small id={`${sectionId}-locale-hint`}>{t($ => $.httpTool.localeHint)}</small>
           </label>
         </div>
         <div className="workflow-executor-action-row">
           <button type="submit" disabled={!canCreate}>
-            {consumerState.status === "creating" ? "Creating…" : "Create immutable plan"}
+            {consumerState.status === "creating" ? t($ => $.httpTool.creating) : t($ => $.httpTool.create)}
           </button>
           <button type="button" disabled={pending || !plan || !permissions.read.available} onClick={onReloadPlan}>
-            {consumerState.status === "reading" ? "Reloading…" : "Reload durable detail"}
+            {consumerState.status === "reading" ? t($ => $.httpTool.reading) : t($ => $.httpTool.reload)}
           </button>
         </div>
         {!argumentValidation.valid && (resourceKey || locale) ? (
-          <p className="boundary-note" role="alert">{argumentValidation.summary}</p>
+          <p className="boundary-note" role="alert">{workflowHTTPToolArgumentsFeedback(t, argumentValidation)}</p>
         ) : null}
       </form>
 
       {!eligibility.eligible ? (
-        <div className="workflow-executor-blocker-list" aria-label="HTTP Tool action plan eligibility blockers">
+        <div className="workflow-executor-blocker-list" aria-label={t($ => $.httpTool.blockers)}>
           {eligibility.reasons.map((reason) => (
-            <article key={`${reason.code}-${reason.summary}`}>
+            <article key={reason.code}>
               <code>{reason.code}</code>
-              <p>{reason.summary}</p>
+              <p>{workflowHTTPToolFailure(t, reason.code)}</p>
             </article>
           ))}
         </div>
@@ -168,72 +174,74 @@ export function WorkflowHTTPToolActionPanel({
 
       <article className="workflow-executor-state-card" aria-live="polite">
         <div>
-          <span>Consumer state</span>
-          <strong>{consumerState.status}</strong>
+          <span>{t($ => $.httpTool.consumerState)}</span>
+          <strong>{workflowHTTPToolStatus(t, consumerState.status)}</strong>
         </div>
-        <p>{consumerState.summary}</p>
+        <p>{workflowHTTPToolActionFeedback(t, consumerState)}</p>
         <dl className="workflow-user-workspace-home-meta">
-          <div><dt>Failure</dt><dd>{consumerState.failureCode || "none"}</dd></div>
-          <div><dt>Request</dt><dd>{consumerState.requestId || "none"}</dd></div>
-          <div><dt>Audit</dt><dd>{consumerState.auditRef || "none"}</dd></div>
-          <div><dt>Source</dt><dd>{consumerState.mode}</dd></div>
+          <div><dt>{t($ => $.httpTool.failure)}</dt><dd>{consumerState.failureCode || t($ => $.httpTool.none)}</dd></div>
+          <div><dt>{t($ => $.httpTool.request)}</dt><dd>{consumerState.requestId || t($ => $.httpTool.none)}</dd></div>
+          <div><dt>{t($ => $.httpTool.audit)}</dt><dd>{consumerState.auditRef || t($ => $.httpTool.none)}</dd></div>
+          <div><dt>{t($ => $.httpTool.source)}</dt><dd>{t($ => consumerState.mode === "disabled" ? $.httpTool.offline : $.httpTool.liveSource)}</dd></div>
         </dl>
       </article>
 
+      {consumerState.failureCode && consumerState.summary ? <details><summary>{t($ => $.httpTool.originalDiagnostic)}</summary><p>{consumerState.summary}</p></details> : null}
+
       {plan ? (
-        <article className="workflow-executor-record" aria-label="Durable HTTP Tool action plan detail">
+        <article className="workflow-executor-record" aria-label={t($ => $.httpTool.planDetail)}>
           <div className="workflow-executor-record-heading">
             <div>
-              <span>Action plan</span>
+              <span>{t($ => $.httpTool.plan)}</span>
               <strong>{plan.planId}</strong>
             </div>
-            <span className={`status-badge ${planStatusTone(plan.status)}`}>{plan.status}</span>
+            <span className={`status-badge ${planStatusTone(plan.status)}`}>{workflowHTTPToolStatus(t, plan.status)}</span>
           </div>
           <dl className="workflow-executor-record-meta">
-            <div><dt>Record version</dt><dd>{plan.recordVersion}</dd></div>
-            <div><dt>Source</dt><dd>{plan.sourceKind === "workflow_definition" ? `${plan.workflowDefinitionId} · v${plan.workflowDefinitionVersion} · pointer v${plan.activationPointerVersion}` : `${plan.draftId} · v${plan.draftVersion}`}</dd></div>
-            <div><dt>Node</dt><dd>{plan.nodeId}</dd></div>
-            <div><dt>Tool</dt><dd>{plan.toolId} · version {plan.toolVersion}</dd></div>
-            <div><dt>Method</dt><dd>{plan.method}</dd></div>
-            <div><dt>Target policy</dt><dd>{plan.targetPolicyKey}</dd></div>
-            <div><dt>Resource key</dt><dd>{plan.publicArguments.resourceKey}</dd></div>
-            <div><dt>Locale</dt><dd>{plan.publicArguments.locale ?? "default"}</dd></div>
-            <div><dt>Output fields</dt><dd>{plan.outputFields.join(", ")}</dd></div>
-            <div><dt>Output schema digest</dt><dd>{plan.outputSchemaDigest}</dd></div>
-            <div><dt>Timeout</dt><dd>{plan.timeoutMs} ms</dd></div>
-            <div><dt>Response / projection</dt><dd>{plan.maxResponseBytes} / {plan.maxOutputBytes} bytes</dd></div>
-            <div><dt>Created</dt><dd>{plan.createdAt}</dd></div>
-            <div><dt>Expires</dt><dd>{plan.expiresAt}</dd></div>
-            <div><dt>Planned by</dt><dd>{plan.plannedByActorRef}</dd></div>
-            <div><dt>Last decision</dt><dd>{plan.lastDecisionByActorRef ?? "none"}</dd></div>
+            <div><dt>{t($ => $.httpTool.recordVersion)}</dt><dd>{plan.recordVersion}</dd></div>
+            <div><dt>{t($ => $.httpTool.source)}</dt><dd>{plan.sourceKind === "workflow_definition" ? `${plan.workflowDefinitionId} · v${plan.workflowDefinitionVersion} · pointer v${plan.activationPointerVersion}` : `${plan.draftId} · v${plan.draftVersion}`}</dd></div>
+            <div><dt>{t($ => $.httpTool.node)}</dt><dd>{plan.nodeId}</dd></div>
+            <div><dt>{t($ => $.httpTool.tool)}</dt><dd>{plan.toolId} · v{plan.toolVersion}</dd></div>
+            <div><dt>{t($ => $.httpTool.method)}</dt><dd>{plan.method}</dd></div>
+            <div><dt>{t($ => $.httpTool.targetPolicy)}</dt><dd>{plan.targetPolicyKey}</dd></div>
+            <div><dt>{t($ => $.httpTool.resourceKey)}</dt><dd>{plan.publicArguments.resourceKey}</dd></div>
+            <div><dt>{t($ => $.httpTool.locale)}</dt><dd>{plan.publicArguments.locale ?? t($ => $.httpTool.default)}</dd></div>
+            <div><dt>{t($ => $.httpTool.outputFields)}</dt><dd>{plan.outputFields.join(", ")}</dd></div>
+            <div><dt>{t($ => $.httpTool.outputDigest)}</dt><dd>{plan.outputSchemaDigest}</dd></div>
+            <div><dt>{t($ => $.httpTool.timeout)}</dt><dd>{plan.timeoutMs} ms</dd></div>
+            <div><dt>{t($ => $.httpTool.responseProjection)}</dt><dd>{plan.maxResponseBytes} / {plan.maxOutputBytes} bytes</dd></div>
+            <div><dt>{t($ => $.httpTool.created)}</dt><dd>{plan.createdAt}</dd></div>
+            <div><dt>{t($ => $.httpTool.expires)}</dt><dd>{plan.expiresAt}</dd></div>
+            <div><dt>{t($ => $.httpTool.plannedBy)}</dt><dd>{plan.plannedByActorRef}</dd></div>
+            <div><dt>{t($ => $.httpTool.lastDecision)}</dt><dd>{plan.lastDecisionByActorRef ?? t($ => $.httpTool.none)}</dd></div>
           </dl>
 
-          <div className="workflow-executor-action-row" aria-label="HTTP Tool action plan decisions">
+          <div className="workflow-executor-action-row" aria-label={t($ => $.httpTool.decisions)}>
             {decisions.map((decision) => (
               <button key={decision} type="button" disabled={pending || !permissions.confirm.available} onClick={() => onDecision(decision)}>
-                {decisionLabel(decision)}
+                {t($ => $.httpTool[decision])}
               </button>
             ))}
           </div>
           {plan.status === "approved" ? (
             <p className="boundary-note">
-              Approved qualification is durable. Use the separate explicit execution panel to start at most one attempt.
+              {t($ => $.httpTool.approvedNote)}
             </p>
           ) : null}
         </article>
       ) : null}
 
-      <ActionSafetyReadPanel projection={consumerState.actionSafety} title="Plan execution eligibility" />
+      <ActionSafetyReadPanel projection={consumerState.actionSafety} title={t($ => $.httpTool.planSafety)} />
 
       {consumerState.confirmationDecision ? (
-        <article className="workflow-executor-state-card" aria-label="Latest confirmation decision">
-          <div><span>Latest decision</span><strong>{consumerState.confirmationDecision.outcome}</strong></div>
+        <article className="workflow-executor-state-card" aria-label={t($ => $.httpTool.latestDecision)}>
+          <div><span>{t($ => $.httpTool.latestDecision)}</span><strong>{workflowHTTPToolStatus(t, consumerState.confirmationDecision.outcome)}</strong></div>
           <p>
-            {consumerState.confirmationDecision.decidedByActorRef} recorded a {consumerState.confirmationDecision.actorSource} decision at {consumerState.confirmationDecision.decidedAt}.
+            {t($ => $.httpTool.decisionRecorded, { actor: consumerState.confirmationDecision.decidedByActorRef, source: t($ => $.httpTool[consumerState.confirmationDecision!.actorSource]), time: consumerState.confirmationDecision.decidedAt })}
           </p>
           <dl className="workflow-user-workspace-home-meta">
-            <div><dt>Confirmation</dt><dd>{consumerState.confirmationDecision.confirmationId}</dd></div>
-            <div><dt>Audit</dt><dd>{consumerState.confirmationDecision.auditRef}</dd></div>
+            <div><dt>{t($ => $.httpTool.confirmation)}</dt><dd>{consumerState.confirmationDecision.confirmationId}</dd></div>
+            <div><dt>{t($ => $.httpTool.audit)}</dt><dd>{consumerState.confirmationDecision.auditRef}</dd></div>
           </dl>
         </article>
       ) : null}
@@ -248,12 +256,13 @@ function PermissionCard({
   permission: WorkflowHTTPToolActionPermissions[keyof WorkflowHTTPToolActionPermissions];
   label: string;
 }) {
+  const { t } = useTranslation("workflow");
   return (
     <article>
       <span>{label}</span>
-      <strong>{permission.available ? "grant available" : `${permission.phase} unavailable`}</strong>
+      <strong>{t($ => permission.available ? $.httpTool.grantAvailable : $.httpTool.grantUnavailable)}</strong>
       <p><code>{permission.requiredGrants.join(" + ")}</code></p>
-      <small>{permission.summary}</small>
+      <small>{t($ => $.httpTool.grantHint)}</small>
     </article>
   );
 }
@@ -263,13 +272,6 @@ function availableDecisions(status: string | null): WorkflowHTTPToolHumanDecisio
   if (status === "deferred") return ["approve", "reject", "cancel"];
   if (status === "approved") return ["cancel"];
   return [];
-}
-
-function decisionLabel(decision: WorkflowHTTPToolHumanDecision): string {
-  if (decision === "approve") return "Approve qualification";
-  if (decision === "reject") return "Reject";
-  if (decision === "defer") return "Defer review";
-  return "Cancel plan";
 }
 
 function planStatusTone(status: string): "good" | "bad" | "neutral" {
@@ -285,7 +287,8 @@ function ActionStatusBadge({
   state: WorkflowHTTPToolActionConsumerState;
   eligible: boolean;
 }) {
+  const { t } = useTranslation("workflow");
   const tone = state.status === "failed" ? "bad" : state.status === "ready" ? "good" : "neutral";
-  const label = state.mode === "disabled" ? "offline · zero requests" : eligible ? state.status : "blocked";
+  const label = state.mode === "disabled" ? t($ => $.httpTool.offline) : eligible ? workflowHTTPToolStatus(t, state.status) : t($ => $.httpTool.blocked);
   return <span className={`status-badge ${tone}`}>{label}</span>;
 }

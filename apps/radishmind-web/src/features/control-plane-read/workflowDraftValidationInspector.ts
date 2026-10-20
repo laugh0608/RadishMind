@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy, WorkflowProjectionMessage } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -16,14 +17,14 @@ import { evaluateWorkflowExecutorGraphEligibility } from "./workflowExecutorCons
 export type WorkflowDraftValidationStatus = "passed" | "needs_review" | "blocked";
 export type WorkflowDraftValidationSeverity = "info" | "warning" | "blocking";
 
-export type WorkflowDraftValidationSummary = {
+export type WorkflowDraftValidationSummary = WorkflowProjectionCopy & {
   label: string;
   value: string;
   status: WorkflowDraftValidationStatus;
   summary: string;
 };
 
-export type WorkflowDraftStructuralCheck = {
+export type WorkflowDraftStructuralCheck = WorkflowProjectionCopy & {
   checkId: string;
   label: string;
   status: WorkflowDraftValidationStatus;
@@ -32,7 +33,7 @@ export type WorkflowDraftStructuralCheck = {
   evidenceRefs: string[];
 };
 
-export type WorkflowDraftContractCheck = {
+export type WorkflowDraftContractCheck = WorkflowProjectionCopy & {
   checkId: string;
   label: string;
   status: WorkflowDraftValidationStatus;
@@ -43,7 +44,7 @@ export type WorkflowDraftContractCheck = {
   summary: string;
 };
 
-export type WorkflowDraftBlockedCapabilityCheck = {
+export type WorkflowDraftBlockedCapabilityCheck = WorkflowProjectionCopy & {
   checkId: string;
   capabilityId: string;
   label: string;
@@ -62,7 +63,7 @@ export type WorkflowDraftValidationAuditMetadata = {
   inspectedDraftId: string;
 };
 
-export type WorkflowDraftValidationInspectorViewModel = {
+export type WorkflowDraftValidationInspectorViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-draft-validation-inspector-offline";
   sourcePageId: "workflow-draft-designer-offline";
   sourceRouteId: "workflow-definition-summary-list-route";
@@ -168,54 +169,70 @@ function buildSummary(
     return [
       {
         label: "Draft",
+        labelMessage: { key: "validationDraft" },
         value: draft.draftId,
         status: validationStatus,
         summary: draft.summary,
+        summaryMessage: draft.summaryMessage,
       },
       {
         label: "Executor v0 graph checks",
+        labelMessage: { key: "executorGraphChecks" },
         value: `${countStatus(structuralChecks, "passed")}/${structuralChecks.length}`,
         status: structuralChecks.every((check) => check.status === "passed") ? "passed" : "blocked",
         summary: "Checks cover the bounded node allowlist, graph topology, low-risk boundary, and external side-effect locks.",
+        summaryMessage: { key: "executorGraphSummary" },
       },
       {
         label: "Executor v0 contracts",
+        labelMessage: { key: "executorContracts" },
         value: `${countStatus(contractChecks, "passed")}/${contractChecks.length}`,
         status: contractChecks.every((check) => check.status === "passed") ? "passed" : "needs_review",
         summary: "The bounded input_text and answer_summary fields remain explicit before server revalidation.",
+        summaryMessage: { key: "executorContractSummary" },
       },
       {
         label: "Boundary locks",
+        labelMessage: { key: "boundaryLocks" },
         value: String(draft.blockedCapabilities.length),
         status: "passed",
         summary: "Tool, confirmation commit, business writeback, and replay remain explicitly locked outside executor v0.",
+        summaryMessage: { key: "executorBoundarySummary" },
       },
     ];
   }
   return [
     {
       label: "Draft",
+      labelMessage: { key: "validationDraftAdvisory" },
       value: draft.draftId,
       status: validationStatus,
       summary: draft.summary,
+      summaryMessage: draft.summaryMessage,
     },
     {
       label: "Graph checks",
+      labelMessage: { key: "graphChecks" },
       value: `${countStatus(structuralChecks, "passed")}/${structuralChecks.length}`,
       status: structuralChecks.some((check) => check.status === "blocked") ? "blocked" : "needs_review",
       summary: "Structural checks cover lanes, edge continuity, policy routing, preview, output, and audit paths.",
+      summaryMessage: { key: "validationGraphSummary" },
     },
     {
       label: "Contract checks",
+      labelMessage: { key: "contractChecks" },
       value: `${countStatus(contractChecks, "passed")}/${contractChecks.length}`,
       status: contractChecks.every((check) => check.status === "passed") ? "passed" : "needs_review",
       summary: "Input and output contract fields stay explicit before any future runtime work.",
+      summaryMessage: { key: "validationContractSummary" },
     },
     {
       label: "Blocked capabilities",
+      labelMessage: { key: "blockedCapabilities" },
       value: String(blockedCapabilityChecks.length),
       status: "blocked",
       summary: "Persistence, publish, runtime, confirmation decision, writeback, and replay remain unavailable.",
+      summaryMessage: { key: "validationBlockedSummary" },
     },
   ];
 }
@@ -231,11 +248,15 @@ function buildExecutorV0StructuralChecks(
     blockingCodes: string[],
     summary: string,
     evidenceRefs: string[],
+    labelMessage: WorkflowProjectionMessage,
+    summaryMessage: WorkflowProjectionMessage,
   ): WorkflowDraftStructuralCheck => {
     const blocked = blockingCodes.some((code) => reasonCodes.has(code));
     return {
       checkId,
       label,
+      labelMessage,
+      summaryMessage,
       status: blocked ? "blocked" : "passed",
       severity: blocked ? "blocking" : "info",
       summary,
@@ -249,6 +270,8 @@ function buildExecutorV0StructuralChecks(
       ["executor_profile_missing"],
       "The draft is explicitly marked for the no-external-side-effect executor v0 profile.",
       [draft.draftId],
+      { key: "executor_v0_profile_label" },
+      { key: "executor_v0_profile_summary" },
     ),
     check(
       "executor_v0_node_roles",
@@ -256,6 +279,8 @@ function buildExecutorV0StructuralChecks(
       ["executor_graph_budget", "executor_node_id_invalid", "executor_node_type_blocked", "executor_node_roles_invalid"],
       "The graph contains one Prompt, one Output, and one to four LLM nodes within the size budget.",
       draft.nodes.map((node) => node.nodeId),
+      { key: "executor_v0_node_roles_label" },
+      { key: "executor_v0_node_roles_summary" },
     ),
     check(
       "executor_v0_low_risk",
@@ -263,6 +288,8 @@ function buildExecutorV0StructuralChecks(
       ["executor_node_risk_blocked"],
       "Nodes cannot carry tool, RAG, confirmation, or non-low-risk markers.",
       draft.nodes.map((node) => node.nodeId),
+      { key: "executor_v0_low_risk_label" },
+      { key: "executor_v0_low_risk_summary" },
     ),
     check(
       "executor_v0_topology",
@@ -277,6 +304,8 @@ function buildExecutorV0StructuralChecks(
       ],
       "Every node stays on an acyclic path from the single Prompt root to the single Output terminal.",
       draft.edges.map((edge) => edge.edgeId),
+      { key: "executor_v0_topology_label" },
+      { key: "executor_v0_topology_summary" },
     ),
     check(
       "executor_v0_external_side_effects",
@@ -284,6 +313,8 @@ function buildExecutorV0StructuralChecks(
       ["executor_node_type_blocked", "executor_node_risk_blocked"],
       "Tool, RAG, confirmation commit, business writeback, and replay remain unavailable.",
       draft.blockedCapabilities.map((capability) => capability.auditRef),
+      { key: "executor_v0_external_side_effects_label" },
+      { key: "executor_v0_external_side_effects_summary" },
     ),
   ];
 }
@@ -303,44 +334,54 @@ function buildStructuralChecks(
     {
       checkId: "entry_context_lane",
       label: "Entry context lane",
+      labelMessage: { key: "entry_context_lane_label" },
       status: hasLane(nodes, "context") ? "passed" : "blocked",
       severity: hasLane(nodes, "context") ? "info" : "blocking",
       summary: "A draft must start from a context collection lane before model reasoning.",
+      summaryMessage: { key: "entry_context_lane_summary" },
       evidenceRefs: nodes.filter((node) => node.lane === "context").map((node) => node.nodeId),
     },
     {
       checkId: "model_reasoning_lane",
       label: "Model reasoning lane",
+      labelMessage: { key: "model_reasoning_lane_label" },
       status: hasLane(nodes, "model") ? "passed" : "blocked",
       severity: hasLane(nodes, "model") ? "info" : "blocking",
       summary: "A model lane is required for advisory reasoning and response construction.",
+      summaryMessage: { key: "model_reasoning_lane_summary" },
       evidenceRefs: nodes.filter((node) => node.lane === "model").map((node) => node.nodeId),
     },
     {
       checkId: "policy_gate_path",
       label: "Policy gate path",
+      labelMessage: { key: "policy_gate_path_label" },
       status: policyNodeIds.length > 0 && previewNodeIds.length > 0 ? "needs_review" : "blocked",
       severity: policyNodeIds.length > 0 && previewNodeIds.length > 0 ? "warning" : "blocking",
       summary: "Risk-bearing preview nodes must remain behind a policy gate and confirmation marker.",
+      summaryMessage: { key: "policy_gate_path_summary" },
       evidenceRefs: [...policyNodeIds, ...previewNodeIds],
     },
     {
       checkId: "output_audit_path",
       label: "Output and audit path",
+      labelMessage: { key: "output_audit_path_label" },
       status: outputNodeIds.length >= 2 && edges.some((edge) => edge.edgeKind === "audit") ? "passed" : "blocked",
       severity: outputNodeIds.length >= 2 && edges.some((edge) => edge.edgeKind === "audit") ? "info" : "blocking",
       summary: "Advisory output and audit projection must remain visible in the draft.",
+      summaryMessage: { key: "output_audit_path_summary" },
       evidenceRefs: outputNodeIds,
     },
     {
       checkId: "orphan_node_scan",
       label: "Orphan node scan",
+      labelMessage: { key: "orphan_node_scan_label" },
       status: orphanNodeIds.length === 0 ? "passed" : "blocked",
       severity: orphanNodeIds.length === 0 ? "info" : "blocking",
       summary:
         orphanNodeIds.length === 0
           ? "Every projected node has at least one incoming or outgoing edge."
           : "One or more nodes are not connected to the draft graph.",
+      summaryMessage: { key: orphanNodeIds.length === 0 ? "orphanConnected" : "orphanDisconnected" },
       evidenceRefs: orphanNodeIds.length === 0 ? [...nodeIds] : orphanNodeIds,
     },
   ];
@@ -358,6 +399,7 @@ function buildContractChecks(
     {
       checkId: "input_contract_fields",
       label: "Input contract fields",
+      labelMessage: { key: "input_contract_fields_label" },
       status: inputFields.missingFields.length === 0 ? "passed" : "needs_review",
       severity: inputFields.missingFields.length === 0 ? "info" : "warning",
       requiredFields: requiredInputFields,
@@ -366,10 +408,12 @@ function buildContractChecks(
       summary: executorV0
         ? "The inspector checks that the bounded user input remains explicit before server revalidation."
         : "The inspector checks that tenant, application, selection, and diagnostic context remain explicit.",
+      summaryMessage: { key: executorV0 ? "inputExecutorContract" : "inputAdvisoryContract" },
     },
     {
       checkId: "output_contract_fields",
       label: "Output contract fields",
+      labelMessage: { key: "output_contract_fields_label" },
       status: outputFields.missingFields.length === 0 ? "passed" : "needs_review",
       severity: outputFields.missingFields.length === 0 ? "info" : "warning",
       requiredFields: requiredOutputFields,
@@ -378,6 +422,7 @@ function buildContractChecks(
       summary: executorV0
         ? "The inspector checks that the advisory answer mapping remains explicit before server revalidation."
         : "The inspector checks that advisory answers, candidate actions, risk summary, and audit refs remain explicit.",
+      summaryMessage: { key: executorV0 ? "outputExecutorContract" : "outputAdvisoryContract" },
     },
   ];
 }
@@ -389,10 +434,13 @@ function buildBlockedCapabilityChecks(
     checkId: `validation_${capability.capabilityId}`,
     capabilityId: capability.capabilityId,
     label: capability.label,
+    labelMessage: capability.labelMessage,
     status: "blocked",
     severity: "blocking",
     missingPrerequisite: capability.missingPrerequisite,
+    missingPrerequisiteMessage: capability.missingPrerequisiteMessage,
     summary: capability.summary,
+    summaryMessage: capability.summaryMessage,
     auditRef: capability.auditRef,
   }));
 }

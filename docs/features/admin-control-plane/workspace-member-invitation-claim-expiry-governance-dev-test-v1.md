@@ -256,6 +256,8 @@ SQLite 与受限 runtime role 的 PostgreSQL 均通过实际配置化 Server 和
 - 管理员进入 `#admin-workspace-invitations`，确认角色和 TTL 后创建并交接一次性代码；离开、刷新或清理后只能看到元数据，需要再次交接时撤销并创建新邀请。
 - 已登录成员打开账户面板的 Claim invitation，预览后勾选确认并认领。已有成员关系冲突、终态、到期、角色漂移或版本冲突均按服务端失败结果恢复，不自动重试写入或选择工作区。
 
+2026-10-07 已沿[中英国际化 C 阶段](../web-internationalization-zh-en-v1.md#c-阶段覆盖清单2026-10-02)完成邀请目录、创建 / 撤销确认、一次性凭据交接及登录后预览 / 认领双语迁移；认领弹层复用语言入口。界面语言不改变 TTL、UTC 到期、精确版本、请求和邀请码寿命，原有失效清理仍生效。静态验证及隔离 SQLite 浏览器双语验收已通过，证据见[2026-W41](../../devlogs/2026-W41.md)。
+
 ## 验收方式
 
 - memory、SQLite、PostgreSQL 对 create / list / revoke / preview / claim、cursor `as_of`、CAS、并发和重启的语义一致。

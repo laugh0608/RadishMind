@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import "../../i18n/workflowRAGEvaluationResources.ts";
+import { useTranslation } from "react-i18next";
+import { ragEvaluationState, ragEvaluationMessage, ragEvaluationFailureCode, ragEvaluationMetric } from "./workflowRAGEvaluationMessages.ts";
+import { formatDisplayDate, formatDisplayNumber } from "../../i18n/formatters.ts";
+import { resolveUiLocale } from "../../i18n/localePreference.ts";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   archiveWorkflowRAGEvaluationDataset,
@@ -63,6 +68,7 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   applicationActive: boolean;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
+  const { t, i18n } = useTranslation("workflow");
   const [collection, setCollection] = useState<DatasetCollection>(emptyCollection);
   const [filter, setFilter] = useState<WorkflowRAGEvaluationLifecycle>("active");
   const [selectedResource, setSelectedResource] = useState<WorkflowRAGEvaluationDatasetResource | null>(null);
@@ -70,6 +76,7 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   const [reviews, setReviews] = useState<WorkflowRAGCandidateReviewSummary[]>([]);
   const [selectedReview, setSelectedReview] = useState<WorkflowRAGCandidateReviewSummary | null>(null);
   const [reviewCursor, setReviewCursor] = useState("");
+  const [reviewHistoryFailure, setReviewHistoryFailure] = useState("");
   const [editor, setEditor] = useState<DatasetEditor>(() => emptyEditor(applicationId));
   const [candidateJSON, setCandidateJSON] = useState(() => emptySnapshotJSON(applicationId));
   const [showCreate, setShowCreate] = useState(false);
@@ -77,6 +84,10 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   const [pending, setPending] = useState<"" | "listing" | "reading" | "creating" | "versioning" | "archiving" | "reviewing">("");
   const [operation, setOperation] = useState<WorkflowRAGEvaluationOperationResult | null>(null);
 
+  const requestGeneration = useRef(0);
+  const writeInFlight = useRef(false);
+  const versionConflict = operation?.status === "version_conflict";
+  const locale = resolveUiLocale(i18n.resolvedLanguage, []);
   const canRead = config.scopes.has("workflow_rag_evaluation_datasets:read");
   const canReadContent = canRead && config.scopes.has("workflow_rag_evaluation_datasets:read_content");
   const canWrite = applicationActive && config.scopes.has("workflow_rag_evaluation_datasets:write") && config.scopes.has("workflow_rag_snapshots:read");
@@ -86,8 +97,9 @@ export default function WorkflowRAGEvaluationDatasetPanel({
 
   useEffect(() => {
     if (!onEvidenceChange) return;
-    const failureCode = collection.failureCode || operation?.failureCode || "";
-    const ownerFailed = Boolean(failureCode) && (operation?.status === "failed" || operation?.status === "scope_denied" || operation?.status === "version_conflict" || Boolean(collection.failureCode));
+    const rawFailure = collection.failureCode || reviewHistoryFailure || operation?.failureCode || "";
+    const failureCode = ragEvaluationFailureCode(rawFailure) || (rawFailure ? "workflow_rag_evaluation_response_invalid" : "");
+    const ownerFailed = Boolean(failureCode) && (operation?.status === "failed" || operation?.status === "scope_denied" || operation?.status === "version_conflict" || Boolean(collection.failureCode || reviewHistoryFailure));
     const compatible = selectedReview?.candidateStatus === "passed" &&
       (selectedReview.conclusion === "improved" || selectedReview.conclusion === "unchanged");
     onEvidenceChange({
@@ -99,10 +111,14 @@ export default function WorkflowRAGEvaluationDatasetPanel({
       blockers: ownerFailed ? [{ code: failureCode, summary: operation?.summary || "Evaluation evidence could not be loaded from its owner." }] : [],
       failureCodes: ownerFailed ? [failureCode] : [],
     });
-  }, [collection.active.length, collection.failureCode, onEvidenceChange, operation, selectedReview]);
+  }, [collection.active.length, collection.failureCode, onEvidenceChange, operation, reviewHistoryFailure, selectedReview]);
 
   useEffect(() => {
-    let cancelled = false;
+    const generation = ++requestGeneration.current;
+    writeInFlight.current = false;
+    setPending("");
+    setReviewCursor("");
+    setReviewHistoryFailure("");
     setCollection(emptyCollection());
     setSelectedResource(null);
     setSelectedVersion(null);
@@ -113,31 +129,37 @@ export default function WorkflowRAGEvaluationDatasetPanel({
     setOperation(null);
     setShowCreate(false);
     setShowArchiveConfirm(false);
-    if (config.mode === "offline" || !canRead || !applicationId.trim()) return;
+    if (config.mode === "offline" || !canRead || !applicationId.trim()) return () => { ++requestGeneration.current; };
     setPending("listing");
     Promise.all([
       listWorkflowRAGEvaluationDatasets(config, applicationId, "active"),
       listWorkflowRAGEvaluationDatasets(config, applicationId, "archived"),
     ]).then(([active, archived]) => {
-      if (cancelled) return;
+      if (generation !== requestGeneration.current) return;
       setPending("");
       setCollection({ active: active.resources, archived: archived.resources, activeCursor: active.nextCursor, archivedCursor: archived.nextCursor, failureCode: active.failureCode || archived.failureCode });
     });
-    return () => { cancelled = true; };
+    return () => { ++requestGeneration.current; writeInFlight.current = false; };
   }, [applicationId, canRead]);
 
-  const refresh = async () => {
+  const refresh = async (generation = ++requestGeneration.current) => {
     const [active, archived] = await Promise.all([
       listWorkflowRAGEvaluationDatasets(config, applicationId, "active"),
       listWorkflowRAGEvaluationDatasets(config, applicationId, "archived"),
     ]);
     const next = { active: active.resources, archived: archived.resources, activeCursor: active.nextCursor, archivedCursor: archived.nextCursor, failureCode: active.failureCode || archived.failureCode };
+    if (generation !== requestGeneration.current) return next;
     setCollection(next);
     return next;
   };
 
   const selectDataset = async (resource: WorkflowRAGEvaluationDatasetResource) => {
+    if (writeInFlight.current) return;
+    const generation = ++requestGeneration.current;
     setSelectedResource(resource);
+    setReviews([]);
+    setReviewCursor("");
+    setReviewHistoryFailure("");
     setSelectedVersion(null);
     setSelectedReview(null);
     setOperation(null);
@@ -148,9 +170,11 @@ export default function WorkflowRAGEvaluationDatasetPanel({
       canReadContent ? readWorkflowRAGEvaluationDataset(config, applicationId, resource.datasetId, resource.latestVersion) : Promise.resolve(null),
       listWorkflowRAGCandidateReviews(config, applicationId, resource.datasetId),
     ]);
+    if (generation !== requestGeneration.current) return;
     setPending("");
     setReviews(history.reviews);
     setReviewCursor(history.nextCursor);
+    setReviewHistoryFailure(history.failureCode);
     if (!detail) return;
     setOperation(detail);
     if (detail.version) {
@@ -160,10 +184,15 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   };
 
   const submitCreate = async () => {
+    if (writeInFlight.current || versionConflict) return;
     const input = parseEditor(editor, applicationId);
     if (typeof input === "string") return setOperation(localFailure(input));
+    writeInFlight.current = true;
+    const generation = ++requestGeneration.current;
     setPending("creating");
     const result = await createWorkflowRAGEvaluationDataset(config, applicationId, input);
+    if (generation !== requestGeneration.current) return;
+    writeInFlight.current = false;
     setPending("");
     setOperation(result);
     if (!result.resource || !result.version) return;
@@ -172,66 +201,89 @@ export default function WorkflowRAGEvaluationDatasetPanel({
     setEditor(editorFromVersion(result.version));
     setShowCreate(false);
     setFilter("active");
-    await refresh();
+    await refresh(generation);
   };
 
   const submitVersion = async () => {
+    if (writeInFlight.current || versionConflict) return;
     if (!selectedResource) return;
     const input = parseEditor(editor, applicationId);
     if (typeof input === "string") return setOperation(localFailure(input));
+    writeInFlight.current = true;
+    const generation = ++requestGeneration.current;
     setPending("versioning");
     const result = await versionWorkflowRAGEvaluationDataset(config, applicationId, selectedResource.datasetId, selectedResource.latestVersion, input);
+    if (generation !== requestGeneration.current) return;
+    writeInFlight.current = false;
     setPending("");
     setOperation(result);
     if (!result.resource || !result.version) return;
     setSelectedResource(result.resource);
     setSelectedVersion(result.version);
     setEditor(editorFromVersion(result.version));
-    await refresh();
+    await refresh(generation);
   };
 
   const submitArchive = async () => {
+    if (writeInFlight.current || versionConflict) return;
     if (!selectedResource) return;
+    writeInFlight.current = true;
+    const generation = ++requestGeneration.current;
     setPending("archiving");
     const result = await archiveWorkflowRAGEvaluationDataset(config, applicationId, selectedResource.datasetId, selectedResource.latestVersion);
+    if (generation !== requestGeneration.current) return;
+    writeInFlight.current = false;
     setPending("");
     setOperation(result);
     setShowArchiveConfirm(false);
     if (!result.resource) return;
     setSelectedResource(result.resource);
     setFilter("archived");
-    await refresh();
+    await refresh(generation);
   };
 
   const submitReview = async () => {
+    if (writeInFlight.current || versionConflict) return;
     if (!selectedResource) return;
     const candidate = parseSnapshotBinding(candidateJSON, applicationId);
     if (typeof candidate === "string") return setOperation(localFailure(candidate));
+    writeInFlight.current = true;
+    const generation = ++requestGeneration.current;
     setPending("reviewing");
     const result = await createWorkflowRAGCandidateReview(config, applicationId, selectedResource.datasetId, selectedResource.latestVersion, selectedResource.latestDigest, candidate);
+    if (generation !== requestGeneration.current) return;
+    writeInFlight.current = false;
     setPending("");
     setOperation(result);
     if (!result.review) return;
     setSelectedReview(result.review);
     const history = await listWorkflowRAGCandidateReviews(config, applicationId, selectedResource.datasetId);
+    if (generation !== requestGeneration.current) return;
     setReviews(history.reviews);
     setReviewCursor(history.nextCursor);
+    setReviewHistoryFailure(history.failureCode);
   };
 
   const selectReview = async (review: WorkflowRAGCandidateReviewSummary) => {
+    if (writeInFlight.current) return;
+    const generation = ++requestGeneration.current;
     if (!selectedResource) return;
     setPending("reading");
     const result = await readWorkflowRAGCandidateReview(config, applicationId, selectedResource.datasetId, review.reviewId);
+    if (generation !== requestGeneration.current) return;
     setPending("");
     setOperation(result);
     setSelectedReview(result.review);
   };
 
   const loadMoreDatasets = async () => {
+    if (writeInFlight.current) return;
+    const generation = ++requestGeneration.current;
     const cursor = filter === "active" ? collection.activeCursor : collection.archivedCursor;
     if (!cursor) return;
     setPending("listing");
     const page = await listWorkflowRAGEvaluationDatasets(config, applicationId, filter, cursor);
+    if (generation !== requestGeneration.current) return;
     setPending("");
     setCollection((current) => filter === "active"
       ? { ...current, active: mergeResources(current.active, page.resources), activeCursor: page.nextCursor, failureCode: page.failureCode }
@@ -239,79 +291,97 @@ export default function WorkflowRAGEvaluationDatasetPanel({
   };
 
   const loadMoreReviews = async () => {
+    if (writeInFlight.current) return;
+    const generation = ++requestGeneration.current;
     if (!selectedResource || !reviewCursor) return;
     setPending("reading");
     const page = await listWorkflowRAGCandidateReviews(config, applicationId, selectedResource.datasetId, reviewCursor);
+    if (generation !== requestGeneration.current) return;
     setPending("");
     setReviews((current) => mergeReviews(current, page.reviews));
     setReviewCursor(page.nextCursor);
+    setReviewHistoryFailure(page.failureCode);
   };
 
-  if (config.mode === "offline") return <BoundaryPanel status="offline" summary="RAG 评测数据集保持 offline；本面板发送 0 个请求，不读取 query，也不创建候选审查。" />;
-  if (!canRead || !applicationId.trim()) return <BoundaryPanel status="scope denied" summary="缺少 application scope 或 workflow_rag_evaluation_datasets:read；本面板发送 0 个请求。" />;
+  const reloadEvidence = async () => {
+    if (writeInFlight.current) return;
+    const generation = ++requestGeneration.current;
+    setPending("listing");
+    const next = await refresh(generation);
+    if (generation !== requestGeneration.current) return;
+    setPending("");
+    if (next.failureCode) return;
+    const current = [...next.active, ...next.archived].find(item => item.datasetId === selectedResource?.datasetId);
+    if (current) await selectDataset(current);
+    else setOperation(null);
+  };
+
+  if (config.mode === "offline") return <BoundaryPanel status="offline" summary={t($ => $.ragEvaluation.offlineBoundary)} />;
+  if (!canRead || !applicationId.trim()) return <BoundaryPanel status="scope_denied" summary={t($ => $.ragEvaluation.scopeBoundary)} />;
 
   const datasetCursor = filter === "active" ? collection.activeCursor : collection.archivedCursor;
   return (
     <section className="workflow-rag-evaluation-panel" id="workflow-rag-evaluation-panel" aria-labelledby="workflow-rag-evaluation-title">
       <div className="section-heading compact-heading">
-        <div><p className="eyebrow">Workflow RAG · Quality governance</p><h4 id="workflow-rag-evaluation-title">评测数据集与候选快照审查</h4></div>
-        <span className={`status-badge ${collection.failureCode ? "bad" : "good"}`}>{pending || (collection.failureCode ? "failed" : "ready")}</span>
+        <div><p className="eyebrow">{t($ => $.ragEvaluation.eyebrow)}</p><h4 id="workflow-rag-evaluation-title">{t($ => $.ragEvaluation.title)}</h4></div>
+        <span className={`status-badge ${collection.failureCode ? "bad" : "good"}`}>{ragEvaluationState(t, pending || (collection.failureCode ? "failed" : "ready"))}</span>
       </div>
 
       <div className="workflow-rag-scope-grid">
-        <article><span>Application</span><strong>{applicationName || applicationId}</strong><code>{applicationId}</code></article>
-        <article><span>Dataset detail</span><strong>{canReadContent ? "authorized" : "metadata-only"}</strong><small>query 只在精确版本 detail 中返回。</small></article>
-        <article><span>Candidate review</span><strong>{canReview ? "enabled" : "read-only"}</strong><small>baseline 与 candidate 各执行一次 lexical ranking。</small></article>
-        <article><span>Execution boundary</span><strong>0 Gateway / 0 runs</strong><small>审查不创建 run，也不触发模型调用。</small></article>
+        <article><span>{t($ => $.ragEvaluation.application)}</span><strong>{applicationName || applicationId}</strong><code>{applicationId}</code></article>
+        <article><span>{t($ => $.ragEvaluation.detail)}</span><strong>{canReadContent ? t($ => $.ragEvaluation.authorized) : t($ => $.ragEvaluation.metadataOnly)}</strong><small>{t($ => $.ragEvaluation.exactQuery)}</small></article>
+        <article><span>{t($ => $.ragEvaluation.candidateReview)}</span><strong>{canReview ? t($ => $.ragEvaluation.enabled) : t($ => $.ragEvaluation.readOnly)}</strong><small>{t($ => $.ragEvaluation.rankingBoundary)}</small></article>
+        <article><span>{t($ => $.ragEvaluation.executionBoundary)}</span><strong>{t($ => $.ragEvaluation.zeroCalls)}</strong><small>{t($ => $.ragEvaluation.noExecution)}</small></article>
       </div>
 
-      {!applicationActive ? <p className="workflow-rag-boundary-note">当前应用已归档；数据集与审查证据仍可读取，写入、审查和归档入口关闭。</p> : null}
-      {!canReadContent ? <p className="workflow-rag-boundary-note">缺少 read_content：数据集列表与 metadata-only 审查仍可用，但 query / review note 不会请求。</p> : null}
-      {collection.failureCode ? <p className="workflow-rag-failure" role="alert"><code>{collection.failureCode}</code></p> : null}
+      {!applicationActive ? <p className="workflow-rag-boundary-note">{t($ => $.ragEvaluation.archivedApplication)}</p> : null}
+      {!canReadContent ? <p className="workflow-rag-boundary-note">{t($ => $.ragEvaluation.contentPermission)}</p> : null}
+      {collection.failureCode ? <p className="workflow-rag-failure" role="alert"><code>{ragEvaluationFailureCode(collection.failureCode)}</code> {ragEvaluationMessage(t, { status: "failed", failureCode: collection.failureCode })}</p> : null}
 
       <div className="workflow-rag-toolbar">
-        <div className="workflow-rag-filter" aria-label="评测数据集生命周期筛选">
-          {LIFECYCLES.map((state) => <button key={state} type="button" className={filter === state ? "selected" : ""} onClick={() => setFilter(state)}>{state}</button>)}
+        <div className="workflow-rag-filter" aria-label={t($ => $.ragEvaluation.lifecycleFilter)}>
+          {LIFECYCLES.map((state) => <button key={state} type="button" className={filter === state ? "selected" : ""} onClick={() => setFilter(state)}>{ragEvaluationState(t, state)}</button>)}
         </div>
-        <button type="button" disabled={pending !== "" || !canWrite} onClick={() => { setShowCreate(true); setSelectedResource(null); setSelectedVersion(null); setSelectedReview(null); setReviews([]); setEditor(emptyEditor(applicationId)); setOperation(null); }}>新建评测数据集</button>
+        <button type="button" disabled={pending !== "" || versionConflict || !canWrite} onClick={() => { ++requestGeneration.current; setShowArchiveConfirm(false); setReviewCursor(""); setReviewHistoryFailure(""); setShowCreate(true); setSelectedResource(null); setSelectedVersion(null); setSelectedReview(null); setReviews([]); setEditor(emptyEditor(applicationId)); setOperation(null); }}>{t($ => $.ragEvaluation.newDataset)}</button>
       </div>
 
       <div className="workflow-rag-evaluation-layout">
-        <div className="workflow-rag-list" aria-label={`${filter} workflow RAG evaluation datasets`}>
+        <div className="workflow-rag-list" aria-label={t($ => $.ragEvaluation.datasetList, { value: ragEvaluationState(t, filter) })}>
           {visibleResources.map((resource) => (
-            <button key={resource.datasetId} type="button" className={selectedResource?.datasetId === resource.datasetId ? "selected" : ""} onClick={() => void selectDataset(resource)}>
-              <span><strong>{resource.displayName}</strong><code>{resource.datasetKey} · v{resource.latestVersion}</code></span>
-              <span><small>{resource.sampleCount} samples</small><small>{resource.contentClassification}</small></span>
+            <button key={resource.datasetId} type="button" className={selectedResource?.datasetId === resource.datasetId ? "selected" : ""} disabled={writeInFlight.current} onClick={() => void selectDataset(resource)}>
+              <span><strong>{resource.displayName}</strong><code>{resource.datasetKey} {t($ => $.ragEvaluation.versionSeparator)}{resource.latestVersion}</code></span>
+              <span><small>{t($ => $.ragEvaluation.sampleCount, { count: resource.sampleCount })}</small><small>{ragEvaluationState(t, resource.contentClassification)}</small></span>
             </button>
           ))}
-          {!visibleResources.length && pending !== "listing" ? <p>当前作用域没有 {filter} 评测数据集。</p> : null}
-          {datasetCursor ? <button type="button" disabled={pending !== ""} onClick={() => void loadMoreDatasets()}>加载下一页</button> : null}
+          {!visibleResources.length && pending !== "listing" ? <p>{t($ => $.ragEvaluation.emptyDatasets, { lifecycle: ragEvaluationState(t, filter) })}</p> : null}
+          {datasetCursor ? <button type="button" disabled={pending !== ""} onClick={() => void loadMoreDatasets()}>{t($ => $.ragEvaluation.nextPage)}</button> : null}
         </div>
 
         <div className="workflow-rag-evaluation-workspace">
-          {showCreate || selectedVersion ? <DatasetEditorFields editor={editor} disabled={pending !== "" || (!showCreate && !canWrite)} immutableKey={Boolean(selectedVersion)} onChange={setEditor} /> : selectedResource ? <ResourceEvidence resource={selectedResource} /> : <article className="workflow-rag-empty"><strong>选择数据集或创建 v1</strong><p>列表保持 metadata-only；query 只通过精确版本 detail 进入编辑器。</p></article>}
+          {showCreate || selectedVersion ? <DatasetEditorFields editor={editor} disabled={pending !== "" || (!showCreate && !canWrite)} immutableKey={Boolean(selectedVersion)} onChange={setEditor} /> : selectedResource ? <ResourceEvidence resource={selectedResource} /> : <article className="workflow-rag-empty"><strong>{t($ => $.ragEvaluation.selectDataset)}</strong><p>{t($ => $.ragEvaluation.selectionHint)}</p></article>}
 
-          {showCreate ? <div className="workflow-rag-actions"><button type="button" disabled={pending !== "" || !canWrite} onClick={() => void submitCreate()}>{pending === "creating" ? "创建中…" : "创建 dataset v1"}</button><button type="button" disabled={pending !== ""} onClick={() => setShowCreate(false)}>取消</button></div> : null}
+          {showCreate ? <div className="workflow-rag-actions"><button type="button" disabled={pending !== "" || versionConflict || !canWrite} onClick={() => void submitCreate()}>{pending === "creating" ? t($ => $.ragEvaluation.creating) : t($ => $.ragEvaluation.create)}</button><button type="button" disabled={pending !== ""} onClick={() => setShowCreate(false)}>{t($ => $.ragEvaluation.cancel)}</button></div> : null}
           {selectedResource && selectedVersion && selectedResource.lifecycleState === "active" ? (
-            <div className="workflow-rag-actions"><button type="button" disabled={pending !== "" || !canWrite} onClick={() => void submitVersion()}>{pending === "versioning" ? "写入中…" : `完整替换并创建 v${selectedResource.latestVersion + 1}`}</button><button type="button" className="danger-action" disabled={pending !== "" || !canArchive} onClick={() => setShowArchiveConfirm(true)}>归档数据集</button></div>
+            <div className="workflow-rag-actions"><button type="button" disabled={pending !== "" || versionConflict || !canWrite} onClick={() => void submitVersion()}>{pending === "versioning" ? t($ => $.ragEvaluation.versioning) : t($ => $.ragEvaluation.createVersion, { value: selectedResource.latestVersion + 1 })}</button><button type="button" className="danger-action" disabled={pending !== "" || versionConflict || !canArchive} onClick={() => setShowArchiveConfirm(true)}>{t($ => $.ragEvaluation.archive)}</button></div>
           ) : null}
-          {showArchiveConfirm ? <div className="workflow-rag-archive-confirm" role="alert"><p>归档后禁止新版本与候选审查；历史版本和审查仍可读。</p><button type="button" className="danger-action" disabled={pending !== "" || !canArchive} onClick={() => void submitArchive()}>确认归档</button><button type="button" onClick={() => setShowArchiveConfirm(false)}>取消</button></div> : null}
+          {showArchiveConfirm ? <div className="workflow-rag-archive-confirm" role="alert"><p>{t($ => $.ragEvaluation.archiveConfirmation)}</p><button type="button" className="danger-action" disabled={pending !== "" || versionConflict || !canArchive} onClick={() => void submitArchive()}>{t($ => $.ragEvaluation.confirmArchive)}</button><button type="button" onClick={() => setShowArchiveConfirm(false)}>{t($ => $.ragEvaluation.cancel)}</button></div> : null}
 
           {selectedResource ? (
             <section className="workflow-rag-candidate-review" aria-labelledby="workflow-rag-candidate-review-title">
-              <div className="section-heading compact-heading"><div><p className="eyebrow">Exact candidate binding</p><h5 id="workflow-rag-candidate-review-title">候选快照审查</h5></div><span className="status-badge neutral">{reviews.length} records</span></div>
-              <label><span>Candidate snapshot binding（camelCase JSON）</span><textarea value={candidateJSON} disabled={pending !== "" || !canReview || selectedResource.lifecycleState !== "active"} spellCheck={false} onChange={(event) => setCandidateJSON(event.currentTarget.value)} /></label>
-              <button type="button" disabled={pending !== "" || !canReview || selectedResource.lifecycleState !== "active"} onClick={() => void submitReview()}>{pending === "reviewing" ? "审查中…" : `对 dataset v${selectedResource.latestVersion} 执行候选审查`}</button>
+              <div className="section-heading compact-heading"><div><p className="eyebrow">{t($ => $.ragEvaluation.exactBinding)}</p><h5 id="workflow-rag-candidate-review-title">{t($ => $.ragEvaluation.reviewTitle)}</h5></div><span className="status-badge neutral">{t($ => $.ragEvaluation.recordCount, { count: reviews.length })}</span></div>
+              <label><span>{t($ => $.ragEvaluation.candidateBinding)}</span><textarea value={candidateJSON} disabled={pending !== "" || versionConflict || !canReview || selectedResource.lifecycleState !== "active"} spellCheck={false} onChange={(event) => setCandidateJSON(event.currentTarget.value)} /></label>
+              <button type="button" disabled={pending !== "" || versionConflict || !canReview || selectedResource.lifecycleState !== "active"} onClick={() => void submitReview()}>{pending === "reviewing" ? t($ => $.ragEvaluation.reviewing) : t($ => $.ragEvaluation.reviewVersion, { latestVersion: selectedResource.latestVersion })}</button>
               <div className="workflow-rag-review-history">
-                {reviews.map((review) => <button key={review.reviewId} type="button" className={selectedReview?.reviewId === review.reviewId ? "selected" : ""} onClick={() => void selectReview(review)}><span><strong>{review.conclusion}</strong><code>{review.candidateSnapshot.ragRef}</code></span><small>{review.createdAt}</small></button>)}
-                {!reviews.length ? <p>尚无候选快照审查记录。</p> : null}
-                {reviewCursor ? <button type="button" disabled={pending !== ""} onClick={() => void loadMoreReviews()}>加载更多审查</button> : null}
+                {reviews.map((review) => <button key={review.reviewId} type="button" className={selectedReview?.reviewId === review.reviewId ? "selected" : ""} disabled={writeInFlight.current} onClick={() => void selectReview(review)}><span><strong>{ragEvaluationState(t, review.conclusion)}</strong><code>{review.candidateSnapshot.ragRef}</code></span><small title={review.createdAt}>{formatDisplayDate(review.createdAt, locale, { timeZone: "UTC" })}</small></button>)}
+                {reviewHistoryFailure ? <p role="alert" className="workflow-rag-failure">{ragEvaluationMessage(t, { status: "failed", failureCode: reviewHistoryFailure })} <code>{ragEvaluationFailureCode(reviewHistoryFailure)}</code></p> : !reviews.length ? <p>{t($ => $.ragEvaluation.noReviews)}</p> : null}
+                {reviewCursor ? <button type="button" disabled={pending !== ""} onClick={() => void loadMoreReviews()}>{t($ => $.ragEvaluation.moreReviews)}</button> : null}
               </div>
               {selectedReview ? <ReviewEvidence review={selectedReview} /> : null}
             </section>
           ) : null}
 
           {operation ? <OperationEvidence operation={operation} /> : null}
+          {operation?.failureCode || collection.failureCode || reviewHistoryFailure ? <button type="button" disabled={pending !== ""} onClick={() => void reloadEvidence()}>{t($ => $.ragEvaluation.reload)}</button> : null}
         </div>
       </div>
     </section>
@@ -321,23 +391,28 @@ export default function WorkflowRAGEvaluationDatasetPanel({
 const LIFECYCLES: WorkflowRAGEvaluationLifecycle[] = ["active", "archived"];
 
 function DatasetEditorFields({ editor, disabled, immutableKey, onChange }: { editor: DatasetEditor; disabled: boolean; immutableKey: boolean; onChange: (value: DatasetEditor) => void }) {
+  const { t } = useTranslation("workflow");
   return <div className="workflow-rag-evaluation-fields">
-    <label><span>Dataset key</span><input value={editor.datasetKey} disabled={disabled || immutableKey} maxLength={48} onChange={(event) => onChange({ ...editor, datasetKey: event.currentTarget.value })} /></label>
-    <label><span>Display name</span><input value={editor.displayName} disabled={disabled} maxLength={120} onChange={(event) => onChange({ ...editor, displayName: event.currentTarget.value })} /></label>
-    <label><span>Classification</span><select value={editor.contentClassification} disabled={disabled} onChange={(event) => onChange({ ...editor, contentClassification: event.currentTarget.value as WorkflowRAGEvaluationClassification })}><option value="synthetic_public">synthetic_public</option><option value="workspace_internal">workspace_internal</option></select></label>
-    <label className="wide"><span>Baseline snapshot binding</span><textarea value={editor.baselineSnapshotJSON} disabled={disabled} spellCheck={false} onChange={(event) => onChange({ ...editor, baselineSnapshotJSON: event.currentTarget.value })} /></label>
-    <fieldset className="workflow-rag-thresholds"><legend>Acceptance thresholds</legend>{(Object.keys(editor.thresholds) as Array<keyof WorkflowRAGEvaluationMetrics>).map((key) => <label key={key}><span>{key}</span><input type="number" min="0" max="1" step="0.01" value={editor.thresholds[key]} disabled={disabled} onChange={(event) => onChange({ ...editor, thresholds: { ...editor.thresholds, [key]: Number(event.currentTarget.value) } })} /></label>)}</fieldset>
-    <label className="wide"><span>Human review summary</span><textarea value={editor.reviewSummary} disabled={disabled} maxLength={512} onChange={(event) => onChange({ ...editor, reviewSummary: event.currentTarget.value })} /></label>
-    <label className="wide"><span>Complete samples（camelCase JSON array）</span><textarea value={editor.samplesJSON} disabled={disabled} spellCheck={false} onChange={(event) => onChange({ ...editor, samplesJSON: event.currentTarget.value })} /><small>query 最多 4096 bytes；版本化采用完整 replacement 与 expected_latest_version CAS。</small></label>
+    <label><span>{t($ => $.ragEvaluation.datasetKey)}</span><input value={editor.datasetKey} disabled={disabled || immutableKey} maxLength={48} onChange={(event) => onChange({ ...editor, datasetKey: event.currentTarget.value })} /></label>
+    <label><span>{t($ => $.ragEvaluation.displayName)}</span><input value={editor.displayName} disabled={disabled} maxLength={120} onChange={(event) => onChange({ ...editor, displayName: event.currentTarget.value })} /></label>
+    <label><span>{t($ => $.ragEvaluation.classification)}</span><select value={editor.contentClassification} disabled={disabled} onChange={(event) => onChange({ ...editor, contentClassification: event.currentTarget.value as WorkflowRAGEvaluationClassification })}><option value="synthetic_public">{t($ => $.ragEvaluation.syntheticPublic)}</option><option value="workspace_internal">{t($ => $.ragEvaluation.workspaceInternal)}</option></select></label>
+    <label className="wide"><span>{t($ => $.ragEvaluation.baselineBinding)}</span><textarea value={editor.baselineSnapshotJSON} disabled={disabled} spellCheck={false} onChange={(event) => onChange({ ...editor, baselineSnapshotJSON: event.currentTarget.value })} /></label>
+    <fieldset className="workflow-rag-thresholds"><legend>{t($ => $.ragEvaluation.thresholds)}</legend>{(Object.keys(editor.thresholds) as Array<keyof WorkflowRAGEvaluationMetrics>).map((key) => <label key={key}><span title={key}>{ragEvaluationMetric(t, key)}</span><input type="number" min="0" max="1" step="0.01" value={editor.thresholds[key]} disabled={disabled} onChange={(event) => onChange({ ...editor, thresholds: { ...editor.thresholds, [key]: Number(event.currentTarget.value) } })} /></label>)}</fieldset>
+    <label className="wide"><span>{t($ => $.ragEvaluation.reviewSummary)}</span><textarea value={editor.reviewSummary} disabled={disabled} maxLength={512} onChange={(event) => onChange({ ...editor, reviewSummary: event.currentTarget.value })} /></label>
+    <label className="wide"><span id="rag-evaluation-samples-label">{t($ => $.ragEvaluation.samplesJSON)}</span><textarea aria-labelledby="rag-evaluation-samples-label" aria-describedby="rag-evaluation-samples-help" value={editor.samplesJSON} disabled={disabled} spellCheck={false} onChange={(event) => onChange({ ...editor, samplesJSON: event.currentTarget.value })} /><small id="rag-evaluation-samples-help">{t($ => $.ragEvaluation.replacementHint)}</small></label>
   </div>;
 }
 
-function ResourceEvidence({ resource }: { resource: WorkflowRAGEvaluationDatasetResource }) { return <article className="workflow-rag-record"><div><strong>{resource.displayName}</strong><span className="status-badge neutral">{resource.lifecycleState}</span></div><dl><div><dt>Dataset</dt><dd>{resource.datasetId}</dd></div><div><dt>Version</dt><dd>v{resource.latestVersion}</dd></div><div><dt>Digest</dt><dd>{resource.latestDigest}</dd></div><div><dt>Baseline</dt><dd>{resource.baselineSnapshot.ragRef}</dd></div><div><dt>Samples</dt><dd>{resource.sampleCount}</dd></div><div><dt>Classification</dt><dd>{resource.contentClassification}</dd></div></dl></article>; }
+function ResourceEvidence({ resource }: { resource: WorkflowRAGEvaluationDatasetResource }) {
+  const { t, i18n } = useTranslation("workflow"); return <article className="workflow-rag-record"><div><strong>{resource.displayName}</strong><span className="status-badge neutral">{ragEvaluationState(t, resource.lifecycleState)}</span></div><dl><div><dt>{t($ => $.ragEvaluation.dataset)}</dt><dd>{resource.datasetId}</dd></div><div><dt>{t($ => $.ragEvaluation.version)}</dt><dd>{t($ => $.ragEvaluation.versionPrefix)}{resource.latestVersion}</dd></div><div><dt>{t($ => $.ragEvaluation.digest)}</dt><dd>{resource.latestDigest}</dd></div><div><dt>{t($ => $.ragEvaluation.baseline)}</dt><dd>{resource.baselineSnapshot.ragRef}</dd></div><div><dt>{t($ => $.ragEvaluation.samples)}</dt><dd>{formatDisplayNumber(resource.sampleCount, resolveUiLocale(i18n.resolvedLanguage, []))}</dd></div><div><dt>{t($ => $.ragEvaluation.classification)}</dt><dd>{ragEvaluationState(t, resource.contentClassification)}</dd></div></dl></article>; }
 
-function ReviewEvidence({ review }: { review: WorkflowRAGCandidateReviewSummary }) { return <article className={`workflow-rag-review-evidence ${review.conclusion === "regressed" ? "failed" : ""}`}><div><strong>{review.conclusion}</strong><span>{review.baselineStatus} → {review.candidateStatus}</span></div><dl>{(Object.keys(review.metricDelta) as Array<keyof WorkflowRAGEvaluationMetrics>).map((key) => <div key={key}><dt>{key}</dt><dd>{formatDelta(review.metricDelta[key])}</dd></div>)}</dl><p>Samples: {review.sampleChanges.map((sample) => `${sample.sampleId}:${sample.change}`).join(" · ")}</p><p>Findings +[{review.addedFindingCodes.join(", ") || "none"}] −[{review.removedFindingCodes.join(", ") || "none"}]</p><code>{review.reviewId}</code></article>; }
+function ReviewEvidence({ review }: { review: WorkflowRAGCandidateReviewSummary }) {
+  const { t, i18n } = useTranslation("workflow"); return <article className={`workflow-rag-review-evidence ${review.conclusion === "regressed" ? "failed" : ""}`}><div><strong>{ragEvaluationState(t, review.conclusion)}</strong><span>{ragEvaluationState(t, review.baselineStatus)} → {ragEvaluationState(t, review.candidateStatus)}</span></div><dl>{(Object.keys(review.metricDelta) as Array<keyof WorkflowRAGEvaluationMetrics>).map((key) => <div key={key}><dt title={key}>{ragEvaluationMetric(t, key)}</dt><dd>{formatDisplayNumber(review.metricDelta[key], resolveUiLocale(i18n.resolvedLanguage, []), { minimumFractionDigits: 4, maximumFractionDigits: 4, signDisplay: "exceptZero" })}</dd></div>)}</dl><p>{t($ => $.ragEvaluation.sampleChanges)}: {review.sampleChanges.map((sample) => `${sample.sampleId}: ${ragEvaluationState(t, sample.change)}`).join(" · ")}</p><p>{t($ => $.ragEvaluation.findings)} +[{review.addedFindingCodes.join(", ") || t($ => $.ragEvaluation.none)}] −[{review.removedFindingCodes.join(", ") || t($ => $.ragEvaluation.none)}]</p><code>{review.reviewId}</code></article>; }
 
-function OperationEvidence({ operation }: { operation: WorkflowRAGEvaluationOperationResult }) { return <article className={`workflow-rag-operation ${operation.status === "failed" || operation.status === "version_conflict" ? "failed" : ""}`} aria-live="polite"><strong>{operation.status}</strong><p>{operation.summary}</p>{operation.failureCode ? <code>{operation.failureCode}</code> : null}{operation.status === "version_conflict" ? <small>Current: v{operation.currentLatestVersion} · {operation.currentLifecycleState}</small> : null}</article>; }
-function BoundaryPanel({ status, summary }: { status: string; summary: string }) { return <section className="workflow-rag-evaluation-panel offline" aria-label="Workflow RAG evaluation datasets"><div className="section-heading compact-heading"><div><p className="eyebrow">Workflow RAG · Quality governance</p><h4>评测数据集未启用</h4></div><span className="status-badge neutral">{status}</span></div><p>{summary}</p></section>; }
+function OperationEvidence({ operation }: { operation: WorkflowRAGEvaluationOperationResult }) {
+  const { t } = useTranslation("workflow"); return <article className={`workflow-rag-operation ${operation.status === "failed" || operation.status === "version_conflict" ? "failed" : ""}`} aria-live="polite"><strong>{ragEvaluationState(t, operation.status)}</strong><p>{ragEvaluationMessage(t, operation)}</p>{operation.failureCode ? <code>{ragEvaluationFailureCode(operation.failureCode)}</code> : null}{operation.status === "version_conflict" ? <small>{t($ => $.ragEvaluation.conflictCurrent, { version: operation.currentLatestVersion, lifecycle: ragEvaluationState(t, operation.currentLifecycleState) })}</small> : null}</article>; }
+function BoundaryPanel({ status, summary }: { status: string; summary: string }) {
+  const { t } = useTranslation("workflow"); return <section className="workflow-rag-evaluation-panel offline" aria-label={t($ => $.ragEvaluation.panelLabel)}><div className="section-heading compact-heading"><div><p className="eyebrow">{t($ => $.ragEvaluation.eyebrow)}</p><h4>{t($ => $.ragEvaluation.notEnabled)}</h4></div><span className="status-badge neutral">{ragEvaluationState(t, status)}</span></div><p>{summary}</p></section>; }
 
 function parseEditor(editor: DatasetEditor, applicationId: string): WorkflowRAGEvaluationDatasetInput | string {
   let binding: unknown;
@@ -367,4 +442,3 @@ function emptyCollection(): DatasetCollection { return { active: [], archived: [
 function mergeResources(current: WorkflowRAGEvaluationDatasetResource[], incoming: WorkflowRAGEvaluationDatasetResource[]): WorkflowRAGEvaluationDatasetResource[] { return [...new Map([...current, ...incoming].map((value) => [value.datasetId, value])).values()].sort((left, right) => left.datasetKey.localeCompare(right.datasetKey)); }
 function mergeReviews(current: WorkflowRAGCandidateReviewSummary[], incoming: WorkflowRAGCandidateReviewSummary[]): WorkflowRAGCandidateReviewSummary[] { return [...new Map([...current, ...incoming].map((value) => [value.reviewId, value])).values()].sort((left, right) => right.createdAt.localeCompare(left.createdAt) || right.reviewId.localeCompare(left.reviewId)); }
 function localFailure(failureCode: string): WorkflowRAGEvaluationOperationResult { return { status: "failed", resource: null, version: null, review: null, failureCode, currentLatestVersion: 0, currentLifecycleState: "", summary: "评测数据集输入在请求发送前被拒绝。" }; }
-function formatDelta(value: number): string { return `${value > 0 ? "+" : ""}${value.toFixed(4)}`; }

@@ -1,3 +1,12 @@
+import { useTranslation } from "react-i18next";
+import "../../i18n/identitySecurityResources.ts";
+import { LanguageSelector } from "../../i18n/LanguageSelector.tsx";
+import { formatDisplayNumber } from "../../i18n/formatters.ts";
+import { identityFailureMessage } from "./localIdentityMessages.ts";
+import {
+  securityFailure, securityFailureCopy, securitySuccessMessage, securityDate,
+  type SecurityFailure, type SecuritySuccess, type CredentialInputError,
+} from "./localIdentitySecurityMessages.ts";
 import {
   useEffect,
   useMemo,
@@ -14,7 +23,6 @@ import {
   revokeLocalIdentitySelfServiceSession,
   revokeOtherLocalIdentitySelfServiceSessions,
   rotateLocalIdentitySelfServiceCredential,
-  type LocalIdentitySelfServiceSecurityFailureKind,
   type LocalIdentitySelfServiceSessionSummary,
 } from "./localIdentitySelfServiceSecurityConsumer.ts";
 import {
@@ -34,17 +42,10 @@ type DirectoryState =
   | { status: "ready"; snapshotAt: string }
   | { status: "failed"; failure: SecurityFailure };
 
-type SecurityFailure = {
-  kind: LocalIdentitySelfServiceSecurityFailureKind;
-  title: string;
-  message: string;
-  code: string;
-};
-
 type OperationState =
   | { status: "idle" }
   | { status: "pending"; action: "exact" | "bulk" | "credential" }
-  | { status: "success"; message: string }
+  | { status: "success"; feedback: SecuritySuccess }
   | { status: "failed"; failure: SecurityFailure };
 
 type ConfirmationState =
@@ -78,6 +79,8 @@ export function LocalIdentitySelfServiceSecurityPanel({
   accountAction: "" | "link" | "logout" | "revoke";
   accountActionError: string;
 }) {
+  const { t, i18n } = useTranslation("identity");
+  const locale = i18n.language === "en-US" ? "en-US" : "zh-CN";
   const mounted = useRef(true);
   const requestGeneration = useRef(0);
   const requestController = useRef<AbortController | null>(null);
@@ -93,7 +96,7 @@ export function LocalIdentitySelfServiceSecurityPanel({
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
   const [credentialImpactConfirmed, setCredentialImpactConfirmed] = useState(false);
-  const [credentialInputError, setCredentialInputError] = useState("");
+  const [credentialInputError, setCredentialInputError] = useState<CredentialInputError | "">("");
 
   const projection = useMemo(() => {
     try {
@@ -184,28 +187,28 @@ export function LocalIdentitySelfServiceSecurityPanel({
     event.preventDefault();
     setCredentialInputError("");
     if (!profile.capabilities.hasActiveLocalCredential) {
-      setCredentialInputError("This account has no active local credential to rotate.");
+      setCredentialInputError("unavailable");
       return;
     }
     if (!profile.capabilities.recentAuthentication) {
-      setCredentialInputError("Sign out and authenticate again before rotating the local credential.");
+      setCredentialInputError("recent");
       return;
     }
     if (nextCursor !== "") {
-      setCredentialInputError("Load the complete canonical directory before reviewing the exact session impact.");
+      setCredentialInputError("incomplete");
       return;
     }
     if (currentPassword.length < 1 || currentPassword.length > 1024 ||
       newPassword.length < 12 || newPassword.length > 1024) {
-      setCredentialInputError("Enter the current password and a replacement of 12–1024 characters.");
+      setCredentialInputError("range");
       return;
     }
     if (newPassword !== newPasswordConfirmation) {
-      setCredentialInputError("The replacement password confirmation does not match.");
+      setCredentialInputError("mismatch");
       return;
     }
     if (!credentialImpactConfirmed) {
-      setCredentialInputError("Confirm the session impact before continuing.");
+      setCredentialInputError("impact");
       return;
     }
     pendingCredential.current = { currentPassword, newPassword };
@@ -233,11 +236,11 @@ export function LocalIdentitySelfServiceSecurityPanel({
       setSelectedSessionId("");
       onSessionChanged();
       if (result.currentSessionRevoked) {
-        setOperation({ status: "success", message: "Current session revoked. Sign in again to continue." });
+        setOperation({ status: "success", feedback: { kind: "currentRevoked" } });
         onAuthenticationRequired();
         return;
       }
-      setOperation({ status: "success", message: "The exact selected session was revoked." });
+      setOperation({ status: "success", feedback: { kind: "exactRevoked" } });
       await onRefreshProfile();
       if (acceptOperation(operationScope)) await loadSessions();
     } catch (error) {
@@ -255,7 +258,7 @@ export function LocalIdentitySelfServiceSecurityPanel({
       onSessionChanged();
       setOperation({
         status: "success",
-        message: `${result.revokedCount} other active session${result.revokedCount === 1 ? "" : "s"} revoked.`,
+        feedback: { kind: "othersRevoked", count: result.revokedCount },
       });
       await onRefreshProfile();
       if (acceptOperation(operationScope)) await loadSessions();
@@ -284,14 +287,14 @@ export function LocalIdentitySelfServiceSecurityPanel({
       if (result.currentSessionRevoked) {
         setOperation({
           status: "success",
-          message: `Credential rotated under ${result.policyVersion}; the current local session is closed.`,
+          feedback: { kind: "credentialClosed", policyVersion: result.policyVersion },
         });
         onAuthenticationRequired();
         return;
       }
       setOperation({
         status: "success",
-        message: `Credential rotated; ${result.revokedSessionCount} source-bound local session${result.revokedSessionCount === 1 ? "" : "s"} revoked.`,
+        feedback: { kind: "credentialRevoked", count: result.revokedSessionCount },
       });
       await onRefreshProfile();
       if (acceptOperation(operationScope)) await loadSessions();
@@ -371,37 +374,40 @@ export function LocalIdentitySelfServiceSecurityPanel({
     <section className="local-identity-security-surface" aria-labelledby="local-identity-security-title">
       <header className="local-identity-security-heading">
         <div>
-          <p className="eyebrow">Account security · development/test</p>
-          <h2 id="local-identity-security-title">Sessions &amp; local credential</h2>
+          <p className="eyebrow">{t($ => $.security.eyebrow)}</p>
+          <h2 id="local-identity-security-title">{t($ => $.security.title)}</h2>
           <p>{profile.account.displayName} · <code>{profile.account.userId}</code></p>
         </div>
         <div className="local-identity-security-heading-actions">
-          <button type="button" onClick={onClaimInvitation} disabled={busy}>Claim invitation</button>
+          <LanguageSelector />
+          <button type="button" onClick={onClaimInvitation} disabled={busy}>{t($ => $.security.claim)}</button>
           <button type="button" onClick={() => void onLinkOIDC()} disabled={busy || !profile.capabilities.oidcEnabled || !profile.capabilities.recentAuthentication}>
-            {accountAction === "link" ? "Opening…" : "Link Radish identity"}
+            {accountAction === "link" ? t($ => $.security.opening) : t($ => $.security.link)}
           </button>
           <button type="button" onClick={() => void onLogout()} disabled={busy}>
-            {accountAction === "logout" ? "Signing out…" : "Sign out"}
+            {accountAction === "logout" ? t($ => $.security.signingOut) : t($ => $.security.signOut)}
           </button>
-          <button type="button" className="local-identity-security-close" onClick={onClose} disabled={busy} aria-label="Close account security">
+          <button type="button" className="local-identity-security-close" onClick={onClose} disabled={busy} aria-label={t($ => $.security.close)}>
             ×
           </button>
         </div>
       </header>
 
       <dl className="local-identity-security-scope">
-        <div><dt>Current method</dt><dd>{authenticationMethodLabel(profile.session.authenticationMethod)}</dd></div>
-        <div><dt>Session owner</dt><dd><code>{shortReference(profile.session.sessionId)}</code></dd></div>
-        <div><dt>Recent authentication</dt><dd>{profile.capabilities.recentAuthentication ? "verified" : "required"}</dd></div>
-        <div><dt>Directory snapshot</dt><dd>{directory.status === "ready" || directory.status === "empty" ? formatDate(directory.snapshotAt) : "pending"}</dd></div>
+        <div><dt>{t($ => $.security.currentMethod)}</dt><dd>{t($ => $.security.methods[profile.session.authenticationMethod])}</dd></div>
+        <div><dt>{t($ => $.security.sessionOwner)}</dt><dd><code>{shortReference(profile.session.sessionId)}</code></dd></div>
+        <div><dt>{t($ => $.security.recentAuthentication)}</dt><dd>{profile.capabilities.recentAuthentication ? t($ => $.security.verified) : t($ => $.security.required)}</dd></div>
+        <div><dt>{t($ => $.security.snapshot)}</dt><dd title={directory.status === "ready" || directory.status === "empty" ? directory.snapshotAt : undefined}>{directory.status === "ready" || directory.status === "empty" ? securityDate(t, directory.snapshotAt, locale) : t($ => $.security.pending)}</dd></div>
       </dl>
 
-      {accountActionError ? <p className="local-identity-inline-error" role="alert">{accountActionError}</p> : null}
+      {accountActionError ? <p className="local-identity-inline-error" role="alert">{identityFailureMessage(t, accountActionError)} <code>{accountActionError}</code></p> : null}
 
       {operation.status === "success" ? (
         <div className="local-identity-security-operation is-success" role="status">
-          <span aria-hidden="true">✓</span><div><strong>Canonical change committed</strong><p>{operation.message}</p></div>
+          <span aria-hidden="true">✓</span><div><strong>{t($ => $.security.committed)}</strong><p>{securitySuccessMessage(t, operation.feedback, locale)}</p></div>
         </div>
+      ) : operation.status === "pending" ? (
+        <p role="status">{t($ => $.security.committing)}</p>
       ) : operation.status === "failed" ? (
         <SecurityFailureNotice failure={operation.failure} onRetry={() => void loadSessions()} />
       ) : null}
@@ -409,19 +415,19 @@ export function LocalIdentitySelfServiceSecurityPanel({
       <div className="local-identity-security-workbench">
         <main className="local-identity-session-directory">
           <header>
-            <div><p className="eyebrow">Single session owner</p><h3>Session directory</h3></div>
-            <span>{sessions.length} loaded{nextCursor ? " · more available" : " · complete window"}</span>
+            <div><p className="eyebrow">{t($ => $.security.owner)}</p><h3>{t($ => $.security.directory)}</h3></div>
+            <span>{nextCursor ? t($ => $.security.loadedMore, { countText: formatDisplayNumber(sessions.length, locale) ?? t($ => $.security.unknown) }) : t($ => $.security.loadedComplete, { countText: formatDisplayNumber(sessions.length, locale) ?? t($ => $.security.unknown) })}</span>
           </header>
 
           {directory.status === "loading" ? (
-            <SecurityDirectoryState title="Reading canonical sessions" message="No retained page or fixture is shown while the owner is loading." />
+            <SecurityDirectoryState title={t($ => $.security.loadingTitle)} message={t($ => $.security.loadingDescription)} />
           ) : directory.status === "failed" ? (
             <SecurityFailureNotice failure={directory.failure} onRetry={() => void loadSessions()} />
           ) : directory.status === "empty" ? (
-            <SecurityDirectoryState title="No session rows returned" message="The account remains authenticated, but no self-service session projection is available. No local result is invented." />
+            <SecurityDirectoryState title={t($ => $.security.emptyTitle)} message={t($ => $.security.emptyDescription)} />
           ) : projection ? (
             <>
-              <SessionGroup title="Current session" count={projection.currentSession ? 1 : 0}>
+              <SessionGroup title={t($ => $.security.currentSession)} count={projection.currentSession ? 1 : 0}>
                 {projection.currentSession ? (
                   <SessionRow
                     session={projection.currentSession}
@@ -431,11 +437,11 @@ export function LocalIdentitySelfServiceSecurityPanel({
                     disabled={busy}
                   />
                 ) : (
-                  <p className="local-identity-security-empty">Current session is outside the loaded window. Load the remaining canonical page before a session mutation.</p>
+                  <p className="local-identity-security-empty">{t($ => $.security.outsideWindow)}</p>
                 )}
               </SessionGroup>
 
-              <SessionGroup title="Other active sessions" count={projection.otherActiveSessions.length}>
+              <SessionGroup title={t($ => $.security.otherSessions)} count={projection.otherActiveSessions.length}>
                 {projection.otherActiveSessions.length > 0 ? projection.otherActiveSessions.map((session) => (
                   <SessionRow
                     key={session.sessionId}
@@ -445,11 +451,11 @@ export function LocalIdentitySelfServiceSecurityPanel({
                     onReview={() => reviewExactRevocation(session)}
                     disabled={busy}
                   />
-                )) : <p className="local-identity-security-empty">No other active sessions in this snapshot.</p>}
+                )) : <p className="local-identity-security-empty">{t($ => $.security.noOtherSessions)}</p>}
               </SessionGroup>
 
               <details className="local-identity-ended-sessions">
-                <summary>Ended history <span>{projection.endedSessions.length}</span></summary>
+                <summary>{t($ => $.security.endedHistory)} <span>{formatDisplayNumber(projection.endedSessions.length, locale)}</span></summary>
                 <div>
                   {projection.endedSessions.length > 0 ? projection.endedSessions.map((session) => (
                     <SessionRow
@@ -459,71 +465,70 @@ export function LocalIdentitySelfServiceSecurityPanel({
                       onSelect={() => setSelectedSessionId(session.sessionId)}
                       disabled
                     />
-                  )) : <p className="local-identity-security-empty">No expired or revoked sessions in this snapshot.</p>}
+                  )) : <p className="local-identity-security-empty">{t($ => $.security.noEndedSessions)}</p>}
                 </div>
               </details>
 
               {nextCursor ? (
                 <button type="button" className="local-identity-security-load-more" onClick={() => void loadSessions(nextCursor)} disabled={busy || loadingMore}>
-                  {loadingMore ? "Loading next snapshot page…" : "Load remaining sessions"}
+                  {loadingMore ? t($ => $.security.loadingMore) : t($ => $.security.loadMore)}
                 </button>
               ) : null}
             </>
           ) : (
-            <SecurityDirectoryState title="Invalid session projection" message="The page was rejected because its current-session relationship was inconsistent." />
+            <SecurityDirectoryState title={t($ => $.security.invalidTitle)} message={t($ => $.security.invalidDescription)} />
           )}
         </main>
 
-        <aside className="local-identity-security-actions" aria-label="Credential and bulk session actions">
+        <aside className="local-identity-security-actions" aria-label={t($ => $.security.actions)}>
           <details className="local-identity-credential-disclosure" open>
             <summary>
-              <span><small>Subordinate security action</small><strong>Rotate local credential</strong></span>
-              <em>{profile.capabilities.hasActiveLocalCredential ? "available" : "unavailable"}</em>
+              <span><small>{t($ => $.security.credentialAction)}</small><strong>{t($ => $.security.rotate)}</strong></span>
+              <em>{profile.capabilities.hasActiveLocalCredential ? t($ => $.security.available) : t($ => $.security.unavailable)}</em>
             </summary>
             <form onSubmit={reviewCredentialRotation} autoComplete="off">
               <p>
-                Replaces the active local credential and atomically revokes every active session created from it.
-                OIDC sessions remain active.
+                {t($ => $.security.rotationDescription)}
               </p>
               <label>
-                <span>Current password</span>
+                <span>{t($ => $.security.currentPassword)}</span>
                 <input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} maxLength={1024} disabled={busy || !profile.capabilities.hasActiveLocalCredential} />
               </label>
               <label>
-                <span>Replacement password</span>
-                <input type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={12} maxLength={1024} disabled={busy || !profile.capabilities.hasActiveLocalCredential} />
-                <small>12–1024 characters; the server applies the canonical policy.</small>
+                <span id="local-identity-new-password-label">{t($ => $.security.newPassword)}</span>
+                <input type="password" autoComplete="new-password" aria-labelledby="local-identity-new-password-label" aria-describedby="local-identity-new-password-help" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={12} maxLength={1024} disabled={busy || !profile.capabilities.hasActiveLocalCredential} />
+                <small id="local-identity-new-password-help">{t($ => $.security.passwordHelp)}</small>
               </label>
               <label>
-                <span>Confirm replacement</span>
+                <span>{t($ => $.security.confirmPassword)}</span>
                 <input type="password" autoComplete="new-password" value={newPasswordConfirmation} onChange={(event) => setNewPasswordConfirmation(event.target.value)} minLength={12} maxLength={1024} disabled={busy || !profile.capabilities.hasActiveLocalCredential} />
               </label>
               <label className="local-identity-security-check">
                 <input type="checkbox" checked={credentialImpactConfirmed} onChange={(event) => setCredentialImpactConfirmed(event.target.checked)} disabled={busy || !profile.capabilities.hasActiveLocalCredential} />
-                <span>I understand the source-bound session impact.</span>
+                <span>{t($ => $.security.impactConsent)}</span>
               </label>
-              {credentialInputError ? <p className="local-identity-inline-error" role="alert">{credentialInputError}</p> : null}
-              {nextCursor ? <small>Load the complete directory before credential rotation so the danger state can show its exact loaded impact set.</small> : null}
+              {credentialInputError ? <p className="local-identity-inline-error" role="alert">{t($ => $.security.inputErrors[credentialInputError])}</p> : null}
+              {nextCursor ? <small>{t($ => $.security.loadBeforeRotation)}</small> : null}
               <button type="submit" className="local-identity-security-danger" disabled={busy || nextCursor !== "" || !profile.capabilities.hasActiveLocalCredential}>
-                Review credential rotation
+                {t($ => $.security.reviewRotation)}
               </button>
             </form>
           </details>
 
           <section className="local-identity-bulk-revoke">
-            <header><small>Keep current session</small><strong>Revoke other active sessions</strong></header>
-            <p>The server performs one aggregate mutation. No client-side revoke loop is used.</p>
+            <header><small>{t($ => $.security.keepCurrent)}</small><strong>{t($ => $.security.revokeOthers)}</strong></header>
+            <p>{t($ => $.security.bulkDescription)}</p>
             <ul>
               {(projection?.otherActiveSessions ?? []).map((session) => <li key={session.sessionId}><code>{session.sessionId}</code></li>)}
             </ul>
-            {nextCursor ? <small>Load the complete directory before reviewing the exact target set.</small> : null}
+            {nextCursor ? <small>{t($ => $.security.loadBeforeBulk)}</small> : null}
             <button type="button" onClick={reviewBulkRevocation} disabled={busy || nextCursor !== "" || (projection?.otherActiveSessions.length ?? 0) === 0}>
-              Review revoke others
+              {t($ => $.security.reviewOthers)}
             </button>
           </section>
 
           <p className="local-identity-security-boundary">
-            No device fingerprint, IP, raw User-Agent, upstream token, password, or session directory payload is persisted in the browser.
+            {t($ => $.security.privacyBoundary)}
           </p>
         </aside>
       </div>
@@ -547,9 +552,10 @@ export function LocalIdentitySelfServiceSecurityPanel({
 }
 
 function SessionGroup({ title, count, children }: { title: string; count: number; children: ReactNode }) {
+  const { i18n } = useTranslation("identity");
   return (
     <section className="local-identity-session-group">
-      <header><strong>{title}</strong><span>{count}</span></header>
+      <header><strong>{title}</strong><span>{formatDisplayNumber(count, i18n.language === "en-US" ? "en-US" : "zh-CN")}</span></header>
       <div>{children}</div>
     </section>
   );
@@ -568,6 +574,8 @@ function SessionRow({
   onReview?: () => void;
   disabled: boolean;
 }) {
+  const { t, i18n } = useTranslation("identity");
+  const locale = i18n.language === "en-US" ? "en-US" : "zh-CN";
   return (
     <article className={`local-identity-session-row${selected ? " is-selected" : ""}${session.currentSession ? " is-current" : ""}`}>
       <button type="button" onClick={onSelect} disabled={disabled} aria-pressed={selected}>
@@ -575,13 +583,13 @@ function SessionRow({
           {session.authenticationMethod === "oidc" ? "R" : "L"}
         </span>
         <span>
-          <strong>{session.currentSession ? "This browser session" : authenticationMethodLabel(session.authenticationMethod)}</strong>
+          <strong>{session.currentSession ? t($ => $.security.thisSession) : t($ => $.security.methods[session.authenticationMethod])}</strong>
           <small><code>{session.sessionId}</code></small>
         </span>
-        <span><small>Last verified</small><strong>{formatDate(session.lastVerifiedAt)}</strong></span>
-        <em className={`is-${session.effectiveState}`}>{session.effectiveState}</em>
+        <span><small>{t($ => $.security.lastVerified)}</small><strong title={session.lastVerifiedAt}>{securityDate(t, session.lastVerifiedAt, locale)}</strong></span>
+        <em className={`is-${session.effectiveState}`}>{t($ => $.security.states[session.effectiveState])}</em>
       </button>
-      {onReview ? <button type="button" className="local-identity-session-review" onClick={onReview} disabled={disabled}>Review revoke</button> : null}
+      {onReview ? <button type="button" className="local-identity-session-review" onClick={onReview} disabled={disabled}>{t($ => $.security.reviewRevoke)}</button> : null}
     </article>
   );
 }
@@ -609,37 +617,39 @@ function SecurityConfirmation({
   onCommitBulk: () => void;
   onCommitCredential: () => void;
 }) {
+  const { t, i18n } = useTranslation("identity");
+  const locale = i18n.language === "en-US" ? "en-US" : "zh-CN";
   const credential = confirmation.kind === "credential";
   const exact = confirmation.kind === "exact";
   const targets = credential ? localPasswordTargets : confirmation.kind === "bulk" ? bulkTargets : selectedSession ? [selectedSession] : [];
   const currentWillClose = credential
     ? profile.session.authenticationMethod === "local_password"
     : exact && Boolean(selectedSession?.currentSession);
-  const title = credential ? "Rotate credential and revoke source-bound sessions?"
-    : exact ? "Revoke this exact session?" : "Revoke every other active session?";
+  const title = credential ? t($ => $.security.confirmRotation)
+    : exact ? t($ => $.security.confirmExact) : t($ => $.security.confirmBulk);
   const commit = credential ? onCommitCredential : exact ? onCommitExact : onCommitBulk;
   return (
     <div className="local-identity-security-dialog-backdrop">
       <section className="local-identity-security-dialog" role="alertdialog" aria-modal="true" aria-labelledby="local-identity-security-confirmation-title">
         <header>
           <span aria-hidden="true">!</span>
-          <div><p className="eyebrow">Explicit security confirmation</p><h3 id="local-identity-security-confirmation-title">{title}</h3></div>
+          <div><p className="eyebrow">{t($ => $.security.confirmation)}</p><h3 id="local-identity-security-confirmation-title">{title}</h3><LanguageSelector /></div>
         </header>
         <p>
           {currentWillClose
-            ? "The current local session is in the exact revoke set. Success clears the authentication cookie and requires a new sign-in."
-            : "The current session remains active. Any OIDC session outside the listed set remains active."}
+            ? t($ => $.security.currentWillClose)
+            : t($ => $.security.currentWillRemain)}
         </p>
         <div className="local-identity-security-targets">
-          <strong>Exact reviewed target set · {targets.length}</strong>
-          {targets.length > 0 ? <ul>{targets.map((session) => <li key={session.sessionId}><code>{session.sessionId}</code><span>{authenticationMethodLabel(session.authenticationMethod)}</span></li>)}</ul>
-            : <p>No active target is present in the canonical snapshot.</p>}
+          <strong>{t($ => $.security.targetSet, { countText: formatDisplayNumber(targets.length, locale) ?? t($ => $.security.unknown) })}</strong>
+          {targets.length > 0 ? <ul>{targets.map((session) => <li key={session.sessionId}><code>{session.sessionId}</code><span>{t($ => $.security.methods[session.authenticationMethod])}</span></li>)}</ul>
+            : <p>{t($ => $.security.noTargets)}</p>}
         </div>
-        {credential ? <p className="local-identity-security-atomicity">If credential replacement or any revoke fails, the old credential and every session remain unchanged.</p> : null}
+        {credential ? <p className="local-identity-security-atomicity">{t($ => $.security.atomicity)}</p> : null}
         <footer>
-          <button type="button" onClick={onCancel} disabled={pending}>Cancel and clear input</button>
+          <button type="button" onClick={onCancel} disabled={pending}>{t($ => $.security.cancel)}</button>
           <button type="button" className="local-identity-security-danger" onClick={commit} disabled={pending || targets.length === 0}>
-            {pending ? "Committing atomically…" : credential ? "Rotate and revoke" : exact ? "Revoke exact session" : "Revoke other sessions"}
+            {pending ? t($ => $.security.committing) : credential ? t($ => $.security.rotateAndRevoke) : exact ? t($ => $.security.revokeExact) : t($ => $.security.commitBulk)}
           </button>
         </footer>
       </section>
@@ -648,11 +658,13 @@ function SecurityConfirmation({
 }
 
 function SecurityFailureNotice({ failure, onRetry }: { failure: SecurityFailure; onRetry: () => void }) {
+  const { t } = useTranslation("identity");
+  const copy = securityFailureCopy(t, failure);
   return (
     <div className={`local-identity-security-operation is-${failure.kind}`} role="alert">
       <span aria-hidden="true">!</span>
-      <div><strong>{failure.title}</strong><p>{failure.message}</p><small>{failure.code}</small></div>
-      <button type="button" onClick={onRetry}>Reload canonical directory</button>
+      <div><strong>{copy.title}</strong><p>{copy.message}</p><small>{failure.code}</small></div>
+      <button type="button" onClick={onRetry}>{t($ => $.security.reload)}</button>
     </div>
   );
 }
@@ -661,30 +673,10 @@ function SecurityDirectoryState({ title, message }: { title: string; message: st
   return <div className="local-identity-security-state"><span aria-hidden="true">○</span><div><strong>{title}</strong><p>{message}</p></div></div>;
 }
 
-function securityFailure(error: unknown): SecurityFailure {
-  const kind = localIdentitySelfServiceSecurityFailureKind(error);
-  const code = error instanceof LocalIdentitySelfServiceSecurityError ? error.code : "local_identity_request_failed";
-  const copy: Record<LocalIdentitySelfServiceSecurityFailureKind, { title: string; message: string }> = {
-    authentication_required: { title: "Authentication required", message: "The current session no longer authorizes this security owner. Sign in again." },
-    denied: { title: "Session scope denied", message: "The actor, session, Origin, or CSRF scope changed. No mutation was applied." },
-    recent_authentication: { title: "Recent authentication required", message: "Sign out and authenticate again before retrying this security action." },
-    conflict: { title: "Canonical state changed", message: "The session or credential changed before commit. Reload before making another decision." },
-    credential_unavailable: { title: "Local credential unavailable", message: "This account has no active local credential. No login method was created implicitly." },
-    credential_invalid: { title: "Credential proof rejected", message: "The current password was invalid or the replacement reused it. All prior state remains unchanged." },
-    credential_policy: { title: "Credential policy rejected", message: "The replacement did not satisfy the canonical server policy. Re-enter both password fields." },
-    unavailable: { title: "Security owner unavailable", message: "The operation failed closed. No memory, fixture, or retained result is substituted." },
-    invalid_response: { title: "Invalid security response", message: "The response did not match the canonical schema or privacy boundary and was rejected." },
-    failed: { title: "Security request failed", message: "The operation could not be verified. No mutation result is assumed." },
-  };
-  return { kind, code, ...copy[kind] };
-}
-
 function invalidSelectionFailure(): SecurityFailure {
   return {
     kind: "conflict",
     code: "local_identity_session_selection_stale",
-    title: "Selected session changed",
-    message: "The exact target is no longer active in this snapshot. Reload before making another decision.",
   };
 }
 
@@ -692,8 +684,6 @@ function invalidCredentialReviewFailure(): SecurityFailure {
   return {
     kind: "conflict",
     code: "local_identity_credential_review_stale",
-    title: "Credential review expired",
-    message: "The in-memory credential input was cleared before commit. Re-enter both password fields.",
   };
 }
 
@@ -701,20 +691,8 @@ function invalidDirectory(message: string): LocalIdentitySelfServiceSecurityErro
   return new LocalIdentitySelfServiceSecurityError(0, "local_identity_response_invalid", message);
 }
 
-function authenticationMethodLabel(method: "local_password" | "oidc"): string {
-  return method === "oidc" ? "Radish OIDC" : "Local password";
-}
-
 function shortReference(value: string): string {
   return value.length > 24 ? `${value.slice(0, 12)}…${value.slice(-7)}` : value;
-}
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "UTC",
-  }).format(new Date(value)) + " UTC";
 }
 
 function isAbort(error: unknown): boolean {

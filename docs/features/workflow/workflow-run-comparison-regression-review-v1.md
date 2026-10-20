@@ -1,6 +1,6 @@
 # Workflow Run Comparison / Regression Review v1
 
-更新时间：2026-08-09
+更新时间：2026-10-11
 
 状态：`workflow_run_comparison_regression_review_v1_completed`
 
@@ -96,3 +96,10 @@ Run History 在真实 dev / test 模式提供基线 / 候选选择和比较审�
 
 - [应用评测计划、受控执行与证据归档 v1](../user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md) 的 Pair Preview 只以 baseline / candidate Campaign 中已持久的 exact run ref 即时调用既有 Comparison owner。Campaign 不保存 comparison body、classification 或 finding 快照。
 - authority drift、quota 拒绝、interrupted 或未成功 Campaign 不会被 Pair Preview 伪装为可比较 run；Comparison 继续按各 Profile 的 lineage、scope 和 metadata-only 契约失败关闭，不重新执行 provider。
+
+
+## 2026-10-11 中英运行审查
+
+- 运行历史、精确详情与共享对比面板支持中英展示；分类、可比性、固定发现项与人工建议由稳定字段映射，原始标识、摘要、错误码和业务语言保持不变。失败状态不缓存服务端自然语言，原始诊断单独标注。
+- 切换语言保持筛选、所选运行、比较结果和异步状态，不增加业务请求；详情选择代次拒绝旧响应回填。比较仍为只读，重试只重新读取比较，不执行运行。
+- Definition 隔离 SQLite 产品链的两条浏览器流程中英各两轮共 8 次通过；桌面窄面板的节点卡片改为单列列表、标识独占一行，三视口包含卡片内部溢出检查。验收与清理记录见[2026-W41 周志](../../devlogs/2026-W41.md#2026-10-11-e-阶段首个运行审查切片)，不据此扩展兼容档案或生产声明。

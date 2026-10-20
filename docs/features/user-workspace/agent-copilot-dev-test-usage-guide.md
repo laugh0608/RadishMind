@@ -8,6 +8,10 @@
 
 长期设计与 owner 边界见[Agent / Copilot 应用档案版本审查与受控建议专题](agent-copilot-application-profile-version-review-controlled-suggestion-dev-test-v1.md)，schema 真相源位于 `contracts/`，HTTP 实现真相源位于 `services/platform/internal/httpapi/`。本指南只描述已经实现的开发测试态使用方式，不把 assignment、成功调用或评测批准解释为生产发布。
 
+## 界面语言
+
+Agent Profile、不可变版本 / 配置绑定、发布审查、运行分配、Session v3 单次建议与结果入口支持中英界面切换。Profile 的 `default_locale` / `allowed_locales` 和 Session 的请求 `locale` 是业务字段，界面语言不会重写它们，也不会翻译输入、服务端回答或原始诊断。2026-10-07 已通过隔离 mock / SQLite 的双语两轮验收，范围和限制见[国际化专题](../web-internationalization-zh-en-v1.md#d-阶段-agent-切片2026-10-07)；这不代表模型会遵循输出语言或完成答案质量验收。
+
 ## 资源与操作顺序
 
 一条可调用的 Agent / Copilot 配置必须按以下顺序建立：

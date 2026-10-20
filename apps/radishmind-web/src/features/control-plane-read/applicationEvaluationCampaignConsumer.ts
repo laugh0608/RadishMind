@@ -7,6 +7,7 @@ import {
   type StructuredRuntimeInputContract,
   type StructuredRuntimeInputValues,
 } from "./structuredRuntimeInput.ts";
+import { parsePromptInputJSON } from "./promptInputJSON.ts";
 
 const DEV_SOURCE = "dev-application-evaluation-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -432,7 +433,11 @@ export function parseApplicationEvaluationPlanDraft(
   let itemsValue: unknown;
   try {
     targetValue = JSON.parse(targetJSON);
-    itemsValue = JSON.parse(itemsJSON);
+    if (executionProfile === "prompt_application_invocation_v1") {
+      const parsed = parsePromptInputJSON(itemsJSON);
+      if (!parsed.ok) throw new Error("Prompt input cannot be represented losslessly.");
+      itemsValue = parsed.value;
+    } else itemsValue = JSON.parse(itemsJSON);
   } catch {
     throw new Error("Plan target and items must be valid JSON.");
   }
@@ -640,7 +645,12 @@ async function request<T>(
   );
   let value: unknown;
   try {
-    value = await response.json();
+    const raw = await response.text();
+    value = JSON.parse(raw);
+    if (isDocument(value) && isDocument(value.version) && value.version.execution_profile === "prompt_application_invocation_v1" &&
+      !parsePromptInputJSON(raw).ok) {
+      throw new Error("Prompt plan input cannot be represented losslessly.");
+    }
   } catch {
     throw new Error(`Application evaluation returned invalid HTTP ${response.status} JSON.`);
   }
@@ -780,7 +790,7 @@ function isPlanDocument(value: unknown, config: ApplicationEvaluationConfig): va
   if (!isExactDocument(value, PLAN_KEYS)) return false;
   return value.schema_version === planSchemaForProfile(value.execution_profile) && typeof value.plan_id === "string" && positiveInteger(value.record_version) &&
     positiveInteger(value.latest_plan_version) && digest(value.latest_plan_digest) && scopeDocumentMatches(value, config) &&
-    nonEmptyString(value.name, 160) && isProfile(value.execution_profile) && nonNegativeInteger(value.item_count) &&
+    validPlanName(value.name, value.execution_profile) && isProfile(value.execution_profile) && nonNegativeInteger(value.item_count) &&
     Number(value.item_count) <= 20 && (value.lifecycle_state === "active" || value.lifecycle_state === "archived") &&
     validTimestamp(value.created_at) && validTimestamp(value.updated_at) && nonEmptyString(value.created_by_actor_ref) &&
     nonEmptyString(value.updated_by_actor_ref) && nonEmptyString(value.request_id) && nonEmptyString(value.audit_ref);
@@ -790,7 +800,7 @@ function isVersionDocument(value: unknown, config: ApplicationEvaluationConfig):
   if (!isExactDocument(value, VERSION_KEYS)) return false;
   return value.schema_version === planVersionSchemaForProfile(value.execution_profile) && typeof value.plan_id === "string" && positiveInteger(value.plan_version) &&
     nonNegativeInteger(value.previous_plan_version) && digest(value.plan_digest) && scopeDocumentMatches(value, config) &&
-    nonEmptyString(value.name, 160) && isProfile(value.execution_profile) && isTargetDocument(value.target) &&
+    validPlanName(value.name, value.execution_profile) && isProfile(value.execution_profile) && isTargetDocument(value.target) &&
     Array.isArray(value.items) && value.items.length > 0 && value.items.length <= 20 && value.items.every(isPlanItemDocument) &&
     validTimestamp(value.created_at) && nonEmptyString(value.created_by_actor_ref) && nonEmptyString(value.request_id) &&
     nonEmptyString(value.audit_ref) && validPlanDraft({ name: value.name, executionProfile: value.execution_profile,
@@ -812,7 +822,8 @@ function isTargetDocument(value: unknown): value is Document {
 }
 
 function isPlanItemDocument(value: unknown): value is Document {
-  if (!isExactDocument(value, PLAN_ITEM_KEYS) || !nonEmptyString(value.item_key, 64) || !nonEmptyString(value.name, 160) ||
+  if (!isExactDocument(value, PLAN_ITEM_KEYS) || !nonEmptyString(value.item_key, 64) ||
+    !(value.prompt_application !== null ? unicodeName(value.name, 1) : nonEmptyString(value.name, 160)) ||
     !isClassification(value.expected_classification)) return false;
   const fixtures = [value.workflow_definition, value.application_rag, value.prompt_application, value.agent_copilot];
   if (fixtures.filter((fixture) => fixture !== null).length !== 1) return false;
@@ -1103,7 +1114,9 @@ function encodePlanItem(value: ApplicationEvaluationPlanItem): Document {
 }
 
 function validPlanDraft(value: ApplicationEvaluationPlanDraft): boolean {
-  if (!nonEmptyString(value.name, 160) || !isProfile(value.executionProfile) || value.items.length < 1 || value.items.length > 20) return false;
+  if (!validPlanName(value.name, value.executionProfile) || !isProfile(value.executionProfile) || value.items.length < 1 || value.items.length > 20) return false;
+  const prompt = value.executionProfile === "prompt_application_invocation_v1";
+  if (prompt && new Set(value.items.map(item => item.itemKey)).size !== value.items.length) return false;
   const workflowTarget = value.target.workflowDefinition;
   if (value.executionProfile === "workflow_definition_executor_v1") {
     if (!workflowTarget || !DIGEST.test(workflowTarget.expectedDefinitionDigest) ||
@@ -1118,9 +1131,17 @@ function validPlanDraft(value: ApplicationEvaluationPlanDraft): boolean {
     const selected = fixtures.findIndex((fixture) => fixture !== null);
     const expected = expectedFixtureIndex(value.executionProfile);
     return selected === expected && fixtures.filter((fixture) => fixture !== null).length === 1 &&
-      nonEmptyString(item.itemKey, 64) && nonEmptyString(item.name, 160) && isClassification(item.expectedClassification) &&
+      nonEmptyString(item.itemKey, 64) && (prompt ? /^[a-z][a-z0-9_-]{0,63}$/u.test(item.itemKey) && unicodeName(item.name, 1) : nonEmptyString(item.name, 160)) && isClassification(item.expectedClassification) &&
       (value.executionProfile !== "workflow_definition_executor_v2" || isStructuredInputRecord(item.workflowDefinition?.inputs));
   });
+}
+
+function validPlanName(value: unknown, profile: unknown): value is string {
+  return profile === "prompt_application_invocation_v1" ? unicodeName(value, 2) : nonEmptyString(value, 160);
+}
+
+function unicodeName(value: unknown, minimum: number): value is string {
+  return typeof value === "string" && !/[\uD800-\uDFFF]/u.test(value) && [...value.trim()].length >= minimum && [...value.trim()].length <= 120;
 }
 
 function planSchemaForProfile(profile: unknown): string {

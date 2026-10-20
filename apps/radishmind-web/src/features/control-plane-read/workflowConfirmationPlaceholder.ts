@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -9,14 +10,14 @@ import {
   type WorkflowBlockedActionPreviewViewModel,
 } from "./workflowBlockedActionPreview";
 
-export type WorkflowConfirmationDecisionField = {
+export type WorkflowConfirmationDecisionField = WorkflowProjectionCopy & {
   fieldId: string;
   label: string;
   required: boolean;
   source: "archived_legacy_confirmation_contract" | "audit_context" | "policy_context";
 };
 
-export type WorkflowConfirmationPlaceholderPrerequisite = {
+export type WorkflowConfirmationPlaceholderPrerequisite = WorkflowProjectionCopy & {
   prerequisiteId: string;
   label: string;
   status: "missing" | "defined_not_connected" | "blocked";
@@ -33,7 +34,7 @@ export type WorkflowConfirmationPlaceholderAuditMetadata = {
   traceRef: string;
 };
 
-export type WorkflowConfirmationPlaceholderViewModel = {
+export type WorkflowConfirmationPlaceholderViewModel = WorkflowProjectionCopy & {
   pageId: "workflow-confirmation-placeholder-read";
   sourcePageId: "workflow-blocked-action-preview-read";
   sourceRouteId: "run-record-summary-list-route";
@@ -114,6 +115,7 @@ export function buildWorkflowConfirmationPlaceholderViewModel(
     humanReviewRequired: true,
     disabledReason:
       "This run-bound confirmation placeholder is archived and cannot submit a decision. Use the independent pre-run HTTP Tool action plan review surface for new confirmations.",
+    disabledReasonMessage: { key: "workflow_confirmation_placeholder_read_disabledReason" },
     prerequisites,
     auditMetadata: {
       sourceRouteId: "run-record-summary-list-route",

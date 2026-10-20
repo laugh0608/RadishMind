@@ -109,11 +109,22 @@ func TestSQLiteActionSafetyAgentRunSnapshotRestartNoFallbackAndCorruption(t *tes
 	store := &sqlitePromptApplicationRunStore{
 		database: firstRuntime.DB(), table: "agent_copilot_run_records", schema: agentCopilotRunV7Schema,
 	}
-	fixture.service.runStore = store
+	combined := newCombinedWorkflowRunStoreWithAgent(
+		newSQLiteWorkflowRunStore(firstRuntime.DB()),
+		&sqlitePromptApplicationRunStore{database: firstRuntime.DB()},
+		store,
+	)
+	service := newAgentCopilotInvocationService(
+		fixture.runtime, fixture.service.authorityResolver, fixture.catalog, combined, fixture.bridge,
+	)
+	service.resolveSelection = fixture.service.resolveSelection
+	service.now = fixture.service.now
+	fixture.service = service
 	input := validAgentCopilotInvocationInput()
 	input.ClientInvocationKey = "client-agent-action-safety-sqlite-restart"
 	result := fixture.service.Invoke(fixture.ctx, input)
-	if result.FailureCode != "" || result.Run == nil || result.Run.ActionSafety == nil {
+	if result.FailureCode != "" || result.Run == nil || result.Run.ActionSafety == nil ||
+		result.Response == nil || result.ActionSafety == nil {
 		t.Fatalf("persist SQLite Action Safety Agent Run: %#v", result)
 	}
 	runID := result.Run.RunID
@@ -290,4 +301,25 @@ func actionSafetyAssignmentForPersistenceTest(
 		t.Fatalf("activate Action Safety assignment fixture: %#v", activated)
 	}
 	return fixture.runtimeContext, *activated.Assignment, activated.Events[0]
+}
+
+func TestAgentActionSafetyUsesExactCombinedStoreOwner(t *testing.T) {
+	memory := newMemoryWorkflowRunStore(4)
+	legacyPrompt := &sqlitePromptApplicationRunStore{}
+	for _, testCase := range []struct {
+		name  string
+		store workflowRunStore
+		want  bool
+	}{
+		{"no_agent_owner", newCombinedWorkflowRunStore(memory, memory), false},
+		{"unsupported_agent_owner", newCombinedWorkflowRunStoreWithAgent(memory, memory, legacyPrompt), false},
+		{"agent_owner_independent_of_prompt", newCombinedWorkflowRunStoreWithAgent(memory, legacyPrompt, memory), true},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			service := newAgentCopilotInvocationService(nil, agentCopilotRuntimeAuthorityResolver{}, nil, testCase.store, nil)
+			if (service.actionSafety != nil) != testCase.want {
+				t.Fatalf("Agent snapshot support must come from the Agent owner: enabled=%t want=%t", service.actionSafety != nil, testCase.want)
+			}
+		})
+	}
 }

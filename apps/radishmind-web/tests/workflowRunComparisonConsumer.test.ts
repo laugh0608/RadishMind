@@ -298,3 +298,22 @@ test("workflow run comparison maps Agent Copilot v6 metadata without transient c
     assert.equal(comparison.baseline.requiresConfirmation, true);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test("comparison errors preserve structured codes without retaining server prose", async () => {
+  const { WorkflowRunComparisonError } = await import("../src/features/control-plane-read/workflowRunComparisonConsumer.ts");
+  const originalFetch = globalThis.fetch;
+  const secret = "private provider response must never become a presentation message";
+  try {
+    for (const code of ["workflow_run_record_not_found", "workflow_run_side_effect_profile_unsupported", "future_failure_code"]) {
+      globalThis.fetch = async () => new Response(JSON.stringify(envelope({ comparison: null, failure_code: code, failure_summary: secret })), { status: 409 });
+      await assert.rejects(compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), error => {
+        assert.ok(error instanceof WorkflowRunComparisonError);
+        assert.equal(error.code, code);
+        assert.ok(!error.message.includes(secret));
+        return true;
+      });
+    }
+    globalThis.fetch = async () => new Response(JSON.stringify(envelope({ workspace_id: "other_workspace", failure_code: "future_code", failure_summary: secret })), { status: 403 });
+    await assert.rejects(compareWorkflowRuns("app_demo", "run_base", "run_candidate", live), error => error instanceof WorkflowRunComparisonError && error.code === "scope");
+  } finally { globalThis.fetch = originalFetch; }
+});

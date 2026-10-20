@@ -1,4 +1,5 @@
 import { validatePromptOutputSchema, type PromptTemplateJSONSchema } from "./promptTemplateOutputSchema.ts";
+import { parsePromptInputJSON } from "./promptInputJSON.ts";
 export type { PromptTemplateJSONSchema } from "./promptTemplateOutputSchema.ts";
 
 const DEV_SOURCE = "dev-prompt-application-http";
@@ -412,6 +413,7 @@ export async function readPromptTemplateVersion(
   applicationId: string,
   templateId: string,
   templateVersion: number,
+  requireLosslessValues = false,
 ): Promise<PromptTemplateOperation> {
   const query = templateQuery(config, applicationId);
   return readTemplate(
@@ -419,6 +421,7 @@ export async function readPromptTemplateVersion(
     applicationId,
     `${TEMPLATE_PATH}/${encodeURIComponent(templateId)}/versions/${templateVersion}?${query}`,
     "versioned",
+    requireLosslessValues,
   );
 }
 
@@ -478,13 +481,14 @@ async function readTemplate(
   applicationId: string,
   path: string,
   success: "restored" | "versioned",
+  requireLosslessValues = false,
 ): Promise<PromptTemplateOperation> {
   if (config.mode === "offline") return offlineOperation();
   try {
     const value = await fetchDocument(`${config.baseUrl}${path}`, {
       ...templateRequestInit(config),
       headers: templateHeaders(config, applicationId, ["prompt_application_templates:read_source"], success),
-    });
+    }, requireLosslessValues);
     return mapEnvelope(value, config, applicationId, success);
   } catch {
     return failedOperation();
@@ -853,11 +857,13 @@ function templateQuery(config: PromptTemplateConfig, applicationId: string): str
   return new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId }).toString();
 }
 
-async function fetchDocument(url: string, init: RequestInit): Promise<unknown> {
+async function fetchDocument(url: string, init: RequestInit, requireLosslessValues = false): Promise<unknown> {
   const response = await fetch(url, init);
-  const value: unknown = await response.json();
   if (!response.ok) throw new Error("Prompt Application HTTP request failed.");
-  return value;
+  if (!requireLosslessValues) return response.json();
+  const parsed = parsePromptInputJSON(await response.text());
+  if (!parsed.ok) throw new Error("Template values cannot be represented losslessly.");
+  return parsed.value;
 }
 
 function offlineOperation(): PromptTemplateOperation {

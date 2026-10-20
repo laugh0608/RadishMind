@@ -1,3 +1,4 @@
+import { EvaluationRequestFailure, evaluationEnvelopeFailure } from "./evaluationFailure.ts";
 import type { WorkflowExecutorConsumerConfig } from "./workflowExecutorConsumer.ts";
 
 export type WorkflowEvaluationSuiteCaseRef = { caseId: string; version: number };
@@ -22,7 +23,7 @@ export class WorkflowEvaluationDecisionConflict extends Error {
 export async function createWorkflowEvaluationSuite(applicationId:string,name:string,caseRefs:WorkflowEvaluationSuiteCaseRef[],config:WorkflowExecutorConsumerConfig):Promise<WorkflowEvaluationSuite> {
   assertLive(config);
   const body = await writeJSON(`${config.baseUrl}/v1/user-workspace/workflow-evaluation-suites`, applicationId, {workspace_id:config.workspaceId,application_id:applicationId,name,case_refs:caseRefs.map(item=>({case_id:item.caseId,version:item.version}))}, config);
-  if (!isEnvelope(body) || body.failure_code || !body.suite) throw new Error(envelopeFailure(body, 200));
+  if (!isEnvelope(body) || body.failure_code || !body.suite) throw evaluationEnvelopeFailure(body);
   return mapSuite(body.suite);
 }
 
@@ -30,23 +31,23 @@ export async function listWorkflowEvaluationSuites(applicationId:string,config:W
   if (!isLive(config)) return {suites:[],nextCursor:"",hasMore:false};
   const query = scopedQuery(applicationId, config); query.set("limit", "25"); if (cursor) query.set("cursor", cursor);
   const body = await readJSON(`${config.baseUrl}/v1/user-workspace/workflow-evaluation-suites?${query}`, applicationId, config);
-  if (!isSuiteListEnvelope(body) || body.failure_code) throw new Error(envelopeFailure(body, 200));
+  if (!isSuiteListEnvelope(body) || body.failure_code) throw evaluationEnvelopeFailure(body);
   return {suites:body.suites.map(mapSuite),nextCursor:body.next_cursor,hasMore:body.has_more};
 }
 
 export async function reviewWorkflowEvaluationSuite(applicationId:string,suiteId:string,config:WorkflowExecutorConsumerConfig):Promise<WorkflowEvaluationSuiteReview> {
   assertLive(config);
   const body = await readJSON(`${config.baseUrl}/v1/user-workspace/workflow-evaluation-suites/${encodeURIComponent(suiteId)}/review?${scopedQuery(applicationId,config)}`, applicationId, config);
-  if (!isEnvelope(body) || body.failure_code || !body.review) throw new Error(envelopeFailure(body, 200));
+  if (!isEnvelope(body) || body.failure_code || !body.review) throw evaluationEnvelopeFailure(body);
   return mapReview(body.review);
 }
 
 export async function decideWorkflowEvaluationSuite(applicationId:string,suiteId:string,expectedDecisionVersion:number,decision:WorkflowEvaluationReleaseDecisionKind,reviewDigest:string,config:WorkflowExecutorConsumerConfig):Promise<{suite:WorkflowEvaluationSuite;decision:WorkflowEvaluationReleaseDecision}> {
   assertLive(config);
   const body = await writeJSON(`${config.baseUrl}/v1/user-workspace/workflow-evaluation-suites/${encodeURIComponent(suiteId)}/decisions`, applicationId, {workspace_id:config.workspaceId,application_id:applicationId,expected_decision_version:expectedDecisionVersion,decision,review_digest:reviewDigest}, config);
-  if (!isEnvelope(body)) throw new Error(envelopeFailure(body, 200));
+  if (!isEnvelope(body)) throw evaluationEnvelopeFailure(body);
   if (body.failure_code === "workflow_evaluation_suite_decision_conflict" && body.suite) throw new WorkflowEvaluationDecisionConflict(mapSuite(body.suite));
-  if (body.failure_code || !body.suite || !body.decision) throw new Error(envelopeFailure(body, 200));
+  if (body.failure_code || !body.suite || !body.decision) throw evaluationEnvelopeFailure(body);
   return {suite:mapSuite(body.suite),decision:mapDecision(body.decision)};
 }
 
@@ -54,15 +55,15 @@ export async function listWorkflowEvaluationDecisions(applicationId:string,suite
   if (!isLive(config)) return {decisions:[],nextCursor:"",hasMore:false};
   const query = scopedQuery(applicationId, config); query.set("limit", "25"); if (cursor) query.set("cursor", cursor);
   const body = await readJSON(`${config.baseUrl}/v1/user-workspace/workflow-evaluation-suites/${encodeURIComponent(suiteId)}/decisions?${query}`, applicationId, config);
-  if (!isDecisionListEnvelope(body) || body.failure_code) throw new Error(envelopeFailure(body, 200));
+  if (!isDecisionListEnvelope(body) || body.failure_code) throw evaluationEnvelopeFailure(body);
   return {decisions:body.decisions.map(mapDecision),nextCursor:body.next_cursor,hasMore:body.has_more};
 }
 
-async function writeJSON(url:string,applicationId:string,payload:unknown,config:WorkflowExecutorConsumerConfig):Promise<unknown> { const response=await fetch(url,{method:"POST",headers:{...headers(config,applicationId,true),"Content-Type":"application/json"},body:JSON.stringify(payload)});const body:unknown=await response.json();if(!response.ok)throw new Error(envelopeFailure(body,response.status));return body; }
-async function readJSON(url:string,applicationId:string,config:WorkflowExecutorConsumerConfig):Promise<unknown> { const response=await fetch(url,{headers:headers(config,applicationId,false)});const body:unknown=await response.json();if(!response.ok)throw new Error(envelopeFailure(body,response.status));return body; }
+async function writeJSON(url:string,applicationId:string,payload:unknown,config:WorkflowExecutorConsumerConfig):Promise<unknown> { const response=await fetch(url,{method:"POST",headers:{...headers(config,applicationId,true),"Content-Type":"application/json"},body:JSON.stringify(payload)});const body:unknown=await response.json();if(!response.ok)throw evaluationEnvelopeFailure(body);return body; }
+async function readJSON(url:string,applicationId:string,config:WorkflowExecutorConsumerConfig):Promise<unknown> { const response=await fetch(url,{headers:headers(config,applicationId,false)});const body:unknown=await response.json();if(!response.ok)throw evaluationEnvelopeFailure(body);return body; }
 function scopedQuery(applicationId:string,config:WorkflowExecutorConsumerConfig){return new URLSearchParams({workspace_id:config.workspaceId,application_id:applicationId})}
 function isLive(config:WorkflowExecutorConsumerConfig){return config.mode==="dev_workflow_executor_http"}
-function assertLive(config:WorkflowExecutorConsumerConfig){if(!isLive(config))throw new Error("Workflow evaluation suites are unavailable in offline mode.")}
+function assertLive(config:WorkflowExecutorConsumerConfig){if(!isLive(config))throw new EvaluationRequestFailure("offline")}
 function headers(config:WorkflowExecutorConsumerConfig,applicationId:string,write:boolean):HeadersInit{const values={Accept:"application/json","X-Request-Id":`dev-workflow-evaluation-suite-${applicationId}`,"X-RadishMind-Dev-Read-Identity":"dev-workflow-evaluation-suite-consumer","X-RadishMind-Dev-Read-Tenant":config.tenantRef,"X-RadishMind-Dev-Read-Subject":config.subjectRef,"X-RadishMind-Dev-Read-Scopes":write?"workflow_evaluations:write,workflow_evaluations:read,workflow_runs:read":"workflow_evaluations:read,workflow_runs:read","X-RadishMind-Dev-Read-Audit":"audit_dev_workflow_evaluation_suite_consumer","X-RadishMind-Dev-Workflow-Workspace":config.workspaceId,"X-RadishMind-Dev-Workflow-Application":applicationId};if(!write)return values;return{...values,"X-RadishMind-Active-Workspace":config.workspaceId,"X-RadishMind-Dev-Read-Membership-Workspace":config.workspaceId,"X-RadishMind-Dev-Read-Membership-Permissions":"workflow_evaluations:write,workflow_runs:read"}}
 function mapSuite(value:SuiteDocument):WorkflowEvaluationSuite{return{suiteId:value.suite_id,name:value.name,caseRefs:value.case_refs.map(item=>({caseId:item.case_id,version:item.version})),currentDecisionVersion:value.current_decision_version,currentDecision:value.current_decision,createdAt:value.created_at,actorRef:value.actor_ref,requestId:value.request_id,auditRef:value.audit_ref}}
 function mapDecision(value:DecisionDocument):WorkflowEvaluationReleaseDecision{return{decisionId:value.decision_id,suiteId:value.suite_id,version:value.version,decision:value.decision,reviewDigest:value.review_digest,reviewOutcome:value.review_outcome,passed:value.passed,mismatch:value.mismatch,inconclusive:value.inconclusive,unavailable:value.unavailable,createdAt:value.created_at,actorRef:value.actor_ref,requestId:value.request_id,auditRef:value.audit_ref}}
@@ -76,4 +77,3 @@ function isSuite(value:unknown):value is SuiteDocument{if(!value||typeof value!=
 function isDecision(value:unknown):value is DecisionDocument{if(!value||typeof value!=="object")return false;const item=value as Partial<DecisionDocument>;return item.schema_version==="workflow_evaluation_release_decision.v1"&&typeof item.decision_id==="string"&&typeof item.suite_id==="string"&&Number.isInteger(item.version)&&Number(item.version)>=1&&["approved","rejected","needs_review"].includes(item.decision??"")&&typeof item.review_digest==="string"&&/^[0-9a-f]{64}$/.test(item.review_digest)&&["passed","mismatch","inconclusive"].includes(item.review_outcome??"")&&integer(item.passed)&&integer(item.mismatch)&&integer(item.inconclusive)&&integer(item.unavailable)&&typeof item.created_at==="string"}
 function isReview(value:unknown):value is ReviewDocument{if(!value||typeof value!=="object")return false;const item=value as Partial<ReviewDocument>;return typeof item.suite_id==="string"&&["passed","mismatch","inconclusive"].includes(item.outcome??"")&&typeof item.review_digest==="string"&&/^[0-9a-f]{64}$/.test(item.review_digest)&&integer(item.passed)&&integer(item.mismatch)&&integer(item.inconclusive)&&integer(item.unavailable)&&Array.isArray(item.items)&&item.items.every(isReviewItem)}
 function isReviewItem(value:unknown):value is ReviewDocument["items"][number]{if(!value||typeof value!=="object")return false;const item=value as Record<string,unknown>;return typeof item.case_id==="string"&&Number.isInteger(item.version)&&Number(item.version)>=1&&typeof item.name==="string"&&["passed","mismatch","inconclusive","unavailable"].includes(String(item.outcome))&&integer(item.matched)&&integer(item.mismatched)&&integer(item.inconclusive)&&integer(item.unavailable)&&typeof item.audit_ref==="string"&&["workflow_standard.v1","workflow_rag_retrieval.v1","workflow_rag_application_invocation.v1","workflow_definition_executor.v1","prompt_application_invocation_v1","agent_copilot_suggestion_v1","unavailable"].includes(String(item.run_profile))}
-function envelopeFailure(value:unknown,status:number):string{if(value&&typeof value==="object"){const item=value as Partial<Envelope>;if(typeof item.failure_code==="string")return`${item.failure_code}: ${item.failure_summary??""}`};return`workflow evaluation suite route failed with HTTP ${status}`}

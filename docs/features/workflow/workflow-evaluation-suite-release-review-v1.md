@@ -83,3 +83,7 @@ decision CAS 在单事务中锁定 suite、比较 current decision version、插
 
 - Application Evaluation Handoff 只在全部 exact Case version 创建完成后调用既有 Suite owner，Suite 仍由本 owner 验证同 scope、互异 exact refs 和不可变组成。Suite 成功后 candidate Campaign 才从 `partial` 推进到 `complete`。
 - Campaign 不保存 suite review body、digest 或 decision history；Handoff 不自动提交 `approved`、不触发 release / deploy、不回滚已建 Case。Suite 失败时保留 partial checkpoint，由人工审查后决定新建评测计划或 Campaign，不自动续跑。
+
+## 2026-10-11 双语界面迁移
+
+套件创建、精确用例版本、聚合审查、人工决定与历史证据已接入按需加载的中英资源。语言变化不重发请求，不改变精确引用、决定值或摘要。等待状态禁用重复写入，冲突刷新后仍需人工再次提交；失败只展示稳定代码与本地恢复说明，不输出服务端异常正文。`approved` 继续仅为审查证据。单元、类型、构建和中英各两轮浏览器验收通过，临时环境已清理，详见[国际化专题](../web-internationalization-zh-en-v1.md#e-阶段用例与套件覆盖边界2026-10-11)。

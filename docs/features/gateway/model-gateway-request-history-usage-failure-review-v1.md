@@ -228,3 +228,8 @@ v1 声明 dev/test 默认保留 14 天、每 scope 最多 50,000 条，但请求
 - 不复用 Workflow run repository、旧 fake run API、离线 cost snapshot 或 control-plane fake store 作为请求历史。
 - 不在 store 故障时静默 fallback，不因 review store 故障改写 northbound provider outcome。
 - 不实现后台 retention executor、replay / resume、自动修复或自动部署。
+
+
+## 中英界面验收补充（2026-10-07）
+
+本页面已按[中英国际化专题](../web-internationalization-zh-en-v1.md)的 D 阶段完成双语迁移与两轮浏览器验收。状态和本地恢复说明在渲染时翻译；精确标识、诊断码、输入输出、业务请求和来源边界保持。时间、数字与金额按来源契约格式化，语言切换不新增请求或重置当前选择。三视口与内部容器检查通过，详细范围、合成只读配额说明和清理证据见[本周周志](../../devlogs/2026-W41.md#2026-10-07-d-阶段-gateway-与运营双语验收)。辅助运维证据与完整评测页面继续归 E / F。

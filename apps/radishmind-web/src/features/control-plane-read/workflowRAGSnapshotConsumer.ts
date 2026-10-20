@@ -365,7 +365,8 @@ export function buildWorkflowRAGRequestHeaders(
 	scopes: readonly string[],
   operation: string,
 ): Record<string, string> {
-  const requestId = `workflow-rag-${operation}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  // Decimal time and a hex nonce cannot form the server's `sk-` secret marker.
+  const requestId = `workflow-rag-${operation}-${Date.now()}-${globalThis.crypto.randomUUID().replaceAll("-", "")}`;
   if (config.authMode !== "dev_headers") {
     const provider = config.authMode === "signed_test_token"
       ? (globalThis as typeof globalThis & { __RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__?: () => string }).__RADISHMIND_CONTROL_PLANE_SIGNED_TEST_TOKEN__

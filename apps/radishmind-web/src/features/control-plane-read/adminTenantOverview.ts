@@ -12,6 +12,7 @@ import {
 export type AdminTenantOverviewStateId = "ready" | "empty" | "denied" | "stale" | "forbidden_projection";
 
 export type AdminTenantOverviewFact = {
+  kind: "tenantState" | "plan" | "quota" | "deployment" | "audit";
   label: string;
   value: string;
   detail: string;
@@ -102,26 +103,31 @@ function buildTenantSummaryEnvelope(): ControlPlaneReadResponseByRoute["tenant-s
 function buildTenantFacts(tenant: TenantSummary): AdminTenantOverviewFact[] {
   return [
     {
+      kind: "tenantState",
       label: "Tenant state",
       value: tenant.tenant_state,
       detail: tenant.tenant_ref,
     },
     {
+      kind: "plan",
       label: "Plan",
       value: tenant.plan_ref,
       detail: "read-only plan reference",
     },
     {
+      kind: "quota",
       label: "Quota",
       value: tenant.quota_summary_ref,
       detail: "quota summary route remains separate",
     },
     {
+      kind: "deployment",
       label: "Deployment",
       value: tenant.deployment_status_ref,
       detail: "status reference only",
     },
     {
+      kind: "audit",
       label: "Audit",
       value: tenant.audit_summary_ref,
       detail: "latest audit summary reference",

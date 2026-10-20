@@ -1,3 +1,9 @@
+import { formatDisplayNumber } from "../../i18n/formatters.ts";
+import { invitationDate } from "./workspaceInvitationMessages.ts";
+import { identityRoleCopy } from "./localIdentityRoleMessages.ts";
+import { useTranslation } from "react-i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import "../../i18n/identityInvitationResources.ts";
 import { useEffect, useState } from "react";
 import { useLocalIdentity, type LocalIdentityContextValue } from "./localIdentityContext.ts";
 import { readLocalIdentityRoleCatalog, type LocalIdentityRoleDefinition } from "./localIdentityAdministrationConsumer.ts";
@@ -8,16 +14,16 @@ import {
 } from "./workspaceInvitationConsumer.ts";
 import { mergeWorkspaceInvitationPages, workspaceInvitationAuthorityKey } from "./workspaceInvitationState.ts";
 import { useWorkspaceInvitationRequests } from "./useWorkspaceInvitationRequests.ts";
-import { InvitationFacts, InvitationFailureNotice, InvitationNotice, InvitationStateBadge, invitationDate, invitationShortId } from "./workspaceInvitationView.tsx";
+import { InvitationFacts, InvitationFailureNotice, InvitationNotice, InvitationStateBadge, invitationShortId } from "./workspaceInvitationView.tsx";
 
 type DirectoryState = { status: "loading" } | { status: "ready"; page: WorkspaceInvitationPage } | { status: "failed"; failure: WorkspaceInvitationError };
 type Review = { kind: "none" } | { kind: "create" } | { kind: "revoke"; invitation: WorkspaceInvitation };
 type Handoff = { invitation: WorkspaceInvitation; invitationCode: string };
-const TTL_LABELS: Record<InvitationTTL, string> = { "1h": "1 hour", "24h": "24 hours", "72h": "72 hours", "7d": "7 days" };
 
 export function WorkspaceInvitationAdminPanel({ tenantRef, workspaceId }: { tenantRef: string; workspaceId: string }) {
+  const { t } = useTranslation("identity");
   const identity = useLocalIdentity();
-  if (!identity) return <InvitationNotice title="Invitations unavailable">Sign in with the local development/test identity service to manage workspace invitations.</InvitationNotice>;
+  if (!identity) return <InvitationNotice title={t($ => $.invitations.unavailable)}>{t($ => $.invitations.signInRequired)}</InvitationNotice>;
   const authorityKey = workspaceInvitationAuthorityKey(identity.profile, JSON.stringify([identity.config, tenantRef, workspaceId, "admin-invitations"]));
   return <WorkspaceInvitationAdministration key={`${authorityKey}:${identity.authorityRevision}`} identity={identity} authorityKey={authorityKey} tenantRef={tenantRef} workspaceId={workspaceId} />;
 }
@@ -25,6 +31,8 @@ export function WorkspaceInvitationAdminPanel({ tenantRef, workspaceId }: { tena
 function WorkspaceInvitationAdministration({ identity, authorityKey, tenantRef, workspaceId }: {
   identity: LocalIdentityContextValue; authorityKey: string; tenantRef: string; workspaceId: string;
 }) {
+  const { t } = useTranslation("identity");
+  const { locale } = useLocalePreference();
   const config: InvitationAdminConfig = { ...identity.config, tenantRef, workspaceId };
   const [directory, setDirectory] = useState<DirectoryState>({ status: "loading" });
   const [filter, setFilter] = useState<InvitationEffectiveState>("pending");
@@ -39,7 +47,7 @@ function WorkspaceInvitationAdministration({ identity, authorityKey, tenantRef, 
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const [busy, setBusy] = useState<"" | "catalog" | "create" | "revoke" | "page">("");
   const [failure, setFailure] = useState<WorkspaceInvitationError | null>(null);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<"" | "revokedNotice" | "clearedNotice">("");
   const requests = useWorkspaceInvitationRequests(authorityKey, identity.readAuthorityRevision, () => {
     clearInteraction(); setSelectedId(""); setDirectory({ status: "loading" }); setReload((value) => value + 1);
   });
@@ -125,7 +133,7 @@ function WorkspaceInvitationAdministration({ identity, authorityKey, tenantRef, 
       if (!requests.isCurrent(request)) return;
       clearInteraction(); setSelectedId("");
       requests.broadcastChanged();
-      setNotice("Invitation revoked. Create a new invitation if access is still needed.");
+      setNotice("revokedNotice");
       void loadDirectory(true);
     } catch (error) {
       if (!requests.isCurrent(request)) return;
@@ -147,77 +155,77 @@ function WorkspaceInvitationAdministration({ identity, authorityKey, tenantRef, 
     if (directory.status === "loading") void loadDirectory();
   }
 
-  return <section className="workspace-invitation-admin" aria-label="Workspace invitations">
+  return <section className="workspace-invitation-admin" aria-label={t($ => $.invitations.workspaceInvitations)}>
     <div className="invitation-admin-workbench">
       <main className="invitation-directory">
-        <header className="invitation-section-header"><div><h4>Invitation directory</h4><p>{directory.status === "ready"
-          ? `${directory.page.invitations.length} loaded · as of ${invitationDate(directory.page.asOf)}` : "Workspace-scoped access intent"}</p></div>
-          <div className="invitation-actions"><button type="button" onClick={() => void loadDirectory()} disabled={Boolean(busy)}>Refresh</button>
-            <button type="button" className="invitation-primary" onClick={() => void startCreate()} disabled={Boolean(busy) || !canMutate || directory.status !== "ready"}>Create invitation</button></div>
+        <header className="invitation-section-header"><div><h4>{t($ => $.invitations.directory)}</h4><p>{directory.status === "ready"
+          ? t($ => $.invitations.directorySummary, { countText: (formatDisplayNumber(directory.page.invitations.length, locale) ?? t($ => $.invitations.unknown)), date: invitationDate(t, directory.page.asOf, locale) }) : t($ => $.invitations.scopeIntent)}</p></div>
+          <div className="invitation-actions"><button type="button" onClick={() => void loadDirectory()} disabled={Boolean(busy)}>{t($ => $.invitations.refresh)}</button>
+            <button type="button" className="invitation-primary" onClick={() => void startCreate()} disabled={Boolean(busy) || !canMutate || directory.status !== "ready"}>{t($ => $.invitations.create)}</button></div>
         </header>
-        <div className="invitation-filters" aria-label="Invitation state filter">
+        <div className="invitation-filters" aria-label={t($ => $.invitations.stateFilter)}>
           {(["pending", "claimed", "expired", "revoked"] as const).map((state) => <button key={state} type="button" aria-pressed={filter === state}
             disabled={Boolean(busy) || directory.status === "loading"} onClick={() => { requests.invalidate(); clearInteraction(); setSelectedId(""); setFilter(state); }}>
-            {state[0].toUpperCase() + state.slice(1)}</button>)}
+            {t($ => $.invitations.states[state])}</button>)}
         </div>
-        {!canMutate ? <InvitationNotice title="Recent authentication required" tone="warning">Sign out and authenticate again before creating or revoking invitations.</InvitationNotice> : null}
+        {!canMutate ? <InvitationNotice title={t($ => $.invitations.recentAuth)} tone="warning">{t($ => $.invitations.adminReauth)}</InvitationNotice> : null}
         {failure ? <InvitationFailureNotice failure={failure} /> : null}
-        {notice ? <p role="status" className="invitation-feedback">{notice}</p> : null}
-        {directory.status === "loading" ? <p className="invitation-empty" role="status">Reading invitation directory…</p>
+        {notice ? <p role="status" className="invitation-feedback">{t($ => $.invitations[notice])}</p> : null}
+        {directory.status === "loading" ? <p className="invitation-empty" role="status">{t($ => $.invitations.readingDirectory)}</p>
           : directory.status === "failed" ? <InvitationFailureNotice failure={directory.failure} />
           : <>
-            {directory.page.invitations.length === 0 ? <p className="invitation-empty">No invitations in this state.</p> : <ul className="invitation-rows">
+            {directory.page.invitations.length === 0 ? <p className="invitation-empty">{t($ => $.invitations.empty)}</p> : <ul className="invitation-rows">
               {directory.page.invitations.map((invitation) => <li key={invitation.invitationId}>
                 <button type="button" className={selectedId === invitation.invitationId ? "is-selected" : ""} aria-pressed={selectedId === invitation.invitationId}
                   disabled={Boolean(busy)} onClick={() => { requests.invalidate(); clearInteraction(); setSelectedId(invitation.invitationId); }}>
                   <div><code title={invitation.invitationId}>{invitationShortId(invitation.invitationId)}</code><InvitationStateBadge state={invitation.effectiveState} /></div>
-                  <strong>{invitation.roleKey}</strong><span>Expires {invitationDate(invitation.expiresAt)} · v{invitation.recordVersion}</span>
-                  <small>{selectedId === invitation.invitationId ? "SELECTED" : "View"}</small>
+                  <strong>{invitation.roleKey}</strong><span>{t($ => $.invitations.expiryVersion, { date: invitationDate(t, invitation.expiresAt, locale), version: invitation.recordVersion })}</span>
+                  <small>{selectedId === invitation.invitationId ? t($ => $.invitations.selected) : t($ => $.invitations.view)}</small>
                 </button>
               </li>)}
             </ul>}
-            {directory.page.nextCursor ? <button type="button" onClick={() => void loadMore()} disabled={Boolean(busy)}>{busy === "page" ? "Loading…" : "Load more invitations"}</button> : null}
+            {directory.page.nextCursor ? <button type="button" onClick={() => void loadMore()} disabled={Boolean(busy)}>{busy === "page" ? t($ => $.invitations.loading) : t($ => $.invitations.loadMore)}</button> : null}
           </>}
-        {selected ? <section className="invitation-selected" aria-label="Selected invitation">
-          <header className="invitation-section-header"><h4>Selected {selected.effectiveState} invitation</h4>
-            {selected.lifecycleState === "pending" ? <button type="button" className="invitation-danger" disabled={Boolean(busy) || !canMutate} onClick={() => startRevoke(selected)}>Review revoke</button> : null}</header>
+        {selected ? <section className="invitation-selected" aria-label={t($ => $.invitations.selectedInvitation)}>
+          <header className="invitation-section-header"><h4>{t($ => $.invitations.selectedState, { state: t($ => $.invitations.states[selected.effectiveState]) })}</h4>
+            {selected.lifecycleState === "pending" ? <button type="button" className="invitation-danger" disabled={Boolean(busy) || !canMutate} onClick={() => startRevoke(selected)}>{t($ => $.invitations.reviewRevoke)}</button> : null}</header>
           <InvitationFacts invitation={selected} />
-          {selected.claimedByUserId ? <dl className="invitation-facts"><div><dt>Claimed by</dt><dd>{selected.claimedByUserId}</dd></div><div><dt>Membership</dt><dd>{selected.membershipId}</dd></div></dl> : null}
+          {selected.claimedByUserId ? <dl className="invitation-facts"><div><dt>{t($ => $.invitations.claimedBy)}</dt><dd>{selected.claimedByUserId}</dd></div><div><dt>{t($ => $.invitations.membership)}</dt><dd>{selected.membershipId}</dd></div></dl> : null}
         </section> : null}
       </main>
 
-      <aside className="invitation-review-rail" aria-label="Invitation review and one-time handoff">
+      <aside className="invitation-review-rail" aria-label={t($ => $.invitations.reviewAndHandoff)}>
         {handoff ? <>
-          <header className="invitation-section-header"><h4>One-time code</h4><span className="invitation-state">VISIBLE ONCE</span></header>
-          <ol className="invitation-progress"><li>✓ Review</li><li>✓ Create</li><li aria-current="step">Handoff</li></ol>
+          <header className="invitation-section-header"><h4>{t($ => $.invitations.oneTimeCode)}</h4><span className="invitation-state">{t($ => $.invitations.visibleOnce)}</span></header>
+          <ol className="invitation-progress"><li>{t($ => $.invitations.reviewComplete)}</li><li>{t($ => $.invitations.createComplete)}</li><li aria-current="step">{t($ => $.invitations.handoff)}</li></ol>
           <InvitationFacts invitation={handoff.invitation} />
-          <label className="invitation-code-handoff"><span>CODE · VISIBLE ONCE</span><textarea aria-label="One-time invitation code" readOnly value={handoff.invitationCode} autoComplete="off" spellCheck={false} rows={3} />
-            <button type="button" className="invitation-primary" onClick={() => void copyCode()} disabled={directory.status === "loading"}>{copyStatus === "copied" ? "Copied" : "Copy code"}</button></label>
-          {copyStatus === "failed" ? <p role="alert">Copy failed. Select the visible code and copy it manually.</p> : <span className="invitation-feedback" role="status">{copyStatus === "copied" ? "Code copied to clipboard." : ""}</span>}
-          <InvitationNotice title="Cannot be recovered" tone="warning">Leaving, switching actor or workspace, or choosing Done clears the code. Lists and refresh never return it.</InvitationNotice>
-          <div className="invitation-actions"><button type="button" onClick={() => startRevoke(handoff.invitation)}>Revoke &amp; recreate</button>
-            <button type="button" className="invitation-success" onClick={() => { cancelInteraction(); setNotice("Code cleared. Only invitation metadata remains available."); }}>Done &amp; clear code</button></div>
+          <label className="invitation-code-handoff"><span>{t($ => $.invitations.codeVisibleOnce)}</span><textarea aria-label={t($ => $.invitations.oneTimeCodeLabel)} readOnly value={handoff.invitationCode} autoComplete="off" spellCheck={false} rows={3} />
+            <button type="button" className="invitation-primary" onClick={() => void copyCode()} disabled={directory.status === "loading"}>{copyStatus === "copied" ? t($ => $.invitations.copied) : t($ => $.invitations.copyCode)}</button></label>
+          {copyStatus === "failed" ? <p role="alert">{t($ => $.invitations.copyFailed)}</p> : <span className="invitation-feedback" role="status">{copyStatus === "copied" ? t($ => $.invitations.copySuccess) : ""}</span>}
+          <InvitationNotice title={t($ => $.invitations.unrecoverable)} tone="warning">{t($ => $.invitations.clearWarning)}</InvitationNotice>
+          <div className="invitation-actions"><button type="button" onClick={() => startRevoke(handoff.invitation)}>{t($ => $.invitations.revokeRecreate)}</button>
+            <button type="button" className="invitation-success" onClick={() => { cancelInteraction(); setNotice("clearedNotice"); }}>{t($ => $.invitations.doneClear)}</button></div>
         </> : review.kind === "create" ? <>
-          <header className="invitation-section-header"><h4>Role &amp; TTL review</h4><button type="button" onClick={cancelInteraction}>Cancel</button></header>
-          {busy === "catalog" ? <p role="status">Reading the current role catalog…</p> : <form onSubmit={(event) => { event.preventDefault(); void createInvitation(); }} className="invitation-form">
-            <dl className="invitation-facts"><div><dt>Workspace</dt><dd>{tenantRef} / {workspaceId}</dd></div></dl>
-            <label>Role<select value={selectedRole} disabled={Boolean(busy)} onChange={(event) => { setSelectedRole(event.target.value); setConfirmed(false); }} required><option value="">Select a role</option>
-              {roles.map((entry) => <option key={entry.roleKey} value={entry.roleKey}>{entry.displayName}</option>)}</select></label>
-            <label>TTL<select value={ttlPolicy} disabled={Boolean(busy)} onChange={(event) => { setTTLPolicy(event.target.value as InvitationTTL); setConfirmed(false); }}>
-              {INVITATION_TTLS.map((value) => <option key={value} value={value}>{TTL_LABELS[value]}</option>)}</select></label>
-            {role ? <div className="invitation-reviewed-role"><strong>{role.roleKey}</strong><p>{role.summary}</p><small>{role.catalogVersion}</small><code>{role.definitionDigest}</code></div> : null}
+          <header className="invitation-section-header"><h4>{t($ => $.invitations.roleTtlReview)}</h4><button type="button" onClick={cancelInteraction}>{t($ => $.invitations.cancel)}</button></header>
+          {busy === "catalog" ? <p role="status">{t($ => $.invitations.readingCatalog)}</p> : <form onSubmit={(event) => { event.preventDefault(); void createInvitation(); }} className="invitation-form">
+            <dl className="invitation-facts"><div><dt>{t($ => $.invitations.workspace)}</dt><dd>{tenantRef} / {workspaceId}</dd></div></dl>
+            <label>{t($ => $.invitations.role)}<select value={selectedRole} disabled={Boolean(busy)} onChange={(event) => { setSelectedRole(event.target.value); setConfirmed(false); }} required><option value="">{t($ => $.invitations.selectRole)}</option>
+              {roles.map((entry) => <option key={entry.roleKey} value={entry.roleKey}>{identityRoleCopy(t, entry.roleKey).name}</option>)}</select></label>
+            <label>{t($ => $.invitations.ttl)}<select value={ttlPolicy} disabled={Boolean(busy)} onChange={(event) => { setTTLPolicy(event.target.value as InvitationTTL); setConfirmed(false); }}>
+              {INVITATION_TTLS.map((value) => <option key={value} value={value}>{t($ => $.invitations.ttls[value])}</option>)}</select></label>
+            {role ? <div className="invitation-reviewed-role"><strong>{role.roleKey}</strong><p>{identityRoleCopy(t, role.roleKey).summary}</p><small>{role.catalogVersion}</small><code>{role.definitionDigest}</code></div> : null}
             <label className="invitation-confirmation"><input type="checkbox" checked={confirmed} disabled={!role || Boolean(busy)} onChange={(event) => setConfirmed(event.target.checked)} />
-              <span>I confirm this exact workspace, role and TTL. Access begins only after a signed-in claimant completes the claim.</span></label>
-            <button type="submit" className="invitation-primary" disabled={!confirmed || !role || Boolean(busy) || !canMutate}>{busy === "create" ? "Creating…" : "Confirm & create invitation"}</button>
+              <span>{t($ => $.invitations.createConfirmation)}</span></label>
+            <button type="submit" className="invitation-primary" disabled={!confirmed || !role || Boolean(busy) || !canMutate}>{busy === "create" ? t($ => $.invitations.creating) : t($ => $.invitations.confirmCreate)}</button>
           </form>}
         </> : review.kind === "revoke" ? <>
-          <header className="invitation-section-header"><h4>Review revoke</h4><button type="button" onClick={cancelInteraction}>Cancel</button></header>
+          <header className="invitation-section-header"><h4>{t($ => $.invitations.reviewRevoke)}</h4><button type="button" onClick={cancelInteraction}>{t($ => $.invitations.cancel)}</button></header>
           <code>{review.invitation.invitationId}</code><InvitationFacts invitation={review.invitation} />
-          <InvitationNotice title="Withdraw this invitation" tone="warning">Revocation prevents future claim. To offer access again, create a new invitation after this operation completes.</InvitationNotice>
-          <label className="invitation-confirmation"><input type="checkbox" checked={confirmed} disabled={Boolean(busy)} onChange={(event) => setConfirmed(event.target.checked)} /><span>I confirm revocation of this exact invitation at version {review.invitation.recordVersion}.</span></label>
-          <button type="button" className="invitation-danger" disabled={!confirmed || Boolean(busy) || !canMutate} onClick={() => void revokeInvitation()}>{busy === "revoke" ? "Revoking…" : "Confirm revoke"}</button>
-        </> : <InvitationNotice title="One-time code">Choose Create invitation to review a role and TTL, or select an existing record to review its state. Codes are shown only once after creation.</InvitationNotice>}
-        <InvitationNotice title="Access begins after claim">Preview and code possession grant nothing. Membership and the catalog-derived role assignment take effect only after the full claim commits.</InvitationNotice>
+          <InvitationNotice title={t($ => $.invitations.withdraw)} tone="warning">{t($ => $.invitations.withdrawHelp)}</InvitationNotice>
+          <label className="invitation-confirmation"><input type="checkbox" checked={confirmed} disabled={Boolean(busy)} onChange={(event) => setConfirmed(event.target.checked)} /><span>{t($ => $.invitations.revokeConfirmation, { version: review.invitation.recordVersion })}</span></label>
+          <button type="button" className="invitation-danger" disabled={!confirmed || Boolean(busy) || !canMutate} onClick={() => void revokeInvitation()}>{busy === "revoke" ? t($ => $.invitations.revoking) : t($ => $.invitations.confirmRevoke)}</button>
+        </> : <InvitationNotice title={t($ => $.invitations.oneTimeCode)}>{t($ => $.invitations.chooseHelp)}</InvitationNotice>}
+        <InvitationNotice title={t($ => $.invitations.accessAfterClaim)}>{t($ => $.invitations.accessAfterClaimHelp)}</InvitationNotice>
       </aside>
     </div>
   </section>;

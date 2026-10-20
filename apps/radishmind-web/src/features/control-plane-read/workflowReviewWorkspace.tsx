@@ -123,7 +123,7 @@ export default function WorkflowReviewWorkspace({
         <dl>
           <div><dt>{t($ => $.runReview.application)}</dt><dd>{context.displayName}</dd></div>
           <div><dt>{t($ => $.runReview.workspace)}</dt><dd>{context.workspaceId || t($ => $.runReview.unavailable)}</dd></div>
-          <div><dt>{t($ => $.runReview.lifecycle)}</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.lifecycleState}</dd></div>
+          <div><dt>{t($ => $.runReview.lifecycle)}</dt><dd className={context.applicationActive ? "is-active" : "is-archived"}>{context.applicationActive ? t($ => $.runReview.active) : t($ => $.runReview.archivedReadOnly)}</dd></div>
         </dl>
       </header>
 

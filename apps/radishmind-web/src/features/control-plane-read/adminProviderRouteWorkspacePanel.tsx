@@ -1,3 +1,9 @@
+import { useTranslation } from "react-i18next";
+import { useLocalePreference } from "../../i18n/LocaleProvider.tsx";
+import { formatDisplayNumber } from "../../i18n/formatters.ts";
+import { adminDisplayDate } from "./adminManagementFormatters.ts";
+import { providerOperationMessage, providerFindingMessage, type ProviderMessage } from "./adminProviderRouteMessages.ts";
+import "../../i18n/adminProviderResources.ts";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -32,7 +38,7 @@ const PROTOCOLS: AdminProviderRouteProtocol[] = ["chat_completions", "responses"
 
 type WorkspaceOperation = {
   status: "offline" | "idle" | "loading" | "ready" | "failed";
-  label: string;
+  message: ProviderMessage;
   failureCode: string;
   requestId: string;
   auditRef: string;
@@ -45,6 +51,8 @@ export function AdminProviderRouteWorkspacePanel({
   focus?: "provider" | "profile" | "route";
   applicationId?: string;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   const config = useMemo(() => ({
     ...defaultConfig,
     applicationId: applicationId?.trim() || defaultConfig.applicationId,
@@ -72,7 +80,7 @@ export function AdminProviderRouteWorkspacePanel({
   }, [config]);
 
   async function refreshWorkspace() {
-    setOperation(loadingOperation("Loading draft, active snapshot, and activation history."));
+    setOperation(loadingOperation({ key: "loadingWorkspace" }));
     try {
       const [draftResult, snapshotResult, historyResult] = await Promise.all([
         readAdminProviderRouteDraft(config),
@@ -93,11 +101,11 @@ export function AdminProviderRouteWorkspacePanel({
         historyResult,
       ], ["admin_provider_route_draft_not_found"]);
       setOperation(fatal ? failedOperation(fatal) : readyOperation(
-        "Workspace synchronized. Missing draft or active snapshot remains an explicit empty state.",
+        { key: "workspaceLoaded" },
         historyResult,
       ));
-    } catch (error) {
-      setOperation(networkFailure(error));
+    } catch {
+      setOperation(networkFailure());
     }
   }
 
@@ -105,25 +113,25 @@ export function AdminProviderRouteWorkspacePanel({
     if (findings.length) {
       setOperation({
         status: "failed",
-        label: "Resolve the local contract findings before saving.",
+        message: { key: "localFindings" },
         failureCode: "admin_provider_route_payload_invalid",
         requestId: "",
         auditRef: "",
       });
       return;
     }
-    setOperation(loadingOperation("Saving draft with expected revision."));
+    setOperation(loadingOperation({ key: "savingDraft" }));
     try {
       const result = await saveAdminProviderRouteDraft(config, draftInput);
       if (result.draft) setDraftInput(draftInputFromAdminProviderRouteDraft(result.draft));
-      setOperation(operationFromEnvelope(result, "Draft saved without changing the active Gateway snapshot."));
-    } catch (error) {
-      setOperation(networkFailure(error));
+      setOperation(operationFromEnvelope(result, { key: "draftSaved" }));
+    } catch {
+      setOperation(networkFailure());
     }
   }
 
   async function createCandidate() {
-    setOperation(loadingOperation("Resolving runtime inventory and creating an immutable candidate."));
+    setOperation(loadingOperation({ key: "creatingCandidate" }));
     try {
       const result = await createAdminProviderRouteCandidate(
         config,
@@ -131,9 +139,9 @@ export function AdminProviderRouteWorkspacePanel({
         draftInput.expectedRevision,
       );
       if (result.candidate) setCandidate(result.candidate);
-      setOperation(operationFromEnvelope(result, "Immutable candidate created from the exact draft revision."));
-    } catch (error) {
-      setOperation(networkFailure(error));
+      setOperation(operationFromEnvelope(result, { key: "candidateCreated" }));
+    } catch {
+      setOperation(networkFailure());
     }
   }
 
@@ -141,19 +149,19 @@ export function AdminProviderRouteWorkspacePanel({
     const normalizedId = id.trim();
     if (!normalizedId) return;
     setCandidateId(normalizedId);
-    setOperation(loadingOperation(`Loading candidate ${normalizedId}.`));
+    setOperation(loadingOperation({ key: "loadingCandidate", candidateId: normalizedId }));
     try {
       const result = await readAdminProviderRouteCandidate(config, normalizedId);
       if (result.candidate) setCandidate(result.candidate);
-      setOperation(operationFromEnvelope(result, `Candidate ${normalizedId} loaded.`));
-    } catch (error) {
-      setOperation(networkFailure(error));
+      setOperation(operationFromEnvelope(result, { key: "candidateLoaded", candidateId: normalizedId }));
+    } catch {
+      setOperation(networkFailure());
     }
   }
 
   async function reviewCandidate() {
     if (!candidate || reviewReason.trim().length < 4) return;
-    setOperation(loadingOperation(`Recording independent ${reviewDecision} review.`));
+    setOperation(loadingOperation({ key: "recordingReview", decision: reviewDecision }));
     try {
       const result = await reviewAdminProviderRouteCandidate(
         config,
@@ -163,9 +171,9 @@ export function AdminProviderRouteWorkspacePanel({
         reviewReason,
       );
       if (result.candidate) setCandidate(result.candidate);
-      setOperation(operationFromEnvelope(result, "Review recorded. Gateway behavior remains unchanged until activation."));
-    } catch (error) {
-      setOperation(networkFailure(error));
+      setOperation(operationFromEnvelope(result, { key: "reviewRecorded" }));
+    } catch {
+      setOperation(networkFailure());
     }
   }
 
@@ -173,7 +181,7 @@ export function AdminProviderRouteWorkspacePanel({
     if (!candidate || activationReason.trim().length < 4) return;
     const generation = snapshot?.generation ?? 0;
     setOperation(loadingOperation(
-      `${activationAction === "rollback" ? "Rolling back" : "Activating"} from expected generation ${generation}.`,
+      { key: activationAction === "rollback" ? "rollingBack" : "activating", generation },
     ));
     try {
       const result = await activateAdminProviderRouteCandidate(
@@ -188,10 +196,10 @@ export function AdminProviderRouteWorkspacePanel({
       if (historyResult) setHistory(historyResult.activationHistory);
       setOperation(operationFromEnvelope(
         result,
-        `${activationAction === "rollback" ? "Rollback" : "Activation"} committed as a new generation.`,
+        { key: activationAction === "rollback" ? "rolledBack" : "activated" },
       ));
-    } catch (error) {
-      setOperation(networkFailure(error));
+    } catch {
+      setOperation(networkFailure());
     }
   }
 
@@ -241,10 +249,10 @@ export function AdminProviderRouteWorkspacePanel({
 
   const live = config.mode === "dev_admin_provider_route_http";
   const focusLabel = focus === "provider"
-    ? "Runtime inventory references"
+    ? t($ => $.provider.focusProvider)
     : focus === "profile"
-    ? "Provider Profile assignments"
-    : "Model routes and generation lineage";
+    ? t($ => $.provider.focusProfile)
+    : t($ => $.provider.focusRoute);
   return (
     <div
       className="admin-provider-route-workspace"
@@ -253,35 +261,34 @@ export function AdminProviderRouteWorkspacePanel({
     >
       <div className="model-gateway-overview-subheading admin-provider-route-workspace-heading">
         <div>
-          <p className="eyebrow">Controlled Configuration Workspace · {focus}</p>
-          <h4>Draft, review, activation, rollback, and Gateway lineage</h4>
+          <p className="eyebrow">{t($ => $.provider.workspaceEyebrow, { focus: t($ => $.tasks[focus].label) })}</p>
+          <h4>{t($ => $.provider.workspaceTitle)}</h4>
           <p>{focusLabel}</p>
         </div>
         <span className={`status-badge ${live ? "good" : "neutral"}`}>
-          {live ? `${config.environment} · dev/test` : "offline"}
+          {live ? t($ => $.provider.devTest, { environment: config.environment }) : t($ => $.provider.offline)}
         </span>
       </div>
 
       {!live ? (
         <article className="model-gateway-overview-trace">
-          <p className="eyebrow">Explicit source required</p>
-          <h5>No Provider route management request is sent</h5>
-          <p>Enable the Admin Provider route dev/test source to manage drafts and immutable activation snapshots. The existing evidence review remains available above.</p>
+          <p className="eyebrow">{t($ => $.provider.explicitSource)}</p>
+          <h5>{t($ => $.provider.offlineTitle)}</h5>
+          <p>{t($ => $.provider.offlineHelp)}</p>
         </article>
       ) : (
         <>
           <div className="admin-provider-route-scope">
             <dl className="model-gateway-overview-meta">
-              <div><dt>Tenant</dt><dd>{config.tenantRef}</dd></div>
-              <div><dt>Workspace</dt><dd>{config.workspaceId}</dd></div>
-              <div><dt>Environment</dt><dd>{config.environment}</dd></div>
-              <div><dt>Configuration</dt><dd>{config.configurationId}</dd></div>
-              <div><dt>Application handoff</dt><dd>{config.applicationId}</dd></div>
-              <div><dt>Current generation</dt><dd>{snapshot?.generation ?? 0}</dd></div>
+              <div><dt>{t($ => $.provider.tenant)}</dt><dd>{config.tenantRef}</dd></div>
+              <div><dt>{t($ => $.provider.workspace)}</dt><dd>{config.workspaceId}</dd></div>
+              <div><dt>{t($ => $.provider.environment)}</dt><dd>{config.environment}</dd></div>
+              <div><dt>{t($ => $.provider.configuration)}</dt><dd>{config.configurationId}</dd></div>
+              <div><dt>{t($ => $.provider.applicationHandoff)}</dt><dd>{config.applicationId}</dd></div>
+              <div><dt>{t($ => $.provider.currentGeneration)}</dt><dd>{snapshot?.generation ?? 0}</dd></div>
             </dl>
             <button type="button" className="secondary-action" onClick={() => void refreshWorkspace()} disabled={operation.status === "loading"}>
-              Refresh workspace
-            </button>
+              {t($ => $.provider.refresh)}</button>
           </div>
 
           <OperationStatus operation={operation} />
@@ -289,12 +296,12 @@ export function AdminProviderRouteWorkspacePanel({
           <div className="admin-provider-route-layout">
             <section className="admin-provider-route-stage" aria-labelledby="admin-provider-route-draft-title">
               <StageHeading
-                eyebrow="1 · Mutable Draft"
-                title="Edit exact runtime assignments and model routes"
-                status={`revision ${draftInput.expectedRevision}`}
+                titleId="admin-provider-route-draft-title"
+                eyebrow={t($ => $.provider.draftStage)}
+                title={t($ => $.provider.draftTitle)}
+                status={t($ => $.provider.revision, { version: draftInput.expectedRevision })}
               />
-              <label>Display name
-                <input
+              <label>{t($ => $.provider.displayName)}<input
                   value={draftInput.displayName}
                   maxLength={120}
                   onChange={(event) => setDraftInput((current) => ({ ...current, displayName: event.target.value }))}
@@ -302,8 +309,8 @@ export function AdminProviderRouteWorkspacePanel({
               </label>
 
               <div className="admin-provider-route-resource-heading">
-                <h6>Provider Profile assignments</h6>
-                <button type="button" className="secondary-action" onClick={addProfile}>Add profile</button>
+                <h6>{t($ => $.provider.focusProfile)}</h6>
+                <button type="button" className="secondary-action" onClick={addProfile}>{t($ => $.provider.addProfile)}</button>
               </div>
               {draftInput.providerProfiles.map((profile, index) => (
                 <ProviderProfileEditor
@@ -321,8 +328,8 @@ export function AdminProviderRouteWorkspacePanel({
               ))}
 
               <div className="admin-provider-route-resource-heading">
-                <h6>Model routes</h6>
-                <button type="button" className="secondary-action" onClick={addRoute}>Add route</button>
+                <h6>{t($ => $.provider.modelRoutes)}</h6>
+                <button type="button" className="secondary-action" onClick={addRoute}>{t($ => $.provider.addRoute)}</button>
               </div>
               {draftInput.modelRoutes.map((route, index) => (
                 <ModelRouteEditor
@@ -339,103 +346,99 @@ export function AdminProviderRouteWorkspacePanel({
               ))}
 
               <div className="admin-provider-route-findings" aria-live="polite">
-                <p className="eyebrow">Local contract preview</p>
+                <p className="eyebrow">{t($ => $.provider.contractPreview)}</p>
                 {findings.length ? (
-                  <ul>{findings.map((finding, index) => <li key={`${finding.field}-${index}`}><strong>{finding.field}</strong> — {finding.summary}</li>)}</ul>
-                ) : <p>No local contract findings. Server inventory and CAS checks still apply.</p>}
+                  <ul>{findings.map((finding, index) => <li key={`${finding.field}-${index}`}><strong>{finding.field}</strong> — {providerFindingMessage(t, finding)}</li>)}</ul>
+                ) : <p>{t($ => $.provider.noFindings)}</p>}
               </div>
               <button type="button" onClick={() => void saveDraft()} disabled={findings.length > 0 || operation.status === "loading"}>
-                Save draft revision
-              </button>
+                {t($ => $.provider.saveDraft)}</button>
             </section>
 
             <section className="admin-provider-route-stage" aria-labelledby="admin-provider-route-candidate-title">
               <StageHeading
-                eyebrow="2 · Immutable Candidate"
-                title="Resolve inventory and inspect changes"
-                status={candidate?.candidateState ?? "not loaded"}
+                titleId="admin-provider-route-candidate-title"
+                eyebrow={t($ => $.provider.candidateStage)}
+                title={t($ => $.provider.candidateTitle)}
+                status={candidate ? t($ => $.provider.states[candidate.candidateState]) : t($ => $.provider.notLoaded)}
               />
               <div className="admin-provider-route-inline-form">
-                <label>Candidate ID
-                  <input value={candidateId} maxLength={160} onChange={(event) => setCandidateId(event.target.value)} />
+                <label>{t($ => $.provider.candidateId)}<input value={candidateId} maxLength={160} onChange={(event) => setCandidateId(event.target.value)} />
                 </label>
                 <button type="button" onClick={() => void createCandidate()} disabled={operation.status === "loading" || findings.length > 0 || draftInput.expectedRevision < 1}>
-                  Create from revision {draftInput.expectedRevision}
+                  {t($ => $.provider.createFrom, { version: draftInput.expectedRevision })}
                 </button>
                 <button type="button" className="secondary-action" onClick={() => void loadCandidate()} disabled={!candidateId.trim() || operation.status === "loading"}>
-                  Load candidate
-                </button>
+                  {t($ => $.provider.loadCandidate)}</button>
               </div>
               {candidate ? (
                 <>
                   <CandidateSummary candidate={candidate} />
                   <div className="admin-provider-route-diff">
-                    <p className="eyebrow">Candidate vs active snapshot</p>
-                    <p>{candidateDiff?.summary}</p>
+                    <p className="eyebrow">{t($ => $.provider.diffTitle)}</p>
+                    <p>{candidateDiff ? t($ => candidateDiff.changed ? $.provider.diffSummary : $.provider.matches, { countText: (formatDisplayNumber(candidateDiff.items.length, locale) ?? t($ => $.provider.unavailable)), generation: candidateDiff.baselineGeneration }) : null}</p>
                     {candidateDiff?.items.length ? (
                       <ul>{candidateDiff.items.map((item) => (
                         <li key={`${item.kind}-${item.resourceId}`}>
-                          <span className={`status-badge ${item.change === "removed" ? "bad" : "neutral"}`}>{item.change}</span>
-                          <strong>{item.kind} · {item.resourceId}</strong>
-                          <small>{item.before || "none"} → {item.after || "none"}</small>
+                          <span className={`status-badge ${item.change === "removed" ? "bad" : "neutral"}`}>{t($ => $.provider.changes[item.change])}</span>
+                          <strong>{t($ => $.provider.kinds[item.kind])} · {item.resourceId}</strong>
+                          <small>{item.before || t($ => $.provider.none)} → {item.after || t($ => $.provider.none)}</small>
                         </li>
                       ))}</ul>
-                    ) : <p className="boundary-note">No configuration difference from the current active snapshot.</p>}
+                    ) : <p className="boundary-note">{t($ => $.provider.noDiff)}</p>}
                   </div>
                 </>
-              ) : <p className="boundary-note">Create or load a candidate to inspect its immutable digest, inventory bindings, and active-snapshot difference.</p>}
+              ) : <p className="boundary-note">{t($ => $.provider.candidateHelp)}</p>}
             </section>
 
             <section className="admin-provider-route-stage" aria-labelledby="admin-provider-route-review-title">
               <StageHeading
-                eyebrow="3 · Independent Review"
-                title="Approve or reject without changing Gateway behavior"
-                status={candidate ? `review v${candidate.reviewVersion}` : "candidate required"}
+                titleId="admin-provider-route-review-title"
+                eyebrow={t($ => $.provider.reviewStage)}
+                title={t($ => $.provider.reviewTitle)}
+                status={candidate ? t($ => $.provider.reviewVersion, { version: candidate.reviewVersion }) : t($ => $.provider.candidateRequired)}
               />
-              <label>Decision
-                <select value={reviewDecision} onChange={(event) => setReviewDecision(event.target.value as AdminProviderRouteDecision)}>
-                  <option value="approve">Approve</option>
-                  <option value="reject">Reject</option>
+              <label>{t($ => $.provider.decision)}<select value={reviewDecision} onChange={(event) => setReviewDecision(event.target.value as AdminProviderRouteDecision)}>
+                  <option value="approve">{t($ => $.provider.approve)}</option>
+                  <option value="reject">{t($ => $.provider.reject)}</option>
                 </select>
               </label>
-              <label>Review reason
-                <textarea value={reviewReason} rows={4} maxLength={500} onChange={(event) => setReviewReason(event.target.value)} />
+              <label>{t($ => $.provider.reviewReason)}<textarea value={reviewReason} rows={4} maxLength={500} onChange={(event) => setReviewReason(event.target.value)} />
               </label>
               <button type="button" onClick={() => void reviewCandidate()} disabled={!candidate || candidate.candidateState !== "pending_review" || reviewReason.trim().length < 4 || operation.status === "loading"}>
-                Record review with expected v{candidate?.reviewVersion ?? 0}
+                {t($ => $.provider.recordReview, { version: candidate?.reviewVersion ?? 0 })}
               </button>
               {candidate?.review ? (
                 <dl className="model-gateway-overview-meta">
-                  <div><dt>Decision</dt><dd>{candidate.review.decision}</dd></div>
-                  <div><dt>State</dt><dd>{candidate.review.resultingState}</dd></div>
-                  <div><dt>Reviewer</dt><dd>{candidate.review.reviewerRef}</dd></div>
-                  <div><dt>Reviewed</dt><dd>{formatTimestamp(candidate.review.reviewedAt)}</dd></div>
-                  <div><dt>Request</dt><dd>{candidate.review.requestId}</dd></div>
-                  <div><dt>Audit</dt><dd>{candidate.review.auditRef}</dd></div>
+                  <div><dt>{t($ => $.provider.decision)}</dt><dd>{t($ => $.provider.states[candidate.review!.decision])}</dd></div>
+                  <div><dt>{t($ => $.provider.state)}</dt><dd>{t($ => $.provider.states[candidate.review!.resultingState])}</dd></div>
+                  <div><dt>{t($ => $.provider.reviewer)}</dt><dd>{candidate.review.reviewerRef}</dd></div>
+                  <div><dt>{t($ => $.provider.reviewed)}</dt><dd><time dateTime={candidate.review.reviewedAt} title={candidate.review.reviewedAt}>{adminDisplayDate(candidate.review.reviewedAt, locale)}</time></dd></div>
+                  <div><dt>{t($ => $.provider.request)}</dt><dd>{candidate.review.requestId}</dd></div>
+                  <div><dt>{t($ => $.provider.audit)}</dt><dd>{candidate.review.auditRef}</dd></div>
                 </dl>
               ) : null}
-              <p className="boundary-note">Approval only changes candidate eligibility. It does not update the active snapshot or affect Gateway requests.</p>
+              <p className="boundary-note">{t($ => $.provider.approvalBoundary)}</p>
             </section>
 
             <section className="admin-provider-route-stage" aria-labelledby="admin-provider-route-activation-title">
               <StageHeading
-                eyebrow="4 · Explicit Generation Switch"
-                title="Activate or roll back with generation CAS"
-                status={`generation ${snapshot?.generation ?? 0}`}
+                titleId="admin-provider-route-activation-title"
+                eyebrow={t($ => $.provider.activationStage)}
+                title={t($ => $.provider.activationTitle)}
+                status={t($ => $.provider.generation, { version: snapshot?.generation ?? 0 })}
               />
-              <label>Action
-                <select value={activationAction} onChange={(event) => setActivationAction(event.target.value as AdminProviderRouteActivationAction)}>
-                  <option value="activate">Activate approved candidate</option>
-                  <option value="rollback">Roll back to historical candidate</option>
+              <label>{t($ => $.provider.action)}<select value={activationAction} onChange={(event) => setActivationAction(event.target.value as AdminProviderRouteActivationAction)}>
+                  <option value="activate">{t($ => $.provider.activateOption)}</option>
+                  <option value="rollback">{t($ => $.provider.rollbackOption)}</option>
                 </select>
               </label>
-              <label>Activation reason
-                <textarea value={activationReason} rows={4} maxLength={500} onChange={(event) => setActivationReason(event.target.value)} />
+              <label>{t($ => $.provider.activationReason)}<textarea value={activationReason} rows={4} maxLength={500} onChange={(event) => setActivationReason(event.target.value)} />
               </label>
               <button type="button" onClick={() => void activateCandidate()} disabled={!candidate || candidate.candidateState !== "approved" || activationReason.trim().length < 4 || operation.status === "loading"}>
-                {activationAction === "rollback" ? "Commit rollback" : "Commit activation"} from generation {snapshot?.generation ?? 0}
+                {t($ => activationAction === "rollback" ? $.provider.commitRollback : $.provider.commitActivate, { version: snapshot?.generation ?? 0 })}
               </button>
-              <p className="boundary-note">Activation revalidates runtime inventory. Missing or drifted bindings fail before the snapshot transaction and before any Provider call.</p>
+              <p className="boundary-note">{t($ => $.provider.activationBoundary)}</p>
             </section>
           </div>
 
@@ -472,6 +475,8 @@ function ProviderProfileEditor({
   onChange: (patch: Partial<AdminProviderProfileAssignment>) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   function toggleCapability(capability: AdminProviderRouteProtocol, checked: boolean) {
     const next = checked
       ? [...new Set([...profile.capabilities, capability])]
@@ -480,12 +485,11 @@ function ProviderProfileEditor({
   }
   return (
     <fieldset className="admin-provider-route-editor">
-      <legend>Profile assignment {index + 1}</legend>
-      <label>Stable profile ID<input value={profile.profileId} maxLength={160} onChange={(event) => onChange({ profileId: event.target.value })} /></label>
-      <label>Display name<input value={profile.displayName} maxLength={120} onChange={(event) => onChange({ displayName: event.target.value })} /></label>
-      <label>Provider ID<input value={profile.providerId} maxLength={160} onChange={(event) => onChange({ providerId: event.target.value })} /></label>
-      <label>Runtime profile ref
-        <input
+      <legend>{t($ => $.provider.profileAssignment, { number: (formatDisplayNumber(index + 1, locale) ?? t($ => $.provider.unavailable)) })}</legend>
+      <label>{t($ => $.provider.stableProfileId)}<input value={profile.profileId} maxLength={160} onChange={(event) => onChange({ profileId: event.target.value })} /></label>
+      <label>{t($ => $.provider.displayName)}<input value={profile.displayName} maxLength={120} onChange={(event) => onChange({ displayName: event.target.value })} /></label>
+      <label>{t($ => $.provider.providerId)}<input value={profile.providerId} maxLength={160} onChange={(event) => onChange({ providerId: event.target.value })} /></label>
+      <label>{t($ => $.provider.runtimeProfileRef)}<input
           value={profile.runtimeProfileRef}
           maxLength={240}
           placeholder={`ref:radishmind/${environment}/provider-profiles/<profile>`}
@@ -493,7 +497,7 @@ function ProviderProfileEditor({
         />
       </label>
       <div className="admin-provider-route-capabilities">
-        <span>Capabilities</span>
+        <span>{t($ => $.provider.capabilities)}</span>
         {PROTOCOLS.map((capability) => (
           <label key={capability}>
             <input
@@ -505,7 +509,7 @@ function ProviderProfileEditor({
           </label>
         ))}
       </div>
-      {removable ? <button type="button" className="secondary-action" onClick={onRemove}>Remove profile</button> : null}
+      {removable ? <button type="button" className="secondary-action" onClick={onRemove}>{t($ => $.provider.removeProfile)}</button> : null}
     </fieldset>
   );
 }
@@ -523,46 +527,43 @@ function ModelRouteEditor({
   onChange: (route: AdminModelRouteDefinition) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation("admin");
   return (
     <fieldset className="admin-provider-route-editor admin-provider-route-model-editor">
-      <legend>{route.routeId || "Model route"}</legend>
-      <label>Route ID<input value={route.routeId} maxLength={160} onChange={(event) => onChange({ ...route, routeId: event.target.value })} /></label>
-      <label>Protocol
-        <select value={route.protocol} onChange={(event) => onChange({ ...route, protocol: event.target.value as AdminProviderRouteProtocol })}>
+      <legend>{route.routeId || t($ => $.provider.modelRoute)}</legend>
+      <label>{t($ => $.provider.routeId)}<input value={route.routeId} maxLength={160} onChange={(event) => onChange({ ...route, routeId: event.target.value })} /></label>
+      <label>{t($ => $.provider.protocol)}<select value={route.protocol} onChange={(event) => onChange({ ...route, protocol: event.target.value as AdminProviderRouteProtocol })}>
           {PROTOCOLS.map((protocol) => <option value={protocol} key={protocol}>{protocol}</option>)}
         </select>
       </label>
-      <label>Requested model<input value={route.modelId} maxLength={160} onChange={(event) => onChange({ ...route, modelId: event.target.value })} /></label>
-      <label>Route contract
-        <select
+      <label>{t($ => $.provider.requestedModel)}<input value={route.modelId} maxLength={160} onChange={(event) => onChange({ ...route, modelId: event.target.value })} /></label>
+      <label>{t($ => $.provider.routeContract)}<select
           value={route.contractVersion}
           onChange={(event) => onChange(routeForContractVersion(route, event.target.value as "v1" | "v2", profiles))}
         >
-          <option value="v1">v1 · single profile</option>
-          <option value="v2">v2 · ordered attempt plan</option>
+          <option value="v1">{t($ => $.provider.contractV1)}</option>
+          <option value="v2">{t($ => $.provider.contractV2)}</option>
         </select>
       </label>
       {route.contractVersion === "v1" ? (
-        <label>Provider Profile
-          <select value={route.providerProfileId} onChange={(event) => onChange({ ...route, providerProfileId: event.target.value })}>
-            <option value="">Select profile</option>
+        <label>{t($ => $.provider.providerProfile)}<select value={route.providerProfileId} onChange={(event) => onChange({ ...route, providerProfileId: event.target.value })}>
+            <option value="">{t($ => $.provider.selectProfile)}</option>
             {profiles.map((profile) => <option value={profile.profileId} key={profile.profileId}>{profile.profileId}</option>)}
           </select>
         </label>
       ) : (
         <div className="admin-provider-route-attempt-plan">
-          <label>Execution mode
-            <select
+          <label>{t($ => $.provider.executionMode)}<select
               value={route.executionMode}
               onChange={(event) => onChange(routeWithExecutionMode(route, event.target.value as AdminProviderRouteExecutionMode, profiles))}
             >
-              <option value="single_attempt">Single attempt</option>
-              <option value="sequential_fallback">Sequential fallback</option>
+              <option value="single_attempt">{t($ => $.provider.singleAttempt)}</option>
+              <option value="sequential_fallback">{t($ => $.provider.sequentialFallback)}</option>
             </select>
           </label>
-          <p className="boundary-note">Fallback requires both the active route policy and an explicit non-stream API Key request. Each actual attempt has independent quota and cost evidence.</p>
+          <p className="boundary-note">{t($ => $.provider.fallbackBoundary)}</p>
           {route.attemptTargets.map((target, targetIndex) => (
-            <label key={target.ordinal}>{target.ordinal === 1 ? "Primary target" : "Backup target"}
+            <label key={target.ordinal}>{target.ordinal === 1 ? t($ => $.provider.primaryTarget) : t($ => $.provider.backupTarget)}
               <select
                 value={target.providerProfileId}
                 onChange={(event) => onChange({
@@ -571,14 +572,14 @@ function ModelRouteEditor({
                     itemIndex === targetIndex ? { ...item, providerProfileId: event.target.value } : item),
                 })}
               >
-                <option value="">Select profile</option>
+                <option value="">{t($ => $.provider.selectProfile)}</option>
                 {profiles.map((profile) => <option value={profile.profileId} key={profile.profileId}>{profile.profileId}</option>)}
               </select>
             </label>
           ))}
         </div>
       )}
-      {removable ? <button type="button" className="secondary-action" onClick={onRemove}>Remove route</button> : null}
+      {removable ? <button type="button" className="secondary-action" onClick={onRemove}>{t($ => $.provider.removeRoute)}</button> : null}
     </fieldset>
   );
 }
@@ -625,33 +626,35 @@ function routeTargets(route: AdminModelRouteDefinition): string[] {
 }
 
 function CandidateSummary({ candidate }: { candidate: AdminProviderRouteCandidate }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   return (
     <article className="admin-provider-route-candidate-summary">
       <div className="model-gateway-overview-row-main">
-        <div><p className="eyebrow">Immutable candidate</p><h6>{candidate.candidateId}</h6></div>
+        <div><p className="eyebrow">{t($ => $.provider.immutableCandidate)}</p><h6>{candidate.candidateId}</h6></div>
         <span className={`status-badge ${candidate.candidateState === "approved" ? "good" : candidate.candidateState === "rejected" ? "bad" : "neutral"}`}>
-          {candidate.candidateState}
+          {t($ => $.provider.states[candidate.candidateState])}
         </span>
       </div>
       <dl className="model-gateway-overview-meta">
-        <div><dt>Source revision</dt><dd>{candidate.sourceDraftRevision}</dd></div>
-        <div><dt>Profiles / routes</dt><dd>{candidate.configuration.providerProfiles.length} / {candidate.configuration.modelRoutes.length}</dd></div>
-        <div><dt>Candidate digest</dt><dd title={candidate.candidateDigest}>{shortDigest(candidate.candidateDigest)}</dd></div>
-        <div><dt>Inventory bindings</dt><dd>{candidate.inventoryBindings.length}</dd></div>
-        <div><dt>Created by</dt><dd>{candidate.createdByActorRef}</dd></div>
-        <div><dt>Created</dt><dd>{formatTimestamp(candidate.createdAt)}</dd></div>
+        <div><dt>{t($ => $.provider.sourceRevision)}</dt><dd>{candidate.sourceDraftRevision}</dd></div>
+        <div><dt>{t($ => $.provider.profilesRoutes)}</dt><dd>{candidate.configuration.providerProfiles.length} / {candidate.configuration.modelRoutes.length}</dd></div>
+        <div><dt>{t($ => $.provider.candidateDigest)}</dt><dd title={candidate.candidateDigest}>{shortDigest(candidate.candidateDigest)}</dd></div>
+        <div><dt>{t($ => $.provider.inventoryBindings)}</dt><dd>{candidate.inventoryBindings.length}</dd></div>
+        <div><dt>{t($ => $.provider.createdBy)}</dt><dd>{candidate.createdByActorRef}</dd></div>
+        <div><dt>{t($ => $.provider.created)}</dt><dd><time dateTime={candidate.createdAt} title={candidate.createdAt}>{adminDisplayDate(candidate.createdAt, locale)}</time></dd></div>
       </dl>
-      <div className="admin-provider-route-plan-review" aria-label="Candidate attempt plans">
+      <div className="admin-provider-route-plan-review" aria-label={t($ => $.provider.attemptPlans)}>
         {candidate.configuration.modelRoutes.map((route) => (
           <article key={route.routeId}>
-            <p><strong>{route.routeId}</strong> · {route.contractVersion === "v1" ? "single attempt" : route.executionMode}</p>
+            <p><strong>{route.routeId}</strong> · {route.contractVersion === "v1" ? t($ => $.provider.singleAttemptStatus) : t($ => $.provider.states[route.executionMode])}</p>
             <ol>
               {routeTargets(route).map((profileId, index) => (
-                <li key={`${route.routeId}-${index}`}>{index === 0 ? "Primary" : "Backup"}: {profileId}</li>
+                <li key={`${route.routeId}-${index}`}>{index === 0 ? t($ => $.provider.primary) : t($ => $.provider.backup)}: {profileId}</li>
               ))}
             </ol>
             {route.contractVersion === "v2" && route.executionMode === "sequential_fallback" ? (
-              <small>Fallback can consume a second quota admission and may leave partial cost coverage.</small>
+              <small>{t($ => $.provider.fallbackCost)}</small>
             ) : null}
           </article>
         ))}
@@ -660,7 +663,7 @@ function CandidateSummary({ candidate }: { candidate: AdminProviderRouteCandidat
         {candidate.inventoryBindings.map((binding) => (
           <p key={binding.profileId}>
             <strong>{binding.profileId}</strong> · {binding.providerId} · {binding.capabilities.join(", ")} ·
-            <span className={`status-badge ${binding.enabled ? "good" : "bad"}`}>{binding.enabled ? "enabled" : "disabled"}</span>
+            <span className={`status-badge ${binding.enabled ? "good" : "bad"}`}>{binding.enabled ? t($ => $.provider.enabled) : t($ => $.provider.disabled)}</span>
             <small title={binding.inventoryDigest}>{shortDigest(binding.inventoryDigest)}</small>
           </p>
         ))}
@@ -676,31 +679,34 @@ function ActiveSnapshotPanel({
   snapshot: AdminProviderRouteSnapshot | null;
   applicationId: string;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   return (
     <section className="admin-provider-route-stage admin-provider-route-runtime" aria-labelledby="admin-provider-route-snapshot-title">
       <StageHeading
-        eyebrow="Current Runtime Snapshot"
-        title="Gateway consumes this immutable generation"
-        status={snapshot ? `generation ${snapshot.generation}` : "not activated"}
+        titleId="admin-provider-route-snapshot-title"
+                eyebrow={t($ => $.provider.snapshotStage)}
+        title={t($ => $.provider.snapshotTitle)}
+        status={snapshot ? t($ => $.provider.generation, { version: snapshot.generation }) : t($ => $.provider.notActivated)}
       />
       {snapshot ? (
         <>
           <dl className="model-gateway-overview-meta">
-            <div><dt>Candidate</dt><dd>{snapshot.candidateId}</dd></div>
-            <div><dt>Snapshot digest</dt><dd title={snapshot.snapshotDigest}>{shortDigest(snapshot.snapshotDigest)}</dd></div>
-            <div><dt>Activated by</dt><dd>{snapshot.activatedByActorRef}</dd></div>
-            <div><dt>Activated</dt><dd>{formatTimestamp(snapshot.activatedAt)}</dd></div>
+            <div><dt>{t($ => $.provider.candidate)}</dt><dd>{snapshot.candidateId}</dd></div>
+            <div><dt>{t($ => $.provider.snapshotDigest)}</dt><dd title={snapshot.snapshotDigest}>{shortDigest(snapshot.snapshotDigest)}</dd></div>
+            <div><dt>{t($ => $.provider.activatedBy)}</dt><dd>{snapshot.activatedByActorRef}</dd></div>
+            <div><dt>{t($ => $.provider.activated)}</dt><dd><time dateTime={snapshot.activatedAt} title={snapshot.activatedAt}>{adminDisplayDate(snapshot.activatedAt, locale)}</time></dd></div>
           </dl>
           <div className="admin-provider-route-snapshot-routes">
             {snapshot.configuration.modelRoutes.map((route) => (
               <article key={route.routeId}>
                 <p className="eyebrow">{route.protocol}</p>
                 <h6>{route.modelId}</h6>
-                <p>{route.routeId} · {route.contractVersion === "v1" ? "single profile" : route.executionMode}</p>
+                <p>{route.routeId} · {route.contractVersion === "v1" ? t($ => $.provider.singleProfile) : t($ => $.provider.states[route.executionMode])}</p>
                 <ol className="admin-provider-route-target-list">
                   {routeTargets(route).map((profileId, index) => (
                     <li key={`${route.routeId}-${index}`}>
-                      <strong>{index === 0 ? "Primary" : "Backup"}</strong> · {profileId || "unavailable"}
+                      <strong>{index === 0 ? t($ => $.provider.primary) : t($ => $.provider.backup)}</strong> · {profileId || t($ => $.provider.unavailable)}
                     </li>
                   ))}
                 </ol>
@@ -708,12 +714,12 @@ function ActiveSnapshotPanel({
             ))}
           </div>
           <div className="admin-provider-route-handoffs">
-            <a href="#model-gateway-playground">Open Gateway Playground</a>
-            <a href="#model-gateway-request-history">Review Gateway history lineage</a>
+            <a href="#model-gateway-playground">{t($ => $.provider.openPlayground)}</a>
+            <a href="#model-gateway-request-history">{t($ => $.provider.openHistory)}</a>
           </div>
-          <p className="boundary-note">Use application {applicationId} and an application-scoped API key. Request History must report this configuration, generation, and snapshot digest.</p>
+          <p className="boundary-note">{t($ => $.provider.handoffHelp, { applicationId })}</p>
         </>
-      ) : <p className="boundary-note">No active snapshot exists. Approval alone intentionally leaves Gateway behavior unchanged.</p>}
+      ) : <p className="boundary-note">{t($ => $.provider.noSnapshot)}</p>}
     </section>
   );
 }
@@ -727,80 +733,85 @@ function ActivationHistoryPanel({
   currentGeneration: number;
   onLoadRollback: (activation: AdminProviderRouteActivation) => void;
 }) {
+  const { t } = useTranslation("admin");
+  const { locale } = useLocalePreference();
   return (
     <section className="admin-provider-route-stage admin-provider-route-runtime" aria-labelledby="admin-provider-route-history-title">
       <StageHeading
-        eyebrow="Append-only Activation History"
-        title="Generation lineage and rollback targets"
-        status={`${history.length} records`}
+        titleId="admin-provider-route-history-title"
+                eyebrow={t($ => $.provider.historyStage)}
+        title={t($ => $.provider.historyTitle)}
+        status={t($ => $.provider.records, { countText: (formatDisplayNumber(history.length, locale) ?? t($ => $.provider.unavailable)) })}
       />
       {history.length ? (
         <div className="admin-provider-route-history-list">
           {[...history].reverse().map((activation) => (
             <article key={activation.activationId}>
               <div className="model-gateway-overview-row-main">
-                <div><p className="eyebrow">{activation.action}</p><h6>generation {activation.beforeGeneration} → {activation.afterGeneration}</h6></div>
+                <div><p className="eyebrow">{t($ => $.provider.states[activation.action])}</p><h6>{t($ => $.provider.generationTransition, { before: activation.beforeGeneration, after: activation.afterGeneration })}</h6></div>
                 <span className={`status-badge ${activation.afterGeneration === currentGeneration ? "good" : "neutral"}`}>
-                  {activation.afterGeneration === currentGeneration ? "current" : "historical"}
+                  {activation.afterGeneration === currentGeneration ? t($ => $.provider.current) : t($ => $.provider.historical)}
                 </span>
               </div>
               <p>{activation.afterCandidateId}</p>
               <p>{activation.reason}</p>
-              <small title={activation.afterSnapshotDigest}>{shortDigest(activation.afterSnapshotDigest)} · {formatTimestamp(activation.createdAt)}</small>
+              <small title={activation.afterSnapshotDigest}>{shortDigest(activation.afterSnapshotDigest)} · <time dateTime={activation.createdAt} title={activation.createdAt}>{adminDisplayDate(activation.createdAt, locale)}</time></small>
               <button type="button" className="secondary-action" onClick={() => onLoadRollback(activation)}>
-                Load as rollback target
-              </button>
+                {t($ => $.provider.loadRollback)}</button>
             </article>
           ))}
         </div>
-      ) : <p className="boundary-note">No activation record exists. Candidate review does not append activation history.</p>}
+      ) : <p className="boundary-note">{t($ => $.provider.noHistory)}</p>}
     </section>
   );
 }
 
 function StageHeading({
+  titleId,
   eyebrow,
   title,
   status,
 }: {
+  titleId: string;
   eyebrow: string;
   title: string;
   status: string;
 }) {
   return (
     <div className="model-gateway-overview-row-main">
-      <div><p className="eyebrow">{eyebrow}</p><h5>{title}</h5></div>
+      <div><p className="eyebrow">{eyebrow}</p><h5 id={titleId}>{title}</h5></div>
       <span className="status-badge neutral">{status}</span>
     </div>
   );
 }
 
 function OperationStatus({ operation }: { operation: WorkspaceOperation }) {
+  const { t } = useTranslation("admin");
   return (
     <div className={`admin-provider-route-operation ${operation.status}`} aria-live="polite">
       <span className={`status-badge ${operation.status === "failed" ? "bad" : operation.status === "ready" ? "good" : "neutral"}`}>
-        {operation.status}
+        {t($ => $.provider.states[operation.status])}
       </span>
-      <p>{operation.failureCode ? `${operation.failureCode}: ` : ""}{operation.label}</p>
-      {operation.requestId ? <small>request {operation.requestId} · audit {operation.auditRef}</small> : null}
+      <p>{operation.failureCode ? `${operation.failureCode}: ` : ""}{providerOperationMessage(t, operation.message, operation.failureCode)}</p>
+      {operation.requestId ? <small>{t($ => $.provider.lineage, { requestId: operation.requestId, auditRef: operation.auditRef })}</small> : null}
     </div>
   );
 }
 
 function initialOperation(config: ReturnType<typeof readAdminProviderRouteConfig>): WorkspaceOperation {
   return config.mode === "dev_admin_provider_route_http"
-    ? { status: "idle", label: "Ready to load the controlled configuration workspace.", failureCode: "", requestId: "", auditRef: "" }
-    : { status: "offline", label: "Offline evidence mode sends no management request.", failureCode: "", requestId: "", auditRef: "" };
+    ? { status: "idle", message: { key: "idle" }, failureCode: "", requestId: "", auditRef: "" }
+    : { status: "offline", message: { key: "offline" }, failureCode: "", requestId: "", auditRef: "" };
 }
 
-function loadingOperation(label: string): WorkspaceOperation {
-  return { status: "loading", label, failureCode: "", requestId: "", auditRef: "" };
+function loadingOperation(message: ProviderMessage): WorkspaceOperation {
+  return { status: "loading", message, failureCode: "", requestId: "", auditRef: "" };
 }
 
-function readyOperation(label: string, envelope: AdminProviderRouteEnvelope): WorkspaceOperation {
+function readyOperation(message: ProviderMessage, envelope: AdminProviderRouteEnvelope): WorkspaceOperation {
   return {
     status: "ready",
-    label,
+    message,
     failureCode: "",
     requestId: envelope.requestId,
     auditRef: envelope.auditRef,
@@ -810,7 +821,7 @@ function readyOperation(label: string, envelope: AdminProviderRouteEnvelope): Wo
 function failedOperation(envelope: AdminProviderRouteEnvelope): WorkspaceOperation {
   return {
     status: "failed",
-    label: failureSummary(envelope.failureCode),
+    message: { key: "failure" },
     failureCode: envelope.failureCode,
     requestId: envelope.requestId,
     auditRef: envelope.auditRef,
@@ -819,15 +830,15 @@ function failedOperation(envelope: AdminProviderRouteEnvelope): WorkspaceOperati
 
 function operationFromEnvelope(
   envelope: AdminProviderRouteEnvelope,
-  successLabel: string,
+  successMessage: ProviderMessage,
 ): WorkspaceOperation {
-  return envelope.failureCode ? failedOperation(envelope) : readyOperation(successLabel, envelope);
+  return envelope.failureCode ? failedOperation(envelope) : readyOperation(successMessage, envelope);
 }
 
-function networkFailure(error: unknown): WorkspaceOperation {
+function networkFailure(): WorkspaceOperation {
   return {
     status: "failed",
-    label: error instanceof Error ? error.message : "Admin Provider route workspace is unavailable.",
+    message: { key: "unavailable" },
     failureCode: "admin_provider_route_store_unavailable",
     requestId: "",
     auditRef: "",
@@ -841,25 +852,6 @@ function firstUnexpectedFailure(
   return envelopes.find((envelope) => envelope.failureCode && !expected.includes(envelope.failureCode)) ?? null;
 }
 
-function failureSummary(failureCode: string): string {
-  const summaries: Record<string, string> = {
-    admin_provider_route_draft_revision_conflict: "The draft changed. Refresh before applying edits to the current revision.",
-    admin_provider_route_review_version_conflict: "The candidate review changed. Reload the candidate before deciding again.",
-    admin_provider_route_generation_conflict: "The active generation changed. Refresh the workspace before activation.",
-    admin_provider_route_inventory_not_found: "A referenced runtime profile is absent from the current inventory.",
-    admin_provider_route_inventory_mismatch: "Runtime inventory drifted after candidate creation. Create and review a new candidate.",
-    admin_provider_route_inventory_unavailable: "Runtime inventory cannot be read. No candidate or snapshot was written.",
-    admin_provider_route_candidate_not_approved: "Only an independently approved candidate can be activated.",
-    admin_provider_route_rollback_target_invalid: "Rollback requires a previously activated approved candidate.",
-  };
-  return summaries[failureCode] ?? "The operation failed without changing the controlled configuration state.";
-}
-
 function shortDigest(value: string): string {
   return value.length > 24 ? `${value.slice(0, 16)}…${value.slice(-8)}` : value;
-}
-
-function formatTimestamp(value: string): string {
-  const timestamp = new Date(value);
-  return Number.isNaN(timestamp.valueOf()) ? value : timestamp.toLocaleString();
 }

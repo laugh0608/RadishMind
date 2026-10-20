@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-09-28
+更新时间：2026-10-15
 
 ## 读取口径
 
@@ -14,16 +14,16 @@
 | --- | --- | --- | --- |
 | Workflow 草案与定义 | 创建、编辑、校验、版本 / 生命周期、三存储、冲突 / 重启、审查与受控运行；模板目录和结构化输入已关闭 | 任意节点执行、通用 replay、自动 release 与业务写回 | [Workflow](features/workflow/README.md) |
 | 应用工作区 | 配置、Prompt / Agent 档案、Prompt 结构化输出契约网页编辑与审查、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
-| 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据 | 真实 Provider 调度验收、production worker、通用 scheduler；持续团队收益指标仍待建立 | [定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
+| 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已实现并通过无服务验证 | 新增 Prompt 编辑器的浏览器交互、焦点与视觉验收待执行；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
 | Gateway | 三类北向推理协议、Models、SSE、Provider 选择、stdio worker pool；开发测试态 API key / quota、reported usage、价格快照与受控 unary fallback | 真实 Provider fallback、生产 API key / quota / price、限流、billing ledger、optional live health | [模型网关](features/model-gateway-api-distribution.md) |
 | 本地身份与成员 | 账户、Web Session、角色、成员、凭据轮换、确定性 OIDC 与双数据库 / 浏览器证据 | 真实 Radish 联调 `real_radish_integration_deferred`；production auth、MFA、账户恢复 | [管理端](features/admin-control-plane/README.md) |
-| 工作区邀请 | A 至 E 完成；五条 strict HTTP、四态目录、一次性交接与显式认领、双数据库权限 / 重启 / 并发、三视口与双标签凭据清理 | 邮件、目录搜索、管理员邀请、真实 Radish 和 production delivery 关闭；邀请流程尚未纳入自动浏览器回归 | [邀请专题](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) |
+| 工作区邀请 | A 至 E 完成；五条 strict HTTP、四态目录、一次性交接与显式认领、双数据库权限 / 重启 / 并发、三视口与双标签凭据清理；已纳入隔离 SQLite 双语自动浏览器回归 | 邮件、目录搜索、管理员邀请、真实 Radish 和 production delivery 关闭；本轮未复跑 PostgreSQL | [邀请专题](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) |
 | 受控工具与 Action Safety | Workflow HTTP Tool 的独立确认 / 执行链与安全资格快照已实现 | 通用 `/v1/tools/actions` 仍 blocked；写方法 Tool、`write_allowed_by_policy`、通用动作执行器未开放 | [HTTP Tool](features/workflow/workflow-definition-http-tool-v1.md)、[Action Safety](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) |
 | 通用 Session / Checkpoint | metadata-only 契约与只读 shell；与应用 Session / Turn 区分 | 通用 durable checkpoint、长期记忆、跨轮恢复执行器 | [架构](radishmind-architecture.md) |
 | 图片产物 | fixture client → adapter → 一次性 binary delivery → 私有存储 coordinator 已完成；metadata-only response builder 独立存在 | 真实生图 backend、reference resolver、生产存储、public URL、HTTP / Gateway / Web 交付 | [图片专题](features/image-generation-artifact-return.md) |
 | 持久化与审计 | memory / SQLite / PostgreSQL 开发测试仓储、migration、CAS、scope、no fallback 与重启测试 | 生产数据库资源与运行验收；production secret backend 的 audit store 未因应用审计完成而成立 | [SQLite](platform/local-sqlite-dev-persistence-v1.md)、[运行手册](platform/platform-service-operations-runbook-v1.md) |
-| UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；Workflow / Prompt / 模板与 RAG 快照浏览器回归在隔离 SQLite / 固定响应环境分窗口连续两轮通过，沿用既有 PR / Release 配置；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 新浏览器 CI 远端尚未运行，覆盖仅限 Chromium 中已登记的流程与状态，固定响应不代表真实模型质量；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
-| Web 中英界面 | A 阶段完成；B 的草案库、Designer、画布、修订恢复、候选审查 / 激活、Definition 运行、模板派生及 RAG 快照已通过双语验收；资源 / 单元 / 覆盖率、类型与构建通过，分窗口证据见 [2026-W40](devlogs/2026-W40.md) | 离线投影解释、RAG 检索 / 晋级 / 应用运行、HTTP Tool 及 C 至 F 后续范围仍待迁移，不代表全站双语 | [中英国际化](features/web-internationalization-zh-en-v1.md) |
+| UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；十三组双语浏览器回归本地 100/100 通过，保留为本地按需入口，退出 PR / Release 门禁；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 远端暴露的 RAG 请求标识碰撞已修复并通过四组本地中英 44/44 复验，未重跑远端 CI；浏览器覆盖仅限 Chromium 中已登记的流程与状态，固定响应不代表真实模型质量；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
+| Web 中英界面 | 登记的现有可达范围内 A 至 F 完成；F 最终结果证据 24 次、基础 Prompt / Workflow 44 次、离线投影 8 次通过，519 项单测与覆盖率、原构建预算和最终仓库门禁通过，环境已清理；证据见 [2026-W41](devlogs/2026-W41.md) | 保持内部开发者预览；记录原文与协议值不翻译，F 阶段分窗口证据与后续十三组本地全量分别记录，不含真实模型质量或生产验收 | [中英国际化](features/web-internationalization-zh-en-v1.md) |
 | 部署与运维 | 本地 Console、启动入口、Docker 静态边界和历史本地容器 smoke | production secret、环境隔离、process supervisor、产品 Web 正式包装、真实镜像发布和恢复演练 | [部署说明](../deploy/README.md) |
 | 模型适配 | 原始 / 修复双轨、小规模 holdout 和 builder 审查记录 | raw 晋级、训练准入、稳定业务收益和生产模型声明 | [训练目录](../training/README.md) |
 | 外部业务接入 | RadishFlow / Radish 的协议、样例、candidate 与离线回归证据；Catalyst 文档预留 | 真实挂载点与验收环境未齐备，不建立模拟接入完成声明 | [集成入口](integrations/README.md) |

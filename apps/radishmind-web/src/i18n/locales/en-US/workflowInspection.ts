@@ -44,5 +44,5 @@ export const workflowInspection = {
   "source": "Source",
   "requiredBefore": "Required before",
   "evidenceRefs": "Evidence refs",
-  "sourceEvidence": "Evidence text is retained from its source projection. These offline checks do not determine eligibility for controlled execution."
+  sourceEvidence: "These explanations describe this offline inspection only. They do not determine availability in other development or production flows. User content, identifiers, and source diagnostics remain unchanged."
 } as const;

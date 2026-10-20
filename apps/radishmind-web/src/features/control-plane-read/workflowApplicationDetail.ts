@@ -1,3 +1,4 @@
+import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
@@ -12,7 +13,7 @@ export type WorkflowApplicationDetailSourceMetadata = {
   auditRef: string;
 };
 
-export type WorkflowApplicationRiskSummary = {
+export type WorkflowApplicationRiskSummary = WorkflowProjectionCopy & {
   label: string;
   riskLevel: "low" | "medium" | "high";
   requiresConfirmationCapable: boolean;
@@ -28,7 +29,7 @@ export type WorkflowApplicationRouteMetadata = {
   auditRef: string;
 };
 
-export type WorkflowApplicationBlockedCapabilityPreview = {
+export type WorkflowApplicationBlockedCapabilityPreview = WorkflowProjectionCopy & {
   capabilityId: string;
   label: string;
   status: "blocked";
@@ -104,10 +105,12 @@ const APPLICATION_DETAIL_ENRICHMENT: Record<string, WorkflowApplicationDetailEnr
     latestRunRef: "run_radishflow_copilot_20260531_001",
     riskSummary: {
       label: "Workflow candidate action risk",
+      labelMessage: { key: "workflowApplicationDetail_view_label" },
       riskLevel: "medium",
       requiresConfirmationCapable: true,
       summary:
         "The application can preview candidate RadishFlow actions, but execution remains blocked until confirmation and executor gates exist.",
+      summaryMessage: { key: "workflowApplicationDetail_view_summary" },
       policyRef: "workflow_function_surface_boundary_v1",
     },
   },
@@ -117,10 +120,12 @@ const APPLICATION_DETAIL_ENRICHMENT: Record<string, WorkflowApplicationDetailEnr
     latestRunRef: "run_radish_docs_qa_20260531_002",
     riskSummary: {
       label: "Docs QA advisory risk",
+      labelMessage: { key: "workflowApplicationDetail_view_label_2" },
       riskLevel: "low",
       requiresConfirmationCapable: false,
       summary:
         "The application only renders advisory document answers and keeps raw prompt, token, and writeback payloads out of the read surface.",
+      summaryMessage: { key: "workflowApplicationDetail_view_summary_2" },
       policyRef: "control_plane_read_workspace_applications_v1",
     },
   },
@@ -193,10 +198,12 @@ function buildFallbackEnrichment(application: WorkspaceApplicationRow): Workflow
     latestRunRef: `run_ref_for_${application.applicationRef}`,
     riskSummary: {
       label: "Read-only application risk",
+      labelMessage: { key: "workflowApplicationDetail_buildFallbackEnrichment_label" },
       riskLevel: application.lastRunStatus === "blocked" ? "medium" : "low",
       requiresConfirmationCapable: application.applicationKind.includes("workflow"),
       summary:
         "Application detail is derived from the summary row and committed offline metadata; execution and writeback stay blocked.",
+      summaryMessage: { key: "workflowApplicationDetail_buildFallbackEnrichment_summary" },
       policyRef: "workflow_application_detail_read_v1",
     },
   };
@@ -210,43 +217,58 @@ function buildBlockedCapabilities(
     {
       capabilityId: "blocked_application_mutation",
       label: "Application mutation",
+      labelMessage: { key: "blocked_application_mutation_label" },
       status: "blocked",
       reason: "Create, edit, delete, and publish flows are outside the current read-side surface.",
+      reasonMessage: { key: "blocked_application_mutation_reason" },
       missingPrerequisite: "application lifecycle mutation task card",
+      missingPrerequisiteMessage: { key: "blocked_application_mutation_missingPrerequisite" },
       auditRef: "audit_application_detail_mutation_blocked_demo",
     },
     {
       capabilityId: "blocked_workflow_execution",
       label: "Workflow execution",
+      labelMessage: { key: "blocked_workflow_execution_label" },
       status: "blocked",
       reason: `${application.displayName} can show latest workflow references, but no workflow executor is connected.`,
+      reasonMessage: { key: "blocked_workflow_execution_reason", values: { value1: application.displayName } },
       missingPrerequisite: "workflow executor implementation gate",
+      missingPrerequisiteMessage: { key: "blocked_workflow_execution_missingPrerequisite" },
       auditRef: "audit_application_detail_executor_blocked_demo",
     },
     {
       capabilityId: "blocked_confirmation_decision",
       label: "Confirmation decision",
+      labelMessage: { key: "blocked_confirmation_decision_label_2" },
       status: "blocked",
       reason: enrichment.riskSummary.requiresConfirmationCapable
         ? "Human review is visible as a capability marker only; no decision submission path is available."
         : "This application does not require confirmation today, and the confirmation path is still not implemented.",
+      reasonMessage: { key: enrichment.riskSummary.requiresConfirmationCapable ? "applicationConfirmationRequired" : "applicationConfirmationNotRequired" },
       missingPrerequisite: "confirmation flow implementation gate",
+      missingPrerequisiteMessage: { key: "blocked_confirmation_decision_missingPrerequisite" },
       auditRef: "audit_application_detail_confirmation_blocked_demo",
     },
     {
       capabilityId: "blocked_business_writeback",
       label: "Business writeback",
+      labelMessage: { key: "blocked_business_writeback_label" },
       status: "blocked",
       reason: "Upstream truth sources remain protected; this surface only renders sanitized route, run, and audit metadata.",
+      reasonMessage: { key: "blocked_business_writeback_reason" },
       missingPrerequisite: "business writeback policy and adapter gate",
+      missingPrerequisiteMessage: { key: "blocked_business_writeback_missingPrerequisite" },
       auditRef: "audit_application_detail_writeback_blocked_demo",
     },
     {
       capabilityId: "blocked_run_replay",
       label: "Run replay",
+      labelMessage: { key: "blocked_run_replay_label" },
       status: "blocked",
       reason: "Latest run references are pointers only; replay and resume stay disabled.",
+      reasonMessage: { key: "blocked_run_replay_reason" },
       missingPrerequisite: "durable run store and replay gate",
+      missingPrerequisiteMessage: { key: "blocked_run_replay_missingPrerequisite" },
       auditRef: "audit_application_detail_replay_blocked_demo",
     },
   ];

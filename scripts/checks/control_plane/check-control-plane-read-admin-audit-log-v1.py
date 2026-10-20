@@ -220,6 +220,13 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
     workspace_source = read_text(
         "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneWorkspace.tsx"
     )
+    owner_source = read_text(
+        "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneReadPanel.tsx"
+    )
+    require(
+        "AdminAuditOwner" in workspace_source and 'import("./adminControlPlaneReadPanel.tsx")' in workspace_source,
+        "Admin read owner must remain mounted through the management workspace",
+    )
     route_source = read_text(
         "apps/radishmind-web/src/features/control-plane-read/adminControlPlaneRoute.ts"
     )
@@ -259,10 +266,10 @@ def assert_source_boundaries(fixture: dict[str, Any]) -> None:
         "AuditReadOnlyDetail",
         "loadControlPlaneReadDevLiveCollection",
         "recorded_at_desc",
-        "Raw export blocked",
-        "Recorded",
+        "$.read.exportBlocked",
+        "$.read.recorded",
     ):
-        require(literal in workspace_source, f"Admin audit owner missing rendering literal: {literal}")
+        require(literal in owner_source, f"Admin audit owner missing rendering literal: {literal}")
     require(
         'anchor: "admin-audit-log"' in route_source,
         "Admin audit owner route anchor drifted",
