@@ -14,6 +14,7 @@ import (
 
 func TestSQLiteApplicationEvaluationScheduleRestartSingleWinnerAndNoFallback(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "application-evaluation-schedules.db")
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{
 		DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations(),
 	})
@@ -130,8 +131,10 @@ WHERE schedule_id=?`, schedule.ScheduleID); err == nil {
 }
 
 func TestSQLiteApplicationEvaluationScheduleCorruptionCloses(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "application-evaluation-schedule-corruption.db")
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{
-		DatabasePath: filepath.Join(t.TempDir(), "application-evaluation-schedule-corruption.db"),
+		DatabasePath: databasePath,
 		Migrations:   sqliteworkflowrunmigrations.Migrations(),
 	})
 	if err != nil {

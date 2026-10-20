@@ -13,6 +13,7 @@ import (
 
 func TestSQLiteApplicationEvaluationPlanAndCampaignSurviveRestart(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "application-evaluation.db")
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {
 		t.Fatal(err)
@@ -116,6 +117,7 @@ func TestSQLiteApplicationEvaluationPlanAndCampaignSurviveRestart(t *testing.T) 
 
 func TestSQLiteStructuredApplicationEvaluationSurvivesRestartWithoutCampaignValues(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "application-evaluation-structured.db")
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {
 		t.Fatal(err)
@@ -183,7 +185,9 @@ func TestSQLiteStructuredApplicationEvaluationSurvivesRestartWithoutCampaignValu
 }
 
 func TestSQLiteApplicationEvaluationStoredContractCloses(t *testing.T) {
-	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: filepath.Join(t.TempDir(), "application-evaluation-corruption.db"), Migrations: sqliteworkflowrunmigrations.Migrations()})
+	databasePath := filepath.Join(t.TempDir(), "application-evaluation-corruption.db")
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
+	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {
 		t.Fatal(err)
 	}

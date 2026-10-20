@@ -169,6 +169,7 @@ WHERE session_id=?`, created.Session.SessionID); err != nil {
 
 func openApplicationInteractionSQLiteRuntime(t *testing.T, databasePath string) *sqlitedev.Runtime {
 	t.Helper()
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {
 		t.Fatalf("open application interaction SQLite runtime: %v", err)

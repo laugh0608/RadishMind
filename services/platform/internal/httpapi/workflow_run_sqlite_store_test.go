@@ -238,6 +238,7 @@ func openWorkflowRunSQLiteRuntime(t *testing.T, databasePath string) *sqlitedev.
 
 func openWorkflowRunSQLiteRuntimeWithoutCleanup(t *testing.T, databasePath string) *sqlitedev.Runtime {
 	t.Helper()
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{
 		DatabasePath: databasePath,
 		Migrations:   sqliteworkflowrunmigrations.Migrations(),

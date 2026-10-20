@@ -7,11 +7,39 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
 
 var localIdentitySelfServiceTestNow = time.Date(2026, 8, 25, 10, 0, 0, 0, time.UTC)
+
+const localIdentitySelfServiceTestPassword = "current password value"
+
+// Cache only the synthetic initial credential. Each fixture gets independent
+// slices and account metadata; rotation and password verification remain real.
+var localIdentitySelfServiceTestCredential = sync.OnceValues(func() (LocalCredential, error) {
+	return DeriveLocalCredential(localIdentitySelfServiceTestPassword, "cred_aaaaaaaaaaaaaaaa", "usr_aaaaaaaaaaaaaaaa",
+		localIdentitySelfServiceTestNow.Add(-2*time.Hour), "audit:self-service-account")
+})
+
+func TestLocalIdentitySelfServiceFixtureCredentialsAreIndependent(t *testing.T) {
+	first := newLocalIdentitySelfServiceTestFixture(t, localAuthenticationMethodPassword)
+	second := newLocalIdentitySelfServiceTestFixtureWithIDs(t, "usr_1111111111111111", "cred_1111111111111111",
+		"ses_1111111111111111", localAuthenticationMethodPassword)
+	changed := first.repository.credentials[first.credentialID]
+	changed.salt[0] ^= 0xff
+	changed.derivedKey[0] ^= 0xff
+	third := newLocalIdentitySelfServiceTestFixture(t, localAuthenticationMethodPassword)
+	unchanged := second.repository.credentials[second.credentialID]
+	fresh := third.repository.credentials[third.credentialID]
+	if slices.Equal(changed.salt, unchanged.salt) || slices.Equal(changed.derivedKey, unchanged.derivedKey) ||
+		!slices.Equal(unchanged.salt, fresh.salt) || !slices.Equal(unchanged.derivedKey, fresh.derivedKey) ||
+		unchanged.UserID != second.userID || unchanged.CredentialID != second.credentialID ||
+		!VerifyLocalPassword(second.password, unchanged) {
+		t.Fatal("self-service credential fixture shared mutable state or changed password semantics")
+	}
+}
 
 func TestMemoryLocalIdentitySelfServiceSessionPaginationAndCursorBinding(t *testing.T) {
 	fixture := newLocalIdentitySelfServiceTestFixture(t, localAuthenticationMethodPassword)
@@ -436,18 +464,15 @@ func newLocalIdentitySelfServiceTestFixtureWithIDs(
 ) localIdentitySelfServiceTestFixture {
 	t.Helper()
 	repository := newMemoryLocalIdentityRepository()
-	password := "current password value"
+	password := localIdentitySelfServiceTestPassword
 	account, _ := localIdentityTestAccount(userID, credentialID, userID+"@example.com", localIdentitySelfServiceTestNow.Add(-2*time.Hour))
-	credential, err := DeriveLocalCredential(
-		password,
-		credentialID,
-		userID,
-		localIdentitySelfServiceTestNow.Add(-2*time.Hour),
-		"audit:self-service-account",
-	)
+	initial, err := localIdentitySelfServiceTestCredential()
 	if err != nil {
 		t.Fatalf("derive self-service fixture credential: %v", err)
 	}
+	credential := cloneLocalCredential(initial)
+	credential.CredentialID = credentialID
+	credential.UserID = userID
 	if err := repository.CreateAccount(context.Background(), account, credential); err != nil {
 		t.Fatalf("create self-service fixture account: %v", err)
 	}

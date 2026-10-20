@@ -13,6 +13,7 @@ import (
 
 func TestWorkflowRAGEvaluationSQLiteLifecycleRestartAndNoFallback(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "workflow-rag-evaluation.db")
+	prepareWorkflowRunSQLiteFixture(t, databasePath)
 	runtime, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: sqliteworkflowrunmigrations.Migrations()})
 	if err != nil {
 		t.Fatalf("open workflow RAG evaluation SQLite runtime: %v", err)
