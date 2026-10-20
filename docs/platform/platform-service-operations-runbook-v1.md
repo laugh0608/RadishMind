@@ -1,6 +1,6 @@
 # 平台服务运行手册 v1
 
-更新时间：2026-09-14
+更新时间：2026-10-20
 
 ## 文档职责
 
@@ -21,9 +21,9 @@
 ```bash
 python3 scripts/checks/platform/check_platform_core_coverage.py
 cd services/platform
-GOCACHE=/tmp/radishmind-go-build-cache go test ./...
-GOCACHE=/tmp/radishmind-go-build-cache go test -race ./...
-GOCACHE=/tmp/radishmind-go-build-cache go vet ./...
+go test ./...
+go test -race ./...
+go vet ./...
 cd ../..
 ```
 

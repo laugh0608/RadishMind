@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -54,6 +55,21 @@ class PlatformOpsSmokeTest(unittest.TestCase):
             self.assertEqual(call.args[0], ["go", "test", "./..."])
             self.assertEqual(call.kwargs["cwd"], SMOKE.PLATFORM_DIR)
             self.assertIsNone(call.kwargs["env"])
+
+    def test_platform_check_environments_preserve_explicit_cache_and_leave_default_to_go(self) -> None:
+        for name in ("check-platform-config.py", "check-platform-deployment-smoke.py", "check-platform-diagnostics.py"):
+            spec = importlib.util.spec_from_file_location(name, SCRIPT.parent / name)
+            assert spec is not None and spec.loader is not None
+            checker = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(checker)
+            for cache in (None, "/explicit/go-cache"):
+                env = {} if cache is None else {"GOCACHE": cache}
+                with self.subTest(script=name, cache=cache), patch.dict(os.environ, env, clear=True):
+                    result = checker.base_env()
+                    if cache is None:
+                        self.assertNotIn("GOCACHE", result)
+                    else:
+                        self.assertEqual(result["GOCACHE"], cache)
 
 
 if __name__ == "__main__":

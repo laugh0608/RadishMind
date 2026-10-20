@@ -16,7 +16,7 @@
 
 - PR / Release 的仓库基线、Go 测试和 PostgreSQL 集成任务均显式配置 `cache-dependency-path: services/platform/go.sum`，保留现有 Go 版本与检查命令。
 - CI 仓库基线使用 `--skip-platform-go-tests`，只把平台 smoke 的普通 Go 全包测试委托给同一工作流独立的覆盖率 / race 任务。bridge registry、inventory、其它仓库检查和六组件门禁保持；不合并覆盖率与 race 执行，不更改预算、排除规则、超时或失败语义。
-- 本地单独运行 `check-repo`、`--fast` 或平台 smoke 默认仍执行 Go 测试，委托参数须显式传入并由独立 Go 任务承接。平台 smoke 继承 Go 默认或调用者指定的缓存，不再强制写临时 `GOCACHE`。
+- 本地单独运行 `check-repo`、`--fast` 或平台 smoke 默认仍执行 Go 测试，委托参数须显式传入并由独立 Go 任务承接。平台 smoke、配置 / 部署 / 诊断检查和 Bash / PowerShell 启动入口统一继承 Go 默认或调用者指定的缓存，避免临时 `GOCACHE` 绕开 CI 恢复路径；运行手册示例同步使用默认缓存。
 - 本轮不调整密码散列参数、测试并发、包边界或浏览器验收范围。缓存修正与减少一轮重复执行不等于已测得 race 测试本身提速，验证与耗时证据见 [W43 周志](../devlogs/2026-W43.md)。
 
 ## 2026-09-06 复审与后续方向

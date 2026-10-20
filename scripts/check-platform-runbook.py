@@ -15,7 +15,9 @@ MAIN_PATH = REPO_ROOT / "services/platform/cmd/radishmind-platform/main.go"
 
 EXPECTED_COMMAND_PATTERNS = (
     "cd services/platform",
-    "GOCACHE=/tmp/radishmind-go-build-cache go test ./...",
+    "go test ./...",
+    "go test -race ./...",
+    "go vet ./...",
     "RADISHMIND_PLATFORM_CONFIG=tmp/radishmind-platform.local.json",
     "./scripts/run-platform-service.sh config-check",
     "./scripts/run-platform-service.sh diagnostics",

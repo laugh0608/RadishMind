@@ -70,10 +70,6 @@ if ($null -eq $goCommand) {
     throw "go is required for scripts/run-platform-service.ps1"
 }
 
-if (-not $env:GOCACHE) {
-    $env:GOCACHE = Join-Path ([System.IO.Path]::GetTempPath()) "radishmind-go-build-cache"
-}
-
 if (-not $env:RADISHMIND_PLATFORM_PYTHON_BIN) {
     $venvPythonWindows = Join-Path $repoRoot ".venv/Scripts/python.exe"
     $venvPythonUnix = Join-Path $repoRoot ".venv/bin/python"

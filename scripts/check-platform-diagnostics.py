@@ -19,7 +19,6 @@ SECRET_SENTINEL = "diagnostics-secret-sentinel"
 
 def base_env() -> dict[str, str]:
     env = {key: value for key, value in os.environ.items() if not key.startswith("RADISHMIND_")}
-    env.setdefault("GOCACHE", str(platform_temp_dir() / "radishmind-go-build-cache"))
     env.update(
         {
             "RADISHMIND_PLATFORM_PYTHON_BIN": sys.executable,
@@ -42,10 +41,6 @@ def base_env() -> dict[str, str]:
         }
     )
     return env
-
-
-def platform_temp_dir() -> Path:
-    return Path(os.getenv("TMPDIR") or os.getenv("TEMP") or os.getenv("TMP") or "/tmp")
 
 
 def run_platform_diagnostics(*, env: dict[str, str], cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess[str]:
