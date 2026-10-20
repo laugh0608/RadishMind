@@ -524,6 +524,7 @@ def check_content_baseline() -> None:
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
         "go test -race -timeout 20m ./...",
         "go vet ./...",
+        "bash ./scripts/check-repo.sh --skip-text-files --skip-platform-go-tests",
     ):
         if pattern not in pr_workflow:
             raise SystemExit(f".github/workflows/pr-check.yml is missing expected content: {pattern}")
@@ -556,9 +557,16 @@ def check_content_baseline() -> None:
         "python3 scripts/checks/platform/check_platform_core_coverage.py",
         "go test -race -timeout 20m ./...",
         "go vet ./...",
+        "bash ./scripts/check-repo.sh --skip-text-files --skip-platform-go-tests",
     ):
         if pattern not in release_workflow:
             raise SystemExit(f".github/workflows/release-check.yml is missing expected content: {pattern}")
+
+    for name, workflow in (("pr-check.yml", pr_workflow), ("release-check.yml", release_workflow)):
+        go_setup = "          go-version-file: services/platform/go.mod\n"
+        cached_go_setup = go_setup + "          cache-dependency-path: services/platform/go.sum\n"
+        if workflow.count(go_setup) != 3 or workflow.count(cached_go_setup) != 3:
+            raise SystemExit(f"{name} must configure all three Go jobs with the platform go.sum cache path")
 
 
 def check_contract_schemas() -> None:
@@ -1361,7 +1369,7 @@ def check_generated_eval_metadata() -> None:
     check_committed_candidate_record_batches()
 
 
-def check_fast_baseline() -> None:
+def check_fast_baseline(*, skip_platform_go_tests: bool = False) -> None:
     run_python_script("check-radishflow-service-smoke-matrix.py", ["--check-summary", "scripts/checks/fixtures/radishflow-service-smoke-matrix-summary.json"])
     run_python_script("check-radishmind-core-baseline-matrix.py", [])
     run_python_script("check-radishmind-core-eval-thresholds.py", [])
@@ -1512,7 +1520,7 @@ def check_fast_baseline() -> None:
         "checks/control_plane/check-workflow-node-designer-edge-editing-save-preconditions-v1.py",
         [],
     )
-    run_python_script("check-platform-ops-smoke.py", [])
+    run_python_script("check-platform-ops-smoke.py", ["--skip-go-tests"] if skip_platform_go_tests else [])
     run_python_script("check-platform-config.py", [])
     run_python_script("check-platform-deployment-smoke.py", [])
     run_python_script("check-platform-diagnostics.py", [])
@@ -1560,8 +1568,8 @@ def check_fast_baseline() -> None:
     check_contract_schemas()
 
 
-def check_full_baseline() -> None:
-    check_fast_baseline()
+def check_full_baseline(*, skip_platform_go_tests: bool = False) -> None:
+    check_fast_baseline(skip_platform_go_tests=skip_platform_go_tests)
     run_python_script("run-eval-regression.py", ["radish-docs-qa", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-control-plane", "--fail-on-violation"])
     run_python_script("run-eval-regression.py", ["radishflow-diagnostics", "--fail-on-violation"])
@@ -1688,6 +1696,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-text-files", action="store_true")
     parser.add_argument("--fast", action="store_true", help="skip the slow runtime/regression suites")
+    parser.add_argument(
+        "--skip-platform-go-tests", action="store_true",
+        help="delegate platform Go tests to the separate CI coverage/race job; keep all other checks",
+    )
     return parser.parse_args()
 
 
@@ -1700,10 +1712,10 @@ def main() -> int:
         run_python_script("check-doc-language-policy-v1.py", [])
 
     if args.fast:
-        check_fast_baseline()
+        check_fast_baseline(skip_platform_go_tests=args.skip_platform_go_tests)
         print("repository fast baseline checks passed.")
     else:
-        check_full_baseline()
+        check_full_baseline(skip_platform_go_tests=args.skip_platform_go_tests)
         print("repository baseline checks passed.")
     return 0
 

@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [switch]$SkipTextFiles,
-    [switch]$Fast
+    [switch]$Fast,
+    [switch]$SkipPlatformGoTests
 )
 
 $ErrorActionPreference = "Stop"
@@ -38,6 +39,10 @@ if ($SkipTextFiles) {
 
 if ($Fast) {
     $arguments += "--fast"
+}
+
+if ($SkipPlatformGoTests) {
+    $arguments += "--skip-platform-go-tests"
 }
 
 & $pythonLauncher @arguments

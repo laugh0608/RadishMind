@@ -51,12 +51,13 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: services/platform/go.mod
+          cache-dependency-path: services/platform/go.sum
 
       - name: Bootstrap development environment
         run: bash ./scripts/bootstrap-dev.sh
 
       - name: Check repository baseline
-        run: bash ./scripts/check-repo.sh --skip-text-files
+        run: bash ./scripts/check-repo.sh --skip-text-files --skip-platform-go-tests
 
   web-build:
     name: RadishMind Web Build
@@ -120,6 +121,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: services/platform/go.mod
+          cache-dependency-path: services/platform/go.sum
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -163,6 +165,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: services/platform/go.mod
+          cache-dependency-path: services/platform/go.sum
 
       - name: Test platform PostgreSQL repositories
         env:
