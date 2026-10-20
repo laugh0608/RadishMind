@@ -116,4 +116,3 @@ export async function prepareApplication(page: Page, application: Application) {
   const created = await submit(page, session(page).getByRole("button", { name: uiText(page, "Create Session v2"), exact: true }), sessionPath);
   return { draftId: draft.draft.draft_id as string, sessionId: created.session.session_id as string };
 }
-
