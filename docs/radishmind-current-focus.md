@@ -4,7 +4,7 @@
 
 ## 文档职责
 
-本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W42 周志](devlogs/2026-W42.md)。
+本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W43 周志](devlogs/2026-W43.md)。
 
 正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
@@ -22,7 +22,7 @@
 - 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条工作流连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[2026-W39 周志](devlogs/2026-W39.md)，不新增同层任务卡或检查器。
 - 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。这些未满足项分别指生产密钥后端、进程监管、部署环境隔离和控制台生产打包；英文名称保留与现有检查器一致。
 
-## 当前完成与下一动作（2026-10-15）
+## 既有阶段收口（2026-10-15）
 
 [Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条工作流与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
 
@@ -38,15 +38,13 @@
 
 ## 接下来事项（2026-10-21）
 
-[Prompt 调用与会话结构化变量输入](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)已完成设计、实现及独立获授权的隔离浏览器验收，新增表面已关闭；Prompt 子集、评测兼容及最终布局复验分别通过，环境已清理。真实模型试用继续暂停，详细结果见 [W43 周志](devlogs/2026-W43.md#2026-10-21-prompt-调用与会话结构化变量输入)。
+今天的 Prompt 计划编辑、调用 / Session 结构化变量输入与失败恢复，以及 Workflow 晋级隔离、冲突恢复、v2 草案编写和评测编辑均已完成各自授权范围并关闭。Workflow 两版运行可继续进入 Case / Suite；新增区域完成局部 Pencil 与浏览器复核，未登记新的项目所有者视觉批准。六个提交的日终回顾和文档核对见 [W43 收尾记录](devlogs/2026-W43.md#2026-10-21-日终回顾与文档收尾)，分窗口验证不合称一次全站或远端验收。
 
-随后获批的[首次使用与失败恢复审阅](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#首次使用与失败恢复审阅2026-10-21)已完成代码与无服务核验：确认保存选择过早消费、传输错误导致输入清空、新执行与幂等重查区分不足、凭据错误原因丢失四项问题。项目所有者已批准并完成四项前端恢复修复：保存意图按发送边界消费、输入保留与精确重读、新执行准备及凭据恢复引导均通过无服务与中英隔离验收，环境已清理。该局部修复关闭，不自动派生续批。不扩大后端、协议、生产能力或真实模型范围。
+下次建议按以下顺序继续；本次只记录建议，今天不再启动实现或服务：
 
-项目所有者随后批准按 [Workflow 四段方案](features/user-workspace/application-development-workspace-release-readiness-review-v1.md#workflow-创建版本迭代与回归审查方案2026-10-21)实施。晋级选择隔离与冲突重读、局部 Pencil 设计、v2 草案网页编写 / 历史 / 派生和评测单一编辑状态均已完成实现；连续验收补齐既有 v2 比较结果的 Case / Suite 消费。最终验证与清理结果见 [W43 实施记录](devlogs/2026-W43.md#2026-10-21-workflow-四段实现与连续验收)。不新增后端、协议、依赖或生产能力，跨计划版本批次配对保持现有契约限制；真实模型试用继续暂停。
-
-1. [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#隔离浏览器与-react-验收2026-10-21)已完成获授权的隔离验收：原评测流程 16/16、参考变更与作用域最终补测 4/4、样式修正后的错误 / 冲突复验 8/8，以及 Prompt 子集 36/36，均为中英各两轮的独立窗口。三视口与实际截图已复核，所属环境已清理；详细证据见[本周周志](devlogs/2026-W43.md#2026-10-21-prompt-计划编辑浏览器验收)。不派生同层续批，下一项按下节的实际用户阻塞或维护证据选择。
-2. [PR #22](https://github.com/laugh0608/RadishMind/pull/22) 的阶段合入与 `master → dev` 回同步、Go 缓存与重复测试修复、[race 热点与夹具优化](platform/engineering-health-productization-remediation-v1.md#race-热点与测试夹具优化2026-10-20)保持完成。本地 `httpapi` race 由 414 降至 240 秒，原覆盖率与 race 标准保持；远端耗时留待后续正常 CI 观察，不重复启动远端工作流。
-3. 真实模型试用继续暂停。恢复前须明确提供方 / 模型、费用、数据与运行窗口；未发现具体阻塞时不自动扩展后端拆包、定时执行或新功能批次。本轮浏览器验收不构成生产交付或真实答案质量证据。
+1. **先复核首次使用的理解与入口。** 以[Workflow 使用指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md#workflow-definition-准备与运行)和[已完成的四段实施结果](features/user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)为起点，检查新用户能否区分 v1 / v2 草案、合同变更后的比较兼容域，以及跨 Definition 版本的 Run → Case / Suite 与同计划版本的 Campaign 配对。先依据现有代码、截图和操作说明列出具体疑点；已有连续链不机械重跑，只有出现实际阻塞才在原专题确定修复范围。
+2. **按需要安排小范围体验复核。** 新增合同与评测区域的局部画板和实际截图可供项目所有者复核；独立使用仍缺少参与者、完成率、耗时与求助点证据。若安排新的浏览器或人工使用窗口，另行明确参与者、任务、合成数据、固定响应环境与清理范围。固定回答只用于操作体验，不评价模型质量，也不自动开启下一功能批次。
+3. **保持现有停止线。** 真实模型试用继续暂停，恢复前另行明确提供方 / 模型、费用、数据和运行窗口；跨计划版本批次配对仍不受支持。Go race 优化的远端耗时留待后续正常 CI 观察，不为今日收尾重跑 CI、推送或发布。没有实际维护证据时，不继续后端拆包、定时执行扩围或生产化。
 
 ## 下一顺位的选择
 
