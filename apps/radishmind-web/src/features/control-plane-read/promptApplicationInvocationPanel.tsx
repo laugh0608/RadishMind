@@ -1,17 +1,17 @@
+import PromptVariableInputEditor from "./PromptVariableInputEditor.tsx";
+import { usePromptVariableInput } from "./usePromptVariableInput.ts";
 import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ApplicationDevelopmentOwnerEvidence } from "./applicationDevelopmentReadiness.ts";
 import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   initialPromptApplicationInvocationResult,
   invokePromptApplication,
-  parsePromptApplicationVariables,
   readPromptApplicationInvocationConfig,
   type PromptApplicationInvocationResult,
 } from "./promptApplicationInvocationConsumer.ts";
 import {
-  PROMPT_APPLICATION_CREDENTIAL_HANDOFF_EVENT,
   type PromptApplicationCredentialHandoffDetail,
 } from "./promptApplicationInvocationEvents.ts";
 
@@ -20,12 +20,16 @@ const config = readPromptApplicationInvocationConfig();
 export default function PromptApplicationInvocationPanel({
   applicationId,
   applicationName,
+  workspaceId,
+  consumeCredential,
   onRunRecorded,
   onOpenRun,
   onEvidenceChange,
 }: {
   applicationId: string;
   applicationName: string;
+  workspaceId: string;
+  consumeCredential: () => PromptApplicationCredentialHandoffDetail | null;
   onRunRecorded?: (runId: string) => void;
   onOpenRun?: (runId: string) => void;
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
@@ -34,42 +38,43 @@ export default function PromptApplicationInvocationPanel({
   const credentialRef = useRef("");
   const abortRef = useRef<AbortController | null>(null);
   const [apiKeyId, setAPIKeyId] = useState("");
-  const [variablesText, setVariablesText] = useState('{"question":"如何审查本次发布？","tone":"清晰"}');
+  const editor = usePromptVariableInput(applicationId, workspaceId);
   const [clientInvocationKey, setClientInvocationKey] = useState(() => newClientInvocationKey());
   const [result, setResult] = useState<PromptApplicationInvocationResult>(
     () => initialPromptApplicationInvocationResult(),
   );
-  const variables = useMemo(() => parsePromptApplicationVariables(variablesText), [variablesText]);
 
   useEffect(() => {
     clearTransient();
-    setVariablesText('{"question":"如何审查本次发布？","tone":"清晰"}');
     setClientInvocationKey(newClientInvocationKey());
     setResult(initialPromptApplicationInvocationResult());
-  }, [applicationId]);
+  }, [applicationId, workspaceId]);
 
   useEffect(() => {
-    function receiveCredential(event: Event) {
-      const detail = (event as CustomEvent<PromptApplicationCredentialHandoffDetail>).detail;
-      if (!detail || detail.applicationId !== applicationId) return;
+    let mounted = true;
+    // Consume after StrictMode's setup/cleanup probe, so a discarded mount
+    // cannot take the credential away from the live invocation surface.
+    queueMicrotask(() => {
+      if (!mounted) return;
+      const detail = consumeCredential();
+      if (detail?.applicationId !== applicationId) return;
       credentialRef.current = detail.token;
       setAPIKeyId(detail.apiKeyId);
       setResult({
         ...initialPromptApplicationInvocationResult(),
         summary: "一次性 Prompt Application credential 已接收，仅保留于当前组件内存。",
       });
-    }
+    });
     function clearAfterRouteLeave() {
       if (window.location.hash !== "#prompt-application-invocation") clearTransient();
     }
-    window.addEventListener(PROMPT_APPLICATION_CREDENTIAL_HANDOFF_EVENT, receiveCredential);
     window.addEventListener("hashchange", clearAfterRouteLeave);
     return () => {
-      window.removeEventListener(PROMPT_APPLICATION_CREDENTIAL_HANDOFF_EVENT, receiveCredential);
+      mounted = false;
       window.removeEventListener("hashchange", clearAfterRouteLeave);
       clearTransient(false);
     };
-  }, [applicationId]);
+  }, [applicationId, workspaceId, consumeCredential]);
 
   useEffect(() => {
     if (!onEvidenceChange) return;
@@ -95,9 +100,12 @@ export default function PromptApplicationInvocationPanel({
   }
 
   async function invoke() {
-    if (!credentialRef.current || !variables.isValid) return;
+    if (!credentialRef.current || !editor.validation.isValid || editor.busy || result.status === "running") return;
     const controller = new AbortController();
     abortRef.current = controller;
+    const variables = await editor.prepare();
+    if (abortRef.current !== controller || controller.signal.aborted) return;
+    if (!variables) { abortRef.current = null; return; }
     setResult({
       ...initialPromptApplicationInvocationResult(),
       status: "running",
@@ -106,7 +114,7 @@ export default function PromptApplicationInvocationPanel({
     const next = await invokePromptApplication(
       config,
       credentialRef.current,
-      variables.variables,
+      variables,
       clientInvocationKey,
       controller.signal,
     );
@@ -129,30 +137,23 @@ export default function PromptApplicationInvocationPanel({
       </div>
       <div className="application-publish-layout">
         <article className="application-publish-create">
-          <label>
-            {t($ => $.templateVariables)}<textarea
-              rows={8}
-              value={variablesText}
-              onChange={(event) => setVariablesText(event.target.value)}
-              disabled={result.status === "running"}
-            />
-          </label>
-          {variables.failureCode ? <p className="failure-summary">{variables.failureCode} · {t($ => $.invalidVariables)}</p> : null}
+          <PromptVariableInputEditor editor={editor} disabled={result.status === "running" || editor.busy} jsonLabel={t($ => $.templateVariables)} />
           <label>
             client_invocation_key
             <input
               value={clientInvocationKey}
               onChange={(event) => setClientInvocationKey(event.target.value)}
               maxLength={160}
-              disabled={result.status === "running"}
+              disabled={result.status === "running" || editor.busy}
             />
           </label>
           <div className="application-draft-handoff">
-            <button type="button" onClick={() => void invoke()} disabled={!apiKeyId || !variables.isValid || result.status === "running"}>
+            <button type="button" onClick={() => void invoke()} disabled={!apiKeyId || !editor.validation.isValid || editor.busy || result.status === "running"}>
               {t($ => $.invoke)}</button>
             {result.status === "running" ? <button type="button" onClick={() => abortRef.current?.abort()}>{t($ => $.cancel)}</button> : null}
             <button type="button" className="secondary-action" onClick={() => {
               clearTransient();
+              editor.reset();
               setResult(initialPromptApplicationInvocationResult());
             }}>{t($ => $.clearTransient)}</button>
           </div>

@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { acceptPromptPlanSave, promptPlanReviewIsCurrent, reviewPromptPlan } from "../src/features/control-plane-read/promptEvaluationPlanReview.ts";
 import { addPromptPlanSample, newPromptPlanEditor, promptPlanIsDirty, switchPromptPlanMode, updatePromptPlanSample } from "../src/features/control-plane-read/promptEvaluationPlanDraft.ts";
-import type { PromptPlanReference } from "../src/features/control-plane-read/promptEvaluationPlanReference.ts";
+import type { PromptTemplateReference } from "../src/features/control-plane-read/promptTemplateReference.ts";
 import type { ApplicationEvaluationPlan, ApplicationEvaluationPlanVersion } from "../src/features/control-plane-read/applicationEvaluationCampaignConsumer.ts";
 
-const reference: PromptPlanReference = {
-  key: "assignment:1", assignmentVersion: 1,
+const reference: PromptTemplateReference = {
+  key: "assignment:1", assignmentId: "ptra_aaaaaaaaaaaaaaaa", assignmentVersion: 1,
   source: {
     templateId: "ptpl_aaaaaaaaaaaaaaaa", templateVersion: 1, sourceDraftVersion: 1, templateDigest: `sha256:${"a".repeat(64)}`,
     tenantRef: "tenant_demo", ownerSubjectRef: "subject_demo_user", workspaceId: "workspace_demo", applicationId: "app_aaaaaaaaaaaaaaaa",

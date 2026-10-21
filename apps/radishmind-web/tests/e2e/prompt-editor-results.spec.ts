@@ -9,6 +9,7 @@ test.use({ applicationKind: "prompt_application" });
 
 async function saveTurn(page: Page, sessionId: string, mode: "valid" | "alternate") {
   const caseId = randomUUID();
+  await session(page).getByRole("combobox", { name: uiText(page, "Variable input mode"), exact: true }).selectOption("json");
   await session(page).getByRole("textbox", { name: uiText(page, "Turn variables"), exact: true }).fill(JSON.stringify({ question: `E2E_CASE:${caseId}:${mode}`, tone: "E2E_PROMPT_SYSTEM_V1" }));
   await session(page).getByRole("textbox", { name: "client_turn_key", exact: true }).fill(`e2e-${caseId}`);
   await artifacts(page).getByRole("checkbox").check();

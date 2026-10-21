@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { parsePromptApplicationVariables } from "./promptApplicationInvocationConsumer.ts";
+import PromptVariableInputEditor from "./PromptVariableInputEditor.tsx";
+import { usePromptVariableInput } from "./usePromptVariableInput.ts";
 import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import ApplicationResultArtifactPanel from "./applicationResultArtifactPanel.tsx";
 import {
@@ -14,22 +15,25 @@ import {
   type PromptApplicationSessionResult,
 } from "./promptApplicationSessionConsumer.ts";
 
-const config = readPromptApplicationSessionConfig();
+const baseConfig = readPromptApplicationSessionConfig();
 
 export default function PromptApplicationSessionPanel({
   applicationId,
+  workspaceId,
   onRunRecorded,
   onOpenRun,
 }: {
   applicationId: string;
+  workspaceId: string;
   onRunRecorded?: (runId: string) => void;
   onOpenRun?: (runId: string) => void;
 }) {
   const { t } = useTranslation("prompt");
+  const config = { ...baseConfig, workspaceId };
   const [result, setResult] = useState<PromptApplicationSessionResult>(
     () => initialPromptApplicationSessionResult(config),
   );
-  const [variablesText, setVariablesText] = useState('{"question":"请给出发布审查清单","tone":"简洁"}');
+  const editor = usePromptVariableInput(applicationId, workspaceId, result.session);
   const [clientTurnKey, setClientTurnKey] = useState(() => newClientTurnKey());
   const [sessions, setSessions] = useState<PromptApplicationSession[]>([]);
   const [listFailureCode, setListFailureCode] = useState("");
@@ -37,7 +41,6 @@ export default function PromptApplicationSessionPanel({
   const [pending, setPending] = useState<"" | "list" | "create" | "execute">("");
   const generationRef = useRef(0);
   const controllerRef = useRef<AbortController | null>(null);
-  const variables = useMemo(() => parsePromptApplicationVariables(variablesText), [variablesText]);
 
   useEffect(() => {
     const requestGeneration = ++generationRef.current;
@@ -47,7 +50,6 @@ export default function PromptApplicationSessionPanel({
     setResult(initialPromptApplicationSessionResult(config));
     setSessions([]);
     setListFailureCode("");
-    setVariablesText('{"question":"请给出发布审查清单","tone":"简洁"}');
     setClientTurnKey(newClientTurnKey());
     setSaveResult(false);
     setPending(config.mode === "offline" ? "" : "list");
@@ -64,9 +66,10 @@ export default function PromptApplicationSessionPanel({
       controller.abort();
       controllerRef.current = null;
     };
-  }, [applicationId]);
+  }, [applicationId, workspaceId]);
 
   async function createSession() {
+    editor.reset();
     const requestGeneration = ++generationRef.current;
     const controller = replaceController();
     setPending("create");
@@ -87,16 +90,19 @@ export default function PromptApplicationSessionPanel({
   }
 
   async function executeTurn() {
-    if (!result.session || !variables.isValid || pending) return;
+    if (!result.session || !editor.validation.isValid || editor.busy || pending) return;
     const requestGeneration = ++generationRef.current;
     const controller = replaceController();
     const shouldSaveResult = saveResult;
     setSaveResult(false);
     setPending("execute");
+    const variables = await editor.prepare();
+    if (requestGeneration !== generationRef.current || controller.signal.aborted) return;
+    if (!variables) { controllerRef.current = null; setPending(""); return; }
     const next = await executePromptApplicationSessionTurn(
       config,
       result.session,
-      variables.variables,
+      variables,
       clientTurnKey,
       shouldSaveResult,
       controller.signal,
@@ -112,6 +118,7 @@ export default function PromptApplicationSessionPanel({
   }
 
   function selectSession(session: PromptApplicationSession, summary = "已恢复 metadata-only Session；未恢复变量值或 prompt_output。") {
+    editor.reset();
     generationRef.current += 1;
     controllerRef.current?.abort();
     controllerRef.current = null;
@@ -123,7 +130,6 @@ export default function PromptApplicationSessionPanel({
       session,
       summary,
     });
-    setVariablesText('{"question":"请给出发布审查清单","tone":"简洁"}');
     setClientTurnKey(newClientTurnKey());
   }
 
@@ -168,7 +174,7 @@ export default function PromptApplicationSessionPanel({
               <p>{t($ => $.recordTurns, { version: result.session.recordVersion, count: result.session.turnCount })}</p>
             </>
           ) : null}
-          <button type="button" onClick={() => void createSession()} disabled={config.mode === "offline" || Boolean(pending)}>
+          <button type="button" onClick={() => void createSession()} disabled={config.mode === "offline" || Boolean(pending) || editor.busy}>
             {pending === "create" ? t($ => $.creatingSession) : t($ => $.createSession)}
           </button>
           <button type="button" className="secondary-action" onClick={cancelRequest} disabled={!pending}>{t($ => $.cancelRequest)}</button>
@@ -178,7 +184,7 @@ export default function PromptApplicationSessionPanel({
                 type="button"
                 key={session.sessionId}
                 className={result.session?.sessionId === session.sessionId ? "is-selected" : ""}
-                disabled={Boolean(pending)}
+                disabled={Boolean(pending) || editor.busy}
                 onClick={() => selectSession(session)}
               >
                 <strong>{session.sessionId}</strong>
@@ -189,10 +195,9 @@ export default function PromptApplicationSessionPanel({
           <p className="boundary-note">{listFailureCode ? <>{t($ => $.listFailed)} <code>{listFailureCode}</code></> : pending === "list" ? t($ => $.listLoading) : t($ => $.listedCount, { count: sessions.length })}</p>
         </article>
         <article className="application-publish-review">
-          <label>{t($ => $.turnVariables)}<textarea rows={6} value={variablesText} onChange={(event) => setVariablesText(event.target.value)} /></label>
-          {variables.failureCode ? <p className="failure-summary">{variables.failureCode} · {t($ => $.invalidVariables)}</p> : null}
-          <label>client_turn_key<input value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} maxLength={160} /></label>
-          <button type="button" onClick={() => void executeTurn()} disabled={!result.session || !variables.isValid || result.session.state !== "active" || Boolean(pending)}>
+          <PromptVariableInputEditor editor={editor} disabled={Boolean(pending) || editor.busy} jsonLabel={t($ => $.turnVariables)} />
+          <label>client_turn_key<input disabled={Boolean(pending) || editor.busy} value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} maxLength={160} /></label>
+          <button type="button" onClick={() => void executeTurn()} disabled={!result.session || !editor.validation.isValid || editor.busy || result.session.state !== "active" || Boolean(pending)}>
             {pending === "execute" ? t($ => $.executingTurn) : t($ => $.executeTurn)}
           </button>
         </article>

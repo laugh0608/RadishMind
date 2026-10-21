@@ -1,6 +1,6 @@
 # Prompt Application 开发测试态使用指南
 
-更新时间：2026-09-23
+更新时间：2026-10-21
 
 ## 适用范围
 
@@ -241,6 +241,12 @@ Publish Candidate 继续复用 `/v1/user-workspace/application-publish-candidate
 
 ## 受控调用与 Session v2
 
+网页的直接调用与 Prompt Session 默认显示空的变量表单。先选择“读取输入模板”，再按变量声明填写；字符串、整数、数值、布尔值和字符串列表分别显示对应控件。“未提供”会省略该变量，由模板默认值决定；它不同于空字符串、`false`、`0` 或空列表。需要直接输入已有变量对象时，选择“高级 JSON”；格式错误、重复属性或无法无损表达的数字会保留原文并阻止提交。
+
+直接调用读取当前活动绑定，表单执行前会重新核对；绑定发生变化时，本次不会调用，须明确采用新输入参考并检查原值后再次执行。已有 Session 只匹配它创建时的绑定和模板；出现 `prompt_input_session_authority_changed` 时，先检查运行绑定，再明确创建新会话，不会自动把旧会话迁到新模板。
+
+模板读取需要已有的运行绑定和源码读取权限。无法读取时，表单暂停，但可用高级 JSON 走原有调用路径；这不授予新权限，也不绕过服务端校验。变量与参考只留在页面内存，切换会话、应用、工作区或离开页面会清空；语言切换保留输入。直接调用的一次性 API key 由密钥页面交接，刷新或离开后需要重新取得凭据，不自动恢复。
+
 API key 调用使用：
 
 ```text
@@ -296,7 +302,7 @@ Prompt 执行档只消费 `variables`，不接受调用方用 `model`、模板�
 
 ## 自动浏览器回归
 
-`apps/radishmind-web` 的 `npm run test:e2e -- --grep Prompt` 复用既有隔离测试入口，覆盖从 UI 创建应用、签发开发测试态 API key 并交接 Playground 模型目录、保存配置、模板版本绑定、候选审核和显式激活，到 Session 调用与结果资产恢复；另覆盖输出契约失败不保存 / 相同幂等键不重复调用，以及配置变更后重新审核和替换才能恢复执行。启动、端口、清理与证据边界见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。
+`apps/radishmind-web` 的 `npm run test:e2e -- --suite=workflow --grep Prompt` 复用既有隔离测试入口，覆盖从 UI 创建应用、签发开发测试态 API key 并交接 Playground 模型目录、保存配置、模板版本绑定、候选审核和显式激活，到 Session 调用与结果资产恢复；另覆盖输出契约失败不保存 / 相同幂等键不重复调用，以及配置变更后重新审核和替换才能恢复执行。启动、端口、清理与证据边界见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。
 
 模型目录中的 `chat.completions` 映射为 UI 的 `chat_completions`，不会额外赋予 Responses 或 Messages 能力。失败轮次跳过结果保存，避免把执行错误误报为保存错误。执行前 authority 拒绝可返回空 Session / Turn；前端展示服务端失败码，且不接受该分支夹带正文、资产或重放成功。
 

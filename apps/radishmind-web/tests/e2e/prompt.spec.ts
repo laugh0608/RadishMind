@@ -8,6 +8,7 @@ test.use({ applicationKind: "prompt_application" });
 import { templatePath, draftPath, candidatePath, sessionPath, template, configuration, session, artifacts, diagnosisSchema, diagnosisOutput, navigate, submit, publishAndActivate, loadModelCatalog, prepareApplication } from "./prompt-fixtures";
 
 async function execute(page: Page, sessionId: string, caseId: string, mode = "valid") {
+  await session(page).getByRole("combobox", { name: uiText(page, "Variable input mode"), exact: true }).selectOption("json");
   await session(page).getByRole("textbox", { name: uiText(page, "Turn variables"), exact: true }).fill(JSON.stringify({ question: `E2E_CASE:${caseId}:${mode}`, tone: "E2E_PROMPT_SYSTEM_V1" }));
   await session(page).getByRole("textbox", { name: uiText(page, "client_turn_key"), exact: true }).fill(`e2e-${caseId}`);
   await artifacts(page).getByRole("checkbox").check();
@@ -135,7 +136,9 @@ test("Prompt saves a canonical result and restores the exact artifact after refr
   await expect(session(page)).toBeVisible();
   await session(page).getByLabel(uiText(page, "Active Prompt Session v2 records")).getByRole("button").filter({ hasText: sessionId }).click();
   await expect(session(page).locator(".application-publish-snapshot pre")).toHaveText(uiText(page, "(没有当前 turn output)"));
-  await expect(session(page).getByRole("textbox", { name: uiText(page, "Turn variables"), exact: true })).not.toHaveValue(new RegExp(caseId));
+  await expect(session(page).getByRole("combobox", { name: uiText(page, "Variable input mode"), exact: true })).toHaveValue("form");
+  await session(page).getByRole("combobox", { name: uiText(page, "Variable input mode"), exact: true }).selectOption("json");
+  await expect(session(page).getByRole("textbox", { name: uiText(page, "Turn variables"), exact: true })).toHaveValue("{}");
   await artifacts(page).getByRole("button", { name: uiText(page, "Refresh artifacts"), exact: true }).click();
   await artifacts(page).getByRole("button").filter({ hasText: artifactId }).click();
   expect(JSON.parse(await artifacts(page).locator(".application-result-artifact-inspector pre").innerText())).toEqual(diagnosisOutput);

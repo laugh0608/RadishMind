@@ -2,6 +2,8 @@ import type { Page } from "@playwright/test";
 
 // Independent product expectations: do not import implementation dictionaries here.
 const labels: Record<string, readonly [string, string]> = {
+  "Variable input mode": ["Variable input mode", "变量输入方式"],
+  "Read input template": ["Read input template", "读取输入模板"],
   "Open Workflow definition owner": ["Open Workflow definition owner", "打开工作流定义模块"],
   "Open Application candidate owner": ["Open Application candidate owner", "打开应用候选版本模块"],
   "Create promotion candidate": ["Create promotion candidate", "创建晋级候选"],

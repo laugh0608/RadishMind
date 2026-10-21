@@ -1,6 +1,6 @@
 import type { ApplicationEvaluationPlan, ApplicationEvaluationPlanDraft, ApplicationEvaluationPlanVersion } from "./applicationEvaluationCampaignConsumer.ts";
 import { loadPromptPlanEditor, promptPlanFingerprint, validatePromptPlanEditor, type PromptPlanBase, type PromptPlanEditor } from "./promptEvaluationPlanDraft.ts";
-import type { PromptPlanReference } from "./promptEvaluationPlanReference.ts";
+import type { PromptTemplateReference } from "./promptTemplateReference.ts";
 
 export type PromptPlanReview = {
   draft: ApplicationEvaluationPlanDraft;
@@ -10,13 +10,13 @@ export type PromptPlanReview = {
   matched: boolean;
 };
 
-export function reviewPromptPlan(state: PromptPlanEditor, reference: PromptPlanReference | null): PromptPlanReview | null {
+export function reviewPromptPlan(state: PromptPlanEditor, reference: PromptTemplateReference | null): PromptPlanReview | null {
   const validation = validatePromptPlanEditor(state, reference?.source ?? null);
   if (!validation.draft || state.content.mode === "form" && !validation.matched) return null;
   return { draft: validation.draft, base: state.base, fingerprint: promptPlanFingerprint(state), referenceKey: reference?.key ?? null, matched: validation.matched };
 }
 
-export function promptPlanReviewIsCurrent(state: PromptPlanEditor, review: PromptPlanReview, reference: PromptPlanReference | null): boolean {
+export function promptPlanReviewIsCurrent(state: PromptPlanEditor, review: PromptPlanReview, reference: PromptTemplateReference | null): boolean {
   return review.fingerprint === promptPlanFingerprint(state) && review.referenceKey === (reference?.key ?? null) &&
     JSON.stringify(review.base) === JSON.stringify(state.base);
 }

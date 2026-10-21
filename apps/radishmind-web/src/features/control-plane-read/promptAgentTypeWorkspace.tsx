@@ -1,3 +1,5 @@
+import { useLocalIdentity } from "../local-identity/localIdentityContext.ts";
+import { usePromptCredentialHandoff } from "./usePromptCredentialHandoff.ts";
 import "../../i18n/promptWorkspaceResources.ts";
 import { useTranslation } from "react-i18next";
 import "../../i18n/promptResources.ts";
@@ -53,6 +55,9 @@ export default function PromptAgentTypeWorkspace({
   onOpenRun?: (runId: string) => void;
 }) {
   const { t } = useTranslation("applications");
+  const identity = useLocalIdentity();
+  const inputScopeKey = JSON.stringify([context.generationKey, context.workspaceId, identity?.profile.account.userId, identity?.authorityRevision]);
+  const consumePromptCredential = usePromptCredentialHandoff(context.applicationId, inputScopeKey);
   const [activeSurface, setActiveSurface] = useState<PromptAgentTypeWorkspaceSurface | null>(() => (
     promptAgentTypeWorkspaceSurfaceForHash(window.location.hash, context.surfaceKind, activeStage)
   ));
@@ -227,6 +232,9 @@ export default function PromptAgentTypeWorkspace({
               {activeSurface === "access" ? accessSurface : null}
               {activeSurface === "controlled_use" && context.surfaceKind === "prompt_application" ? (
                 <PromptApplicationInvocationPanel
+                  key={inputScopeKey}
+                  consumeCredential={consumePromptCredential}
+                  workspaceId={context.workspaceId}
                   applicationId={context.applicationId}
                   applicationName={context.displayName}
                   onRunRecorded={onRunRecorded}
@@ -245,6 +253,8 @@ export default function PromptAgentTypeWorkspace({
               ) : null}
               {activeSurface === "session" && context.surfaceKind === "prompt_application" ? (
                 <PromptApplicationSessionPanel
+                  key={inputScopeKey}
+                  workspaceId={context.workspaceId}
                   applicationId={context.applicationId}
                   onRunRecorded={onRunRecorded}
                   onOpenRun={onOpenRun}
