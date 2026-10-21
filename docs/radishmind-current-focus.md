@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-10-20
+更新时间：2026-10-21
 
 ## 文档职责
 
@@ -36,11 +36,11 @@
 
 [十三组浏览器回归](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)已完成本地中英 100/100 验收和入口遮挡修复。远端后续重跑在中文 RAG 晋级列表断言处失败；2026-10-15 已修复请求标识碰撞并通过四组本地复验，详见下节。PR / Release 浏览器任务及 `Candidate Quality` 对应依赖已移除，保留本地按需入口和其余六项 CI 检查。配置提交 `75bd9c34` 已正常推送，两套远端检查依次全部通过，PR 耗时 19 分 30 秒、Release 耗时 15 分 13 秒；当时本地仓库全量检查通过。真实模型试用继续暂停，决策与结果见[2026-W41 周志](devlogs/2026-W41.md#2026-10-11-浏览器验证退出-ci-门禁)。
 
-## 接下来事项（2026-10-15）
+## 接下来事项（2026-10-21）
 
-1. RAG 晋级列表问题与故障诊断应用的结果资产错配、变量名编辑焦点修复保持完成，相关验证与清理记录见[2026-W42 周志](devlogs/2026-W42.md#2026-10-15-故障诊断应用前端一致性修复)。下一项已选定为 [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)：方案与四块局部 Pencil 已获批准，前端实现、完整 Web 单测和无服务构建验证已完成。项目所有者决定今晚结束，拟于 2026-10-16 继续验收：先运行隔离 `evaluation`，通过并核对清理后再运行 `workflow` 的 Prompt 子集；核对连续产品链、双语、焦点与三视口。完整命令、运行范围及通过标准见[明日验收建议](devlogs/2026-W42.md#2026-10-16-接下来事项)。服务启动窗口届时确认，今晚不执行；未扩大 API、schema、权限或存储。
-2. 2026-10-20 已通过 [PR #22](https://github.com/laugh0608/RadishMind/pull/22) 将阶段成果合入 `master`，并将合并提交 `8b54f610` 快进回同步到 `dev`；两套远端预检 / PR 门禁通过，文件树无变化。随后获批直接在 `dev` 完成 Go 缓存与重复测试修复：本地全量、远端 PR 六组件及缓存恢复复验通过，原覆盖率 / race 标准保持，范围见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#go-缓存与重复测试收敛2026-10-20)。新增 Prompt 计划编辑的隔离浏览器与 React 视觉验收仍待独立运行窗口；整合及本轮记录见 [2026-W43 周志](devlogs/2026-W43.md)。
-3. 已按后续授权完成 [race 热点与夹具优化](platform/engineering-health-productization-remediation-v1.md#race-热点与测试夹具优化2026-10-20)：本地同条件 `httpapi` race 由 414 降至 240 秒，原测试完整保留，覆盖率预算与迁移专项 race 通过；不重复整仓库或远端 CI，不将本地单轮结果写成远端耗时。真实模型试用继续暂停，不自动启动服务、新功能批次或生产交付；Prompt 验收要求和停止线见[接下来事项](devlogs/2026-W42.md#2026-10-16-接下来事项)。
+1. [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#隔离浏览器与-react-验收2026-10-21)已完成获授权的隔离验收：原评测流程 16/16、参考变更与作用域最终补测 4/4、样式修正后的错误 / 冲突复验 8/8，以及 Prompt 子集 36/36，均为中英各两轮的独立窗口。三视口与实际截图已复核，所属环境已清理；详细证据见[本周周志](devlogs/2026-W43.md#2026-10-21-prompt-计划编辑浏览器验收)。不派生同层续批，下一项按下节的实际用户阻塞或维护证据选择。
+2. [PR #22](https://github.com/laugh0608/RadishMind/pull/22) 的阶段合入与 `master → dev` 回同步、Go 缓存与重复测试修复、[race 热点与夹具优化](platform/engineering-health-productization-remediation-v1.md#race-热点与测试夹具优化2026-10-20)保持完成。本地 `httpapi` race 由 414 降至 240 秒，原覆盖率与 race 标准保持；远端耗时留待后续正常 CI 观察，不重复启动远端工作流。
+3. 真实模型试用继续暂停。恢复前须明确提供方 / 模型、费用、数据与运行窗口；未发现具体阻塞时不自动扩展后端拆包、定时执行或新功能批次。本轮浏览器验收不构成生产交付或真实答案质量证据。
 
 ## 下一顺位的选择
 

@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-15
+更新时间：2026-10-21
 
 ## 文档目的
 
@@ -18,7 +18,7 @@
 
 前端草案状态收敛、Workflow / Prompt / 模板与 RAG 快照、检索执行、晋级审查、应用运行、HTTP Tool 及离线投影解释的自动浏览器回归已分窗口完成；后端权限 / 内建角色策略包及双数据库回归已完成；内部故障诊断素材已准备，真实模型试用由项目所有者暂缓，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
 
-2026-10-15 新增的 [Prompt 计划结构化编辑](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#前端实施与无服务验证2026-10-15)已完成前端和无服务验证，新增浏览器与 React 视觉验收待下一窗口；既有完成状态不自动覆盖新增表面。
+2026-10-15 新增的 [Prompt 计划结构化编辑](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#隔离浏览器与-react-验收2026-10-21)已于 2026-10-21 完成前端、无服务验证及独立获授权的双语连续交互 / 三视口浏览器验收，新增表面已关闭；分窗口证据见专题和本周周志。
 
 ## 专题分层
 

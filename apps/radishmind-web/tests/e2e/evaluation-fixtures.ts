@@ -102,13 +102,15 @@ export async function createStructuredPlan(page: Page, applicationId: string, ui
 }
 export async function evaluationLayout(page: Page, panel: Locator, info: TestInfo, name: string) {
   for (const width of [1440, 720, 390]) {
-    await page.setViewportSize({ width, height: 900 });
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     const overflow = await panel.evaluate(element => [...element.querySelectorAll("strong, small, dd, label, .status-badge, .application-evaluation-confirmation, .application-evaluation-item, .application-evaluation-schedule-main, .application-evaluation-schedule-editor, .application-evaluation-schedule-metrics, .application-evaluation-campaign-surface, .application-evaluation-workbench")]
       .filter(node => node.clientWidth > 0 && node.scrollWidth > node.clientWidth + 1)
       .map(node => ({ tag: node.tagName, class: node.className, text: node.textContent?.slice(0, 90) })));
     expect(overflow).toEqual([]);
-    if (width !== 720) await panel.screenshot({ style: ".product-nav { visibility: hidden !important; }", path: info.outputPath(`${name}-${width}.png`) });
+    const promptAction = page.locator(".prompt-plan-footer button:enabled, .prompt-plan-confirmation button:enabled, .prompt-plan-warning > button:enabled").last();
+    if (await promptAction.count()) await promptAction.click({ trial: true });
+    await panel.screenshot({ style: ".product-nav { visibility: hidden !important; }", path: info.outputPath(`${name}-${width}.png`) });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
 }
