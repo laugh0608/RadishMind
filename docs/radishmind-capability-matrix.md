@@ -12,9 +12,9 @@
 
 | 能力 | 开发测试态实现与证据 | 仍未成立或未完成 | 权威专题 |
 | --- | --- | --- | --- |
-| Workflow 草案与定义 | 创建、编辑、校验、版本 / 生命周期、三存储、冲突 / 重启、审查与受控运行；模板目录和结构化输入已关闭 | 任意节点执行、通用 replay、自动 release 与业务写回 | [Workflow](features/workflow/README.md) |
+| Workflow 草案与定义 | v1 网页创建与两版迭代、审查、运行及回归证据可复用；模板目录、v2 后端合同 / 持久化及网页运行值输入已有证据 | v2 草案网页合同编写、读取与派生尚未接通；晋级选择隔离与冲突恢复待修复。任意节点执行、通用 replay、自动 release 与业务写回仍关闭 | [Workflow](features/workflow/README.md) |
 | 应用工作区 | 配置、Prompt / Agent 档案、Prompt 结构化输出契约网页编辑与审查、调用 / Session 结构化变量输入与四项失败恢复修复（双语隔离验收通过）、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
-| 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已通过无服务、双语连续交互与三视口浏览器验收 | 真实模型答案质量与用户耗时收益尚无结论；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
+| 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已通过无服务、双语连续交互与三视口浏览器验收 | Workflow v2 样本无效编辑会提交旧值，待按走查方案修复；跨计划版本批次配对不受支持。真实模型答案质量与用户耗时收益尚无结论；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
 | Gateway | 三类北向推理协议、Models、SSE、Provider 选择、stdio worker pool；开发测试态 API key / quota、reported usage、价格快照与受控 unary fallback | 真实 Provider fallback、生产 API key / quota / price、限流、billing ledger、optional live health | [模型网关](features/model-gateway-api-distribution.md) |
 | 本地身份与成员 | 账户、Web Session、角色、成员、凭据轮换、确定性 OIDC 与双数据库 / 浏览器证据 | 真实 Radish 联调 `real_radish_integration_deferred`；production auth、MFA、账户恢复 | [管理端](features/admin-control-plane/README.md) |
 | 工作区邀请 | A 至 E 完成；五条 strict HTTP、四态目录、一次性交接与显式认领、双数据库权限 / 重启 / 并发、三视口与双标签凭据清理；已纳入隔离 SQLite 双语自动浏览器回归 | 邮件、目录搜索、管理员邀请、真实 Radish 和 production delivery 关闭；本轮未复跑 PostgreSQL | [邀请专题](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) |

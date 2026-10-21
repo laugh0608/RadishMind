@@ -22,6 +22,8 @@
 
 2026-10-21 已批准并实现 [Prompt 调用与会话结构化变量输入](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)，复用五类字段编辑与精确模板参考，已完成双语连续交互、三视口及评测兼容回归，新增表面已关闭；不改变执行权限或真实模型试用暂停决定。随后批准的四项前端失败恢复修复亦已完成双语隔离验收，沿用同一专题维护。
 
+Workflow 创建、版本迭代与回归审查的后续走查及具体开发范围已归入[应用开发工作区专题](user-workspace/application-development-workspace-release-readiness-review-v1.md#workflow-创建版本迭代与回归审查方案2026-10-21)；旧版主路径可复用，v2 草案编写与三项状态 / 编辑恢复问题待实施，不新增同层任务卡。
+
 ## 专题分层
 
 | 层级 | 路径 | 职责 |

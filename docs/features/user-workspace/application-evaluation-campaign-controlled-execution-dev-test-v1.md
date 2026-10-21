@@ -6,6 +6,8 @@
 
 既有执行与证据链保持完成；2026-10-15 新增的 Prompt 计划编辑体验已于 2026-10-21 完成获授权的隔离浏览器、双语连续交互及 React 三视口视觉验收。其范围、交互和实施状态见下文，不改变已完成批次及生产边界。
 
+2026-10-21 Workflow 走查确认：v2 样本表单的无效字段不会更新外层 JSON，保存可能提交旧有效值；当前缺少从活动 Definition 显式读取计划目标的网页动作。修复与编辑范围见[Workflow 完整方案](application-development-workspace-release-readiness-review-v1.md#workflow-创建版本迭代与回归审查方案2026-10-21)，尚未实施。Definition 目标冻结版本与指针，Campaign 配对要求同一计划版本；跨 Definition 版本审查继续使用兼容的精确 Run → Comparison → Case / Suite，不放宽批次配对契约。
+
 ## 功能定位
 
 本专题为内部应用开发者提供一条可复验的应用回归执行链：把经过显式审查的评测输入冻结为不可变计划版本，在 `development | test` 环境内按单一执行 Profile 顺序产生 durable Run，再把两个 campaign 的同项 Run 精确交接给既有 Comparison、Evaluation Case、Suite 与人工 decision owner。

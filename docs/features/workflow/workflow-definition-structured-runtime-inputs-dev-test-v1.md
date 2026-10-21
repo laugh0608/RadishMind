@@ -1,8 +1,14 @@
 # Workflow Definition 结构化运行输入（开发 / 测试态）v1
 
-更新时间：2026-08-11
+更新时间：2026-10-21
 
 状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_completed`
+
+## 当前实现范围补充（2026-10-21）
+
+下文 A 至 E 保留当时的合同、后端存储、网页运行值输入及 API 准备资源后的连续链证据；不代表从空白网页创建 v2 草案及派生编辑已经完成。最新走查确认 `WorkflowDraftDesignerDraft` 与保存消费层仍固定 v1，v2 摘要会使混合草案列表读取失败，v2 Definition 的派生入口未实现；原文中的“v2 合同设计入口”提示没有对应可用页面。
+
+Plan 的结构化运行值控件已存在，但无效字段留在子组件时，外层仍可提交旧的有效 JSON。上述差异及晋级状态问题统一进入[Workflow 完整走查与实施方案](../user-workspace/application-development-workspace-release-readiness-review-v1.md#workflow-创建版本迭代与回归审查方案2026-10-21)，不将历史专题关闭解释为这些新确认问题已修复。后端 schema、运行档案与比较兼容域保持不变。
 
 ## 功能定位
 

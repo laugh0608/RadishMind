@@ -40,7 +40,9 @@
 
 [Prompt 调用与会话结构化变量输入](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)已完成设计、实现及独立获授权的隔离浏览器验收，新增表面已关闭；Prompt 子集、评测兼容及最终布局复验分别通过，环境已清理。真实模型试用继续暂停，详细结果见 [W43 周志](devlogs/2026-W43.md#2026-10-21-prompt-调用与会话结构化变量输入)。
 
-随后获批的[首次使用与失败恢复审阅](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#首次使用与失败恢复审阅2026-10-21)已完成代码与无服务核验：确认保存选择过早消费、传输错误导致输入清空、新执行与幂等重查区分不足、凭据错误原因丢失四项问题。项目所有者已批准并完成四项前端恢复修复：保存意图按发送边界消费、输入保留与精确重读、新执行准备及凭据恢复引导均通过无服务与中英隔离验收，环境已清理。该局部修复关闭，后续按下表的实际阻塞证据选择，不自动派生续批。不扩大后端、协议、生产能力或真实模型范围。
+随后获批的[首次使用与失败恢复审阅](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#首次使用与失败恢复审阅2026-10-21)已完成代码与无服务核验：确认保存选择过早消费、传输错误导致输入清空、新执行与幂等重查区分不足、凭据错误原因丢失四项问题。项目所有者已批准并完成四项前端恢复修复：保存意图按发送边界消费、输入保留与精确重读、新执行准备及凭据恢复引导均通过无服务与中英隔离验收，环境已清理。该局部修复关闭，不自动派生续批。不扩大后端、协议、生产能力或真实模型范围。
+
+项目所有者随后指定 Workflow 创建、版本迭代到回归审查的完整走查与专题方案。旧版主路径可完成两版运行及用例 / 套件审查；走查确认 v2 草案网页编写缺口、晋级选择迟到响应、激活冲突恢复和评测无效编辑提交旧值四项问题。[实施方案](features/user-workspace/application-development-workspace-release-readiness-review-v1.md#workflow-创建版本迭代与回归审查方案2026-10-21)已按晋级状态、v2 编写、评测编辑和整体验收四段组织，当前尚未实施；下一步确认该具体范围并完成新增编辑区域的局部设计，再按依赖顺序进入实现。跨计划版本批次配对保持现有契约限制，真实模型试用继续暂停。
 
 1. [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#隔离浏览器与-react-验收2026-10-21)已完成获授权的隔离验收：原评测流程 16/16、参考变更与作用域最终补测 4/4、样式修正后的错误 / 冲突复验 8/8，以及 Prompt 子集 36/36，均为中英各两轮的独立窗口。三视口与实际截图已复核，所属环境已清理；详细证据见[本周周志](devlogs/2026-W43.md#2026-10-21-prompt-计划编辑浏览器验收)。不派生同层续批，下一项按下节的实际用户阻塞或维护证据选择。
 2. [PR #22](https://github.com/laugh0608/RadishMind/pull/22) 的阶段合入与 `master → dev` 回同步、Go 缓存与重复测试修复、[race 热点与夹具优化](platform/engineering-health-productization-remediation-v1.md#race-热点与测试夹具优化2026-10-20)保持完成。本地 `httpapi` race 由 414 降至 240 秒，原覆盖率与 race 标准保持；远端耗时留待后续正常 CI 观察，不重复启动远端工作流。
