@@ -281,6 +281,7 @@ export function evaluateWorkflowExecutorEligibility(
 ): WorkflowExecutorEligibility {
   const graphEligibility = evaluateWorkflowExecutorGraphEligibility(draft);
   const reasons: WorkflowExecutorEligibilityReason[] = [...graphEligibility.reasons];
+  if (draft.schemaVersion === "saved_workflow_draft.v2") reasons.push({ code: "executor_profile_missing", summary: "Structured input drafts require an approved and active Definition before execution." });
   if (savedDraftState.currentDraftVersion <= 0 ||
     savedDraftState.currentLifecycleState !== "active" ||
     !["saved_dev_record", "validation_ready"].includes(savedDraftState.status)) {
@@ -308,7 +309,7 @@ export function evaluateWorkflowExecutorGraphEligibility(
   draft: WorkflowDraftDesignerDraft,
 ): Pick<WorkflowExecutorEligibility, "eligible" | "conditionNodeIds" | "reasons"> {
   const reasons: WorkflowExecutorEligibilityReason[] = [];
-  if (draft.executionProfile !== "executor_v0") {
+  if (draft.executionProfile !== "executor_v0" && !(draft.executionProfile === "executor_v2" && draft.schemaVersion === "saved_workflow_draft.v2")) {
     reasons.push({
       code: "executor_profile_missing",
       summary: "Create a dedicated executor v0 draft instead of running the current review-only graph.",

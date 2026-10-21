@@ -12,7 +12,7 @@ import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
 import { buildDerivedWorkflowDraft, canDeriveSavedWorkflowDraft, cloneWorkflowDraftForEditing } from "./workflowSavedDraftDerivation.ts";
 import { buildWorkflowExecutorV0Draft } from "./workflowExecutorConsumer.ts";
 import { buildWorkflowWorkspaceContextViewModel, type WorkflowWorkspaceContextSource, type WorkflowWorkspaceSelectionPatch } from "./workflowWorkspaceContext";
-import { buildWorkspaceCreatedDraft, workspaceDraftCreatedConsumerState, workflowTemplateDerivedConsumerState } from "./workflowDraftCreation.ts";
+import { buildWorkflowStructuredInputDraft, buildWorkspaceCreatedDraft, workspaceDraftCreatedConsumerState, workflowTemplateDerivedConsumerState } from "./workflowDraftCreation.ts";
 import { useWorkflowSavedDraftLibrary } from "./useWorkflowSavedDraftLibrary.ts";
 
 type WorkflowDraftWorkspaceSource = Pick<WorkflowWorkspaceContextSource,
@@ -232,7 +232,7 @@ export function useWorkflowDraftWorkspace({
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
   };
-  const handleCreateWorkflowExecutorDraft = () => {
+  const handleCreateWorkflowExecutorDraft = (schema: "v1" | "v2" = "v1") => {
     if (workflowExecutorOperationPending) {
       return;
     }
@@ -241,7 +241,7 @@ export function useWorkflowDraftWorkspace({
         draft.applicationRef === workflowScopedApplicationId &&
         draft.executionProfile === "executor_v0",
     ).length + 1;
-    const createdDraft = buildWorkflowExecutorV0Draft(
+    const createdDraft = (schema === "v2" ? buildWorkflowStructuredInputDraft : buildWorkflowExecutorV0Draft)(
       activeWorkflowDraft,
       nextDraftNumber,
       workflowScopedApplicationId,

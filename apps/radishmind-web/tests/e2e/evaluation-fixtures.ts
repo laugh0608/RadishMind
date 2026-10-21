@@ -30,6 +30,9 @@ export async function openEvaluation(page: Page, task: "plan" | "schedule" | "oc
   // Product navigation chooses the owning application surface; hash only chooses its task.
   const link = page.locator('a[href="#workspace-run-history"]:visible').first();
   await link.click();
+  const workflowPlanLink = page.locator('a[href="#application-evaluation-plan"]:visible');
+  await expect.poll(async () => await evaluation(page).isVisible() || await workflowPlanLink.count() > 0).toBe(true);
+  if (await workflowPlanLink.count()) await workflowPlanLink.click();
   await expect(evaluation(page)).toBeVisible();
   await page.evaluate(task => { window.location.hash = `application-evaluation-${task}`; }, task);
   await expect(evaluation(page)).toHaveAttribute("data-active-task", task);

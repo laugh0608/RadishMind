@@ -30,7 +30,7 @@ export function WorkflowExecutorPanel({
   inputText: string;
   model: string;
   conditionValues: Record<string, boolean>;
-  onCreateExecutorDraft: () => void;
+  onCreateExecutorDraft: (schema?: "v1" | "v2") => void;
   onInputTextChange: (value: string) => void;
   onModelChange: (value: string) => void;
   onConditionValueChange: (nodeId: string, value: boolean) => void;
@@ -81,9 +81,10 @@ export function WorkflowExecutorPanel({
       </div>
 
       <div className="workflow-executor-action-row">
-        <button type="button" disabled={pending} onClick={onCreateExecutorDraft}>
+        <button type="button" disabled={pending} onClick={() => onCreateExecutorDraft("v1")}>
           {shellT($ => $.appShell.workflowCreateExecutor)}
         </button>
+        <button type="button" disabled={pending} onClick={() => onCreateExecutorDraft("v2")}>{t($ => $.draft.createStructuredDraft)}</button>
         <button type="button" disabled={!canStart} onClick={onStartRun}>
           {consumerState.status === "starting" ? t($ => $.executor.running) : t($ => $.executor.start)}
         </button>

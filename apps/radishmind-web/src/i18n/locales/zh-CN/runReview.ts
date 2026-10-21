@@ -1,4 +1,5 @@
 export const runReview = {
+  "openEvaluationPlan": "评测计划 · 重复运行精确版本",
   "ownerRegion": "运行与评测审查模块",
   "handoffOffline": "未读取运行 {{runId}}：所属模块作用域不可用，未启动请求或重放。",
   "handoffLoading": "正在从所属模块读取精确运行 {{runId}}。",

@@ -662,8 +662,8 @@ function ProductApp() {
     }
     applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
   };
-  const handleCreateWorkflowExecutorDraft = () => {
-    if (!draftWorkspace.handleCreateWorkflowExecutorDraft()) return;
+  const handleCreateWorkflowExecutorDraft = (schema: "v1" | "v2" = "v1") => {
+    if (!draftWorkspace.handleCreateWorkflowExecutorDraft(schema)) return;
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
     setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
     setWorkflowExecutorModel("");

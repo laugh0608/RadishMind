@@ -4,6 +4,7 @@ import {
 } from "./workflowRunComparisonConsumer.ts";
 import {
   parseStructuredRuntimeInputContractDocument,
+  validateStructuredRuntimeInputValues,
   type StructuredRuntimeInputContract,
   type StructuredRuntimeInputValues,
 } from "./structuredRuntimeInput.ts";
@@ -455,6 +456,17 @@ export function parseApplicationEvaluationPlanDraft(
   };
   if (!validPlanDraft(draft)) throw new Error("Plan profile, target, or fixture shape is inconsistent.");
   return draft;
+}
+
+// Decode the editable shape without accepting invalid values as a saveable plan.
+// The original JSON remains the sole draft source, including invalid typed values.
+export function parseStructuredEvaluationFixtureSource(targetJSON: string, itemsJSON: string) {
+  const target: unknown = JSON.parse(targetJSON);
+  const items: unknown = JSON.parse(itemsJSON);
+  if (!isTargetDocument(target) || !Array.isArray(items) || !items.every(isPlanItemDocument)) return null;
+  const contract = mapTarget(target).workflowDefinition?.inputContract;
+  if (!contract || !items.every(item => isDocument(item.workflow_definition) && isStructuredInputRecord(item.workflow_definition.inputs))) return null;
+  return { contract, items: items.map(mapPlanItem) };
 }
 
 export async function listApplicationEvaluationPlans(
@@ -1116,7 +1128,7 @@ function encodePlanItem(value: ApplicationEvaluationPlanItem): Document {
 function validPlanDraft(value: ApplicationEvaluationPlanDraft): boolean {
   if (!validPlanName(value.name, value.executionProfile) || !isProfile(value.executionProfile) || value.items.length < 1 || value.items.length > 20) return false;
   const prompt = value.executionProfile === "prompt_application_invocation_v1";
-  if (prompt && new Set(value.items.map(item => item.itemKey)).size !== value.items.length) return false;
+  if (new Set(value.items.map(item => item.itemKey)).size !== value.items.length) return false;
   const workflowTarget = value.target.workflowDefinition;
   if (value.executionProfile === "workflow_definition_executor_v1") {
     if (!workflowTarget || !DIGEST.test(workflowTarget.expectedDefinitionDigest) ||
@@ -1132,7 +1144,8 @@ function validPlanDraft(value: ApplicationEvaluationPlanDraft): boolean {
     const expected = expectedFixtureIndex(value.executionProfile);
     return selected === expected && fixtures.filter((fixture) => fixture !== null).length === 1 &&
       nonEmptyString(item.itemKey, 64) && (prompt ? /^[a-z][a-z0-9_-]{0,63}$/u.test(item.itemKey) && unicodeName(item.name, 1) : nonEmptyString(item.name, 160)) && isClassification(item.expectedClassification) &&
-      (value.executionProfile !== "workflow_definition_executor_v2" || isStructuredInputRecord(item.workflowDefinition?.inputs));
+      (value.executionProfile !== "workflow_definition_executor_v2" || (isStructuredInputRecord(item.workflowDefinition?.inputs) &&
+        validateStructuredRuntimeInputValues(workflowTarget!.inputContract!, item.workflowDefinition!.inputs!).ok));
   });
 }
 

@@ -1,4 +1,17 @@
 export const evaluationPlan = {
+  "workflowRegressionBoundary": "Campaign pairing compares repeated runs of the same exact plan version. Compare different Definition versions through exact Runs → Comparison → Case / Suite. A changed classification does not establish answer quality.",
+  "referenceAdopt": "Adopt reference and review fixtures",
+  "referenceContract": "Input contract · digest · ordered fields",
+  "referenceVersion": "Definition version · activation pointer",
+  "referenceInactive": "No supported active version is available to adopt.",
+  "referenceFailed": "Read failed. The plan target and local fixtures are retained; retry explicitly.",
+  "referenceLoading": "Reading current reference…",
+  "referenceRead": "Read current reference",
+  "referenceSelect": "Select a family",
+  "referenceFamily": "Definition family",
+  "referenceBoundary": "Read the list, select a family, then read its current activation. Adopting changes the target only; local fixtures remain for review.",
+  "referenceTitle": "Read current Definition reference",
+  "fixturePersistence": "Only explicitly saved plan fixtures are persisted. No values are imported from previous runs.",
   "immutablePlansLabel": "Immutable evaluation plans",
   "immutablePlans": "Immutable plans",
   "plansLabel": "Evaluation plans for the selected application",
@@ -23,7 +36,7 @@ export const evaluationPlan = {
   "fixtureUnavailable": "Structured fixture editor unavailable",
   "fixtureRequirement": "Load an exact v2 Definition target contract and valid ordered fixtures to enable typed editing.",
   "typedInput": "Typed fixture input",
-  "fixtureValidation": "Values are validated against the immutable Definition contract before they update the fixture JSON.",
+  "fixtureValidation": "Form fields and advanced JSON share one draft. Invalid text is retained and blocks review.",
   "fixture": "Fixture",
   "activeCount_one": "{{count}} active plan",
   "activeCount_other": "{{count}} active plans",
@@ -33,5 +46,5 @@ export const evaluationPlan = {
   "orderedItems_one": "{{count}} ordered item · {{profile}}",
   "orderedItems_other": "{{count}} ordered items · {{profile}}",
   "planConfirmation": "No mutation occurs until this confirmation. Revision uses expected record version {{version}}.",
-  "fixtureInvalid": "Correct the structured fixture fields before updating the JSON."
+  "fixtureInvalid": "Correct the current fixture before reviewing or saving.",
 } as const;

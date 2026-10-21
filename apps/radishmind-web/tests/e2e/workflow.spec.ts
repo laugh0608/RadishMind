@@ -113,6 +113,8 @@ test("reviewed definition runs once and remains readable after refresh across la
   await page.getByRole("button", { name: uiText(page, "Create promotion candidate"), exact: true }).click();
   await page.getByRole("button", { name: uiText(page, "Append review v1"), exact: true }).click();
   await page.getByRole("button", { name: uiText(page, "Activate · expected pointer v0"), exact: true }).click();
+  await expect(page.getByRole("button", { name: uiText(page, "Start exact version run"), exact: true })).toBeDisabled();
+  await page.getByRole("textbox", { name: uiText(page, "One-time input"), exact: true }).fill("Synthetic authority readiness input.");
   await expect(page.getByRole("button", { name: uiText(page, "Start exact version run"), exact: true })).toBeEnabled();
 
   for (const width of [1440, 1200, 390]) {

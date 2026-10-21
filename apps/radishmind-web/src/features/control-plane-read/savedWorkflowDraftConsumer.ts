@@ -1,3 +1,6 @@
+import { isSavedWorkflowDraftV2Content, isLegacySavedWorkflowInputContract } from "./workflowSavedDraftV2Validation.ts";
+import { parseStructuredRuntimeInputContractDocument } from "./structuredRuntimeInput.ts";
+import { workflowDraftInputContractDocument } from "./workflowDraftInputContract.ts";
 import type { WorkflowProjectionCopy, WorkflowProjectionMessage } from "./workflowProjectionCopy.ts";
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 import type {
@@ -309,7 +312,7 @@ type SavedWorkflowDraftPayload = {
   description: string;
   nodes: SavedWorkflowDraftNode[];
   edges: SavedWorkflowDraftEdge[];
-  input_contract: SavedWorkflowDraftContract;
+  input_contract: SavedWorkflowDraftContract | ReturnType<typeof workflowDraftInputContractDocument> & { contract_digest?: string };
   output_contract: SavedWorkflowDraftContract;
   provider_refs: string[];
   tool_refs: string[];
@@ -1209,7 +1212,7 @@ function toSavedWorkflowDraftPayload(
     application_id: draft.applicationRef,
     source_definition_id: draft.workflowDefinitionId,
     base_definition_version: draft.baseDefinitionVersion ?? 0,
-    schema_version: SAVED_DRAFT_SCHEMA_VERSION,
+    schema_version: draft.schemaVersion ?? SAVED_DRAFT_SCHEMA_VERSION,
     name: draft.label,
     description: draft.summary,
     nodes: draft.nodes.map((node) => {
@@ -1223,7 +1226,7 @@ function toSavedWorkflowDraftPayload(
         label: node.label,
         input_summary: node.inputSummary,
         output_summary: node.outputSummary,
-        input_contract_ref: "contract_input",
+        input_contract_ref: draft.schemaVersion === "saved_workflow_draft.v2" ? draft.inputContract.contractId : "contract_input",
         output_contract_ref: nodeType === "output" ? "contract_output" : "contract_intermediate",
         input_contract_fields: normalizedWorkflowDraftFields(node.inputContractFields),
         output_contract_fields: normalizedWorkflowDraftFields(node.outputContractFields),
@@ -1241,7 +1244,7 @@ function toSavedWorkflowDraftPayload(
       to_node_id: edge.toNodeId,
       condition_summary: edge.conditionSummary,
     })),
-    input_contract: {
+    input_contract: draft.schemaVersion === "saved_workflow_draft.v2" ? workflowDraftInputContractDocument(draft.inputContract) : {
       contract_id: "contract_input",
       required_fields: workflowDraftRequiredFields(draft.nodes, "input"),
       summary: "Workspace-scoped draft input contract.",
@@ -1358,6 +1361,12 @@ function toWorkflowSavedDraftSummary(document: SavedWorkflowDraftSummaryDocument
 export function workflowDraftFromSavedWorkflowDraftDocument(
   document: SavedWorkflowDraftDocument,
 ): WorkflowDraftDesignerDraft {
+  if (document.schema_version !== SAVED_DRAFT_SCHEMA_VERSION && document.schema_version !== "saved_workflow_draft.v2") throw new Error("saved_workflow_draft_schema_unsupported");
+  if (document.schema_version === "saved_workflow_draft.v2" && !isSavedWorkflowDraftV2Content(document)) throw new Error("saved_workflow_draft_payload_invalid");
+  if (document.schema_version === SAVED_DRAFT_SCHEMA_VERSION && !isLegacySavedWorkflowInputContract(document.input_contract)) throw new Error("saved_workflow_draft_input_contract_invalid");
+  const inputContract = document.schema_version === "saved_workflow_draft.v2"
+    ? parseStructuredRuntimeInputContractDocument(document.input_contract) : null;
+  if (document.schema_version === "saved_workflow_draft.v2" && !inputContract) throw new Error("saved_workflow_draft_input_contract_invalid");
   const validationState = document.validation_summary?.validation_state || document.draft_status || "invalid_draft";
   const blockedCapabilities = document.blocked_capability_summary ?? [];
   const nodes = document.nodes.map(toWorkflowDraftDesignerNode);
@@ -1368,6 +1377,7 @@ export function workflowDraftFromSavedWorkflowDraftDocument(
     ? savedWorkflowDraftDerivationFromMetadata(document.additional_fields?.derivation_v1, document.draft_id)
     : savedWorkflowTemplateDerivationFromMetadata(document.additional_fields.derivation_v2);
   return {
+    ...(inputContract ? { schemaVersion: "saved_workflow_draft.v2" as const, inputContract } : { schemaVersion: "saved_workflow_draft.v1" as const }),
     draftId: document.draft_id,
     templateRef: document.source_definition_id || document.draft_id,
     label: document.name,
@@ -1421,7 +1431,7 @@ export function workflowDraftFromSavedWorkflowDraftDocument(
     },
     localOnlyInteraction: "inspect_only",
     requestedCapabilities: [...document.requested_capabilities],
-    executionProfile: isSavedWorkflowDraftExecutorV0Metadata(document.additional_fields?.executor_v0)
+    executionProfile: inputContract ? "executor_v2" : isSavedWorkflowDraftExecutorV0Metadata(document.additional_fields?.executor_v0)
       ? "executor_v0"
       : isRAGRetrievalV1
         ? "rag_retrieval_v1"
@@ -1875,7 +1885,7 @@ function isSavedWorkflowDraftSummaryDocument(value: unknown): value is SavedWork
     isTimestamp(candidate.library_updated_at) &&
     typeof candidate.lifecycle_updated_by_actor_ref === "string" &&
     isWorkflowSavedDraftProvenanceKind(candidate.provenance_kind) &&
-    candidate.schema_version === SAVED_DRAFT_SCHEMA_VERSION &&
+    (candidate.schema_version === SAVED_DRAFT_SCHEMA_VERSION || candidate.schema_version === "saved_workflow_draft.v2") &&
     isWorkflowSavedDraftValidationState(candidate.draft_status) &&
     isNonEmptyString(candidate.name) &&
     typeof candidate.description === "string" &&
@@ -1909,7 +1919,7 @@ function isSavedWorkflowDraftLifecycleDocument(value: unknown): value is SavedWo
     typeof candidate.lifecycle_updated_by_actor_ref === "string";
 }
 
-function isSavedWorkflowDraftDocument(value: unknown): value is SavedWorkflowDraftDocument {
+export function isSavedWorkflowDraftDocument(value: unknown): value is SavedWorkflowDraftDocument {
   if (!value || typeof value !== "object") {
     return false;
   }
@@ -1923,7 +1933,8 @@ function isSavedWorkflowDraftDocument(value: unknown): value is SavedWorkflowDra
     isArchivedAt(candidate.archived_at, candidate.lifecycle_state) &&
     isTimestamp(candidate.library_updated_at) &&
     isWorkflowSavedDraftProvenanceKind(candidate.provenance_kind) &&
-    candidate.schema_version === SAVED_DRAFT_SCHEMA_VERSION &&
+    (candidate.schema_version === SAVED_DRAFT_SCHEMA_VERSION || candidate.schema_version === "saved_workflow_draft.v2") &&
+    (candidate.schema_version === "saved_workflow_draft.v2" ? isSavedWorkflowDraftV2Content(candidate) : isLegacySavedWorkflowInputContract(candidate.input_contract)) &&
     Array.isArray(candidate.nodes) &&
     Array.isArray(candidate.edges) &&
     Array.isArray(candidate.provider_refs) &&

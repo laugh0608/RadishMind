@@ -290,3 +290,19 @@ function jsonResponse(value: unknown): Response {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+
+test("saved draft mixed v1 and v2 summaries remain readable while unknown schema and fields fail closed", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const legacy = summaryDocument("draft_legacy", "active");
+  const structured = { ...summaryDocument("draft_structured", "active"), schema_version: "saved_workflow_draft.v2" };
+  globalThis.fetch = async () => jsonResponse(listEnvelope([legacy, structured]));
+  const mixed = await listWorkflowDraftDevRecords("app_demo", config);
+  assert.equal(mixed.status, "ready");
+  assert.deepEqual(mixed.summaries.map(item => item.draftId), ["draft_legacy", "draft_structured"]);
+  for (const invalid of [{ ...structured, schema_version: "saved_workflow_draft.v99" }, { ...structured, unexpected_field: true }]) {
+    globalThis.fetch = async () => jsonResponse(listEnvelope([legacy, invalid]));
+    await assert.rejects(() => listWorkflowDraftDevRecords("app_demo", config), /unexpected envelope/u);
+  }
+});

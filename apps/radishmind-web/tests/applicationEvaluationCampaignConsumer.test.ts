@@ -10,6 +10,7 @@ import {
   listApplicationEvaluationPlans,
   materializeApplicationEvaluationHandoff,
   parseApplicationEvaluationPlanDraft,
+  parseStructuredEvaluationFixtureSource,
   previewApplicationEvaluationPair,
   readApplicationEvaluationPlanVersion,
   reviseApplicationEvaluationPlan,
@@ -619,3 +620,27 @@ function mappedCampaign(campaignId: string, recordVersion: number): ApplicationE
 function jsonResponse(value: unknown, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 }
+
+
+test("Workflow fixture editing retains invalid values while review rejects stale or wrong typed inputs", () => {
+  const version = structuredPlanVersion();
+  const target = JSON.stringify(version.target);
+  const original = structuredClone(version.items);
+  const parse = (items: unknown) => parseApplicationEvaluationPlanDraft("Typed validation", "workflow_definition_executor_v2", target, JSON.stringify(items));
+  assert.equal(parse(original).items[0].workflowDefinition?.inputs?.retry_count, 2);
+  for (const value of ["2", "invalid", "", 1.5, false]) {
+    const items = structuredClone(original);
+    items[0].workflow_definition.inputs.retry_count = value;
+    const json = JSON.stringify(items);
+    assert.equal(parseStructuredEvaluationFixtureSource(target, json)?.items[0].workflowDefinition?.inputs?.retry_count, value);
+    assert.throws(() => parse(items));
+  }
+  const missing = structuredClone(original);
+  delete missing[0].workflow_definition.inputs.customer_name;
+  assert.throws(() => parse(missing));
+  const unknown = structuredClone(original);
+  unknown[0].workflow_definition.inputs.unknown_field = "preserved";
+  assert.throws(() => parse(unknown));
+  assert.throws(() => parse([...original, ...original]));
+  assert.throws(() => parseStructuredEvaluationFixtureSource(target, "[{broken"));
+});

@@ -116,12 +116,20 @@ Release Readiness 固定使用四种状态：
 ## Workflow Definition 准备与运行
 
 1. 在 Application Catalog 中选择一个 `active` application。
-2. 创建并保存满足 executor v0 拓扑约束的 Workflow Draft；v1 使用单文本输入，v2 还必须声明最多 `16` 个扁平 `string | integer | number | boolean` 字段的有界 input contract。
+2. 创建满足既有有界图约束的 Workflow Draft。旧版入口继续使用单文本输入；“新建结构化输入草案”进入 v2 合同编写，可编辑合同标识、说明及最多 `16` 个有序 `string | integer | number | boolean` 字段的名称、标签、说明与必填性。先修正字段错误，再校验和保存；合同 digest 由服务端生成，精确读取后可查看。
 3. 从精确 saved draft 创建 immutable definition candidate。
 4. 人工提交 approve / reject review decision。approve 不自动激活。
 5. 从 approved candidate 生成 immutable definition version。
 6. 人工执行 activation CAS，建立当前 active definition pointer。
 7. v1 从 Definition Promotion 面板发起 v5 运行，或在 Session 中选择 `workflow_definition_executor_v1`；v2 使用共享 typed editor 发起 v8 运行，或选择 `workflow_definition_executor_v2` 后提交 turn。
+
+迭代时，在不可变版本历史中选择精确版本并点击“从 vN 派生新草案”；修改、保存和审查只产生新的资源，不修改旧 Definition。批准第二版后仍须显式选择 v2 并执行 `replace`，才会改变活动指针。合同变更后的新草案不会沿用旧 digest。草案库可同时读取 v1 / v2；修订历史可将旧内容恢复为一个新的草案修订。
+
+切换版本族后，旧运行输入、输出和执行依据立即失效。若收到 CAS 冲突，保留理由，点击“重新读取候选与精确执行依据”，核对当前指针与可选版本后重新决定；不要重复提交旧指针。读取失败期间不能运行，也不会自动重试。
+
+两版执行后，从“运行记录”进入 Compare，显式选择两个兼容的精确 Run，再创建 Case、绑定精确 Case 版本到 Suite 并记录人工决定。v2 还要求相同输入合同身份和 digest；`changed` 只说明比较发现元数据差异，不表示答案质量改善。
+
+运行审查区的“评测计划 · 重复运行精确版本”进入计划编辑。先“读取当前引用”取得列表，选择版本族并再次读取；核对活动版本、指针和合同后“采用引用并检查样本”。引用变化不会自动改绑计划，样本字段与高级 JSON 始终反映同一份当前编辑，无效原文会保留并阻止审查。修改确认中的草稿会撤销确认；加载旧版本或离开时可继续编辑或明确放弃。只有显式保存的测试样本持久化，不从 Run 导入历史输入。Campaign 配对仍只接受同一精确计划版本；跨 Definition 版本使用前述 Run 审查路径。
 
 创建 session 时，Workflow Definition profile 需要明确的 `definition_id`。每轮执行前，服务端重新读取 activation pointer、definition version、definition digest、application lifecycle 与 profile eligibility；v2 还重新核对 input contract id / digest、字段类型、required、预算和 secret。Web 中显示的 ready 状态只是解释信息，不是执行授权。任一 authority 或 contract 漂移都必须在 provider 和 turn 持久化前失败，不能回退 source draft、旧 activation 或 v1 input。
 

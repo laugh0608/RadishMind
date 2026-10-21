@@ -66,6 +66,9 @@ export function compareWorkflowSavedDraftRevision(
     changes,
   );
 
+  compareMetadataValue("schema version", historical.schemaVersion ?? "saved_workflow_draft.v1", active.schemaVersion ?? "saved_workflow_draft.v1", changes);
+  compareMetadataValue("input contract", JSON.stringify(historical.inputContract ?? null), JSON.stringify(active.inputContract ?? null), changes);
+
   compareByStableId(
     historical.nodes,
     active.nodes,

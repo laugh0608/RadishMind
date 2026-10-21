@@ -7230,6 +7230,36 @@ dd {
   opacity: 0.82;
 }
 
+.workflow-definition-refresh {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.workflow-definition-refresh p {
+  flex: 1 1 16rem;
+  margin: 0;
+  color: var(--rm-text-secondary);
+  font-size: 0.875rem;
+}
+
+.workflow-definition-refresh button {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 8px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.workflow-definition-refresh button:disabled { opacity: 0.55; cursor: not-allowed; }
+.workflow-definition-refresh button:focus-visible { outline: 2px solid var(--rm-focus-ring); outline-offset: 2px; }
+
 .workflow-definition-promotion-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -7300,6 +7330,18 @@ dd {
   text-align: left;
 }
 
+.workflow-definition-list,
+.workflow-definition-list button,
+.workflow-definition-list button > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.workflow-definition-promotion-panel .workflow-definition-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .workflow-definition-list button.selected {
   border-color: var(--rm-action-primary);
   background: var(--rm-action-soft);
@@ -7316,13 +7358,15 @@ dd {
 }
 
 .workflow-definition-failure {
-  border: 1px solid rgba(238, 123, 123, 0.5);
-  background: rgba(238, 123, 123, 0.1);
+  border: 1px solid var(--rm-state-danger);
+  background: var(--rm-state-danger-soft);
+  overflow-wrap: anywhere;
 }
 
 .workflow-definition-notice {
-  border: 1px solid rgba(95, 196, 209, 0.35);
-  background: rgba(95, 196, 209, 0.1);
+  border: 1px solid var(--rm-action-primary);
+  background: var(--rm-action-soft);
+  overflow-wrap: anywhere;
 }
 
 .workflow-definition-candidate-handoff {
@@ -21694,4 +21738,72 @@ textarea {
 
 #agent-copilot-invocation .prompt-template-review .workflow-user-workspace-home-meta {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+
+.workflow-contract-editor {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--rm-border-soft);
+  border-radius: 0.75rem;
+  background: var(--rm-bg-surface);
+}
+.workflow-contract-editor :is(h4, h5, p) { margin: 0; }
+.workflow-contract-editor header { display: grid; gap: 0.5rem; }
+.workflow-contract-editor small { color: var(--rm-text-secondary); overflow-wrap: anywhere; }
+.workflow-contract-row { display: grid; gap: 0.9rem; min-width: 0; margin: 0; padding: 1rem 0; border: 0; border-top: 1px solid var(--rm-border-soft); }
+.workflow-contract-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: 0.9rem; }
+.workflow-contract-field { display: grid; gap: 0.4rem; min-width: 0; font-size: 0.85rem; }
+.workflow-contract-required { display: flex; align-items: center; gap: 0.5rem; }
+.workflow-contract-editor :is(input:not([type="checkbox"]), select) { width: 100%; min-width: 0; padding: 0.65rem; border: 1px solid var(--rm-border-strong); border-radius: 0.5rem; color: var(--rm-text-primary); background: var(--rm-bg-surface); font: inherit; }
+.workflow-contract-editor [aria-invalid="true"] { border-color: var(--rm-state-danger); }
+.workflow-contract-editor .workflow-contract-error { color: var(--rm-state-danger); }
+.workflow-contract-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.workflow-contract-actions button { padding: 0.6rem 0.8rem; border: 1px solid var(--rm-border-strong); border-radius: 0.5rem; background: var(--rm-bg-surface); color: var(--rm-text-primary); font: inherit; cursor: pointer; }
+.workflow-contract-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.workflow-contract-editor :is(button, input, select):focus-visible { outline: 2px solid var(--rm-focus-ring); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .workflow-contract-editor { padding: 0.8rem; }
+  .workflow-contract-columns { grid-template-columns: minmax(0, 1fr); }
+}
+
+.workflow-evaluation-reference { display: grid; gap: 0.75rem; padding: 1rem; background: var(--rm-bg-surface); border: 1px solid var(--rm-border-soft); border-radius: 0.75rem; }
+.workflow-evaluation-reference label { display: grid; gap: 0.5rem; min-width: 0; }
+.workflow-evaluation-reference select { min-width: 0; max-width: 100%; }
+.workflow-evaluation-reference dl { display: grid; gap: 0.5rem; margin: 0; }
+.workflow-evaluation-reference dd { margin: 0; overflow-wrap: anywhere; }
+.application-evaluation-confirmation-values { max-height: 20rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.workflow-contract-required input { accent-color: var(--rm-action-primary); }
+
+.application-evaluation-plan-editor .structured-runtime-boolean input[type="radio"] { width: auto; flex: none; accent-color: var(--rm-action-primary); }
+.application-evaluation-plan-editor .structured-runtime-boolean label { display: inline-flex; flex: none; }
+
+.application-evaluation-plan-owner:not(.prompt-plan-owner) :is(input:not([type="radio"]), select, textarea, button) {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-control);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+.application-evaluation-plan-owner:not(.prompt-plan-owner) :is(button, select) { cursor: pointer; }
+.application-evaluation-plan-owner:not(.prompt-plan-owner) :is(button, select, input, textarea):disabled { opacity: 0.55; cursor: not-allowed; }
+.application-evaluation-plan-owner:not(.prompt-plan-owner) textarea { font-family: var(--rm-font-mono); }
+.application-evaluation-plan-owner:not(.prompt-plan-owner) .application-evaluation-plan-editor label > span,
+.application-evaluation-plan-owner:not(.prompt-plan-owner) .application-evaluation-structured-fixture p { font-size: 12px; }
+.application-evaluation-plan-owner:not(.prompt-plan-owner) .workflow-evaluation-reference > button:last-child,
+.application-evaluation-plan-owner:not(.prompt-plan-owner) .application-evaluation-confirmation button:last-child {
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+  border-color: var(--rm-action-primary);
+}
+@media (max-width: 720px) {
+  .application-evaluation-workspace[data-active-task="plan"] .application-evaluation-owner { padding: 8px; }
+  .workflow-evaluation-reference { padding: 12px; }
+  .application-evaluation-plan-owner:not(.prompt-plan-owner) .application-evaluation-structured-fixture { padding: 8px; }
 }

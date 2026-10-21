@@ -121271,6 +121271,3407 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "dGX5B",
+      "x": 1800,
+      "y": 5144,
+      "name": "Workflow v2 合同编写 · Desktop · Local R1",
+      "width": 1040,
+      "fill": "$bg-surface",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "dDB1M",
+          "name": "合同编写上下文",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "sfF8j",
+              "name": "位置",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "WORKFLOW / 草案设计",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "WAoEy",
+              "name": "标题",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "结构化输入合同",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 26,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "l8E78b",
+              "name": "来源",
+              "fill": "$action",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "新建 v2 草案 · 本地未保存",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "IGR8z",
+              "name": "边界",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "先定义输入字段，再保存草案。保存与批准、激活分别操作。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "efQ8N",
+          "name": "合同工作面",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "GLBpG",
+              "name": "合同标识",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mdaRD",
+                  "name": "合同标识标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "合同标识",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "Zovld",
+                  "name": "合同标识输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hZ7DM",
+                      "name": "合同标识值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "diagnostics_input_v1",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "XzQNm",
+              "name": "合同说明",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mTUVn",
+                  "name": "合同说明标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "合同说明",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "ERJrY",
+                  "name": "合同说明输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h0elLe",
+                      "name": "合同说明值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "用于合成端口配置诊断",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "GncPV",
+              "name": "字段顺序",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "输入字段 · 2 / 16",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "UgXsV",
+              "name": "字段提示",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "字段顺序会保存到合同。类型仅支持 string、integer、number、boolean。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Ooimk",
+              "name": "字段 1",
+              "width": "fill_container",
+              "stroke": "$border-soft",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "p1Y12o",
+                  "name": "字段 1标题",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "01  error_log",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "uma2b",
+                  "name": "名称与类型 1",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Hj3Gx",
+                      "name": "字段名称",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WDeVq",
+                          "name": "字段名称标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段名称",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "m90RXV",
+                          "name": "字段名称输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WIPUU",
+                              "name": "字段名称值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "error_log",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jNYH2",
+                      "name": "字段类型",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "MlSKJ",
+                          "name": "字段类型标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段类型",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ab0nH",
+                          "name": "字段类型输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Y82NcG",
+                              "name": "字段类型值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "string  ▾",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "q40uvz",
+                      "name": "是否必填",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "T2rSC",
+                          "name": "是否必填标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "是否必填",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "qotvy",
+                          "name": "是否必填输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XUj0p",
+                              "name": "是否必填值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "☑ 必填",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bKznl",
+                  "name": "标签与说明 1",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xq6gj",
+                      "name": "显示标签",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "kamF6",
+                          "name": "显示标签标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "显示标签",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "X9hAHM",
+                          "name": "显示标签输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vAN21",
+                              "name": "显示标签值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "日志",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KW0z1",
+                      "name": "字段说明",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PciLx",
+                          "name": "字段说明标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段说明",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "i7xzd9",
+                          "name": "字段说明输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vWvWy",
+                              "name": "字段说明值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "粘贴诊断日志",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "YqV7A",
+                  "name": "排序删除 1",
+                  "fill": "$action",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "↑ 上移（不可用）     ↓ 下移     移除字段",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "a4j24f",
+              "name": "字段 2",
+              "width": "fill_container",
+              "stroke": "$border-soft",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "i8hFf",
+                  "name": "字段 2标题",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "02  attempt_count",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "mWSxe",
+                  "name": "名称与类型 2",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "yfXL8",
+                      "name": "字段名称",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "U6Ts5",
+                          "name": "字段名称标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段名称",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Vm1xp",
+                          "name": "字段名称输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tBVa2",
+                              "name": "字段名称值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "attempt_count",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "r4XSQ4",
+                      "name": "字段类型",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KbHrG",
+                          "name": "字段类型标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段类型",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "x97X4J",
+                          "name": "字段类型输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "gplwl",
+                              "name": "字段类型值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "integer  ▾",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "R6EvR8",
+                      "name": "是否必填",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nZqH2",
+                          "name": "是否必填标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "是否必填",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "q3cP3a",
+                          "name": "是否必填输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vSxtd",
+                              "name": "是否必填值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "☑ 必填",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "b3I5Y",
+                  "name": "标签与说明 2",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VrJyV",
+                      "name": "显示标签",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qnzmX",
+                          "name": "显示标签标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "显示标签",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fcGuU",
+                          "name": "显示标签输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "pvy0J",
+                              "name": "显示标签值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "尝试次数",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aU0Fk",
+                      "name": "字段说明",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qh0vi",
+                          "name": "字段说明标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段说明",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "rSlZX",
+                          "name": "字段说明输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vCODV",
+                              "name": "字段说明值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "已进行的尝试次数",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "NXJWU",
+                  "name": "排序删除 2",
+                  "fill": "$action",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "↑ 上移     ↓ 下移     移除字段",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "lZE82",
+              "name": "＋ 添加字段按钮",
+              "width": "fill_container",
+              "fill": "$bg-surface",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Gb8X0",
+                  "name": "＋ 添加字段文字",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "＋ 添加字段",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "OnjYs",
+              "name": "服务端摘要",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "合同摘要值由服务端在保存后生成；此处不会填入默认摘要。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "D5f8GM",
+          "name": "保存操作",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "s5iUdO",
+              "name": "草案状态",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "合同有效 · 2 个有序字段 · 尚未保存",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "XhdQ4",
+              "name": "保存结构化草案按钮",
+              "width": "fill_container",
+              "fill": "$action",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "D80UEJ",
+                  "name": "保存结构化草案文字",
+                  "fill": "$text-on-accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "保存结构化草案",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "wiflC",
+      "x": 2920,
+      "y": 5144,
+      "name": "Workflow v2 合同编写 · 390px · Local R1",
+      "width": 390,
+      "fill": "$bg-surface",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "JTY2M",
+          "name": "合同编写上下文",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "zd9d7",
+              "name": "位置",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "WORKFLOW / 草案设计",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "X2cTn",
+              "name": "标题",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "结构化输入合同",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 26,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "bqq11",
+              "name": "来源",
+              "fill": "$action",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "新建 v2 草案 · 本地未保存",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "BFMHT",
+              "name": "边界",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "先定义输入字段，再保存草案。保存与批准、激活分别操作。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "SKifl",
+          "name": "合同工作面",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "XiaKc",
+              "name": "合同标识",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "d2lyHo",
+                  "name": "合同标识标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "合同标识",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "LUnvG",
+                  "name": "合同标识输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yHL6l",
+                      "name": "合同标识值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "diagnostics_input_v1",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "S5EUz",
+              "name": "合同说明",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "XdEbE",
+                  "name": "合同说明标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "合同说明",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "mDOtX",
+                  "name": "合同说明输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "e8KLI",
+                      "name": "合同说明值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "用于合成端口配置诊断",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "ol2vv",
+              "name": "字段顺序",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "输入字段 · 2 / 16",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "uEdqW",
+              "name": "字段提示",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "字段顺序会保存到合同。类型仅支持 string、integer、number、boolean。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "z0u8oW",
+              "name": "字段 1",
+              "width": "fill_container",
+              "stroke": "$border-soft",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Nv9Jp",
+                  "name": "字段 1标题",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "01  error_log",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "HSpU3",
+                  "name": "名称与类型 1",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TQ2D3",
+                      "name": "字段名称",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "FoLpx",
+                          "name": "字段名称标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段名称",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "g1Arsz",
+                          "name": "字段名称输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "okVpz",
+                              "name": "字段名称值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "error_log",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RoPu0",
+                      "name": "字段类型",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "eLfUQ",
+                          "name": "字段类型标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段类型",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ls9fG",
+                          "name": "字段类型输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XgPBz",
+                              "name": "字段类型值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "string  ▾",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "naucd",
+                      "name": "是否必填",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "SCcQ8",
+                          "name": "是否必填标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "是否必填",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ihuK2",
+                          "name": "是否必填输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "UnrBT",
+                              "name": "是否必填值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "☑ 必填",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dzVuZ",
+                  "name": "标签与说明 1",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "J8DGuN",
+                      "name": "显示标签",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Ebpyt",
+                          "name": "显示标签标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "显示标签",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "uNo4s",
+                          "name": "显示标签输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "BQ0c4",
+                              "name": "显示标签值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "日志",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "juBxc",
+                      "name": "字段说明",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "R6eEl",
+                          "name": "字段说明标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段说明",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CQf22",
+                          "name": "字段说明输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "OZ7CM",
+                              "name": "字段说明值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "粘贴诊断日志",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "R2vrR",
+                  "name": "排序删除 1",
+                  "fill": "$action",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "↑ 上移（不可用）     ↓ 下移     移除字段",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eD7fn",
+              "name": "字段 2",
+              "width": "fill_container",
+              "stroke": "$border-soft",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VjrgQ",
+                  "name": "字段 2标题",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "02  attempt_count",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "JZ6zW",
+                  "name": "名称与类型 2",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VImtK",
+                      "name": "字段名称",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gQ29X",
+                          "name": "字段名称标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段名称",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RF7tc",
+                          "name": "字段名称输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jyn9f",
+                              "name": "字段名称值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "attempt_count",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "U1PLne",
+                      "name": "字段类型",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UlQN6",
+                          "name": "字段类型标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段类型",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Bib9r",
+                          "name": "字段类型输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PL1ZQ",
+                              "name": "字段类型值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "integer  ▾",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CofBI",
+                      "name": "是否必填",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "n7tHXl",
+                          "name": "是否必填标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "是否必填",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "x6sUra",
+                          "name": "是否必填输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "UU26G",
+                              "name": "是否必填值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "☑ 必填",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LIuO2",
+                  "name": "标签与说明 2",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "e6ranl",
+                      "name": "显示标签",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "n4rXc",
+                          "name": "显示标签标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "显示标签",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aLm2j",
+                          "name": "显示标签输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "F0DC2",
+                              "name": "显示标签值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "尝试次数",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cAblc",
+                      "name": "字段说明",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LD4DN",
+                          "name": "字段说明标签",
+                          "fill": "$text-secondary",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "字段说明",
+                          "lineHeight": 1.45,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HvXjF",
+                          "name": "字段说明输入",
+                          "width": "fill_container",
+                          "fill": "$bg-surface",
+                          "cornerRadius": 8,
+                          "stroke": "$border-strong",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "VmHLT",
+                              "name": "字段说明值",
+                              "fill": "$text-primary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "已进行的尝试次数",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "a7Qn4",
+                  "name": "排序删除 2",
+                  "fill": "$action",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "↑ 上移     ↓ 下移     移除字段",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TQ2TF",
+              "name": "＋ 添加字段按钮",
+              "width": "fill_container",
+              "fill": "$bg-surface",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Uyw04",
+                  "name": "＋ 添加字段文字",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "＋ 添加字段",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "BV0Ko",
+              "name": "服务端摘要",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "合同摘要值由服务端在保存后生成；此处不会填入默认摘要。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xesFU",
+          "name": "保存操作",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "N3i4B7",
+              "name": "草案状态",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "合同有效 · 2 个有序字段 · 尚未保存",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "bkZOg",
+              "name": "保存结构化草案按钮",
+              "width": "fill_container",
+              "fill": "$action",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "r9G8V",
+                  "name": "保存结构化草案文字",
+                  "fill": "$text-on-accent",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "保存结构化草案",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "T5Ery",
+      "x": 3390,
+      "y": 5144,
+      "name": "Workflow 评测参考与无效输入 · Desktop · Local R1",
+      "width": 1040,
+      "fill": "$bg-surface",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "UFHDA",
+          "name": "评测上下文",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "I2VVH",
+              "name": "位置",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "WORKFLOW / 评测计划",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "lVaEY",
+              "name": "标题",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "执行依据与样本",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 26,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "LPAZ9",
+              "name": "说明",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "计划冻结精确版本。同计划重复运行使用批次配对；跨 Definition 版本使用 Run 比较。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "on3og",
+          "name": "读取执行依据",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "VJ4La",
+              "name": "Definition 版本族",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uKwJD",
+                  "name": "Definition 版本族标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Definition 版本族",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "K7ZqKG",
+                  "name": "Definition 版本族输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Z24jRf",
+                      "name": "Definition 版本族值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "diagnostics_workflow  ▾",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hdfqw",
+              "name": "读取当前活动 Definition按钮",
+              "width": "fill_container",
+              "fill": "$bg-surface",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tQDfP",
+                  "name": "读取当前活动 Definition文字",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "读取当前活动 Definition",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cQUWG",
+              "name": "读取到的当前版本",
+              "width": "fill_container",
+              "fill": "$warning-soft",
+              "cornerRadius": 8,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JVACs",
+                  "name": "当前目标",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Definition v2 · 激活指针 v3",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "aISgi",
+                  "name": "精确摘要",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "定义 sha256:94af…3e27\n合同 diagnostics_input_v1 · sha256:71c2…bc80",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "T6NV5",
+                  "name": "参考变化",
+                  "fill": "$warning",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "已保存目标为 v1 / 指针 v1。当前读取不会自动替换计划。",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "TQZPT",
+                  "name": "采用此版本作为计划目标按钮",
+                  "width": "fill_container",
+                  "fill": "$action",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "C4PgKX",
+                      "name": "采用此版本作为计划目标文字",
+                      "fill": "$text-on-accent",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "采用此版本作为计划目标",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "l3rv3",
+          "name": "样本工作面",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "JfaFj",
+              "name": "样本定位",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "样本 01 / 02 · 端口配置不一致",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "DNL5I",
+              "name": "模式",
+              "fill": "$action",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "字段表单     高级 JSON",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "YhfUF",
+              "name": "日志 · error_log · 必填",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IMhdX",
+                  "name": "日志 · error_log · 必填标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "日志 · error_log · 必填",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "O8jpG",
+                  "name": "日志 · error_log · 必填输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "q5EEM",
+                      "name": "日志 · error_log · 必填值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "backend = 7100; frontend = 7000",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TXtlf",
+              "name": "尝试次数 · attempt_count · integer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RkEmY",
+                  "name": "尝试次数 · attempt_count · integer标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "尝试次数 · attempt_count · integer",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "BvTfV",
+                  "name": "尝试次数 · attempt_count · integer输入",
+                  "width": "fill_container",
+                  "fill": "$danger-soft",
+                  "cornerRadius": 8,
+                  "stroke": "$danger",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ADc0K",
+                      "name": "尝试次数 · attempt_count · integer值",
+                      "fill": "$danger",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "two",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "laPVc",
+              "name": "无效整数",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "请输入整数。已保留原文 two；不能提交先前的有效值 2。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "VqhHe",
+              "name": "继续检查 · boolean · 必填",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "C00fc",
+                  "name": "继续检查 · boolean · 必填标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "继续检查 · boolean · 必填",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "nQHjy",
+                  "name": "继续检查 · boolean · 必填输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "thkOj",
+                      "name": "继续检查 · boolean · 必填值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "未提供  ▾",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "VSXgQ",
+              "name": "布尔值缺失",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "请选择 true 或 false；未提供与 false 不相同。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "cpnsb",
+              "name": "本地状态",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "切换样本保留各自编辑；采用新目标后，保留样本并重新检查。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uOj47",
+          "name": "保存阻挡",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "o6RtXy",
+              "name": "错误汇总",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "2 个字段需修正 · 当前编辑尚未保存",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "mYQo7",
+              "name": "审查保存按钮",
+              "width": "fill_container",
+              "fill": "$bg-muted",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pblxE",
+                  "name": "审查保存文字",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "审查保存",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZXtLU",
+              "name": "放弃编辑按钮",
+              "width": "fill_container",
+              "fill": "$bg-surface",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xmKCs",
+                  "name": "放弃编辑文字",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "放弃编辑",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "MbSKu",
+      "x": 4510,
+      "y": 5144,
+      "name": "Workflow 评测参考与无效输入 · 390px · Local R1",
+      "width": 390,
+      "fill": "$bg-surface",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "kg8Xd",
+          "name": "评测上下文",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "EWEbp",
+              "name": "位置",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "WORKFLOW / 评测计划",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "Ct31L",
+              "name": "标题",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "执行依据与样本",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 26,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "VIGRn",
+              "name": "说明",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "计划冻结精确版本。同计划重复运行使用批次配对；跨 Definition 版本使用 Run 比较。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "h2Afy",
+          "name": "读取执行依据",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "GPdUi",
+              "name": "Definition 版本族",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "f66Mm",
+                  "name": "Definition 版本族标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Definition 版本族",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "eMYck",
+                  "name": "Definition 版本族输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "m9gLfE",
+                      "name": "Definition 版本族值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "diagnostics_workflow  ▾",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YHBWM",
+              "name": "读取当前活动 Definition按钮",
+              "width": "fill_container",
+              "fill": "$bg-surface",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "BlYaz",
+                  "name": "读取当前活动 Definition文字",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "读取当前活动 Definition",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "S8lbM",
+              "name": "读取到的当前版本",
+              "width": "fill_container",
+              "fill": "$warning-soft",
+              "cornerRadius": 8,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rkwqM",
+                  "name": "当前目标",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Definition v2 · 激活指针 v3",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "wSP9m",
+                  "name": "精确摘要",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "定义 sha256:94af…3e27\n合同 diagnostics_input_v1 · sha256:71c2…bc80",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "NpRM8",
+                  "name": "参考变化",
+                  "fill": "$warning",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "已保存目标为 v1 / 指针 v1。当前读取不会自动替换计划。",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "l9a4le",
+                  "name": "采用此版本作为计划目标按钮",
+                  "width": "fill_container",
+                  "fill": "$action",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pOE72",
+                      "name": "采用此版本作为计划目标文字",
+                      "fill": "$text-on-accent",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "采用此版本作为计划目标",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "aWPlw",
+          "name": "样本工作面",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "zSxKs",
+              "name": "样本定位",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "样本 01 / 02 · 端口配置不一致",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "vfAOt",
+              "name": "模式",
+              "fill": "$action",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "字段表单     高级 JSON",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "vYmR7",
+              "name": "日志 · error_log · 必填",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "q4WhcH",
+                  "name": "日志 · error_log · 必填标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "日志 · error_log · 必填",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "dHLrL",
+                  "name": "日志 · error_log · 必填输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vN3po",
+                      "name": "日志 · error_log · 必填值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "backend = 7100; frontend = 7000",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "STXes",
+              "name": "尝试次数 · attempt_count · integer",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "e7pHCm",
+                  "name": "尝试次数 · attempt_count · integer标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "尝试次数 · attempt_count · integer",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "otxBW",
+                  "name": "尝试次数 · attempt_count · integer输入",
+                  "width": "fill_container",
+                  "fill": "$danger-soft",
+                  "cornerRadius": 8,
+                  "stroke": "$danger",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "H26Iix",
+                      "name": "尝试次数 · attempt_count · integer值",
+                      "fill": "$danger",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "two",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "nH4Ey",
+              "name": "无效整数",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "请输入整数。已保留原文 two；不能提交先前的有效值 2。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "mZUEC",
+              "name": "继续检查 · boolean · 必填",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mU95l",
+                  "name": "继续检查 · boolean · 必填标签",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "继续检查 · boolean · 必填",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "LnoE2",
+                  "name": "继续检查 · boolean · 必填输入",
+                  "width": "fill_container",
+                  "fill": "$bg-surface",
+                  "cornerRadius": 8,
+                  "stroke": "$border-strong",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BcS9q",
+                      "name": "继续检查 · boolean · 必填值",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "未提供  ▾",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "WJW4b",
+              "name": "布尔值缺失",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "请选择 true 或 false；未提供与 false 不相同。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "mbj2h",
+              "name": "本地状态",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "切换样本保留各自编辑；采用新目标后，保留样本并重新检查。",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yzsrB",
+          "name": "保存阻挡",
+          "width": "fill_container",
+          "stroke": "$border-soft",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "fhnAb",
+              "name": "错误汇总",
+              "fill": "$danger",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "2 个字段需修正 · 当前编辑尚未保存",
+              "lineHeight": 1.45,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "N5Yotq",
+              "name": "审查保存按钮",
+              "width": "fill_container",
+              "fill": "$bg-muted",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Hak0d",
+                  "name": "审查保存文字",
+                  "fill": "$text-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "审查保存",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rsdRt",
+              "name": "放弃编辑按钮",
+              "width": "fill_container",
+              "fill": "$bg-surface",
+              "cornerRadius": 8,
+              "stroke": "$border-strong",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tYl2C",
+                  "name": "放弃编辑文字",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "放弃编辑",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "EvMyK",
+      "x": 4980,
+      "y": 5144,
+      "name": "Workflow 合同与评测 · 状态及交互说明 · Local R1",
+      "width": 1040,
+      "fill": "$bg-surface",
+      "layout": "vertical",
+      "gap": 18,
+      "padding": 24,
+      "children": [
+        {
+          "type": "text",
+          "id": "k5lut",
+          "name": "局部设计 · 状态与恢复",
+          "fill": "$text-primary",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "局部设计 · 状态与恢复",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-sans",
+          "fontSize": 26,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "fxKbv",
+          "name": "新建与来源",
+          "width": "fill_container",
+          "fill": "$action-soft",
+          "cornerRadius": 8,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "Nc7a9",
+              "name": "新建与来源",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "新建与来源",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "L9ilF",
+              "name": "新建普通草案（v1）    新建结构化输入草案（v2）",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "新建普通草案（v1）    新建结构化输入草案（v2）\n类型在新建时选择；不会用切换开关隐式丢弃合同。\n从 Definition v2 派生 → 新的本地草案，保留完整合同；原 Definition 不可修改。",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LT8Qy",
+          "name": "字段错误与顺序",
+          "width": "fill_container",
+          "fill": "$danger-soft",
+          "cornerRadius": 8,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "CSZH1",
+              "name": "字段错误与顺序",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "字段错误与顺序",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "C2KG8U",
+              "name": "字段 02 · error_log",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "字段 02 · error_log\n名称重复，需修改后保存。原文保留；错误定位到字段。\n添加上限 16；首字段禁止上移，末字段禁止下移。删除字段后重新校验引用。",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KQinH",
+          "name": "参考读取失败与变化",
+          "width": "fill_container",
+          "fill": "$warning-soft",
+          "cornerRadius": 8,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "pyWeS",
+              "name": "参考读取失败与变化",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "参考读取失败与变化",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "radBn",
+              "name": "读取当前执行依据失败 → 保留计划中已有的精确目标和本地样本；不提供采用动作。",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "读取当前执行依据失败 → 保留计划中已有的精确目标和本地样本；不提供采用动作。\n重试读取 → 展示最新版本与合同，显式采用后重新校验样本。\n重读未改变目标时不清空编辑；改变版本族立即作废待采用的旧响应。",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "R3U6D",
+          "name": "高级 JSON 与样本切换",
+          "width": "fill_container",
+          "fill": "$bg-muted",
+          "cornerRadius": 8,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "hop3a",
+              "name": "高级 JSON 与样本切换",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "高级 JSON 与样本切换",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "YhHP5",
+              "name": "JSON 语法错误保留完整原文，表单不可从旧 JSON 恢复出“有效”状态。",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "JSON 语法错误保留完整原文，表单不可从旧 JSON 恢复出“有效”状态。\n无效字段先修正，才能转为可提交的结构化 JSON。\n切换样本保留每项编辑；审查摘要仅来自当前有效编辑。",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ml6Vi",
+          "name": "放弃与离开确认",
+          "width": "fill_container",
+          "fill": "$warning-soft",
+          "cornerRadius": 8,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "heWY3",
+              "name": "放弃与离开确认",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "放弃与离开确认",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "gDjgo",
+              "name": "有未保存修改",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "有未保存修改\n继续编辑    放弃修改并离开\n采用新目标保留样本原文；无法映射的字段明确列出，不静默删除。",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jMY45",
+          "name": "验证与键盘顺序",
+          "width": "fill_container",
+          "fill": "$bg-muted",
+          "cornerRadius": 8,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "NBMZp",
+              "name": "验证与键盘顺序",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "验证与键盘顺序",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "boNME",
+              "name": "Desktop：合同 → 有序字段 → 保存；390px：每个字段按名称、类型、必填、标签、说明、排序排列。",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Desktop：合同 → 有序字段 → 保存；390px：每个字段按名称、类型、必填、标签、说明、排序排列。\n评测：版本族 → 读取 → 精确来源 → 采用 → 样本 → 错误 → 审查。\n键盘可达所有字段与排序动作；错误文本绑定输入；禁用按钮需在旁说明原因。\n本地设计复核完成后进入实现；未记录为项目所有者视觉批准。",
+              "lineHeight": 1.5,
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
     }
   ],
   "variables": {

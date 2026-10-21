@@ -1,5 +1,6 @@
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
 import {
+  isSavedWorkflowDraftDocument,
   savedWorkflowDraftHeadersForApplication,
   workflowDraftFromSavedWorkflowDraftDocument,
   type SavedWorkflowDraftDocument,
@@ -198,6 +199,7 @@ export async function readWorkflowSavedDraftRevision(
   if (envelope.failure_code || !envelope.revision?.draft) {
     throw new Error(`草案修订读取失败：${envelope.failure_code ?? "draft_revision_missing"}。`);
   }
+  if (!isSavedWorkflowDraftDocument(envelope.revision.draft) || envelope.revision.draft.draft_id !== draft.draftId || envelope.revision.draft.draft_version !== draftVersion || envelope.revision.draft.workspace_id !== config.workspaceId || envelope.revision.draft.application_id !== draft.applicationRef) throw new Error("saved_workflow_draft_revision_scope_invalid");
   return {
     schemaVersion: envelope.revision.schema_version,
     revisionKind: envelope.revision.revision_kind,
@@ -240,6 +242,7 @@ export async function restoreWorkflowSavedDraftRevision(
       summary: `恢复未执行：${envelope.failure_code ?? "draft_revision_restore_failed"}。`,
     };
   }
+  if (!isSavedWorkflowDraftDocument(envelope.draft) || envelope.draft.draft_id !== draft.draftId || envelope.draft.draft_version !== envelope.current_draft_version || envelope.draft.workspace_id !== config.workspaceId || envelope.draft.application_id !== draft.applicationRef) throw new Error("saved_workflow_draft_restore_scope_invalid");
   return {
     draft: workflowDraftFromSavedWorkflowDraftDocument(envelope.draft),
     currentDraftVersion: envelope.current_draft_version,

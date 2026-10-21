@@ -12,10 +12,11 @@ type Props = {
   drafts: StructuredRuntimeInputDrafts;
   fieldErrors: Record<string, StructuredRuntimeInputFieldError>;
   disabled?: boolean;
+  boundary?: string;
   onChange: (drafts: StructuredRuntimeInputDrafts) => void;
 };
 
-export default function StructuredRuntimeInputEditor({ contract, drafts, fieldErrors, disabled = false, onChange }: Props) {
+export default function StructuredRuntimeInputEditor({ contract, drafts, fieldErrors, disabled = false, boundary, onChange }: Props) {
   const { t } = useTranslation("workflow");
   function update(name: string, value: string | boolean | undefined) {
     const next = { ...drafts };
@@ -58,7 +59,7 @@ export default function StructuredRuntimeInputEditor({ contract, drafts, fieldEr
         {fieldErrors[field.name] ? <p className="structured-runtime-input-error" id={`structured-runtime-input-${field.name}-error`} role="alert">{structuredInputErrorMessage(t, fieldErrors[field.name])}</p> : null}
       </div>)}
     </div>
-    <p className="structured-runtime-input-boundary">{t($ => $.input.inputsAreRetainedOnlyForTheCurrentRequestDurableRecords)}</p>
+    <p className="structured-runtime-input-boundary">{boundary ?? t($ => $.input.inputsAreRetainedOnlyForTheCurrentRequestDurableRecords)}</p>
   </fieldset>;
 }
 

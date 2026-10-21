@@ -1,3 +1,4 @@
+import { buildWorkflowExecutorV0Draft } from "./workflowExecutorConsumer.ts";
 import type { WorkflowDraftDesignerDraft, WorkflowDraftDesignerViewModel } from "./workflowDraftDesigner.ts";
 import { initialWorkflowSavedDraftConsumerState, type WorkflowSavedDraftConsumerConfig, type WorkflowSavedDraftConsumerState } from "./savedWorkflowDraftConsumer.ts";
 import { cloneWorkflowDraftForEditing } from "./workflowSavedDraftDerivation.ts";
@@ -81,5 +82,18 @@ export function buildWorkspaceCreatedDraft(
       requestId: `${baseDraft.routeMetadata.requestId}_workspace_${draftNumberLabel}`,
       auditRef: `${baseDraft.routeMetadata.auditRef}_workspace_${draftNumberLabel}`,
     },
+  };
+}
+
+export function buildWorkflowStructuredInputDraft(source: WorkflowDraftDesignerDraft, draftNumber: number, applicationRef: string): WorkflowDraftDesignerDraft {
+  const draft = buildWorkflowExecutorV0Draft(source, draftNumber, applicationRef);
+  return {
+    ...draft,
+    schemaVersion: "saved_workflow_draft.v2",
+    workflowDefinitionId: `workflow_structured_${crypto.randomUUID()}`,
+    label: `Structured input workflow ${String(draftNumber).padStart(2, "0")}`,
+    executionProfile: "executor_v2",
+    requestedCapabilities: [],
+    inputContract: { contractId: "workflow_input", summary: "", fields: [{ name: "input_text", valueType: "string", required: true, label: "Input", description: "" }] },
   };
 }

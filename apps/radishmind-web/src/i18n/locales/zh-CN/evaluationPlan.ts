@@ -1,4 +1,17 @@
 export const evaluationPlan = {
+  "workflowRegressionBoundary": "Campaign 配对用于同一精确计划版本的重复运行。跨 Definition 版本请使用精确 Run → Comparison → Case / Suite；changed 分类不代表答案质量改善。",
+  "referenceAdopt": "采用引用并检查样本",
+  "referenceContract": "输入合同 · digest · 有序字段",
+  "referenceVersion": "Definition 版本 · 激活指针",
+  "referenceInactive": "当前没有可采用的受支持活动版本。",
+  "referenceFailed": "读取失败。计划目标与本地样本已保留，请显式重读。",
+  "referenceLoading": "正在读取当前引用…",
+  "referenceRead": "读取当前引用",
+  "referenceSelect": "选择版本族",
+  "referenceFamily": "Definition 版本族",
+  "referenceBoundary": "先读取列表，选择版本族，再读取当前激活依据。采用只更新目标，本地样本保留待检查。",
+  "referenceTitle": "读取当前 Definition 引用",
+  "fixturePersistence": "只有明确保存的计划样本会持久化；不从历史运行导入输入值。",
   "immutablePlansLabel": "不可变评测计划",
   "immutablePlans": "不可变计划",
   "plansLabel": "当前应用的评测计划",
@@ -23,7 +36,7 @@ export const evaluationPlan = {
   "fixtureUnavailable": "结构化夹具编辑器不可用",
   "fixtureRequirement": "加载精确 v2 Definition 目标契约及有效有序夹具后，可使用类型化编辑。",
   "typedInput": "类型化夹具输入",
-  "fixtureValidation": "输入值通过不可变 Definition 契约校验后，才会更新夹具 JSON。",
+  "fixtureValidation": "表单与高级 JSON 共用当前草稿；无效原文会保留并阻止审查。",
   "fixture": "夹具",
   "activeCount_one": "{{count}} 个活动计划",
   "activeCount_other": "{{count}} 个活动计划",
@@ -33,5 +46,5 @@ export const evaluationPlan = {
   "orderedItems_one": "{{count}} 个有序项 · {{profile}}",
   "orderedItems_other": "{{count}} 个有序项 · {{profile}}",
   "planConfirmation": "确认后才会写入；修订使用预期记录版本 {{version}}。",
-  "fixtureInvalid": "请修正结构化夹具字段后再更新 JSON。"
+  "fixtureInvalid": "请修正当前样本后再审查或保存。",
 } as const;

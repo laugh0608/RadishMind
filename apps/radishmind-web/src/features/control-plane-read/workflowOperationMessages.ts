@@ -3,6 +3,7 @@ import type { WorkflowDefinitionCandidateCompatibility } from "./workflowDefinit
 import { workflowDraftStatusLabel } from "./workflowDraftMessages.ts";
 
 export type WorkflowPromotionMessage =
+  | { code: "refreshed" }
   | { code: "created"; id: string; version: number }
   | { code: "reviewed"; decision: "approve" | "reject" }
   | { code: "activated"; decision: "activate" | "replace" | "deactivate"; version: number }
@@ -14,6 +15,7 @@ export type WorkflowPromotionMessage =
 
 export function workflowPromotionMessage(t: TFunction<"workflow">, message: WorkflowPromotionMessage): string {
   switch (message.code) {
+    case "refreshed": return t($ => $.promotion.refreshed);
     case "created": return t($ => $.promotion.created, message);
     case "reviewed": return t($ => $.promotion.reviewed, { decision: workflowDraftStatusLabel(t, message.decision) });
     case "activated": return t($ => $.promotion.activated, { decision: workflowDraftStatusLabel(t, message.decision), version: message.version });

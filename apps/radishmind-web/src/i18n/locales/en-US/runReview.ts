@@ -1,4 +1,5 @@
 export const runReview = {
+  "openEvaluationPlan": "Evaluation plans · repeat exact versions",
   "ownerRegion": "Run and evaluation review owner",
   "handoffOffline": "Run {{runId}} was not loaded because its owner scope is unavailable. No request or replay was started.",
   "handoffLoading": "Loading exact run {{runId}} from its owner.",

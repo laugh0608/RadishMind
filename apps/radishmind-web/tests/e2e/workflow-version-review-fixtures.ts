@@ -1,0 +1,61 @@
+import type { Page, TestInfo } from "@playwright/test";
+import { expect, isEndpoint, selectApplication, type Application } from "./workflow-fixtures";
+
+export async function reviewDefinitionVersions(page: Page, application: Application, ids: string[], info: TestInfo) {
+  const copy = (en: string, zh: string) => info.project.use.locale === "zh-CN" ? zh : en;
+  await page.locator('a.workflow-review-task[href="#workflow-run-comparison"]').click();
+  const rail = page.locator(".workflow-review-pair-rail");
+  await rail.getByRole("combobox").nth(0).selectOption(ids[0]);
+  await rail.getByRole("combobox").nth(1).selectOption(ids[1]);
+  const comparing = page.waitForResponse(response => new URL(response.url()).pathname.endsWith(`/workflow-runs/${ids[1]}/comparison`));
+  await rail.getByRole("button").click();
+  const compared = (await (await comparing).json()).comparison;
+  expect(compared.comparison_state).toBe("comparable");
+  expect(compared.classification).toBe("changed");
+  const comparison = page.locator(".workflow-run-comparison");
+  await expect(comparison).toContainText(ids[0]); await expect(comparison).toContainText(ids[1]);
+  await page.locator('a.workflow-review-task[href="#workflow-evaluation-cases"]').click();
+  const cases = page.locator(".workflow-review-cases");
+  await cases.getByRole("textbox", { name: copy("Case name", "用例名称"), exact: true }).fill("Two immutable version review");
+  await cases.getByRole("combobox", { name: copy("Baseline", "基线"), exact: true }).selectOption(ids[0]);
+  await cases.getByRole("combobox", { name: copy("Candidate", "候选"), exact: true }).selectOption(ids[1]);
+  await cases.getByRole("combobox", { name: copy("Expected classification", "预期分类"), exact: true }).selectOption("changed");
+  await cases.getByRole("button", { name: copy("Add candidate", "添加候选"), exact: true }).click();
+  const creatingCase = page.waitForResponse(response => isEndpoint(response, "/v1/user-workspace/workflow-evaluation-cases", "POST"));
+  await cases.getByRole("button", { name: copy("Create case", "创建用例"), exact: true }).click();
+  const caseBody = await (await creatingCase).json();
+  expect(caseBody.failure_code).toBeNull();
+  const exactCase = caseBody.case;
+  expect(exactCase.baseline_run_id).toBe(ids[0]);
+  expect(exactCase.expectations[0].candidate_run_id).toBe(ids[1]);
+  await cases.getByRole("button", { name: copy("Review case", "审查用例"), exact: true }).click();
+  await expect(cases.locator(".workflow-evaluation-review")).toContainText(ids[1]);
+  await page.locator('a.workflow-review-task[href="#workflow-evaluation-release-review"]').click();
+  const suite = page.locator(".workflow-review-release");
+  await suite.getByRole("textbox", { name: copy("Suite name", "套件名称"), exact: true }).fill("Exact version suite");
+  await suite.getByRole("combobox", { name: copy("Evaluation case", "评测用例"), exact: true }).selectOption(exactCase.case_id);
+  await expect(suite.getByRole("spinbutton")).toHaveValue("1");
+  await suite.getByRole("button", { name: copy("Add exact version", "添加精确版本"), exact: true }).click();
+  const creatingSuite = page.waitForResponse(response => isEndpoint(response, "/v1/user-workspace/workflow-evaluation-suites", "POST"));
+  await suite.getByRole("button", { name: copy("Create suite", "创建套件"), exact: true }).click();
+  const suiteBody = await (await creatingSuite).json();
+  expect(suiteBody.failure_code).toBeNull();
+  expect(suiteBody.suite.case_refs).toEqual([{ case_id: exactCase.case_id, version: 1 }]);
+  await suite.locator(".workflow-run-history-live-row").click();
+  await expect(suite.locator(".workflow-evaluation-review h5")).toHaveText(copy("Passed", "通过"));
+  await suite.getByRole("combobox", { name: copy("Human decision", "人工决定"), exact: true }).selectOption("needs_review");
+  await suite.getByRole("button", { name: copy("Record decision v1", "记录决定 v1"), exact: true }).click();
+  await expect(suite.locator(".workflow-review-decision-history > div")).toHaveCount(1);
+  for (const width of [1440, 1200, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    await suite.screenshot({ style: ".product-nav { visibility: hidden !important; }", path: info.outputPath(`version-suite-${width}.png`) });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload(); await selectApplication(page, application);
+  await page.locator(".product-nav").getByRole("link", { name: copy("Run history", "运行记录"), exact: true }).click();
+  await page.locator('a.workflow-review-task[href="#workflow-evaluation-release-review"]').click();
+  await suite.locator(".workflow-run-history-live-row").click();
+  await expect(suite.locator(".workflow-review-decision-history > div")).toHaveCount(1);
+  await expect(suite.locator(".workflow-evaluation-review")).toContainText(exactCase.case_id);
+}

@@ -1,4 +1,9 @@
 export const workflowInspectionProjection = {
+  "structuredContractLabel": "Structured input contract",
+  "structuredContractSummary": "Check field order, types, required flags and contract identity before server validation.",
+  "structuredProfileLabel": "Structured input execution profile",
+  "structuredProfileSummary": "Review an immutable Definition and explicitly activate it before running with structured inputs.",
+
   "validationDraft": "Draft",
   "executorGraphChecks": "Executor v0 graph checks",
   "executorGraphSummary": "Checks cover the bounded node allowlist, graph topology, low-risk boundary, and external side-effect locks.",

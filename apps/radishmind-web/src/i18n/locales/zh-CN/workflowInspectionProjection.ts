@@ -1,4 +1,9 @@
 export const workflowInspectionProjection = {
+  "structuredContractLabel": "结构化输入合同",
+  "structuredContractSummary": "检查有序字段、类型、必填性与合同身份，再交由服务端校验。",
+  "structuredProfileLabel": "结构化输入执行档案",
+  "structuredProfileSummary": "须先审查不可变 Definition 并显式激活，再使用结构化输入运行。",
+
   "orphanConnected": "每个投影节点都至少有一条入边或出边。",
   "orphanDisconnected": "有节点未连接到草案图。",
   "inputExecutorContract": "检查受限用户输入是否明确，供服务端重新校验。",

@@ -146,6 +146,7 @@ export default function WorkflowReviewWorkspace({
               </a>
             );
           })}
+          <a className="secondary-action" href="#application-evaluation-plan">{t($ => $.runReview.openEvaluationPlan)}</a>
           <p className="workflow-review-boundary">
             <span aria-hidden="true">!</span>
             {t($ => $.runReview.approvedIsAppendOnlyReviewEvidenceItNever)}</p>

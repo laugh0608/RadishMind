@@ -20,6 +20,7 @@ import {
   serializeApplicationEvaluationItems,
   serializeApplicationEvaluationTarget,
   type ApplicationEvaluationConfig,
+  type ApplicationEvaluationDefinitionTarget,
   type ApplicationEvaluationCampaign,
   type ApplicationEvaluationFailureCode,
   type ApplicationEvaluationPairEnvelope,
@@ -54,11 +55,12 @@ const PlanOwner = lazy(() => import("./ApplicationEvaluationPlanOwner.tsx").then
 const ApplicationEvaluationScheduleOwner = lazy(() => import("./ApplicationEvaluationScheduleOwner.tsx"));
 const ApplicationEvaluationPairHandoffOwner = lazy(() => import("./ApplicationEvaluationPairHandoffOwner.tsx"));
 
-type PromptNavigation =
+type PlanNavigation =
   | { kind: "task"; task: EvaluationTask }
   | { kind: "plan"; planId: string }
   | { kind: "profile"; profile: ApplicationEvaluationProfile }
-  | { kind: "loadOtherProfile" };
+  | { kind: "loadOtherProfile" }
+  | { kind: "link"; hash: string };
 
 export default function ApplicationEvaluationWorkspace({ applicationId, applicationKind, applicationActive, config }: EvaluationPanelProps & { config: ApplicationEvaluationConfig }) {
   const { t } = useTranslation("evaluation");
@@ -76,12 +78,16 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
   const [promptOperationPending, setPromptOperationPending] = useState(false);
   const [promptDraftDirty, setPromptDraftDirty] = useState(false);
   const [promptEditorEpoch, setPromptEditorEpoch] = useState(0);
-  const [promptNavigation, setPromptNavigation] = useState<PromptNavigation | null>(null);
+  const [planNavigation, setPlanNavigation] = useState<PlanNavigation | null>(null);
   const operationPending = campaignOperationPending || promptOperationPending;
   const [planName, setPlanName] = useState(initialTemplate.name);
   const [profile, setProfile] = useState<ApplicationEvaluationProfile>(initialTemplate.executionProfile);
   const [targetJSON, setTargetJSON] = useState(() => serializeApplicationEvaluationTarget(initialTemplate.target));
   const [itemsJSON, setItemsJSON] = useState(() => serializeApplicationEvaluationItems(initialTemplate.items));
+  const [editorBaseline, setEditorBaseline] = useState(() => ({ name: initialTemplate.name, profile: initialTemplate.executionProfile,
+    target: serializeApplicationEvaluationTarget(initialTemplate.target), items: serializeApplicationEvaluationItems(initialTemplate.items) }));
+  const workflowDraftDirty = profile !== "prompt_application_invocation_v1" && (planName !== editorBaseline.name || profile !== editorBaseline.profile || targetJSON !== editorBaseline.target || itemsJSON !== editorBaseline.items);
+  const draftDirty = promptDraftDirty || workflowDraftDirty;
   const [pendingPlanOperation, setPendingPlanOperation] = useState<PendingPlanOperation | null>(null);
   const [quotaAPIKeyId, setQuotaAPIKeyId] = useState("");
   const [clientCampaignKey, setClientCampaignKey] = useState(() => newCampaignKey(applicationId));
@@ -90,6 +96,8 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
   const [candidateCampaignId, setCandidateCampaignId] = useState("");
   const [pairEnvelope, setPairEnvelope] = useState<ApplicationEvaluationPairEnvelope | null>(null);
   const [handoffConfirmation, setHandoffConfirmation] = useState(false);
+  const region = useRef<HTMLElement>(null);
+  const discardDialog = useRef<HTMLDivElement>(null);
   const requestGeneration = useRef(0);
   const scopeGeneration = useRef(0);
   const operationInFlight = useRef(false);
@@ -197,8 +205,8 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
         if (current) window.history.replaceState(window.history.state, "", `#${current.anchor}`);
         return;
       }
-      if (task !== activeTask && profile === "prompt_application_invocation_v1" && promptDraftDirty) {
-        setPromptNavigation({ kind: "task", task });
+      if (task !== activeTask && draftDirty) {
+        setPlanNavigation({ kind: "task", task });
         const current = TASK_ROUTES.find(candidate => candidate.id === activeTask);
         if (current) window.history.replaceState(window.history.state, "", `#${current.anchor}`);
         return;
@@ -213,32 +221,71 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
     synchronizeTask();
     window.addEventListener("hashchange", synchronizeTask);
     return () => window.removeEventListener("hashchange", synchronizeTask);
-  }, [activeTask, operationPending, profile, promptDraftDirty]);
+  }, [activeTask, operationPending, draftDirty]);
 
-  useEffect(() => { if (!promptDraftDirty) setPromptNavigation(null); }, [promptDraftDirty]);
+  useEffect(() => { if (!draftDirty) setPlanNavigation(null); }, [draftDirty]);
+  useEffect(() => {
+    if (!workflowDraftDirty) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [workflowDraftDirty]);
 
-  function navigatePrompt(action: PromptNavigation) {
-    if (operationPending) return;
-    if (profile === "prompt_application_invocation_v1" && promptDraftDirty) {
-      setPromptNavigation(action);
-      return;
-    }
-    applyPromptNavigation(action);
+  useEffect(() => {
+    if (!draftDirty || activeTask !== "plan") return;
+    const guardLink = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !region.current?.getClientRects().length) return;
+      const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!link || link.target || link.hasAttribute("download")) return;
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin !== window.location.origin || destination.pathname !== window.location.pathname || !destination.hash || destination.hash === window.location.hash) return;
+      event.preventDefault(); event.stopPropagation();
+      const task = TASK_ROUTES.find(route => `#${route.anchor}` === destination.hash);
+      setPlanNavigation(task ? { kind: "task", task: task.id } : { kind: "link", hash: destination.hash });
+    };
+    document.addEventListener("click", guardLink, true);
+    return () => document.removeEventListener("click", guardLink, true);
+  }, [draftDirty, activeTask]);
+  useEffect(() => { if (planNavigation) discardDialog.current?.focus(); }, [planNavigation]);
+
+  function editPlan(setter: (value: string) => void, value: string) {
+    setPendingPlanOperation(null);
+    setter(value);
+  }
+  function adoptTarget(target: ApplicationEvaluationDefinitionTarget) {
+    setProfile(target.inputContract ? "workflow_definition_executor_v2" : "workflow_definition_executor_v1");
+    setTargetJSON(serializeApplicationEvaluationTarget({ workflowDefinition: target }));
+    setPendingPlanOperation(null);
   }
 
-  function applyPromptNavigation(action: PromptNavigation) {
+  function navigatePlan(action: PlanNavigation) {
     if (operationPending) return;
-    setPromptNavigation(null);
+    if (draftDirty) {
+      setPlanNavigation(action);
+      return;
+    }
+    applyPlanNavigation(action);
+  }
+
+  function applyPlanNavigation(action: PlanNavigation) {
+    if (operationPending) return;
+    setPlanNavigation(null);
+    if (workflowDraftDirty) {
+      setPlanName(editorBaseline.name); setProfile(editorBaseline.profile);
+      setTargetJSON(editorBaseline.target); setItemsJSON(editorBaseline.items);
+      setPendingPlanOperation(null);
+    }
     setPromptDraftDirty(false);
     setPromptEditorEpoch(epoch => epoch + 1);
     if (action.kind === "task") activateTask(action.task);
     else if (action.kind === "plan") void loadExactPlan(action.planId);
     else if (action.kind === "profile") applyTemplate(action.profile);
+    else if (action.kind === "link") window.location.hash = action.hash;
     else loadVersionIntoEditor();
   }
 
   function chooseTask(task: EvaluationTask) {
-    if (task !== activeTask) navigatePrompt({ kind: "task", task });
+    if (task !== activeTask) navigatePlan({ kind: "task", task });
   }
 
   function activateTask(task: EvaluationTask) {
@@ -258,6 +305,8 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
 
   function applyTemplate(nextProfile: ApplicationEvaluationProfile) {
     const template = applicationEvaluationPlanTemplate(nextProfile);
+    setEditorBaseline({ name: template.name, profile: nextProfile,
+      target: serializeApplicationEvaluationTarget(template.target), items: serializeApplicationEvaluationItems(template.items) });
     setProfile(nextProfile);
     setPlanName(template.name);
     setTargetJSON(serializeApplicationEvaluationTarget(template.target));
@@ -268,6 +317,8 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
 
   function loadVersionIntoEditor() {
     if (!selectedVersion) return;
+    setEditorBaseline({ name: selectedVersion.name, profile: selectedVersion.executionProfile,
+      target: serializeApplicationEvaluationTarget(selectedVersion.target), items: serializeApplicationEvaluationItems(selectedVersion.items) });
     setPlanName(selectedVersion.name);
     setProfile(selectedVersion.executionProfile);
     setTargetJSON(serializeApplicationEvaluationTarget(selectedVersion.target));
@@ -293,6 +344,12 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
 
   async function confirmPlanOperation() {
     if (!pendingPlanOperation || writeBlocked) return;
+    if (pendingPlanOperation.kind !== "archive") {
+      try {
+        const current = parseApplicationEvaluationPlanDraft(planName, profile, targetJSON, itemsJSON);
+        if (JSON.stringify(current) !== JSON.stringify(pendingPlanOperation.draft)) throw new Error("Draft changed after review.");
+      } catch { setPendingPlanOperation(null); setMessage({ kind: "invalidPlan" }); return; }
+    }
     if (operationInFlight.current) return;
     operationInFlight.current = true;
     const generation = scopeGeneration.current;
@@ -328,6 +385,7 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
         return;
       }
       setPendingPlanOperation(null);
+      setEditorBaseline({ name: planName, profile, target: targetJSON, items: itemsJSON });
       await loadPlanOwner(envelope.plan.planId);
       if (generation !== scopeGeneration.current) return;
       setMessage({ kind: "planSavedMessage", operation: pendingPlanOperation.kind, id: envelope.plan.planId, version: envelope.version.planVersion });
@@ -483,6 +541,7 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
   return (
     <section
       className="application-evaluation-workspace"
+      ref={region}
       id="application-evaluation-campaign"
       aria-labelledby="application-evaluation-title"
       data-active-task={activeTask}
@@ -537,7 +596,7 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
               selectedPlanId={selectedPlanId}
               loadState={loadState}
               disabled={operationPending}
-              onSelect={(planId) => { if (planId !== selectedPlanId) navigatePrompt({ kind: "plan", planId }); }}
+              onSelect={(planId) => { if (planId !== selectedPlanId) navigatePlan({ kind: "plan", planId }); }}
             />
             <main className="application-evaluation-owner">
               {profile === "prompt_application_invocation_v1" ? <PromptPlanOwner
@@ -550,10 +609,12 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
                 onReload={() => loadPlanOwner(selectedPlanId)}
                 onBusyChange={setPromptOperationPending}
                 onDirtyChange={setPromptDraftDirty}
-                onProfileChange={next => navigatePrompt({ kind: "profile", profile: next })}
-                onLoadOtherProfile={() => navigatePrompt({ kind: "loadOtherProfile" })}
+                onProfileChange={next => navigatePlan({ kind: "profile", profile: next })}
+                onLoadOtherProfile={() => navigatePlan({ kind: "loadOtherProfile" })}
                 onOpenCampaign={() => chooseTask("campaign")}
               /> : <PlanOwner
+                config={config}
+                onAdoptTarget={adoptTarget}
                 profile={profile}
                 planName={planName}
                 targetJSON={targetJSON}
@@ -563,11 +624,11 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
                 pending={pendingPlanOperation}
                 writeBlocked={writeBlocked}
                 operationPending={operationPending}
-                onProfileChange={applyTemplate}
-                onPlanNameChange={setPlanName}
-                onTargetJSONChange={setTargetJSON}
-                onItemsJSONChange={setItemsJSON}
-                onLoadVersion={loadVersionIntoEditor}
+                onProfileChange={next => navigatePlan({ kind: "profile", profile: next })}
+                onPlanNameChange={value => editPlan(setPlanName, value)}
+                onTargetJSONChange={value => editPlan(setTargetJSON, value)}
+                onItemsJSONChange={value => editPlan(setItemsJSON, value)}
+                onLoadVersion={() => navigatePlan({ kind: "loadOtherProfile" })}
                 onReview={reviewPlan}
                 onReviewArchive={() => setPendingPlanOperation({ kind: "archive", draft: null })}
                 onCancel={() => setPendingPlanOperation(null)}
@@ -641,10 +702,10 @@ export default function ApplicationEvaluationWorkspace({ applicationId, applicat
         </div>
       </div>
 
-      {promptNavigation ? <div className="application-evaluation-confirmation" role="alertdialog" aria-label={t($ => $.promptPlan.discardTitle)} aria-modal="false">
-        <strong>{t($ => $.promptPlan.discardTitle)}</strong><p>{t($ => $.promptPlan.discardBoundary)}</p>
-        <div><button type="button" className="secondary-action" disabled={operationPending} onClick={() => setPromptNavigation(null)}>{t($ => $.promptPlan.keepEditing)}</button>
-          <button type="button" disabled={operationPending} onClick={() => applyPromptNavigation(promptNavigation)}>{t($ => $.promptPlan.discardContinue)}</button></div>
+      {planNavigation ? <div ref={discardDialog} tabIndex={-1} className="application-evaluation-confirmation" role="alertdialog" aria-label={t($ => $.campaign.discardTitle)} aria-modal="false">
+        <strong>{t($ => $.campaign.discardTitle)}</strong><p>{t($ => $.campaign.discardBoundary)}</p>
+        <div><button type="button" className="secondary-action" disabled={operationPending} onClick={() => setPlanNavigation(null)}>{t($ => $.campaign.keepEditing)}</button>
+          <button type="button" disabled={operationPending} onClick={() => applyPlanNavigation(planNavigation)}>{t($ => $.campaign.discardContinue)}</button></div>
       </div> : null}
       {operationPending ? <p role="status">{t($ => $.campaign.pendingOperation)}</p> : null}
       {failureCode || message ? (

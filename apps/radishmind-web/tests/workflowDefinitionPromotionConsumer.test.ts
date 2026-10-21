@@ -9,6 +9,10 @@ import {
   deriveWorkflowDraftFromDefinitionVersion,
   evaluateWorkflowDefinitionCandidateCompatibility,
   listWorkflowDefinitionCandidates,
+  listWorkflowDefinitionVersions,
+  readWorkflowDefinitionActivation,
+  readWorkflowDefinitionPromotionAuthority,
+  decideWorkflowDefinitionActivation,
   startWorkflowDefinitionRun,
   type WorkflowDefinitionPromotionConfig,
   type WorkflowDefinitionVersion,
@@ -239,3 +243,58 @@ test("rejected promotion preserves the server failure code independently of its 
     (error: unknown) => error instanceof WorkflowDefinitionPromotionFailure && error.failureCode === "workflow_definition_activation_denied",
   );
 });
+
+test("promotion authority requires matching lineage, version and digest from both reads", async () => {
+  const activation = activationDocument();
+  const versions = [versionDocument()];
+  globalThis.fetch = async (url) => String(url).includes("/versions?")
+    ? json({ request_id: "request_list", workspace_id: live.workspaceId, application_id: applicationId, definition_id: "definition_demo", versions, failure_code: null, audit_ref: "audit_list" })
+    : json(releaseEnvelope({ activation }));
+  const result = await readWorkflowDefinitionPromotionAuthority(live, applicationId, "definition_demo");
+  assert.equal(result.activation?.activeDefinitionDigest, result.versions[0]?.definitionDigest);
+  activation.active_definition_digest = `sha256:${"b".repeat(64)}`;
+  await assert.rejects(() => readWorkflowDefinitionPromotionAuthority(live, applicationId, "definition_demo"), /workflow_definition_authority_mismatch/u);
+  activation.active_definition_digest = digest;
+  activation.active_version = 2;
+  await assert.rejects(() => readWorkflowDefinitionPromotionAuthority(live, applicationId, "definition_demo"), /workflow_definition_authority_mismatch/u);
+  activation.active_version = 1;
+  versions.push(versionDocument());
+  await assert.rejects(() => readWorkflowDefinitionPromotionAuthority(live, applicationId, "definition_demo"), /workflow_definition_authority_mismatch/u);
+  versions.splice(0);
+  Object.assign(activation, { state: "inactive", active_version: 0, active_definition_digest: "", pointer_version: 0 });
+  assert.equal((await readWorkflowDefinitionPromotionAuthority(live, applicationId, "definition_demo")).versions.length, 0);
+});
+
+test("promotion authority fails closed on partial reads or missing activation", async () => {
+  for (const failure of ["versions", "activation", "missing"]) {
+    globalThis.fetch = async (url) => {
+      if (String(url).includes(`/${failure}?`)) throw new Error("Synthetic read failure");
+      return String(url).includes("/versions?")
+        ? json({ request_id: "request_list", workspace_id: live.workspaceId, application_id: applicationId, definition_id: "definition_demo", versions: [versionDocument()], failure_code: null, audit_ref: "audit_list" })
+        : json(releaseEnvelope({ activation: failure === "missing" ? null : activationDocument() }));
+    };
+    await assert.rejects(() => readWorkflowDefinitionPromotionAuthority(live, applicationId, "definition_demo"));
+  }
+});
+
+test("release consumers reject nested cross-lineage records and inconsistent pointer state", async () => {
+  globalThis.fetch = async () => json({ request_id: "request_list", workspace_id: live.workspaceId, application_id: applicationId, definition_id: "definition_demo", versions: [{ ...versionDocument(), definition_id: "definition_other" }], failure_code: null, audit_ref: "audit_list" });
+  await assert.rejects(() => listWorkflowDefinitionVersions(live, applicationId, "definition_demo"));
+  for (const drift of [
+    { definition_id: "definition_other" },
+    { state: "inactive" },
+    { active_version: 0 },
+    { pointer_version: 0 },
+    { active_definition_digest: "" },
+  ]) {
+    globalThis.fetch = async () => json(releaseEnvelope({ activation: { ...activationDocument(), ...drift } }));
+    await assert.rejects(() => readWorkflowDefinitionActivation(live, applicationId, "definition_demo"));
+    await assert.rejects(() => decideWorkflowDefinitionActivation(live, applicationId, "definition_demo", { expectedPointerVersion: 0, decision: "activate", version: 1, reason: "Synthetic review." }));
+  }
+});
+
+function activationDocument() {
+  return { schema_version: "workflow_definition_activation.v1", definition_id: "definition_demo", pointer_version: 1,
+    state: "active", active_version: 1, active_definition_digest: digest, events: [],
+    updated_at: "2026-07-19T10:01:00Z", updated_by_actor_ref: "subject_demo_user", request_id: "request_activation", audit_ref: "audit_activation" };
+}
