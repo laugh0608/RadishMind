@@ -1,3 +1,5 @@
+import "./promptExecutionRecovery.css";
+import { isPromptClientKey, promptExecutionNeedsReview } from "./promptExecutionRecovery.ts";
 import PromptVariableInputEditor from "./PromptVariableInputEditor.tsx";
 import { usePromptVariableInput } from "./usePromptVariableInput.ts";
 import { useTranslation } from "react-i18next";
@@ -8,6 +10,7 @@ import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
 import {
   initialPromptApplicationInvocationResult,
   invokePromptApplication,
+  promptCredentialFailure,
   readPromptApplicationInvocationConfig,
   type PromptApplicationInvocationResult,
 } from "./promptApplicationInvocationConsumer.ts";
@@ -44,8 +47,11 @@ export default function PromptApplicationInvocationPanel({
     () => initialPromptApplicationInvocationResult(),
   );
 
+  const [unresolved, setUnresolved] = useState(false);
+
   useEffect(() => {
     clearTransient();
+    setUnresolved(false);
     setClientInvocationKey(newClientInvocationKey());
     setResult(initialPromptApplicationInvocationResult());
   }, [applicationId, workspaceId]);
@@ -100,7 +106,7 @@ export default function PromptApplicationInvocationPanel({
   }
 
   async function invoke() {
-    if (!credentialRef.current || !editor.validation.isValid || editor.busy || result.status === "running") return;
+    if (abortRef.current || !isPromptClientKey(clientInvocationKey) || !credentialRef.current || !editor.validation.isValid || editor.busy || result.status === "running") return;
     const controller = new AbortController();
     abortRef.current = controller;
     const variables = await editor.prepare();
@@ -121,6 +127,7 @@ export default function PromptApplicationInvocationPanel({
     if (abortRef.current !== controller) return;
     abortRef.current = null;
     setResult(next);
+    setUnresolved(previous => promptExecutionNeedsReview(previous, next.failureCode, next.run?.status));
     if (next.run) onRunRecorded?.(next.run.runId);
   }
 
@@ -144,16 +151,25 @@ export default function PromptApplicationInvocationPanel({
               value={clientInvocationKey}
               onChange={(event) => setClientInvocationKey(event.target.value)}
               maxLength={160}
-              disabled={result.status === "running" || editor.busy}
+              disabled={result.status === "running" || editor.busy || unresolved}
             />
           </label>
-          <div className="application-draft-handoff">
-            <button type="button" onClick={() => void invoke()} disabled={!apiKeyId || !editor.validation.isValid || editor.busy || result.status === "running"}>
+          {!isPromptClientKey(clientInvocationKey) ? <p role="alert">{t($ => $.clientKeyInvalid)}</p> : null}
+          <p className="boundary-note">{t($ => $.executionKeyHelp)}</p>
+          {unresolved ? <p role="status">{t($ => $.unknownExecutionHelp)} <a href="#workspace-run-history">{t($ => $.reviewRunHistory)}</a></p> : null}
+          <div className="application-draft-handoff prompt-execution-actions">
+            <button type="button" className="secondary-action" disabled={result.status === "running" || editor.busy || unresolved} onClick={() => {
+              if (abortRef.current) return;
+              setClientInvocationKey(newClientInvocationKey());
+              setResult(initialPromptApplicationInvocationResult());
+            }}>{t($ => $.prepareNewInvocation)}</button>
+            <button type="button" onClick={() => void invoke()} disabled={!apiKeyId || !isPromptClientKey(clientInvocationKey) || !editor.validation.isValid || editor.busy || result.status === "running"}>
               {t($ => $.invoke)}</button>
             {result.status === "running" ? <button type="button" onClick={() => abortRef.current?.abort()}>{t($ => $.cancel)}</button> : null}
             <button type="button" className="secondary-action" onClick={() => {
               clearTransient();
               editor.reset();
+              setUnresolved(false);
               setResult(initialPromptApplicationInvocationResult());
             }}>{t($ => $.clearTransient)}</button>
           </div>
@@ -162,6 +178,11 @@ export default function PromptApplicationInvocationPanel({
           <strong>{t($ => $.transientOutput)}</strong>
           <pre>{result.output || t($ => $.noOutput)}</pre>
           {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureCode === "prompt_invocation_output_contract_failed" ? t($ => $.outputRejected) : t($ => $.failureHelp)}</p> : null}
+          {promptCredentialFailure(result.failureCode) ? <article className="controlled-use-failure-guidance" aria-label={t($ => $.credentialRecovery)}>
+            <p>{t($ => $.credentialFailures[result.failureCode as "api_key_invalid" | "api_key_expired" | "api_key_revoked" | "api_key_scope_denied"])}</p>
+            <p>{t($ => $.noProviderCall)}</p>
+            <a href="#workspace-api-keys">{t($ => $.openApplicationKeys)}</a>
+          </article> : null}
           <ControlledUseFailureGuidance owner="prompt_invocation" failureCode={result.failureCode} />
           <p className="boundary-note">{result.status === "idle" && apiKeyId ? t($ => $.credentialReceived) : t($ => $.invocationStates[result.status])}</p>
         </article>

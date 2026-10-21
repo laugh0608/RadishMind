@@ -1,3 +1,4 @@
+import { isPromptClientKey } from "./promptExecutionRecovery.ts";
 import {
   parseApplicationResultArtifactSummary,
   type ApplicationResultArtifactSummary,
@@ -153,6 +154,34 @@ export async function listPromptApplicationSessions(
   }
 }
 
+export async function readPromptApplicationSession(
+  config: PromptApplicationSessionConfig,
+  applicationId: string,
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<PromptApplicationSessionResult> {
+  if (config.mode === "offline") return initialPromptApplicationSessionResult(config);
+  const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId });
+  try {
+    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(sessionId)}?${query}`, {
+      headers: sessionHeaders(config, applicationId, createRequestId("prompt-session-read"), "application_sessions:read"), signal,
+    });
+    const value: unknown = await response.json();
+    if (!isSessionEnvelope(value, config, applicationId, null) ||
+      !hasExactKeys(value, ["request_id", "tenant_ref", "workspace_id", "application_id", "session", "failure_code", "current_record_version", "current_state", "idempotent_replay", "audit_ref"]) ||
+      value.idempotent_replay !== false ||
+      (value.session !== null && ((value.session as Document).session_id !== sessionId ||
+        value.current_record_version !== (value.session as Document).record_version || value.current_state !== (value.session as Document).state))) {
+      return failed("application_session_response_invalid");
+    }
+    if (!response.ok || value.failure_code || value.session === null) return failed(nullableString(value.failure_code) || "application_session_response_invalid");
+    return { ...initialPromptApplicationSessionResult(config), session: mapSession(value.session as Document) };
+  } catch (error) {
+    return failed(error instanceof DOMException && error.name === "AbortError"
+      ? "application_session_request_canceled" : "application_session_store_unavailable");
+  }
+}
+
 export async function createPromptApplicationSession(
   config: PromptApplicationSessionConfig,
   applicationId: string,
@@ -175,7 +204,7 @@ export async function executePromptApplicationSessionTurn(
   signal?: AbortSignal,
 ): Promise<PromptApplicationSessionResult> {
   if (config.mode === "offline") return initialPromptApplicationSessionResult(config);
-  if (session.state !== "active" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{7,159}$/u.test(clientTurnKey)) {
+  if (session.state !== "active" || !isPromptClientKey(clientTurnKey)) {
     return failed("application_session_payload_invalid");
   }
   return requestSession(

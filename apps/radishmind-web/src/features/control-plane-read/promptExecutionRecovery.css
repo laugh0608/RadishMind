@@ -1,0 +1,51 @@
+/* Existing Prompt action surfaces share the variable editor's control language. */
+:is(.prompt-application-session-panel, .prompt-application-invocation-panel) :is(.prompt-session-controls, .prompt-turn-controls, .prompt-execution-actions) > button {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--rm-action-primary);
+  border-radius: 8px;
+  background: var(--rm-action-primary);
+  color: var(--rm-text-on-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: normal;
+  cursor: pointer;
+}
+:is(.prompt-application-session-panel, .prompt-application-invocation-panel) :is(.prompt-session-controls, .prompt-turn-controls, .prompt-execution-actions) > button.secondary-action {
+  border-color: var(--rm-border-strong);
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+}
+:is(.prompt-session-controls, .prompt-turn-controls, .prompt-execution-actions) > button:disabled { cursor: not-allowed; opacity: 0.55; }
+:is(.prompt-session-controls, .prompt-turn-controls, .prompt-execution-actions) > button:enabled:hover { box-shadow: inset 0 0 0 1px var(--rm-action-primary); }
+:is(.prompt-session-controls, .prompt-turn-controls, .prompt-execution-actions) :is(button, input):focus-visible { outline: 2px solid var(--rm-focus-ring); outline-offset: 2px; }
+.prompt-session-controls .application-publish-list > button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 36px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 8px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: 13px;
+}
+.prompt-session-controls .application-publish-list > button.is-selected { border-color: var(--rm-action-primary); background: var(--rm-action-soft); }
+.prompt-turn-controls > label { display: grid; gap: 5px; }
+.prompt-turn-controls > label > input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: 8px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+  font-size: 13px;
+}

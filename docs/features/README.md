@@ -20,7 +20,7 @@
 
 2026-10-15 新增的 [Prompt 计划结构化编辑](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#隔离浏览器与-react-验收2026-10-21)已于 2026-10-21 完成前端、无服务验证及独立获授权的双语连续交互 / 三视口浏览器验收，新增表面已关闭；分窗口证据见专题和本周周志。
 
-2026-10-21 已批准并实现 [Prompt 调用与会话结构化变量输入](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)，复用五类字段编辑与精确模板参考，已完成双语连续交互、三视口及评测兼容回归，新增表面已关闭；不改变执行权限或真实模型试用暂停决定。
+2026-10-21 已批准并实现 [Prompt 调用与会话结构化变量输入](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)，复用五类字段编辑与精确模板参考，已完成双语连续交互、三视口及评测兼容回归，新增表面已关闭；不改变执行权限或真实模型试用暂停决定。随后批准的四项前端失败恢复修复亦已完成双语隔离验收，沿用同一专题维护。
 
 ## 专题分层
 

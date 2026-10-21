@@ -1,6 +1,7 @@
+import { isPromptClientKey } from "./promptExecutionRecovery.ts";
+
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const TOKEN_PATTERN = /^rmd_dev_key_[a-z2-7]{16}\.[A-Za-z0-9_-]{43}$/u;
-const CLIENT_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,159}$/u;
 const VARIABLE_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{0,63}$/u;
 const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/u;
 const SECRET_MATERIAL = /authorization:|bearer\s|api[_-]?key\s*[:=]|cookie:|password\s*=|secret\s*=|token\s*=|sk-[a-z0-9]|(?:postgres(?:ql)?|mysql|mongodb):\/\//iu;
@@ -108,6 +109,26 @@ export function parsePromptApplicationVariables(raw: string): PromptApplicationI
   }
 }
 
+// Only these pre-dispatch platform failures have a known credential recovery path.
+export function promptCredentialFailure(code: string): code is "api_key_invalid" | "api_key_expired" | "api_key_revoked" | "api_key_scope_denied" {
+  return ["api_key_invalid", "api_key_expired", "api_key_revoked", "api_key_scope_denied"].includes(code);
+}
+
+function credentialRejection(value: unknown, status: number): string | null {
+  if (!isRecord(value) || !hasExactKeys(value, ["error"]) || !isRecord(value.error)) return null;
+  const error = value.error;
+  if (!hasExactKeys(error, ["message", "type", "code", "request_id", "route", "failure_boundary", "metadata"]) ||
+    typeof error.code !== "string" || !promptCredentialFailure(error.code) ||
+    status !== (error.code === "api_key_invalid" ? 401 : 403) ||
+    error.type !== (error.code === "api_key_scope_denied" ? "permission_error" : "authentication_error") ||
+    error.failure_boundary !== "gateway_authentication" ||
+    error.route !== "POST /v1/prompt-applications/invocations" ||
+    !isReference(error.request_id) || typeof error.message !== "string" ||
+    !isRecord(error.metadata) || !hasExactKeys(error.metadata, ["latency_ms"]) ||
+    !integer(error.metadata.latency_ms, 0)) return null;
+  return error.code;
+}
+
 export async function invokePromptApplication(
   config: PromptApplicationInvocationConfig,
   credential: string,
@@ -116,7 +137,7 @@ export async function invokePromptApplication(
   signal?: AbortSignal,
 ): Promise<PromptApplicationInvocationResult> {
   if (!TOKEN_PATTERN.test(credential.trim()) ||
-    !CLIENT_KEY_PATTERN.test(clientInvocationKey.trim()) ||
+    !isPromptClientKey(clientInvocationKey.trim()) ||
     Object.keys(variables).length > 64) {
     return failedResult("prompt_invocation_input_invalid", "调用输入或一次性 credential 不符合约束。");
   }
@@ -137,6 +158,8 @@ export async function invokePromptApplication(
       signal,
     });
     const value: unknown = await response.json();
+    const rejected = credentialRejection(value, response.status);
+    if (rejected) return failedResult(rejected, "Prompt credential rejected before execution.");
     if (!response.ok || !isInvocationEnvelope(value)) {
       return failedResult("prompt_invocation_response_invalid", "调用响应不符合 Prompt Application 契约。");
     }

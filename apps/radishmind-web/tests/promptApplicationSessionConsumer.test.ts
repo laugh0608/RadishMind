@@ -5,6 +5,7 @@ import {
   createPromptApplicationSession,
   executePromptApplicationSessionTurn,
   listPromptApplicationSessions,
+  readPromptApplicationSession,
   type PromptApplicationSessionConfig,
 } from "../src/features/control-plane-read/promptApplicationSessionConsumer.ts";
 
@@ -364,3 +365,33 @@ function mapFixtureSession() {
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
+
+test("Prompt Session recovery reads the exact selected metadata without dispatch or output recovery", async () => {
+  let requests = 0;
+  globalThis.fetch = async (input, init) => {
+    requests++;
+    const url = new URL(String(input));
+    assert.equal(url.pathname, "/v1/user-workspace/application-sessions/appsess_aaaaaaaaaaaaaaaa");
+    assert.equal(url.searchParams.get("application_id"), applicationId);
+    assert.equal(init?.body, undefined);
+    assert.equal(new Headers(init?.headers).get("X-RadishMind-Dev-Read-Scopes"), "application_sessions:read");
+    return jsonResponse(sessionEnvelope());
+  };
+  const read = () => readPromptApplicationSession(config, applicationId, "appsess_aaaaaaaaaaaaaaaa");
+  const result = await read();
+  assert.equal(result.session?.recordVersion, 1);
+  assert.equal(result.output, "");
+  assert.equal(requests, 1);
+  for (const patch of [
+    { session: { ...sessionDocument(), session_id: "appsess_bbbbbbbbbbbbbbbb" } },
+    { workspace_id: "another" }, { current_record_version: 3 }, { current_state: "closed" },
+    { prompt_output: "private" }, { idempotent_replay: true }, { session: null },
+  ]) {
+    globalThis.fetch = async () => jsonResponse({ ...sessionEnvelope(), ...patch });
+    assert.equal((await read()).failureCode, "application_session_response_invalid");
+  }
+  globalThis.fetch = async () => { throw new TypeError("connection lost"); };
+  assert.equal((await read()).failureCode, "application_session_store_unavailable");
+  globalThis.fetch = async () => { throw new DOMException("canceled", "AbortError"); };
+  assert.equal((await read()).failureCode, "application_session_request_canceled");
+});

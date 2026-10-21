@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 
+import "./promptExecutionRecovery.css";
+import { isPromptClientKey, promptExecutionNeedsReview } from "./promptExecutionRecovery.ts";
 import PromptVariableInputEditor from "./PromptVariableInputEditor.tsx";
 import { usePromptVariableInput } from "./usePromptVariableInput.ts";
 import ControlledUseFailureGuidance from "./ControlledUseFailureGuidance.tsx";
@@ -11,6 +13,7 @@ import {
   initialPromptApplicationSessionResult,
   listPromptApplicationSessions,
   readPromptApplicationSessionConfig,
+  readPromptApplicationSession,
   type PromptApplicationSession,
   type PromptApplicationSessionResult,
 } from "./promptApplicationSessionConsumer.ts";
@@ -33,12 +36,16 @@ export default function PromptApplicationSessionPanel({
   const [result, setResult] = useState<PromptApplicationSessionResult>(
     () => initialPromptApplicationSessionResult(config),
   );
-  const editor = usePromptVariableInput(applicationId, workspaceId, result.session);
+  const [selectedSession, setSelectedSession] = useState<PromptApplicationSession | null>(null);
+  const [metadataStale, setMetadataStale] = useState(false);
+  const [unresolved, setUnresolved] = useState(false);
+  const dispatchedRef = useRef(false);
+  const editor = usePromptVariableInput(applicationId, workspaceId, selectedSession);
   const [clientTurnKey, setClientTurnKey] = useState(() => newClientTurnKey());
   const [sessions, setSessions] = useState<PromptApplicationSession[]>([]);
   const [listFailureCode, setListFailureCode] = useState("");
   const [saveResult, setSaveResult] = useState(false);
-  const [pending, setPending] = useState<"" | "list" | "create" | "execute">("");
+  const [pending, setPending] = useState<"" | "list" | "create" | "execute" | "refresh">("");
   const generationRef = useRef(0);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -48,6 +55,9 @@ export default function PromptApplicationSessionPanel({
     const controller = new AbortController();
     controllerRef.current = controller;
     setResult(initialPromptApplicationSessionResult(config));
+    setSelectedSession(null);
+    setMetadataStale(false);
+    setUnresolved(false);
     setSessions([]);
     setListFailureCode("");
     setClientTurnKey(newClientTurnKey());
@@ -63,13 +73,17 @@ export default function PromptApplicationSessionPanel({
     });
     return () => {
       generationRef.current += 1;
-      controller.abort();
+      controllerRef.current?.abort();
       controllerRef.current = null;
     };
   }, [applicationId, workspaceId]);
 
   async function createSession() {
     editor.reset();
+    setSelectedSession(null);
+    setMetadataStale(false);
+    setUnresolved(false);
+    setClientTurnKey(newClientTurnKey());
     const requestGeneration = ++generationRef.current;
     const controller = replaceController();
     setPending("create");
@@ -85,23 +99,26 @@ export default function PromptApplicationSessionPanel({
     setPending("");
     setResult(next);
     if (next.session) {
+      setSelectedSession(next.session);
       setSessions((current) => [next.session!, ...current.filter((item) => item.sessionId !== next.session!.sessionId)]);
     }
   }
 
   async function executeTurn() {
-    if (!result.session || !editor.validation.isValid || editor.busy || pending) return;
+    if (controllerRef.current || !selectedSession || selectedSession.state !== "active" || metadataStale || !isPromptClientKey(clientTurnKey) || !editor.validation.isValid || editor.busy || pending) return;
     const requestGeneration = ++generationRef.current;
     const controller = replaceController();
     const shouldSaveResult = saveResult;
-    setSaveResult(false);
+    dispatchedRef.current = false;
     setPending("execute");
     const variables = await editor.prepare();
     if (requestGeneration !== generationRef.current || controller.signal.aborted) return;
     if (!variables) { controllerRef.current = null; setPending(""); return; }
+    setSaveResult(false);
+    dispatchedRef.current = true;
     const next = await executePromptApplicationSessionTurn(
       config,
-      result.session,
+      selectedSession,
       variables,
       clientTurnKey,
       shouldSaveResult,
@@ -111,7 +128,10 @@ export default function PromptApplicationSessionPanel({
     controllerRef.current = null;
     setPending("");
     setResult(next);
+    setMetadataStale(!next.session);
+    setUnresolved(previous => promptExecutionNeedsReview(previous, next.failureCode, next.turn?.status));
     if (next.session) {
+      setSelectedSession(next.session);
       setSessions((current) => current.map((item) => item.sessionId === next.session!.sessionId ? next.session! : item));
     }
     if (next.turn?.runId) onRunRecorded?.(next.turn.runId);
@@ -119,6 +139,9 @@ export default function PromptApplicationSessionPanel({
 
   function selectSession(session: PromptApplicationSession, summary = "已恢复 metadata-only Session；未恢复变量值或 prompt_output。") {
     editor.reset();
+    setSelectedSession(session);
+    setMetadataStale(false);
+    setUnresolved(false);
     generationRef.current += 1;
     controllerRef.current?.abort();
     controllerRef.current = null;
@@ -133,7 +156,32 @@ export default function PromptApplicationSessionPanel({
     setClientTurnKey(newClientTurnKey());
   }
 
+  async function refreshSession() {
+    if (!selectedSession || pending || editor.busy) return;
+    const requestGeneration = ++generationRef.current;
+    const controller = replaceController();
+    setMetadataStale(true);
+    setPending("refresh");
+    const next = await readPromptApplicationSession(config, applicationId, selectedSession.sessionId, controller.signal);
+    if (requestGeneration !== generationRef.current || controller.signal.aborted) return;
+    controllerRef.current = null;
+    setPending("");
+    if (!next.session) { setResult(next); return; }
+    setSelectedSession(next.session);
+    setMetadataStale(false);
+    setSessions(current => current.map(item => item.sessionId === next.session!.sessionId ? next.session! : item));
+    // Reading metadata does not resolve an interrupted execution or restore its output.
+  }
+
+  function prepareNewTurn() {
+    if (pending || editor.busy || metadataStale || unresolved || !selectedSession) return;
+    setClientTurnKey(newClientTurnKey());
+    setSaveResult(false);
+    setResult({ ...initialPromptApplicationSessionResult(config), session: selectedSession });
+  }
+
   function cancelRequest() {
+    if (pending === "execute" && dispatchedRef.current) { setMetadataStale(true); setUnresolved(true); }
     generationRef.current += 1;
     controllerRef.current?.abort();
     controllerRef.current = null;
@@ -162,30 +210,32 @@ export default function PromptApplicationSessionPanel({
     <section className="prompt-application-session-panel" id="prompt-application-session" aria-label={t($ => $.sessionTitle)}>
       <div className="section-heading compact-heading">
         <div><p className="eyebrow">{t($ => $.sessionTitle)}</p><h4>{t($ => $.sessionMetadata)}</h4></div>
-        <span className={`status-badge ${result.turn?.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{t($ => $.states[result.session?.state ?? result.status])}</span>
+        <span className={`status-badge ${result.turn?.status === "succeeded" ? "good" : result.failureCode ? "bad" : "neutral"}`}>{t($ => $.states[selectedSession?.state ?? result.status])}</span>
       </div>
       <div className="application-publish-layout">
-        <article className="application-publish-create">
-          <strong>{result.session?.sessionId ?? t($ => $.noSession)}</strong>
-          {result.session ? (
+        <article className="application-publish-create prompt-session-controls">
+          <strong>{selectedSession?.sessionId ?? t($ => $.noSession)}</strong>
+          {selectedSession ? (
             <>
-              <code>{result.session.assignmentId} · {t($ => $.assignmentVersion, { version: result.session.assignmentVersion })}</code>
-              <code>{result.session.templateId} · {t($ => $.templateVersionLabel, { version: result.session.templateVersion })}</code>
-              <p>{t($ => $.recordTurns, { version: result.session.recordVersion, count: result.session.turnCount })}</p>
+              <code>{selectedSession.assignmentId} · {t($ => $.assignmentVersion, { version: selectedSession.assignmentVersion })}</code>
+              <code>{selectedSession.templateId} · {t($ => $.templateVersionLabel, { version: selectedSession.templateVersion })}</code>
+              <p>{t($ => $.recordTurns, { version: selectedSession.recordVersion, count: selectedSession.turnCount })}</p>
             </>
           ) : null}
           <button type="button" onClick={() => void createSession()} disabled={config.mode === "offline" || Boolean(pending) || editor.busy}>
             {pending === "create" ? t($ => $.creatingSession) : t($ => $.createSession)}
           </button>
+          <button type="button" className="secondary-action" onClick={() => void refreshSession()} disabled={!selectedSession || Boolean(pending) || editor.busy}>{t($ => $.refreshSession)}</button>
+          {metadataStale ? <p role="status">{t($ => $.sessionMetadataStale)}</p> : null}
           <button type="button" className="secondary-action" onClick={cancelRequest} disabled={!pending}>{t($ => $.cancelRequest)}</button>
           <div className="application-publish-list" aria-label={t($ => $.activeSessions)}>
             {sessions.map((session) => (
               <button
                 type="button"
                 key={session.sessionId}
-                className={result.session?.sessionId === session.sessionId ? "is-selected" : ""}
+                className={selectedSession?.sessionId === session.sessionId ? "is-selected" : ""}
                 disabled={Boolean(pending) || editor.busy}
-                onClick={() => selectSession(session)}
+                onClick={() => session.sessionId === selectedSession?.sessionId ? void refreshSession() : selectSession(session)}
               >
                 <strong>{session.sessionId}</strong>
                 <small>{t($ => $.recordTurns, { version: session.recordVersion, count: session.turnCount })}</small>
@@ -194,10 +244,14 @@ export default function PromptApplicationSessionPanel({
           </div>
           <p className="boundary-note">{listFailureCode ? <>{t($ => $.listFailed)} <code>{listFailureCode}</code></> : pending === "list" ? t($ => $.listLoading) : t($ => $.listedCount, { count: sessions.length })}</p>
         </article>
-        <article className="application-publish-review">
+        <article className="application-publish-review prompt-turn-controls">
           <PromptVariableInputEditor editor={editor} disabled={Boolean(pending) || editor.busy} jsonLabel={t($ => $.turnVariables)} />
-          <label>client_turn_key<input disabled={Boolean(pending) || editor.busy} value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} maxLength={160} /></label>
-          <button type="button" onClick={() => void executeTurn()} disabled={!result.session || !editor.validation.isValid || editor.busy || result.session.state !== "active" || Boolean(pending)}>
+          <label>client_turn_key<input disabled={Boolean(pending) || editor.busy || unresolved} value={clientTurnKey} onChange={(event) => setClientTurnKey(event.target.value)} maxLength={160} /></label>
+          {!isPromptClientKey(clientTurnKey) ? <p role="alert">{t($ => $.clientKeyInvalid)}</p> : null}
+          <p className="boundary-note">{t($ => $.executionKeyHelp)}</p>
+          {unresolved ? <p role="status">{t($ => $.unknownExecutionHelp)} <a href="#workspace-run-history">{t($ => $.reviewRunHistory)}</a></p> : null}
+          <button type="button" className="secondary-action" onClick={prepareNewTurn} disabled={!selectedSession || Boolean(pending) || editor.busy || metadataStale || unresolved}>{t($ => $.prepareNewTurn)}</button>
+          <button type="button" onClick={() => void executeTurn()} disabled={!selectedSession || metadataStale || !isPromptClientKey(clientTurnKey) || !editor.validation.isValid || editor.busy || selectedSession.state !== "active" || Boolean(pending)}>
             {pending === "execute" ? t($ => $.executingTurn) : t($ => $.executeTurn)}
           </button>
         </article>
@@ -205,12 +259,12 @@ export default function PromptApplicationSessionPanel({
       <ApplicationResultArtifactPanel
         config={config}
         applicationId={applicationId}
-        sessionId={result.session?.sessionId ?? ""}
+        sessionId={selectedSession?.sessionId ?? ""}
         saveResult={saveResult}
         onSaveResultChange={setSaveResult}
         latestArtifact={result.resultArtifact}
         latestArtifactFailureCode={result.resultArtifactFailureCode}
-        disabled={!result.session || result.session.state !== "active" || Boolean(pending)}
+        disabled={metadataStale || !selectedSession || selectedSession.state !== "active" || Boolean(pending)}
         onOpenRun={onOpenRun}
       />
       <article className="application-publish-snapshot">
@@ -224,7 +278,7 @@ export default function PromptApplicationSessionPanel({
         ) : null}
         {result.failureCode ? <p className="failure-summary">{result.failureCode}: {result.failureCode === "prompt_invocation_output_contract_failed" ? t($ => $.outputRejected) : t($ => $.failureHelp)}</p> : null}
         <ControlledUseFailureGuidance owner="prompt_session" failureCode={result.failureCode} />
-        <p className="boundary-note">{pending === "create" ? t($ => $.creatingSession) : pending === "execute" ? t($ => $.executingTurn) : result.failureCode === "application_session_request_canceled" ? t($ => $.requestCanceled) : result.status === "offline" ? t($ => $.sessionOffline) : result.failureCode ? t($ => $.sessionFailed) : result.status === "succeeded" ? t($ => $.sessionSucceeded) : result.status === "replayed" ? t($ => $.sessionReplayed) : result.session ? t($ => $.sessionRestored) : t($ => $.sessionCreateHelp)}</p>
+        <p className="boundary-note">{pending === "create" ? t($ => $.creatingSession) : pending === "execute" ? t($ => $.executingTurn) : result.failureCode === "application_session_request_canceled" ? t($ => $.requestCanceled) : result.status === "offline" ? t($ => $.sessionOffline) : result.failureCode ? t($ => $.sessionFailed) : result.status === "succeeded" ? t($ => $.sessionSucceeded) : result.status === "replayed" ? t($ => $.sessionReplayed) : selectedSession ? t($ => $.sessionRestored) : t($ => $.sessionCreateHelp)}</p>
       </article>
       <p className="boundary-note">
         {t($ => $.sessionBoundary)}</p>
