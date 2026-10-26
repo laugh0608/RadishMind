@@ -1,5 +1,7 @@
 # RadishMind Platform Service Layer
 
+`workbench` 子命令提供同源正式 Web、严格公开配置、显式数据生命周期与冷备份恢复；领域 API 与 SQL 继续复用。使用见[工作台运行指南](../../docs/platform/local-persistent-workbench-operations-v1.md)，宿主机浏览器与容器实际运行仍待验收。
+
 本目录承载 `Go` 平台服务层，统一管理 northbound HTTP、Gateway bridge、开发测试态认证、产品 repository 选择与服务生命周期。它是运行时实现入口，不是产品规划、历史 readiness 或完整运维手册的真相源。
 
 ## 服务职责

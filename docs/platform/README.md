@@ -14,12 +14,12 @@
 
 | 方面 | 当前事实 | 本轮关联 |
 | --- | --- | --- |
-| 服务运行 | [运行手册](platform-service-operations-runbook-v1.md)维护配置、路由、启动与排障 | 按已形成的工作台方案实施后同步手册；现有命令不因设计完成而改变 |
+| 服务运行 | [运行手册](platform-service-operations-runbook-v1.md)维护配置、路由、启动与排障 | 独立 `workbench` 入口已实现，见[工作台运行指南](local-persistent-workbench-operations-v1.md)；既有开发命令保留 |
 | 本地身份 | [账户与联合登录](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已有本地账户、Session、成员授权与确定性 OIDC | 复用现有负责模块；真实 Radish 联调与生产认证仍未验收 |
 | 持久化 | [SQLite 专题](local-sqlite-dev-persistence-v1.md)及领域专题已有共享运行时、迁移、存储与重启证据；PostgreSQL 开发测试实现保留 | 本机交付明确数据目录、初始化、版本兼容和恢复，不重建存储抽象 |
 | 提供方运行 | 既有 Gateway 选择、工作进程池与受控开发测试回退已实现 | 真实模型窗口仍暂停，真实故障回退与生产健康状态分别验收 |
 | 工程维护 | [工程健康专题](engineering-health-productization-remediation-v1.md)保留 R2 至 R6 与首个策略切片证据 | 只处理妨碍当前交付的维护问题，不全量拆包 |
-| 生产运行 | [部署说明](../../deploy/README.md)与[生产密钥存储证据](production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md)维护各自边界 | 本机工作台尚未交付；生产密钥、监管、环境隔离、生产交付继续未满足 |
+| 生产运行 | [部署说明](../../deploy/README.md)与[生产密钥存储证据](production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md)维护各自边界 | 本机工作台实现已进入运行验收；生产密钥、监管、环境隔离、生产交付继续未满足 |
 
 ## 历史证据
 

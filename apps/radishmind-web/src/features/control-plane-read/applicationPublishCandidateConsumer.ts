@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { ApplicationApiProtocol } from "./applicationApiIntegrationConsumer.ts";
 
 const APPLICATION_PUBLISH_SCHEMA_VERSION_V1 = "application_publish_candidate.v1";
@@ -205,7 +206,7 @@ type AgentCopilotProfileRefDocument = {
 };
 
 export function readApplicationPublishCandidateConfig(): ApplicationPublishCandidateConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_APPLICATION_PUBLISH_SOURCE?.trim() === DEV_SOURCE ? "dev_application_publish_http" : "offline",
     baseUrl: (env.VITE_RADISHMIND_APPLICATION_PUBLISH_BASE_URL ?? env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL).trim().replace(/\/$/u, ""),

@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { buildWorkflowRAGRequestHeaders } from "./workflowRAGSnapshotConsumer.ts";
 
 const DEV_SOURCE = "dev-workflow-rag-evaluation-http";
@@ -100,7 +101,7 @@ export type WorkflowRAGEvaluationOperationResult = { status: "offline" | "scope_
 type RecordDocument = Record<string, unknown>;
 
 export function readWorkflowRAGEvaluationConfig(): WorkflowRAGEvaluationConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_SOURCE?.trim() === DEV_SOURCE ? "dev_workflow_rag_evaluation_http" : "offline",
     baseUrl: normalizeBaseUrl(env.VITE_RADISHMIND_WORKFLOW_RAG_EVALUATION_BASE_URL ?? env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL),

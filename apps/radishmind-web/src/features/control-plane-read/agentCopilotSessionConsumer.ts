@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import {
   parseApplicationResultArtifactSummary,
   type ApplicationResultArtifactSummary,
@@ -87,7 +88,7 @@ export type AgentCopilotTurnInput = {
 };
 
 export function readAgentCopilotSessionConfig(): AgentCopilotSessionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_APPLICATION_SESSION_SOURCE?.trim() === "dev-application-session-http"
       ? "dev_application_session_http"

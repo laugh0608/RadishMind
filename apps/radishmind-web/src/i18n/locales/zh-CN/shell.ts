@@ -1,4 +1,23 @@
 export const shell = {
+  localPersistence: {
+  "joinTitle": "加入本机工作区",
+  "joinDescription": "账户已注册，但尚未获得当前工作区的成员权限。注册不会自动创建管理员。",
+  "account": "账户 ID",
+  "scope": "目标作用域",
+  "bootstrapSteps": "首次配置时，请先停止工作台，再在终端核对账户与作用域并执行管理员初始化，然后重新启动。已有管理员时，请由管理员添加成员。",
+  "bootstrapVariants": "PowerShell 使用 ./start.ps1；自定义配置和 Docker 请按使用指南替换配置路径与执行载体。重复初始化会被拒绝。",
+  "refreshMembership": "重新检查成员权限",
+  "mode": "本机持久工作台",
+  "mock": "确定性 mock · 不代表模型质量",
+  "remote": "显式远端提供方",
+  "retention": "账户与应用保存到本机；答案需显式保留。",
+  "loading": "正在读取工作区真实数据…",
+  "loadFailed": "工作区数据读取失败。请检查会话、权限和服务状态后重试。",
+  "retry": "刷新重试",
+  "newWorkflow": "创建基本工作流草案",
+  "noWorkflow": "先选择一个 Workflow 应用，再创建草案或打开已保存的草案。",
+  "unsupported": "此功能未纳入本机工作台首轮范围。"
+},
   sourceStates: { idle: "尚未加载", loading: "正在加载", ready: "已就绪", failed: "失败" },
   "links": {
     "overview": "概览",

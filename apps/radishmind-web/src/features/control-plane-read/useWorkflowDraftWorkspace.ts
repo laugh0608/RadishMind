@@ -1,3 +1,4 @@
+import { workbenchConfiguration } from "../../runtime/workbenchConfiguration.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   continueLocalWorkflowDraftAfterVersionConflict, initialWorkflowSavedDraftConsumerState,
@@ -246,6 +247,14 @@ export function useWorkflowDraftWorkspace({
       nextDraftNumber,
       workflowScopedApplicationId,
     );
+    const workbench = workbenchConfiguration();
+    if (workbench) {
+      createdDraft.workflowDefinitionId = `workflow_${crypto.randomUUID()}`;
+      createdDraft.templateRef = "workbench-basic-workflow";
+      createdDraft.label = `Workflow ${nextDraftNumber}`;
+      createdDraft.providerProfileRef = `provider:${workbench.provider_mode}`;
+      createdDraft.nodes = createdDraft.nodes.map(node => node.nodeType === "llm" ? { ...node, providerRef: createdDraft.providerProfileRef } : node);
+    }
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({
       applicationRef: createdDraft.applicationRef,

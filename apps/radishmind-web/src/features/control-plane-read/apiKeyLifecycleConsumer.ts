@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 
 const API_KEY_COLLECTION_PATH = CONTROL_PLANE_READ_ROUTES.apiKeys;
@@ -172,7 +173,7 @@ type APIKeyListEnvelope = {
 };
 
 export function readAPIKeyLifecycleConfig(): APIKeyLifecycleConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE?.trim() === DEV_SOURCE
       ? "dev_api_key_lifecycle_http"

@@ -1,4 +1,23 @@
 export const shell = {
+  localPersistence: {
+  "joinTitle": "Join the local workspace",
+  "joinDescription": "Your account is registered but has no membership in this workspace. Registration does not grant administrator privileges.",
+  "account": "Account ID",
+  "scope": "Target scope",
+  "bootstrapSteps": "For initial setup, stop the workbench, verify the account and scope, run administrator bootstrap in the terminal, then restart. If an administrator already exists, ask them to add your membership.",
+  "bootstrapVariants": "Use ./start.ps1 in PowerShell. For custom configurations or Docker, use the configuration path and execution method in the guide. Repeated bootstrap is rejected.",
+  "refreshMembership": "Check membership again",
+  "mode": "Local persistent workbench",
+  "mock": "Deterministic mock · model quality unverified",
+  "remote": "Explicit remote provider",
+  "retention": "Accounts and applications are stored locally; retain answers explicitly.",
+  "loading": "Loading workspace data…",
+  "loadFailed": "Workspace data could not be read. Check your session, permissions and service, then retry.",
+  "retry": "Reload",
+  "newWorkflow": "Create a basic workflow draft",
+  "noWorkflow": "Select a Workflow application, then create or open a saved draft.",
+  "unsupported": "This feature is outside the first local workbench release."
+},
   sourceStates: { idle: "Not loaded", loading: "Loading", ready: "Ready", failed: "Failed" },
   "links": {
     "overview": "Overview",

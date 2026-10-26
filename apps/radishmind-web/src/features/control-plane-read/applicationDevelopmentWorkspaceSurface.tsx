@@ -1,3 +1,4 @@
+import { isLocalWorkbench } from "../../runtime/workbenchConfiguration.ts";
 import "../../i18n/workspaceSurfaceResources.ts";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
@@ -141,6 +142,9 @@ export default function ApplicationDevelopmentWorkspaceSurface({
         ? t($ => $.workspaceSurface.readinessIncompleteSummary, { count: controls.readiness.missingCount })
         : t($ => $.workspaceSurface.readinessReviewableSummary);
 
+  if (isLocalWorkbench() && (context.surfaceKind === "agent_copilot" || (context.surfaceKind === "workflow_rag" && context.applicationKind !== "workflow_copilot") || activeStage === "evidence_review")) {
+    return <article className="application-development-stage-paused"><a href="#workspace-run-history">{t($ => $.workspaceSurface.workflowReviewPath)}</a></article>;
+  }
   if (!activeStage) {
     return (
       <article className="application-development-stage-paused" role="status">
@@ -185,7 +189,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
     <div className="application-development-stage-surfaces">
       {activeStage === "configure_build" ? (
         <StageSurface stage="configure_build" title={t($ => $.workspaceSurface.configureBuild)}>
-          {context.surfaceKind === "workflow_rag" ? (
+          {context.surfaceKind === "workflow_rag" && !isLocalWorkbench() ? (
             <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.knowledgeSnapshots)} />}>
               <WorkflowRAGSnapshotPanel
                 key={`${context.generationKey}:rag-snapshot`}
@@ -224,7 +228,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
 
       {activeStage === "human_promotion" ? (
         <StageSurface stage="human_promotion" title={t($ => $.workspaceSurface.humanPromotion)}>
-          {context.surfaceKind === "workflow_rag" ? (
+          {context.surfaceKind === "workflow_rag" && !isLocalWorkbench() ? (
             <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.workflowRagPromotion)} />}>
               <WorkflowRAGPromotionPanel
                 key={`${context.generationKey}:rag-promotion`}
@@ -257,7 +261,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
               />
             </Suspense>
           )}
-          {context.applicationActive && context.surfaceKind === "workflow_rag" ? (
+          {context.applicationActive && context.surfaceKind === "workflow_rag" && !isLocalWorkbench() ? (
             <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.workflowTemplateCatalog)} />}>
               <WorkflowTemplateCatalogPanel
                 key={`${context.generationKey}:workflow-template-catalog`}
@@ -321,7 +325,7 @@ export default function ApplicationDevelopmentWorkspaceSurface({
                         />
                       </Suspense>
                     ) : null}
-                    {context.surfaceKind === "workflow_rag" ? (
+                    {context.surfaceKind === "workflow_rag" && !isLocalWorkbench() ? (
                       <Suspense fallback={<StageFallback label={t($ => $.workspaceSurface.applicationRagInvocation)} />}>
                         <ApplicationRAGInvocationPanel
                           key={`${context.generationKey}:rag-invocation`}

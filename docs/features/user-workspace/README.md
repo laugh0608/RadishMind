@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [本机持久工作台交付 v1](local-persistent-workbench-delivery-v1.md)：当前主线，规划已确认，宿主机 / Docker 与恢复具体方案已形成，实施范围待确认，尚未实施。统一正式 Web 的创建、运行、结果保存与重启恢复路径。
+- [本机持久工作台交付 v1](local-persistent-workbench-delivery-v1.md)：当前主线，实施已确认，统一配置、启动命令、Web 接线和恢复已实现；宿主机浏览器 / Docker 与独立用户验收待完成。统一正式 Web 的创建、运行、结果保存与重启恢复路径。
 - [应用跨版本回归审查（开发 / 测试态）v1](application-cross-version-regression-review-dev-test-v1.md)：候选、未排期、未实现；持续使用证明批量版本审查负担后再决策，既有配对规则保持。
 - [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。受限委托 P0 与批次 A 至 D 已完成规范契约与三种存储实现、严格 HTTP 接口、逐次授权重验、显式开发测试态运行器、既有评测批次 / 运行记录交接、崩溃后不重放、完整 Pencil、单一 React 严格消费端、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；任务卡关闭，不派生批次 E。
 - [应用结果资产库与受控导出（开发 / 测试态）v1](application-result-artifact-library-controlled-export-dev-test-v1.md)：状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`；批次 A 至 C 的应用作用域严格列表、过滤游标、规范导出、独立导出权限、双数据库索引、严格 Web 消费端、三视口页面与双数据库产品连续链已完成，专题关闭且不复制结果资产 / 生命周期负责模块。

@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { WorkflowSavedDraftConsumerState } from "./savedWorkflowDraftConsumer.ts";
 import type {
   WorkflowDraftDesignerDraft,
@@ -76,7 +77,7 @@ type WorkflowRunEnvelopeDocument = {
 };
 
 export function readWorkflowExecutorConsumerConfig(): WorkflowExecutorConsumerConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const source = env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE?.trim();
   return {
     mode: source === DEV_EXECUTOR_SOURCE ? "dev_workflow_executor_http" : "disabled",

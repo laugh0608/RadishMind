@@ -2,7 +2,7 @@
 
 更新时间：2026-10-26
 
-状态：方向与规划已确认；2026-10-26 已完成具体启动、配置、Docker 与恢复方案，待确认本节实施范围，尚未实现或运行验收。
+状态：2026-10-26 实施范围已确认；统一运行档、命令、Web 接线、Docker 资产及冷备份恢复已实现并通过自动化验证。宿主机浏览器、Docker 实际运行、Windows PowerShell 与独立用户验收尚未完成，真实模型窗口继续暂停。
 
 ## 决策与用户目标
 
@@ -23,7 +23,7 @@
 | 结果保留 | 已有 Session / Turn、Run 与显式 Result Artifact | 清楚说明哪些正文保留、何时显式保存、如何重读；不把运行元数据误当完整答案 |
 | 交付方式 | 现有 Compose 包含 Platform 与旧 Console，尚不等于正式 Web 的完整交付 | 宿主机与 Docker 采用同一个工作台运行档；容器构建和运行需实际验收，不将本机容器等同共享部署 |
 
-以上已有能力仍属于开发测试态。新入口、统一配置、恢复演练和用户验收尚未完成，不能由已有模块测试推定交付完成。
+以上能力仍属于开发测试态。新入口、统一配置与运维实现已落地；运行验收和独立用户证据仍待补齐，不能由模块测试推定交付完成。可执行接口见[工作台运行指南](../../platform/local-persistent-workbench-operations-v1.md)。
 
 ## 首轮交付范围
 
@@ -46,11 +46,11 @@
 5. Prompt / Workflow 所需资源如何由用户建立或明确导入；列出 Session、Run、Result Artifact 各自保留内容与重启恢复依据。
 6. 数据备份一致性、恢复前检查、版本兼容与迁移失败处理，以及哪些操作会影响用户数据；确定必要的页面、帮助和错误恢复改动。
 
-上述六项已由下文方案具体化。本轮完成设计；新增启动档、Web 配置接口、初始化 / 升级命令与镜像内容涉及运行边界，实施范围待确认。确认后连续完成对应工作包，不再为每个函数、页面或验证步骤重新审批。
+上述六项已具体化并由项目所有者确认实施范围。本轮按授权连续实现，普通步骤不重复申请授权；服务、镜像构建与容器运行仍需各自运行窗口。
 
 ## 具体启动与交付方案（2026-10-26）
 
-以下是拟实施契约，命令、字段与容器文件尚不存在或尚未支持，不能当作当前使用指南执行。用户要求参考 Radish 的 Docker 与配置实践，本方案吸收其配置分层、持久目录、健康检查、升级前备份和失败停止方式；不复制其多库、Redis、Auth / Gateway 服务拆分或开发默认账户。
+以下契约已按确认范围实现，具体命令及恢复后的路径调整见[运行指南](../../platform/local-persistent-workbench-operations-v1.md)。用户要求参考 Radish 的 Docker 与配置实践，本方案吸收其配置分层、持久目录、健康检查、升级前备份和失败停止方式；不复制其多库、Redis、Auth / Gateway 服务拆分或开发默认账户。
 
 参考来源为 [Radish 配置边界](https://github.com/laugh0608/Radish/blob/master/Docs/guide/runtime-configuration-boundaries.md)、[本地 Compose](https://github.com/laugh0608/Radish/blob/master/Deploy/docker-compose.local.yaml)、[部署 Compose](https://github.com/laugh0608/Radish/blob/master/Deploy/docker-compose.yaml)、[前端镜像](https://github.com/laugh0608/Radish/blob/master/Frontend/Dockerfile)与[迁移发布编排](https://github.com/laugh0608/Radish/blob/master/Docs/guide/production-database-migration-deployment.md)。它们用于参考设计，本项目可用性仍由自身实现和验收证明。
 
@@ -77,7 +77,7 @@
 
 复用 `RADISHMIND_PLATFORM_CONFIG` 与现有配置加载器，增加运行档及工作台所需字段。固定优先级为：**代码默认值 < 运行档默认值 < 显式 JSON 配置 < 显式环境变量**；最后验证运行档不变量。覆盖为错误身份、内存存储、演示来源或非法监听范围时应拒绝，不静默改回默认值。
 
-宿主机默认配置文件拟为 `var/workbench/platform.json`；相对数据和凭据路径以配置文件目录解析，不受当前工作目录影响。下面是待实现的配置形状，不是当前 `fileConfig` 已支持的格式：
+宿主机默认配置文件为 `var/workbench/platform.json`；相对数据和凭据路径以配置文件目录解析，不受当前工作目录影响。下面是已支持的配置形状；完整宿主机样例另含虚拟环境 Python 路径：
 
 ```json
 {
@@ -107,7 +107,7 @@
 
 宿主机目录固定为 `var/workbench/{platform.json,data/,secrets/}`，备份默认放在独立的 `var/workbench-backups/`。Docker 默认使用 `deploy/workbench/{platform.json,data/,secrets/}`，备份在 `deploy/workbench-backups/`；两者默认隔离，禁止同时打开同一个数据库，迁移载体通过备份 / 恢复完成。
 
-工作台配置需拒绝未知字段、重复 JSON 键、路径类型错误和相互冲突的值；原有非工作台配置的兼容规则保持。运行档不得自动读取旧 `tmp/radishmind-platform.local.json`。Python 当前会读取仓库根 `.env`，因此工作台须显式关闭这条隐式加载路径，并只向子进程提供已解析的模型配置；其它开发 / 实验入口保留原行为。
+工作台配置需拒绝未知字段、重复 JSON 键、路径类型错误和相互冲突的值；原有非工作台配置的兼容规则保持。运行档不得自动读取旧 `tmp/radishmind-platform.local.json`。原有 Python 入口可读取仓库根 `.env`，工作台已显式关闭这条隐式加载路径，并只向子进程提供已解析的模型配置；其它开发 / 实验入口保留原行为。
 
 新增 `api_key_file` 作为后端凭据引用，路径以配置目录为基准，内容只在后端读取并经既有受控渠道交给 Python。工作台禁止把密钥写入 JSON 或前端构建参数；`api_key_file` 与 `RADISHMIND_PLATFORM_API_KEY` 同时提供时拒绝，不选择一个静默覆盖。普通配置检查只验证引用和可访问性，摘要只输出已配置 / 未配置；启动再读取值。凭据轮换通过替换文件并重启生效，不自动修改应用授权。
 
@@ -131,7 +131,7 @@
 
 ### 4. Web 运行时配置与静态分发
 
-拟新增 `GET /workbench-config.json`，使用一份版本化 canonical schema 与严格 Go / TypeScript 类型。最小字段为 `schema_version`、`public_origin`、`tenant_ref`、`workspace_id`、`environment`、`provider_mode` 及受限功能列表；不提供账户清单或秘密配置。
+已新增 `GET /workbench-config.json`，使用一份版本化 canonical schema 与严格 Go / TypeScript 类型。最小字段为 `schema_version`、`public_origin`、`tenant_ref`、`workspace_id`、`environment`、`provider_mode` 及受限功能列表；不提供账户清单或秘密配置。
 
 - Web 入口先读取并严格验证配置，再加载 App 与其配置消费模块；不能在模块顶层先用旧 `VITE_*` 默认值建立消费者。
 - `local-workbench` 构建只固化运行档，不固化端口、租户、工作区或后端地址。配置缺失 / 非法时显示初始化错误和重试，不回退离线 fixture。
@@ -167,7 +167,7 @@
 | `upgrade` | 停服、验证当前库并成功备份后，显式复用既有迁移执行器；失败保留现场且不自动重新启动 |
 | `restore` | 校验备份并恢复至新的空目标目录；不覆盖现用目录，不自动启动、不重放历史输入 |
 
-宿主机默认数据入口拟为 `./start.sh workbench serve --config var/workbench/platform.json`，等价 PowerShell 由 `start.ps1` 提供。以上命令是设计接口，实施时补齐帮助与跨平台参数测试后才写入“可执行使用指南”。
+宿主机默认数据入口为 `./start.sh workbench serve --config var/workbench/platform.json`，等价 PowerShell 由 `start.ps1` 提供。命令帮助和 Go 参数测试已补齐；PowerShell 入口尚未运行验收，不由 Windows 二进制交叉编译推定包装脚本可用。
 
 数据目录独占约束覆盖工作台服务、bootstrap、备份、升级和恢复，宿主机与容器不得绕过；正常退出释放，异常退出的锁处理必须核实实例已停止，不能只根据不同容器的 PID 判死。旧开发入口不可与工作台共用数据目录。
 
@@ -177,7 +177,7 @@
 
 ### 7. Docker 资产与挂载
 
-拟新增 `deploy/docker-compose.workbench.yaml` 与非密钥样例 `deploy/.env.workbench.example`，保持旧 local / test / prod Compose 的语义。工作台 Compose 项目名独立，端口和数据目录显式绑定；本轮不新增发布 workflow 或推送镜像。
+已新增 `deploy/docker-compose.workbench.yaml` 与非密钥样例 `deploy/.env.workbench.example`，保持旧 local / test / prod Compose 的语义。工作台 Compose 项目名独立，端口和数据目录显式绑定；本轮不新增发布 workflow 或推送镜像。
 
 | 挂载 / 镜像内容 | 决定 |
 | --- | --- |
@@ -206,7 +206,7 @@
 
 ## 实施范围与验证安排
 
-具体设计已完成，以下为一次确认后连续推进的范围，不再派生设计前置链：
+具体设计与实施范围已获确认，以下是本轮实现和验收对应关系，不再派生设计前置链：
 
 | 顺序 | 主要改动落点 | 验证重点 |
 | --- | --- | --- |
@@ -224,13 +224,21 @@
 
 | 工作包 | 交付物 | 完成依据 |
 | --- | --- | --- |
-| 具体设计 | 2026-10-26 已补齐上述配置、身份、初始化、Docker 与恢复方案 | 文档设计完成；待确认实施范围，代码与运行验收尚未开始 |
+| 具体设计 | 2026-10-26 已补齐上述配置、身份、初始化、Docker 与恢复方案 | 设计与实施范围已批准；代码和自动化验证已推进，实际运行验收待完成 |
 | 启动与配置接线 | 统一入口与配置检查，既有 Session / SQLite / Runtime 的明确接线 | 空目录初始化、旧目录打开、非法组合和依赖缺失有确定行为；无静默回退 |
 | Web 任务路径 | 首次进入、资源创建、Prompt / Workflow 运行、显式保存和返回工作区 | 不靠测试脚本临时补建资源完成主流程；中英文、冲突和失败恢复可用 |
 | 数据与运行交付 | 关闭 / 重开、备份恢复、兼容说明和可执行使用指南 | 真实隔离数据目录演练可复现，凭据与敏感内容不泄露，所属进程可清理 |
 | 连续验收 | 正常与失败场景、已有能力回归及用户使用记录 | 下表技术验收通过；真实模型与独立使用证据分别记录，不合并宣称 |
 
 这些工作包表达交付顺序，不各自产生新专题、任务卡或检查器。出现真正的新协议、权限、持久化或高风险边界时，才集中记录必要实施拆分；复用既有测试与仓库检查。
+
+## 实现与当前证据（2026-10-26）
+
+- 配置、命令、目录独占锁、显式 SQLite 初始化 / 升级、冷快照和新目录恢复位于 `services/platform/internal/config`、`internal/workbench` 与 `cmd/radishmind-platform/workbench.go`。迁移集合由 `migrations/sqlite/migrations.go` 统一提供，既有 SQL 和领域授权保持。
+- Go 服务分发工作台构建及公开配置；`contracts/workbench-public-config.schema.json` 为浏览器契约，`contracts/workbench-backup-manifest.schema.json` 为备份清单契约。Web 严格初始化后才加载消费者，配置失败、身份未初始化和真实空目录均不展示演示资源。
+- UI 复用既有认证、应用五阶段和 Workflow 组件，本轮仅增加首次初始化说明、运行模式 / 保留说明及已有草案创建动作，按 C 级直接实现；语义 token 与中英文案保持。真实双语 / 窄屏浏览器证据仍待补齐。
+- 自动化覆盖空库注册不提权、停服后一次性初始化、重开后的 Session / 空目录、运行中数据操作拒绝、迁移冲突、备份校验、恢复配置加载及原数据保留。详细验证命令与结果见 [W44 周志](../../devlogs/2026-W44.md)。
+- 原生浏览器的 Prompt / Workflow 完整操作、进程停止回收、实际 Docker 构建和挂载、PowerShell 与独立用户试用尚未验收。结构化固定响应和真实模型任务效果分别记录，本轮不关闭整体交付里程碑。
 
 ## 验收场景
 

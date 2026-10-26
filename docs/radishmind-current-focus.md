@@ -10,17 +10,17 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 项目所有者已接受全项目复审建议并批准正式规划整合。当前唯一产品主线改为[本机持久工作台交付 v1](features/user-workspace/local-persistent-workbench-delivery-v1.md)：通过正式 Web 创建 / 打开应用、受控运行、显式保存结果，关闭重启后继续使用。方向与规划已确认，具体启动、配置、Docker 与恢复方案已形成，待确认实施范围，新交付尚未实现。
+- 项目所有者已接受全项目复审建议并批准正式规划整合。当前唯一产品主线改为[本机持久工作台交付 v1](features/user-workspace/local-persistent-workbench-delivery-v1.md)：通过正式 Web 创建 / 打开应用、受控运行、显式保存结果，关闭重启后继续使用。实施范围已确认，统一运行档、启动命令、Web 同源接线和冷备份恢复已实现；宿主机浏览器、Docker 实际运行与独立用户验收仍待完成。
 - 后续顺序是本机技术交付、真实任务效果验证，再根据实际需求选择共享交付或业务接入。跨版本回归审查调整为候选，尚未实现，不继续沿用先 Workflow 后 Prompt 的旧优先排期。
 - 当前成熟度保持**内部开发者预览**。已有本地账户 / Session、SQLite、应用、Workflow、Gateway、评测和结果链；模块完成不等于统一入口、持续使用、真实模型质量或生产交付已经验收。
 - 真实模型试用继续暂停。可先完成不依赖真实模型的设计、实现与技术验收；技术里程碑完成后如实记录质量待验证，不因等待模型窗口继续扩功能。
-- 本轮已完成具体交付设计与 Radish 做法的只读参考，不修改运行代码，不沿用此前服务授权。审阅与决策依据见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#2026-10-26-全项目复审交付后移与开发循环)与[W44 周志](devlogs/2026-W44.md)。
+- 本轮已按确认范围完成代码、配置、脚本、Docker 资产和使用指南；没有启动常驻服务、Docker 或真实模型，没有安装依赖，不沿用此前服务授权。审阅与决策依据见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#2026-10-26-全项目复审交付后移与开发循环)与[W44 周志](devlogs/2026-W44.md)。
 
 ## 接下来事项（2026-10-26）
 
-[具体方案](features/user-workspace/local-persistent-workbench-delivery-v1.md#具体启动与交付方案2026-10-26)已形成：同一个 `local-workbench` 运行档用于宿主机与 Docker；Go 提供正式 Web 与 API 的同源入口，复用 Python 工作进程、本地 Session 和共享 SQLite。默认本机入口为 `127.0.0.1:4100`，工作台配置与业务数据分开，前端改读严格的运行时公开配置。以上均为待实施设计。
+[具体方案](features/user-workspace/local-persistent-workbench-delivery-v1.md#具体启动与交付方案2026-10-26)已形成：同一个 `local-workbench` 运行档用于宿主机与 Docker；Go 提供正式 Web 与 API 的同源入口，复用 Python 工作进程、本地 Session 和共享 SQLite。默认本机入口为 `127.0.0.1:4100`，工作台配置与业务数据分开，前端改读严格的运行时公开配置。对应实现已落地，操作步骤见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)。
 
-下一步确认[实施范围](features/user-workspace/local-persistent-workbench-delivery-v1.md#实施范围与验证安排)后，连续完成运行档与命令、Web 配置及主链、Docker 与恢复。首次管理员继续显式 CLI 初始化；日常启动拒绝缺库或待迁移，升级前冷备份，恢复到新目录。保留旧开发入口与 PostgreSQL 已有能力，不另开设计前置链。
+下一步按明确运行窗口验收宿主机浏览器主链、停止重启、备份恢复，再单独验证 Docker 镜像与容器；自动化模块测试不能代替这部分证据。首次管理员继续显式 CLI 初始化；日常启动拒绝缺库或待迁移，升级前冷备份，恢复到新目录。保留旧开发入口与 PostgreSQL 已有能力，不另开设计前置链。
 
 首轮以既有故障诊断 Prompt 素材检验结果保留，并在同一配置下验证 Workflow 版本与运行链。空环境到首次运行、关闭到继续使用、配置 / 存储 / 身份 / 提供方失败均进入验收；固定响应的技术通过与真实任务效果分别记录。
 

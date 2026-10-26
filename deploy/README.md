@@ -4,9 +4,9 @@
 
 ## 当前交付范围
 
-现有 Compose 面向 Platform 与旧 Console 的开发 / 验证边界，尚未形成正式产品 Web 的完整交付。[本机持久工作台具体方案](../docs/features/user-workspace/local-persistent-workbench-delivery-v1.md#具体启动与交付方案2026-10-26)已完成，待确认实施范围；本目录的现有配置与命令尚未改变。
+旧 Compose 继续面向 Platform 与 Console 的开发 / 验证。新增 `Dockerfile.workbench`、`docker-compose.workbench.yaml`、`.env.workbench.example` 和宿主机 / Docker JSON 样例，按[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)使用同一运行档。Compose 静态检查已通过，镜像构建、容器启动、挂载权限与停止恢复尚未实际验收；不声明生产就绪。
 
-拟新增独立工作台 Compose：一个包含 Go、Python 与正式 Web 的服务，默认只映射 `127.0.0.1:4100`，配置 / 凭据只读挂载，SQLite 数据目录持久保留；初始化、升级和恢复是显式离线动作。复用宿主机运行档，不照搬 Radish 的多库与多服务拓扑。镜像构建、容器启动、共享环境和发布仍需实际验证及对应授权，不把下文旧 Console 命令当成新工作台入口。
+已新增独立工作台 Compose：一个包含 Go、Python 与正式 Web 的服务，默认只映射 `127.0.0.1:4100`，配置 / 凭据只读挂载，SQLite 数据目录持久保留；初始化、升级和恢复是显式离线动作。复用宿主机运行档，不照搬 Radish 的多库与多服务拓扑。镜像构建、容器启动、共享环境和发布仍需实际验证及对应授权，不把下文旧 Console 命令当成新工作台入口。
 
 ## 目录职责
 

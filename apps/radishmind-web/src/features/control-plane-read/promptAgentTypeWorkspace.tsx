@@ -1,3 +1,4 @@
+import { isLocalWorkbench } from "../../runtime/workbenchConfiguration.ts";
 import { useLocalIdentity } from "../local-identity/localIdentityContext.ts";
 import { usePromptCredentialHandoff } from "./usePromptCredentialHandoff.ts";
 import "../../i18n/promptWorkspaceResources.ts";
@@ -63,7 +64,7 @@ export default function PromptAgentTypeWorkspace({
   ));
   const [selectedCandidate, setSelectedCandidate] = useState<ApplicationPublishCandidate | null>(null);
   const tasks = useMemo(
-    () => promptAgentTypeWorkspaceTasks(context.surfaceKind, context.status),
+    () => promptAgentTypeWorkspaceTasks(context.surfaceKind, context.status).filter(task => !isLocalWorkbench() || task.surface !== "evaluation"),
     [context.status, context.surfaceKind],
   );
 
@@ -80,7 +81,7 @@ export default function PromptAgentTypeWorkspace({
     setSelectedCandidate(null);
   }, [context.generationKey]);
 
-  if (!activeSurface) return null;
+  if (!activeSurface || (isLocalWorkbench() && activeSurface === "evaluation")) return null;
   const currentTask = tasks.find((task) => task.surface === activeSurface) ?? null;
   const isPrompt = context.surfaceKind === "prompt_application";
   const typeLabel = isPrompt ? t($ => $.promptWorkspace.promptApplication) : t($ => $.promptWorkspace.agentCopilot);

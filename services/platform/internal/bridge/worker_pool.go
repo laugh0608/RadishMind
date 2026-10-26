@@ -104,20 +104,16 @@ func newWorkerPool(config workerPoolConfig) *workerPool {
 	}
 }
 
-func newPythonWorkerCommandFactory(pythonBinary string, scriptPath string) workerCommandFactory {
+func newPythonWorkerCommandFactory(pythonBinary string, scriptPath string, isolate bool) workerCommandFactory {
 	return func() (*exec.Cmd, error) {
 		resolvedScriptPath, err := resolveScriptPath(scriptPath)
 		if err != nil {
 			return nil, newBridgeError(ErrorCodeWorkerUnavailable, "bridge worker script is unavailable")
 		}
 		command := exec.Command(pythonBinary, resolvedScriptPath, "worker")
-		command.Env = bridgeWorkerEnvironment()
+		command.Env = bridgeCommandEnvironment("", isolate)
 		return command, nil
 	}
-}
-
-func bridgeWorkerEnvironment() []string {
-	return bridgeCommandEnvironment("")
 }
 
 func (p *workerPool) ensureCapacity(ctx context.Context) error {

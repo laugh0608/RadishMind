@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { ApplicationPublishPromptTemplateRef } from "./applicationPublishCandidateConsumer.ts";
 
 const DEV_SOURCE = "dev-prompt-application-http";
@@ -126,7 +127,7 @@ type RuntimeEnvelope = {
 };
 
 export function readPromptApplicationRuntimeConfig(): PromptApplicationRuntimeConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_PROMPT_APPLICATION_SOURCE?.trim() === DEV_SOURCE
       ? "dev_prompt_application_http"

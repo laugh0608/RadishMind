@@ -4,7 +4,7 @@
 
 ## 当前交付方向
 
-当前主线是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。该方向已确认，具体启动 / 配置、Docker 与恢复方案已形成但尚未实现；下文命令仍是现有开发入口，不代表新交付已可用。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
+当前主线是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器与 Docker 仍待实际验收。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
 
 ## 这份文档讲什么
 

@@ -3,6 +3,8 @@ export type BuildOutput = {
   fileName: string;
   name?: string;
   isEntry?: boolean;
+  facadeModuleId?: string | null;
+  moduleIds?: string[];
   code?: string;
 };
 
@@ -35,10 +37,13 @@ export function enforceWebChunkBudgets(bundle: Record<string, BuildOutput>): Chu
     (chunkName) => !chunkNames.has(chunkName),
   );
   const reports = chunks.map(buildChunkBudgetReport);
+  const bootstrapBytes = chunks.filter(isBootstrapChunk).reduce((total, chunk) => total + new TextEncoder().encode(chunk.code).byteLength, 0);
+  const bootstrapExceeded = chunks.some(chunk => !chunk.isEntry && isBootstrapChunk(chunk)) && bootstrapBytes > WEB_CHUNK_BUDGETS.entryBytes;
   const violations = reports.filter((report) => report.actualBytes > report.budgetBytes);
 
-  if (missingNamedChunks.length > 0 || violations.length > 0) {
+  if (missingNamedChunks.length > 0 || violations.length > 0 || bootstrapExceeded) {
     const details = [
+      ...(bootstrapExceeded ? [`- combined bootstrap chunks are ${formatKiB(bootstrapBytes)}, budget ${formatKiB(WEB_CHUNK_BUDGETS.entryBytes)}`] : []),
       ...missingNamedChunks.map((chunkName) => `- required named chunk ${chunkName} was not emitted`),
       ...violations.map(
         (report) =>
@@ -54,8 +59,8 @@ export function enforceWebChunkBudgets(bundle: Record<string, BuildOutput>): Chu
 function buildChunkBudgetReport(chunk: BuildOutput & { type: "chunk"; code: string }): ChunkBudgetReport {
   const chunkName = chunk.name?.trim() || chunk.fileName;
   const namedBudget = WEB_CHUNK_BUDGETS.namedBytes[chunkName as keyof typeof WEB_CHUNK_BUDGETS.namedBytes];
-  const budgetKind = chunk.isEntry ? "entry" : namedBudget !== undefined ? "named" : "lazy";
-  const budgetBytes = chunk.isEntry
+  const budgetKind = isBootstrapChunk(chunk) ? "entry" : namedBudget !== undefined ? "named" : "lazy";
+  const budgetBytes = isBootstrapChunk(chunk)
     ? WEB_CHUNK_BUDGETS.entryBytes
     : namedBudget ?? WEB_CHUNK_BUDGETS.lazyBytes;
 
@@ -70,4 +75,8 @@ function buildChunkBudgetReport(chunk: BuildOutput & { type: "chunk"; code: stri
 
 function formatKiB(bytes: number): string {
   return `${(bytes / KIB).toFixed(2)} KiB`;
+}
+
+function isBootstrapChunk(chunk: BuildOutput): boolean {
+  return Boolean(chunk.isEntry || [chunk.facadeModuleId, ...(chunk.moduleIds ?? [])].some(id => id?.replaceAll("\\", "/").endsWith("/src/app/App.tsx")));
 }

@@ -1,5 +1,7 @@
 # 平台服务运行手册 v1
 
+新增 `local-workbench` 运行档的准备、首次账户、启动 / 停止、冷备份、升级、恢复与 Docker 步骤见[工作台运行指南](local-persistent-workbench-operations-v1.md)。下文保留通用开发服务入口，两者不共用工作台数据目录。
+
 更新时间：2026-10-20
 
 ## 文档职责

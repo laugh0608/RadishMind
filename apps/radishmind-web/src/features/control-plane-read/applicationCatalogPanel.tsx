@@ -1,3 +1,4 @@
+import { isLocalWorkbench } from "../../runtime/workbenchConfiguration.ts";
 import "../../i18n/catalogResources.ts";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
@@ -22,7 +23,7 @@ const defaultConfig = readApplicationCatalogConfig();
 const EMPTY_FIELDS: ApplicationCatalogMutableFields = {
   displayName: "",
   description: "",
-  applicationKind: "agent",
+  applicationKind: isLocalWorkbench() ? "prompt_application" : "agent",
 };
 
 export type ApplicationCatalogSnapshot = {
@@ -394,8 +395,8 @@ function ApplicationFields({
       <label htmlFor={`${prefix}-kind`}>{t($ => $.catalog.applicationKind)}</label>
       <select id={`${prefix}-kind`} value={fields.applicationKind} disabled={disabled} onChange={(event) => onChange({ ...fields, applicationKind: event.target.value as ApplicationCatalogKind })}>
         <option value="workflow_copilot">{t($ => $.catalog.workflowCopilot)}</option>
-        <option value="docs_qa">{t($ => $.catalog.docsQa)}</option>
-        <option value="agent">{t($ => $.catalog.agent)}</option>
+        {!isLocalWorkbench() && <option value="docs_qa">{t($ => $.catalog.docsQa)}</option>}
+        {!isLocalWorkbench() && <option value="agent">{t($ => $.catalog.agent)}</option>}
         <option value="prompt_application">{t($ => $.catalog.promptApplication)}</option>
       </select>
       <label htmlFor={`${prefix}-description`}>{t($ => $.catalog.description)}</label>

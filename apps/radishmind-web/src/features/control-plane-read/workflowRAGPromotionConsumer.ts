@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { buildWorkflowRAGRequestHeaders } from "./workflowRAGSnapshotConsumer.ts";
 
 const DEV_SOURCE = "dev-workflow-rag-promotion-http";
@@ -123,7 +124,7 @@ export function findExactEligibleWorkflowRAGPromotionBinding(
 type Document = Record<string, unknown>;
 
 export function readWorkflowRAGPromotionConfig(): WorkflowRAGPromotionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_SOURCE?.trim() === DEV_SOURCE ? "dev_workflow_rag_promotion_http" : "offline",
     baseUrl: normalizeBaseUrl(env.VITE_RADISHMIND_WORKFLOW_RAG_PROMOTION_BASE_URL ?? env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL),

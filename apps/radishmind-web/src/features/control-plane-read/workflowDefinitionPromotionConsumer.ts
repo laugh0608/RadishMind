@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
 import {
@@ -336,7 +337,7 @@ type ReleaseEnvelope = {
 };
 
 export function readWorkflowDefinitionPromotionConfig(): WorkflowDefinitionPromotionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE?.trim() === DEV_SOURCE
       ? "dev_workflow_definition_promotion_http"

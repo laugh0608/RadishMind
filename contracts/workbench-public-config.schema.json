@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workbench-public-config.schema.json",
+  "title": "Workbench public runtime configuration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "public_origin",
+    "tenant_ref",
+    "workspace_id",
+    "environment",
+    "provider_mode",
+    "features"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "public_origin": {
+      "type": "string",
+      "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]+$"
+    },
+    "tenant_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "environment": {
+      "enum": [
+        "development",
+        "test"
+      ]
+    },
+    "provider_mode": {
+      "enum": [
+        "mock",
+        "openai-compatible"
+      ]
+    },
+    "features": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "applications",
+          "prompt",
+          "workflow",
+          "sessions",
+          "results",
+          "api_keys",
+          "local_identity"
+        ]
+      }
+    }
+  }
+}

@@ -9,7 +9,7 @@
 
 ## 当前交付规划
 
-[本机持久工作台交付](../../docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)以本应用作为统一用户入口，计划收口启动、配置、本地身份、应用运行、结果保留与重启恢复。具体方案尚未实施；当前开发模式、能力开关与命令仍按现有指南使用，演示投影不能替代持久产品环境。
+[本机持久工作台交付](../../docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)已通过 `--mode workbench` 构建接入同源 Go 服务，入口先严格读取 `/workbench-config.json` 再加载 App；配置失败不回退样例。既有消费者从统一运行时配置获得来源、作用域和 Session 模式，只开放真实 Prompt / 基本 Workflow 主链。使用见[工作台运行指南](../../docs/platform/local-persistent-workbench-operations-v1.md)；真实浏览器验收待完成。以下既有开发构建默认行为继续保留。
 
 ## Family UI 基座
 

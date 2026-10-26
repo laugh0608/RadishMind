@@ -33,3 +33,11 @@ deploy/.env.local
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Workbench build contexts never contain local user data or credentials.
+var/
+deploy/workbench/
+deploy/workbench-backups/
+deploy/.env.workbench
+apps/radishmind-web/node_modules/
+apps/radishmind-web/dist/

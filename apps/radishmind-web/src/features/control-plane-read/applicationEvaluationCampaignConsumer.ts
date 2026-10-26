@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import {
   decodeWorkflowRunComparison,
   type WorkflowRunComparison,
@@ -328,7 +329,7 @@ export function readApplicationEvaluationConfig(context: {
   workspaceId: string;
   applicationId: string;
 }): ApplicationEvaluationConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const configuredEnvironment = env.VITE_RADISHMIND_APPLICATION_EVALUATION_ENVIRONMENT?.trim();
   return {
     mode: env.VITE_RADISHMIND_APPLICATION_EVALUATION_SOURCE?.trim() === DEV_SOURCE

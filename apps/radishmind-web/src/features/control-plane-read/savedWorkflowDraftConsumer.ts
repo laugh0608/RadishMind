@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { isSavedWorkflowDraftV2Content, isLegacySavedWorkflowInputContract } from "./workflowSavedDraftV2Validation.ts";
 import { parseStructuredRuntimeInputContractDocument } from "./structuredRuntimeInput.ts";
 import { workflowDraftInputContractDocument } from "./workflowDraftInputContract.ts";
@@ -430,7 +431,7 @@ type SavedWorkflowDraftAuditMetadata = {
 };
 
 export function readWorkflowSavedDraftConsumerConfig(): WorkflowSavedDraftConsumerConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const source = env.VITE_RADISHMIND_WORKFLOW_SAVED_DRAFT_SOURCE?.trim();
   return {
     mode: source === DEV_SAVED_DRAFT_SOURCE ? "dev_saved_draft_http" : "sample_only",

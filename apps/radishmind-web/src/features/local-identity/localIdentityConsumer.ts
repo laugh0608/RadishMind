@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 const DEFAULT_LOCAL_IDENTITY_BASE_URL = "http://127.0.0.1:7000";
 const LOCAL_IDENTITY_MODE = "local_identity_dev";
 const BOOTSTRAP_CSRF = "bootstrap";
@@ -98,7 +99,7 @@ export class LocalIdentityConsumerError extends Error {
 }
 
 export function readLocalIdentityConsumerConfig(): LocalIdentityConsumerConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return localIdentityConsumerConfigFromEnvironment(env);
 }
 

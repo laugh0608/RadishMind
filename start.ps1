@@ -21,6 +21,7 @@ function Show-Usage {
 Usage: pwsh ./start.ps1 [-Command command] [args]
 
 Commands:
+  workbench      Persistent local workbench: build/check/init/serve/bootstrap-admin/backup/upgrade/restore.
   web-live       Start product web UI + dev-only fake read backend. Default for frontend/backend integration.
   web-offline    Start product web UI with offline fixtures only.
   console        Start local ops console + platform backend.
@@ -126,6 +127,7 @@ function Invoke-CheckFast {
 function Invoke-CommandName {
     param([string]$Name)
     switch ($Name) {
+        "workbench" { & (Join-Path $repoRoot "scripts/run-workbench.ps1") @RemainingArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; return }
         { $_ -in @("web-live", "web", "dev-live") } { Invoke-WebLive; return }
         { $_ -in @("web-offline", "offline") } { Invoke-WebOffline; return }
         "console" { Invoke-Console; return }

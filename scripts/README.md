@@ -1,5 +1,7 @@
 # scripts/ 目录说明
 
+`run-workbench.sh` / `run-workbench.ps1` 由根 `start` 的 `workbench` 子命令进入，提供显式 build、check、init、serve、bootstrap-admin、backup、upgrade 和 restore。它们不复用旧开发脚本的临时配置，不自动安装依赖；操作与权限边界见[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)。
+
 更新时间：2026-09-09
 
 ## 目录目标

@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 const DEV_SOURCE = "dev-workflow-rag-application-runtime-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const ASSIGNMENT_SCHEMA_VERSION = "workflow_rag_application_runtime_assignment.v1";
@@ -138,7 +139,7 @@ type InvocationEnvelope = {
 };
 
 export function readWorkflowRAGApplicationRuntimeConfig(): WorkflowRAGApplicationRuntimeConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_RAG_APPLICATION_RUNTIME_SOURCE?.trim() === DEV_SOURCE
       ? "dev_workflow_rag_application_runtime_http"

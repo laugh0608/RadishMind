@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 const DEV_SOURCE = "dev-admin-provider-route-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/u;
@@ -216,7 +217,7 @@ export type AdminProviderRouteCandidateDiff = {
 type Document = Record<string, unknown>;
 
 export function readAdminProviderRouteConfig(): AdminProviderRouteConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const configuredEnvironment = env.VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_ENVIRONMENT?.trim();
   return {
     mode: env.VITE_RADISHMIND_ADMIN_PROVIDER_ROUTE_SOURCE?.trim() === DEV_SOURCE

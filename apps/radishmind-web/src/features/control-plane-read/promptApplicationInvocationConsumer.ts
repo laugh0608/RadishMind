@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { isPromptClientKey } from "./promptExecutionRecovery.ts";
 
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
@@ -65,7 +66,7 @@ export type PromptApplicationInvocationInputValidation = {
 };
 
 export function readPromptApplicationInvocationConfig(): PromptApplicationInvocationConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     baseUrl: (
       env.VITE_RADISHMIND_PROMPT_APPLICATION_BASE_URL ??

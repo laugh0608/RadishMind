@@ -78,6 +78,10 @@ const (
 )
 
 type Config struct {
+	WorkbenchContainer                       bool
+	RuntimeProfile                           string
+	Workbench                                WorkbenchConfig
+	APIKeyFile                               string
 	ListenAddr                               string
 	ReadHeaderTimeout                        time.Duration
 	WriteTimeout                             time.Duration
@@ -366,6 +370,9 @@ type ConfigFileSummary struct {
 }
 
 type fileConfig struct {
+	RuntimeProfile     *string          `json:"runtime_profile"`
+	Workbench          *WorkbenchConfig `json:"workbench"`
+	APIKeyFile         *string          `json:"api_key_file"`
 	ListenAddr         *string          `json:"listen_addr"`
 	ReadHeaderTimeout  *string          `json:"read_header_timeout"`
 	WriteTimeout       *string          `json:"write_timeout"`
@@ -399,7 +406,15 @@ func LoadFromEnv() (Config, error) {
 		cfg.FieldSources["config_file"] = configSourceEnv
 	}
 
+	if configFile == "" {
+		if err := applyRuntimeProfile(&cfg, nil); err != nil {
+			return Config{}, err
+		}
+	}
 	if err := applyEnvOverrides(&cfg); err != nil {
+		return Config{}, err
+	}
+	if err := finalizeWorkbenchConfig(&cfg); err != nil {
 		return Config{}, err
 	}
 	if err := validateBridgeRuntimeConfig(cfg); err != nil {
@@ -585,6 +600,23 @@ func applyConfigFile(cfg *Config, pathText string) error {
 	var document fileConfig
 	if err := json.Unmarshal(content, &document); err != nil {
 		return fmt.Errorf("parse RADISHMIND_PLATFORM_CONFIG as json: %w", err)
+	}
+	if document.RuntimeProfile != nil || strings.TrimSpace(os.Getenv("RADISHMIND_RUNTIME_PROFILE")) != "" {
+		if err := decodeWorkbenchDocument(content, &document); err != nil {
+			return err
+		}
+	}
+	if err := applyRuntimeProfile(cfg, document.RuntimeProfile); err != nil {
+		return err
+	}
+	if document.Workbench != nil {
+		cfg.Workbench = *document.Workbench
+	}
+	if document.APIKeyFile != nil {
+		cfg.APIKeyFile = *document.APIKeyFile
+	}
+	if cfg.RuntimeProfile == LocalWorkbenchProfile && document.APIKey != nil {
+		return fmt.Errorf("local-workbench forbids api_key in JSON; use api_key_file or RADISHMIND_PLATFORM_API_KEY")
 	}
 	if document.ListenAddr != nil {
 		applyStringValue(&cfg.ListenAddr, *document.ListenAddr, cfg.FieldSources, "listen_addr", configSourceFile)
@@ -1536,7 +1568,7 @@ func (cfg Config) SanitizedSummary() ConfigSummary {
 	}
 	localPersistenceMode := EffectiveLocalPersistenceMode(cfg)
 	controlPlaneReadStoreMode := EffectiveControlPlaneReadStoreMode(cfg)
-	credentialState := credentialState(provider, strings.TrimSpace(cfg.APIKey) != "")
+	credentialState := credentialState(provider, (strings.TrimSpace(cfg.APIKey) != "" || cfg.APIKeyFile != ""))
 	requiredFields := requiredConfigFields(provider)
 	if workflowSavedDraftStoreMode == "postgres_dev_test" {
 		requiredFields = append(
@@ -1980,7 +2012,7 @@ func missingRequiredConfigFields(cfg Config, requiredFields []string) []string {
 				missing = append(missing, field)
 			}
 		case "credential":
-			if credentialState(cfg.Provider, strings.TrimSpace(cfg.APIKey) != "") == "missing" {
+			if credentialState(cfg.Provider, (strings.TrimSpace(cfg.APIKey) != "" || cfg.APIKeyFile != "")) == "missing" {
 				missing = append(missing, field)
 			}
 		case "control_plane_read_dev_auth":
@@ -2416,7 +2448,7 @@ func validateBridgeRuntimeConfig(cfg Config) error {
 	switch strings.TrimSpace(cfg.AgentCopilotProfileStoreMode) {
 	case "", "memory_dev":
 	case "sqlite_dev":
-		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled {
+		if cfg.RuntimeProfile != LocalWorkbenchProfile && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled) {
 			return fmt.Errorf("agent copilot profile sqlite_dev store requires complete development gates")
 		}
 	case "postgres_dev_test":

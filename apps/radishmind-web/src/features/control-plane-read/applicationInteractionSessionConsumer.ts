@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import {
   parseStructuredRuntimeInputContractDocument,
   validateStructuredRuntimeInputDrafts,
@@ -249,7 +250,7 @@ type TurnEnvelope = {
 };
 
 export function readApplicationInteractionSessionConfig(): ApplicationInteractionSessionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_APPLICATION_SESSION_SOURCE?.trim() === DEV_SOURCE
       ? "dev_application_session_http"

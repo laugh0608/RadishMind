@@ -1,5 +1,7 @@
 # RadishMind 统一契约文件
 
+工作台新增 `workbench-public-config.schema.json` 与 `workbench-backup-manifest.schema.json`，分别约束浏览器公开配置和冷备份清单；Go / TypeScript 消费者必须保持严格字段边界。使用及保留语义见[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)。
+
 更新时间：2026-08-27
 
 本目录承载 `RadishMind` 第一版真实契约文件。

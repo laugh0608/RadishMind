@@ -1,0 +1,16 @@
+{
+  "runtime_profile": "local-workbench",
+  "listen_addr": "127.0.0.1:4100",
+  "local_persistence_mode": "sqlite_dev",
+  "sqlite_dev_database_path": "data/radishmind.db",
+  "python_binary": "../../.venv/bin/python",
+  "provider": "mock",
+  "model": "radishmind-workbench-mock",
+  "workbench": {
+    "public_origin": "http://127.0.0.1:4100",
+    "tenant_ref": "tenant_local",
+    "workspace_id": "workspace_local",
+    "environment": "development",
+    "web_assets_path": "../../apps/radishmind-web/dist"
+  }
+}

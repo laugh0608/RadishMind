@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 const DEV_SOURCE = "dev-admin-gateway-model-pricing-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u;
@@ -136,7 +137,7 @@ type Document = Record<string, unknown>;
 export function readAdminGatewayModelPricingConfig(
   context: { tenantRef: string; workspaceId: string },
 ): AdminGatewayModelPricingConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const configuredEnvironment = env.VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_ENVIRONMENT?.trim();
   return {
     mode: env.VITE_RADISHMIND_ADMIN_GATEWAY_PRICING_SOURCE?.trim() === DEV_SOURCE
