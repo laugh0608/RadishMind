@@ -25,7 +25,7 @@ export const appShell = {
 
   "httpToolLoading": "Loading HTTP Tool review and execution…",
   ragExecutionLoading: "Loading RAG retrieval execution…",
-  workflowCreateExecutor: "Create executor v0 draft",
+  workflowCreateExecutor: "New single-text input draft",
   "userWorkspace": "User Workspace",
   "applicationsTitle": "Applications",
   "readOnlyReady": "read-only ready",

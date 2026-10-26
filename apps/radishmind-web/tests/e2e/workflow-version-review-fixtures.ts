@@ -12,6 +12,21 @@ export async function reviewDefinitionVersions(page: Page, application: Applicat
   const compared = (await (await comparing).json()).comparison;
   expect(compared.comparison_state).toBe("comparable");
   expect(compared.classification).toBe("changed");
+  await expect(rail).toContainText(copy("Candidates come only from the currently loaded records.", "候选仅来自当前已加载的记录。"));
+  const structuredHint = rail.getByText(copy("Structured runs also require", "结构化运行还要求"), { exact: false });
+  await expect(structuredHint).toHaveCount(compared.schema_version === "workflow_run_comparison.v7" ? 1 : 0);
+  for (const width of [1440, 1200, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await rail.getByRole("button").hover();
+    const colors = await rail.getByRole("button").evaluate(element => {
+      const style = getComputedStyle(element);
+      return { foreground: style.color, background: style.backgroundColor };
+    });
+    expect(colors.foreground).not.toBe(colors.background);
+    expect(await rail.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+    await rail.screenshot({ style: ".product-nav { visibility: hidden !important; }", path: info.outputPath(`version-comparison-choice-${width}.png`) });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
   const comparison = page.locator(".workflow-run-comparison");
   await expect(comparison).toContainText(ids[0]); await expect(comparison).toContainText(ids[1]);
   await page.locator('a.workflow-review-task[href="#workflow-evaluation-cases"]').click();

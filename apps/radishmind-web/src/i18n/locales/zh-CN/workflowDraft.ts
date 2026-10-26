@@ -1,6 +1,6 @@
 export const workflowDraft = {
   "createStructuredDraft": "新建结构化输入草案",
-  "contractSchema": "草案 v2 · 有序输入合同",
+  "contractSchema": "结构化输入格式 · 有序输入合同",
   "contractTitle": "结构化输入合同",
   "contractBoundary": "编辑合同后保存草案；审查、激活和运行分别操作。修改合同会使原摘要失效。",
   "contractId": "合同标识",

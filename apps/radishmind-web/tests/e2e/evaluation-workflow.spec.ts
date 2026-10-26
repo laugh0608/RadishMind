@@ -70,7 +70,7 @@ test("Workflow evaluation keeps one invalid draft, adopts explicit authority and
   const target = () => panel.getByRole("textbox", { name: copy("Profile target · strict JSON", "档案目标 · 严格 JSON"), exact: true });
   const oldTarget = await target().inputValue();
   await button(reference, copy("Read current reference", "读取当前引用")).click();
-  await expect(reference.locator("dl")).toContainText("v1 · 3");
+  await expect(reference.locator("dl")).toContainText(copy("Content version 1 · Activation pointer 3", "内容版本 1 · 激活指针 3"));
   await expect(target()).toHaveValue(oldTarget); await expect(attempts).toHaveValue("4");
   const pattern = new RegExp(`/workflow-definitions/${definition}/activation\\?`);
   await page.route(pattern, route => route.fulfill({ status: 503, body: "Synthetic unavailable" }));
@@ -80,7 +80,13 @@ test("Workflow evaluation keeps one invalid draft, adopts explicit authority and
   await expect(target()).toHaveValue(oldTarget); await expect(attempts).toHaveValue("4");
   await page.unroute(pattern);
   await button(reference, copy("Read current reference", "读取当前引用")).click();
-  await expect(reference.locator("dl")).toContainText("v1 · 3");
+  await expect(reference.locator("dl")).toContainText(copy("Content version 1 · Activation pointer 3", "内容版本 1 · 激活指针 3"));
+  for (const width of [1440, 1200, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await reference.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+    await reference.screenshot({ style: ".product-nav { visibility: hidden !important; }", path: info.outputPath(`workflow-reference-${width}.png`) });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
   await button(reference, copy("Adopt reference and review fixtures", "采用引用并检查样本")).click();
   expect(JSON.parse(await target().inputValue()).workflow_definition.expected_pointer_version).toBe(3);
   await expect(attempts).toHaveValue("4");

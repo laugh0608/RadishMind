@@ -1,6 +1,6 @@
 export const workflowDraft = {
   "createStructuredDraft": "New structured input draft",
-  "contractSchema": "Draft v2 · Ordered input contract",
+  "contractSchema": "Structured input format · Ordered input contract",
   "contractTitle": "Structured input contract",
   "contractBoundary": "Save the draft after editing its contract. Review, activation and execution are separate actions. Contract edits invalidate its previous digest.",
   "contractId": "Contract ID",

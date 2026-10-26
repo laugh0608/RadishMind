@@ -74,7 +74,7 @@ export function draftField(page: Page, field: string) {
 }
 
 export async function createDraft(page: Page) {
-  await page.getByRole("button", { name: uiText(page, "Create executor v0 draft"), exact: true }).click();
+  await page.getByRole("button", { name: uiText(page, "New single-text input draft"), exact: true }).click();
   await expect(draftField(page, "Version")).toHaveText(draftVersionText(page, 0, 0));
   const id = (await draftField(page, "Draft").innerText()).trim();
   expect(id).toMatch(/^draft_executor_v0_[a-f0-9-]+$/);

@@ -68,7 +68,7 @@ export default function WorkflowEvaluationDefinitionReference({ config, disabled
     {state === "failed" ? <p role="alert">{t($ => $.campaign.referenceFailed)}</p> : null}
     {state === "ready" && (!version || !supported) ? <p role="status">{t($ => $.campaign.referenceInactive)}</p> : null}
     {version && activation ? <dl>
-      <dt>{t($ => $.campaign.referenceVersion)}</dt><dd>{version.definitionId} · v{version.version} · {activation.pointerVersion}</dd>
+      <dt>{t($ => $.campaign.referenceVersion)}</dt><dd>{t($ => $.campaign.referenceVersionValue, { id: version.definitionId, version: version.version, pointer: activation.pointerVersion })}</dd>
       <dt>{t($ => $.campaign.digest)}</dt><dd><code>{version.definitionDigest}</code></dd>
       {"fields" in version.snapshot.inputContract ? <><dt>{t($ => $.campaign.referenceContract)}</dt><dd>{version.snapshot.inputContract.contractId}<br /><code>{version.snapshot.inputContract.contractDigest}</code><ul>{version.snapshot.inputContract.fields.map(field => <li key={field.name}>{field.name} · {field.valueType} · {String(field.required)}</li>)}</ul></dd></> : null}
     </dl> : null}

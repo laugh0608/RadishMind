@@ -62,7 +62,7 @@ const labels: Record<string, readonly [string, string]> = {
   "Inspect node": ["Inspect node", "查看节点"],
   "Draft": ["Draft", "草案"],
   "Version": ["Version", "版本"],
-  "Create executor v0 draft": ["Create executor v0 draft", "创建执行器 v0 草案"],
+  "New single-text input draft": ["New single-text input draft", "新建单文本输入草案"],
   "Workflow draft designer development workbench": ["Workflow draft designer development workbench", "工作流草案开发工作台"],
   "prompt_application": ["Prompt application", "Prompt 应用"],
   "workflow_copilot": ["Workflow Copilot", "工作流 Copilot"],

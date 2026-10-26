@@ -14522,6 +14522,14 @@ dd {
   color: var(--rm-text-on-accent);
 }
 
+.workflow-review-filter-grid > button:hover:not(:disabled),
+.workflow-review-pair-rail > button:hover:not(:disabled),
+.workflow-review-decision-form > button:hover:not(:disabled) {
+  border-color: var(--rm-action-hover);
+  background: var(--rm-action-hover);
+  color: var(--rm-text-on-accent);
+}
+
 .workflow-review-run-list {
   display: grid;
   gap: 6px;

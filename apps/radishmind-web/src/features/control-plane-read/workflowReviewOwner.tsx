@@ -544,11 +544,16 @@ function RunDetail({ detail, copiedRef, retrievalPreviewPending, previewFailed, 
 
 function ComparisonSurface({ applicationId, runs, baselineRunId, candidateRunId, candidateRuns, selection, onBaselineChange, onCandidateChange, onCompare }: { applicationId: string; runs: WorkflowRunHistorySummary[]; baselineRunId: string; candidateRunId: string; candidateRuns: WorkflowRunHistorySummary[]; selection: { baseline: string; candidate: string } | null; onBaselineChange: (value: string) => void; onCandidateChange: (value: string) => void; onCompare: () => void }) {
   const { t } = useTranslation("evaluation");
+  const baseline = runs.find(run => run.runId === baselineRunId);
+  const isStructuredDefinition = baseline?.schemaVersion === "workflow_run_record.v8";
+  const isDefinition = isStructuredDefinition || baseline?.schemaVersion === "workflow_run_record.v5";
   return (
     <div className="workflow-review-comparison-layout">
       <aside className="workflow-review-pair-rail">
         <div><p className="eyebrow">{t($ => $.runReview.exactRunPair)}</p><h5>{t($ => $.runReview.chooseCompatibleEvidence)}</h5><p>{t($ => $.runReview.compatibilityFollowsTheCurrentRunProfileAndImmutable)}</p></div>
         <label>{t($ => $.runReview.baseline)}<RunSelect value={baselineRunId} runs={runs} onChange={onBaselineChange} /></label>
+        {isDefinition ? <p>{t($ => $.runReview.definitionComparisonHint)}</p> : null}
+        {isStructuredDefinition ? <p>{t($ => $.runReview.structuredComparisonHint)}</p> : null}
         <label>{t($ => $.runReview.candidate)}<RunSelect value={candidateRunId} runs={candidateRuns} onChange={onCandidateChange} /></label>
         <button type="button" disabled={!baselineRunId || !candidateRunId || baselineRunId === candidateRunId} onClick={onCompare}>{t($ => $.runReview.compareExactRuns)}</button>
         <p className="workflow-review-stop-line">{t($ => $.runReview.instantaneousReadOnlyViewItIsNotPersisted)}</p>
