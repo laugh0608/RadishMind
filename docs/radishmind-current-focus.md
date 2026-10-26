@@ -10,17 +10,17 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- 项目所有者已接受全项目复审建议并批准正式规划整合。当前唯一产品主线改为[本机持久工作台交付 v1](features/user-workspace/local-persistent-workbench-delivery-v1.md)：通过正式 Web 创建 / 打开应用、受控运行、显式保存结果，关闭重启后继续使用。方向与规划已确认，具体启动 / 配置契约待设计，新交付尚未实现。
+- 项目所有者已接受全项目复审建议并批准正式规划整合。当前唯一产品主线改为[本机持久工作台交付 v1](features/user-workspace/local-persistent-workbench-delivery-v1.md)：通过正式 Web 创建 / 打开应用、受控运行、显式保存结果，关闭重启后继续使用。方向与规划已确认，具体启动、配置、Docker 与恢复方案已形成，待确认实施范围，新交付尚未实现。
 - 后续顺序是本机技术交付、真实任务效果验证，再根据实际需求选择共享交付或业务接入。跨版本回归审查调整为候选，尚未实现，不继续沿用先 Workflow 后 Prompt 的旧优先排期。
 - 当前成熟度保持**内部开发者预览**。已有本地账户 / Session、SQLite、应用、Workflow、Gateway、评测和结果链；模块完成不等于统一入口、持续使用、真实模型质量或生产交付已经验收。
 - 真实模型试用继续暂停。可先完成不依赖真实模型的设计、实现与技术验收；技术里程碑完成后如实记录质量待验证，不因等待模型窗口继续扩功能。
-- 本轮只整合规划与文档，不修改运行代码，不沿用此前服务授权。审阅与决策依据见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#2026-10-26-全项目复审交付后移与开发循环)与[W44 周志](devlogs/2026-W44.md)。
+- 本轮已完成具体交付设计与 Radish 做法的只读参考，不修改运行代码，不沿用此前服务授权。审阅与决策依据见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#2026-10-26-全项目复审交付后移与开发循环)与[W44 周志](devlogs/2026-W44.md)。
 
 ## 接下来事项（2026-10-26）
 
-下一项具体工作是在[交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md#具体设计需要确定的内容)中确定本机启动、配置、身份、数据目录和恢复契约，并列明必要代码改动。复用既有 Go Platform、Python Runtime、正式 Web、本地 Session 与共享 SQLite；保留 PostgreSQL 已有能力，不重建平行实现。
+[具体方案](features/user-workspace/local-persistent-workbench-delivery-v1.md#具体启动与交付方案2026-10-26)已形成：同一个 `local-workbench` 运行档用于宿主机与 Docker；Go 提供正式 Web 与 API 的同源入口，复用 Python 工作进程、本地 Session 和共享 SQLite。默认本机入口为 `127.0.0.1:4100`，工作台配置与业务数据分开，前端改读严格的运行时公开配置。以上均为待实施设计。
 
-设计应能直接进入实现：明确入口与关闭方式、配置来源及优先级、首次账户 / 工作区初始化、用户资源创建、Prompt / Workflow 同配置运行、结果保留和备份恢复。具体运行边界确认后，连续完成启动接线、Web 路径、恢复与验收，不再为每一层追加准备状态专题。
+下一步确认[实施范围](features/user-workspace/local-persistent-workbench-delivery-v1.md#实施范围与验证安排)后，连续完成运行档与命令、Web 配置及主链、Docker 与恢复。首次管理员继续显式 CLI 初始化；日常启动拒绝缺库或待迁移，升级前冷备份，恢复到新目录。保留旧开发入口与 PostgreSQL 已有能力，不另开设计前置链。
 
 首轮以既有故障诊断 Prompt 素材检验结果保留，并在同一配置下验证 Workflow 版本与运行链。空环境到首次运行、关闭到继续使用、配置 / 存储 / 身份 / 提供方失败均进入验收；固定响应的技术通过与真实任务效果分别记录。
 

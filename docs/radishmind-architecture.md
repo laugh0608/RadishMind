@@ -10,9 +10,9 @@ RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，�
 
 ## 本机交付目标与架构约束
 
-[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)已纳入当前规划，但尚未实现统一启动 / 配置方案。它组合正式 Web、Go Platform、Python Runtime、本地 Session 和共享 SQLite；不增加语言栈、数据库抽象或账户真相源，不移除既有 PostgreSQL 开发测试能力。
+[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)已形成具体启动 / 配置与恢复方案，实施范围待确认，代码尚未改变。它组合正式 Web、Go Platform、Python Runtime、本地 Session 和共享 SQLite；不增加语言栈、数据库抽象或账户真相源，不移除既有 PostgreSQL 开发测试能力。
 
-具体设计需确定入口、配置优先级、数据目录、身份初始化、迁移兼容、进程关闭与备份恢复。Session / Run / Result Artifact 保持各自数据职责，重启读取不自动恢复执行或重放；开发身份头不用于共享网络认证。本机交付不授予生产能力，也不以全量拆包或通用协议重写为前提。现有实现映射与请求边界如下。
+拟由现有 Go 服务提供正式 Web 静态资源、严格的公开运行时配置和既有 API，形成单一浏览器来源；Python 仍为受控工作进程。宿主机与一个工作台容器共用运行档，默认只公开回环地址 `4100`，不增加 Node、反向代理、Auth 或数据库服务。首次初始化、日常启动、显式升级及冷备份恢复分开，复用已有 SQLite 迁移和身份 bootstrap，不复制领域实现。此段为拟实施设计，下面的当前映射与路由事实保持。Session / Run / Result Artifact 保持各自数据职责，重启读取不自动恢复执行或重放；开发身份头不用于共享网络认证。本机交付不授予生产能力，也不以全量拆包或通用协议重写为前提。现有实现映射与请求边界如下。
 
 ## 当前进程与代码映射
 

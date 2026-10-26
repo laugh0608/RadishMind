@@ -31,12 +31,12 @@
 
 当前主线为[本机持久工作台交付 v1](features/user-workspace/local-persistent-workbench-delivery-v1.md)。首轮用户是项目所有者与内部开发者，目标是一次明确配置后在正式 Web 创建 / 打开应用、编辑、受控运行和显式保存结果，关闭重启后继续使用。
 
-- 复用 Go Platform、Python Runtime、React Web、本地账户 / Session 与共享 SQLite；既有 PostgreSQL 实现保留。首轮面向本机源码运行，不把容器打包或公开部署设为前提。
+- 复用 Go Platform、Python Runtime、React Web、本地账户 / Session 与共享 SQLite；既有 PostgreSQL 实现保留。宿主机先打通同一运行档，Docker 复用配置语义和数据格式；本机容器不等于公开部署。
 - 先用既有故障诊断 Prompt 验证完整结果保留，同配置下覆盖 Workflow 版本与运行；不再先增建一个评测产品才能进入交付。
 - 收口启动与配置、身份 / 工作区初始化、用户资源、数据目录、正常关闭、错误恢复和备份恢复。详细契约、工作包与验收矩阵集中在一个功能专题维护。
 - 退出条件是空环境首次使用、持续使用、重启恢复、备份恢复和关键失败路径经过实际演练；用户可按指南重复完成。已有模块或固定响应测试不能单独证明交付完成。
 
-方向与规划已确认，具体启动 / 配置契约待设计，本阶段尚未实施。现有开发入口与 Compose 不因本规划自动成为上述交付物。
+方向与规划已确认，具体启动 / 配置、Docker 与恢复方案已形成，实施范围待确认，本阶段尚未实施。现有开发入口与 Compose 不因本规划自动成为上述交付物。
 
 ### 第二阶段：真实任务与模型效果
 
@@ -75,7 +75,7 @@
 
 ## 当前执行顺位
 
-立即完成本机持久工作台的具体启动 / 配置设计：入口、进程关闭、配置优先级、数据目录、本地身份、资源准备、正文保留、迁移兼容与恢复。方案应列明必要改动和验证，确认运行边界后连续实施；本轮规划不自行修改代码或启动服务。
+具体启动 / 配置、Docker 和恢复方案已完成，下一步确认其中的实施范围后，连续完成运行档与命令、Web 同源配置及任务链、容器与恢复验收。新增配置 / 运维边界集中在同一专题，不再追加设计前置链；服务与容器的实际运行另按明确窗口授权。
 
 当前动作由[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-26)维护，细节归[交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)。邀请、国际化、定时回归与工程 R2 至 R6 保持完成；`P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不默认续建旧 Console。历史事实见[能力矩阵](radishmind-capability-matrix.md)与[W44 周志](devlogs/2026-W44.md)。
 
