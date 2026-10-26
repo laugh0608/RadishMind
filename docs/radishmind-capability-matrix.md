@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-10-21
+更新时间：2026-10-26
 
 ## 读取口径
 
@@ -29,6 +29,8 @@
 | 外部业务接入 | RadishFlow / Radish 的协议、样例、candidate 与离线回归证据；Catalyst 文档预留 | 真实挂载点与验收环境未齐备，不建立模拟接入完成声明 | [集成入口](integrations/README.md) |
 
 ## 下一动作与验收区分
+
+2026-10-26 已选定[应用跨版本回归审查](features/user-workspace/application-cross-version-regression-review-dev-test-v1.md)为后续主线，先 Workflow、后 Prompt。当前仅确定方向和设计范围，未改变上表的已实现能力；跨计划版本批次配对仍未实现。
 
 当前执行项只在[当前推进焦点](radishmind-current-focus.md)维护。邀请状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`；R2 至 R6 与已关闭产品专题不因本次复审重开批次。
 

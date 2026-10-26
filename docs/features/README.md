@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-21
+更新时间：2026-10-26
 
 ## 文档目的
 
@@ -9,6 +9,8 @@
 当前成熟度为内部开发者预览。四个产品面共同服务内部开发者的应用创建、受控运行、结果审查与回归验证；详细定位和使用指标见[产品范围](../radishmind-product-scope.md)。
 
 ## 当前目标
+
+2026-10-26 已按项目所有者授权确定后续主线：[应用跨版本回归审查（开发 / 测试态）v1](user-workspace/application-cross-version-regression-review-dev-test-v1.md)，先完成 Workflow 的详细设计与实现，再接入 Prompt。后续内部环境交付、真实模型和业务接入的顺序与条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)。当前代码仍仅支持同计划版本批次配对；本次规划不改变协议或运行权限。
 
 项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端暴露的 RAG 晋级列表失败已修复共享请求标识生成逻辑，并于 2026-10-15 完成四组本地中英 44/44 复验及清理，该开发阶段问题关闭。浏览器保持本地按需验证，既有六项组件 CI 已通过；本轮未重跑远端 CI。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
 
@@ -22,7 +24,7 @@
 
 2026-10-21 已批准并实现 [Prompt 调用与会话结构化变量输入](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)，复用五类字段编辑与精确模板参考，已完成双语连续交互、三视口及评测兼容回归，新增表面已关闭；不改变执行权限或真实模型试用暂停决定。随后批准的四项前端失败恢复修复亦已完成双语隔离验收，沿用同一专题维护。
 
-Workflow 创建、版本迭代与回归审查已按[四段方案](user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)完成实现和双语隔离验收：晋级状态隔离、冲突重读、v2 草案编写 / 恢复 / 派生、评测单一编辑状态及 v2 Case / Suite 消费均已接通。后续建议只在[当前推进焦点](../radishmind-current-focus.md#接下来事项2026-10-26)维护，不新增同层任务卡。
+Workflow 创建、版本迭代与回归审查已按[四段方案](user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)完成实现和双语隔离验收：晋级状态隔离、冲突重读、v2 草案编写 / 恢复 / 派生、评测单一编辑状态及 v2 Case / Suite 消费均已接通；10 月 26 日又完成首次使用指引与悬停修正。既有范围不派生同层任务卡，新能力按上面的独立专题设计，具体动作由[当前推进焦点](../radishmind-current-focus.md#接下来事项2026-10-26)维护。
 
 ## 专题分层
 

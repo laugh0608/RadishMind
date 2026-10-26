@@ -1,11 +1,12 @@
 # 用户工作区细专题入口
 
-更新时间：2026-10-21
+更新时间：2026-10-26
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
 ## 当前专题
 
+- [应用跨版本回归审查（开发 / 测试态）v1](application-cross-version-regression-review-dev-test-v1.md)：当前主线，方向已确定、详细契约待设计、未实现。先支持同一应用 / 计划 / Definition 版本族中测试材料一致的 Workflow 批次审查，完成后再接入 Prompt；既有同计划版本配对不因规划被放宽。
 - [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。受限委托 P0 与批次 A 至 D 已完成规范契约与三种存储实现、严格 HTTP 接口、逐次授权重验、显式开发测试态运行器、既有评测批次 / 运行记录交接、崩溃后不重放、完整 Pencil、单一 React 严格消费端、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；任务卡关闭，不派生批次 E。
 - [应用结果资产库与受控导出（开发 / 测试态）v1](application-result-artifact-library-controlled-export-dev-test-v1.md)：状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`；批次 A 至 C 的应用作用域严格列表、过滤游标、规范导出、独立导出权限、双数据库索引、严格 Web 消费端、三视口页面与双数据库产品连续链已完成，专题关闭且不复制结果资产 / 生命周期负责模块。
 - [应用会话运行结果资产显式保存与恢复（开发 / 测试态）v1](application-session-result-artifact-explicit-retention-dev-test-v1.md)：批次 A 至 D 已完成并关闭；默认关闭的显式保存、三种存储中的不可变结果资产、版本化生命周期、共享严格 Web 消费端、SQLite 重启页面恢复与 PostgreSQL 配置化产品链均已成立，不改变运行历史 / 会话仅元数据契约，也不派生批次 E、通用结果存储或会话正文。
@@ -35,6 +36,7 @@
 
 ## 下一步
 
+- 优先完成跨版本回归审查的详细契约、证据归属、API / 存储兼容与页面设计，再按确认范围连续实施后端、Web 和完整验收。独立体验嵌入验证，不替代能力建设；其它开发方向以[阶段路线图](../../radishmind-roadmap.md#后续开发方向2026-10-26)为准。
 - 定时回归评测专题 P0 与批次 A 至 D 已完成并关闭，完整 Pencil 与 React 产品面继续复用 S10 表达精确评测计划、配额消费端、系统执行者与受委托用户、下次到期时间、生命周期、单次执行、评测批次交接、吊销和重启；没有建立 S11。真实提供方与生产任务执行器仍关闭，始终不得用创建者 `actor_ref` 冒充交互式请求。
 - 应用运行观测后续准入已评审完成，真实页面也已贯通“受控调用或会话 → 应用运行观测 → 结果保存 → 结果工作区 → 精确运行详情 / 比较”。既有所有者的精确运行目标交接、缺失证据说明和权威来源漂移恢复引导已经完成；有效运行记录直接打开详情，缺失记录失败关闭，会话重新加载不自动切换、创建或重试。下一顺位回到上级功能设计入口，不为该普通 UI / 使用性修正启动服务端投影、新专题、Pencil 或专项门禁。
 - 应用会话运行结果资产显式保存与恢复 v1 已完成批次 A 至 D 并关闭。下一产品顺位回到上级功能设计文档入口选择新的长期目标；不从已关闭的会话 / 结果资产专题扩展永久清除、会话正文、长期记忆、重放 / 继续运行或 Agent 循环。
@@ -45,7 +47,7 @@
 - 工作区范围写入授权（Workspace-scoped Mutation Authorization）批次 A 至 E 已完成并关闭；后续生产成员资格适配器和真实 OIDC 只在上游契约经过审查且齐备后独立恢复，不从本专题派生同层仅检查门禁批次。
 - Prompt / Agent 回归评测与发布审查专题已完成并关闭；下一步先设计新的用户工作区产品能力，不继续派生本专题同层准入、更新或仅检查门禁批次。
 - 提示词应用（Prompt Application）批次 A 至 E 已完成并关闭：内存 / SQLite / PostgreSQL 语义、Web、双数据库连续链、服务重启、CAS / 漂移 / 取消和敏感信息复验均已通过。
-- 不继续扩“应用开发工作区与发布准备审查 v1”、Prompt Application 或当前回归评测的同层切片。Prompt / Agent 继续复用现有 Run、Comparison、Evaluation 和发布治理真相源，不另建聚合发布真相源或自治执行器。
+- 不继续扩“应用开发工作区与发布准备审查 v1”、Prompt Application 或已完成回归评测的同层检查切片。新跨版本审查由独立功能专题承接，继续复用现有 Run、Comparison、Evaluation 和发布治理真相源，不另建聚合发布真相源或自治执行器。
 - 不从已关闭的应用交互会话（Application Interaction Session）派生长期记忆、自动档案、重试 / 回退、定时调度、重放 / 继续运行或 Agent 循环。服务端汇总当前保持 `no_entry`；后续只有真实跨页任务、稳定的所有者 / 快照 / 游标契约、性能预算与正式配额 / 计费所有者同时成立时才重新评审。
 
 ## 目录停止线

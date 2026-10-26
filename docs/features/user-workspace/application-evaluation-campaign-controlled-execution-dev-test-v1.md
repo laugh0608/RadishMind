@@ -1,6 +1,6 @@
 # 应用评测计划、受控执行与证据归档（开发 / 测试态）v1
 
-更新时间：2026-10-21
+更新时间：2026-10-26
 
 状态：`application_evaluation_campaign_controlled_execution_dev_test_v1_completed`
 
@@ -9,6 +9,8 @@
 2026-10-21 Workflow 编辑修复已实现：v2 表单与高级 JSON 共用当前草稿，无效原文保留并阻止审查 / 保存；任何修改使旧确认失效。计划区域可读取并显式采用活动 Definition 的版本、指针、digest 与合同，重读及采用不覆盖本地样本。加载版本、切换计划 / 档案及离开编辑区提供未保存修改提示。设计与验收见[Workflow 完整方案](application-development-workspace-release-readiness-review-v1.md#workflow-创建版本迭代与回归审查方案2026-10-21)。Definition 目标冻结版本与指针，Campaign 配对要求同一计划版本；跨 Definition 版本审查继续使用兼容的精确 Run → Comparison → Case / Suite，不放宽批次配对契约。
 
 ## 功能定位
+
+2026-10-26 新选定的[应用跨版本回归审查](application-cross-version-regression-review-dev-test-v1.md)独立承接后续能力设计；本文继续描述已实现的同计划版本配对。新专题尚未修改本文接口、schema、交接锚点或执行边界。
 
 本专题为内部应用开发者提供一条可复验的应用回归执行链：把经过显式审查的评测输入冻结为不可变计划版本，在 `development | test` 环境内按单一执行 Profile 顺序产生 durable Run，再把两个 campaign 的同项 Run 精确交接给既有 Comparison、Evaluation Case、Suite 与人工 decision owner。
 
