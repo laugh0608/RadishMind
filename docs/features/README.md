@@ -10,21 +10,11 @@
 
 ## 当前目标
 
-2026-10-26 已按项目所有者授权确定后续主线：[应用跨版本回归审查（开发 / 测试态）v1](user-workspace/application-cross-version-regression-review-dev-test-v1.md)，先完成 Workflow 的详细设计与实现，再接入 Prompt。后续内部环境交付、真实模型和业务接入的顺序与条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)。当前代码仍仅支持同计划版本批次配对；本次规划不改变协议或运行权限。
+项目所有者在全项目复审后批准[本机持久工作台交付 v1](user-workspace/local-persistent-workbench-delivery-v1.md)为当前主线。首轮整合正式 Web、启动配置、本地身份与 SQLite、Prompt / Workflow 运行、结果显式保存和重启恢复。方向与规划已确认，具体启动 / 配置契约待设计，交付尚未实现。
 
-项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端暴露的 RAG 晋级列表失败已修复共享请求标识生成逻辑，并于 2026-10-15 完成四组本地中英 44/44 复验及清理，该开发阶段问题关闭。浏览器保持本地按需验证，既有六项组件 CI 已通过；本轮未重跑远端 CI。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
+后续先取得真实任务效果证据，再按需求选择共享交付或业务接入；跨版本回归审查改为候选。阶段条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)，下一动作与授权边界见[当前推进焦点](../radishmind-current-focus.md)。真实模型试用继续暂停。
 
-[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
-
-[应用定时回归评测](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[工作区 Workflow 模板目录](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)和[动作安全阶梯（Action Safety Ladder）](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)保持完成关闭。真实 Radish OIDC 为 `real_radish_integration_deferred`，应用运行观测后续仍为 `no_entry`。
-
-前端草案状态收敛、Workflow / Prompt / 模板与 RAG 快照、检索执行、晋级审查、应用运行、HTTP Tool 及离线投影解释的自动浏览器回归已分窗口完成；后端权限 / 内建角色策略包及双数据库回归已完成；内部故障诊断素材已准备，真实模型试用由项目所有者暂缓，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
-
-2026-10-15 新增的 [Prompt 计划结构化编辑](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#隔离浏览器与-react-验收2026-10-21)已于 2026-10-21 完成前端、无服务验证及独立获授权的双语连续交互 / 三视口浏览器验收，新增表面已关闭；分窗口证据见专题和本周周志。
-
-2026-10-21 已批准并实现 [Prompt 调用与会话结构化变量输入](user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#受控调用与会话的结构化变量输入2026-10-21)，复用五类字段编辑与精确模板参考，已完成双语连续交互、三视口及评测兼容回归，新增表面已关闭；不改变执行权限或真实模型试用暂停决定。随后批准的四项前端失败恢复修复亦已完成双语隔离验收，沿用同一专题维护。
-
-Workflow 创建、版本迭代与回归审查已按[四段方案](user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)完成实现和双语隔离验收：晋级状态隔离、冲突重读、v2 草案编写 / 恢复 / 派生、评测单一编辑状态及 v2 Case / Suite 消费均已接通；10 月 26 日又完成首次使用指引与悬停修正。既有范围不派生同层任务卡，新能力按上面的独立专题设计，具体动作由[当前推进焦点](../radishmind-current-focus.md#接下来事项2026-10-26)维护。
+邀请治理、中英国际化、定时回归、Workflow 模板与 Action Safety、既有应用和评测专题保持完成，不派生同层续批。10 月的编辑 / 恢复、RAG 请求标识与首次使用修正均已完成对应本地验收；长证据从[周志](../devlogs/README.md)与对应专题追溯。真实 Radish OIDC 保持 `real_radish_integration_deferred`，运行观测后续保持 `no_entry`。
 
 ## 专题分层
 

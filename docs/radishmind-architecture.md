@@ -1,12 +1,18 @@
 # RadishMind 系统架构
 
-更新时间：2026-10-11
+更新时间：2026-10-26
 
 ## 架构职责
 
 本文描述当前进程、模块、请求流与数据归属，并区分实现事实、逻辑职责和后续收敛方向。能力成熟度见[能力矩阵](radishmind-capability-matrix.md)，执行顺位见[当前推进焦点](radishmind-current-focus.md)，功能细节见[功能设计入口](features/README.md)。
 
 RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，不是上层业务真相源。RadishMind 本地账户、角色与工作区成员关系是平台内部真相；Radish 自身身份、组织成员关系和业务数据仍由 Radish 负责。
+
+## 本机交付目标与架构约束
+
+[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)已纳入当前规划，但尚未实现统一启动 / 配置方案。它组合正式 Web、Go Platform、Python Runtime、本地 Session 和共享 SQLite；不增加语言栈、数据库抽象或账户真相源，不移除既有 PostgreSQL 开发测试能力。
+
+具体设计需确定入口、配置优先级、数据目录、身份初始化、迁移兼容、进程关闭与备份恢复。Session / Run / Result Artifact 保持各自数据职责，重启读取不自动恢复执行或重放；开发身份头不用于共享网络认证。本机交付不授予生产能力，也不以全量拆包或通用协议重写为前提。现有实现映射与请求边界如下。
 
 ## 当前进程与代码映射
 

@@ -1,22 +1,34 @@
 # RadishMind 平台专题入口
-更新时间：2026-07-21
+
+更新时间：2026-10-26
 
 ## 文档目的
 
-本目录用于承接跨产品面的平台专题。平台专题不属于某一个页面，也不应塞进单个产品面大方向文档；它们负责固定 auth、store、repository、provider、deployment、仅开发写入路径等长期边界和准入条件。当前跨领域整改统一进入 [工程健康与产品化整改专题 v1](engineering-health-productization-remediation-v1.md)，不再为每一步派生同层 readiness 链。
+本目录承接跨产品面的身份、存储、运行、提供方与交付专题。当前平台工作服务[本机持久工作台交付](../features/user-workspace/local-persistent-workbench-delivery-v1.md)；排期由[当前推进焦点](../radishmind-current-focus.md)维护，历史准入链不再提供执行顺位。
 
-2026-07-11 起，历史 storage adapter next dependency 不再是当前开发顺位。平台门禁约束 capability 是否可启用和声明，不再长期约束 adapter / migration / repository 实现文件必须不存在。R3 已完成；当前可在先完成功能设计后推进独立命名的开发 / 测试态 PostgreSQL durable repository，production repository mode、OIDC、production secret 和公开生产 API 继续保持失败关闭。
+平台门禁约束能力启用、运行配置与发布声明，不要求已获授权的开发测试实现文件不存在。长期功能写入对应专题，必要的高风险实施拆分进入[任务卡](../task-cards/README.md)；普通步骤不追加同层准备状态文档或检查器。
 
-具体实现批次仍进入 `docs/task-cards/`。平台专题只说明为什么要做、允许打开什么、依赖什么证据、哪些能力必须作为独立目标；平台专题正文默认中文，`schema`、`fixture`、`checker`、状态锚点和路径等必要标识符保留原文并优先使用反引号。
+平台专题正文默认中文，`schema`、`fixture`、`checker`、状态锚点和路径保留原文。
 
-## 何时放在这里
+## 当前平台事实与路由
 
-- 能力会影响多个产品面，例如 User Workspace、Admin Control Plane 和 Workflow 同时依赖的 auth / store / repository。
-- 能力属于服务层或运行层，例如 provider 运行时、deployment 运行配置、secret backend、store selector。
-- 能力需要明确仅开发、测试、生产环境的启用边界。
-- 能力不是单个页面可独立验收的 UI 组织问题。
+| 方面 | 当前事实 | 本轮关联 |
+| --- | --- | --- |
+| 服务运行 | [运行手册](platform-service-operations-runbook-v1.md)维护配置、路由、启动与排障 | 交付设计确定统一入口和配置后同步手册；现有命令不因规划改变 |
+| 本地身份 | [账户与联合登录](../features/admin-control-plane/local-account-radish-oidc-federated-login-v1.md)已有本地账户、Session、成员授权与确定性 OIDC | 复用现有负责模块；真实 Radish 联调与生产认证仍未验收 |
+| 持久化 | [SQLite 专题](local-sqlite-dev-persistence-v1.md)及领域专题已有共享运行时、迁移、存储与重启证据；PostgreSQL 开发测试实现保留 | 本机交付明确数据目录、初始化、版本兼容和恢复，不重建存储抽象 |
+| 提供方运行 | 既有 Gateway 选择、工作进程池与受控开发测试回退已实现 | 真实模型窗口仍暂停，真实故障回退与生产健康状态分别验收 |
+| 工程维护 | [工程健康专题](engineering-health-productization-remediation-v1.md)保留 R2 至 R6 与首个策略切片证据 | 只处理妨碍当前交付的维护问题，不全量拆包 |
+| 生产运行 | [部署说明](../../deploy/README.md)与[生产密钥存储证据](production-secret-backend-audit-store-storage-adapter-evidence-rollup-v1.md)维护各自边界 | 本机工作台尚未交付；生产密钥、监管、环境隔离、生产交付继续未满足 |
 
-## 当前平台专题候选
+## 历史证据
+
+以下保留旧专题名称、状态锚点与检查器追溯材料。正文中的“当前”“下一依赖”“不创建”只描述原始批次，不覆盖上表已有身份、数据库、授权与执行实现，不成为今天的排期或全仓禁令。生产密钥专属审计存储仍未实现，不能由应用审计推定完成。
+
+<details>
+<summary>展开历史静态准入与实现证据</summary>
+
+## 历史平台专题清单（2026-07）
 
 | 专题 | 当前状态 | 现有事实源 | 下一步 |
 | --- | --- | --- | --- |
@@ -249,8 +261,11 @@ Saved workflow draft 的平台服务配置已经新增 `workflow_saved_draft_sto
 
 该 refresh 消费原始 entry review、cloud secret service selection readiness、production resolver blocker consolidation、credential handle / operator approval refresh、audit store refresh v3 和 no leakage smoke entry review，entry decision 为 `resolver_backend_health_runtime_task_card_still_blocked_after_refresh`；不创建 backend health runtime implementation task card、不创建 backend health runtime、不执行 backend health check、不访问 provider、不调用云 secret 服务、不创建 credential handle runtime、不执行 approval runtime、不创建 audit store / writer / event、不实现 production resolver runtime、不启用 repository mode 或 public production API。
 
+</details>
+
 ## 停止线
 
-- 不用平台专题替代 task card；进入代码实现、route、schema、checker 或高风险 gate 时仍必须有实现批次记录。
-- 不把 dev-only 能力写成 production ready。
-- 不在没有明确触发条件时打开真实数据库、Radish OIDC、repository adapter、store selector、secret backend、executor、confirmation、writeback 或 replay。
+- 不把本机或开发测试态能力写成生产就绪，不把相邻领域完成视为生产密钥存储完成。
+- 不恢复历史准备状态尾链，不用平台专题或任务卡代替当前功能设计。
+- 服务、真实数据库运行、真实 OIDC、模型、依赖、打包、上传与部署仍按明确范围授权。
+- 不开放业务写回、自动确认或历史重放；共享网络、生产身份和生产运行分别验收。

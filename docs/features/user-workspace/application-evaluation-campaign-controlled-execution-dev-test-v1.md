@@ -10,7 +10,7 @@
 
 ## 功能定位
 
-2026-10-26 新选定的[应用跨版本回归审查](application-cross-version-regression-review-dev-test-v1.md)独立承接后续能力设计；本文继续描述已实现的同计划版本配对。新专题尚未修改本文接口、schema、交接锚点或执行边界。
+[应用跨版本回归审查](application-cross-version-regression-review-dev-test-v1.md)保留为候选，暂不排期；当前主线为[本机持久工作台交付](local-persistent-workbench-delivery-v1.md)。本文继续描述已实现的同计划版本配对，其接口、schema、交接锚点和执行边界保持。Comparison / Campaign 主要提供运行元数据审查，不判断答案质量。
 
 本专题为内部应用开发者提供一条可复验的应用回归执行链：把经过显式审查的评测输入冻结为不可变计划版本，在 `development | test` 环境内按单一执行 Profile 顺序产生 durable Run，再把两个 campaign 的同项 Run 精确交接给既有 Comparison、Evaluation Case、Suite 与人工 decision owner。
 

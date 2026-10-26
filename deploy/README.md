@@ -1,6 +1,10 @@
 # RadishMind 部署目录说明
 
-更新时间：2026-06-19
+更新时间：2026-10-26
+
+## 当前交付范围
+
+现有 Compose 面向 Platform 与旧 Console 的开发 / 验证边界，尚未形成正式产品 Web 的完整交付。[本机持久工作台](../docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)先收口本机源码运行、身份、数据保留与恢复；规划尚未改变本目录配置或授权部署。共享环境、镜像发布、生产密钥与监管按实际需求分别验收。
 
 ## 目录职责
 
@@ -18,7 +22,7 @@
 
 ### `host_dev`
 
-日常开发仍默认在宿主机直跑：
+本节保留旧 Console 的宿主机运行路径；正式产品 Web 的现有开发入口见[项目指南](../docs/radishmind-project-guide.md#37-运行产品-ui-shell开发测试态)，统一持久工作台尚未交付：
 
 macOS / Linux / WSL 使用：
 
@@ -99,6 +103,8 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yaml down
 `deploy/.env.example` 只保存非密钥配置样例。真实 credential、API key、生产 secret、证书路径和 provider token 不得提交。
 
 ### Production secret backend contract
+
+以下为生产密钥专题的历史静态证据及专属停止线，不决定今天的排期，也不否定后续已实现的本地身份、应用数据库与审计。新的交付要求按对应功能设计处理，不恢复逐层准备状态尾链。
 
 `production-secret-backend-contract` 已由 `scripts/checks/fixtures/production-ops-secret-backend-contract.json` 与 `scripts/check-production-ops-secret-backend-contract.py` 固定为治理切片。当前只定义未来 external secret backend adapter contract、`RADISHMIND_SECRET_SOURCE` 这类 secret reference、脱敏输出和禁止项；`deploy/.env.example` 不是 secret backend，也不保存真实 credential。
 

@@ -1,14 +1,16 @@
 # RadishMind 产品机会池
 
-更新时间：2026-08-27
+更新时间：2026-10-26
 
 ## 文档目的
 
-本文档记录 `RadishMind` 长期产品机会，避免把临时讨论散落在对话里。它不是路线图，不代表功能已经承诺或实现；进入实施前必须再拆任务卡、定义停止线和验证方式。
+本文档记录 `RadishMind` 长期产品机会，避免把临时讨论散落在对话里。它不是路线图，不代表功能已经承诺或实现；进入排期前先明确真实任务、现有缺口、收益与验证方式；只有必要的高风险边界才拆实施任务卡。
+
+当前主线为[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，后续选择以[路线图](radishmind-roadmap.md#后续开发方向2026-10-26)为准。本文候选不自动进入开发，也不用于填补真实模型试用暂停期间的等待。
 
 当前正式产品面仍以 [产品范围](radishmind-product-scope.md) 为准：`User Workspace`、`Admin Control Plane`、`Model Gateway / API Distribution`、`Workflow / Agent Runtime`。
 
-## 近期候选
+## 产品增强候选（未排期）
 
 ### 1. `Model API Routing Studio`
 
@@ -26,11 +28,11 @@
 - 依赖：workflow definition、版本、权限、运行记录、审核状态。
 - 停止线：不先做公开市场；首版只考虑 Radish 体系内部团队空间。
 
-2026-08-27 进展：内部团队空间的首版已收敛为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，批次 A 的 strict contract、memory owner 与默认关闭 HTTP 已完成，当前等待批次 B durable repository 授权。公开 Marketplace、跨 workspace / tenant、评分推荐、收费和第三方分发仍留在机会池，不随首版打开。
+截至 2026-10-26，内部团队空间的首版已收敛为[工作区 Workflow 模板目录、审查与受控派生（开发 / 测试态）v1](features/workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)，既有规范契约、三种存储、Web、审查 / 上架 / 派生与双数据库验收已完成关闭，不续批。公开 Marketplace、跨 workspace / tenant、评分推荐、收费和第三方分发仍留在机会池，不随首版打开。
 
 ### 3. `Eval-as-a-Feature`
 
-用户创建或修改 AI 应用后，平台要求配置最小 eval set。prompt、模型、workflow 或路由策略变更时自动跑 regression，给出可发布、风险增加或需要人工复核的结论。
+候选方向是让重复版本迭代更容易保留评测材料和人工审查证据。已有 Plan / Campaign、同版本配对、Case / Suite 与受限 Schedule；[跨版本审查](features/user-workspace/application-cross-version-regression-review-dev-test-v1.md)暂不排期。现有运行元数据比较不判断答案质量，自动触发或模型裁判须由真实使用需求另行决定。
 
 - 价值：把本仓库已有 evaluation / governance 能力变成用户可见产品能力。
 - 依赖：eval sample schema、run record、应用版本、发布门禁、人工复核记录。
@@ -68,7 +70,7 @@ prompt、workflow、provider route 和 quota policy 可导出为 JSON / YAML，�
 
 ### 9. `Workflow Replay / Time Travel`
 
-每次 workflow run 都能重放当时输入、命中的模型、prompt、retrieval、tool output、成本、错误和策略判断，用于排查“为什么这次回答变了”。
+候选目标是从精确历史版本与保留证据解释回答变化。历史重读与重新执行必须分开；输入 / 正文保留、外部副作用、授权和费用边界未确定前，不开放历史重放或恢复执行。
 
 ### 10. `Personal AI Toolbox With Team Governance`
 
@@ -76,8 +78,8 @@ prompt、workflow、provider route 和 quota policy 可导出为 JSON / YAML，�
 
 ## 推进原则
 
-- 先做 `Model Gateway + API key / quota / trace` 的闭环，再进入完整 workflow builder。
-- 产品机会进入路线图前必须写任务卡，明确输入、输出、停止线、验证和未完成项。
+- 当前按本机交付、真实效果和实际共享 / 接入需求选择工作，不再沿用早期 Gateway 优先的建设顺序。
+- 候选进入路线图前在功能专题明确目标用户、现有阻塞、范围、验收和未完成项；不默认逐项创建任务卡。
 - 不把本机会池写成 roadmap commitment。
 - 不把当前本地 ops console 扩写成正式用户端、生产管理端或 marketplace。
 - 不为产品机会新增后端语言栈；默认继续使用 Go control plane / gateway、Python model / eval / worker、TypeScript/Vite frontend。

@@ -7,6 +7,10 @@
 - `Model Gateway / API Distribution`：普通离线 Model Gateway Overview、Route Evidence、Usage/Audit Evidence 与 Evidence Review / Readiness，复用 shared read shell、API key summary、quota summary、run history、audit log、provider runtime、`gateway-api-key-quota-readiness` 和前三个网关 view model 证据，展示 northbound API compatibility surfaces、provider/profile inventory、route binding、selection cases、key scope、quota / cost snapshot、trace / failure、audit decision、readiness rollup、evidence checklist、route / usage / audit key risks 和 locked distribution capabilities。
 - `Workflow / Agent Runtime Function Surface`：既有 workflow detail / review / Draft Designer / Validation、`workflow-execution-plan-preview-offline-v1`、`workflow-runtime-readiness-inspector-offline-v1` 等运行时预览面板，以及显式 dev-only 的 Saved Draft、HTTP Tool、Workflow RAG v3、Application RAG v4、Workflow Definition v5 / v8 / v9、Application Interaction Session v1 / v4、Run History / Comparison / Evaluation 与 Application Operations。
 
+## 当前交付规划
+
+[本机持久工作台交付](../../docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)以本应用作为统一用户入口，计划收口启动、配置、本地身份、应用运行、结果保留与重启恢复。具体方案尚未实施；当前开发模式、能力开关与命令仍按现有指南使用，演示投影不能替代持久产品环境。
+
 ## Family UI 基座
 
 - 通用 UI 参考基线采用 RadishX family-ui `v26.7.3`；页面根节点使用 `Workbench` Profile，这是 RadishMind 对工作面气质与密度的项目级选择。
