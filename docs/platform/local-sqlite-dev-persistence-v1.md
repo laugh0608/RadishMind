@@ -1,10 +1,12 @@
 # 本地 SQLite 开发持久化 v1
 
-更新时间：2026-08-30
+更新时间：2026-10-26
 
 状态：`local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`
 
 ## 当前结论
+
+2026-10-26 新增工作台接线：`local-workbench` 复用本专题的共享 SQLite 和现有领域迁移，完整迁移集合由 `services/platform/migrations/sqlite/migrations.go` 提供；SQL 与领域存储语义未改。工作台将新库初始化、兼容性预检、显式升级和冷备份恢复分开，普通 `serve` 不自动建库或补迁移；数据目录独占标记只由显式 `init` / `restore` 建立。旧开发服务的 `local-product` / `configured` 启动档保留原行为，不能与工作台共用目录。操作与未完成的运行验收见[工作台运行指南](local-persistent-workbench-operations-v1.md)。下文早期 S1 至 S3 批次记录只说明当时实现和验证，不覆盖这项新增入口。
 
 RadishMind 增加 `sqlite_dev`，用于无需 PostgreSQL 服务即可完成本地产品开发、前后端联调和服务重启恢复。它与现有 `memory_dev`、`postgres_dev_test` 并行，不替代任何一层：
 
@@ -162,7 +164,7 @@ RADISHMIND_SQLITE_DEV_DATABASE_PATH=var/sqlite-dev/radishmind.db
 - 聚合模式与组件配置冲突时启动失败，不允许猜测优先级；
 - `postgres_dev_test` 继续使用独立 DSN、手动 PostgreSQL migration 和运行 / 迁移角色。
 
-跨平台 wrapper 固定提供两个启动档：
+原开发服务 wrapper 提供两个启动档（独立的 `start.* workbench` 入口见本文当前结论）：
 
 - `local-product` 是默认档，注入聚合 `sqlite_dev`、仓库根 `var/sqlite-dev/radishmind.db` 的受控路径和既有开发门禁；十一个组件的 store / migration 统一投影为 SQLite，但 Admin Provider / Route 与 quota 的管理或 enforcement gate 不自动开启。调用方显式提供数据库路径时保留该覆盖，但不得同时提供组件 `*_STORE` 形成第二配置源；
 - `configured` 不注入聚合持久化模式和组件门禁，只承接调用方的文件 / 环境配置，用于 PostgreSQL 专项验收、组件故障注入和历史兼容诊断；它不代表生产启动档。

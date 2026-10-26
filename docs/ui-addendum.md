@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-10-21
+更新时间：2026-10-26
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -95,6 +95,12 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - Evaluation / Release Review：baseline、comparison、case / suite、人工 decision 和不可自动发布边界。
 
 专属组件不得复制领域 owner，也不得从 UI 推导生产 readiness、全量统计或自动执行资格。
+
+## 2026-10-26 工作台接线与验证范围
+
+当日 Workflow 首次使用修正沿用既有 C 级动作区，区分单文本 / 结构化格式、内容版本与激活指针，并修复比较主按钮悬停文字；中英及三视口的局部最终证据见 [W44 周志](devlogs/2026-W44.md#2026-10-26-workflow-首次使用复核与局部修正)。
+
+随后新增 `local-workbench` 入口，复用认证、应用五阶段和 Workflow 页面，只增加首次初始化说明、运行模式 / 正文保留提示及现有草案创建动作，隐藏此档未开放的演示与扩展面，继续使用项目语义 token。该接线按交付专题登记为 C 级直接实现；真实工作台中英、桌面 / 窄屏与错误恢复验收已顺延，不能沿用当天较早开发入口的截图结论。范围见[工作台交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md#实现与当前证据2026-10-26)。
 
 ## 当前迁移偏差
 

@@ -6,7 +6,7 @@
 
 `docs/` 是 RadishMind 的正式文档源。入口负责定位和路由，功能 / 平台专题负责当前事实与长期边界，任务卡负责实施批次，周志与运行记录负责历史证据。
 
-当前成熟度为**内部开发者预览**。当前主线为[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，规划已确认但尚未实施；当前状态、下一动作和停止线只以[当前推进焦点](radishmind-current-focus.md)为准，专题完成不扩大生产能力。
+当前成熟度为**内部开发者预览**。当前主线为[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一运行档、Web 接线和冷备份恢复已实现，实际浏览器 / 容器验收待完成；当前状态、下一动作和停止线只以[当前推进焦点](radishmind-current-focus.md)为准，专题完成不扩大生产能力。
 
 ## 从哪里开始
 

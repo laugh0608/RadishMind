@@ -4,7 +4,7 @@
 
 ## 当前交付目标
 
-当前优先[本机持久工作台交付](user-workspace/local-persistent-workbench-delivery-v1.md)：让项目所有者与内部开发者在正式 Web 创建 / 打开 Prompt 与 Workflow、受控运行、显式保存结果，并在重启后继续使用。方向与规划已确认，统一启动 / 配置方案尚未实现。既有功能事实如下，历史完成项不作为新排期。
+当前优先[本机持久工作台交付](user-workspace/local-persistent-workbench-delivery-v1.md)：让项目所有者与内部开发者在正式 Web 创建 / 打开 Prompt 与 Workflow、受控运行、显式保存结果，并在重启后继续使用。统一启动 / 配置、同源 Web 与数据恢复已实现，浏览器连续主链仍待下一运行窗口验收。既有功能事实如下，历史完成项不作为新排期。
 
 ## 功能定位
 

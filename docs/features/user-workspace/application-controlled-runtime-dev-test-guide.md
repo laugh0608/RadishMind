@@ -20,6 +20,8 @@ Application Session 只是这些既有运行路径之上的编排资源。v1 / R
 
 ## 启动方式
 
+2026-10-26 已新增独立[本机工作台入口](../../platform/local-persistent-workbench-operations-v1.md)，统一本地 Session、SQLite 与正式 Web，首轮开放 Prompt / 基本 Workflow 和显式结果保留。下列专项开发命令继续用于各自领域验证；它们的 RAG、评测或历史浏览器通过记录不代表工作台已开放同样范围，也不代替工作台下一窗口的连续验收。
+
 共享 SQLite 本地产品链：
 
 ```bash

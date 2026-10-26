@@ -75,7 +75,7 @@
 
 ## 当前执行顺位
 
-当前进入已实现工作台的运行验收：按[运行指南](platform/local-persistent-workbench-operations-v1.md)完成宿主机浏览器主链、停服重启、备份恢复，再单独验证容器。服务、镜像构建与容器运行仍按明确窗口授权，不据静态配置通过宣称运行成功。
+2026-10-26 晚间按项目所有者要求结束当日工作，浏览器验收顺延至下一工作时段；本次收尾不构成运行授权。当前进入已实现工作台的运行验收：按[运行指南](platform/local-persistent-workbench-operations-v1.md)完成宿主机浏览器主链、停服重启、备份恢复，再单独验证容器。服务、镜像构建与容器运行仍按明确窗口授权，不据静态配置通过宣称运行成功。
 
 当前动作由[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-26)维护，细节归[交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)。邀请、国际化、定时回归与工程 R2 至 R6 保持完成；`P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不默认续建旧 Console。历史事实见[能力矩阵](radishmind-capability-matrix.md)与[W44 周志](devlogs/2026-W44.md)。
 
