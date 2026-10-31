@@ -61,6 +61,8 @@ func TestPlanRejectsScopeAndBudgetExpansion(t *testing.T) {
 		"remote_mode":       func(p *Plan) { p.Mode = "real_provider" },
 		"unknown_sdk":       func(p *Plan) { p.SDKCandidate.Package = "another-framework" },
 		"floating_sdk":      func(p *Plan) { p.SDKCandidate.Version = "latest" },
+		"unapproved_patch":  func(p *Plan) { p.SDKCandidate.Version = "1.59.0+radishmind.2" },
+		"foreign_patch":     func(p *Plan) { p.SDKCandidate.Version = "1.59.0+other.1" },
 		"path_escape":       func(p *Plan) { p.SourceFiles[0].Path = "../go.mod" },
 		"unsorted_files":    func(p *Plan) { p.SourceFiles[0], p.SourceFiles[1] = p.SourceFiles[1], p.SourceFiles[0] },
 		"extra_write":       func(p *Plan) { p.WritablePaths = append(p.WritablePaths, "list_test.go") },
@@ -78,6 +80,20 @@ func TestPlanRejectsScopeAndBudgetExpansion(t *testing.T) {
 				t.Fatal("accepted expanded scope")
 			}
 		})
+	}
+}
+
+func TestVariantChangesPlanIdentity(t *testing.T) {
+	plan, _ := taskFixture(t)
+	stock := PlanDigest(plan)
+	plan.SDKCandidate.Version = "1.59.0+radishmind.1"
+	data, err := json.Marshal(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := ParsePlan(data)
+	if err != nil || PlanDigest(parsed) == stock {
+		t.Fatalf("variant must be valid and separately bound: %v", err)
 	}
 }
 

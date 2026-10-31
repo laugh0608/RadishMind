@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -61,6 +62,11 @@ class DevelopmentProbeContractTests(unittest.TestCase):
         changed = copy.deepcopy(plan)
         changed["sdk_candidate"]["version"] = "latest"
         self.assertFalse(validator.is_valid(changed))
+        changed["sdk_candidate"]["version"] = "1.59.0+radishmind.1"
+        validator.validate(changed)
+        for version in ("1.59.0+radishmind.2", "1.59.0+other.1", "1.59.0rc1"):
+            changed["sdk_candidate"]["version"] = version
+            self.assertFalse(validator.is_valid(changed))
 
     def test_tool_request_contract_rejects_scope_expansion(self):
         schema = json.loads((ROOT / "contracts/development-task-probe-tool-request.schema.json").read_text())
@@ -108,6 +114,28 @@ class DevelopmentProbeContractTests(unittest.TestCase):
         for value in invalid:
             with self.subTest(value=value), self.assertRaises(ValueError):
                 lock_module.build_lock(value)
+
+    def test_variant_lock_binds_local_wheel_and_excludes_laminar(self):
+        with tempfile.TemporaryDirectory() as directory:
+            wheel = Path(directory) / lock_module.VARIANT_WHEEL
+            wheel.write_bytes(b"synthetic wheel bytes for hash binding only")
+            item = self.wheel(version=lock_module.VARIANT_VERSION)
+            item["download_info"]["url"] = wheel.resolve().as_uri()
+            item["download_info"]["archive_info"]["hashes"]["sha256"] = hashlib.sha256(wheel.read_bytes()).hexdigest()
+            report = {"version": "1", "install": [item, self.wheel("jsonschema", "4.23.0")]}
+            self.assertIn("openhands-sdk==1.59.0+radishmind.1", lock_module.build_lock(report, wheel))
+            with self.assertRaises(ValueError):
+                lock_module.build_lock(report)
+            for package in ("lmnr", "lmnr-claude-code-proxy"):
+                with self.assertRaises(ValueError):
+                    lock_module.build_lock({"version": "1", "install": report["install"] + [self.wheel(package)]}, wheel)
+            changed = copy.deepcopy(report)
+            changed["install"][0]["download_info"]["url"] = (wheel.parent / "different.whl").as_uri()
+            with self.assertRaises(ValueError):
+                lock_module.build_lock(changed, wheel)
+            wheel.write_bytes(b"changed after resolution")
+            with self.assertRaises(ValueError):
+                lock_module.build_lock(report, wheel)
 
 
 if __name__ == "__main__":

@@ -178,10 +178,22 @@ class Bridge:
             raise WorkerFailure("SDK reported failure")
 
 
+def validate_sdk_distribution():
+    version = importlib.metadata.version("openhands-sdk")
+    if version not in ("1.59.0", "1.59.0+radishmind.1"):
+        raise WorkerFailure("SDK version mismatch")
+    if version == "1.59.0+radishmind.1":
+        for package in ("lmnr", "lmnr-claude-code-proxy"):
+            try:
+                importlib.metadata.distribution(package)
+            except importlib.metadata.PackageNotFoundError:
+                continue
+            raise WorkerFailure("unexpected optional SDK distribution")
+
+
 def build_agent(bridge):
     # The only dependency boundary. Host-side wire tests import no SDK packages.
-    if importlib.metadata.version("openhands-sdk") != "1.59.0":
-        raise WorkerFailure("SDK version mismatch")
+    validate_sdk_distribution()
     from litellm.types.utils import ModelResponse
     from pydantic import ConfigDict
     from typing import Literal

@@ -15,7 +15,7 @@ def main() -> None:
     from openhands.sdk.llm import Message
     from openhands.sdk.tool import Action, Observation, ToolDefinition, ToolExecutor
 
-    if metadata.version("openhands-sdk") != "1.59.0":
+    if metadata.version("openhands-sdk") not in ("1.59.0", "1.59.0+radishmind.1"):
         raise ValueError("unexpected SDK candidate")
     apis = {}
     for cls in (LLM, Agent, Conversation, LocalConversation, Message, Action, Observation, ToolDefinition, ToolExecutor):

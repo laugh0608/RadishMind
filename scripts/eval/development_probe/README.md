@@ -2,6 +2,10 @@
 
 本目录只服务于[受控开发团队阶段 0](../../../docs/features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)，不属于工作台或既有 Python runtime 的依赖。
 
+## 遥测可选依赖候选
+
+项目所有者已确认同版 SDK 的遥测可选化路线。`1.59.0+radishmind.1` 的来源 / MIT 告知、补丁、离线准备、正常依赖解析与冻结安装配方、实际验收命令见[变体说明](sdk_variant/README.md)。当前完成准备和离线验证，尚无新依赖闭包、wheel、镜像或真实 SDK 证据。原始锁与下文历史验收保持；`run_joint.py --sdk-image` 只接受明确的本地 digest，不接受 tag，不自动拉取镜像。
+
 ## 固定输入与运行入口
 
 候选为 `sdk-candidate.txt` 中的 `openhands-sdk==1.59.0`，完整 138 个依赖的版本 / wheel SHA-256 已冻结在 `requirements-linux-arm64-py312.lock`。`deploy/Dockerfile.development-probe-sdk` 使用带摘要的 Python 3.12 基础镜像，直接以 `--require-hashes --no-deps --only-binary=:all:` 安装此锁并执行 `pip check`，不在构建时重新解析依赖。当前只验证 `linux/arm64` / Python 3.12.16；其他架构明确拒绝，不自动选择另一份依赖。

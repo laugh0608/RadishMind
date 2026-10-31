@@ -1,0 +1,63 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -3 +3,3 @@
+-version = "1.59.0"
++version = "1.59.0+radishmind.1"
++license = "MIT"
++license-files = ["LICENSE", "RADISHMIND-CHANGES.txt"]
+@@ -26 +27,0 @@
+-    "lmnr>=0.7.60,<0.8.0",
+@@ -37,0 +39 @@
++laminar = ["lmnr>=0.7.60,<0.8.0"]
+--- a/openhands/sdk/observability/laminar.py
++++ b/openhands/sdk/observability/laminar.py
+@@ -4,0 +5 @@
++import importlib.util
+@@ -340,0 +342,8 @@
++def _require_laminar_dependency() -> None:
++    if importlib.util.find_spec("lmnr") is None:
++        raise RuntimeError(
++            "Laminar observability is not installed; install the matching "
++            "openhands-sdk[laminar] extra before enabling observability."
++        )
++
++
+@@ -345,0 +355 @@
++        _require_laminar_dependency()
+@@ -404,0 +415 @@
++        _require_laminar_dependency()
+--- /dev/null
++++ b/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2026 OpenHands contributors
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+--- /dev/null
++++ b/RADISHMIND-CHANGES.txt
+@@ -0,0 +1,8 @@
++RadishMind validation variant: openhands-sdk 1.59.0+radishmind.1
++Upstream: OpenHands/software-agent-sdk v1.59.0 (MIT)
++Changes dated 2026-10-31:
++- Move lmnr from required dependencies to the explicit laminar extra.
++- Reject requested Laminar observability when its optional dependency is absent.
++- Declare MIT and include the upstream license and this modification record.
++This is a separately identified validation build, not an upstream release.
++The laminar extra retains its own transitive licensing requirements.

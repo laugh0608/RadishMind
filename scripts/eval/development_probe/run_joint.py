@@ -6,6 +6,7 @@ retains logs/inspection and removes only its exact controller container.
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 
@@ -23,7 +24,10 @@ def main():
     parser.add_argument("--directory", type=Path, required=True)
     parser.add_argument("--socket", type=Path, required=True)
     parser.add_argument("--run-id", required=True, type=int)
+    parser.add_argument("--sdk-image", default=SDK_IMAGE, help="exact local SDK image sha256; never a tag")
     args = parser.parse_args()
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", args.sdk_image):
+        parser.error("sdk-image must be an immutable local image digest")
     root = args.directory.resolve(strict=True)
     repo = Path(__file__).resolve().parents[3]
     if not root.is_relative_to(repo / "tmp") or args.run_id < 1:
@@ -57,7 +61,7 @@ def main():
     for source, target, readonly in mounts:
         cmd += ["--mount", f"type=bind,src={source},dst={target}" + (",readonly" if readonly else "")]
     cmd += ["-e", f"RADISHMIND_JOINT_ROOT={root}", "-e", f"RADISHMIND_SANDBOX_IMAGE={CODE_IMAGE}",
-            "-e", "DOCKER_HOST=unix:///control/docker.sock", SDK_IMAGE,
+            "-e", "DOCKER_HOST=unix:///control/docker.sock", args.sdk_image,
             "/opt/joint-test", "-test.run", "^TestJointSDKCandidateDelivery$", "-test.v", "-test.timeout", "480s"]
     prefix.with_suffix(".command.json").write_text(json.dumps({"command": cmd, "sha256": hashes}, indent=2) + "\n")
     cases_before = set(root.glob("case-*"))
@@ -72,7 +76,7 @@ def main():
         host = item["HostConfig"]
         actual_mounts = {(m["Source"], m["Destination"], m["RW"]) for m in item["Mounts"] if m["Type"] == "bind"}
         expected_mounts = {(str(source), target, not readonly) for source, target, readonly in mounts}
-        if (item["Image"] != SDK_IMAGE or item["Config"]["User"] != "0:0"
+        if (item["Image"] != args.sdk_image or item["Config"]["User"] != "0:0"
                 or not host["ReadonlyRootfs"] or host["NetworkMode"] != "none"
                 or host["Privileged"] or host["PortBindings"]
                 or host["Memory"] != 1 << 30 or host["MemorySwap"] != 1 << 30

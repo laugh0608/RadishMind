@@ -1,17 +1,38 @@
 """Dependency-free checks for the optional worker's private wire boundary."""
 import io
+import importlib.metadata
 import json
 import unittest
 from unittest.mock import patch
 
 from services.runtime.development_sdk.worker import (
-    ACTION_FIELDS, Bridge, NoRedirect, WorkerFailure, decode, read_input,
+    ACTION_FIELDS, Bridge, NoRedirect, WorkerFailure, decode, read_input, validate_sdk_distribution,
 )
 
 
 class Input:
     def __init__(self, value):
         self.buffer = io.BytesIO(json.dumps(value).encode() + b"\n")
+
+
+class SDKDistributionTests(unittest.TestCase):
+    def test_only_pinned_stock_and_clean_variant_are_accepted(self):
+        with patch("importlib.metadata.version", return_value="1.59.0"):
+            validate_sdk_distribution()
+        with patch("importlib.metadata.version", return_value="1.59.0+radishmind.1"), \
+             patch("importlib.metadata.distribution", side_effect=importlib.metadata.PackageNotFoundError):
+            validate_sdk_distribution()
+        for version in ("1.59.0+radishmind.2", "1.60.0", "1.59.0+other.1"):
+            with patch("importlib.metadata.version", return_value=version), self.assertRaises(WorkerFailure):
+                validate_sdk_distribution()
+        for installed in ("lmnr", "lmnr-claude-code-proxy"):
+            def distribution(name):
+                if name == installed:
+                    return object()
+                raise importlib.metadata.PackageNotFoundError(name)
+            with patch("importlib.metadata.version", return_value="1.59.0+radishmind.1"), \
+                 patch("importlib.metadata.distribution", side_effect=distribution), self.assertRaises(WorkerFailure):
+                validate_sdk_distribution()
 
 
 def config():

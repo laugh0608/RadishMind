@@ -48,7 +48,7 @@ type Plan struct {
 
 var digestPattern = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 var probeIDPattern = regexp.MustCompile(`^probe_[a-z0-9_]{1,48}$`)
-var sdkVersionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
+var sdkVersionPattern = regexp.MustCompile(`^([0-9]+\.[0-9]+\.[0-9]+|1\.59\.0\+radishmind\.1)$`)
 
 func ParsePlan(data []byte) (Plan, error) {
 	var plan Plan
