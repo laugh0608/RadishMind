@@ -4,6 +4,8 @@
 
 受控开发阶段 0 的合成任务、冻结计划和离线 CLI 命令见 `scripts/eval/fixtures/development-task/README.md`；SDK 独立候选镜像、哈希锁准备和运行授权范围见 `scripts/eval/development_probe/README.md`。这些入口不启动既有工作台或调用真实模型。
 
+单尝试委托、工具绑定、预算与取消的跨语言样例和验证命令见 `scripts/eval/fixtures/development-control/README.md`，复用现有平台聚合测试，不新增独立门禁入口或执行服务。
+
 更新时间：2026-10-31
 
 ## 目录目标

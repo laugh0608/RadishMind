@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-attempt-receipt.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "attempt_id",
+    "request_id",
+    "status",
+    "tokens",
+    "cost_microusd"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_attempt_receipt.v1"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "status": {
+      "enum": [
+        "reported",
+        "missing",
+        "unknown",
+        "not_dispatched",
+        "not_applicable"
+      ]
+    },
+    "tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000000
+    },
+    "cost_microusd": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000000
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "not": {
+              "const": "reported"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "tokens": {
+            "const": 0
+          },
+          "cost_microusd": {
+            "const": 0
+          }
+        }
+      }
+    }
+  ],
+  "description": "可信 Gateway/执行器的回执；非 reported 的零字段仅为无数量占位，不能释放可能已发生的模型用量预留。not_dispatched 仅限尚无派发记录的操作。"
+}

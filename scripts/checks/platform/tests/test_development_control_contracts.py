@@ -1,0 +1,90 @@
+"""Canonical control contracts and independent cancellation/accounting examples."""
+from __future__ import annotations
+
+import copy
+import json
+import unittest
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
+
+ROOT = Path(__file__).resolve().parents[4]
+FIXTURES = ROOT / "scripts/eval/fixtures/development-control"
+NAMES = ["delegation", "reservation", "receipt", "event", "tool-action", "tool-call"]
+
+
+def schema_name(name):
+    return "development-" + ("attempt-" if name in NAMES[:4] else "") + name
+
+
+class DevelopmentControlContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.schemas = {name: json.loads((ROOT / "contracts" / (schema_name(name) + ".schema.json")).read_text()) for name in NAMES}
+        registry = Registry().with_resources((value["$id"], Resource.from_contents(value)) for value in cls.schemas.values())
+        cls.validators = {}
+        for name, value in cls.schemas.items():
+            Draft202012Validator.check_schema(value)
+            cls.validators[name] = Draft202012Validator(value, registry=registry)
+
+    def test_positive_fixtures_and_exact_fields(self):
+        for name in ["delegation", "reservation", "receipt", "tool-action", "tool-call"]:
+            data = json.loads((FIXTURES / (name + ".json")).read_text())
+            validator = self.validators[name]
+            validator.validate(data)
+            for key in data:
+                changed = copy.deepcopy(data)
+                del changed[key]
+                self.assertFalse(validator.is_valid(changed), (name, key))
+                changed[key] = None
+                self.assertFalse(validator.is_valid(changed), (name, key, "null"))
+            self.assertFalse(validator.is_valid(dict(data, api_key="forbidden")), name)
+
+    def test_no_authority_or_budget_expansion(self):
+        d = json.loads((FIXTURES / "delegation.json").read_text())
+        for field, value in [("audience", "public_chat"), ("revision", 0), ("executor_instance_id", "http://outside"), ("token", "secret")]:
+            changed = dict(d, **{field: value})
+            self.assertFalse(self.validators["delegation"].is_valid(changed))
+        for field, value in [("max_model_calls", 9), ("max_tool_calls", 33), ("max_tokens", 0), ("max_cost_microusd", -1)]:
+            changed = copy.deepcopy(d)
+            changed["limits"][field] = value
+            self.assertFalse(self.validators["delegation"].is_valid(changed))
+        r = json.loads((FIXTURES / "reservation.json").read_text())
+        for field, value in [("kind", "shell"), ("token_bound", 0), ("payload_digest", "sha256:" + "a" * 64 + "\n"), ("sequence", 41)]:
+            self.assertFalse(self.validators["reservation"].is_valid(dict(r, **{field: value})))
+        p = json.loads((FIXTURES / "receipt.json").read_text())
+        self.assertFalse(self.validators["receipt"].is_valid(dict(p, status="missing")))
+        self.validators["receipt"].validate(dict(p, status="missing", tokens=0, cost_microusd=0))
+
+    def test_tool_payload_has_no_transport_metadata_or_shell(self):
+        action = json.loads((FIXTURES / "tool-action.json").read_text())
+        for path in ["../list.go", "/list.go", "a/../list.go", "a//b", "a/", "C:target", "a\\b", "a\x00b"]:
+            self.assertFalse(self.validators["tool-action"].is_valid(dict(action, path=path)), path)
+        for extra in ["summary", "command", "api_key"]:
+            self.assertFalse(self.validators["tool-action"].is_valid(dict(action, **{extra: "forbidden"})))
+        self.assertFalse(self.validators["tool-action"].is_valid(dict(action, action="execute_shell")))
+        call = json.loads((FIXTURES / "tool-call.json").read_text())
+        call["arguments"]["summary"] = "SDK display metadata"
+        self.assertFalse(self.validators["tool-call"].is_valid(call))
+
+    def test_cancel_trace_preserves_unknown_budget_until_late_receipt(self):
+        trace = json.loads((FIXTURES / "cancel-trace.json").read_text())
+        for event in trace:
+            self.validators["event"].validate(event)
+            self.assertFalse(self.validators["event"].is_valid(dict(event, raw_error="forbidden")))
+        self.assertEqual([e["sequence"] for e in trace], list(range(1, 7)))
+        self.assertEqual(len({e["event_id"] for e in trace}), 6)
+        cancelled, late = trace[-2:]
+        self.assertEqual(cancelled["phase"], late["phase"], "cancelled")
+        self.assertEqual(cancelled["usage_status"], "unknown")
+        self.assertEqual(cancelled["termination_status"], "confirmed")
+        self.assertFalse(self.validators["event"].is_valid(dict(cancelled, termination_status="pending")))
+        self.assertEqual(cancelled["budget"]["held_cost_microusd"], 1000)
+        self.assertEqual(late["budget"]["spent_cost_microusd"], 500)
+        self.assertEqual(late["budget"]["held_cost_microusd"], 0)
+        self.assertFalse(self.validators["event"].is_valid(dict(cancelled, type="attempt_completed")))
+
+
+if __name__ == "__main__":
+    unittest.main()

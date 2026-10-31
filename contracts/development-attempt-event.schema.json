@@ -1,0 +1,467 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-attempt-event.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "attempt_id",
+    "delegation_id",
+    "sequence",
+    "occurred_at_ms",
+    "type",
+    "request_id",
+    "phase",
+    "reason",
+    "usage_status",
+    "budget",
+    "termination_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_attempt_event.v1"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^evt_[a-z0-9_-]{3,76}(?![\\s\\S])"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "delegation_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 200
+    },
+    "occurred_at_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "type": {
+      "enum": [
+        "attempt_opened",
+        "reservation_created",
+        "dispatch_recorded",
+        "receipt_recorded",
+        "cancel_requested",
+        "termination_recorded",
+        "attempt_completed"
+      ]
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        }
+      ]
+    },
+    "phase": {
+      "enum": [
+        "active",
+        "cancel_requested",
+        "cancelled",
+        "completed",
+        "failed",
+        "outcome_unknown"
+      ]
+    },
+    "reason": {
+      "enum": [
+        "",
+        "user_cancelled",
+        "authority_changed",
+        "deadline_exceeded",
+        "termination_unconfirmed",
+        "reservation_exceeded",
+        "execution_unknown"
+      ]
+    },
+    "usage_status": {
+      "enum": [
+        "not_applicable",
+        "reserved",
+        "unknown",
+        "settled"
+      ]
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_reservations",
+        "tool_reservations",
+        "held_tokens",
+        "held_cost_microusd",
+        "spent_tokens",
+        "spent_cost_microusd",
+        "in_flight",
+        "unresolved"
+      ],
+      "properties": {
+        "model_reservations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "tool_reservations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        },
+        "held_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 262144
+        },
+        "held_cost_microusd": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "spent_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8000000000000
+        },
+        "spent_cost_microusd": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8000000000000
+        },
+        "in_flight": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unresolved": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 40
+        }
+      }
+    },
+    "termination_status": {
+      "enum": [
+        "not_requested",
+        "pending",
+        "unconfirmed",
+        "confirmed"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "attempt_opened"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "active"
+          },
+          "request_id": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "reservation_created",
+              "dispatch_recorded"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "active"
+          },
+          "request_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "receipt_recorded"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "cancel_requested"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "cancel_requested"
+          },
+          "request_id": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "termination_recorded"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "enum": [
+              "cancelled",
+              "outcome_unknown",
+              "failed"
+            ]
+          },
+          "request_id": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "attempt_completed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "completed"
+          },
+          "request_id": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "active"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "termination_status": {
+            "enum": [
+              "not_requested"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "cancel_requested"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "termination_status": {
+            "enum": [
+              "pending"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "cancelled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "termination_status": {
+            "enum": [
+              "confirmed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "termination_status": {
+            "enum": [
+              "not_requested"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "failed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "termination_status": {
+            "enum": [
+              "pending",
+              "confirmed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "outcome_unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "termination_status": {
+            "enum": [
+              "pending",
+              "unconfirmed",
+              "confirmed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "cancelled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "budget": {
+            "properties": {
+              "in_flight": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "budget": {
+            "properties": {
+              "in_flight": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "outcome_unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "budget": {
+            "properties": {
+              "in_flight": {
+                "const": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "description": "Go 权威控制事件，单尝试内连续序号是排序依据。无模型/工具正文、凭据、SDK summary 或任意错误文本。消费事件不触发执行；终态后仅允许迟到回执核账及归属清理核对（未确认可追加一次完整确认）。"
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-tool-call.schema.json",
+  "description": "回显可信 Gateway 已登记的工具提议，父模型请求、工具标识、参数和请求摘要均须一致；提议与预留须由同一尝试原子消费一次，不以模型文本自证授权。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "attempt_id",
+    "request_id",
+    "parent_request_id",
+    "tool_call_id",
+    "arguments"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_tool_call.v1"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "parent_request_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "tool_call_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,128}(?![\\s\\S])"
+    },
+    "arguments": {
+      "$ref": "https://radishmind.local/contracts/development-tool-action.schema.json"
+    }
+  }
+}

@@ -3,14 +3,14 @@
 package developmentprobe
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"regexp"
+
+	"radishmind.local/services/platform/internal/strictjson"
 )
 
 const PlanSchema = "development_task_probe_plan.v1"
@@ -52,17 +52,17 @@ var sdkVersionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 
 func ParsePlan(data []byte) (Plan, error) {
 	var plan Plan
-	if err := DecodeStrict(data, &plan); err != nil {
+	if err := strictjson.Decode(data, &plan); err != nil {
 		return Plan{}, fmt.Errorf("invalid probe plan: %w", err)
 	}
-	fields, err := exactKeys(data, "schema_version", "probe_id", "mode", "task_id", "sdk_candidate", "source_files", "writable_paths", "verify_argv", "limits")
+	fields, err := strictjson.ObjectFields(data, "schema_version", "probe_id", "mode", "task_id", "sdk_candidate", "source_files", "writable_paths", "verify_argv", "limits")
 	if err != nil {
 		return Plan{}, err
 	}
-	if _, err := exactKeys(fields["sdk_candidate"], "package", "version"); err != nil {
+	if _, err := strictjson.ObjectFields(fields["sdk_candidate"], "package", "version"); err != nil {
 		return Plan{}, err
 	}
-	if _, err := exactKeys(fields["limits"], "max_model_requests", "max_tool_calls", "max_request_bytes", "max_output_bytes", "command_timeout_seconds", "wall_timeout_seconds"); err != nil {
+	if _, err := strictjson.ObjectFields(fields["limits"], "max_model_requests", "max_tool_calls", "max_request_bytes", "max_output_bytes", "command_timeout_seconds", "wall_timeout_seconds"); err != nil {
 		return Plan{}, err
 	}
 	var files []json.RawMessage
@@ -70,7 +70,7 @@ func ParsePlan(data []byte) (Plan, error) {
 		return Plan{}, err
 	}
 	for _, file := range files {
-		if _, err := exactKeys(file, "path", "sha256"); err != nil {
+		if _, err := strictjson.ObjectFields(file, "path", "sha256"); err != nil {
 			return Plan{}, err
 		}
 	}
@@ -126,71 +126,4 @@ func PlanDigest(plan Plan) string {
 	// Plan contains concrete JSON fields only; validation precedes this call.
 	data, _ := json.Marshal(plan)
 	return Digest(data)
-}
-
-func exactKeys(data []byte, names ...string) (map[string]json.RawMessage, error) {
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(data, &fields); err != nil || len(fields) != len(names) {
-		return nil, errors.New("probe fields must match the canonical contract exactly")
-	}
-	for _, name := range names {
-		if _, ok := fields[name]; !ok {
-			return nil, errors.New("probe field is missing or incorrectly cased")
-		}
-	}
-	return fields, nil
-}
-
-// DecodeStrict rejects duplicate keys, nulls, unknown fields and trailing values.
-// All v1 probe inputs use concrete values, so null is never an implicit default.
-func DecodeStrict(data []byte, result any) error {
-	if len(data) > 262144 {
-		return errors.New("probe JSON exceeds size limit")
-	}
-	tokens := json.NewDecoder(bytes.NewReader(data))
-	if err := inspectJSONValue(tokens); err != nil {
-		return err
-	}
-	if _, err := tokens.Token(); err != io.EOF {
-		return errors.New("probe JSON has trailing content")
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	return decoder.Decode(result)
-}
-
-func inspectJSONValue(decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		return err
-	}
-	if token == nil {
-		return errors.New("null is not allowed in probe JSON")
-	}
-	delimiter, ok := token.(json.Delim)
-	if !ok {
-		return nil
-	}
-	if delimiter != '{' && delimiter != '[' {
-		return errors.New("unexpected JSON delimiter")
-	}
-	seen := map[string]bool{}
-	for decoder.More() {
-		if delimiter == '{' {
-			key, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			name, ok := key.(string)
-			if !ok || seen[name] {
-				return errors.New("duplicate or invalid probe JSON key")
-			}
-			seen[name] = true
-		}
-		if err := inspectJSONValue(decoder); err != nil {
-			return err
-		}
-	}
-	_, err = decoder.Token()
-	return err
 }

@@ -1,0 +1,8 @@
+{
+  "schema_version": "development_attempt_receipt.v1",
+  "attempt_id": "id_attempt_id",
+  "request_id": "req_model_001",
+  "status": "reported",
+  "tokens": 50,
+  "cost_microusd": 500
+}

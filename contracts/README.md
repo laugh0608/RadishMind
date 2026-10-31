@@ -4,6 +4,8 @@
 
 新增受控开发阶段 0 的 `development-task-probe-plan.schema.json` 与 `development-task-probe-tool-request.schema.json`，只约束固定响应合成任务及离线工具请求解析，不授予平台身份权限或开放实际工具执行。范围与语义见[集中任务卡](../docs/task-cards/development-task-probe-v1-plan.md)。
 
+单尝试正式控制合同新增 `development-attempt-delegation / reservation / receipt / event` 与 `development-tool-action / call` 六份 schema（文件名均带 `.schema.json`）。字段、可信来源、SDK 元数据、预算与取消边界见[尝试控制合同](../docs/contracts/development-attempt-control-v1.md)。当前只提供离线消费 / 领域规则，不含凭据签发或执行 API。
+
 更新时间：2026-10-31
 
 本目录承载 `RadishMind` 第一版真实契约文件。

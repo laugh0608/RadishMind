@@ -1,0 +1,12 @@
+{
+  "schema_version": "development_attempt_reservation.v1",
+  "delegation_id": "dlg_task_001",
+  "delegation_revision": 1,
+  "attempt_id": "id_attempt_id",
+  "request_id": "req_model_001",
+  "sequence": 1,
+  "kind": "model",
+  "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "token_bound": 100,
+  "cost_bound_microusd": 1000
+}

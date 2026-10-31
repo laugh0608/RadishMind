@@ -1,0 +1,32 @@
+{
+  "schema_version": "development_attempt_delegation.v1",
+  "delegation_id": "dlg_task_001",
+  "revision": 1,
+  "audience": "development-attempt-control.v1",
+  "executor_instance_id": "exec_task_001",
+  "scope": {
+    "account_id": "id_account_id",
+    "workspace_id": "id_workspace_id",
+    "application_id": "id_application_id",
+    "binding_id": "id_binding_id",
+    "run_id": "id_run_id",
+    "task_id": "id_task_id",
+    "attempt_id": "id_attempt_id",
+    "model_ref": "profile:probe",
+    "binding_revision": 1,
+    "authorization_revision": 1,
+    "plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "baseline_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "pricing_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tool_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "application_authority_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "issued_at_ms": 1000,
+  "expires_at_ms": 601000,
+  "limits": {
+    "max_model_calls": 4,
+    "max_tool_calls": 3,
+    "max_tokens": 200,
+    "max_cost_microusd": 2000
+  }
+}
