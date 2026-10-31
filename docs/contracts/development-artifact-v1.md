@@ -2,7 +2,7 @@
 
 更新时间：2026-10-31
 
-状态：固定三文件 Go 探针的 canonical schema、Go 构造 / 严格消费、SQLite 显式保存 / 精确读取 / 导出及可信宿主接线已实现；合成定向验证不代替 SDK 与代码沙箱同次任务验收。正式 HTTP、Web、团队与生产能力未开放，阶段 0 尚未退出。
+状态：固定三文件 Go 探针的 canonical schema、Go 构造 / 严格消费、SQLite 显式保存 / 精确读取 / 导出及可信宿主接线已实现；已追加真实 SDK 与代码沙箱同次任务的固定响应保存 / 导出验收。正式 HTTP、Web、团队与生产能力未开放，阶段 0 尚未退出。
 
 所属功能：[隔离代码执行与候选交付](../features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)。本轮范围由项目所有者明确批准，沿用[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
 
@@ -121,4 +121,4 @@
 
 合成验证覆盖实际 patch 应用、来源 / 候选 / 策略错绑、旧测试、未知退出、截断 / OOM、非法 UTF-8、敏感文本、严格字段、显式保存失败与重试、并发配额、数据库不可变、损坏拒绝、撤权和重启精确重读。schema 验证在既有平台 Python 聚合中使用本地 registry；未新增平行任务卡或 readiness checker。
 
-运行证据见 [W44 记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。本轮未运行 Docker、SDK 联合任务、真实模型、服务或用户试用；保存链技术验证不证明自主编码质量、正式 Web 交付或阶段 0 退出。下一动作是另行授权的联合任务验收，再按实施规划补齐采用条件。
+运行证据见 [W44 记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。该分层窗口没有运行 Docker 或 SDK。后续[联合验收](../devlogs/2026-W44.parts/development-joint-20261031.md)已完成正常、旧证据失效及取消后的可信包保存 / 导出、失败重试与重启重读；固定响应及合成资格不证明真实提供方、正式身份入口、自主编码质量或阶段 0 退出。下一动作按实施规划补齐采用条件；真实模型和用户试用仍暂停。

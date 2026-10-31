@@ -60,3 +60,33 @@ docker rm -f radishmind-sdk-worker-20261031-check
 最终全部通过：真实 `Agent / LocalConversation` 经 Go 完成两次模型请求与合成工具观察值往返，核对系统提示、用户 / 助手消息、动作与观察事件；原生失败仅一次请求，工具失败保留未知状态，缺失 usage 不采用 SDK 零值；模型等待中取消后进程组为空，单独关闭父存活管道也能终止 SDK。合成观察值不访问文件、不执行代码。普通 Go 测试未配置 SDK 路径时会明确 skip，不能将其算作镜像验收。
 
 Go 对每条 SDK 报告先提交事件再确认，最终完成须核对真实退出和最新资格。Python 仅使用内存会话、唯一自定义工具与受限模型转换，关闭默认工具 / MCP / 动态上下文等旁路；模块边界见[SDK 工作进程说明](../../../services/runtime/development_sdk/README.md)。实际代码沙箱、真实提供方原生适配、完整 SDK 正式采用及阶段 0 退出仍待完成。
+
+## SDK、代码沙箱与产物联合验收（2026-10-31）
+
+`run_joint.py` 只运行已准备的本地输入；不下载、构建、拉取镜像或启动 Docker 守护进程。需要另行明确授权可信控制容器访问 Docker socket；SDK 镜像与代码镜像分别固定为前述 `d80a7496…` 和 `b17af760…`。本次 Linux Docker CLI 固定 `29.8.2`，只解压可执行文件到隔离目录，不安装到系统或修改 SDK 依赖锁。
+
+以下从仓库根目录执行，仅用于已授权窗口。`joint_root` 必须位于仓库 `tmp/`；首次准备使用新目录，后续复验递增 `--run-id`，保留失败记录。`--socket` 必须指向当前本机 Docker context 的 Unix socket，先用 `docker context inspect --format '{{.Endpoints.docker.Host}}'` 核对，不传 TCP 管理端口。
+
+```sh
+joint_root="$PWD/tmp/development-joint-20261031"
+mkdir -p "$joint_root/tools" "$joint_root/input"
+curl --fail --location --max-time 120 -o "$joint_root/tools/docker.tgz" https://download.docker.com/linux/static/stable/aarch64/docker-29.8.2.tgz
+# 本次归档 SHA-256：76a624e4a8e5da654d1150e808175125efb5a6f1b6aa1cbd9caee18f51047a50
+shasum -a 256 "$joint_root/tools/docker.tgz"
+tar -xzf "$joint_root/tools/docker.tgz" -C "$joint_root/tools" docker/docker
+cp -R scripts/eval/fixtures/development-task/list-filter scripts/eval/fixtures/development-task/list-filter-plan.json "$joint_root/input/"
+(cd services/platform && GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go test -c -o "$joint_root/joint.test" ./internal/developmentsandbox)
+(cd services/platform && GOPROXY=off CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$joint_root/code-runner" ./cmd/radishmind-development-sandbox)
+# 仅接受本机 Unix socket；脚本会核对目标文件。
+socket_path="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
+socket_path="${socket_path#unix://}"
+python3 scripts/eval/development_probe/run_joint.py --directory "$joint_root" --socket "$socket_path" --run-id 1
+```
+
+可信 Go 控制程序以 root 运行，只增补 `CHOWN / SETUID / SETGID / DAC_OVERRIDE / KILL`；`joint_worker.py` 在私有目录降为 `65532:65532`、清空附加组，核对 SDK 有效 / 许可 / 继承 / ambient capability 全为零及 `no-new-privileges`，实际打开控制数据库和连接 Docker socket 必须被拒绝。管理 socket 的父目录及材料挂载点的父目录均使用 Linux `0700` tmpfs；本机共享挂载的模式位曾未阻止 SDK 读取，不能单独作为隔离边界。该启动器只用于联合试验，未接入正式平台启动。
+
+控制容器无外网、无宿主端口、只读根、1 GiB / 2 CPU / 128 进程、512 MiB `/tmp`；两处私有目录各 1 MiB。只挂载本次材料、明确的程序 / SDK 适配代码及已授权管理 socket，不挂载原工作树、日常数据库或秘密。代码容器继续使用独立无网络、非 root、只读源码的既定档案，无法接触控制数据或管理 socket。固定响应服务仅在控制容器回环临时端口监听。
+
+三个真实用例为正常修复、先测试后修改、运行中取消；保存失败重试、摘要确认、幂等、关闭重开数据库、精确导出重读与独立导出权限撤销贯穿各例。资格读取和提供方是合成适配，SDK / SQLite / 文件工具 / 测试容器 / 产物负责模块均为真实实现。普通仓库测试不设置 `RADISHMIND_JOINT_ROOT` 时明确 skip。
+
+每次保留 `run-*.command.json / .container.json / .state.json / .cleanup.json / .log`，case 内保存事件、SDK 边界检查、取消耗时、资源账册、验证报告、SQLite 和导出包。脚本结束移除精确控制容器，并按本次新增账册核对代码资源；如果需要宿主额外清理，则整轮仍判失败。最终运行与全部资源核对见[联合记录](../../../docs/devlogs/2026-W44.parts/development-joint-20261031.md)。本次运行窗口已结束，后续不自动沿用。

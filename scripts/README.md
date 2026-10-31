@@ -2,7 +2,7 @@
 
 `run-workbench.sh` / `run-workbench.ps1` 由根 `start` 的 `workbench` 子命令进入，提供显式 build、check、init、serve、bootstrap-admin、backup、upgrade 和 restore。它们不复用旧开发脚本的临时配置，不自动安装依赖；操作与权限边界见[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)。
 
-受控开发阶段 0 的合成任务、冻结计划和离线 CLI 命令见 `scripts/eval/fixtures/development-task/README.md`；SDK 独立候选镜像、哈希锁准备和运行授权范围见 `scripts/eval/development_probe/README.md`。固定 Go 代码沙箱的明确授权测试与归属清理见 [模块说明](../services/platform/internal/developmentsandbox/README.md)。这些入口不启动既有工作台或调用真实模型。
+受控开发阶段 0 的合成任务、冻结计划和离线 CLI 命令见 `scripts/eval/fixtures/development-task/README.md`；SDK 独立候选镜像、哈希锁准备和运行授权范围见 `scripts/eval/development_probe/README.md`。固定 Go 代码沙箱的明确授权测试与归属清理见 [模块说明](../services/platform/internal/developmentsandbox/README.md)。真实 SDK / 代码容器 / 产物联合测试由同一 SDK 目录下的 `run_joint.py` 驱动，必须另行授权可信控制容器的 Docker 管理通道；普通门禁不启动该入口。这些入口不启动既有工作台或调用真实模型。
 
 单尝试委托、工具绑定、预算与取消的跨语言样例和验证命令见 `scripts/eval/fixtures/development-control/README.md`，复用现有平台聚合测试，不新增独立门禁入口或执行服务。
 

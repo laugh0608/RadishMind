@@ -24,3 +24,5 @@ GOPROXY=off go test -race -cover -count=1 -run '^TestDockerSandbox' -v -timeout 
 ```
 
 没有真实模型或用户试用。其他架构、Windows 控制端、通用仓库、恶意代码防护、团队共享资源及正式交付仍未验证；不能从本机固定任务结果扩展声明。`CleanupRecovered` 只用于可信宿主显式收口旧账册，不自动重放命令。
+
+真实 SDK 同次任务的候选修改、测试、保存 / 导出、旧测试失效和命令中取消已固定响应联合验收，见[运行入口](../../../../scripts/eval/development_probe/README.md#sdk代码沙箱与产物联合验收2026-10-31)。联合用例默认 skip，仅在明确授权的可信控制容器中启用；不替代真实提供方、正式身份入口、Web 或模型效果验收。

@@ -100,7 +100,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 可选 `services/runtime/development_sdk` 通过真实 SDK Agent 接受 Go 私有 stdin / stdout 协议，唯一模型出口为专属通道，工具经可信 Go 回调；`Runtime.RunWorker` 持久声明一次执行，监督独立进程组、父存活管道和取消，SDK 事件仅是观察。原生最终响应不直接完成尝试，须同时满足 SDK 报告、正常 OS 退出、空进程组和最新资格。该路径已固定响应验证，正常平台构造不启用；
 
-可选 `internal/developmentsandbox` 已实现固定 Go 探针的私有候选读取 / 原子替换、全只读验证快照、独立代码容器和私有归属账册；容器 PID 1 watchdog 来自 `cmd/radishmind-development-sandbox`，不复用 Python SDK 或短请求池。`WorkerLaunch.Sandbox` 绑定尝试 / 执行器 / 计划 / 基准并在完成前关闭；取消 / 失败结合 SDK、代码容器和本地模型连接证据记录终止状态。固定容器已真实验收，开发产物已增加可信关闭快照与内部保存接线，正式联合任务和通用仓库仍待收口，见[沙箱合同](contracts/development-code-sandbox-v1.md)。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
+可选 `internal/developmentsandbox` 已实现固定 Go 探针的私有候选读取 / 原子替换、全只读验证快照、独立代码容器和私有归属账册；容器 PID 1 watchdog 来自 `cmd/radishmind-development-sandbox`，不复用 Python SDK 或短请求池。`WorkerLaunch.Sandbox` 绑定尝试 / 执行器 / 计划 / 基准并在完成前关闭；取消 / 失败结合 SDK、代码容器和本地模型连接证据记录终止状态。固定容器已真实验收，开发产物已增加可信关闭快照与内部保存接线，真实 SDK 与固定代码容器同次任务的修改 / 测试 / 保存 / 导出及命令中取消已固定响应验证；可信控制容器使用管理通道，SDK 降权并以 Linux 私有目录隔离管理通道及控制数据，宿主共享目录的模式位不能单独作为该边界；通用仓库仍待收口，见[沙箱合同](contracts/development-code-sandbox-v1.md)。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
 
 ## 图片产物链
 
