@@ -2,7 +2,7 @@
 
 更新时间：2026-10-31
 
-状态：离线探针合同与代表任务已实现；SDK 试验输入固定为 `openhands-sdk==1.59.0`，未安装运行、未形成完整依赖锁或采用结论。
+状态：离线基础与 SDK 1.59.0 的 LLM 固定响应契约试验完成；`linux/arm64` / Python 3.12 完整 wheel 哈希锁已实装复建。正式 Gateway 工具通道、Agent / 隔离执行和选型采用条件仍未满足。
 
 所属功能：[多 Agent 协同与受控软件开发团队](../controlled-software-development-team-v1.md)。本页只负责执行框架、模型协议和采用证据；团队权威状态见[运行状态专题](team-runtime-state-and-artifacts-v1.md)，工具影响边界见[隔离执行专题](isolated-code-execution-and-delivery-v1.md)。
 
@@ -16,7 +16,7 @@
 
 | 候选 | 本项目中的位置 | 决策 |
 | --- | --- | --- |
-| [OpenHands SDK](https://github.com/OpenHands/software-agent-sdk) | 单角色编码执行、受控工具适配 | 首选验证；满足下表关键条件后才锁定版本 |
+| [OpenHands SDK](https://github.com/OpenHands/software-agent-sdk) | 单角色编码执行、受控工具适配 | 首选候选；试验版本与依赖已锁定，满足下表关键条件后才正式采用 |
 | [LangGraph](https://github.com/langchain-ai/langgraph) | 后续复杂编排候选 | 首版不引入，避免重复状态和恢复权威 |
 | [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | 编排替代候选 | 首选方案不能满足关键条件时，使用同一任务另作比较 |
 | [CrewAI](https://github.com/crewAIInc/crewAI)、[MetaGPT](https://github.com/FoundationAgents/MetaGPT) | 角色和协作流程参考 | 不移植完整框架，不并存多套执行与调度机制 |
@@ -43,13 +43,13 @@
 4. 模型返回的工具请求交给平台工具授权与隔离执行路径，工具观察值经大小、类型和敏感信息处理后返回该角色上下文。
 5. 完成、超时、取消或失败统一映射为结构化事件；SDK 原始异常、请求头、完整上下文和密钥不进入公开事件或日志。
 
-首版优先验证非流式往返，流式只在需求与 SDK 采用条件明确后加入。详细设计须决定复用兼容端点的版本化扩展还是独立内部端点；本页不分配公开路由、scope 名称或 schema 版本。旧端点、旧 Agent 建议协议和既有客户端继续按原合同拒绝不支持的工具请求。
+首版优先验证非流式往返，流式只在需求与 SDK 采用条件明确后加入。详细设计须决定复用兼容端点的版本化扩展还是独立内部端点；本页不分配公开路由、scope 名称或 schema 版本。旧 Agent 建议协议与既有客户端保持。实测现有 Chat Completions 会忽略未知工具字段，仍返回建议文本，不是工具兼容入口；正式接入必须明确版本化通道及不支持请求的拒绝策略，不能把 HTTP 200 当成 SDK 工具接入成功。
 
 任务级委托的签发、到期、撤销和活跃应用归因是阶段 0 必须解决的决策。不能把浏览器 Session 当作模型 API key，也不能给多个角色复制一个无边界长效密钥。执行资格与预算由 Go 重新验证，SDK 的“允许”选项不承担平台授权。
 
 ## 采用前必须取得的证据
 
-以下试验需要明确依赖、镜像、隔离目录和服务范围；真实模型仍暂停。当前已实现独立离线探针，实际 SDK / Gateway 兼容试验尚未执行。
+以下试验需要明确依赖、镜像、隔离目录和服务范围；真实模型仍暂停。当前已完成 SDK LLM 的固定响应工具往返、错误 / 超时及严格消费试验，并用捕获请求核对旧 Gateway；下表涉及正式委托、Agent 事件、取消和代码沙箱的条件尚未通过。
 
 每次试验在下载前固定候选版本及依赖锁输入，记录实际解析结果与镜像摘要；验证通过后再形成正式采用锁，不以浮动 `latest` 作为可复验依据。
 
@@ -67,7 +67,7 @@
 
 ## 依赖、代码组织与兼容原则
 
-- 编码 SDK 使用独立 Python 执行环境及依赖锁，作为待实现模块维护；不把全部依赖塞进现有短请求 runtime，也不提前引入多框架抽象层。
+- 编码 SDK 使用独立 Python 执行环境及依赖锁，正式编码执行器仍待实现，当前探针只核对 LLM 子合同；不把全部依赖塞进现有短请求 runtime，也不提前引入多框架抽象层。
 - Go 新增职责明确的团队领域和执行协调边界，复用身份、Gateway 和存储基础；不把团队对象全部放入通用 `manager`，也不以全量拆分 `httpapi` 为前置。
 - Python 适配只在确有两侧合同转换时建立；不做空转 wrapper，不让第三方对象直接成为跨语言或数据库合同。
 - canonical schema 与严格消费规则随实际合同实施。当前仅新增探针计划 / 工具请求 schema 及 Go 校验器，不含正式团队协议、迁移或 HTTP API；UI 尚无消费者，不提前生成 TypeScript 类型。
@@ -77,9 +77,20 @@
 
 代表任务与三文件基准已固定，见[合成任务说明](../../../../scripts/eval/fixtures/development-task/README.md)。Go CLI 仅校验计划、创建新私有副本并检查候选；计划 / 工具请求合同拒绝任意命令、路径扩权与不明确字段。人工修正的先失败后通过复验证明任务可用，不证明 SDK 接入。
 
-SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59.0/) 与[上游 v1.59.0](https://github.com/OpenHands/software-agent-sdk/releases/tag/v1.59.0)，固定版本输入和独立镜像配方已准备。解析报告、wheel 哈希锁、实际安装报告与镜像摘要须在获准运行后保存；配方尚未构建，不能声明完整依赖可复现、许可证合格或平台兼容。命令、限制和清理方式见[SDK 候选说明](../../../../scripts/eval/development_probe/README.md)。
+SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59.0/) 与[上游 v1.59.0](https://github.com/OpenHands/software-agent-sdk/releases/tag/v1.59.0)，独立镜像已在授权窗口构建并运行。实际解析出的 138 个依赖以 wheel SHA-256 锁提交，配方改为直接按锁安装，复建的安装版本集合与锁一致。证据仅覆盖 `linux/arm64` / Python 3.12.16；没有由此确认其他平台、依赖许可证或整体采用资格。命令、限制和清理方式见[SDK 候选说明](../../../../scripts/eval/development_probe/README.md)。
 
 探针工具解析不承担实际顺序、重放、摘要一致性或累计预算控制；这些与真实 SDK 工具往返、事件及取消一起继续实施。采用结论仍按本页关键条件判断，不因版本输入已固定而提前通过。范围与证据集中记录在[任务卡](../../../task-cards/development-task-probe-v1-plan.md)。
+
+### 2026-10-31 兼容检查结论
+
+- 非流式 `LLM.completion` 使用唯一自定义工具，未附加 executor；固定工具调用 → 观察值 → 最终响应实际发出两次请求，工具名 / 标识和结束原因一致。不是完整 Agent、文件修改或命令执行验收。
+- 显式 `num_retries=0`、不配置 fallback 时，400 / 429 / 500 与模型等待超时均只产生一次 HTTP 请求。HTTP 错误由 SDK 异常包装，平台不能只读外层 `status_code`；原始异常也不能直接公开。
+- 规范消费者拒绝畸形 / 重复字段、跨探针、越界路径、超预算序号、任意命令与未知工具；SDK 返回内容本身不授予执行权限。普通文本成功响应不能通过工具试验。 SDK 自动声明的可选 `summary` 也不是 canonical 授权字段，已作为负例拒绝；后续需显式映射 SDK 元数据，不能放宽授权 schema。
+- SDK 默认重试为 5；`LocalConversation.pause()` 的当前实现只在步骤之间生效，正在等待的模型调用结束后才暂停。此项为安装代码核对，尚非实际 Agent 取消验收；必须由 Go / 执行进程控制层实现中断和终止期限。
+- 上游不返回 usage 时，当前 SDK 依赖链的响应对象会填入零 token。正式预算 / 用量由 Gateway 保有独立权威，缺失用量必须记录未知或有标记估算，不能直接采纳 SDK 零值。
+- 捕获的两个合成请求经 Go 内存 handler / fake bridge 复验后，旧 Gateway 返回 HTTP 200 / `stop`，保留 `allow_tool_calls=false`，不传递工具标识。这证明旧入口不兼容，不是正式 Gateway 接入成功。
+
+测试脚本、冻结锁与复验命令见[候选说明](../../../../scripts/eval/development_probe/README.md)，镜像摘要、资源限制、首次失败修正和清理记录见 [W44 周志](../../../devlogs/2026-W44.md#2026-10-31-sdk-候选镜像与固定响应契约验收)。下一步是明确专属工具通道、任务级委托、事件与取消合同，再实施真实的受限执行；阶段 0 不因这组测试而结束。
 
 ## 阶段 0 的交付判据
 

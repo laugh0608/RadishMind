@@ -6,17 +6,17 @@ ENV PYTHONUNBUFFERED=1 \
     HOME=/tmp/probe-home \
     XDG_CACHE_HOME=/tmp/probe-cache \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    OPENHANDS_SUPPRESS_BANNER=1 \
     LITELLM_LOCAL_MODEL_COST_MAP=True \
     HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1
 WORKDIR /opt/probe
-COPY scripts/eval/development_probe/sdk-candidate.txt ./sdk-candidate.txt
-COPY scripts/eval/development_probe/lock_from_report.py ./lock_from_report.py
-RUN python -m pip install --dry-run --ignore-installed --only-binary=:all: \
-        --report /opt/probe/resolution.json -r sdk-candidate.txt \
-    && python lock_from_report.py --report resolution.json --output requirements.lock \
+COPY scripts/eval/development_probe/requirements-linux-arm64-py312.lock ./requirements.lock
+RUN python -c 'import platform; assert platform.machine() == "aarch64", "candidate lock supports linux/arm64 only"' \
     && python -m pip install --no-cache-dir --only-binary=:all: --require-hashes \
         --no-deps --report /opt/probe/installation.json -r requirements.lock \
     && python -m pip check
+COPY scripts/eval/development_probe/inspect_sdk.py scripts/eval/development_probe/fixed_endpoint.py scripts/eval/development_probe/test_sdk_contract.py ./
+COPY contracts/development-task-probe-tool-request.schema.json ./tool-request.schema.json
 USER 65532:65532
 CMD ["python", "-c", "import importlib.metadata; import openhands.sdk; print(importlib.metadata.version('openhands-sdk'))"]

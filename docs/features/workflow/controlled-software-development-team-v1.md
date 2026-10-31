@@ -2,7 +2,7 @@
 
 更新时间：2026-10-31
 
-状态：阶段 0 已实现代表任务、严格探针合同与离线准备 CLI，人工任务复验通过；SDK / Gateway 与隔离执行尚未验证，团队功能未启用。实施证据见[集中任务卡](../../task-cards/development-task-probe-v1-plan.md)。
+状态：阶段 0 已实现代表任务、严格探针合同与离线准备 CLI，人工任务复验通过；SDK 1.59.0 独立镜像的 LLM 固定响应契约已通过；正式 Gateway 工具通道、Agent 执行与代码沙箱仍未接入，团队功能未启用。实施证据见[集中任务卡](../../task-cards/development-task-probe-v1-plan.md)。
 
 ## 决策来源与当前定位
 

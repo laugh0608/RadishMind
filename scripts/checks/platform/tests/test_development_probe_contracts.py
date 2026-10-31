@@ -5,6 +5,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -18,6 +19,30 @@ spec.loader.exec_module(lock_module)
 
 
 class DevelopmentProbeContractTests(unittest.TestCase):
+    def test_frozen_candidate_lock_and_sdk_wire_fixtures(self):
+        root = ROOT / "scripts/eval/development_probe"
+        lines = (root / "requirements-linux-arm64-py312.lock").read_text().splitlines()
+        packages = {}
+        for line in lines:
+            if line.startswith("#"):
+                continue
+            match = re.fullmatch(r"([a-z0-9][a-z0-9-]*)==([A-Za-z0-9.!+_-]+) --hash=sha256:([0-9a-f]{64})", line)
+            self.assertIsNotNone(match, line)
+            name, version, digest = match.groups()
+            self.assertNotIn(name, packages)
+            packages[name] = (version, digest)
+        self.assertEqual(list(packages), sorted(packages))
+        self.assertEqual(packages["openhands-sdk"][0], "1.59.0")
+        self.assertLessEqual(len(packages), 300)
+        for name in ["sdk-first-request.json", "sdk-observation-request.json"]:
+            body = json.loads((root / "fixtures" / name).read_text())
+            self.assertEqual(body["model"], "gpt-4o")
+            self.assertEqual([tool["function"]["name"] for tool in body["tools"]], ["development_probe"])
+            self.assertIn("summary", body["tools"][0]["function"]["parameters"]["properties"])
+            self.assertNotIn("api_key", body)
+        messages = body["messages"]
+        self.assertEqual(messages[-1]["tool_call_id"], messages[-2]["tool_calls"][0]["id"])
+
     def test_frozen_task_and_plan_contract(self):
         fixture = ROOT / "scripts/eval/fixtures/development-task"
         plan = json.loads((fixture / "list-filter-plan.json").read_text())

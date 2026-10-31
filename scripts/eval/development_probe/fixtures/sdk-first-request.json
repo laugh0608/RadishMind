@@ -1,0 +1,67 @@
+{
+  "messages": [
+    {
+      "content": "Inspect the fixed synthetic task.",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4o",
+  "max_completion_tokens": 128,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "development_probe",
+        "description": "Validate a bounded synthetic task request; no execution.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "description": "A concise summary (approximately 10 words) describing what this specific action does. Focus on the key operation and target. Example: 'List all Python files in current directory'"
+            },
+            "schema_version": {
+              "type": "string"
+            },
+            "probe_id": {
+              "type": "string"
+            },
+            "sequence": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "read_file",
+                "replace_file",
+                "run_tests"
+              ]
+            },
+            "path": {
+              "type": "string"
+            },
+            "expected_digest": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "candidate_digest": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema_version",
+            "probe_id",
+            "sequence",
+            "action",
+            "path",
+            "expected_digest",
+            "content",
+            "candidate_digest"
+          ]
+        }
+      }
+    }
+  ]
+}
