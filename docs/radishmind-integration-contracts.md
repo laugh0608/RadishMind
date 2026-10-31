@@ -141,12 +141,12 @@
 
 ## 受控开发团队的拟新增合同
 
-[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入开发，阶段 0 已有探针及单尝试计划 / 委托 / 预算 / 回执 / 事件 / 工具绑定 canonical schema，并实现 SQLite 状态 / 提议 / 事件事务、现有负责模块资格读取与独立内部通道，语义见[集中任务卡](task-cards/development-task-probe-v1-plan.md)；它们不属于正式团队授权或公开 API。可信 Go 签发和通道默认关闭，只验固定响应；工具入队不等于执行。完整 SDK / 真实提供方原生往返、隔离工具与归属终止、开发产物仍需实施，见[尝试控制合同](contracts/development-attempt-control-v1.md)；旧 Agent / Copilot、通用 Tooling、Session 和 Action Safety 合同保持原语义。
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入开发，阶段 0 已有探针及单尝试计划 / 委托 / 预算 / 回执 / 事件 / 工具绑定 canonical schema，并实现 SQLite 状态 / 提议 / 事件事务、现有负责模块资格读取与独立内部通道，语义见[集中任务卡](task-cards/development-task-probe-v1-plan.md)；它们不属于正式团队授权或公开 API。可信 Go 签发和通道默认关闭，只验固定响应；工具入队不等于执行。受限 SDK Agent 已按私有 IPC schema 验证完整允许事件、工具固定响应往返与等待取消 / 父管道失联退出；SDK 事件不授予状态或执行权，Go 事务、用量与 OS 退出证据为权威。真实提供方原生往返、隔离工具与归属终止、开发产物仍需实施，见[尝试控制合同](contracts/development-attempt-control-v1.md)；旧 Agent / Copilot、通用 Tooling、Session 和 Action Safety 合同保持原语义。
 
 框架只拥有一次执行尝试，Go 平台负责启动、取消与继续资格；历史读取不自动重放代码或命令。交付包显式保存需要独立决定产物类型、体积、导出权限及保留规则，不能直接复用旧文本结果的保存入口。详细设计从[框架接入](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)与[运行状态 / 证据](features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)读取，本轮不修改本文件列出的既有 schema。
 
 
-专属通道选择独立内部监听器，短期任务委托不复用 Session / 长期 API key；SDK 元数据、可信工具提议、未知用量和取消证据按[尝试控制合同](contracts/development-attempt-control-v1.md)执行。本轮只物化合同及离线 Go 规则，未新增 HTTP 路由、签发凭据、迁移或真实执行服务。
+专属通道选择独立内部监听器，短期任务委托不复用 Session / 长期 API key；SDK 元数据、可信工具提议、未知用量和取消证据按[尝试控制合同](contracts/development-attempt-control-v1.md)执行。当前内部监听器、签发与持久事务已实现但默认关闭；SDK 私有 IPC 不是公开 API，不放宽旧公开路由。代码执行服务和正式团队权限仍未启用。
 
 ## 专题索引
 

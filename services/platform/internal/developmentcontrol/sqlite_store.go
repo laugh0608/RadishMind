@@ -266,11 +266,14 @@ func (s *SQLiteStore) change(ctx context.Context, identity Identity, attemptID s
 		if err := apply(r); err != nil {
 			return err
 		}
+		if len(r.Control.events) > 200 {
+			return ErrConflict
+		}
 		state, err := encodeState(r.Control)
 		if err != nil {
 			return ErrUnavailable
 		}
-		if bytes.Equal(beforeState, state) && r.Revoked == beforeRevoked && r.ContextDigest == beforeContext && r.ContextCount == beforeCount && r.PendingToolRequestID == beforePending && maps.Equal(beforeOffers, r.Offers) {
+		if len(r.Control.events) == count && bytes.Equal(beforeState, state) && r.Revoked == beforeRevoked && r.ContextDigest == beforeContext && r.ContextCount == beforeCount && r.PendingToolRequestID == beforePending && maps.Equal(beforeOffers, r.Offers) {
 			result = r
 			return nil
 		}

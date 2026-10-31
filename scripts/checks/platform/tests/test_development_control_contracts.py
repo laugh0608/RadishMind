@@ -91,6 +91,27 @@ class DevelopmentControlContractTests(unittest.TestCase):
             changed["tools"][field] = value
             self.assertFalse(self.validators["plan"].is_valid(changed))
 
+    def test_worker_wire_schema_and_no_arbitrary_reports(self):
+        schema = json.loads((ROOT / "contracts/development-sdk-worker.schema.json").read_text())
+        Draft202012Validator.check_schema(schema)
+        registry = Registry().with_resources((value["$id"], Resource.from_contents(value)) for value in [schema, *self.schemas.values()])
+        validator = Draft202012Validator(schema, registry=registry)
+        frames = json.loads((FIXTURES / "worker-events.json").read_text())
+        for frame in frames:
+            validator.validate(frame)
+            for name in frame:
+                changed = dict(frame)
+                del changed[name]
+                self.assertFalse(validator.is_valid(changed))
+            self.assertFalse(validator.is_valid(dict(frame, raw_text="forbidden")))
+        self.assertFalse(validator.is_valid(dict(frames[1], event_type="cancelled")))
+        self.assertFalse(validator.is_valid(dict(frames[0], kind="tool")))
+        error = dict(frames[1], event_type="error", error_code="model_channel")
+        validator.validate(error)
+        self.assertFalse(validator.is_valid(dict(frames[1], event_type="error")))
+        self.assertFalse(validator.is_valid(dict(error, error_code="raw exception with secret")))
+        self.assertFalse(validator.is_valid(dict(error, event_type="security")))
+
     def test_cancel_trace_preserves_unknown_budget_until_late_receipt(self):
         trace = json.loads((FIXTURES / "cancel-trace.json").read_text())
         for event in trace:

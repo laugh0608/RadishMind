@@ -254,3 +254,35 @@ func TestPlanFixtureStrictnessAndIssuedSecretHandoff(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestEventOnlyTransactionPersistsAtTheSameMillisecond(t *testing.T) {
+	f := newRuntimeFixture(t, func(context.Context, NativeRequest) (NativeResult, error) { return stopResult(), nil })
+	f.runtime.now = func() time.Time { return time.UnixMilli(f.issued.Delegation.IssuedAtMS) }
+	before := f.read(t)
+	for i := 0; i < 2; i++ {
+		if _, err := f.runtime.workerEvent(context.Background(), f.identity, f.issued.Delegation.Scope.AttemptID, "sdk_system_prompt_observed", ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+	after := f.read(t)
+	if len(after.Control.Events()) != len(before.Control.Events())+2 || after.Version != before.Version+2 {
+		t.Fatal("same-time events were discarded as a no-op")
+	}
+}
+
+func TestOversizedEventStreamCannotCommitUnreadableState(t *testing.T) {
+	f := newRuntimeFixture(t, func(context.Context, NativeRequest) (NativeResult, error) { return stopResult(), nil })
+	before := f.read(t)
+	if _, err := f.store.change(context.Background(), f.identity, f.issued.Delegation.Scope.AttemptID, 0, f.runtime.instanceID, func(record *Record) error {
+		for i := 0; i < 200; i++ {
+			record.Control.emit("sdk_user_message_observed", "", f.runtime.now().UnixMilli())
+		}
+		return nil
+	}); !errors.Is(err, ErrConflict) {
+		t.Fatal(err)
+	}
+	after := f.read(t)
+	if before.Version != after.Version || len(after.Control.Events()) != len(before.Control.Events()) {
+		t.Fatal("oversized transaction leaked events")
+	}
+}

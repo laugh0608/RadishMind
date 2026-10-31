@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+	"unicode/utf8"
 )
 
 func (r *Runtime) model(ctx context.Context, record *Record, requestID string, request NativeRequest) (NativeResult, error) {
@@ -142,8 +143,12 @@ func (r *Runtime) model(ctx context.Context, record *Record, requestID string, r
 			return nil
 		}
 		if action == nil {
-			_, err := current.Control.Complete(r.now().UnixMilli())
 			current.Revoked = true
+			if hasControlEvent(current, "worker_claimed") {
+				current.Control.emit("model_final_response", requestID, r.now().UnixMilli())
+				return nil
+			}
+			_, err := current.Control.Complete(r.now().UnixMilli())
 			return err
 		}
 		call := normalized.Message.ToolCalls[0]
@@ -291,7 +296,7 @@ func (r *Runtime) DispatchTool(ctx context.Context, identity Identity, attemptID
 	return record, nil
 }
 func (r *Runtime) CompleteTool(ctx context.Context, identity Identity, attemptID, requestID, observation string) (*Record, error) {
-	if len(observation) > 65536 {
+	if len(observation) > 65536 || !utf8.ValidString(observation) {
 		return nil, ErrContext
 	}
 	return r.store.change(ctx, identity, attemptID, 0, "", func(current *Record) error {

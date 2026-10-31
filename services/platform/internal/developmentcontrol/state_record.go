@@ -152,7 +152,7 @@ func (c *AttemptControl) Fail(reason string, nowMS int64) (Event, error) {
 	if c.phase != "active" && c.phase != "cancel_requested" {
 		return Event{}, AttemptStopped
 	}
-	if reason != "native_response_invalid" {
+	if reason != "native_response_invalid" && reason != "sdk_worker_failed" {
 		return Event{}, OperationStateInvalid
 	}
 	c.releaseUndispatched()

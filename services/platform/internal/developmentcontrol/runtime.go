@@ -30,6 +30,8 @@ type Runtime struct {
 	mu         sync.Mutex
 	closed     bool
 	active     map[string]context.CancelFunc
+	workers    map[string]context.CancelFunc
+	fenced     map[string]bool
 	deadlines  map[string]time.Time
 	work       sync.WaitGroup
 }
@@ -42,7 +44,7 @@ func NewRuntime(store *SQLiteStore, reader QualificationReader, backend NativeBa
 	if err != nil {
 		return nil, err
 	}
-	return &Runtime{store: store, reader: reader, backend: backend, instanceID: id, now: time.Now, active: map[string]context.CancelFunc{}, deadlines: map[string]time.Time{}}, nil
+	return &Runtime{store: store, reader: reader, backend: backend, instanceID: id, now: time.Now, active: map[string]context.CancelFunc{}, deadlines: map[string]time.Time{}, workers: map[string]context.CancelFunc{}, fenced: map[string]bool{}}, nil
 }
 func randomID(prefix string) (string, error) {
 	var data [16]byte
@@ -175,7 +177,7 @@ func (r *Runtime) attemptDeadline(attemptID string) (time.Time, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	deadline, found := r.deadlines[attemptID]
-	return deadline, found && !r.closed
+	return deadline, found && !r.closed && !r.fenced[attemptID]
 }
 
 func (r *Runtime) Read(ctx context.Context, identity Identity, attemptID string) (*Record, error) {
@@ -213,9 +215,13 @@ func (r *Runtime) Interrupt(ctx context.Context, identity Identity, attemptID st
 func (r *Runtime) cancelActive(attemptID string) {
 	r.mu.Lock()
 	cancel := r.active[attemptID]
+	workerCancel := r.workers[attemptID]
 	r.mu.Unlock()
 	if cancel != nil {
 		cancel()
+	}
+	if workerCancel != nil {
+		workerCancel()
 	}
 }
 func (r *Runtime) beginCall(attemptID string, cancel context.CancelFunc) error {
@@ -241,6 +247,9 @@ func (r *Runtime) endCall(attemptID string) {
 func (r *Runtime) Close(ctx context.Context) error {
 	r.mu.Lock()
 	r.closed = true
+	for _, cancel := range r.workers {
+		cancel()
+	}
 	for _, cancel := range r.active {
 		cancel()
 	}

@@ -29,8 +29,34 @@ docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-
 
 `fixtures/` 保存两个真实 SDK 捕获的合成请求体，无请求头、密钥或真实用户正文。`gpt-4o` 仅用于 SDK 本地能力元数据和固定响应协议标识，没有调用对应模型。Go 的 `TestSDKToolWireDoesNotGrantLegacyToolExecution` 只将模型选择改为本地 mock，再用内存 handler / fake bridge 核对两份请求：旧 Gateway 仍返回建议文本、`allow_tool_calls=false`，不传递工具标识。这是“不兼容”的证据，不是 Gateway 工具接入验收。
 
-接口核对另确认 SDK 默认重试为 5，`LocalConversation.pause()` 不立即中断正在等待的模型调用。SDK 本地 Conversation 是工厂返回的具体实现，检查脚本同时记录工厂与 `LocalConversation` 的真实签名。当前未运行完整 Agent、事件流、命令取消、任务级委托或代码沙箱，不能宣布 SDK 已正式采用。
+接口核对另确认 SDK 默认重试为 5，`LocalConversation.pause()` 不立即中断正在等待的模型调用。SDK 本地 Conversation 是工厂返回的具体实现，检查脚本同时记录工厂与 `LocalConversation` 的真实签名。该候选依赖窗口未运行完整 Agent、事件流、命令取消、任务级委托或代码沙箱。后续受限 Agent 验收见下节；仍不能宣布 SDK 已正式采用。
 
 依赖元数据已导出，包括许可证字段；该记录不代替完整许可证核验。实际运行限制、摘要、首次失败及修正、安装一致性和清理记录见 [W44 周志](../../../docs/devlogs/2026-W44.md#2026-10-31-sdk-候选镜像与固定响应契约验收)，剩余工作见[集中任务卡](../../../docs/task-cards/development-task-probe-v1-plan.md)。
 
 原始产物位于忽略目录 `tmp/development-probe-20261031/`：初始解析报告、冻结锁、最终安装报告、API / 依赖元数据、测试结果、容器限制与退出状态。临时容器已全部删除，镜像及构建缓存保留，未执行全局清理。完整 wheel 锁与安装版本集合一致只证明本次依赖复建，镜像时间 / 构建元数据不承诺逐位复现。
+
+## 受限 Agent 工作进程验收（2026-10-31）
+
+项目所有者另行授权复用摘要固定的已有镜像，只读挂载本次 Go 测试二进制与 `services/runtime/development_sdk/`，没有重新构建、下载依赖或安装宿主机依赖。Go 测试程序在同一无外网容器内创建回环固定响应通道、隔离 SQLite 和私有工作目录；SDK 以镜像原有非 root 用户运行，只有 `/tmp` 可写。完整限制、首次失败修正与清理记录见[运行记录](../../../docs/devlogs/2026-W44.parts/development-sdk-worker-20261031.md)。以下命令仅供下一次明确授权的相同范围复验，不是常规仓库门禁自动运行项：
+
+```sh
+# 从 services/platform 编译，使用已有模块缓存，不下载依赖。
+GOPROXY=off GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go test -c ./internal/developmentcontrol -o ../../tmp/development-sdk-worker-20261031/sdk-check.test
+
+# 以下从仓库根目录运行；需已有隔离目录和上述二进制。
+docker run --name radishmind-sdk-worker-20261031-check \
+  --network none --read-only --cap-drop ALL --security-opt no-new-privileges \
+  --tmpfs /tmp:size=256m,mode=1777 --memory 1g --cpus 2 --pids-limit 128 \
+  --mount "type=bind,src=$PWD/tmp/development-sdk-worker-20261031/sdk-check.test,dst=/opt/sdk-check,readonly" \
+  --mount "type=bind,src=$PWD/services/runtime/development_sdk,dst=/opt/sdk-worker,readonly" \
+  -e RADISHMIND_SDK_PYTHON=/usr/local/bin/python \
+  -e RADISHMIND_SDK_SCRIPT=/opt/sdk-worker/worker.py \
+  sha256:d80a7496e7c659f1fc76ffb5f429530bcfcd1fef5a790fa06b789ff27eb23842 \
+  /opt/sdk-check -test.run '^TestSDKWorker(AgentFixedResponseRoundTrip|FailureDoesNotRetry|ModelWaitCancellation)$' -test.v -test.timeout 180s
+# 无论检查成功或失败，记录状态后删除本次命名容器；保留已有镜像。
+docker rm -f radishmind-sdk-worker-20261031-check
+```
+
+最终全部通过：真实 `Agent / LocalConversation` 经 Go 完成两次模型请求与合成工具观察值往返，核对系统提示、用户 / 助手消息、动作与观察事件；原生失败仅一次请求，工具失败保留未知状态，缺失 usage 不采用 SDK 零值；模型等待中取消后进程组为空，单独关闭父存活管道也能终止 SDK。合成观察值不访问文件、不执行代码。普通 Go 测试未配置 SDK 路径时会明确 skip，不能将其算作镜像验收。
+
+Go 对每条 SDK 报告先提交事件再确认，最终完成须核对真实退出和最新资格。Python 仅使用内存会话、唯一自定义工具与受限模型转换，关闭默认工具 / MCP / 动态上下文等旁路；模块边界见[SDK 工作进程说明](../../../services/runtime/development_sdk/README.md)。实际代码沙箱、真实提供方原生适配、完整 SDK 正式采用及阶段 0 退出仍待完成。

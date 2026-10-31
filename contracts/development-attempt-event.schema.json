@@ -56,7 +56,23 @@
         "tool_offer_registered",
         "tool_offer_queued",
         "attempt_interrupted",
-        "attempt_failed"
+        "attempt_failed",
+        "worker_claimed",
+        "worker_started",
+        "worker_ready",
+        "worker_waiting_tool",
+        "sdk_finished_observed",
+        "worker_exited",
+        "worker_failed",
+        "worker_termination_unconfirmed",
+        "sdk_system_prompt_observed",
+        "sdk_user_message_observed",
+        "sdk_assistant_message_observed",
+        "sdk_action_observed",
+        "sdk_observation_observed",
+        "sdk_error_observed",
+        "sdk_security_observed",
+        "model_final_response"
       ]
     },
     "request_id": {
@@ -90,7 +106,8 @@
         "reservation_exceeded",
         "execution_unknown",
         "runtime_interrupted",
-        "native_response_invalid"
+        "native_response_invalid",
+        "sdk_worker_failed"
       ]
     },
     "usage_status": {
@@ -527,7 +544,10 @@
             "const": "failed"
           },
           "reason": {
-            "const": "native_response_invalid"
+            "enum": [
+              "native_response_invalid",
+              "sdk_worker_failed"
+            ]
           },
           "request_id": {
             "const": ""
