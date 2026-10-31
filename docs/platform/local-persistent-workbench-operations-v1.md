@@ -86,6 +86,8 @@ cp deploy/workbench-native.example.json var/workbench/platform.json
 
 `upgrade` 只允许当前二进制认识的迁移子集，先成功冷备份，再调用原迁移执行器。未知或校验不符的迁移不能升级；迁移失败保留数据库、备份和错误，不自动启动或回退。未完成的备份目录没有有效清单，不能恢复。必要时从备份恢复到另一目录并使用匹配版本调查，不覆盖唯一旧库。
 
+2026-10-31 新增的 `development_attempts` 与 `development_artifacts` 已纳入共享迁移集合；此前工作台库使用新构建时也须遵循上述显式升级流程。已有宿主机 / 容器验收记录针对当时迁移集，本轮受控开发测试只使用隔离数据库，未替日常库升级。新增表不会自动启用开发通道、SDK 或代码容器。
+
 恢复输出包含 `platform.json` 与 `data/radishmind.db`，保留原库和备份。启动前核对 Python、桥接脚本、Web 目录、监听来源和凭据，再执行 `check`。已知但不完整的迁移集需先 `upgrade`，才能 `serve`。恢复不会自动切换日常配置。
 
 ```bash

@@ -1,12 +1,14 @@
 # 本地 SQLite 开发持久化 v1
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 状态：`local_sqlite_dev_persistence_v1_s3_dual_database_gate_completed`
 
 ## 当前结论
 
-2026-10-26 新增工作台接线：`local-workbench` 复用本专题的共享 SQLite 和现有领域迁移，完整迁移集合由 `services/platform/migrations/sqlite/migrations.go` 提供；SQL 与领域存储语义未改。工作台将新库初始化、兼容性预检、显式升级和冷备份恢复分开，普通 `serve` 不自动建库或补迁移；数据目录独占标记只由显式 `init` / `restore` 建立。旧开发服务的 `local-product` / `configured` 启动档保留原行为，不能与工作台共用目录。操作与未完成的运行验收见[工作台运行指南](local-persistent-workbench-operations-v1.md)。下文早期 S1 至 S3 批次记录只说明当时实现和验证，不覆盖这项新增入口。
+2026-10-26 新增工作台接线：`local-workbench` 复用本专题的共享 SQLite 和现有领域迁移，完整迁移集合由 `services/platform/migrations/sqlite/migrations.go` 提供；SQL 与领域存储语义未改。工作台将新库初始化、兼容性预检、显式升级和冷备份恢复分开，普通 `serve` 不自动建库或补迁移；数据目录独占标记只由显式 `init` / `restore` 建立。旧开发服务的 `local-product` / `configured` 启动档保留原行为，不能与工作台共用目录。操作与验收范围见[工作台运行指南](local-persistent-workbench-operations-v1.md)。下文早期 S1 至 S3 批次记录只说明当时实现和验证，不覆盖这项新增入口。
+
+2026-10-31 受控开发探针在同一共享数据库新增独立 `development_attempts` 与 `development_artifacts` 迁移族，分别保存尝试 / 提议 / 事件事务和显式确认的不可变开发包；不复用应用结果资产正文或自动保存 SDK transcript。两组件仅由可信宿主显式接线，不因迁移存在启动 SDK、代码容器或公开路由。旧工作台需停服、冷备份后显式 `upgrade`；本轮隔离测试没有升级日常运行库，早期工作台 88 张表的验收快照不能当作新增迁移后的表数。合同见[尝试控制](../contracts/development-attempt-control-v1.md)与[开发产物](../contracts/development-artifact-v1.md)。
 
 RadishMind 增加 `sqlite_dev`，用于无需 PostgreSQL 服务即可完成本地产品开发、前后端联调和服务重启恢复。它与现有 `memory_dev`、`postgres_dev_test` 并行，不替代任何一层：
 

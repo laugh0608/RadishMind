@@ -16,4 +16,4 @@ go test -race ./internal/developmentartifact ./internal/developmentsandbox ./int
 go test ./internal/httpapi -run TestDevelopmentArtifact
 ```
 
-测试使用合成源码、隔离临时 SQLite 和受控身份对象，不调用真实执行入口。SDK 与代码沙箱同次任务验收另行安排。
+上述定向测试使用合成源码、隔离临时 SQLite 和受控身份对象，不调用真实执行入口。另行授权的[真实 SDK / 代码沙箱联合验收](../../../../docs/devlogs/2026-W44.parts/development-joint-20261031.md)已覆盖同次任务保存 / 导出、候选变化后旧测试失效及命令中取消；[遥测可选化候选](../../../../scripts/eval/development_probe/sdk_variant/README.md)也已独立复验。两轮运行窗口均已结束，不构成正式 HTTP、Web 或真实模型效果验收。

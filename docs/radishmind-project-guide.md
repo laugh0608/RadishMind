@@ -4,9 +4,9 @@
 
 ## 当前交付方向
 
-当前主线是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制及备份迁移已验收；独立用户试用仍待完成。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
+本机交付基座是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制及备份迁移已验收；独立用户试用仍待完成。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
 
-新增规划见[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)：先设计并验证单 Agent 隔离交付，再推进固定团队。阶段 0 已有冻结合成任务、探针合同与离线准备 CLI；SDK 只在独立候选镜像通过 LLM 固定响应检查，正式 Gateway 工具接入、代码沙箱、长任务和协作界面尚未实现。离线命令见[代表任务说明](../scripts/eval/fixtures/development-task/README.md)，下文不提供正式团队服务启动入口。
+当前开发主线见[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)：先设计并验证单 Agent 隔离交付，再推进固定团队。阶段 0 已有冻结合成任务、探针合同与离线准备 CLI；单尝试 SQLite 事务、任务凭据与独立通道、受限 SDK 工作进程、固定 Go 代码沙箱和开发产物保存 / 导出均已实现，真实 SDK 与代码容器同次任务已通过固定响应联合验收。遥测可选化 SDK 仍为技术候选，剩余许可、提供方原生 HTTP 传输和阶段 1 合同 / 视觉依据尚未闭合；通道默认关闭，正式 Web、通用仓库及团队交付尚未实现。离线命令见[代表任务说明](../scripts/eval/fixtures/development-task/README.md)，下文不提供正式团队服务启动入口。
 
 ## 这份文档讲什么
 
