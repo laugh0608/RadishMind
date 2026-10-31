@@ -2,7 +2,9 @@
 
 工作台新增 `workbench-public-config.schema.json` 与 `workbench-backup-manifest.schema.json`，分别约束浏览器公开配置和冷备份清单；Go / TypeScript 消费者必须保持严格字段边界。使用及保留语义见[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)。
 
-更新时间：2026-08-27
+新增受控开发阶段 0 的 `development-task-probe-plan.schema.json` 与 `development-task-probe-tool-request.schema.json`，只约束固定响应合成任务及离线工具请求解析，不授予平台身份权限或开放实际工具执行。范围与语义见[集中任务卡](../docs/task-cards/development-task-probe-v1-plan.md)。
+
+更新时间：2026-10-31
 
 本目录承载 `RadishMind` 第一版真实契约文件。
 

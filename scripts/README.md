@@ -2,7 +2,9 @@
 
 `run-workbench.sh` / `run-workbench.ps1` 由根 `start` 的 `workbench` 子命令进入，提供显式 build、check、init、serve、bootstrap-admin、backup、upgrade 和 restore。它们不复用旧开发脚本的临时配置，不自动安装依赖；操作与权限边界见[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)。
 
-更新时间：2026-09-09
+受控开发阶段 0 的合成任务、冻结计划和离线 CLI 命令见 `scripts/eval/fixtures/development-task/README.md`；SDK 独立候选镜像、哈希锁准备和运行授权范围见 `scripts/eval/development_probe/README.md`。这些入口不启动既有工作台或调用真实模型。
+
+更新时间：2026-10-31
 
 ## 目录目标
 

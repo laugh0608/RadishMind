@@ -1,0 +1,22 @@
+# Optional SDK inspection image. Building it needs an explicit dependency window.
+# It is separate from the validated workbench image and contains no model weights.
+FROM python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HOME=/tmp/probe-home \
+    XDG_CACHE_HOME=/tmp/probe-cache \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    LITELLM_LOCAL_MODEL_COST_MAP=True \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+WORKDIR /opt/probe
+COPY scripts/eval/development_probe/sdk-candidate.txt ./sdk-candidate.txt
+COPY scripts/eval/development_probe/lock_from_report.py ./lock_from_report.py
+RUN python -m pip install --dry-run --ignore-installed --only-binary=:all: \
+        --report /opt/probe/resolution.json -r sdk-candidate.txt \
+    && python lock_from_report.py --report resolution.json --output requirements.lock \
+    && python -m pip install --no-cache-dir --only-binary=:all: --require-hashes \
+        --no-deps --report /opt/probe/installation.json -r requirements.lock \
+    && python -m pip check
+USER 65532:65532
+CMD ["python", "-c", "import importlib.metadata; import openhands.sdk; print(importlib.metadata.version('openhands-sdk'))"]

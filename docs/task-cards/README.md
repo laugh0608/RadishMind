@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险任务卡。当前主线[本机持久工作台交付](../features/user-workspace/local-persistent-workbench-delivery-v1.md)在功能专题维护具体设计与工作包；仅在实际新增协议、权限、持久化或高风险边界时建立必要实施记录，不为普通步骤逐项开卡。邀请批次 A 至 E 保持关闭，当前动作见[推进焦点](../radishmind-current-focus.md)。
+[受控开发阶段 0：代表任务与 SDK 探针](development-task-probe-v1-plan.md)集中维护新探针合同和工具 / 隔离边界：离线准备已实现，SDK / Gateway 及代码沙箱尚待验证。工作台独立用户试用暂不安排；邀请批次 A 至 E 保持关闭，当前顺位见[推进焦点](../radishmind-current-focus.md)。
 
 ## 当前外部阻塞任务
 

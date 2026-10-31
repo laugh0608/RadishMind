@@ -94,7 +94,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包 / 日志保存、事件正文、权限与 canonical 合同须单独设计，不能直接塞入旧 Session 或文本结果字段。重启默认只读回记录，不自动重放代码 / 工具命令。
 
-现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托、状态 / 事件和长任务接口在阶段 0 确认后才能实施，本次没有修改现有 API、schema、迁移、工作进程或运行配置。
+现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托、状态 / 事件和长任务接口仍待阶段 0 收口。现有 API、迁移、工作进程与运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。
 
 ## 图片产物链
 

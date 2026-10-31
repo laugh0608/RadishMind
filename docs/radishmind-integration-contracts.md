@@ -141,7 +141,7 @@
 
 ## 受控开发团队的拟新增合同
 
-[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入功能设计，尚未形成 canonical schema 或公开 API。需要明确 SDK / Gateway 工具往返、任务级委托、长任务 / 事件、隔离工具动作与开发产物；旧 Agent / Copilot、通用 Tooling、Session 和 Action Safety 合同保持原语义。
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入开发，阶段 0 新增独立探针计划 / 工具请求 canonical schema，语义见[集中任务卡](task-cards/development-task-probe-v1-plan.md)；它们不属于正式团队授权或公开 API。需要明确 SDK / Gateway 工具往返、任务级委托、长任务 / 事件、隔离工具动作与开发产物；旧 Agent / Copilot、通用 Tooling、Session 和 Action Safety 合同保持原语义。
 
 框架只拥有一次执行尝试，Go 平台负责启动、取消与继续资格；历史读取不自动重放代码或命令。交付包显式保存需要独立决定产物类型、体积、导出权限及保留规则，不能直接复用旧文本结果的保存入口。详细设计从[框架接入](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)与[运行状态 / 证据](features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)读取，本轮不修改本文件列出的既有 schema。
 

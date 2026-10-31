@@ -10,7 +10,7 @@
 
 ## 新增设计方向
 
-[多 Agent 协同与受控软件开发团队 v1](controlled-software-development-team-v1.md)已按项目所有者要求纳入规划，处于阶段 0 方案与详细设计；首个实施目标是单 Agent 隔离开发交付，之后扩展 A/B/C/D/R 固定团队。主专题路由到框架 / Gateway、状态 / 证据、隔离 / 交付、协作界面和实施 / 评测五个职责子专题。未安装 SDK、未新增代码工具、长任务或权限，不改变下文已关闭批次的范围。
+[多 Agent 协同与受控软件开发团队 v1](controlled-software-development-team-v1.md)已按项目所有者要求纳入规划，处于阶段 0 合同与选型验证；首个实施目标是单 Agent 隔离开发交付，之后扩展 A/B/C/D/R 固定团队。主专题路由到框架 / Gateway、状态 / 证据、隔离 / 交付、协作界面和实施 / 评测五个职责子专题。已新增冻结合成任务、严格探针合同与离线准备 CLI；未安装 SDK 或开放实际代码工具、长任务与权限，不改变下文已关闭批次的范围。
 
 ## 当前专题
 
@@ -184,7 +184,7 @@
 
 ## 当前下一步
 
-新功能下一设计动作按[受控软件开发团队](controlled-software-development-team-v1.md)阶段 0 确定代表任务和接入 / 隔离 / 状态合同；当前实施尚未启动，工作台独立用户验收继续保留。以下已关闭能力提供复用事实，不派生续批。
+新功能按[受控软件开发团队](controlled-software-development-team-v1.md)阶段 0 推进：代表任务与离线准备已实施，下一项为 SDK / Gateway 固定响应验证及接入 / 隔离 / 状态合同；工作台独立用户试用暂不安排，交付待办继续保留。以下已关闭能力提供复用事实，不派生续批。
 
 [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)及[唯一高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)已完成并关闭：strict decision contract / compiler、response / candidate / assignment / Tool plan / pre-dispatch / Run 六个检查点、既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot、获人工批准的 8 个功能画板、单一 HTTP read projection、单一 React strict consumer、双数据库与真实浏览器证据均成立。模型、客户端与人工批准仍不能直接提升资格，`tool_callable` 只复用既有只读 HTTP Tool，`write_allowed_by_policy` 的有效结果在 v1 不可达。下一顺位回到功能设计评审。
 
