@@ -108,7 +108,7 @@ func helperLaunch(t *testing.T, f *runtimeFixture, mode string) (WorkerLaunch, *
 	if err := os.Chmod(dir, 0700); err != nil {
 		t.Fatal(err)
 	}
-	return WorkerLaunch{WorkerCommand{exe, []string{"-test.run=^TestSDKWorkerHelper$", "--", "--worker-helper", mode}, dir}, server.URL, initialRequest(t).Messages}, server
+	return WorkerLaunch{WorkerCommand{exe, []string{"-test.run=^TestSDKWorkerHelper$", "--", "--worker-helper", mode}, dir}, server.URL, initialRequest(t).Messages, nil}, server
 }
 func TestWorkerOwnedProcessAndSingleClaim(t *testing.T) {
 	t.Setenv("RADISHMIND_TEST_SECRET", "must-not-be-inherited")
@@ -211,5 +211,36 @@ func TestWorkerProtocolRejectsSpoofedReports(t *testing.T) {
 		if _, err := parseWorkerFrame([]byte(body), 1); err == nil {
 			t.Fatal("spoof accepted")
 		}
+	}
+}
+
+type ownedTestSandbox struct {
+	binding SandboxBinding
+	empty   bool
+}
+
+func (s *ownedTestSandbox) Binding() SandboxBinding { return s.binding }
+func (s *ownedTestSandbox) HandleTool(context.Context, ToolCall) (string, error) {
+	return "", ErrWorker
+}
+func (s *ownedTestSandbox) Close(context.Context) (bool, error) { return s.empty, nil }
+func TestWorkerSandboxCleanupGatesCompletion(t *testing.T) {
+	for _, empty := range []bool{true, false} {
+		t.Run(fmt.Sprint(empty), func(t *testing.T) {
+			f := newRuntimeFixture(t, func(context.Context, NativeRequest) (NativeResult, error) { return stopResult(), nil })
+			launch, _ := helperLaunch(t, f, "success")
+			launch.Sandbox = &ownedTestSandbox{SandboxBindingFor(f.issued.Delegation), empty}
+			result, err := f.runtime.RunWorker(context.Background(), f.identity, f.issued, launch, nil)
+			record := f.read(t)
+			if empty {
+				if err != nil || !result.Finished || record.Control.phase != "completed" {
+					t.Fatal(result, err)
+				}
+			} else {
+				if err == nil || result.Finished || record.Control.phase == "completed" || record.Control.terminationStatus != "unconfirmed" {
+					t.Fatal("unconfirmed sandbox completed", result, err, record.Control.phase, record.Control.terminationStatus)
+				}
+			}
+		})
 	}
 }

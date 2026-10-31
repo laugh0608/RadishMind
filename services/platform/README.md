@@ -35,7 +35,7 @@ Application Evaluation Schedule route 使用既有 Plan、Campaign、Run、quota
 
 `internal/developmentcontrol` 已实现单尝试 SQLite、任务凭据、提议 / 账目 / 事件事务及严格原生消息通道，默认平台与工作台均不启动。可信 Go 宿主显式 `ConnectDevelopmentControl(backend)`，通过已验证本地 Session 的 `PrepareDevelopmentAttempt / IssueDevelopmentAttempt` 确认精确计划后，才可调用 `StartDevelopmentChannel(ctx)` 取得独立 `127.0.0.1:0` 地址；调用方须观察 Serve 结果并执行 `CloseDevelopmentControl`。原文凭据只交接可信 SDK 进程，不序列化给浏览器。
 
-可信宿主可另行显式调用 `Runtime.RunWorker`，使用确认的任务凭据、绝对 SDK 命令和新建 `0700` 私有空目录；目录由调用方分配和回收。Linux / macOS 实现独立进程组与父存活管道，`Close` 取消并等待所属 worker。真实 SDK Agent 的固定响应工具往返、允许事件、错误 / 用量未知、模型等待取消及父管道失联退出已验。工具入口先返回 `202 queued`，观察值由可信 Go 回调核对；本轮只提供合成观察值，实际提供方原生传输、文件 / 命令沙箱未接入。SDK 运行入口见[模块说明](../runtime/development_sdk/README.md)。不能转发旧建议桥接或打开现成生产执行开关。共享迁移新增 `development_attempts`；旧工作台须停服、备份后显式 `upgrade`，`serve` 不自动应用新增迁移。契约、表与验证边界见[尝试控制合同](../../docs/contracts/development-attempt-control-v1.md)。
+可信宿主可另行显式调用 `Runtime.RunWorker`，使用确认的任务凭据、绝对 SDK 命令和新建 `0700` 私有空目录；目录由调用方分配和回收。Linux / macOS 实现独立进程组与父存活管道，`Close` 取消并等待所属 worker。真实 SDK Agent 的固定响应工具往返、允许事件、错误 / 用量未知、模型等待取消及父管道失联退出已验。工具入口先返回 `202 queued`，观察值由可信 Go 回调核对；现在可将可信 `developmentsandbox.Session` 绑定到 `WorkerLaunch.Sandbox`，接私有候选文件与固定 Go 测试容器；来源快照只读，归属清理确认前不能完成。代码容器已真实验收，实际提供方原生传输、真实 SDK 联合任务与通用仓库仍未验收。执行边界见[沙箱模块](internal/developmentsandbox/README.md)。SDK 运行入口见[模块说明](../runtime/development_sdk/README.md)。不能转发旧建议桥接或打开现成生产执行开关。共享迁移新增 `development_attempts`；旧工作台须停服、备份后显式 `upgrade`，`serve` 不自动应用新增迁移。契约、表与验证边界见[尝试控制合同](../../docs/contracts/development-attempt-control-v1.md)。
 
 ## Browser OIDC 开发测试配置
 

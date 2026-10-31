@@ -16,6 +16,7 @@ type WorkerLaunch struct {
 	Command         WorkerCommand
 	ChannelURL      string
 	InitialMessages []NativeMessage
+	Sandbox         WorkerSandbox
 }
 
 // RunWorker starts one owned SDK process after a durable, non-replayable claim.
@@ -33,6 +34,12 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 	}
 	if len(launch.InitialMessages) != 2 || launch.InitialMessages[0].Role != "system" || launch.InitialMessages[1].Role != "user" || checkContext(record, launch.InitialMessages) != nil {
 		return result, ErrContext
+	}
+	if launch.Sandbox != nil {
+		if handler != nil || launch.Sandbox.Binding() != SandboxBindingFor(issued.Delegation) {
+			return result, ErrWorker
+		}
+		handler = launch.Sandbox.HandleTool
 	}
 	deadline, live := r.attemptDeadline(issued.Delegation.Scope.AttemptID)
 	if !live {
@@ -73,6 +80,18 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 	if refusal != nil {
 		return result, refusal
 	}
+	sandboxHandled, sandboxEmpty := false, false
+	defer func() {
+		if launch.Sandbox != nil && !sandboxHandled {
+			cleanup, stop := context.WithTimeout(context.Background(), 10*time.Second)
+			empty, cleanupErr := launch.Sandbox.Close(cleanup)
+			stop()
+			returned = errors.Join(returned, cleanupErr)
+			if !empty {
+				returned = errors.Join(returned, ErrWorker)
+			}
+		}
+	}()
 	defer func() {
 		if returned != nil {
 			finish, stop := context.WithTimeout(context.Background(), 5*time.Second)
@@ -154,6 +173,22 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 			result.GroupEmpty = proof.GroupEmpty
 		}
 		r.cancelActive(attempt)
+		if launch.Sandbox != nil {
+			if !sandboxHandled {
+				cleanup, stop := context.WithTimeout(context.Background(), 10*time.Second)
+				empty, cleanupErr := launch.Sandbox.Close(cleanup)
+				stop()
+				sandboxHandled = true
+				sandboxEmpty = empty && cleanupErr == nil
+				returned = errors.Join(returned, cleanupErr)
+				if !sandboxEmpty {
+					returned = errors.Join(returned, ErrWorker)
+				}
+			}
+			if returned != nil {
+				returned = errors.Join(returned, r.recordSandboxTermination(identity, attempt, result, sandboxEmpty))
+			}
+		}
 		finish, stop := context.WithTimeout(context.Background(), 5*time.Second)
 		defer stop()
 		if result.Finished && returned == nil {
@@ -267,6 +302,19 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 	}
 	if !result.ProcessExited || !result.GroupEmpty {
 		return result, ErrWorker
+	}
+	if launch.Sandbox != nil {
+		cleanup, cancelCleanup := context.WithTimeout(context.Background(), 10*time.Second)
+		empty, cleanupErr := launch.Sandbox.Close(cleanup)
+		cancelCleanup()
+		sandboxHandled = true
+		sandboxEmpty = empty && cleanupErr == nil
+		if cleanupErr != nil || !empty {
+			return result, errors.Join(ErrWorker, cleanupErr)
+		}
+		if _, err = r.workerEvent(workerCtx, identity, attempt, "sandbox_closed", ""); err != nil {
+			return result, err
+		}
 	}
 	if err = r.completeWorker(workerCtx, identity, attempt); err != nil {
 		return result, err

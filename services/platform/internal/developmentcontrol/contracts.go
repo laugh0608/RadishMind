@@ -1,5 +1,5 @@
-// Package developmentcontrol defines offline rules for one bounded development
-// attempt. It authenticates no bearer, persists nothing and executes no work.
+// Package developmentcontrol owns bounded development attempts: strict domain
+// rules, SQLite transactions, task credentials and optional supervised SDK work.
 package developmentcontrol
 
 import (

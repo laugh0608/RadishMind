@@ -1,0 +1,46 @@
+[
+  {
+    "schema_version": "development_sandbox_observation.v1",
+    "action": "read_file",
+    "path": "list.go",
+    "file_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "content": "synthetic source"
+  },
+  {
+    "schema_version": "development_sandbox_observation.v1",
+    "action": "replace_file",
+    "path": "list.go",
+    "file_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "content": ""
+  },
+  {
+    "schema_version": "development_sandbox_observation.v1",
+    "action": "run_tests",
+    "path": "",
+    "file_digest": "",
+    "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "content": "",
+    "verification": {
+      "profile": "go_test_v1",
+      "image": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "runner_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "exit_code": 0,
+      "oom_killed": false,
+      "output_truncated": false,
+      "output": "synthetic test output",
+      "status": "command_passed",
+      "argv": [
+        "/usr/local/go/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "./..."
+      ],
+      "started_at": "2026-10-31T08:00:00Z",
+      "finished_at": "2026-10-31T08:00:01Z",
+      "duration_ms": 1000
+    }
+  }
+]

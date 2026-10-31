@@ -72,7 +72,8 @@
         "sdk_observation_observed",
         "sdk_error_observed",
         "sdk_security_observed",
-        "model_final_response"
+        "model_final_response",
+        "sandbox_closed"
       ]
     },
     "request_id": {

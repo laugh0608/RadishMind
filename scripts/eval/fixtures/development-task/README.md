@@ -23,6 +23,6 @@ tmp/development-probe inspect --plan scripts/eval/fixtures/development-task/list
 
 `prepare` 只创建私有的基准副本、候选副本和 `workspace.json`，不启动进程。`inspect` 校验文件集合、保护文件和候选身份，不判断测试通过。目录内源文件大小上限为 32768 字节，拒绝额外文件、符号链接和非普通文件。失败时不覆盖既有输出；中途 IO 失败留下不完整目录供诊断，不据此续跑。
 
-可信的人工检查可以在候选目录执行 `GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local CGO_ENABLED=0 go test -json -count=1 ./...`，先保留基准失败，再修改候选并保存实际测试输出。**该命令不是用于运行模型生成代码的宿主机执行入口。** 文件只读模式和事后摘要检查不能代替容器隔离；正式执行必须另行实现并验收只读测试挂载、资源限制、取消及同候选证据绑定。
+可信的人工检查可以在候选目录执行 `GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local CGO_ENABLED=0 go test -json -count=1 ./...`，先保留基准失败，再修改候选并保存实际测试输出。**该命令不是用于运行模型生成代码的宿主机执行入口。** 文件只读模式和事后摘要检查不能代替容器隔离；固定 Go 探针现已另由[代码沙箱](../../../../services/platform/internal/developmentsandbox/README.md)实现并验收只读测试挂载、资源限制、取消及同候选证据绑定；不改变本节人工宿主命令的用途。
 
-2026-10-31 已执行人工修正的离线复验：基准两项预期失败、候选 8 项通过且基准未变。此结果不证明 SDK、Gateway、Agent 编码、代码沙箱或真实模型质量。实施状态见[集中任务卡](../../../../docs/task-cards/development-task-probe-v1-plan.md)。
+2026-10-31 已执行人工修正的离线复验：基准两项预期失败、候选 8 项通过且基准未变。该人工结果不证明 SDK、Gateway、Agent 编码、代码沙箱或真实模型质量；后续真实容器验收按[沙箱合同](../../../../docs/contracts/development-code-sandbox-v1.md)另记，仍不证明真实编码质量。实施状态见[集中任务卡](../../../../docs/task-cards/development-task-probe-v1-plan.md)。

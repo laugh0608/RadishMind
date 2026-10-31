@@ -112,6 +112,27 @@ class DevelopmentControlContractTests(unittest.TestCase):
         self.assertFalse(validator.is_valid(dict(error, error_code="raw exception with secret")))
         self.assertFalse(validator.is_valid(dict(error, event_type="security")))
 
+    def test_sandbox_reports_cannot_promote_incomplete_tests(self):
+        schema = json.loads((ROOT / "contracts/development-code-sandbox.schema.json").read_text())
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+        observations = json.loads((FIXTURES / "sandbox-observations.json").read_text())
+        ledger = json.loads((FIXTURES / "sandbox-resources.json").read_text())
+        for value in [*observations, ledger]:
+            validator.validate(value)
+            for field in value:
+                changed = copy.deepcopy(value)
+                del changed[field]
+                self.assertFalse(validator.is_valid(changed), field)
+            self.assertFalse(validator.is_valid(dict(value, command="forbidden")))
+        for field, value in [("exit_code", 137), ("oom_killed", True), ("output_truncated", True)]:
+            changed = copy.deepcopy(observations[-1])
+            changed["verification"][field] = value
+            self.assertFalse(validator.is_valid(changed), field)
+        changed = copy.deepcopy(observations[1])
+        changed["path"] = "go.mod"
+        self.assertFalse(validator.is_valid(changed))
+
     def test_cancel_trace_preserves_unknown_budget_until_late_receipt(self):
         trace = json.loads((FIXTURES / "cancel-trace.json").read_text())
         for event in trace:

@@ -35,7 +35,7 @@ func sdkLaunch(t *testing.T, f *runtimeFixture) (WorkerLaunch, *atomic.Int32) {
 	if err := os.Chmod(dir, 0700); err != nil {
 		t.Fatal(err)
 	}
-	return WorkerLaunch{WorkerCommand{python, []string{script}, dir}, server.URL, initialRequest(t).Messages}, count
+	return WorkerLaunch{WorkerCommand{python, []string{script}, dir}, server.URL, initialRequest(t).Messages, nil}, count
 }
 func TestSDKWorkerAgentFixedResponseRoundTrip(t *testing.T) {
 	f := newRuntimeFixture(t, func(_ context.Context, input NativeRequest) (NativeResult, error) {

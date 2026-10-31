@@ -10,7 +10,7 @@ Go 先提交不可重放的 `worker_claimed`，再启动进程；失败不自动
 
 `worker.py` 固定 `openhands-sdk==1.59.0`，使用真实 `Agent` / `LocalConversation`、内存会话存储及唯一自定义 `development_tool`。默认工具、MCP、插件、动态上下文、condenser、critic 和 fallback 关闭；只接受一条经确认的系统消息和一条用户任务，后续上下文仍由 Go 核对摘要。SDK 的同步 `generate` 显式转换为专属通道请求，其他同步 / 异步模型入口拒绝。`openai/gpt-4o` 只用于 SDK 本地类型 / 能力初始化，实际传输模型名称来自 Go 冻结选择，不调用该模型。
 
-工具描述来自 Go 的 canonical 目录，不直接透传 SDK 自动增加的参数。SDK 报告与工具请求先由 Go 校验、持久提交，再通过 stdin 确认；确认前不能继续下一步。工具观察值只能来自可信 Go `ToolHandler` 经 `DispatchTool / CompleteTool` 的核对结果；默认没有 handler，不产生执行成功。该回调必须遵守取消上下文，真实文件与命令实现仍须由后续沙箱承接，不能借此直接在宿主机执行用户代码。
+工具描述来自 Go 的 canonical 目录，不直接透传 SDK 自动增加的参数。SDK 报告与工具请求先由 Go 校验、持久提交，再通过 stdin 确认；确认前不能继续下一步。工具观察值只能来自可信 Go `ToolHandler` 经 `DispatchTool / CompleteTool` 的核对结果；默认没有 handler，不产生执行成功。该回调必须遵守取消上下文，固定 Go 任务现可由 `WorkerLaunch.Sandbox` 接到独立[代码沙箱](../../platform/internal/developmentsandbox/README.md)，实际文件由 Go 私有工具处理，固定验证在全只读快照容器运行；不能借此直接在宿主机执行用户代码。
 
 SDK 事件只转换为明确的观察类型，错误仅带固定诊断码，不传任意异常文本、需求、代码、隐藏推理或原始 SDK transcript。Go 原始用量与预算为权威；SDK 本地 metrics 和缺失 usage 补出的零值不结算账本。
 
