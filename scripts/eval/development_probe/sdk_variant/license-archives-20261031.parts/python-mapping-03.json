@@ -1,0 +1,191 @@
+{
+  "status": "29_exact_wheels_to_sources_and_notice_locations",
+  "native_packages": 26,
+  "boundary": "Cargo lock entries include build/optional dependencies and are not the linked binary component inventory",
+  "items": [
+    {
+      "name": "rpds-py",
+      "version": "2026.9.1",
+      "wheel_sha256": "2693b2728bbcc48d09a981a356954b0c47c53ff25b545856f28a889ea619f69a",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/42/68/3bd46b8a5e01d3c2ebdf9c5e9497912e3fe0cde02bac21a7130ca866e403/rpds_py-2026.9.1.tar.gz",
+      "source_sha256": "4793ef7f78268b124b73fa933440f01d258bbae01de9fa53e9080c9ab0425a12",
+      "source_notices": [
+        {
+          "path": "rpds_py-2026.9.1/LICENSE",
+          "bytes": 1057,
+          "sha256": "314e4e91be3baa93c0fb4bccc9e4e97cd643eb839b065af921782c2175fe9909"
+        }
+      ],
+      "cargo_locks": [
+        {
+          "path": "rpds_py-2026.9.1/Cargo.lock",
+          "sha256": "b192e1f95bae7419b4b83186d168e9ee1fc4d9622db236311318be6d6f52b5ee",
+          "package_entries": 19,
+          "scope": "source_lock_superset_not_proof_of_linked_wheel_components"
+        }
+      ],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "tiktoken",
+      "version": "0.14.0",
+      "wheel_sha256": "7db45b98e94adf4173a5cd7422b150999a7ee11ff847783a14f6e1b80cc38cb6",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/66/62/167a842aa0429d45f5e797354fd4343a96f6043d67d0513c675c7b8d36e6/tiktoken-0.14.0.tar.gz",
+      "source_sha256": "231dec90efcdccf1b565a1416107736f1e09b1a08fe736ef9d6363e626d03874",
+      "source_notices": [
+        {
+          "path": "tiktoken-0.14.0/LICENSE",
+          "bytes": 1078,
+          "sha256": "418cb499b436128d653d79941333a5437b7be2ea9213dcc2f04d15d5d2c51d86"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "wheel_sha256": "ec82e80e65a862275b97c3d90b7a523df8d9519ee48aeb4e9625b2cc909274e0",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/e0/7c/2cabb2174e772636683008f2c5621949b645da7d303c596589e84516a184/tokenizers-0.23.3.tar.gz",
+      "source_sha256": "cded33237c77caeef62944d32aa9a7ef42bdce2b3497e18d137e072a8c4be438",
+      "source_notices": [
+        {
+          "path": "tokenizers-0.23.3/tokenizers/LICENSE",
+          "bytes": 11357,
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "cargo_locks": [
+        {
+          "path": "tokenizers-0.23.3/bindings/python/Cargo.lock",
+          "sha256": "afcedf7f2ebe008b068d7afd25e77f7d9d8e433c24153bc35a1eb5611083ee5b",
+          "package_entries": 153,
+          "scope": "source_lock_superset_not_proof_of_linked_wheel_components"
+        }
+      ],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "wheel_sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "native_objects": 0,
+      "source_url": "https://files.pythonhosted.org/packages/0d/ea/b2a5bd54b28a324dae8211928b2d730b6547500342c7e6c6dea08bd0a485/tqdm-4.70.1.tar.gz",
+      "source_sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+      "source_notices": [
+        {
+          "path": "tqdm-4.70.1/LICENCE",
+          "bytes": 1985,
+          "sha256": "fcff87c3a47ce8028a8512aa182d4fcf0ad1c90544ee75cf9b343684cac194de"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.26.0",
+      "wheel_sha256": "30a88be89ff1f2755297f81e8080d88b795dd98720c3f9fa2acf93873182cc95",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/f7/03/5600b84aff2e6c4fe80cfebb4063fe2f50299521befe5f6092ab8c082f4a/tree_sitter-0.26.0.tar.gz",
+      "source_sha256": "b40c219edccc4564530c96f8f1556f6202b37cda964d1cbd7bd2b7e68b40a245",
+      "source_notices": [
+        {
+          "path": "tree_sitter-0.26.0/LICENSE",
+          "bytes": 1088,
+          "sha256": "1af0790543fffac99dd3bd290bf83ca963f4f8029065eb6f35638f4df863ae8e"
+        },
+        {
+          "path": "tree_sitter-0.26.0/tree_sitter/core/lib/src/unicode/LICENSE",
+          "bytes": 21001,
+          "sha256": "6a18c5fac70d7860b57f5b72b4e2c9a1ba6b3d2741eef7ff9767c5379364f10d"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "wheel_sha256": "e76c4cfb20b076552406782b7f8c2a3946835993df0a44df006de54b7030c7dc",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/8e/0e/f0108be910f1eef6499eabce517e79fe3b12057280ed398da67ce2426cba/tree_sitter_bash-0.25.1.tar.gz",
+      "source_sha256": "bfc0bdaa77bc1e86e3c6652e5a6e140c40c0a16b84185c2b63ad7cd809b88f14",
+      "source_notices": [
+        {
+          "path": "tree_sitter_bash-0.25.1/LICENSE",
+          "bytes": 1080,
+          "sha256": "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.3.0",
+      "wheel_sha256": "4af9c464d410e8c44b58ddf1cbec7c3a02c1cb2c6c80df9c74659ba2fbda0ab5",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/b3/68/e6aa0b77d217b31f8f486ec0cdfe5e00e6e38dc0be657e7d85819b9faf0a/watchfiles-1.3.0.tar.gz",
+      "source_sha256": "99aee4a07847c06820765fd7b1b49ceac4f3f711ccb7d104655a33231de1c207",
+      "source_notices": [
+        {
+          "path": "watchfiles-1.3.0/LICENSE",
+          "bytes": 1091,
+          "sha256": "4fd78355b67ce2677ede9fb6f63a250f377bb7e22088136a5f4699adb4bc069f"
+        }
+      ],
+      "cargo_locks": [
+        {
+          "path": "watchfiles-1.3.0/Cargo.lock",
+          "sha256": "e18da541b276924cc96e5149fec75505d7ab9faff8dcf21db4697952b8302529",
+          "package_entries": 47,
+          "scope": "source_lock_superset_not_proof_of_linked_wheel_components"
+        }
+      ],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "websockets",
+      "version": "17.4",
+      "wheel_sha256": "51adfc30f467077293a6695d8149bcef501c0728386f3a491054f835dadb60b2",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/75/79/590c5f0cc7d1661195aeefccb0e342b79f4c77d368d526d028821a390332/websockets-17.4.tar.gz",
+      "source_sha256": "09d3939b70df0c8ad2da145ebd50978bccaee1d565e838b0e7921a34d38571eb",
+      "source_notices": [
+        {
+          "path": "websockets-17.4/LICENSE",
+          "bytes": 1514,
+          "sha256": "3d6a0c050d8bec52fabad502e45fb25bd02bcadbd70dea34d447b6a0ff4e6da8"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1",
+      "wheel_sha256": "4d781294bb815ecb5ea57ff6bbf8038e0a31a95fdf3e1788f66e0dc100d64b58",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/75/16/e8be8e2fb175bbf41a0680381a319f1199fae256588241a2ac8677eafb49/yarl-1.25.1.tar.gz",
+      "source_sha256": "03dd38de09bc213e9a8b29761eec33ee1d5318dac0e49d8af36e4d27830e23a7",
+      "source_notices": [
+        {
+          "path": "yarl-1.25.1/LICENSE",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "yarl-1.25.1/NOTICE",
+          "bytes": 609,
+          "sha256": "56d6ac6c8105c0a51304c21db060e361af9a8ea0af9a75c239c28b5d13693838"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    }
+  ]
+}

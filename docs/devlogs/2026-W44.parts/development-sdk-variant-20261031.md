@@ -187,3 +187,38 @@ Alpine 声明可分为：`alpine-baselayout / apk-tools / busybox / pax-utils` �
 前四组已知候选合计 468254313 字节（约 446.56 MiB），**不是当前授权额度，也不是必须全部下载的决定**；没有下载其中源码归档。清单是保守取证候选，不声明每项均须采用同一源码交付方式。下一步先收口信任核验、Alpine 体积及实际交付范围，再据精确清单申请新的有界下载；当前 128 MiB 窗口不顺延、不用于安装验证工具、重建或分发。最终第三方告知、覆盖源码提供方式与原生组件来源仍未闭合，阶段 0 许可退出条件保持未完成。
 
 本轮验证：离线重建核对全部响应字节、分片摘要、29 个 wheel 发布摘要、61 份 `.dsc` 及 130 个配方输入，主记录与前轮取证记录的引用摘要一致。首次全量检查因系统 Go 缓存目录访问受限退出；改用仓库隔离 `GOCACHE`，以 `GOPROXY=off GOTOOLCHAIN=local ./scripts/check-repo.sh` 完整重跑通过（退出码 0，日志 `tmp/development-license-audit-20261031/check-repo-source-metadata-isolated-full.log`），没有为验证下载依赖。收尾文本、篇幅、中文规范、Markdown 链接与 `git diff --check` 再次复核通过。提交仅含来源证据索引 / 候选清单和文档，不推送。
+
+## 已授权的来源归档与隔离验签
+
+项目所有者批准下一完整窗口：只取已列明的 182 项来源文件，另对 9 项 Alpine 来源先核定体积；网络总量 768 MiB，其中元数据 128 MiB、源码 640 MiB，单个元数据 / 源码文件分别不超过 32 / 128 MiB，隔离目录总量不超过 2 GiB。复用既有 SDK 镜像的 `sqv` 验签，不安装依赖、不拉取或重建镜像、不执行下载的代码。起点为干净 `dev`、HEAD `b5f1b70e`；[归档取证主记录](../../../scripts/eval/development_probe/sdk_variant/license-archives-20261031.json)绑定批准清单摘要、实际结果及分片。
+
+本轮原始证据保存在 `tmp/development-license-audit-20261031/downloads-stage2/`。元数据与源码累计计费字节分别为 12886126 / 474431602，总计 487317728 字节（约 464.74 MiB），失败和重定向响应也计入；最大来源文件 94299633 字节，目录约 472 MiB，均未超限。191 项候选的逻辑总量为 527307769 字节：190 项直接下载，1 项复用已验证的相同内容，不能把逻辑总量当实际网络量。下载与容器窗口现已关闭。
+
+### 来源信任与实际执行
+
+- 现有 SDK 镜像 `sha256:912f0a65…` 的包数据库已列 `sqv` 和 `debian-archive-keyring`。隔离运行核实为 `sqv 1.3.0-3+b2`、keyring `2025.1`；密钥环 SHA-256 为 `506b815cbb32d9b6066b4a2aa524071e071761e7e7f68c3ac74f3061ba852017`。信任根明确依赖此前批准的固定基础镜像，没有将新下载的公钥自行认定可信。
+- `trixie`、`trixie-updates`、`trixie-security` 的 `Release.gpg → Release → Sources.xz → 精确源包 / .dsc / 来源文件摘要` 通过逐层核验。当前索引匹配 60 个源包；`tzdata 2026e-0+deb13u1` 使用前轮已记录的 `20261022T203737Z` 官方 snapshot 补核，最终 61 个源包全部匹配。五份 Release 的签名指纹、正文摘要、有效期与验证记录已保留；独立维护者的 `.dsc` 签名没有混称为已验证。
+- 历史快照的 `Valid-Until` 已过期，只用于历史版本来源追溯，不作为当前软件安装的新鲜索引；没有降低验签器的密码策略。另用篡改后的 Release 验证拒绝行为，实际退出非零。
+- Alpine 的 9 项外部来源全部取得精确体积并核对 SHA-512。GitLab archive 的 HEAD 返回零长度，改以官方 distfiles 的精确 HEAD 核定大小；netbase 两份文本使用官方同版本文件元数据与原文摘要交叉核对。没有把人类可读目录中四舍五入的 `K` 值当精确字节数。
+- 下载并发上限为 2，每项总期限 60 秒，来源 URL 和 HTTPS 重定向主机受限，失败 / 部分响应保留。首次 5 个 HEAD 请求因下载器把 64 KiB 头部预算误用于远端对象大小检查而失败；修正 HEAD 对象上限后复核成功，没有取得超限归档。Debian snapshot 的 OpenSSL 原始归档请求超时，保留 277696 字节；随后清单内官方 OpenSSL 3.5.7 归档同时匹配 Debian SHA-256 和 Alpine SHA-512，因此复用其完整字节并单独记录获取来源，没有伪造 snapshot 下载成功。
+
+容器均使用同一固定镜像、`--pull=never`、无网络 / 端口、只读根、UID / GID `65532:65532`、移除全部 capability、`no-new-privileges`；资源为 256 MiB 内存、0.5 CPU、32 PID、16 MiB 临时空间。只读挂载本轮验签输入，不挂载 Docker socket、工作区或数据库；只执行镜像已有的 `sqv`、`sha256sum` 和 `dpkg-query`。帮助、版本、密钥环、五份签名和篡改拒绝共使用 10 个临时容器，均按精确 ID 删除；配置、结束状态与归属查询复核通过，剩余容器为 0。
+
+### 源码检查与许可映射的实际推进
+
+对 167 个归档作流式静态扫描，其余 24 项为签名或普通来源文本；读取 1038 份选定告知 / 构建文件，其中告知文件出现 368 次，去重原文字节为 4447134。只按成员读取并以内容摘要保存选定材料，没有将归档路径解包到系统或工作树，没有执行 `setup.py`、构建脚本或所取得的程序。成员大小、总文本量、扫描展开量与时间均受限，扫描未发生超限或不完整结果；这不是全部源码逐行审查。
+
+| 对象 | 本轮新增依据 | 尚存边界 |
+| --- | --- | --- |
+| 29 个 Python 取证根项 | 实际 wheel → 精确 PyPI sdist → 告知 / 构建文件位置及摘要已对应；其中 26 个含原生对象 | 来源版本相同不等于实际二进制构建组件已闭合 |
+| cryptography 50.0.2 | 固定 wheel 对象中读到 `OpenSSL 4.0.3 29 Sep 2026`，对象与 wheel 摘要已固定 | Debian / Alpine 已取源码为 OpenSSL 3.5.7，不能替代它；4.0.3 未在本轮批准清单中，未自动下载，精确构建来源与告知仍待补齐 |
+| Lupa 2.8 | wheel 版本文字与 sdist 头文件对应 Lua 5.1.5 / 5.2.4 / 5.3.6 / 5.4.8 / 5.5.1、LuaJIT 2.1.1774896198；Lua 5.1 和 LuaJIT 版权正文已取得 | 这是版本与来源告知交叉核对，不是可复现构建证明；源码内 LuaJIT 2.0 与二进制中的示例字符串不冒充已携带组件，最终告知尚未补入交付物 |
+| certifi / tqdm | certifi 的 6 个 Python / PEM 文件、tqdm 的 31 个 Python 文件与 wheel 逐字节相同 | 仍需明确证书生成材料、覆盖源码提供方式与获取告知，不因一个 sdist 就宣称全部交付义务关闭 |
+| fastmcp-slim 3.4.11 | 同版 sdist 与 wheel 均没有许可文件；前轮已取得精确上游 LICENSE 与 slim 身份配置 | 需在实际交付中补入对应告知，单独下载 sdist 没有修复发行物缺失 |
+| tokenizers / Rust 来源 | tokenizers 源码含 LICENSE；cryptography、fastuuid、hf-xet、jiter、LiteLLM、pydantic-core、rpds-py、tokenizers、watchfiles 共取得九份 Cargo 锁 | 锁包含构建、可选及间接依赖，不直接等于已链接清单；未递归下载新增 crates 或扩张本轮清单 |
+| regex 2026.9.29 | sdist 仍沿用 CNRI Python 1.6 来源文字 | 与已取得的 CPython 历史正文 1.6.1 差异仍未消除，不静默替换 |
+| pip / Go / CPython / OS | 已取得固定版本源码、配方补丁或 Debian 修订包及其选定告知，来源摘要复核通过 | 最终镜像内告知、实际编译组件与覆盖源码交付仍须核对；CPython 独立签名材料未验证，Docker CLI 继续按实际交付范围决定 |
+
+本窗口完成来源信任核验和列明源码获取，许可退出条件仍未关闭。下一步根据上述具体缺口整理实际原生构建组件与最终告知 / 覆盖源码交付范围，优先处理 cryptography 的 OpenSSL 4.0.3、regex 历史条款及 fastmcp-slim 告知补入；新增来源下载、依赖调整、镜像重建和发布均不随本轮自动获准。正式 HTTP、Web、团队与真实模型的原有停止线保持。
+
+本轮验证：191 项候选完整字节的大小及 SHA-256 / SHA-512 再次复算；61 组来源链、五份签名及篡改拒绝、10 个容器配置 / 清理记录复核通过；1401 个本地证据文件的索引摘要与全部提交分片、前轮记录引用一致。使用既有仓库隔离 `GOCACHE`，以 `GOPROXY=off GOTOOLCHAIN=local ./scripts/check-repo.sh` 完成全量门禁（退出码 0，日志 `tmp/development-license-audit-20261031/check-repo-archives-full.log`）；收尾文本、篇幅、中文规范、Markdown 链接和 `git diff --check` 通过，仅保留既有篇幅提示。提交只含审计记录、来源 / 组件映射与文档，不推送。

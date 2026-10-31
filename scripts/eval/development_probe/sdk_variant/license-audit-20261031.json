@@ -58,7 +58,7 @@
     "image-evidence/final-cleanup.json": "61105d18b7041fc546e0adf0febd6d4b825a63d756a48c8514cf738f3b00280f"
   },
   "download_plan": {
-    "status": "first_stage_completed_source_archives_not_authorized",
+    "status": "second_stage_completed_license_conditions_open",
     "first_stage": "only exact provenance metadata, release manifests, build recipes, LICENSE and NOTICE; no dependency resolution/install/build",
     "first_stage_max_total_bytes": 134217728,
     "first_stage_max_file_bytes": 16777216,
@@ -73,13 +73,15 @@
     "verification": "Pin metadata bytes and provenance; verify trusted release signatures where provided and archive hashes from authenticated metadata; absent or conflicting identity stops that item",
     "second_stage": "prepare exact source archive URLs, hashes, sizes and build/patch inputs from stage1 evidence; obtain separate bounded download approval",
     "remaining_unknowns": [
-      "Debian trusted signature chain; Alpine external source sizes and complete build input mapping",
-      "native wheel static dependency and build revision closure",
-      "final LICENSE/NOTICE and covered-source delivery mapping",
-      "actual image mapping for Go cmd/vendor and CPython source-release SBOM",
-      "regex CNRI 1.6 versus 1.6.1 provenance"
+      "native wheel selected/static components and build provenance; cryptography embeds OpenSSL 4.0.3, not the acquired 3.5.7 sources",
+      "final LICENSE/NOTICE assembly and covered-source delivery/access notices",
+      "certifi certificate-generation inputs; actual SDK/Go image notice validation",
+      "regex CNRI 1.6 versus 1.6.1 provenance; fastmcp-slim notice absent from both wheel and sdist",
+      "CPython independent signature verification and conditional Docker CLI delivery scope"
     ],
     "first_stage_record": "license-sources-20261031.json",
-    "first_stage_record_sha256": "5762dcffe4f1cb5985915d1b737f0e8cf149c10da28746db2b58ebf4f13fef89"
+    "first_stage_record_sha256": "5762dcffe4f1cb5985915d1b737f0e8cf149c10da28746db2b58ebf4f13fef89",
+    "second_stage_record": "license-archives-20261031.json",
+    "second_stage_record_sha256": "faa8bc6c6f010de19433fe43fcd69b94788e8fb23eb37e31544dac7f97b39f35"
   }
 }

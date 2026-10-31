@@ -1,0 +1,115 @@
+{
+  "status": "five_Release_signatures_verified",
+  "keyring_sha256": "506b815cbb32d9b6066b4a2aa524071e071761e7e7f68c3ac74f3061ba852017",
+  "verifier": "sqv 1.3.0-3+b2; sequoia-openpgp 2.0.0; Nettle 3.10",
+  "trust_basis": "Existing pinned SDK image inherited Debian archive keyring; no newly downloaded key is treated as trusted",
+  "historical_boundary": "Expired Valid-Until on the October 22 snapshot is retained for historical provenance only; not accepted as fresh package installation metadata. No cryptographic policy weakening was used.",
+  "releases": [
+    {
+      "root": "https://deb.debian.org/debian/dists/trixie/",
+      "status": "signature_verified",
+      "verifier_record": "radishmind-license-verify-stage2-9823d6863c.json",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "signature_sha256": "9f80d5c8e4f9fd918a8b4fedd35c00ecc6c1a3ca9eddbc981c83823d4a4b8dc4",
+      "codename": "trixie",
+      "date": "Sat, 12 Sep 2026 07:55:41 UTC",
+      "valid_until": null,
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "sources_bytes": 10540436,
+      "sources_url": "https://deb.debian.org/debian/dists/trixie/main/source/Sources.xz",
+      "checked_at": "2026-10-31T11:57:44.967060+00:00",
+      "expired_at_audit_time": false,
+      "scope": "current_archive_metadata",
+      "signer_fingerprints": [
+        "04B54C3CDCA79751B16BC6B5225629DF75B188BD",
+        "41587F7DB8C774BCCF131416762F67A0B2C39DE4",
+        "B8B80B5B623EAB6AD8775C45B7C5D7D6350947F8"
+      ],
+      "verifier_record_sha256": "b7735427fc129bc69e1bc4cc491092681a2fbcff003b3f728bfc6d6e4a0ba3dd"
+    },
+    {
+      "root": "https://deb.debian.org/debian/dists/trixie-updates/",
+      "status": "signature_verified",
+      "verifier_record": "radishmind-license-verify-stage2-98fabd0f2c.json",
+      "release_sha256": "933a388408b2bbb7c94fdbe313edb85317edbe5735b6551cd90ca17769cf9ebe",
+      "signature_sha256": "812898be57162266aff261cca53a7d44d007bbcd656a744db6c3dfbabc1f7821",
+      "codename": "trixie-updates",
+      "date": "Sat, 31 Oct 2026 08:08:42 UTC",
+      "valid_until": "Sat, 07 Nov 2026 08:08:42 UTC",
+      "sources_sha256": "79552ccddf12a94348fe953e53a8584881b00a2c3eb984c871ae26783d67e391",
+      "sources_bytes": 1396,
+      "sources_url": "https://deb.debian.org/debian/dists/trixie-updates/main/source/Sources.xz",
+      "checked_at": "2026-10-31T11:57:44.967060+00:00",
+      "expired_at_audit_time": false,
+      "scope": "current_archive_metadata",
+      "signer_fingerprints": [
+        "04B54C3CDCA79751B16BC6B5225629DF75B188BD",
+        "B8B80B5B623EAB6AD8775C45B7C5D7D6350947F8"
+      ],
+      "verifier_record_sha256": "aa95596fd4146cea92028132ade2e86ebe64e8abc11902761597fc1cc3f6029a"
+    },
+    {
+      "root": "https://security.debian.org/debian-security/dists/trixie-security/",
+      "status": "signature_verified",
+      "verifier_record": "radishmind-license-verify-stage2-753f353aaf.json",
+      "release_sha256": "89ebc1a5a52a4aee416901bd48c6bb13b098dda9d612ddd44a6d3ab32486c47d",
+      "signature_sha256": "5318a825254d3fbbc715595e569c566689a628cf28936d31485833509399ec61",
+      "codename": "trixie-security",
+      "date": "Sat, 31 Oct 2026 02:05:53 UTC",
+      "valid_until": "Sat, 07 Nov 2026 02:05:53 UTC",
+      "sources_sha256": "12a2fb304b9b81204aae15628bbc8797df71446e0e2a5b4d0778e2e8f135d746",
+      "sources_bytes": 247336,
+      "sources_url": "https://security.debian.org/debian-security/dists/trixie-security/main/source/Sources.xz",
+      "checked_at": "2026-10-31T11:57:44.967060+00:00",
+      "expired_at_audit_time": false,
+      "scope": "current_archive_metadata",
+      "signer_fingerprints": [
+        "05AB90340C0C5E797F44A8C8254CF3B5AEC0A8F0",
+        "5E04A1E3223A19A20706E20F9904613D4CCE68C6"
+      ],
+      "verifier_record_sha256": "fa68eba64497efd67df72a3fa718e7ed49a6664968c2e0a3faf0ea3693fb3cbc"
+    },
+    {
+      "root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-updates/",
+      "status": "signature_verified",
+      "verifier_record": "radishmind-license-verify-stage2-3ff55a4ae5.json",
+      "release_sha256": "e39c820f3b0f0f9f9451962b6ebd794a05ad6813da83080a438a740168fba0b4",
+      "signature_sha256": "981ee4767dc84ca654bcb63a38ce31909b92e6f153100f23003056a2064fbd53",
+      "codename": "trixie-updates",
+      "date": "Thu, 22 Oct 2026 20:16:13 UTC",
+      "valid_until": "Thu, 29 Oct 2026 20:16:13 UTC",
+      "sources_sha256": "609ef76c016b842058c8a19e3ca667ace1c955b88cf40feeec5b4c2ab3f33a2b",
+      "sources_bytes": 820,
+      "sources_url": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-updates/main/source/Sources.xz",
+      "checked_at": "2026-10-31T11:57:44.967060+00:00",
+      "expired_at_audit_time": true,
+      "scope": "historical_source_provenance_only",
+      "signer_fingerprints": [
+        "04B54C3CDCA79751B16BC6B5225629DF75B188BD",
+        "B8B80B5B623EAB6AD8775C45B7C5D7D6350947F8"
+      ],
+      "verifier_record_sha256": "d2354fab6b97861ad12fc5f4658a23cf1645b15707e4f7650982dd58db87b18e"
+    },
+    {
+      "root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+      "status": "signature_verified",
+      "verifier_record": "radishmind-license-verify-stage2-c424f56c5b.json",
+      "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+      "signature_sha256": "2ff53643b360df0cf73cf7c4e89879d4ed5bb61de9da83889ebacef9fe9bb89d",
+      "codename": "trixie-proposed-updates",
+      "date": "Thu, 22 Oct 2026 20:16:13 UTC",
+      "valid_until": "Thu, 29 Oct 2026 20:16:13 UTC",
+      "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+      "sources_bytes": 148204,
+      "sources_url": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/main/source/Sources.xz",
+      "checked_at": "2026-10-31T11:57:44.967060+00:00",
+      "expired_at_audit_time": true,
+      "scope": "historical_source_provenance_only",
+      "signer_fingerprints": [
+        "04B54C3CDCA79751B16BC6B5225629DF75B188BD",
+        "B8B80B5B623EAB6AD8775C45B7C5D7D6350947F8"
+      ],
+      "verifier_record_sha256": "9d776223afaf579967fd443a742f61e819e5806ef20eb5266a6f7e05b3328487"
+    }
+  ]
+}

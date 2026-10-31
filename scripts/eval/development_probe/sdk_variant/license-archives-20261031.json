@@ -1,0 +1,124 @@
+{
+  "schema_version": "development_license_archive_evidence.v1",
+  "baseline_commit": "b5f1b70e687a8d26b7991a9ed715c5fea0d4970e",
+  "status": "approved_source_window_completed_license_conditions_open",
+  "authorization": {
+    "plan_path": "/Users/luobo/Code/RadishMind/tmp/development-license-audit-20261031/downloads-stage2/plan.json",
+    "plan_sha256": "e8b93d63b0bec3bee611e10207c16a81472d19a7a9eb4271e1d18f238d273396",
+    "user_approved": true,
+    "network_total_limit_bytes": 805306368,
+    "metadata_limit_bytes": 134217728,
+    "source_limit_bytes": 671088640,
+    "source_file_limit_bytes": 134217728,
+    "disk_limit_bytes": 2147483648
+  },
+  "evidence_root": "/Users/luobo/Code/RadishMind/tmp/development-license-audit-20261031/downloads-stage2",
+  "acquisition": {
+    "logical_download_attempts": 225,
+    "successful_attempts": 219,
+    "metadata_charged_bytes": 12886126,
+    "source_charged_bytes": 474431602,
+    "total_charged_bytes": 487317728,
+    "enumerated_source_files": 191,
+    "directly_downloaded_source_files": 190,
+    "verified_shared_content_files": 1,
+    "candidate_bytes_including_shared_content": 527307769,
+    "maximum_source_file_bytes": 94299633,
+    "stage2_disk_bytes_at_recording": 494393955,
+    "failures": [
+      {
+        "label": "Alpine size busybox busybox-1.37.0.tar.bz2",
+        "url": "https://busybox.net/downloads/busybox-1.37.0.tar.bz2",
+        "charged_bytes": 391,
+        "error": "curl 63: curl: (63) Maximum file size exceeded"
+      },
+      {
+        "label": "Alpine size openssl openssl-3.5.7.tar.gz",
+        "url": "https://github.com/openssl/openssl/releases/download/openssl-3.5.7/openssl-3.5.7.tar.gz",
+        "charged_bytes": 6426,
+        "error": "curl 56: curl: (56) Maximum file size exceeded"
+      },
+      {
+        "label": "Alpine size pax-utils pax-utils-1.3.8.tar.xz",
+        "url": "https://dev.gentoo.org/~sam/distfiles/app-misc/pax-utils/pax-utils-1.3.8.tar.xz",
+        "charged_bytes": 264,
+        "error": "curl 63: curl: (63) Maximum file size exceeded"
+      },
+      {
+        "label": "Alpine size zlib zlib-1.3.2.tar.gz",
+        "url": "https://zlib.net/fossils/zlib-1.3.2.tar.gz",
+        "charged_bytes": 402,
+        "error": "curl 63: curl: (63) Maximum file size exceeded"
+      },
+      {
+        "label": "Alpine size musl musl-1.2.5.tar.gz",
+        "url": "https://musl.libc.org/releases/musl-1.2.5.tar.gz",
+        "charged_bytes": 462,
+        "error": "curl 56: curl: (56) Maximum file size exceeded"
+      },
+      {
+        "label": "debian openssl 3.5.7-1~deb13u3 openssl_3.5.7.orig.tar.gz",
+        "url": "https://snapshot.debian.org/file/53d331880fbde8e6fe25870d5325a61201f6264d",
+        "charged_bytes": 277696,
+        "error": "curl 28: curl: (28) Operation timed out after 59005 milliseconds with 277696 out of 53153930 bytes received"
+      }
+    ]
+  },
+  "verification": {
+    "debian_source_groups_authenticated": 61,
+    "release_signatures_verified": 5,
+    "alpine_external_sources_size_and_sha512_verified": 9,
+    "all_source_hashes_recomputed": true,
+    "source_items_verified": 191,
+    "archives_scanned": 167,
+    "selected_member_occurrences": 1038,
+    "notice_member_occurrences": 368,
+    "selected_unique_bytes": 4447134,
+    "inspection_failures": 0,
+    "certifi_source_files_identical": 6,
+    "tqdm_source_files_identical": 31,
+    "cargo_lock_files_in_29_roots": 9,
+    "lupa_interpreter_versions_crosschecked": 6
+  },
+  "cleanup": {
+    "created_containers": 10,
+    "remaining_containers": [],
+    "all_runtime_constraints_verified": true,
+    "all_removed_by_exact_id": true,
+    "negative_signature_case_rejected": true
+  },
+  "parts": {
+    "sources-01.json": "de202e9de58d2e9647ae0baa4be194754242025d152d9da268b7d6ea7ccb2eb2",
+    "sources-02.json": "75e16cd0074c4cf635281787c4269bf865056fae7a3872d99e274cb89d8431d3",
+    "sources-03.json": "96cb2520300215e8f7de53c606226c1c73876a5479f677e700b1ba824df0c12f",
+    "sources-04.json": "cdd633004f72aae94a3af599ffeb53b0a9b5a472700a22d4ba6c99b681882157",
+    "sources-05.json": "b2e0ece25084066da873b43c1253cd103385b752e1c57d42ca68ddd5db2d9112",
+    "sources-06.json": "16ffbc647975aac4e2c2748837790a556ed3935ac013b7104c51dd2ce9143aa3",
+    "sources-07.json": "939b03c0d047e77266fc1c8ec368eca55fc84d14b210de3e34510bd247ff916b",
+    "sources-08.json": "4e22608f1416ffadd941653ecb27373018ae802b9713dc5f55057219abab8ac3",
+    "debian-auth-01.json": "e3d7617a7bcbe8009f07483b42e16eedc09356f8fa8d24e02dba448c703565b5",
+    "debian-auth-02.json": "e88d737a8bd5582812a9220ea88d4c085e84bf1497e4f5a17b536f5f57506182",
+    "debian-auth-03.json": "53503430f93e2f1e1944ab8cf92d66579beaeff4cad86d0ce47ffa9308977fd6",
+    "archive-trust.json": "e983701d84c14dce22fef90cbf3244e2aefdd4aa4ce30e61a314c1718119e00a",
+    "python-mapping-01.json": "d6b71f45304bb84dfe74711d3dffef85e28143eaf77614ad8404860af6e37e3f",
+    "python-mapping-02.json": "d80d66dfef81051faff19835d2962121ba355208a7e42aa4d5f036f91bf4dedc",
+    "python-mapping-03.json": "cb35446ae1d66a106f5cfdd3b9e7729b50bcb0821232b2a2143abb627143654d",
+    "covered-source.json": "71daff0bb2a2aaf4aace6a6d3b54144dc4bebbb94314b8c6d78c21ec6461cb02",
+    "priority-gaps.json": "7960185e7926e5c5d6e2432e79bf3f1cc9388d4476db2076fee5c49c43a656ea"
+  },
+  "local_evidence_index": {
+    "path": "evidence-files.json",
+    "sha256": "a0ac4c80bee8002319eb2a21d8be11eeebca69c83ef2d85741217c86394d35c0",
+    "files": 1401
+  },
+  "remaining_next_step": "Review actual native build components and final delivery boundaries, especially cryptography OpenSSL 4.0.3; compose final notices/covered-source delivery only in an explicitly confirmed scope. Do not automatically download new transitive sources or rebuild images.",
+  "boundary": {
+    "source_or_build_scripts_executed": false,
+    "dependency_installation": false,
+    "image_pull_or_rebuild": false,
+    "runtime_or_lock_changes": false,
+    "real_model_calls": false,
+    "license_gate_closed": false,
+    "network_and_container_window_closed": true
+  }
+}

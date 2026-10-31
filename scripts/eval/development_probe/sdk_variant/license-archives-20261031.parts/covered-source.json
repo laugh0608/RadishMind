@@ -1,0 +1,284 @@
+{
+  "status": "shipped_source_byte_comparison_complete_delivery_choice_open",
+  "items": [
+    {
+      "name": "certifi",
+      "version": "2026.10.23",
+      "wheel_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "archive_sha256": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd",
+      "files": [
+        {
+          "path": "certifi/__init__.py",
+          "bytes": 94,
+          "wheel_sha256": "6c069810be5831ee48e99eb0fbd79c06b51803771f48d7ccd28f9c0c32270e86",
+          "source_sha256": "6c069810be5831ee48e99eb0fbd79c06b51803771f48d7ccd28f9c0c32270e86",
+          "identical": true
+        },
+        {
+          "path": "certifi/__main__.py",
+          "bytes": 243,
+          "wheel_sha256": "c410688fdd394d45812d118034e71fee88ba7beddd30fe1c1281bd3b232cd758",
+          "source_sha256": "c410688fdd394d45812d118034e71fee88ba7beddd30fe1c1281bd3b232cd758",
+          "identical": true
+        },
+        {
+          "path": "certifi/cacert.pem",
+          "bytes": 235863,
+          "wheel_sha256": "2ef52ad56b4803e264045c915e55c236cbfa045b84b81efefc218a19eb44bd2b",
+          "source_sha256": "2ef52ad56b4803e264045c915e55c236cbfa045b84b81efefc218a19eb44bd2b",
+          "identical": true
+        },
+        {
+          "path": "certifi/core.py",
+          "bytes": 3394,
+          "wheel_sha256": "5c55f2727746e697f7edac9e17c377d8752e0da7ecca191531b3b80403d61dad",
+          "source_sha256": "5c55f2727746e697f7edac9e17c377d8752e0da7ecca191531b3b80403d61dad",
+          "identical": true
+        },
+        {
+          "path": "certifi/tests/__init__.py",
+          "bytes": 0,
+          "wheel_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "identical": true
+        },
+        {
+          "path": "certifi/tests/test_certify.py",
+          "bytes": 467,
+          "wheel_sha256": "7c179d1edf37f7e912b133663735fb46c6338d5d0e5f8915d11c3bc287d227b8",
+          "source_sha256": "7c179d1edf37f7e912b133663735fb46c6338d5d0e5f8915d11c3bc287d227b8",
+          "identical": true
+        }
+      ],
+      "all_identical": true,
+      "boundary": "Compares shipped Python source and certifi PEM bytes only; does not establish certificate generator inputs or the final covered-source delivery mechanism"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "wheel_sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "archive_sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+      "files": [
+        {
+          "path": "tqdm/__init__.py",
+          "bytes": 1572,
+          "wheel_sha256": "f6640d6124aa3fdf496acb9b102d4f3892cc9a1924047e9c259c4f211e46da94",
+          "source_sha256": "f6640d6124aa3fdf496acb9b102d4f3892cc9a1924047e9c259c4f211e46da94",
+          "identical": true
+        },
+        {
+          "path": "tqdm/__main__.py",
+          "bytes": 30,
+          "wheel_sha256": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+          "source_sha256": "6d8b7d7846a845059d7a3107143f11131f63c5511d669b44085b15ec5e3d2279",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_main.py",
+          "bytes": 283,
+          "wheel_sha256": "f724af8268bfd92c38080a395035b44367717d3af26e8116187a217c2273d2c0",
+          "source_sha256": "f724af8268bfd92c38080a395035b44367717d3af26e8116187a217c2273d2c0",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_monitor.py",
+          "bytes": 4013,
+          "wheel_sha256": "d5571abeea2d61237a2bed636e936ecba1d8b6bde6c28e4d87f8d9310fa38370",
+          "source_sha256": "d5571abeea2d61237a2bed636e936ecba1d8b6bde6c28e4d87f8d9310fa38370",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_tqdm.py",
+          "bytes": 283,
+          "wheel_sha256": "2df2c2b89e9ba6c568f718a59ad057c849b5bc69d4085ae5896f398f727e9c3e",
+          "source_sha256": "2df2c2b89e9ba6c568f718a59ad057c849b5bc69d4085ae5896f398f727e9c3e",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_tqdm_gui.py",
+          "bytes": 287,
+          "wheel_sha256": "d371dcf0a6b2c49bde89e239fb4fb6346883a4bbf0f6365e9287c9515ec20b09",
+          "source_sha256": "d371dcf0a6b2c49bde89e239fb4fb6346883a4bbf0f6365e9287c9515ec20b09",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_tqdm_notebook.py",
+          "bytes": 307,
+          "wheel_sha256": "06e1e22eec6eeae11f64568f256dd13e93dac5a55cb44400de47522520cbd61c",
+          "source_sha256": "06e1e22eec6eeae11f64568f256dd13e93dac5a55cb44400de47522520cbd61c",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_tqdm_pandas.py",
+          "bytes": 888,
+          "wheel_sha256": "73d8e9b5482280de9ac510e145de1189ff7c4e6c5ea297359c5345848a5b1541",
+          "source_sha256": "73d8e9b5482280de9ac510e145de1189ff7c4e6c5ea297359c5345848a5b1541",
+          "identical": true
+        },
+        {
+          "path": "tqdm/_utils.py",
+          "bytes": 559,
+          "wheel_sha256": "09f2f3b71158f9046235fc500aa01bd8df04d77b9ab8833de5149088595a12e1",
+          "source_sha256": "09f2f3b71158f9046235fc500aa01bd8df04d77b9ab8833de5149088595a12e1",
+          "identical": true
+        },
+        {
+          "path": "tqdm/asyncio.py",
+          "bytes": 3196,
+          "wheel_sha256": "229706a3a645c1ce8a287623e6cee1e246918a881c69b27a3dca878fa8ddcb42",
+          "source_sha256": "229706a3a645c1ce8a287623e6cee1e246918a881c69b27a3dca878fa8ddcb42",
+          "identical": true
+        },
+        {
+          "path": "tqdm/auto.py",
+          "bytes": 871,
+          "wheel_sha256": "9c365f963ea9db32a48c108d068babae14bcd7361f672d7f750bdb724add5bca",
+          "source_sha256": "9c365f963ea9db32a48c108d068babae14bcd7361f672d7f750bdb724add5bca",
+          "identical": true
+        },
+        {
+          "path": "tqdm/autonotebook.py",
+          "bytes": 1440,
+          "wheel_sha256": "da9360182243b1eb0d372627992bdef013502e2192828f7b4ac3e83170ab3514",
+          "source_sha256": "da9360182243b1eb0d372627992bdef013502e2192828f7b4ac3e83170ab3514",
+          "identical": true
+        },
+        {
+          "path": "tqdm/cli.py",
+          "bytes": 11011,
+          "wheel_sha256": "b758ff3ea2344ae3328491a807130f09763e5136df8dc89a010631014fdffd5d",
+          "source_sha256": "b758ff3ea2344ae3328491a807130f09763e5136df8dc89a010631014fdffd5d",
+          "identical": true
+        },
+        {
+          "path": "tqdm/dask.py",
+          "bytes": 1319,
+          "wheel_sha256": "f448b9f1e56a4e8b2c44b8407d6c9414276e5d82a398b9b091a5c8cbe08761fb",
+          "source_sha256": "f448b9f1e56a4e8b2c44b8407d6c9414276e5d82a398b9b091a5c8cbe08761fb",
+          "identical": true
+        },
+        {
+          "path": "tqdm/gui.py",
+          "bytes": 5481,
+          "wheel_sha256": "99a43b8e007995e587c313256c1bf4f21a5ee65cadbe61f4844011bb6d8645d5",
+          "source_sha256": "99a43b8e007995e587c313256c1bf4f21a5ee65cadbe61f4844011bb6d8645d5",
+          "identical": true
+        },
+        {
+          "path": "tqdm/keras.py",
+          "bytes": 4396,
+          "wheel_sha256": "ba077cd3ec42c4caa7adbc7f0c43a99a3e9cd92875c6856d43c57df9bc36f5ea",
+          "source_sha256": "ba077cd3ec42c4caa7adbc7f0c43a99a3e9cd92875c6856d43c57df9bc36f5ea",
+          "identical": true
+        },
+        {
+          "path": "tqdm/notebook.py",
+          "bytes": 10888,
+          "wheel_sha256": "eb19144dc611b05c4de3f052518619e75900808ef27274f41cba4ff47ba412a8",
+          "source_sha256": "eb19144dc611b05c4de3f052518619e75900808ef27274f41cba4ff47ba412a8",
+          "identical": true
+        },
+        {
+          "path": "tqdm/rich.py",
+          "bytes": 5255,
+          "wheel_sha256": "274e32abacb652bf74d76cc2ecf91ccc0d6dedc0e37adf3c866064ac0bfeb36b",
+          "source_sha256": "274e32abacb652bf74d76cc2ecf91ccc0d6dedc0e37adf3c866064ac0bfeb36b",
+          "identical": true
+        },
+        {
+          "path": "tqdm/std.py",
+          "bytes": 58047,
+          "wheel_sha256": "dd76d965de52c590819dec376644220cb35dc4831e40efb4c30944884fc57d86",
+          "source_sha256": "dd76d965de52c590819dec376644220cb35dc4831e40efb4c30944884fc57d86",
+          "identical": true
+        },
+        {
+          "path": "tqdm/tk.py",
+          "bytes": 6702,
+          "wheel_sha256": "dd5b01d4c0c090222d696bbb0a631bd82a132cc8aa98388480d8b7ca2a90e466",
+          "source_sha256": "dd5b01d4c0c090222d696bbb0a631bd82a132cc8aa98388480d8b7ca2a90e466",
+          "identical": true
+        },
+        {
+          "path": "tqdm/utils.py",
+          "bytes": 9746,
+          "wheel_sha256": "a3f7f4577d87ff0ae7d179919e8de3f6927dc65a79c4bd1f1d3de0b6a2fe939f",
+          "source_sha256": "a3f7f4577d87ff0ae7d179919e8de3f6927dc65a79c4bd1f1d3de0b6a2fe939f",
+          "identical": true
+        },
+        {
+          "path": "tqdm/version.py",
+          "bytes": 233,
+          "wheel_sha256": "d2e1f84cb7bc23c1fbd71dbd7659ad11904e6cb4f76f9216fa7cad177574215c",
+          "source_sha256": "d2e1f84cb7bc23c1fbd71dbd7659ad11904e6cb4f76f9216fa7cad177574215c",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/__init__.py",
+          "bytes": 2479,
+          "wheel_sha256": "d46318604f3ae960af94783931d9b33af3ec423e19b8c957cf3f317117090fad",
+          "source_sha256": "d46318604f3ae960af94783931d9b33af3ec423e19b8c957cf3f317117090fad",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/bells.py",
+          "bytes": 921,
+          "wheel_sha256": "21ac42d985b9ef11c38a7c5d503407bd27a0a341d24dd0d313141010dbd207f9",
+          "source_sha256": "21ac42d985b9ef11c38a7c5d503407bd27a0a341d24dd0d313141010dbd207f9",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/concurrent.py",
+          "bytes": 9873,
+          "wheel_sha256": "0a9c6bc1c29a4111fb9f04cf1b799562e95e1acfeed0c3615b8853b9a6e9618b",
+          "source_sha256": "0a9c6bc1c29a4111fb9f04cf1b799562e95e1acfeed0c3615b8853b9a6e9618b",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/discord.py",
+          "bytes": 5337,
+          "wheel_sha256": "2cf8f10db99f898b70dce026fd686dc1b5fd05560394f73c949f7a698dd86431",
+          "source_sha256": "2cf8f10db99f898b70dce026fd686dc1b5fd05560394f73c949f7a698dd86431",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/itertools.py",
+          "bytes": 2949,
+          "wheel_sha256": "300f7e26f6f74e8b1ea69227bdebf6885e1ba2437b190cb84382e08d4c98740e",
+          "source_sha256": "300f7e26f6f74e8b1ea69227bdebf6885e1ba2437b190cb84382e08d4c98740e",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/logging.py",
+          "bytes": 3902,
+          "wheel_sha256": "d27167d82eea51488a3c1d7da931ae4bd2df8daf1a8855b4bbd9326d1746d215",
+          "source_sha256": "d27167d82eea51488a3c1d7da931ae4bd2df8daf1a8855b4bbd9326d1746d215",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/slack.py",
+          "bytes": 4049,
+          "wheel_sha256": "b02d7cdafef10647c67ed9c379499000b30e7f043353766235fd50fd70350e32",
+          "source_sha256": "b02d7cdafef10647c67ed9c379499000b30e7f043353766235fd50fd70350e32",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/telegram.py",
+          "bytes": 5081,
+          "wheel_sha256": "c9b4eb6868d4431e66e38dd3b17ea927b531ae9b21d66e1ae3705359597fe1ee",
+          "source_sha256": "c9b4eb6868d4431e66e38dd3b17ea927b531ae9b21d66e1ae3705359597fe1ee",
+          "identical": true
+        },
+        {
+          "path": "tqdm/contrib/utils_worker.py",
+          "bytes": 1199,
+          "wheel_sha256": "bdac722726a06303824172d431df3a6c26c8e2c3ea672b2e3066c34869af116a",
+          "source_sha256": "bdac722726a06303824172d431df3a6c26c8e2c3ea672b2e3066c34869af116a",
+          "identical": true
+        }
+      ],
+      "all_identical": true,
+      "boundary": "Compares shipped Python source and certifi PEM bytes only; does not establish certificate generator inputs or the final covered-source delivery mechanism"
+    }
+  ]
+}
