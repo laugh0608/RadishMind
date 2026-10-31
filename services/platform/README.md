@@ -151,3 +151,5 @@ wrapper 默认使用 `local-product` 档；显式组件配置、PostgreSQL 专�
 - production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 未满足时保持失败关闭。
 - 不把 readiness 文档、fixture 或静态检查结果解释为运行能力；不从失败路径回退 `memory_dev` 或 fake store。
 - 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志和 committed 资产。
+
+受控开发包由独立 `internal/developmentartifact` 负责，入口见[模块说明](internal/developmentartifact/README.md)。固定探针合同、显式摘要确认、SQLite 配额 / 幂等 / 精确重读及受控 JSON 导出已定向验证；共享迁移新增 `development_artifacts`，只在停服备份后显式升级，不操作既有运行库。没有新增公开路由、服务或内置角色授权，联合任务验收另行安排。

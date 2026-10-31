@@ -11,19 +11,24 @@ import (
 	"reflect"
 	"slices"
 	"sync"
+	"time"
 
+	artifact "radishmind.local/services/platform/internal/developmentartifact"
 	control "radishmind.local/services/platform/internal/developmentcontrol"
 	probe "radishmind.local/services/platform/internal/developmentprobe"
 )
 
 type Session struct {
-	config    Config
-	ledger    ledger
-	mu        sync.Mutex // state/cancel; independent from tool IO and container cleanup
-	operation chan struct{}
-	cancel    context.CancelFunc
-	closing   bool
-	used      map[string]bool
+	artifactTests      []artifact.Test
+	artifactSnapshotAt time.Time
+	artifactCreatedAt  time.Time
+	config             Config
+	ledger             ledger
+	mu                 sync.Mutex // state/cancel; independent from tool IO and container cleanup
+	operation          chan struct{}
+	cancel             context.CancelFunc
+	closing            bool
+	used               map[string]bool
 }
 
 func New(config Config) (*Session, error) {
@@ -81,7 +86,7 @@ func New(config Config) (*Session, error) {
 	if _, err = rand.Read(nonce[:]); err != nil {
 		return nil, ErrSandbox
 	}
-	s := &Session{config: config, operation: make(chan struct{}, 1), used: map[string]bool{}}
+	s := &Session{artifactCreatedAt: time.Now().UTC(), config: config, operation: make(chan struct{}, 1), used: map[string]bool{}}
 	s.ledger = ledger{"development_sandbox_resources.v1", "sandbox_" + hex.EncodeToString(nonce[:]), control.SandboxBindingFor(config.Delegation), config.Image, config.RunnerDigest, []resource{}, false}
 	// Freeze the runner in the private ledger directory; callers cannot swap it
 	// between initial digest validation and Docker's later bind mount.
@@ -90,6 +95,9 @@ func New(config Config) (*Session, error) {
 	}
 	s.config.RunnerPath = filepath.Join(config.Directory, "runner")
 	if err = s.save(); err != nil {
+		return nil, err
+	}
+	if err = s.saveArtifactRetention(); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -160,6 +168,7 @@ func (s *Session) HandleTool(ctx context.Context, call control.ToolCall) (string
 			return "", ErrSandbox
 		}
 		verification, err := s.runTests(opCtx, call.RequestID, candidate.CandidateDigest)
+		s.retainVerification(call.RequestID, candidate.CandidateDigest, verification, err)
 		if err != nil {
 			return "", err
 		}
@@ -195,7 +204,11 @@ func (s *Session) Close(ctx context.Context) (bool, error) {
 	}
 	s.ledger.Closed = true
 	if err = s.save(); err != nil {
+		s.ledger.Closed = false
 		return false, err
+	}
+	if s.artifactSnapshotAt.IsZero() {
+		s.artifactSnapshotAt = time.Now().UTC()
 	}
 	return true, nil
 }

@@ -114,9 +114,11 @@ func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
 		!localIdentityGrantSubset(reviewer.PermissionGrants, administrator.PermissionGrants) {
 		t.Fatal("built-in role grants are not cumulative")
 	}
-	allowed := PermissionNames()
+	// Stage-0 development artifact permissions are explicit grants only.
+	// Existing immutable built-in roles must not silently gain them.
+	allowed := slices.DeleteFunc(PermissionNames(), func(p string) bool { return strings.HasPrefix(p, "development_artifacts:") })
 	if !slices.Equal(administrator.PermissionGrants, allowed) {
-		t.Fatalf("workspace_admin must deliberately cover the complete allowlist:\nwant=%v\n got=%v", allowed, administrator.PermissionGrants)
+		t.Fatalf("workspace_admin must cover the shipped allowlist excluding explicit stage-0 grants:\nwant=%v\n got=%v", allowed, administrator.PermissionGrants)
 	}
 	for _, definition := range catalog.Roles {
 		wantManagement := definition.RoleKey == RoleWorkspaceAdmin

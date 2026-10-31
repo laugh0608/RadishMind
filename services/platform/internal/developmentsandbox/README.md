@@ -2,7 +2,7 @@
 
 本包是可信 Go 宿主显式启用的受限执行器，接入 `WorkerLaunch.Sandbox`，实现 `Binding / HandleTool / Close`。它只接受三文件代表任务与独立确认的控制计划，不是宿主 shell 或通用执行 API。边界、私有 schema、归属与停止语义见[沙箱合同](../../../../docs/contracts/development-code-sandbox-v1.md)。
 
-`Config.Directory` 必须是新的私有绝对路径，调用方明确来源、镜像、Docker 程序及 Linux watchdog 摘要；watchdog 复制到该目录后固定挂载，不复用可变外部程序。实际验证快照全只读，候选替换由 Go 完成。该目录保存候选、快照、日志与资源账册；清理容器不删除唯一证据，暂不提供用户保存 / 导出与自动保留期限。
+`Config.Directory` 必须是新的私有绝对路径，调用方明确来源、镜像、Docker 程序及 Linux watchdog 摘要；watchdog 复制到该目录后固定挂载，不复用可变外部程序。实际验证快照全只读，候选替换由 Go 完成。该目录保存候选、快照、日志与资源账册；清理容器不删除唯一证据，创建时固定 24 小时临时保留期限；关闭后通过 `NewDeliverySource` 提供可信开发包来源，`RemoveExpiredArtifacts` 显式清理到期自有材料。保存 / 导出由[开发产物模块](../developmentartifact/README.md)负责，没有后台清理或公开下载入口。
 
 常规验证不安装依赖、启动 Docker 或运行 SDK：
 

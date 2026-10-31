@@ -483,3 +483,5 @@ Production secret backend audit store storage adapter 相关 checker 需要同�
 - 内部 helper、共享实现和大型 fixture 不应继续堆在根目录
 - 目录层级保持浅，优先两层；非必要不要继续嵌套更深
 - 训练 / 蒸馏相关脚本应优先输出 summary 与 manifest；大规模 JSONL、权重、checkpoint 和本地 provider dump 默认放在 `tmp/` 或外部工作区，不提交到仓库
+
+开发产物 canonical fixture 位于 `scripts/eval/fixtures/development-control/artifact.json`，由既有平台 Python 聚合和 Go 定向测试共同校验；保存 / 导出合同见[专题](../docs/contracts/development-artifact-v1.md)。该样例只含合成材料，不代表真实 SDK 或代码沙箱联合验收。

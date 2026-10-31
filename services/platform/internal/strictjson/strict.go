@@ -25,7 +25,12 @@ func ObjectFields(data []byte, names ...string) (map[string]json.RawMessage, err
 // Decode rejects duplicate keys, nulls, unknown fields and trailing values.
 // All consumers use concrete values, so null is never an implicit default.
 func Decode(data []byte, result any) error {
-	if len(data) > 262144 || !utf8.Valid(data) {
+	return DecodeBounded(data, result, 262144)
+}
+
+// DecodeBounded preserves strict token checks with an explicit owner byte limit.
+func DecodeBounded(data []byte, result any, limit int) error {
+	if limit < 1 || len(data) > limit || !utf8.Valid(data) {
 		return errors.New("contract JSON exceeds size limit or is not UTF-8")
 	}
 	tokens := json.NewDecoder(bytes.NewReader(data))

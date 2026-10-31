@@ -92,7 +92,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 拟采用可信执行控制层与独立代码容器分离：SDK 经受限 Gateway 通道访问模型，经授权工具入口操作隔离副本；代码进程不继承平台 / 提供方密钥，不挂载平台数据库、用户原工作树或 Docker socket。工作台容器验收不替代这一新增边界，具体方案见[隔离执行子专题](features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。
 
-拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包 / 日志保存、事件正文、权限与 canonical 合同须单独设计，不能直接塞入旧 Session 或文本结果字段。重启默认只读回记录，不自动重放代码 / 工具命令。
+拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包已由独立 `developmentartifact` 负责，使用共享 SQLite 的独立 `development_artifacts` 组件；显式保存、不可变包、配额与精确导出遵守[产物合同](contracts/development-artifact-v1.md)，不写入旧 Session 或文本结果字段。团队事件正文仍须按后续合同处理。重启默认只读回记录，不自动重放代码 / 工具命令。
 
 现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托、状态 / 事件和长任务接口仍待阶段 0 收口。现有 API 语义、工作进程与默认运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。
 
@@ -100,7 +100,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 可选 `services/runtime/development_sdk` 通过真实 SDK Agent 接受 Go 私有 stdin / stdout 协议，唯一模型出口为专属通道，工具经可信 Go 回调；`Runtime.RunWorker` 持久声明一次执行，监督独立进程组、父存活管道和取消，SDK 事件仅是观察。原生最终响应不直接完成尝试，须同时满足 SDK 报告、正常 OS 退出、空进程组和最新资格。该路径已固定响应验证，正常平台构造不启用；
 
-可选 `internal/developmentsandbox` 已实现固定 Go 探针的私有候选读取 / 原子替换、全只读验证快照、独立代码容器和私有归属账册；容器 PID 1 watchdog 来自 `cmd/radishmind-development-sandbox`，不复用 Python SDK 或短请求池。`WorkerLaunch.Sandbox` 绑定尝试 / 执行器 / 计划 / 基准并在完成前关闭；取消 / 失败结合 SDK、代码容器和本地模型连接证据记录终止状态。固定容器已真实验收，正式联合任务、通用仓库和开发产物仍待收口，见[沙箱合同](contracts/development-code-sandbox-v1.md)。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
+可选 `internal/developmentsandbox` 已实现固定 Go 探针的私有候选读取 / 原子替换、全只读验证快照、独立代码容器和私有归属账册；容器 PID 1 watchdog 来自 `cmd/radishmind-development-sandbox`，不复用 Python SDK 或短请求池。`WorkerLaunch.Sandbox` 绑定尝试 / 执行器 / 计划 / 基准并在完成前关闭；取消 / 失败结合 SDK、代码容器和本地模型连接证据记录终止状态。固定容器已真实验收，开发产物已增加可信关闭快照与内部保存接线，正式联合任务和通用仓库仍待收口，见[沙箱合同](contracts/development-code-sandbox-v1.md)。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
 
 ## 图片产物链
 

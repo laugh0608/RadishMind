@@ -85,6 +85,13 @@ func (c *AttemptControl) emit(kind, requestID string, nowMS int64) Event {
 	return e
 }
 
+// Delegation returns the immutable identity binding without a bearer secret.
+func (c *AttemptControl) Delegation() Delegation {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.delegation
+}
+
 func (c *AttemptControl) Events() []Event {
 	c.mu.Lock()
 	defer c.mu.Unlock()

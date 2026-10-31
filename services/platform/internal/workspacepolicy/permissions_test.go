@@ -47,7 +47,7 @@ func TestPermissionValidationAndNormalization(t *testing.T) {
 
 func TestPermissionNamesAreSortedIndependentCopies(t *testing.T) {
 	names := PermissionNames()
-	if len(names) != 68 || !slices.IsSorted(names) || !ValidPermissionGrants(names) {
+	if len(names) != 71 || !slices.IsSorted(names) || !ValidPermissionGrants(names) {
 		t.Fatalf("permission directory drifted: %v", names)
 	}
 	original := slices.Clone(names)

@@ -42,3 +42,4 @@
 - Checkpoint read route smoke 覆盖关系由 `scripts/checks/fixtures/session-recovery-checkpoint-route-smoke-coverage-summary.json` 固定；修改 route 正向/负向 smoke 时，应同步更新该 summary。
 - 长示例、批次流水和运行记录继续进入 fixture、manifest、summary、run record 或 task card 附件。
 - 单个专题接近 `500` 行时，应优先继续按稳定职责拆分，而不是添加 `markdown-size-allow:`。
+- [受控开发产物保存与导出合同](development-artifact-v1.md)
