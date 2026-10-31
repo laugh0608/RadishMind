@@ -11,11 +11,11 @@ from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[4]
 FIXTURES = ROOT / "scripts/eval/fixtures/development-control"
-NAMES = ["delegation", "reservation", "receipt", "event", "tool-action", "tool-call"]
+NAMES = ["delegation", "reservation", "receipt", "event", "tool-action", "tool-call", "plan"]
 
 
 def schema_name(name):
-    return "development-" + ("attempt-" if name in NAMES[:4] else "") + name
+    return "development-" + ("attempt-" if name in NAMES[:4] or name == "plan" else "") + name
 
 
 class DevelopmentControlContractTests(unittest.TestCase):
@@ -29,7 +29,7 @@ class DevelopmentControlContractTests(unittest.TestCase):
             cls.validators[name] = Draft202012Validator(value, registry=registry)
 
     def test_positive_fixtures_and_exact_fields(self):
-        for name in ["delegation", "reservation", "receipt", "tool-action", "tool-call"]:
+        for name in ["delegation", "reservation", "receipt", "tool-action", "tool-call", "plan"]:
             data = json.loads((FIXTURES / (name + ".json")).read_text())
             validator = self.validators[name]
             validator.validate(data)
@@ -67,6 +67,29 @@ class DevelopmentControlContractTests(unittest.TestCase):
         call = json.loads((FIXTURES / "tool-call.json").read_text())
         call["arguments"]["summary"] = "SDK display metadata"
         self.assertFalse(self.validators["tool-call"].is_valid(call))
+
+    def test_durable_control_events(self):
+        base = json.loads((FIXTURES / "cancel-trace.json").read_text())[0]
+        for event_type in ["tool_offer_registered", "tool_offer_queued"]:
+            event = dict(base, type=event_type, request_id="tool_fixture")
+            self.validators["event"].validate(event)
+            self.assertFalse(self.validators["event"].is_valid(dict(event, request_id="")))
+        for event_type, phase, reason in [
+            ("attempt_interrupted", "outcome_unknown", "runtime_interrupted"),
+            ("attempt_failed", "failed", "native_response_invalid"),
+        ]:
+            event = dict(base, type=event_type, phase=phase, reason=reason, termination_status="pending")
+            self.validators["event"].validate(event)
+            self.assertFalse(self.validators["event"].is_valid(dict(event, phase="active")))
+
+    def test_plan_does_not_grant_ambient_tools(self):
+        plan = json.loads((FIXTURES / "plan.json").read_text())
+        for extra in ["command", "provider_url", "credential", "authority"]:
+            self.assertFalse(self.validators["plan"].is_valid(dict(plan, **{extra: "forbidden"})))
+        for field, value in [("read_paths", ["../main.go"]), ("read_paths", ["main.go", "main.go"]), ("verification_profile", "shell")]:
+            changed = copy.deepcopy(plan)
+            changed["tools"][field] = value
+            self.assertFalse(self.validators["plan"].is_valid(changed))
 
     def test_cancel_trace_preserves_unknown_budget_until_late_receipt(self):
         trace = json.loads((FIXTURES / "cancel-trace.json").read_text())

@@ -2,104 +2,112 @@
 
 更新时间：2026-10-31
 
-状态：首个单 Agent 开发尝试的合同与离线领域规则已物化；不是已注册 HTTP API、凭据签发服务、持久执行器或沙箱。所属功能见[主专题](../features/workflow/controlled-software-development-team-v1.md)，实施记录沿用[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
+状态：单尝试领域规则、SQLite 持久状态 / 提议 / 事件事务、当前资格读取、任务凭据与独立回环通道已实现并以固定响应验证。默认未启用；完整 SDK Agent、真实提供方原生传输、代码沙箱及进程树终止仍待实现。所属功能见[主专题](../features/workflow/controlled-software-development-team-v1.md)，实施记录见[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
 
-## 已确认的接入选择
+## 接入与默认状态
 
-采用**独立内部监听器**，不扩展公开 `/v1/chat/completions`、旧建议型 Agent Profile 或 30 秒调用边界。首版本机内部开发者模式仅监听回环地址、运行时分配端口，由 Go 可信执行控制层告知 SDK 工作进程；不写死已有验收端口，不向代码容器开放网络或凭据。本轮不创建监听器或启动服务。
+`Server.ConnectDevelopmentControl(backend)` 是可信 Go 宿主的显式接线入口，只接受共享 SQLite 与明确的 `NativeBackend`。正常平台 / 工作台构造不调用它，不新增自动启用配置。连接后也须显式调用 `StartDevelopmentChannel(ctx)`，仅监听 `127.0.0.1:0`；地址交给可信 SDK 工作进程，不写死验收端口。
 
-| 拟实施的内部入口 | 请求与职责 | 边界 |
+| 独立内部入口 | 职责 | 当前边界 |
 | --- | --- | --- |
-| `POST /internal/development/v1/attempts/{attempt_id}/chat/completions` | 受限 OpenAI Chat Completions 传输，Go 先鉴权 / 预留再请求模型 | 不转发到现有建议桥接，不允许选择任意提供方或 URL |
-| `POST /internal/development/v1/attempts/{attempt_id}/tool-calls` | `development-tool-call.schema.json`，回显 Go 已登记的工具提议 | 工具只通过可信执行控制层进入隔离代码副本 |
+| `POST /internal/development/v1/attempts/{attempt_id}/chat/completions` | 严格原生模型请求，先提交预留 / 派发记录，再调用后端 | 固定响应后端已验；实际提供方适配未接入，未配置后端则拒绝 |
+| `POST /internal/development/v1/attempts/{attempt_id}/tool-calls` | 精确回显已登记的工具提议，事务内消费并预留 | 返回 `202 queued`；不执行文件或命令，不返回伪造观察值 |
+| `GET /internal/development/v1/attempts/{attempt_id}/tool-offers/{tool_call_id}` | 读取 Go 分配的工具请求身份及摘要 | 不含工具正文 |
+| `GET /internal/development/v1/attempts/{attempt_id}/tool-catalog` | 读取本通道唯一冻结工具目录 | 不开放 SDK 默认终端、MCP 或递归委派 |
+| `GET /internal/development/v1/attempts/{attempt_id}/events` | `after_sequence` / `limit` 增量读取 | 最多 50 项，显式 `next_sequence / has_more / record_version`；读取不触发执行 |
 
-这两条路径是下一实现的内部合同名称，本轮未注册路由。没有 SDK 可任意上报权威事件、签发委托或宣布取消成功的入口。正式 Web 的启动 / 取消 / 结果资源接口及权限接线另在阶段 1 实施，不把这些内部入口公开给浏览器。
+这些路由不注册到公开 `/v1` 或主监听器，不扩大旧建议型 Agent Profile 的 30 秒边界。HTTP 同时核对回环来源与 Host、拒绝 Origin；浏览器 Session、Cookie、长期 API key 和自报身份均不能替代任务 bearer。没有 SDK 自报权威事件、签发或取消成功的入口。正式 Web 启动 / 取消 / 结果资源接口仍待阶段 1。
 
-模型传输只接受 `model / messages / max_completion_tokens / tools`，以及显式为 `false` 的 `stream / parallel_tool_calls`；未知字段拒绝，不静默忽略。`messages` 只允许文本及原生 assistant `tool_calls` / tool `tool_call_id`，不解析答案正文里的工具 JSON。模型必须精确匹配 Go 冻结引用解析出的传输模型名，输出上限不得超过模型档案与剩余预算。单次模型响应首版最多一个工具调用；多个调用整体拒绝，不偷偷取第一个。
+模型请求只接受 `model / messages / max_completion_tokens / tools` 及显式为 `false` 的 `stream / parallel_tool_calls`。未知、重复、空值、大小写别名、尾随 JSON 拒绝；总请求最多 262144 字节、消息最多 64 条、单条文本最多 65536 UTF-8 字节。消息仅文本及原生 assistant `tool_calls` / tool `tool_call_id`；不解析答案正文里的 JSON。模型必须精确匹配冻结模型名，单响应最多一个工具调用，多个调用整体拒绝。
 
-`tools` 必须精确匹配冻结的 SDK 工具目录，只有 `development_tool`，动作仅 `read_file / replace_file / run_tests`。旧 SDK 探针继续使用 `development_probe`，新 `development_tool` 合同必须单独接线和复验。SDK 默认终端、MCP、递归委派、自动压缩 / critic / fallback 和隐式重试均关闭；不能证明所有模型调用经过此通道时不采用 SDK。已有 SDK LLM 子合同证据不代替完整 Agent 验收。
+`tools` 精确匹配目录，仅 `development_tool`，动作是 `read_file / replace_file / run_tests`。目录内参数来自 canonical schema 的内嵌分发副本，Go 测试逐字节对比源文件。旧 SDK 探针的 `development_probe` 保持原语义；完整 SDK 接线仍须关闭隐式重试、fallback、压缩和 critic，并证明所有调用经过此通道。
 
-## canonical 文件与职责
+## canonical 文件与可信来源
 
-| 文件（位于 `contracts/`） | 作用 |
+| 文件（位于 `contracts/`） | 职责 |
 | --- | --- |
-| `development-attempt-delegation.schema.json` | 一次尝试的委托描述、资源 / 修订 / 摘要及预算上限；不含 bearer |
-| `development-attempt-reservation.schema.json` | Go 计算的请求预算预留，绑定序号、请求身份与完整请求摘要 |
-| `development-attempt-receipt.schema.json` | 可信 Gateway / 执行器给出的实际用量、缺失、未知或未派发事实 |
-| `development-attempt-event.schema.json` | Go 控制状态与账目的有序脱敏事件，不含 SDK 正文 |
-| `development-tool-action.schema.json` | 读取、替换及验证动作的明确参数，不接受 shell |
-| `development-tool-call.schema.json` | 尝试、父模型请求、工具调用标识、Go 分配请求身份与参数 |
+| `development-attempt-plan.schema.json` | 可信宿主确认的应用 / 模型 / 基准 / 工具路径 / 固定验证档案与预算计划 |
+| `development-attempt-delegation.schema.json` | 单尝试委托、作用域 / 修订 / 摘要、有效期和上限；不含 bearer |
+| `development-attempt-reservation.schema.json` | Go 生成的请求身份、连续序号、完整请求摘要与预留 |
+| `development-attempt-receipt.schema.json` | 可信后端 / 执行器提供的实报、缺失、未知或未派发事实 |
+| `development-attempt-event.schema.json` | Go 有序脱敏事件及账目快照 |
+| `development-tool-action.schema.json` | 文件读取、替换及固定验证动作；不接受 shell |
+| `development-tool-call.schema.json` | 尝试、父模型请求、工具调用、Go 请求身份与参数 |
 
-对象字段全部必填，未使用字段按各动作明确要求为空字符串或零；不是隐式默认值。未知、重复、空值、大小写别名、尾随 JSON 与过大输入均拒绝。JSON 总上限 262144 字节；路径 / 内容分别最多 256 / 32768 UTF-8 字节。JSON Schema 的字符限制之外，由 Go 负责字节限制、跨字段时间和运行时关系约束。
+对象规范字段全部必填，未使用字段按动作明确为空字符串或零，不采用隐式默认值。路径 / 替换正文分别最多 256 / 32768 UTF-8 字节；Go 补充字节限制和跨字段关系。计划可写路径必须属于可读路径，验证档案只接受 `go_test_v1`；这只是授权描述，不证明实际文件或命令已受隔离。
 
-`PayloadDigest` 是 Go 对已校验、固定字段顺序的规范结构紧凑 JSON 计算的 SHA-256；不是 SDK 提供的任意 JSON 文本摘要。工具请求摘要包含完整 `ToolCall`，包括父请求和工具标识；替换另绑定当前文件摘要，验证绑定候选摘要。候选改动使旧测试与审查证据失效。
+`PayloadDigest` 对已校验的固定结构紧凑 JSON 计算 SHA-256，不信任 SDK 提供的摘要。工具请求摘要包含完整调用、父请求与工具标识；替换绑定旧文件摘要，验证绑定候选摘要。候选变化使旧测试 / 审查证据失效。
 
-## 任务级委托
+## 真实资格、确认与凭据
 
-Go 在读取当前账户、工作区成员 / 授权修订、活跃应用绑定及模型 / 定价 / 工具策略后生成描述。`Scope` 绑定账户、工作区、应用、绑定及修订、授权修订、运行 / 任务 / 尝试、需求计划 / 基准摘要、模型引用、定价及工具策略摘要；另绑定 `executor_instance_id`。`audience` 固定为 `development-attempt-control.v1`，有效期最多十分钟，到期不自动续签。
+首个内部开发档案复用现有本地身份负责模块，要求当前活跃账户、工作区成员、`applications:read`、`local_identity_roles:assign` 及实际管理员管理资格。仅有成员或应用运行权限不足以签发；管理员身份也不自动发起任务，还须确认精确计划及当前选择。未新增全局角色或权限目录，团队角色资格后续另定。
 
-仅有工作区成员或应用运行权限不足以签发：还须有显式开发执行资格和精确计划确认；资格目录与授权负责模块尚未实现时默认拒绝签发，不能借旧 Agent Profile 的批准状态开通工具。
+`Server.PrepareDevelopmentAttempt(request, plan)` 与 `IssueDevelopmentAttempt(request, plan, confirmationID, prepared)` 只供可信 Go 宿主调用。请求必须已经过现有本地 Session 中间件验证并选定工作区；账户 / 租户 / 工作区从验证上下文取得。相同确认身份只能创建一次尝试，失败或响应丢失不恢复原文凭据，也不自动重建执行。
 
-运行时凭据采用 Go 生成的至少 256 位随机不透明 bearer，仅可信 SDK 执行进程持有；Go 保存单向摘要与描述关联，原文只交接一次，不进入 JSON 描述、事件、URL、公开日志或代码容器。凭据只对该内部 audience / 尝试有效，不能调用管理接口或公开模型 API；不复用浏览器 Session、用户长期 API key、提供方密钥，也不把模型消息当作凭据申请。
+资格读取复用以下真实负责模块：
 
-每次模型请求、工具派发和继续执行都读取最新负责模块快照，与描述精确比较。撤销、成员权限变化、绑定 / 模型 / 定价 / 工具 / 计划摘要变化或期限失效立即拒绝新动作，并由独立控制循环进入取消；不能只检查请求里自报的 `Scope`。首版控制循环核对间隔不超过一秒，不能等待被阻塞的 SDK 主动再发请求。
+- 身份 repository 的 `AuthorizeWorkspace`，冻结账户 / 成员 / 角色修订及授权摘要；不保存登录名、密码或 Session 秘密。
+- `ApplicationInteractionAuthoritySnapshot.AuthorityDigest`，精确读取活跃应用与 Prompt / Agent / Workflow 运行权威，不另造应用真相源。
+- Gateway 目录中的稳定 `profile:` / `provider:...:profile:` 身份，精确匹配启用的模型档案；首轮仅接受 `openai-compatible`、已配置凭据的档案，不猜测或回退其它模型。
+- 现有开发态 `GatewayModelPricingRepository`，冻结提供方 / 档案 / 模型作用域内的有效美元定价。缺失、不可用或全零价格均拒绝，不以零价代替未知。
 
-现有应用负责模块已有 `ApplicationInteractionAuthoritySnapshot` 及 Prompt / Agent 的运行权威快照，本合同以 `application_authority_digest` 绑定其 `AuthorityDigest`，不另造一份应用运行权威。 `model_ref` 直接复用 Gateway 目录的稳定身份（例如 `profile:probe` 或 `provider:huggingface:profile:dev`），由原负责模块核对存在性 / 资格，不新增模型别名表或 URL 入口。`binding_id / binding_revision` 描述开发运行与该应用的显式关联，不能冒充旧 Session 的 Profile Binding，也不继承旧 Agent 的代码工具资格。
+`Scope` 冻结账户、工作区、应用权威、开发绑定、授权修订、运行 / 任务 / 尝试、计划 / 基准、模型 / 定价 / 工具策略摘要及 `executor_instance_id`。当前单尝试的运行 / 任务身份与尝试一致，修订为 1；成员变化通过真实摘要核对，不把常量修订当作身份负责模块的修订。
 
-本轮 `Authority` 是**由可信负责模块提供的当前快照**这一内部类型，不是认证实现。描述、`Authority`、可信工具提议与终止证据都不能从 SDK HTTP JSON 直接构造为“已认证”。签发、秘密保存、鉴权中间件及真实账户 / 应用绑定接线尚未实现。
+Go 生成 256 位随机不透明 `devtask_` bearer，仅可信 SDK 工作进程持有；数据库只保存 SHA-256，`Issued` 默认 JSON 序列化排除原文。凭据不进入描述、事件、URL、日志或代码容器，不能调用公开模型 / 管理 API。audience 固定为 `development-attempt-control.v1`，有效期最多十分钟，不自动续签；当前进程另用单调时钟限制期限。
 
-## 工具身份与 SDK 元数据
+模型预留、工具入队 / 派发及模型返回后，均读取最新资格并比较冻结快照。模型等待时每秒发起独立资格核对，失效则先提交停止状态、吊销凭据并中断调用上下文；读取失败按结果未知处理。此验证针对固定响应 / Go 上下文，不证明真实 SDK 进程或上游计算已经终止。
 
-Go 在把模型响应交给 SDK 前登记不可变提议，绑定本次模型请求、工具标识、规范参数和工具策略核对结果，并分配工具请求身份。SDK 工具回显该提议；接收端重新读取可信提议并逐字段比较，再绑定同一 `Reservation.payload_digest`，以 CAS 原子消费一次。跨尝试、父请求、工具标识、内容替换或重复消费均拒绝。
+## 工具提议、上下文与事务
 
-`ParseSDKToolArguments` 只显式识别已观察到的可选 `summary`，限制为 512 UTF-8 字节且无控制字符，并把它与规范参数分离。返回摘要仍是未受信任的易失展示材料，不写入权威事件 / 授权 / 产物，不直接作为公开 UI 文案。其他附加字段拒绝；旧探针 schema 对 `summary` 的拒绝保持。
+Go 在返回真实后端模型响应之前，登记提议身份、父模型请求、工具调用标识、完整调用和参数摘要；不保存参数正文。SDK 回显时重新读取持久提议，核对参数、身份和路径策略，在同一事务内消费一次、创建工具预留并写事件。重复消费、跨尝试、父请求或参数替换均拒绝。
 
-`ToolAction` 的语法检查不授予路径访问权。Go 必须按冻结的工具策略核对可读 / 可写路径和角色所有权，实际文件类型、链接、摘要与挂载由隔离执行负责模块再验证。`run_tests` 只解析策略内的固定命令档案；请求没有命令、工作目录、环境或任意参数字段。模型提供的测试命令不得直接执行。
+`ParseSDKToolArguments` 只识别已知可选 `summary`，限制 512 UTF-8 字节并拒绝控制字符，显式剥离后再规范化。它是未受信任的易失展示材料，不进入授权、事件、产物或公开 UI；其它附加字段仍拒绝。
 
-本轮已实现参数转换、工具提议 / 预留绑定校验；提议持久化、与真实父模型响应关联、路径策略负责模块及原子消费尚未接线。不能把传入同一个客户端对象两次当作可信提议比较成功。
+可信宿主把首次 system / user 规范消息摘要写入 `initial_messages_digest` 并纳入计划确认；首次模型请求必须精确匹配该摘要，且末条为 user，防止 SDK 替换获准任务。后续请求必须完整回显前次规范上下文和模型响应，并附一条可信工具观察值；数据库仅保存前缀 / 观察值摘要。`DispatchTool / CompleteTool` 是可信 Go 执行器钩子，SDK 没有完成回执入口。虚构工具结果、改变历史、重放或静默压缩均拒绝；上下文窗口不足时拒绝，不能自动截断。
 
-## 预留、结算与缺失用量
+持久化复用共享 SQLite，新增组件 `development_attempts / 0001_development_attempts / development_attempt_store_v1`：
 
-`budget.unresolved` 是未决操作数；工具结果未知不制造未知模型用量，没有模型预留时 `usage_status` 保持 `not_applicable`。
-
-首个单 Agent 档案只允许一项预留或派发在途。每个尝试最多 8 次模型预留、32 次工具预留，实际上限以委托较小值为准。接受预留即消耗次数，不因未派发释放金额而退还次数；这是保守的调用上限，不冒充已发生的网络次数。
-
-模型预留由 Go 根据完整输入上界、最大输出和冻结定价计算 token / 费用上界；SDK 自报成本不参与。金额使用整数 `cost_microusd`，一单位为百万分之一美元；无可验证定价时不签发可执行委托，不能用零价替代未知。工具预留的模型 token / 费用字段必须为零，命令 / 输出 / 时间另受固定执行档案约束。
-
-原子核对：`spent + held + new_bound <= limit`，同时核对次数、单在途、请求唯一性与连续序号，成功才提交预留事件。相同请求身份重发返回 `operation_duplicate`，不重新执行，也不从缓存制造一次新执行成功；合法新尝试须重新授权。
-
-| 回执状态 | 可信来源与账目处理 |
+| 表 | 内容 |
 | --- | --- |
-| `reported` | Gateway 确认上游确实提供用量，以冻结价格核算；释放该预留，记入全部实际量，包括超过预留的部分 |
-| `missing` | 模型响应已结束但上游无 usage；零字段只是无数量占位，保留全部预留，标为未知用量 |
-| `unknown` | 已派发后超时 / 失联 / 回执丢失；保留预留，停止尝试并记录结果未知 |
-| `not_dispatched` | 仅限没有派发记录的操作；可释放预留，不退还调用次数 |
-| `not_applicable` | 工具已有可信完成回执；不产生模型用量 |
+| `development_attempts` | 作用域、确认唯一性、运行实例、版本、凭据摘要 / 吊销、私有版本化状态、绑定与上下文摘要 |
+| `development_requests` | 不可变请求身份、类型及摘要 |
+| `development_tool_offers` | 提议身份 / 摘要、单次消费状态及观察值摘要 |
+| `development_events` | 从 1 连续递增的不可变事件与摘要 |
 
-显式提供的真实零用量与缺失用量不同。不得把 SDK 补出的零值当作 `reported`；原始上游字段存在性须在 SDK 规范化之前由 Gateway 记录。HTTP 错误或断线不证明未发送 / 未计费，派发后不能套用 `not_dispatched`。
+使用 `BEGIN IMMEDIATE`、预期版本 CAS 和同事务写入；失败丢弃私有状态副本，不能泄漏内存修改或部分消费。请求与事件不可更新 / 删除，提议身份不可修改或逆转消费。读取核对状态、账目、事件、请求索引和提议关系；不修补损坏记录、不从创建函数重建。SQLite 写等待不占满连接池，保留当前资格负责模块的读取连接。
 
-实际量超上界时不裁剪、不吞掉：记录全量，活动尝试进入 `failed / reservation_exceeded`，停止后续动作；已终止尝试只核账，不恢复执行。超额实报失败后仍可核对所属资源终止，未派发的新预留可释放，已派发的继续保留未知量；清理成功不把失败改写为取消成功。未知量的迟到可信回执仅结算一次。首版本合同为**单尝试预算**，团队共享预算、跨进程原子认领与持久账目仍须下一实施，不据内存锁宣称跨进程或全运行额度已生效。
+新组件仅支持本机 SQLite；不增 PostgreSQL / memory repository fallback，不据已有其它模块的双库证据声明本功能双库支持。工作台旧目录需停服、备份并显式 `upgrade`，`serve` 遇待迁移继续拒绝；不得覆盖日常库或沿用旧构建打开新增标记。
 
-## 事件与状态
+## 预算、回执与事件
 
-Go 生成 `attempt_opened / reservation_created / dispatch_recorded / receipt_recorded / cancel_requested / termination_recorded / attempt_completed`。序号在同一尝试内从 1 连续递增；消费键包含工作区、尝试和事件身份，事件 ID 本身不是授权。时间由 Go 提供，回拨时展示时间不倒退，排序仍以序号为准；执行期限必须另用单调计时器，不能依赖展示时间。
+首个档案单尝试仅一项在途，最多 8 次模型和 32 次工具预留，实际取计划较小值；接受即消耗次数，未派发退款不退次数。预留原子核对 `spent + held + new_bound <= limit`、次数、连续序号和请求唯一性，提交后才派发。DB 失败不调用后端；`dispatch_recorded` 表示外部影响可能发生，回执丢失不得重放。
 
-事件只含稳定身份、枚举原因和预算快照，不含命令输出、文件正文、模型内容、隐藏推理、bearer、SDK summary 或原始异常。SDK 进度消息不能直接变成 Go 权威事件。读取按最后确认序号继续，重复去重、断档明确失败；事件读取不触发执行。
+模型输入上界须由可信 `NativeBackend.Policy` 提供可验证的完整输入界限，输出由请求和冻结档案共同限制；当前固定响应后端已验，真实提供方实现仍需证明该界限。费用使用整数 microUSD；预留向上取整，实报结算复用现有定价的半入规则。工具的模型 token / 费用预留为零，执行资源另由沙箱限制。
 
-`active` 可预留 / 记录派发；`cancel_requested` 拒绝新动作；`cancelled / completed / failed / outcome_unknown` 均不可恢复派发。`completed` 只表示本次控制工作已结束，不证明测试通过、用户接受、Git 合入或生产就绪。迟到回执可以追加事件核账，但保持终止状态。 `termination_status` 独立记录 `not_requested / pending / unconfirmed / confirmed`；未确认后允许追加一次完整确认，结果未知或失败仍保持原结果。重复的未确认报告与已确认报告不重复生成事件。
+| 回执 | 处理 |
+| --- | --- |
+| `reported` | 原始上游确实给出用量，按冻结价格核算，释放预留并记全部实报；超额不裁剪，停止后续执行 |
+| `missing` | 响应无 usage，保留全部预留及未知标记；不采纳 SDK 补出的零值 |
+| `unknown` | 派发后超时、断线或丢失回执，保留预留并记录结果未知 |
+| `not_dispatched` | 仅无派发记录的操作可释放预留，不退次数 |
+| `not_applicable` | 可信工具完成，不产生模型用量 |
 
-状态、请求身份、预留、工具提议消费和事件必须同事务提交，之后才允许实际派发。DB 与外部效果不能原子回滚，`dispatch_recorded` 表示影响可能已经发生；提交失败不得继续，派发后回执缺失不得重放。本轮仅内存规则，尚无事务 / durable store，不能接真实执行器。
+迟到可信回执只结算一次，终态不可复活；未知工具效果不制造未知模型用量。团队共享预算、真实计费与多运行额度不在本实现范围。
 
-## 取消与重启
+事件包含原有控制类型，并增加 `tool_offer_registered / tool_offer_queued / attempt_interrupted / attempt_failed`，后两者分别对应 `runtime_interrupted / native_response_invalid`。仅保存身份、枚举原因和账目，不保存文件 / 模型 / 命令正文、隐藏推理、bearer、summary 或原始异常。时间回拨不倒排事件，排序以序号为准。
 
-1. Go 提交取消意图、关闭新预留 / 派发入口；尚无派发记录的预留可释放，已派发的预算保持。
-2. 同时中断本次模型连接和可信 SDK 执行进程，终止所属代码容器及进程树。软停止期限两秒，五秒内发出强制终止，十秒内仍无完整归属终止证据则记录 `outcome_unknown / termination_unconfirmed`。这些期限是待实现的运行合同，本轮没有实际 supervisor / timer 验收。
-3. 只有可信负责模块核对本尝试 / executor 归属、进程已退出、代码容器已结束和本地模型连接已关闭，才可标记本地 `cancelled`。未创建的资源也需核对登记；SDK `pause()`、浏览器断线、PID 不存在或 SDK 自报布尔值均不足以构成证据。
-4. 本地已取消不证明上游模型停止计算或零费用，也不回滚副本；保留未知预留及部分候选。清理失败 / 影响未知分别记录，不自动重跑命令。
-5. 重启只读取记录与核对归属，不重新调用创建函数重置旧尝试、续签委托或恢复模型 / 工具；新尝试需要显式原因、新身份及当前资格。
+`active` 可预留 / 派发，`cancel_requested` 拒绝新动作；`cancelled / completed / failed / outcome_unknown` 均不可恢复。`completed` 只表示控制工作结束，不证明测试通过、用户接受或 Git 合入。独立 `termination_status` 保留归属清理的 `not_requested / pending / unconfirmed / confirmed`，清理成功不抹掉失败 / 未知结果。
 
-## 已验证与下一实施
+## 取消、关闭与重启
 
-代码位于 `services/platform/internal/developmentcontrol/`；严格 JSON 解析提取到 `internal/strictjson/`，原探针继续使用同一规则。离线测试覆盖跨作用域 / 过期 / 撤销、预算并发、未知用量与晚到结算、取消与派发竞态、结果未知、超额实报、工具身份 / 摘要替换、SDK 元数据分离及严格输入。合成样例和 Go / Python 共用取消轨迹位于 `scripts/eval/fixtures/development-control/`，不含凭据或真实模型材料。
+`Runtime.Cancel` 以预期版本提交取消意图、吊销凭据并取消本次模型上下文；没有 SDK 自报取消成功入口。`CloseDevelopmentControl` 先停止运行 / 中断模型并记录未决项，再关闭内部 HTTP；`Server.Close` 在释放 bridge 与共享数据库前调用它。SDK / 容器尚未建立，因此当前关闭不提供这些资源的完整归属终止证据。
 
-下一实施仍需：持久尝试 / 认领与事件事务、真实资源负责模块快照及任务凭据签发 / 撤销、专属 listener / 原生消息适配与工具提议原子消费、受限 executor / sandbox、独立取消控制循环与期限，以及开发产物保存合同。首次运行使用固定响应；真实模型和真实用户试用继续暂停，不沿用上一 SDK 容器窗口授权。
+未来受限执行器仍须实现：软停止两秒、五秒内发出强制终止，十秒仍无法证明 SDK / 进程树 / 代码容器 / 本地连接均已结束则记结果未知。仅凭 SDK pause、浏览器断线、PID 不存在或自报布尔值不足以标记已取消；本地取消也不证明上游停止或零费用。
+
+每次运行生成新的实例身份；重启只读回元数据、账目与事件，旧 bearer 不再可用，不自动认领、续签、补跑模型或命令。可信宿主显式 `Interrupt` 才将遗留活动尝试收口为未知并吊销，后续新尝试需新确认。当前没有自动恢复或持久租约调度器。
+
+## 验证与下一实施
+
+Go 验证覆盖隔离 SQLite 的创建 / 关闭重开、事件 / 请求 / 提议不可变、并发消费和取消、CAS、事务故障注入、坏状态拒绝、固定原生工具往返、可信观察值 / 上下文、防止缺失用量变零、等待时撤销与监听关闭。平台测试使用真实 SQLite 身份 / 应用 / 定价 repository、现有 Workflow 权威及本地 Session 中间件；资格当前性不是由测试请求自报。
+
+下一实施按顺序接入受限 SDK 工作进程与完整 Agent 事件，再实现代码沙箱的文件 / 固定测试执行、所属资源终止及开发产物合同；真实提供方原生传输也须单独验证。固定响应不会代替完整 SDK、真实模型质量或真实用户试用。阶段 0 尚未退出，真实模型与用户试用继续暂停。

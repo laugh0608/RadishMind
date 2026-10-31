@@ -52,7 +52,11 @@
         "receipt_recorded",
         "cancel_requested",
         "termination_recorded",
-        "attempt_completed"
+        "attempt_completed",
+        "tool_offer_registered",
+        "tool_offer_queued",
+        "attempt_interrupted",
+        "attempt_failed"
       ]
     },
     "request_id": {
@@ -84,7 +88,9 @@
         "deadline_exceeded",
         "termination_unconfirmed",
         "reservation_exceeded",
-        "execution_unknown"
+        "execution_unknown",
+        "runtime_interrupted",
+        "native_response_invalid"
       ]
     },
     "usage_status": {
@@ -458,6 +464,73 @@
                 "const": 0
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "tool_offer_registered",
+              "tool_offer_queued"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "active"
+          },
+          "request_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "attempt_interrupted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "outcome_unknown"
+          },
+          "reason": {
+            "const": "runtime_interrupted"
+          },
+          "request_id": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "attempt_failed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "phase": {
+            "const": "failed"
+          },
+          "reason": {
+            "const": "native_response_invalid"
+          },
+          "request_id": {
+            "const": ""
           }
         }
       }

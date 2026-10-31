@@ -1,14 +1,12 @@
-# 单次开发尝试的合同样例
+# 单尝试控制合成样例
 
-这些 JSON 是纯合成输入，不包含 bearer、用户正文或真实执行结果。时间 `1000` 等数值只供可重复测试，不是当前有效委托。
+本目录只保存合成计划、委托、预留、回执、工具及取消轨迹，不含真实账户凭据、模型正文或用户代码。canonical 源为 `contracts/`；语义见[尝试控制合同](../../../../docs/contracts/development-attempt-control-v1.md)。`plan.json` 另由 Go 与 Python 严格消费；写路径属于读路径、UTF-8 字节限制与运行时关系由 Go 补充核对。
 
-`delegation / reservation / receipt / tool-action / tool-call.json` 分别对应 `contracts/` 中的专属开发合同。`cancel-trace.json` 是独立预期轨迹：预留 → 记录派发 → 请求取消 → 确认本地终止但保留未知用量 → 迟到可信回执只核账。Go 状态规则的输出与轨迹逐字段比较，Python 以 canonical schema 验证同一组样例；不是 SDK 或沙箱运行记录。
-
-必要验证在仓库根目录使用：
+从仓库根目录使用现有环境验证：
 
 ```sh
-(cd services/platform && GOPROXY=off GOTOOLCHAIN=local go test -race ./internal/developmentcontrol ./internal/strictjson ./internal/developmentprobe)
-.venv/bin/python -m unittest discover -s scripts/checks/platform/tests -p 'test_development*_contracts.py'
+.venv/bin/python -m unittest discover -s scripts/checks/platform/tests -p test_development_control_contracts.py
+(cd services/platform && GOPROXY=off go test -race ./internal/developmentcontrol)
 ```
 
-字段、边界及尚未接线的执行职责见[尝试控制合同](../../../../docs/contracts/development-attempt-control-v1.md)。本目录没有执行、恢复或凭据签发入口。
+SQLite 事务故障注入、实际数据库关闭重开、并发提议消费、事件分页与原生固定响应测试位于 Go 控制模块；真实负责模块 / Session / 回环监听器生命周期测试位于 `httpapi/development_channel_test.go`。测试创建隔离临时目录，结束关闭数据库与监听器，不启动 Docker 或真实模型。完整 Agent、实际文件 / 命令工具、进程树终止和开发产物仍未验收；`202 queued` 不证明工具执行。

@@ -88,13 +88,13 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 ## 拟新增的受控开发团队边界
 
-[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入下一功能设计，尚未实现。Go 继续拥有团队 / 任务 / 尝试权威状态及授权、预算、取消和证据判定；Python 编码 SDK 只执行一次角色任务，OpenHands 为首选候选。长任务使用独立生命周期，不长期占用已有短请求桥接池，不新建第二套通用工作流与恢复权威。
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已进入阶段 0，单尝试控制基座已实现，完整团队尚未启用。Go 继续拥有团队 / 任务 / 尝试权威状态及授权、预算、取消和证据判定；Python 编码 SDK 只执行一次角色任务，OpenHands 为首选候选。长任务使用独立生命周期，不长期占用已有短请求桥接池，不新建第二套通用工作流与恢复权威。
 
 拟采用可信执行控制层与独立代码容器分离：SDK 经受限 Gateway 通道访问模型，经授权工具入口操作隔离副本；代码进程不继承平台 / 提供方密钥，不挂载平台数据库、用户原工作树或 Docker socket。工作台容器验收不替代这一新增边界，具体方案见[隔离执行子专题](features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。
 
 拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包 / 日志保存、事件正文、权限与 canonical 合同须单独设计，不能直接塞入旧 Session 或文本结果字段。重启默认只读回记录，不自动重放代码 / 工具命令。
 
-现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托、状态 / 事件和长任务接口仍待阶段 0 收口。现有 API、迁移、工作进程与运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。`internal/developmentcontrol` 另承接已物化的单尝试控制合同、SDK 参数转换与内存预算 / 取消规则，`internal/strictjson` 由两者复用；它们不是已接入的平台认证、持久队列或执行服务。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
+现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托、状态 / 事件和长任务接口仍待阶段 0 收口。现有 API 语义、工作进程与默认运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。`internal/developmentcontrol` 承接单尝试合同、SDK 参数转换、预算 / 取消规则、共享 SQLite 的独立 `development_attempts` 组件、提议 / 事件事务及严格原生 HTTP 消费；`internal/strictjson` 由两者复用。`httpapi` 通过显式 Go 接口连接现有身份、应用 AuthorityDigest、精确模型目录与定价，签发须验证本地 Session、当前管理员资格和逐任务计划确认；专属监听器只在明确调用时绑定回环临时端口。没有默认配置开关、公开管理路由或现成真实提供方原生适配，工具只入队，文件 / 命令和 SDK 进程仍未实现；新组件仅 SQLite，不继承其它负责模块的双数据库声明。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
 
 ## 图片产物链
 

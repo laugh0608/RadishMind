@@ -22,10 +22,11 @@ const (
 type operation struct {
 	request Reservation
 	state   string
+	receipt Receipt
 }
 
 // AttemptControl is an in-memory domain rule implementation, not an execution
-// service. A future repository must commit its state/event before any dispatch.
+// service. SQLiteStore commits its state/event before Runtime dispatches.
 type AttemptControl struct {
 	mu                sync.Mutex
 	delegation        Delegation
@@ -133,7 +134,7 @@ func (c *AttemptControl) Reserve(r Reservation, a Authority, nowMS int64) (Event
 	c.budget.HeldCostMicrousd += r.CostBoundMicrousd
 	c.budget.InFlight++
 	c.requestSequence = r.Sequence
-	c.operations[r.RequestID] = &operation{r, "reserved"}
+	c.operations[r.RequestID] = &operation{request: r, state: "reserved"}
 	return c.emit("reservation_created", r.RequestID, nowMS), nil
 }
 

@@ -8,6 +8,7 @@ import (
 	sqliteapplicationcatalogmigrations "radishmind.local/services/platform/migrations/sqlite/application_catalog_records"
 	sqliteapplicationdraftmigrations "radishmind.local/services/platform/migrations/sqlite/application_configuration_drafts"
 	sqliteapplicationpublishmigrations "radishmind.local/services/platform/migrations/sqlite/application_publish_candidates"
+	sqlitedevelopmentattempts "radishmind.local/services/platform/migrations/sqlite/development_attempts"
 	sqlitegatewaymodelpricingmigrations "radishmind.local/services/platform/migrations/sqlite/gateway_model_pricing"
 	sqlitegatewayrequestquotamigrations "radishmind.local/services/platform/migrations/sqlite/gateway_request_quotas"
 	sqlitegatewayrequestmigrations "radishmind.local/services/platform/migrations/sqlite/gateway_requests"
@@ -18,7 +19,7 @@ import (
 )
 
 func Migrations() []sqlitedev.Migration {
-	migrations := make([]sqlitedev.Migration, 0, 13)
+	migrations := make([]sqlitedev.Migration, 0, 14)
 	migrations = append(migrations, sqliteadminproviderroutemigrations.Migrations()...)
 	migrations = append(migrations, sqliteapplicationcatalogmigrations.Migrations()...)
 	migrations = append(migrations, sqliteagentcopilotprofilemigrations.Migrations()...)
@@ -32,5 +33,6 @@ func Migrations() []sqlitedev.Migration {
 	migrations = append(migrations, sqlitepromptapplicationtemplatemigrations.Migrations()...)
 	migrations = append(migrations, sqliteworkflowdraftmigrations.Migrations()...)
 	migrations = append(migrations, sqliteworkflowrunmigrations.Migrations()...)
+	migrations = append(migrations, sqlitedevelopmentattempts.Migrations()...)
 	return migrations
 }

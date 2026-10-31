@@ -31,6 +31,12 @@
 
 Application Evaluation Schedule route 使用既有 Plan、Campaign、Run、quota 与 Workflow Run Store owner。后台 runner 默认关闭；只有显式设置 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV=true`，且 Campaign dev、本地身份 HTTP 与 `local_session_dev_test` 同时成立时才启动。runner 固定低频轮询，每次 occurrence 重新读取 delegated user 的账户、membership、permission、Plan、assignment、API Key 与 quota；崩溃恢复只观察确定性 Campaign key，不重放 Provider。该 gate 不启用通用 scheduler 或 production worker。
 
+## 受控开发尝试的可信宿主接线
+
+`internal/developmentcontrol` 已实现单尝试 SQLite、任务凭据、提议 / 账目 / 事件事务及严格原生消息通道，默认平台与工作台均不启动。可信 Go 宿主显式 `ConnectDevelopmentControl(backend)`，通过已验证本地 Session 的 `PrepareDevelopmentAttempt / IssueDevelopmentAttempt` 确认精确计划后，才可调用 `StartDevelopmentChannel(ctx)` 取得独立 `127.0.0.1:0` 地址；调用方须观察 Serve 结果并执行 `CloseDevelopmentControl`。原文凭据只交接可信 SDK 进程，不序列化给浏览器。
+
+当前仅固定响应后端及可信工具钩子已验，工具入口返回 `202 queued`；完整 SDK、实际提供方原生传输、文件 / 命令沙箱未接入。不能转发旧建议桥接或打开现成生产执行开关。共享迁移新增 `development_attempts`；旧工作台须停服、备份后显式 `upgrade`，`serve` 不自动应用新增迁移。契约、表与验证边界见[尝试控制合同](../../docs/contracts/development-attempt-control-v1.md)。
+
 ## Browser OIDC 开发测试配置
 
 browser OIDC 只在 `RADISHMIND_CONTROL_PLANE_READ_AUTH_MODE=local_session_dev_test` 与 `RADISHMIND_LOCAL_IDENTITY_DEV_HTTP=true` 已成立时允许显式开启。当前使用 public client + PKCE，不接收 client secret；若真实 Radish 要求 confidential client，必须留到批次 E 单独评审 secret ref、部署与泄漏响应。

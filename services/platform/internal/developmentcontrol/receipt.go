@@ -65,5 +65,6 @@ func (c *AttemptControl) RecordReceipt(r Receipt, nowMS int64) (Event, error) {
 			}
 		}
 	}
+	op.receipt = r
 	return c.emit("receipt_recorded", r.RequestID, nowMS), nil
 }

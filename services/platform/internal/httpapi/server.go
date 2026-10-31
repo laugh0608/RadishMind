@@ -15,6 +15,7 @@ import (
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/developmentcontrol"
 	"radishmind.local/services/platform/internal/sqlitedev"
 	"radishmind.local/services/platform/internal/workbench"
 )
@@ -35,6 +36,10 @@ type bridgeClient interface {
 }
 
 type Server struct {
+	developmentMu                 sync.Mutex
+	developmentClosed             bool
+	developmentRuntime            *developmentcontrol.Runtime
+	developmentHTTP               *http.Server
 	workbenchLock                 *workbench.Lock
 	closeWorkbenchAssets          func() error
 	httpServer                    *http.Server
@@ -744,6 +749,11 @@ func (s *Server) Close() {
 		return
 	}
 	s.closeOnce.Do(func() {
+		developmentCloseContext, cancelDevelopmentClose := context.WithTimeout(context.Background(), 10*time.Second)
+		if err := s.CloseDevelopmentControl(developmentCloseContext); err != nil {
+			fmt.Fprintln(os.Stderr, "development control cleanup incomplete")
+		}
+		cancelDevelopmentClose()
 		if s.applicationEvaluationScheduleRunner != nil {
 			s.applicationEvaluationScheduleRunner.Stop()
 		}
