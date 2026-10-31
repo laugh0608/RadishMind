@@ -116,5 +116,7 @@ export const configuration = {
   "loadedSavedDraftCount": "已加载 {{count}} 个已保存的应用草案。",
   "modelCatalogLoadFailed": "模型目录加载失败；请依据诊断码处理。",
   "modelCatalogNotLoaded": "尚未加载此应用草案的模型目录。",
+  "modelCatalogCredentialRequired": "请先签发包含 models:read 的应用 API 密钥，显式交给 Playground 加载模型，再返回配置页。Web 会话不能代替模型 API 密钥。",
+  "openModelCatalogCredentials": "打开应用密钥",
   "loadedValidatedModelCount": "已加载 {{count}} 个可选模型。"
 } as const;

@@ -15,6 +15,7 @@ type Document = Record<string, unknown>;
 
 export type ApplicationResultArtifactConfig = {
   mode: "offline" | "dev_application_session_http";
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -223,7 +224,7 @@ export async function listApplicationResultArtifacts(
   try {
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(input.sessionId)}/result-artifacts?${query}`,
-      { headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
+      { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
     );
     const value: unknown = await response.json();
     if (!isListEnvelope(value, config, input.applicationId, input.sessionId)) {
@@ -287,7 +288,7 @@ export async function listApplicationResultArtifactsByApplication(
   try {
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/applications/${encodeURIComponent(input.applicationId)}/result-artifacts?${query}`,
-      { headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
+      { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
     );
     const value: unknown = await response.json();
     if (!isApplicationListEnvelope(value, config, input.applicationId)) {
@@ -334,7 +335,7 @@ export async function readApplicationResultArtifact(
   try {
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(input.sessionId)}/result-artifacts/${encodeURIComponent(input.artifactId)}?${query}`,
-      { headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
+      { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", headers: artifactHeaders(config, input.applicationId, requestId, false), signal },
     );
     const value: unknown = await response.json();
     if (!isReadEnvelope(value, config, input.applicationId, input.sessionId)) {
@@ -377,7 +378,7 @@ export async function exportApplicationResultArtifact(
   try {
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/applications/${encodeURIComponent(input.applicationId)}/result-artifacts/${encodeURIComponent(input.artifactId)}/export?${query}`,
-      { headers: artifactExportHeaders(config, input.applicationId, requestId), signal },
+      { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", headers: artifactExportHeaders(config, input.applicationId, requestId), signal },
     );
     const value: unknown = await response.json();
     if (!isExportEnvelope(value, config, input.applicationId)) {
@@ -429,6 +430,7 @@ export async function transitionApplicationResultArtifactLifecycle(
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(input.sessionId)}/result-artifacts/${encodeURIComponent(input.artifactId)}/${action}`,
       {
+        credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store",
         method: "POST",
         headers: { ...artifactHeaders(config, input.applicationId, requestId, true), "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -785,6 +787,16 @@ function artifactHeaders(
   const permissions = lifecycleMutation
     ? "application_sessions:read,application_result_artifacts:archive"
     : "application_sessions:read";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      "X-RadishMind-Active-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,
@@ -805,6 +817,7 @@ function artifactExportHeaders(
   applicationId: string,
   requestId: string,
 ): Record<string, string> {
+  if (config.authMode === "local_session_dev_test") return artifactHeaders(config, applicationId, requestId, true);
   const permissions = "application_sessions:read,application_result_artifacts:export";
   return {
     ...artifactHeaders(config, applicationId, requestId, false),

@@ -26,7 +26,7 @@
 - 产品 UI 开发联调：`./start.sh web-live`（默认使用开发假数据读取后端）
 - 产品 UI 离线预览：`./start.sh web-offline`
 
-这些是现有开发入口，持久化产品链需要按[项目指南](docs/radishmind-project-guide.md)选择对应配置。当前[本机持久工作台交付](docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)已实现统一启动 / 配置与恢复命令，使用见[工作台指南](docs/platform/local-persistent-workbench-operations-v1.md)；实际浏览器 / 容器交付验收尚未完成。
+这些是现有开发入口，持久化产品链需要按[项目指南](docs/radishmind-project-guide.md)选择对应配置。当前[本机持久工作台交付](docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)已实现统一启动 / 配置与恢复命令，使用见[工作台指南](docs/platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已验收；容器和独立用户交付验收仍待完成。
 
 ## 仓库约定
 

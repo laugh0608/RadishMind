@@ -114,7 +114,7 @@ export default function ApplicationRuntimeReviewWorkspace({
     });
   }, [context.applicationId, controls.issueHandoff]);
 
-  if (isLocalWorkbench() && activeSurface && activeSurface !== "results" && activeSurface !== "evidence") return null;
+  if (isLocalWorkbench() && activeSurface === "request") return null;
   return (
     <section
       className="application-runtime-review-workspace"
@@ -139,7 +139,7 @@ export default function ApplicationRuntimeReviewWorkspace({
       <div className="application-runtime-review-layout">
         <nav className="application-runtime-review-path" aria-label={t($ => $.runtimeReview.tasks)}>
           <header><span>{t($ => $.runtimeReview.path)}</span><strong>{t($ => $.runtimeReview.oneTask)}</strong></header>
-          {RUNTIME_REVIEW_TASKS.filter(task => !isLocalWorkbench() || task.surface === "results" || task.surface === "evidence").map((task) => {
+          {RUNTIME_REVIEW_TASKS.filter(task => !isLocalWorkbench() || task.surface !== "request").map((task) => {
             const selected = task.surface === activeSurface;
             const blocked = task.surface === "run" && !context.applicationActive;
             const content = (

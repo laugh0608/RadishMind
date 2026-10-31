@@ -1,6 +1,6 @@
 # RadishMind 阶段路线图
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 ## 文档职责
 
@@ -36,7 +36,7 @@
 - 收口启动与配置、身份 / 工作区初始化、用户资源、数据目录、正常关闭、错误恢复和备份恢复。详细契约、工作包与验收矩阵集中在一个功能专题维护。
 - 退出条件是空环境首次使用、持续使用、重启恢复、备份恢复和关键失败路径经过实际演练；用户可按指南重复完成。已有模块或固定响应测试不能单独证明交付完成。
 
-实施范围已确认，统一运行档、命令、Web 同源接线、独立工作台 Compose 与冷备份恢复已实现；宿主机浏览器、Docker 实际运行与独立用户验收仍待完成，不据模块测试关闭本阶段。
+实施范围已确认，统一运行档、命令、Web 同源接线、独立工作台 Compose 与冷备份恢复已实现；宿主机浏览器主链、冷重启与新目录恢复已于 2026-10-31 验收；Docker 实际运行与独立用户验收仍待完成，保持本阶段未关闭。
 
 ### 第二阶段：真实任务与模型效果
 
@@ -75,9 +75,9 @@
 
 ## 当前执行顺位
 
-2026-10-26 晚间按项目所有者要求结束当日工作，浏览器验收顺延至下一工作时段；本次收尾不构成运行授权。当前进入已实现工作台的运行验收：按[运行指南](platform/local-persistent-workbench-operations-v1.md)完成宿主机浏览器主链、停服重启、备份恢复，再单独验证容器。服务、镜像构建与容器运行仍按明确窗口授权，不据静态配置通过宣称运行成功。
+2026-10-31 已按项目所有者当次授权完成宿主机浏览器主链、停服重启和新目录恢复，所属进程已清理。下一步按[运行指南](platform/local-persistent-workbench-operations-v1.md)单独安排 Docker 构建 / 运行与独立用户试用；镜像、依赖获取和服务窗口仍需明确授权。本次未执行 Docker、Windows PowerShell 或真实模型，不据宿主机结果关闭全部交付。
 
-当前动作由[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-26)维护，细节归[交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)。邀请、国际化、定时回归与工程 R2 至 R6 保持完成；`P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不默认续建旧 Console。历史事实见[能力矩阵](radishmind-capability-matrix.md)与[W44 周志](devlogs/2026-W44.md)。
+当前动作由[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-31)维护，细节归[交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)。邀请、国际化、定时回归与工程 R2 至 R6 保持完成；`P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不默认续建旧 Console。历史事实见[能力矩阵](radishmind-capability-matrix.md)与[W44 周志](devlogs/2026-W44.md)。
 
 ## 执行节奏与阶段选择
 

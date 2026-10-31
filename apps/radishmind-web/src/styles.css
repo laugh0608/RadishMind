@@ -6969,6 +6969,14 @@ dd {
   margin-top: 3px;
 }
 
+.application-result-artifact-opt-in input[type="checkbox"] {
+  flex: 0 0 1rem;
+  width: 1rem;
+  height: 1rem;
+  min-height: 0;
+  padding: 0;
+}
+
 .application-result-artifact-opt-in span,
 .application-result-artifact-list button span {
   display: grid;
@@ -7011,6 +7019,36 @@ dd {
   display: grid;
   gap: 6px;
   min-width: 180px;
+}
+
+.application-result-artifact-owner button,
+.application-result-artifact-owner select,
+.application-interaction-session button,
+.application-interaction-create input,
+.application-interaction-create select,
+.application-interaction-composer input,
+.application-interaction-composer textarea {
+  min-height: 36px;
+  max-width: 100%;
+  border: 1px solid var(--rm-border-strong);
+  border-radius: var(--rm-radius-sm);
+  padding: 7px 10px;
+  background: var(--rm-bg-surface);
+  color: var(--rm-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.application-result-artifact-owner button:hover:not(:disabled),
+.application-interaction-session button:hover:not(:disabled) {
+  border-color: var(--rm-action-primary);
+  background: var(--rm-action-soft);
+}
+
+.application-result-artifact-owner button:disabled,
+.application-interaction-session button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .application-result-artifact-layout {
@@ -16146,6 +16184,7 @@ dd {
 }
 
 .application-access-workspace {
+  container: application-access / inline-size;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--rm-border-soft);
@@ -16557,13 +16596,40 @@ dd {
 }
 
 .api-key-issue-form fieldset label {
-  grid-template-columns: auto minmax(150px, 0.9fr) minmax(120px, 1.1fr);
+  grid-template-columns: 1rem minmax(0, 0.9fr) minmax(0, 1.1fr);
   border-top: 1px solid var(--rm-border-soft);
   padding: 8px 2px;
 }
 
 .api-key-issue-form fieldset label:first-of-type {
   border-top: 0;
+}
+
+.api-key-issue-form input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+}
+
+@container application-access (max-width: 760px) {
+  .application-access-workbench,
+  .application-api-integration-layout,
+  .api-key-lifecycle-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .application-access-rail nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .api-key-issue-form fieldset label {
+    grid-template-columns: 1rem minmax(0, 1fr);
+  }
+
+  .api-key-issue-form fieldset label span {
+    grid-column: 2;
+  }
 }
 
 .api-key-issue-form fieldset code,

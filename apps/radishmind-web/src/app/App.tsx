@@ -1149,7 +1149,7 @@ function ProductApp() {
           {(!isLocalWorkbench() || hasUserWorkflowDraft) && <>
           <Suspense fallback={<section className="workflow-draft-designer"><p>{t($ => $.appShell.loadingDesigner)}</p></section>}>
             <WorkflowDraftDesignerPanel
-              designer={workflowDraftDesigner}
+              designer={isLocalWorkbench() ? { ...workflowDraftDesigner, templates: [] } : workflowDraftDesigner}
               selectedDraft={activeWorkflowDraft}
               validationInspector={activeWorkflowDraftValidationInspector}
               selectedDraftId={selectedWorkflowDraft.draftId}
@@ -1227,6 +1227,7 @@ function ProductApp() {
             />
           </Suspense>
           </>}
+          {!isLocalWorkbench() && <>
           <Suspense fallback={null}>
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
@@ -1251,6 +1252,7 @@ function ProductApp() {
           <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.workflowReviewLoading)}</p></section>}>
             <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
           </Suspense>
+          </>}
 
           </>}
           {!isLocalWorkbench() && <div className="workflow-definition-states" aria-label={t($ => $.appShell.definitionStates)}>

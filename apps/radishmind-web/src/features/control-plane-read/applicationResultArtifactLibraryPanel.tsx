@@ -1,3 +1,4 @@
+import { useLocalIdentity } from "../local-identity/localIdentityContext.ts";
 import "../../i18n/artifactFeedbackResources.ts";
 import "../../i18n/artifactLibraryResources.ts";
 import { artifactFailureMessage } from "./artifactFeedback.ts";
@@ -25,7 +26,7 @@ import {
   type ApplicationResultArtifactSummary,
 } from "./applicationResultArtifactConsumer.ts";
 
-const config: ApplicationResultArtifactConfig = readApplicationInteractionSessionConfig();
+const baseConfig: ApplicationResultArtifactConfig = readApplicationInteractionSessionConfig();
 
 type LibraryFilters = {
   lifecycleState: ApplicationResultArtifactLifecycleState;
@@ -58,6 +59,8 @@ export default function ApplicationResultArtifactLibraryPanel({
   onOpenRun?: (runId: string) => void;
 }) {
   const { t, i18n } = useTranslation("applications");
+  const identity = useLocalIdentity();
+  const config = { ...baseConfig, subjectRef: baseConfig.authMode === "local_session_dev_test" ? (identity ? `user:${identity.profile.account.userId}` : "") : baseConfig.subjectRef };
   const [draftFilters, setDraftFilters] = useState<LibraryFilters>(INITIAL_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<LibraryFilters>(INITIAL_FILTERS);
   const [listing, setListing] = useState<ApplicationResultArtifactListResult>(() => emptyListing());
@@ -402,10 +405,10 @@ export default function ApplicationResultArtifactLibraryPanel({
 
 function emptyListing(): ApplicationResultArtifactListResult {
   return {
-    status: config.mode === "offline" ? "offline" : "ready",
+    status: baseConfig.mode === "offline" ? "offline" : "ready",
     items: [],
     nextCursor: "",
-    failureCode: config.mode === "offline" ? "application_session_http_disabled" : "",
+    failureCode: baseConfig.mode === "offline" ? "application_session_http_disabled" : "",
     requestId: "",
     auditRef: "",
     summary: "",

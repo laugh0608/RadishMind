@@ -24,6 +24,7 @@ export type WorkflowExecutorConsumerMode = "disabled" | "dev_workflow_executor_h
 
 export type WorkflowExecutorConsumerConfig = {
   mode: WorkflowExecutorConsumerMode;
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   workspaceId: string;
   tenantRef: string;
@@ -80,6 +81,7 @@ export function readWorkflowExecutorConsumerConfig(): WorkflowExecutorConsumerCo
   const env = readWebConfigurationEnvironment();
   const source = env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE?.trim();
   return {
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test" ? "local_session_dev_test" : "dev_headers",
     mode: source === DEV_EXECUTOR_SOURCE ? "dev_workflow_executor_http" : "disabled",
     baseUrl: normalizeBaseUrl(
       env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_BASE_URL ??
@@ -617,6 +619,8 @@ async function requestWorkflowRunEnvelope(
     throw new Error("workflow executor dev HTTP source is disabled");
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
     ...init,
     headers: workflowExecutorHeaders(config, applicationRef, requestId, init.method === "POST"),
   });
@@ -636,6 +640,17 @@ function workflowExecutorHeaders(
   requestId: string,
   mutation: boolean,
 ): HeadersInit {
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutation ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationRef,
+    };
+  }
   return {
     Accept: "application/json",
     "Content-Type": "application/json",

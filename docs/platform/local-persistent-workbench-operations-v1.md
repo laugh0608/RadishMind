@@ -1,8 +1,8 @@
 # 本机持久工作台运行指南 v1
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
-状态：命令、配置、Web 接线和运维实现已完成；自动化验证见 [W44 周志](../devlogs/2026-W44.md)。宿主机浏览器、Docker 实际运行、Windows PowerShell 和独立用户试用尚未验收；真实模型窗口继续暂停。本文给出已实现接口的操作步骤，不把这些步骤列出等同于已实际执行。
+状态：命令、配置、Web 接线和运维实现已完成；2026-10-31 宿主机 Chrome 的首次使用、Prompt / Workflow、显式保存、冷重启与新目录恢复已完成固定响应验收，证据见 [W44 周志](../devlogs/2026-W44.md#2026-10-31-宿主机工作台验收与修复)。Docker 实际运行、Windows PowerShell 和独立用户试用尚未验收；真实模型窗口继续暂停。
 
 范围与停止线见[交付专题](../features/user-workspace/local-persistent-workbench-delivery-v1.md)。工作台只面向回环地址上的内部开发者预览，使用既有本地 Session 和 SQLite。Prompt 与基本 Workflow 共用同一配置；旧开发入口、PostgreSQL 和生产门禁保持各自边界。
 
@@ -19,7 +19,7 @@ cp deploy/workbench-native.example.json var/workbench/platform.json
 ./start.sh workbench serve --config var/workbench/platform.json
 ```
 
-`build` 记录当前 Git 提交（未提交修改附加 `-dirty`），构建正式 Web 和 `tmp/workbench-bin/radishmind-platform`，Go 使用 `GOPROXY=off`、`GOTOOLCHAIN=local`，不会自动下载依赖。Web 产物含工作台标记；普通开发构建不能直接交给工作台服务。`check` 检查配置、Web 产物、Python 版本 / `jsonschema` 与桥接脚本，不创建数据、不打开数据库、不启动工作进程、不调用模型。检查成功不能证明数据库或提供方可用。
+`build` 记录当前 Git 提交（未提交修改附加 `-dirty`），构建正式 Web 和 `tmp/workbench-bin/radishmind-platform`，Go 使用 `GOPROXY=off`、`GOTOOLCHAIN=local`，不会自动下载依赖。Web 产物含工作台标记；普通开发构建不能直接交给工作台服务。`check` 检查配置、Web 产物、Python 版本 / `jsonschema` 与桥接脚本，不创建数据、不打开数据库、不启动工作进程、不调用模型。检查成功不能证明数据库或提供方可用。更新构建前先停工作台，构建后完整刷新浏览器；运行中替换 `dist` 会使旧页面继续请求已移除的哈希分块。
 
 样例的 Python 路径为相对配置目录的 `../../.venv/bin/python`。Windows 将其改为 `../../.venv/Scripts/python.exe`，入口改用 `pwsh ./start.ps1 workbench <动作> ...`；其余 Go 参数相同。PowerShell 包装脚本与 Windows 交叉编译是不同验证，当前未执行 PowerShell 运行验收。
 
@@ -39,7 +39,9 @@ cp deploy/workbench-native.example.json var/workbench/platform.json
 
 初始化复用既有身份负责模块和审计语义。运行中、账户不存在、已有管理员或重复初始化均拒绝；没有 HTTP 自动提权入口。初始化只使用配置中的租户和工作区，不接受另传作用域绕开配置。
 
-普通 Prompt 通过既有草案、模板版本、审查和显式运行流程使用；基本 Workflow 从工作区新建草案、保存、校验、版本审查、显式激活后运行。应用会话、运行元数据与显式 Result Artifact 各司其职；需要保留答案正文时使用既有结果保存动作，不能把“运行成功”理解为所有正文已经保存。重启只重读已有资源，不重跑历史输入。
+首次配置 Prompt 前，先在当前应用的“API 与密钥”签发包含 `models:read` 的应用密钥，显式交接到 Playground 并加载模型目录，再返回配置页选择已校验模型。该读取不会调用模型；Web Session 不代替 Gateway API 密钥。离开 Playground 清除原始密钥，重新交接需使用新签发的一次性凭据。密钥的调用权限仅按实际任务选择。
+
+普通 Prompt 通过既有草案、模板版本、审查和显式运行流程使用；基本 Workflow 从工作区新建草案、校验、保存、Definition 候选审查、显式激活后运行；结构化档案使用活动版本的输入合同。需要会话结果保留时，在应用交互中选择结构化 Workflow 档案及已激活定义 ID，创建绑定会话，并在本轮执行前显式勾选保存。再次打开时先选择应用，从草案库、Definition 或会话列表精确重读；不必新建草案或重新初始化。应用会话、运行元数据与显式 Result Artifact 各司其职；需要保留答案正文时使用既有结果保存动作，不能把“运行成功”理解为所有正文已经保存。重启只重读已有资源，不重跑历史输入。
 
 工作台首页仅读取真实资源。Agent、RAG、HTTP Tool、Schedule、评测批次、管理路由、配额和计费扩展不在此运行档启用；旧开发演示模式继续提供各自已有能力。页面复用既有组件及语义 token，不另建产品布局。
 

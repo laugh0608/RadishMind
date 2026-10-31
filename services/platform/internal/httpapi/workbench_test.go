@@ -117,3 +117,15 @@ func TestWorkbenchEmptyRegistrationExplicitBootstrapAndRestart(t *testing.T) {
 		t.Fatal("legacy mode opened workbench directory")
 	}
 }
+
+func TestWorkbenchDefaultSelectionPreservesExplicitConnection(t *testing.T) {
+	server := &Server{config: config.Config{RuntimeProfile: config.LocalWorkbenchProfile, Provider: "openai-compatible", Model: "workbench-fixture", BaseURL: "http://127.0.0.1:18100/v1", APIKey: "test-only-key"}}
+	for _, extension := range []*chatCompletionExtension{nil, {}} {
+		// No inventory client: resolving an explicit default must not consult it.
+		selection := server.resolveNorthboundSelection(context.Background(), "", extension)
+		options := server.buildBridgeEnvelopeOptions(selection, 0)
+		if selection.model != server.config.Model || options.ProviderProfile != "" || options.BaseURL != server.config.BaseURL || options.APIKey != server.config.APIKey {
+			t.Fatal("workbench default selection discarded the explicit provider connection")
+		}
+	}
+}

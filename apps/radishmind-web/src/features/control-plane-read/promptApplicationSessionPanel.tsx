@@ -1,3 +1,4 @@
+import { useLocalIdentity } from "../local-identity/localIdentityContext.ts";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 
@@ -32,7 +33,8 @@ export default function PromptApplicationSessionPanel({
   onOpenRun?: (runId: string) => void;
 }) {
   const { t } = useTranslation("prompt");
-  const config = { ...baseConfig, workspaceId };
+  const identity = useLocalIdentity();
+  const config = { ...baseConfig, workspaceId, subjectRef: baseConfig.authMode === "local_session_dev_test" ? (identity ? `user:${identity.profile.account.userId}` : "") : baseConfig.subjectRef };
   const [result, setResult] = useState<PromptApplicationSessionResult>(
     () => initialPromptApplicationSessionResult(config),
   );

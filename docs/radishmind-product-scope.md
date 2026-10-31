@@ -1,6 +1,6 @@
 # RadishMind 产品范围与目标
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 ## 核心定义
 
@@ -12,7 +12,7 @@ RadishMind 是 Radish 体系下的 AI 工具、工作流、模型网关和 Copil
 
 首轮用户是项目所有者与 Radish 体系内部开发者，团队共享属于后续交付场景。核心任务是：**持续创建和使用可复用 AI 应用，完成受控运行、结果保留与审查，并依据需要进行回归验证。**
 
-当前优先交付[本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)，让用户完成明确配置后在正式 Web 使用 Prompt 与 Workflow，显式保存结果并在重启后继续。Gateway 提供模型调用，Admin 提供本地身份、成员、路由和治理；上层业务接入不作为本机使用的前提，外部条件缺失不应拖慢 RadishMind 已明确的本机交付。统一运行档、同源 Web、本地身份 / SQLite 接线和冷备份恢复已实现；实际浏览器连续使用、Docker 运行和独立用户体验仍待验收，整体交付目标尚未关闭。
+当前优先交付[本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)，让用户完成明确配置后在正式 Web 使用 Prompt 与 Workflow，显式保存结果并在重启后继续。Gateway 提供模型调用，Admin 提供本地身份、成员、路由和治理；上层业务接入不作为本机使用的前提，外部条件缺失不应拖慢 RadishMind 已明确的本机交付。统一运行档、同源 Web、本地身份 / SQLite 接线和冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 完成固定响应验收；Docker 运行和独立用户体验仍待验收，整体交付目标尚未关闭。
 
 下一功能应说明目标用户、遇到的具体阻塞、现有路径与缺口，以及完成后的可观察改善。功能数量、画板数量、批次关闭和 checker 通过不能单独证明用户收益。
 

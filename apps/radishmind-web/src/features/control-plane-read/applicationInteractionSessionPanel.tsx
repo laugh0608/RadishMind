@@ -1,3 +1,4 @@
+import { useLocalIdentity } from "../local-identity/localIdentityContext.ts";
 import "../../i18n/interactionResources.ts";
 import { useTranslation } from "react-i18next";
 import { interactionFailureCode, interactionFailureMessage, interactionStatus } from "./applicationInteractionMessages.ts";
@@ -31,7 +32,7 @@ import {
   type StructuredRuntimeInputDrafts,
 } from "./structuredRuntimeInput.ts";
 
-const config = readApplicationInteractionSessionConfig();
+const baseConfig = readApplicationInteractionSessionConfig();
 
 type TranscriptEntry = {
   clientTurnKey: string;
@@ -70,6 +71,8 @@ export default function ApplicationInteractionSessionPanel({
   onEvidenceChange?: (evidence: ApplicationDevelopmentOwnerEvidence) => void;
 }) {
   const { t } = useTranslation("applications");
+  const identity = useLocalIdentity();
+  const config = { ...baseConfig, subjectRef: baseConfig.authMode === "local_session_dev_test" ? (identity ? `user:${identity.profile.account.userId}` : "") : baseConfig.subjectRef };
   const [listing, setListing] = useState<ApplicationInteractionSessionListResult>(() => initialApplicationInteractionSessionListResult(config));
   const [sessions, setSessions] = useState<ApplicationInteractionSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<ApplicationInteractionSession | null>(null);

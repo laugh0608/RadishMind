@@ -6,7 +6,7 @@
 
 ## 当前专题
 
-- [本机持久工作台交付 v1](local-persistent-workbench-delivery-v1.md)：当前主线，实施已确认，统一配置、启动命令、Web 接线和恢复已实现；宿主机浏览器 / Docker 与独立用户验收待完成。统一正式 Web 的创建、运行、结果保存与重启恢复路径。
+- [本机持久工作台交付 v1](local-persistent-workbench-delivery-v1.md)：当前主线，实施已确认，统一配置、启动命令、Web 接线和恢复已实现；宿主机浏览器主链、重启与恢复已验收；Docker 与独立用户验收待完成。统一正式 Web 的创建、运行、结果保存与重启恢复路径。
 - [应用跨版本回归审查（开发 / 测试态）v1](application-cross-version-regression-review-dev-test-v1.md)：候选、未排期、未实现；持续使用证明批量版本审查负担后再决策，既有配对规则保持。
 - [应用定时回归评测与受控 Campaign 调度（开发 / 测试态）v1](application-evaluation-scheduled-regression-campaign-dev-test-v1.md)：状态为 `application_evaluation_scheduled_regression_campaign_dev_test_v1_completed`。受限委托 P0 与批次 A 至 D 已完成规范契约与三种存储实现、严格 HTTP 接口、逐次授权重验、显式开发测试态运行器、既有评测批次 / 运行记录交接、崩溃后不重放、完整 Pencil、单一 React 严格消费端、双数据库产品链、CAS、重启 / 重连、三视口与隐私审计；任务卡关闭，不派生批次 E。
 - [应用结果资产库与受控导出（开发 / 测试态）v1](application-result-artifact-library-controlled-export-dev-test-v1.md)：状态为 `application_result_artifact_library_controlled_export_dev_test_v1_completed`；批次 A 至 C 的应用作用域严格列表、过滤游标、规范导出、独立导出权限、双数据库索引、严格 Web 消费端、三视口页面与双数据库产品连续链已完成，专题关闭且不复制结果资产 / 生命周期负责模块。
@@ -37,7 +37,7 @@
 
 ## 下一步
 
-[本机持久工作台](local-persistent-workbench-delivery-v1.md)的启动、配置、数据、身份、Docker 资产与恢复实现已提交；2026-10-26 收尾时将浏览器验收顺延至下一工作时段，运行前另确认窗口。Prompt 与 Workflow 共用交付基础，保留各自运行规则；真实模型质量另在恢复窗口后验证。
+[本机持久工作台](local-persistent-workbench-delivery-v1.md)的启动、配置、数据、身份、Docker 资产与恢复实现已提交；2026-10-31 已按明确运行授权完成宿主机主链、冷重启与新目录恢复验收，所属进程已清理；Docker 和独立用户试用仍待安排。Prompt 与 Workflow 共用交付基础，保留各自运行规则；真实模型质量另在恢复窗口后验证。
 
 已完成的应用、会话、结果、评测、调度与授权专题继续作为实现事实源。技术交付需要的修正回写对应专题，不重新建立平行领域模块，不为每个普通步骤追加任务卡或检查器。
 

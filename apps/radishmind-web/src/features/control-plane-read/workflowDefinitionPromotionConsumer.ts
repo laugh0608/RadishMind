@@ -25,6 +25,7 @@ const FORBIDDEN_RESPONSE_KEYS = new Set([
 
 export type WorkflowDefinitionPromotionConfig = {
   mode: "offline" | "dev_workflow_definition_promotion_http";
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -339,6 +340,7 @@ type ReleaseEnvelope = {
 export function readWorkflowDefinitionPromotionConfig(): WorkflowDefinitionPromotionConfig {
   const env = readWebConfigurationEnvironment();
   return {
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test" ? "local_session_dev_test" : "dev_headers",
     mode: env.VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE?.trim() === DEV_SOURCE
       ? "dev_workflow_definition_promotion_http"
       : "offline",
@@ -437,6 +439,8 @@ export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromo
     ? { inputs: input.inputs }
     : { input_text: input.inputText };
   const response = await fetch(`${config.baseUrl}/v1/user-workspace/workflow-definition-runs`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
     method: "POST",
     headers: { ...headers(config, applicationId, "workflow_runs:execute,workflow_definitions:read"), "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -531,7 +535,7 @@ async function readRelease(config: WorkflowDefinitionPromotionConfig, applicatio
 }
 
 async function writeRelease(config: WorkflowDefinitionPromotionConfig, applicationId: string, path: string, scope: string, payload: unknown): Promise<ReleaseEnvelope> {
-  const response = await fetch(`${config.baseUrl}${path}`, { method: "POST", headers: { ...headers(config, applicationId, scope), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const response = await fetch(`${config.baseUrl}${path}`, { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", method: "POST", headers: { ...headers(config, applicationId, scope), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const body: unknown = await response.json();
   if (!isReleaseEnvelope(body, config, applicationId)) throw new Error("workflow definition release returned an invalid or sensitive envelope");
   if (!response.ok || body.failure_code) {
@@ -542,7 +546,7 @@ async function writeRelease(config: WorkflowDefinitionPromotionConfig, applicati
 }
 
 async function readJSON(url: string, config: WorkflowDefinitionPromotionConfig, applicationId: string, scope: string): Promise<unknown> {
-  const response = await fetch(url, { headers: headers(config, applicationId, scope) });
+  const response = await fetch(url, { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", headers: headers(config, applicationId, scope) });
   const body: unknown = await response.json();
   if (!response.ok) throw responseError(body, `HTTP ${response.status}`);
   return body;
@@ -556,6 +560,16 @@ function headers(config: WorkflowDefinitionPromotionConfig, applicationId: strin
     "workflow_definitions:activate",
     "workflow_runs:execute,workflow_definitions:read",
   ].includes(scopes) ? scopes : "";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutationPermission ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "workflow-definition-promotion-web",

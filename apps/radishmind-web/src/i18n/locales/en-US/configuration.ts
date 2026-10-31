@@ -116,5 +116,7 @@ export const configuration = {
   "loadedSavedDraftCount": "Loaded {{count}} saved application drafts.",
   "modelCatalogLoadFailed": "The model catalog could not be loaded; check the diagnostic code.",
   "modelCatalogNotLoaded": "The model catalog has not been loaded for this application draft.",
+  "modelCatalogCredentialRequired": "Issue an application API key with models:read, explicitly hand it to the Playground to load models, then return to configuration. A Web session cannot replace a model API key.",
+  "openModelCatalogCredentials": "Open application keys",
   "loadedValidatedModelCount": "Loaded {{count}} available models."
 } as const;

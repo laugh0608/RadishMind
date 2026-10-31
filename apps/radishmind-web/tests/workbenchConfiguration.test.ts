@@ -22,6 +22,10 @@ test("workbench consumers share Session, origin and scope without enabling unrel
   assert.equal(environment.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL, fixture.public_origin);
   assert.equal(environment.VITE_RADISHMIND_PROMPT_APPLICATION_WORKSPACE_ID, fixture.workspace_id);
   assert.equal(environment.VITE_RADISHMIND_WORKFLOW_EXECUTOR_WORKSPACE_ID, fixture.workspace_id);
+  assert.equal(environment.VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE, "dev-gateway-playground-http");
+  assert.equal(environment.VITE_RADISHMIND_GATEWAY_AUTH_MODE, "api_key_dev_test");
+  assert.equal(environment.VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF, fixture.tenant_ref);
+  assert.equal(environment.VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID, fixture.workspace_id);
   assert.equal(environment.VITE_RADISHMIND_AGENT_COPILOT_SOURCE, undefined);
   assert.equal(environment.VITE_RADISHMIND_APPLICATION_EVALUATION_SOURCE, undefined);
   assert.equal(environment.VITE_RADISHMIND_WORKFLOW_RAG_SOURCE, undefined);

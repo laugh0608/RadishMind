@@ -59,5 +59,8 @@ export function workbenchConsumerConfiguration(config: WorkbenchPublicConfig): R
     VITE_RADISHMIND_API_KEY_LIFECYCLE_SOURCE: "dev-api-key-lifecycle-http",
     VITE_RADISHMIND_API_KEY_LIFECYCLE_WORKSPACE_ID: config.workspace_id,
     VITE_RADISHMIND_GATEWAY_AUTH_MODE: "api_key_dev_test",
+    VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE: "dev-gateway-playground-http",
+    VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_TENANT_REF: config.tenant_ref,
+    VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_WORKSPACE_ID: config.workspace_id,
   };
 }
