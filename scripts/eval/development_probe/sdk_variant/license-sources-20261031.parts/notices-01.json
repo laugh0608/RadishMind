@@ -1,0 +1,250 @@
+{
+  "status": "source_evidence_only_not_a_distributed_notice_bundle",
+  "items": [
+    {
+      "label": "pip source notice src/pip/_vendor/distlib/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/distlib/LICENSE.txt",
+      "sha256": "808e10c8a6ab8deb149ff9b3fb19f447a808094606d712a9ca57fead3552599d",
+      "bytes": 14531,
+      "local_file": "cd0d705a0062d2148802d204.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/cachecontrol/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/cachecontrol/LICENSE.txt",
+      "sha256": "86eeee87be2a43f3ff1f56496f451f69243926f025fedbb033666c304c4c161b",
+      "bytes": 558,
+      "local_file": "3dcb577df57dd12f97a2ffa3.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/certifi/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/certifi/LICENSE",
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7",
+      "bytes": 989,
+      "local_file": "b301aa501ee4ecfed4c3b580.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/distro/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/distro/LICENSE",
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14",
+      "bytes": 11325,
+      "local_file": "7d66e0ffa1d8e9908851ca1e.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/idna/LICENSE.md",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/idna/LICENSE.md",
+      "sha256": "a59f0b0ef3635874109a4461ca44ff7a70d50696e814767bfaf721d4c9b0db0f",
+      "bytes": 1541,
+      "local_file": "3c53e5597285a79e6ae82144.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/msgpack/COPYING",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/msgpack/COPYING",
+      "sha256": "492dedba85da5872f78e6091bcd1fea474d660d35acb4dee964b8aab3f007427",
+      "bytes": 614,
+      "local_file": "bd788484d3b04d619c232c1e.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/packaging/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/packaging/LICENSE",
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+      "bytes": 197,
+      "local_file": "bb966567f53cea23de60f1cd.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/packaging/LICENSE.APACHE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/packaging/LICENSE.APACHE",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "bytes": 10174,
+      "local_file": "81899e87e3f567f640012d25.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/pkg_resources/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/pkg_resources/LICENSE",
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+      "bytes": 1023,
+      "local_file": "f5e058dce4f6ee74a0a1873b.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/platformdirs/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/platformdirs/LICENSE",
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6",
+      "bytes": 1089,
+      "local_file": "c6d8c7796c333ec9e89b31b6.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/packaging/LICENSE.BSD",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/packaging/LICENSE.BSD",
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+      "bytes": 1344,
+      "local_file": "0a23725fb32116292634b28e.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/pygments/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/pygments/LICENSE",
+      "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17",
+      "bytes": 1331,
+      "local_file": "81b1de54717bef0956b8e4bc.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/pyproject_hooks/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/pyproject_hooks/LICENSE",
+      "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154",
+      "bytes": 1081,
+      "local_file": "8b058b31dd93701e56ed6cc3.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/resolvelib/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/resolvelib/LICENSE",
+      "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d",
+      "bytes": 751,
+      "local_file": "f73b30738d47f131b8511431.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/requests/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/requests/LICENSE",
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
+      "bytes": 10142,
+      "local_file": "c8c803ede10f397fa92c1a9a.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/rich/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/rich/LICENSE",
+      "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15",
+      "bytes": 1056,
+      "local_file": "ea230956838d5911c5bca0f2.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/truststore/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/truststore/LICENSE",
+      "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca",
+      "bytes": 1086,
+      "local_file": "776fe7f4f30d9775cf28e907.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/tomli/LICENSE-HEADER",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/tomli/LICENSE-HEADER",
+      "sha256": "97ce9330905a172dde870ee0361d89beb95ba3bd0f4545796aa91a8c01a43531",
+      "bytes": 121,
+      "local_file": "ea6e95f363f5532cc128831a.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/tomli/LICENSE",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/tomli/LICENSE",
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe",
+      "bytes": 1072,
+      "local_file": "4e29d5e3fe4a32536ab05309.body"
+    },
+    {
+      "label": "pip source notice src/pip/_vendor/urllib3/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/urllib3/LICENSE.txt",
+      "sha256": "c37bf186e27cf9dbe9619e55edfe3cea7b30091ceb3da63c7dacbe0e6d77907b",
+      "bytes": 1115,
+      "local_file": "85451cd030393bc1b6cee934.body"
+    },
+    {
+      "label": "pip source vendor versions",
+      "url": "https://raw.githubusercontent.com/pypa/pip/25.0.1/src/pip/_vendor/vendor.txt",
+      "sha256": "116f84ddc1395c402d545cc62278a402b38c0f118fd032d45b35e96384597c56",
+      "bytes": 333,
+      "local_file": "6737a94a2dc081b944aaa7ee.body"
+    },
+    {
+      "label": "typing_extensions 4.12.2 identity",
+      "url": "https://raw.githubusercontent.com/python/typing_extensions/4.12.2/pyproject.toml",
+      "sha256": "e2952fc0eb4ef34610b936d0cbaedd45b40b5a47005454dbbf1147e2cea2277d",
+      "bytes": 2662,
+      "local_file": "ebfe8721846964f19dab6c21.body"
+    },
+    {
+      "label": "typing_extensions 4.12.2 license",
+      "url": "https://raw.githubusercontent.com/python/typing_extensions/4.12.2/LICENSE",
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+      "bytes": 13936,
+      "local_file": "f512d07ab88a9a5c8730b175.body"
+    },
+    {
+      "label": "huggingface/tokenizers LICENSE",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357,
+      "local_file": "89c7758be4c32c6563cdae41.body"
+    },
+    {
+      "label": "huggingface/tokenizers bindings/node/LICENSE",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/bindings/node/LICENSE",
+      "sha256": "02965ed67e29f871a53f7a7afa593a0ddc8020f86ccce0faaf1aa59215b5269e",
+      "bytes": 1071,
+      "local_file": "f10db9dcaa8561a74d0cf6c2.body"
+    },
+    {
+      "label": "huggingface/tokenizers bindings/python/Cargo.toml",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/bindings/python/Cargo.toml",
+      "sha256": "b22e1ccb03566a1d4d30ffa415dee41be1f3bd7f4188f53c393e27154f45126d",
+      "bytes": 1160,
+      "local_file": "9e906fb09fd7c7618d1631dd.body"
+    },
+    {
+      "label": "huggingface/tokenizers bindings/python/pyproject.toml",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/bindings/python/pyproject.toml",
+      "sha256": "347e3689f7178cc8a12cd946a66710c9fe676fe092087d0b387d925dc5924963",
+      "bytes": 2431,
+      "local_file": "8171b6a6f27f86fe68fd3816.body"
+    },
+    {
+      "label": "huggingface/tokenizers tokenizers/Cargo.toml",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/tokenizers/Cargo.toml",
+      "sha256": "a7550a462a6e4da8f6ff6aa3420f25f189c5e7ec7303485e9e7e31c20aa6f3e3",
+      "bytes": 2765,
+      "local_file": "741c8f1166e58dd49c4e8360.body"
+    },
+    {
+      "label": "huggingface/tokenizers tokenizers/LICENSE",
+      "url": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/tokenizers/LICENSE",
+      "sha256": "1e881ecf2862d01e6e5bc2b861e46886d2a6fb01499c0c508a209a7271b13cf2",
+      "bytes": 10,
+      "local_file": "5ed9f9ce423302837c073a50.body"
+    },
+    {
+      "label": "scoder/lupa LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/scoder/lupa/120106c49b690dde2c5020dafe9754e598d0b516/LICENSE.txt",
+      "sha256": "957afe4913dfc469fd60541d847a581c5bddd6ba0ccb72390ed78c75837768a1",
+      "bytes": 2231,
+      "local_file": "437ad46ce06fb25d952dfca4.body"
+    },
+    {
+      "label": "scoder/lupa pyproject.toml",
+      "url": "https://raw.githubusercontent.com/scoder/lupa/120106c49b690dde2c5020dafe9754e598d0b516/pyproject.toml",
+      "sha256": "ef51ba46ba4954bcd4ed9be27ef8c173e166d9c7539fa2e280304a19fa8207c8",
+      "bytes": 2307,
+      "local_file": "cc408c59fff817eca4c0f4dc.body"
+    },
+    {
+      "label": "scoder/lupa third-party/lua51/COPYRIGHT",
+      "url": "https://raw.githubusercontent.com/scoder/lupa/120106c49b690dde2c5020dafe9754e598d0b516/third-party/lua51/COPYRIGHT",
+      "sha256": "ee5e3e82af1e1b543c4f216e399d7c8cfee797711913f349e385101c4ae60a79",
+      "bytes": 1528,
+      "local_file": "53cda28c4479b37ad7d5ec1f.body"
+    },
+    {
+      "label": "mrabarnett/mrab-regex LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/mrabarnett/mrab-regex/0e8cb0596ba6572c66e5d153a1d7c901b381e15e/LICENSE.txt",
+      "sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d",
+      "bytes": 11584,
+      "local_file": "2c3524be3cc20e1df43ee04f.body"
+    },
+    {
+      "label": "mrabarnett/mrab-regex pyproject.toml",
+      "url": "https://raw.githubusercontent.com/mrabarnett/mrab-regex/0e8cb0596ba6572c66e5d153a1d7c901b381e15e/pyproject.toml",
+      "sha256": "500dcde45f0f533adca07feb3924b27315ba403fb5839ef7925e1816fc5d43d2",
+      "bytes": 1282,
+      "local_file": "868d99432f2da2f5927d4fef.body"
+    },
+    {
+      "label": "PrefectHQ/fastmcp LICENSE",
+      "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/LICENSE",
+      "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+      "bytes": 11356,
+      "local_file": "e2e8e0b67a6e179c9a3c1daa.body"
+    }
+  ]
+}

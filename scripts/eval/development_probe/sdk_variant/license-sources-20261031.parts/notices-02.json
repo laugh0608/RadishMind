@@ -1,0 +1,250 @@
+{
+  "status": "source_evidence_only_not_a_distributed_notice_bundle",
+  "items": [
+    {
+      "label": "PrefectHQ/fastmcp pyproject.toml",
+      "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/pyproject.toml",
+      "sha256": "12163f06d73a1f5e54bd97ff56ba959d064b523a8e915163220f85ed03405168",
+      "bytes": 5530,
+      "local_file": "4dd68bf59f316a395f55e2f0.body"
+    },
+    {
+      "label": "python/cpython Doc/copyright.rst",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/Doc/copyright.rst",
+      "sha256": "9e5e6634a7f5444dd83da55ccb265bac825abf72ecddccf7e394f284636bd9df",
+      "bytes": 451,
+      "local_file": "d8a497098ccfdcc3deca6844.body"
+    },
+    {
+      "label": "python/cpython Doc/license.rst",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/Doc/license.rst",
+      "sha256": "341832873fd316a37927e79385093fbbfd40a467428480835fe435a80cadf4e5",
+      "bytes": 54130,
+      "local_file": "5d69daf91c925edc3c64fba6.body"
+    },
+    {
+      "label": "python/cpython LICENSE",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/LICENSE",
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+      "bytes": 13936,
+      "local_file": "3f349762e203e036302e3088.body"
+    },
+    {
+      "label": "PrefectHQ/fastmcp uv.lock",
+      "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/uv.lock",
+      "sha256": "d6a2843370b83d919e7545a621409411414a0a399e3a87ac4e4396836b9bec2a",
+      "bytes": 529496,
+      "local_file": "dc1991d5b35971787783c954.body"
+    },
+    {
+      "label": "python/cpython Mac/BuildScript/resources/License.rtf",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/Mac/BuildScript/resources/License.rtf",
+      "sha256": "ab6df6040a4e24babad38f98454eb3263722fa6a1c441bfaa271798efbe55f27",
+      "bytes": 15068,
+      "local_file": "4ddb89fd6319633c97ddb07a.body"
+    },
+    {
+      "label": "python/cpython Tools/msi/bundle/bootstrap/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/Tools/msi/bundle/bootstrap/LICENSE.txt",
+      "sha256": "cb95daf98edda8e08a242e1060691b6941f0911692bf468a3f9c5e4b58c09b8f",
+      "bytes": 3273,
+      "local_file": "49fe94de287ef0ab90da18dd.body"
+    },
+    {
+      "label": "golang/go LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "941877193a0385f0b1d367d3.body"
+    },
+    {
+      "label": "python/cpython Modules/_decimal/libmpdec/README.txt",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/Modules/_decimal/libmpdec/README.txt",
+      "sha256": "89926cd0fe6cfb33a2b5b7416c101e9b5d42b0d639d348e0871acf6ffc8258a3",
+      "bytes": 3642,
+      "local_file": "c6231905d4decbbf0dbf27e5.body"
+    },
+    {
+      "label": "python/cpython Modules/expat/COPYING",
+      "url": "https://raw.githubusercontent.com/python/cpython/2c2462afc5d978d31f3d073001fc202d269917ff/Modules/expat/COPYING",
+      "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87",
+      "bytes": 1144,
+      "local_file": "6d4a2caada6e0ab0c401a98e.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/github.com/google/pprof/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/github.com/google/pprof/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "local_file": "2ff9168e81e2f8d5a543a24b.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/github.com/ianlancetaylor/demangle/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/github.com/ianlancetaylor/demangle/LICENSE",
+      "sha256": "b73277f7730993ef8e7f80aed83e5309762fed4d77eced982abb2c00657c074d",
+      "bytes": 1479,
+      "local_file": "48563f9741d2af6d8dbb8fc0.body"
+    },
+    {
+      "label": "golang/go src/cmd/compile/internal/ssa/_gen/vendor/golang.org/x/tools/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/compile/internal/ssa/_gen/vendor/golang.org/x/tools/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "e2f2f980182436f9c442ef8a.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/github.com/google/pprof/third_party/svgpan/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/github.com/google/pprof/third_party/svgpan/LICENSE",
+      "sha256": "154c946c17de61ca71d28e13673d76a5798e6e25995a7397fbae157afc8f62b4",
+      "bytes": 1754,
+      "local_file": "ca0d6e91f779ba14fadd32d5.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/arch/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/arch/LICENSE",
+      "sha256": "8cda009bd927676a95ee7ce2dae921442ac4d9584d041b56ecfcba6839032f0b",
+      "bytes": 1453,
+      "local_file": "436a749ccf44ed53cdfe6901.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/build/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/build/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "9ea2cd5d6aa1cb9e88ae3545.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/mod/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/mod/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "9d95838577123d394310e180.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/sync/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/sync/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "1bfc113d0bed9cf4b3177803.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/sys/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/sys/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "2ede6f8f9d218c228c6c6949.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/telemetry/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/telemetry/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "1f6d6ffc7bbf4728c15ca44e.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/modules.txt",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/modules.txt",
+      "sha256": "9a5563348644d584def106a66119801a70afadca479e4c830835e9c4658ad69d",
+      "bytes": 5955,
+      "local_file": "f32ca7dea8cc1610cc70a53a.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/term/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/term/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "c8e71d1ce9840b833649dc37.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/text/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/text/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "65b206d553cd54a65e065ba2.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/golang.org/x/tools/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/golang.org/x/tools/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "f77cb8dbef88216a75673eff.body"
+    },
+    {
+      "label": "golang/go src/cmd/vendor/rsc.io/markdown/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/cmd/vendor/rsc.io/markdown/LICENSE",
+      "sha256": "2d36597f7117c38b006835ae7f537487207d8ec407aa9d9980794b2030cbc067",
+      "bytes": 1479,
+      "local_file": "f0e8e87ace0986a7593b6050.body"
+    },
+    {
+      "label": "golang/go src/runtime/testdata/testgoroutineleakprofile/goker/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/runtime/testdata/testgoroutineleakprofile/goker/LICENSE",
+      "sha256": "f99df8ae6da6de047ed002d9dbe8682d9a19c88e9a7473abdadf3ac206621a85",
+      "bytes": 1138,
+      "local_file": "d958542a9c35e88b3709da07.body"
+    },
+    {
+      "label": "golang/go src/internal/copyright/copyright_test.go",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/internal/copyright/copyright_test.go",
+      "sha256": "d42b910fe44f043a907002751c5b29c7a17175e6c10ad8c3f5884387e7acab6d",
+      "bytes": 1781,
+      "local_file": "7b7c0eea494ca78ea74a8b28.body"
+    },
+    {
+      "label": "golang/go src/crypto/internal/boring/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/crypto/internal/boring/LICENSE",
+      "sha256": "56210f826b8f0fbac3160dfe55c97f4019eb6cdda3963b5a0eab8a8bdb62360e",
+      "bytes": 9714,
+      "local_file": "64220eeb8ae95c0acc2015f5.body"
+    },
+    {
+      "label": "golang/go src/vendor/golang.org/x/crypto/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/vendor/golang.org/x/crypto/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "4a8ebea9105d436ff6064843.body"
+    },
+    {
+      "label": "golang/go src/vendor/golang.org/x/net/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/vendor/golang.org/x/net/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "dac66152a17ffa0a46ce4332.body"
+    },
+    {
+      "label": "golang/go src/vendor/golang.org/x/sys/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/vendor/golang.org/x/sys/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "97299b55bae37be3a3b2339b.body"
+    },
+    {
+      "label": "golang/go src/vendor/golang.org/x/text/LICENSE",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/vendor/golang.org/x/text/LICENSE",
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad",
+      "bytes": 1453,
+      "local_file": "fefc7ccfdfb029925ef22de3.body"
+    },
+    {
+      "label": "golang/go src/vendor/modules.txt",
+      "url": "https://raw.githubusercontent.com/golang/go/e3336a22ad3f0a90bd252c95d8b5544e02674205/src/vendor/modules.txt",
+      "sha256": "1bfe5d0b8f7a98496c079c194fbf1b25d20a71639fa21f47c7a3a20698b55fb0",
+      "bytes": 807,
+      "local_file": "36380eacfa1a05b6818bec08.body"
+    },
+    {
+      "label": "CPython 2.6 historical license",
+      "url": "https://raw.githubusercontent.com/python/cpython/v2.6/LICENSE",
+      "sha256": "f7a0d9a43d04eade9ecb2f677a617b7c22794355ac49f0b141ab194fb030a64f",
+      "bytes": 13741,
+      "local_file": "a682c3d9d2aa1576b0cc02e2.body"
+    },
+    {
+      "label": "PrefectHQ/fastmcp fastmcp_slim/pyproject.toml",
+      "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/fastmcp_slim/pyproject.toml",
+      "sha256": "fa8227456310150eeafd8fd7e53072ff4bfc4d09d3dd17c4d1ff6f45c8048e5d",
+      "bytes": 2948,
+      "local_file": "074b70724fc59f8b4c611c91.body"
+    }
+  ]
+}

@@ -124,7 +124,7 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 
 已按单独授权完成两个现有镜像的无网络静态取证，容器始终未启动并已清理。SDK 基础层为 Debian 13.7，87 个包归并为 61 个源包版本，版权路径全部可解析；Go 镜像有 17 个 Alpine 包 / 10 个 origin，但 `/usr/share/licenses` 缺失。pip 另有 18 项内嵌依赖，Go 已见 4 个 `src/vendor` 模块；完整工具链与原生捆绑映射仍未闭合。精确版本与待下载来源见[取证记录及分片](../../../../scripts/eval/development_probe/sdk_variant/license-audit-20261031.json)。
 
-下一步仅拟申请有界的官方来源元数据 / 告知下载，先确定源码归档的 URL、摘要和体积，再另报源码下载范围。网络窗口尚未授权，不自动执行；先补证和明确实际交付物，不默认更换依赖、重锁或重建，内部试验与向使用者分发分别判断。
+后续已按明确授权完成[有界来源元数据与告知下载](../../../devlogs/2026-W44.parts/development-sdk-variant-20261031.md#已授权的来源元数据与告知下载)：61 份 Debian `.dsc`、10 份 Alpine 配方、48 份 PyPI 精确发布元数据及上游告知已留存，29 个目标 wheel 摘要全部匹配。Go 源码另外列出 12 个 `cmd/vendor` 模块；CPython 源码发布清单与镜像环境摘要一致，但均不替代实际镜像映射。网络窗口已结束，源码归档未下载。下一步先处理 Debian 签名信任、Alpine 外部来源体积及未闭合的原生 / 告知来源，再按[源码候选清单](../../../../scripts/eval/development_probe/sdk_variant/license-sources-20261031.json)另报有界下载；不默认重锁、重建或允许分发。
 
 ### 原生传输的建议实施范围（待确认）
 

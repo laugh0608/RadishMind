@@ -1,0 +1,487 @@
+{
+  "status": "exact_PyPI_metadata_collected_no_sdist_download",
+  "note": "pip modifies vendored code; upstream sdists do not replace pip exact source. Native build closure remains open.",
+  "items": [
+    {
+      "name": "aiohttp",
+      "version": "3.14.5",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/aiohttp/3.14.5/json",
+        "sha256": "7deb2f0d6dc95c63a2b576236bbe3051f3c0b1d402bd5f59e7619c05684f499a",
+        "bytes": 150263,
+        "local_file": "2691dfd4cce833b10e86c730.body"
+      },
+      "installed_wheel_sha256": "abfda5cb094a829f7bc25216a32f7db2e85cc65bd59910f8e7b40b3d9b224764",
+      "published_wheel_match": [
+        "aiohttp-3.14.5-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "CI: GitHub Actions": "https://github.com/aio-libs/aiohttp/actions?query=workflow%3ACI",
+        "Chat: Matrix": "https://matrix.to/#/#aio-libs:matrix.org",
+        "Chat: Matrix Space": "https://matrix.to/#/#aio-libs-space:matrix.org",
+        "Coverage: codecov": "https://codecov.io/github/aio-libs/aiohttp",
+        "Docs: Changelog": "https://docs.aiohttp.org/en/stable/changes.html",
+        "Docs: RTD": "https://docs.aiohttp.org",
+        "GitHub: issues": "https://github.com/aio-libs/aiohttp/issues",
+        "GitHub: repo": "https://github.com/aio-libs/aiohttp",
+        "Homepage": "https://github.com/aio-libs/aiohttp"
+      },
+      "source_archives": [
+        {
+          "filename": "aiohttp-3.14.5.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/6c/4c/bdccd81e9ee225b69c60e7766c9a5b05364f118f4d383713b89a682d772d/aiohttp-3.14.5.tar.gz",
+          "sha256": "5558a7f5a05af9ecf744af91e5baefc436f93c9333e656c27ec253f9a6bbe178",
+          "bytes": 8078052,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "CacheControl",
+      "version": "0.14.1",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/CacheControl/0.14.1/json",
+        "sha256": "023a0152d49c003a536744652d131d71cf978db715108b5101b8d3bda4b253d4",
+        "bytes": 4992,
+        "local_file": "567ff42c35813974a160ca0e.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Homepage": "https://pypi.org/project/CacheControl/",
+        "Issues": "https://github.com/psf/cachecontrol/issues",
+        "Source": "https://github.com/psf/cachecontrol"
+      },
+      "source_archives": [
+        {
+          "filename": "cachecontrol-0.14.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/d2/23/db12e0b6b241e33f77f7cce01a06b4cc6f8071728656cc0ea262d2a14dad/cachecontrol-0.14.1.tar.gz",
+          "sha256": "06ef916a1e4eb7dba9948cdfc9c76e749db2e02104a9a1277e8b642591a0f717",
+          "bytes": 28928,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "caio",
+      "version": "0.12.10",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/caio/0.12.10/json",
+        "sha256": "c5b40774bb93a571320f9ce1168f3d84bcef6252c6b94f1aea20a852facbb357",
+        "bytes": 41626,
+        "local_file": "c185955a0d7c1d9ea6715166.body"
+      },
+      "installed_wheel_sha256": "93bb3a3f0bd684ac6b559c33a84817395c4d2c75d98dae2b7c40c57acce83737",
+      "published_wheel_match": [
+        "caio-0.12.10-cp312-cp312-manylinux_2_34_aarch64.whl"
+      ],
+      "project_urls": {
+        "Source Code": "https://github.com/mosquito/caio/"
+      },
+      "source_archives": [
+        {
+          "filename": "caio-0.12.10.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/66/66/a36d1367bd5ef70b6b97b2fb502f682106555e9e49e229f35c0a49d154d5/caio-0.12.10.tar.gz",
+          "sha256": "5cecc44c04d5c6291d98b61bdba999f49a7e58dff2d782b4bb0642dc6f7ecf58",
+          "bytes": 84118,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "certifi",
+      "version": "2024.8.30",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/certifi/2024.8.30/json",
+        "sha256": "49f69d7ff112578e33e762bdcf985df034c77f656d3af8ae957557473d774485",
+        "bytes": 6335,
+        "local_file": "ff3b88b0e02971c19e7ae36c.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Homepage": "https://github.com/certifi/python-certifi",
+        "Source": "https://github.com/certifi/python-certifi"
+      },
+      "source_archives": [
+        {
+          "filename": "certifi-2024.8.30.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/b0/ee/9b19140fe824b367c04c5e1b369942dd754c4c5462d5674002f75c4dedc1/certifi-2024.8.30.tar.gz",
+          "sha256": "bec941d2aa8195e248a60b31ff9f0558284cf01a52591ceda73ea9afffd69fd9",
+          "bytes": 168507,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.10.23",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/certifi/2026.10.23/json",
+        "sha256": "546ce90e02c152f5ff565baca6bc2a8f43c355855f637756f49a0143e312bdb2",
+        "bytes": 4631,
+        "local_file": "c84a62dd1d9a040b5908ac34.body"
+      },
+      "installed_wheel_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "published_wheel_match": [
+        "certifi-2026.10.23-py3-none-any.whl"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/certifi/python-certifi",
+        "Source": "https://github.com/certifi/python-certifi"
+      },
+      "source_archives": [
+        {
+          "filename": "certifi-2026.10.23.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/fd/11/b524cbd9bbdaca58608e4cf4053fd463417549e1959fa8d3aa18319f9555/certifi-2026.10.23.tar.gz",
+          "sha256": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd",
+          "bytes": 136225,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "cffi",
+      "version": "2.1.1",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/cffi/2.1.1/json",
+        "sha256": "2255e530e3f80593a354e3d84a29966924d0e10309d1e3a6d50f845ab7d8df66",
+        "bytes": 89333,
+        "local_file": "66280403540d84c2ebc6777a.body"
+      },
+      "installed_wheel_sha256": "68e62fe11f30d5ca8289242866f0a5291402d8529ca2178ab8afc5c9694ae890",
+      "published_wheel_match": [
+        "cffi-2.1.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl"
+      ],
+      "project_urls": {
+        "Changelog": "https://cffi.readthedocs.io/en/latest/whatsnew.html",
+        "Contact": "https://groups.google.com/forum/#!forum/python-cffi",
+        "Documentation": "https://cffi.readthedocs.io/",
+        "Download": "https://github.com/python-cffi/cffi/releases",
+        "Issue Tracker": "https://github.com/python-cffi/cffi/issues",
+        "Source Code": "https://github.com/python-cffi/cffi"
+      },
+      "source_archives": [
+        {
+          "filename": "cffi-2.1.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/9e/ef/008a1939e372c06329a3fce4279c02f328488f3526744906eeec3da7ad5f/cffi-2.1.1.tar.gz",
+          "sha256": "dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be",
+          "bytes": 530807,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/charset-normalizer/3.5.2/json",
+        "sha256": "9fda300857ae6a0486b4cd2d2fec7817ed2d45657249a6dfc0c2bbd1a44267b6",
+        "bytes": 202370,
+        "local_file": "8a7aa50f51ecdf68da148726.body"
+      },
+      "installed_wheel_sha256": "b91363207bd9dc966a691e959bb47f64b30f7ac4b072be9968b366982f7db77c",
+      "published_wheel_match": [
+        "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Changelog": "https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md",
+        "Code": "https://github.com/jawah/charset_normalizer",
+        "Documentation": "https://charset-normalizer.readthedocs.io/",
+        "Issue tracker": "https://github.com/jawah/charset_normalizer/issues"
+      },
+      "source_archives": [
+        {
+          "filename": "charset_normalizer-3.5.2.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/33/1c/f41d4e74c28ab327ff3acd36053f7ea506c55872d7a90b0fa71aa3ab0c89/charset_normalizer-3.5.2.tar.gz",
+          "sha256": "39de2a259fc954455c57274dc94c79d5842774e1247a016aff30bc0efed0f4ef",
+          "bytes": 172659,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "cryptography",
+      "version": "50.0.2",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/cryptography/50.0.2/json",
+        "sha256": "7423990cc0948676ef47a71ea62a476ece4c76245e6bebd1c3a71f03c4ffc0f4",
+        "bytes": 57201,
+        "local_file": "5b31a3bb868fe6a44a4f543b.body"
+      },
+      "installed_wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "published_wheel_match": [
+        "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl"
+      ],
+      "project_urls": {
+        "changelog": "https://cryptography.io/en/latest/changelog/",
+        "documentation": "https://cryptography.io/",
+        "homepage": "https://github.com/pyca/cryptography",
+        "issues": "https://github.com/pyca/cryptography/issues",
+        "source": "https://github.com/pyca/cryptography/"
+      },
+      "source_archives": [
+        {
+          "filename": "cryptography-50.0.2.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/9d/af/182eb91b0df3fe75c4d9f26fe70684569566745f6ba7e5c9c73a862c5252/cryptography-50.0.2.tar.gz",
+          "sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+          "bytes": 880623,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "distlib",
+      "version": "0.3.9",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/distlib/0.3.9/json",
+        "sha256": "e237b1c809ee31d7adc057a6d6302dd9f24e19f4b49e33ffe8fbc2a9a211b94b",
+        "bytes": 7422,
+        "local_file": "2e4035e4ba3f076867a27eea.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Documentation": "https://distlib.readthedocs.io/",
+        "Homepage": "https://github.com/pypa/distlib",
+        "Source": "https://github.com/pypa/distlib",
+        "Tracker": "https://github.com/pypa/distlib/issues"
+      },
+      "source_archives": [
+        {
+          "filename": "distlib-0.3.9.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/0d/dd/1bec4c5ddb504ca60fc29472f3d27e8d4da1257a854e1d96742f15c1d02d/distlib-0.3.9.tar.gz",
+          "sha256": "a60f20dea646b8a33f3e7772f74dc0b2d0772d2837ee1342a00645c81edf9403",
+          "bytes": 613923,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "distro",
+      "version": "1.9.0",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/distro/1.9.0/json",
+        "sha256": "d83d91adebd208c0ce5b969017d4ce5c4ec59ea7d46793c20d36b261325fc236",
+        "bytes": 9058,
+        "local_file": "a236dbecb101a80fb6bf116c.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Homepage": "https://github.com/python-distro/distro"
+      },
+      "source_archives": [
+        {
+          "filename": "distro-1.9.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz",
+          "sha256": "2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed",
+          "bytes": 60722,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "fastmcp-slim",
+      "version": "3.4.11",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/fastmcp-slim/3.4.11/json",
+        "sha256": "0174842bb87a5e1a544f9ba7d9a8b8078e8ff1b9ede84f291171c67f2c5058a0",
+        "bytes": 12257,
+        "local_file": "1ad8ceb89ffb22e505f7dc45.body"
+      },
+      "installed_wheel_sha256": "24535dd843b3dcb3272b86c88fdf6ada5026c39ec5b56e2426557223c4d2c8bf",
+      "published_wheel_match": [
+        "fastmcp_slim-3.4.11-py3-none-any.whl"
+      ],
+      "project_urls": {
+        "Documentation": "https://gofastmcp.com",
+        "Homepage": "https://gofastmcp.com",
+        "Repository": "https://github.com/PrefectHQ/fastmcp"
+      },
+      "source_archives": [
+        {
+          "filename": "fastmcp_slim-3.4.11.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/9d/35/5f61dc70141df213eddff40bb2b8ccf68b02ecd666da6a1efab7c55b5694/fastmcp_slim-3.4.11.tar.gz",
+          "sha256": "50e29b0830fb216aba437f35cfc7dd4bce7451f2f85f8786d6fff3da78d79386",
+          "bytes": 610380,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "fastuuid",
+      "version": "0.14.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/fastuuid/0.14.0/json",
+        "sha256": "6d0fc0cb24c54f9da1e75225686d391d122dc1a54735699891603c5f92699e3c",
+        "bytes": 69275,
+        "local_file": "fd78f0cbedeedb30830ac630.body"
+      },
+      "installed_wheel_sha256": "0c9ec605ace243b6dbe3bd27ebdd5d33b00d8d1d3f580b39fdd15cd96fd71796",
+      "published_wheel_match": [
+        "fastuuid-0.14.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+      ],
+      "project_urls": {
+        "homepage": "https://github.com/thedrow/fastuuid/"
+      },
+      "source_archives": [
+        {
+          "filename": "fastuuid-0.14.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/c3/7d/d9daedf0f2ebcacd20d599928f8913e9d2aea1d56d2d355a93bfa2b611d7/fastuuid-0.14.0.tar.gz",
+          "sha256": "178947fc2f995b38497a74172adee64fdeb8b7ec18f2a5934d037641ba265d26",
+          "bytes": 18232,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/frozenlist/1.8.0/json",
+        "sha256": "b12a7f8b816bfb2a70f2eb97140890efb08a234ab3b75841b0e89e197effa5ad",
+        "bytes": 135862,
+        "local_file": "5ef3392c2221d37e2a875e0e.body"
+      },
+      "installed_wheel_sha256": "96f423a119f4777a4a056b66ce11527366a8bb92f54e541ade21f2374433f6d4",
+      "published_wheel_match": [
+        "frozenlist-1.8.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "CI: Github Actions": "https://github.com/aio-libs/frozenlist/actions",
+        "Chat: Matrix": "https://matrix.to/#/#aio-libs:matrix.org",
+        "Chat: Matrix Space": "https://matrix.to/#/#aio-libs-space:matrix.org",
+        "Code of Conduct": "https://github.com/aio-libs/.github/blob/master/CODE_OF_CONDUCT.md",
+        "Coverage: codecov": "https://codecov.io/github/aio-libs/frozenlist",
+        "Docs: Changelog": "https://github.com/aio-libs/frozenlist/blob/master/CHANGES.rst#changelog",
+        "Docs: RTD": "https://frozenlist.aio-libs.org",
+        "GitHub: issues": "https://github.com/aio-libs/frozenlist/issues",
+        "GitHub: repo": "https://github.com/aio-libs/frozenlist",
+        "Homepage": "https://github.com/aio-libs/frozenlist"
+      },
+      "source_archives": [
+        {
+          "filename": "frozenlist-1.8.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/2d/f5/c831fac6cc817d26fd54c7eaccd04ef7e0288806943f7cc5bbf69f3ac1f0/frozenlist-1.8.0.tar.gz",
+          "sha256": "3ede829ed8d842f6cd48fc7081d7a41001a56f1f38603f9d49bf3020d59a31ad",
+          "bytes": 45875,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.8.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/hf-xet/1.8.0/json",
+        "sha256": "80b2cd269ee7e7907b0565cb2c89733eab049f5263dfaffca608bf6965f0d075",
+        "bytes": 19855,
+        "local_file": "315275d8ce01b4f104adf0f2.body"
+      },
+      "installed_wheel_sha256": "8800e3444770f2c630b361bc6d5c6ebb770b7830646cf632fbb79d0e5bbc9e7f",
+      "published_wheel_match": [
+        "hf_xet-1.8.0-cp38-abi3-manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Documentation": "https://huggingface.co/docs/hub/xet/index",
+        "Homepage": "https://github.com/huggingface/xet-core",
+        "Issues": "https://github.com/huggingface/xet-core/issues",
+        "Repository": "https://github.com/huggingface/xet-core.git"
+      },
+      "source_archives": [
+        {
+          "filename": "hf_xet-1.8.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/2f/18/d91c20f815df6cc496a5d0ad8db6d274dad5c0cfcd59babfa2440a9aba44/hf_xet-1.8.0.tar.gz",
+          "sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+          "bytes": 1013014,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "idna",
+      "version": "3.10",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/idna/3.10/json",
+        "sha256": "f15071fb9e391d76f70954e75f61df172c2e6656a3199c9ddf1d39d9705b597e",
+        "bytes": 15197,
+        "local_file": "b8d79c1e2cbb5a1cdd1e2e14.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://github.com/kjd/idna/blob/master/HISTORY.rst",
+        "Issue tracker": "https://github.com/kjd/idna/issues",
+        "Source": "https://github.com/kjd/idna"
+      },
+      "source_archives": [
+        {
+          "filename": "idna-3.10.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz",
+          "sha256": "12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9",
+          "bytes": 190490,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "jiter",
+      "version": "0.18.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/jiter/0.18.0/json",
+        "sha256": "71f3eb8e067f1e14b6a800d7344222f2af63cc0cf3deaeab23c5a2ba2f73dc17",
+        "bytes": 109207,
+        "local_file": "da40ab6779a7debda2604ed5.body"
+      },
+      "installed_wheel_sha256": "d7424194e68ef44e94290961f59319850d7ce11a329a3957f91709c15ded6618",
+      "published_wheel_match": [
+        "jiter-0.18.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/pydantic/jiter/"
+      },
+      "source_archives": [
+        {
+          "filename": "jiter-0.18.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/63/5b/f68319f4fe624311a744a33d10fdbcac4c971991e348223cba60d31780b2/jiter-0.18.0.tar.gz",
+          "sha256": "a0ca63fd9450a212e4e658d4cfe0ab4977c4f9b0003c68828b843c65e27662ff",
+          "bytes": 234470,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    }
+  ]
+}

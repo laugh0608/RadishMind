@@ -1,0 +1,426 @@
+{
+  "status": "candidate_downloads_blocked_on_signature_trust_and_new_authorization",
+  "scope": "61 exact source groups; .dsc contains build instructions and orig/Debian patch archive hashes; complete corresponding-source delivery not established",
+  "items": [
+    {
+      "source": "acl",
+      "version": "2.3.2-2",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/acl/2.3.2-2/srcfiles",
+        "sha256": "6000857fd5e4a77766ca76c3733379348641d73eb293a5b218208e9c83c04986",
+        "bytes": 274,
+        "local_file": "280918c064802eadfe7da8da.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/a78c0a5e511ee122ba5976bbd7cabeff0fd7cbe6",
+        "sha256": "1f42130ccb5442fe2db2aee1dcc03c51a31512dd2519a38e8fc9270c5abbc807",
+        "bytes": 2604,
+        "local_file": "5160eb808843b7d9ce5d5649.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), debhelper (>= 13.10), autoconf, automake, gettext, libtool, libattr1-dev (>= 1:2.4.46-8)",
+      "files": [
+        {
+          "filename": "acl_2.3.2.orig.tar.xz",
+          "url": "https://snapshot.debian.org/file/2674394a4061791c77d80fd2089a39c3675a5980",
+          "snapshot_sha1": "2674394a4061791c77d80fd2089a39c3675a5980",
+          "sha256": "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd",
+          "bytes": 371680,
+          "kind": "source_or_debian_patch_archive"
+        },
+        {
+          "filename": "acl_2.3.2.orig.tar.xz.asc",
+          "url": "https://snapshot.debian.org/file/884c1cae6bbc52db9deba2f5523f6624df796201",
+          "snapshot_sha1": "884c1cae6bbc52db9deba2f5523f6624df796201",
+          "sha256": "184c6a903490885a096095db67b433a04542c6569f167cbe8115268c0f227273",
+          "bytes": 833,
+          "kind": "signature"
+        },
+        {
+          "filename": "acl_2.3.2-2.debian.tar.xz",
+          "url": "https://snapshot.debian.org/file/a69f6cb6c5eeb21e17debd698968c5c9c03782b6",
+          "snapshot_sha1": "a69f6cb6c5eeb21e17debd698968c5c9c03782b6",
+          "sha256": "e27b6e194c0a7554595d76f96acdceb800631bdc46c36457b73bc7e4a0c5f2ee",
+          "bytes": 24296,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "adduser",
+      "version": "3.152",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/adduser/3.152/srcfiles",
+        "sha256": "87dfbc7c992c8a01f9536298fcb0dd4e5cd611729021288fa5c502389401b043",
+        "bytes": 172,
+        "local_file": "e6a443ceaad2f24cd81906aa.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/bdab140a97be1a3e233bb499af126b6b6ff781ea",
+        "sha256": "5ad23648a879d006e7a57d351720d4cbbbe3fb5e274ea52beb4f619896b9d520",
+        "bytes": 1678,
+        "local_file": "74f3ad42aff7657ebe3fe8a4.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), po4a",
+      "files": [
+        {
+          "filename": "adduser_3.152.tar.xz",
+          "url": "https://snapshot.debian.org/file/1f7740730d3efc9b2346155b0412a4dc9982106f",
+          "snapshot_sha1": "1f7740730d3efc9b2346155b0412a4dc9982106f",
+          "sha256": "484cdde2d48053be40657b564375469fc577e89f3b984b01aed247b6081355b8",
+          "bytes": 334252,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "apt",
+      "version": "3.0.3",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/apt/3.0.3/srcfiles",
+        "sha256": "4450bb59b6c055d29223591675a8879a85904154215dc87f5262856c98c26c69",
+        "bytes": 168,
+        "local_file": "f8d146f136886322bc65f976.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/75cc2d8a7adec664f1b1058dcab263372da25df5",
+        "sha256": "ccf1666e5b268d76bf62aafb22db089a2fdae9c17d1d1c446546b3621768add7",
+        "bytes": 3091,
+        "local_file": "16c9ee8fb97f85dde393b981.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "dpkg-dev (>= 1.22.5) <!pkg.apt.ci>, cmake (>= 3.4), debhelper-compat (= 12), docbook-xml <!nodoc>, docbook-xsl <!nodoc>, dpkg-dev (>= 1.20.8), gettext (>= 0.12), googletest <!nocheck> | libgtest-dev <!nocheck>, libbz2-dev, libdb-dev, libssl-dev, liblz4-dev (>= 0.0~r126), liblzma-dev, libseccomp-dev (>= 2.4.2) [amd64 arm64 armel armhf i386 mips mips64el mipsel ppc64el s390x hppa powerpc powerpcspe ppc64 x32], libsystemd-dev [linux-any], libudev-dev [linux-any], libxxhash-dev (>= 0.8), libzstd-dev (>= 1.0), ninja-build, pkg-config, po4a (>= 0.34-2) <!nodoc>, sqv (>= 1.3.0) [amd64 arm64 armel armhf i386 mips64el ppc64el riscv64 s390x hurd-amd64 hurd-i386 loong64 powerpc ppc64 sparc64] <!pkg.apt.nosqv> | gpgv, triehash, xsltproc <!nodoc>, zlib1g-dev",
+      "files": [
+        {
+          "filename": "apt_3.0.3.tar.xz",
+          "url": "https://snapshot.debian.org/file/d5db7bec0f62e2ef71d140c17977e6153bb2d09b",
+          "snapshot_sha1": "d5db7bec0f62e2ef71d140c17977e6153bb2d09b",
+          "sha256": "5b5f6f6d26121742a83aa80d4ed0eb0c6ce9bea259518db412edefd95760e4ef",
+          "bytes": 2422096,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "attr",
+      "version": "1:2.5.2-3",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/attr/1%3A2.5.2-3/srcfiles",
+        "sha256": "202476f2d86188a96d7ed953b7a91120e5d315709c00e64ca4d55ed3358ef010",
+        "bytes": 277,
+        "local_file": "76d4eb0846d11e52e52e67a5.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/cd31cdd7a10abf9f6edd5a3050bed9eaf4cd4c9d",
+        "sha256": "c2ae3e15db059029030ddf4fdac179d8f90d423f2310a6ef8c745ba28ac18b0a",
+        "bytes": 2576,
+        "local_file": "a050e08ee22327e3c2814e0b.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), debhelper (>= 13.10), autoconf, automake, gettext, libtool",
+      "files": [
+        {
+          "filename": "attr_2.5.2.orig.tar.xz",
+          "url": "https://snapshot.debian.org/file/dfced877779583861401389eea82dfeb88cb5d3a",
+          "snapshot_sha1": "dfced877779583861401389eea82dfeb88cb5d3a",
+          "sha256": "f2e97b0ab7ce293681ab701915766190d607a1dba7fae8a718138150b700a70b",
+          "bytes": 334180,
+          "kind": "source_or_debian_patch_archive"
+        },
+        {
+          "filename": "attr_2.5.2.orig.tar.xz.asc",
+          "url": "https://snapshot.debian.org/file/eee0e22675431900d88d16eab9d76c122cffb89e",
+          "snapshot_sha1": "eee0e22675431900d88d16eab9d76c122cffb89e",
+          "sha256": "eeac729088d3c6379e91b7596cb3582e46b047c47f0fa3c5c77f9c9e84dc3a4c",
+          "bytes": 833,
+          "kind": "signature"
+        },
+        {
+          "filename": "attr_2.5.2-3.debian.tar.xz",
+          "url": "https://snapshot.debian.org/file/9f7fbe109938c86fa973dae5e77f3bda24d0574c",
+          "snapshot_sha1": "9f7fbe109938c86fa973dae5e77f3bda24d0574c",
+          "sha256": "153f98c87575277ea021e24dae36293b7738699174438a2060b47e8312b771e3",
+          "bytes": 32260,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "audit",
+      "version": "1:4.0.2-2+deb13u1",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/audit/1%3A4.0.2-2%2Bdeb13u1/srcfiles",
+        "sha256": "96ded5202e5b8b3815fbc03cfefed0d3bbe013b8bd87230223d4552dafe9627d",
+        "bytes": 234,
+        "local_file": "68a7821a2d52189847359b1f.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/f318926afbbfa4cc8f96188d7907199116567d72",
+        "sha256": "f72198219d4a50967e328a143c9c0a7ba981c8f3790b2880465b8a80ac33850e",
+        "bytes": 2761,
+        "local_file": "8ced3fac9e594303b06615a1.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "dpkg-dev (>= 1.22.5), debhelper-compat (= 13), dh-python <!nopython>, libcap-ng-dev, libkrb5-dev, libldap2-dev <!pkg.audit.noldap>, libwrap0-dev, linux-libc-dev (>= 5.9~), python3-all-dev:any <!nopython>, libpython3-all-dev <!nopython>, swig",
+      "files": [
+        {
+          "filename": "audit_4.0.2.orig.tar.gz",
+          "url": "https://snapshot.debian.org/file/fcb0bdecdaa649d1e688196713a824c332f37d65",
+          "snapshot_sha1": "fcb0bdecdaa649d1e688196713a824c332f37d65",
+          "sha256": "d5d1b5d50ee4a2d0d17875bc6ae6bd6a7d5b34d9557ea847a39faec531faaa0a",
+          "bytes": 1198769,
+          "kind": "source_or_debian_patch_archive"
+        },
+        {
+          "filename": "audit_4.0.2-2+deb13u1.debian.tar.xz",
+          "url": "https://snapshot.debian.org/file/65bf7227fb8ee21bdbdf6d9493ad0ceb6a25acc4",
+          "snapshot_sha1": "65bf7227fb8ee21bdbdf6d9493ad0ceb6a25acc4",
+          "sha256": "ab39cb2d6dc6b0440da37f085b643dffc86d8cc5370b5cc6502d36b53edaa862",
+          "bytes": 25008,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "base-files",
+      "version": "13.8+deb13u7",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/base-files/13.8%2Bdeb13u7/srcfiles",
+        "sha256": "d38a6ca58938cbbe3bd50b6ecae421f2bbaf66dd22c5f8288a7ea887676f9c58",
+        "bytes": 182,
+        "local_file": "cf7e92306f0537e4b1f9a4fe.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/09c6e9bef6e1c0234e4cd91d2a7ac5d52f6dc8b3",
+        "sha256": "6240b5a02fc32bd6d925bb7776e00c467e80d930f8cf3c4a20c299ce692dc7e4",
+        "bytes": 1247,
+        "local_file": "11e45178edd37bc3a309e590.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), debhelper (>= 13.10~)",
+      "files": [
+        {
+          "filename": "base-files_13.8+deb13u7.tar.xz",
+          "url": "https://snapshot.debian.org/file/967e7c01534a5ffee64590239c8c22371619c1aa",
+          "snapshot_sha1": "967e7c01534a5ffee64590239c8c22371619c1aa",
+          "sha256": "be32803b9408ac9aa46b96f68c83ee45e88d04d89854a87999986efc4cb34c69",
+          "bytes": 83444,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "base-passwd",
+      "version": "3.6.7",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/base-passwd/3.6.7/srcfiles",
+        "sha256": "7f750b1930800487eeba1261a01ec6098d45148e86caf3a75531f4f9dddd3049",
+        "bytes": 176,
+        "local_file": "1054570d4ec1ff1070ebb4c5.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/c9a3fe0b6da25cfac124b9ace5c5882606f9235b",
+        "sha256": "23dafe71f85d7595d9e20efba17729c1c975a33bd469cf09bfad9e96b1f542f3",
+        "bytes": 1891,
+        "local_file": "16baace657d1b150eb850db4.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), docbook <!nodoc>, docbook-utils <!nodoc>, libdebconfclient0-dev, libselinux1-dev [linux-any], po4a",
+      "files": [
+        {
+          "filename": "base-passwd_3.6.7.tar.xz",
+          "url": "https://snapshot.debian.org/file/96b8461fab82edcbd97e75db607c4c134b40e990",
+          "snapshot_sha1": "96b8461fab82edcbd97e75db607c4c134b40e990",
+          "sha256": "cf869870fed7862b57bfa9e99cd5cd6f365e2349705a1b65af7fc182629bd1ab",
+          "bytes": 60872,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "bash",
+      "version": "5.2.37-2",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/bash/5.2.37-2/srcfiles",
+        "sha256": "c4fc87f4c8be2439118effc4f858c05a1daba9adae5252a3a0777faa2f407210",
+        "bytes": 224,
+        "local_file": "ad32a6a64ab4af3a65954b76.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/d32750d217c43dabc3b63b1d6431071e6cd506dc",
+        "sha256": "7e5f6d5a26093e812f8841d5cf3245054102e86986017d8edd859417b03707f9",
+        "bytes": 2162,
+        "local_file": "b49223f045c04de58e9e7459.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "autoconf, autotools-dev, bison, libncurses5-dev, texinfo, texi2html, debhelper (>= 11), gettext, sharutils, locales <!nocheck>, time <!nocheck>, xz-utils",
+      "files": [
+        {
+          "filename": "bash_5.2.37.orig.tar.xz",
+          "url": "https://snapshot.debian.org/file/cf4da6fb3798f10b9510ab13fc69a5a9bf75e86e",
+          "snapshot_sha1": "cf4da6fb3798f10b9510ab13fc69a5a9bf75e86e",
+          "sha256": "370704c9c859f4060b7df19055e43bb9b5fa09d887699cf6ba87885c5485d36a",
+          "bytes": 5600932,
+          "kind": "source_or_debian_patch_archive"
+        },
+        {
+          "filename": "bash_5.2.37-2.debian.tar.xz",
+          "url": "https://snapshot.debian.org/file/a1af1bbde88b868738d336b2804dbbe72cebe648",
+          "snapshot_sha1": "a1af1bbde88b868738d336b2804dbbe72cebe648",
+          "sha256": "42e03ef523258b61fa765b8c9719d7bf461f2a274260d07fbe45ca7e4627923a",
+          "bytes": 88360,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "bzip2",
+      "version": "1.0.8-6",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/bzip2/1.0.8-6/srcfiles",
+        "sha256": "8f06219653c5f2d43cdb7ba3d90e99d1ccad700a959a8eb80c68d97177d0e19f",
+        "bytes": 224,
+        "local_file": "7452cbc8a15dc077f7f47bb3.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/d6f4c6bc376a703658ee6a6811c4e876944c3f13",
+        "sha256": "cd3bfd77254a6b5ef1be144bdc90a0dd374bc8206afd98ba4abf828741b79820",
+        "bytes": 1604,
+        "local_file": "ad5176c5309f0651eae1085a.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13)",
+      "files": [
+        {
+          "filename": "bzip2_1.0.8.orig.tar.gz",
+          "url": "https://snapshot.debian.org/file/bf7badf7e248e0ecf465d33c2f5aeec774209227",
+          "snapshot_sha1": "bf7badf7e248e0ecf465d33c2f5aeec774209227",
+          "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+          "bytes": 810029,
+          "kind": "source_or_debian_patch_archive"
+        },
+        {
+          "filename": "bzip2_1.0.8-6.debian.tar.bz2",
+          "url": "https://snapshot.debian.org/file/339a767cb2f05ec32402bae7269d98fd14413428",
+          "snapshot_sha1": "339a767cb2f05ec32402bae7269d98fd14413428",
+          "sha256": "648ed0dac9a041ba6951e0cca521628aa39947cefee78139f7b934a5dc502095",
+          "bytes": 26991,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "ca-certificates",
+      "version": "20250419+deb13u1",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/ca-certificates/20250419%2Bdeb13u1/srcfiles",
+        "sha256": "542123809474134555910b36b6c7e2bd04cb1f0a5401296d5265d54fb09194c0",
+        "bytes": 191,
+        "local_file": "135fb0be1cc8a2c9df92e33d.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/44effdeab045b9b4749c3e21df2308a2ef7587ee",
+        "sha256": "347487e99c0b9f09150c8d78ad03e3552545c3904d5e0d7f731ef2ef79d484d4",
+        "bytes": 1924,
+        "local_file": "1852d09dac1edf778db32d8a.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), po-debconf",
+      "files": [
+        {
+          "filename": "ca-certificates_20250419+deb13u1.tar.xz",
+          "url": "https://snapshot.debian.org/file/9cb42f4ec253537eabfaafcd81dfdb7264810b0f",
+          "snapshot_sha1": "9cb42f4ec253537eabfaafcd81dfdb7264810b0f",
+          "sha256": "1b2e3d0b90cfc62ac8033d64e18ea4649fbb2a01c937c9ac9d36e762da6b9446",
+          "bytes": 277284,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "cdebconf",
+      "version": "0.280",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/cdebconf/0.280/srcfiles",
+        "sha256": "14bb4fa508e435f65f7a73a18731d464b5dc486c0dfd7e9ba2fab3bb359c5fdd",
+        "bytes": 173,
+        "local_file": "a8c56f9ecab3796679ba5573.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/94a37e191c3df033a9ae39bfbe6d7acd11c8d996",
+        "sha256": "36cdaa45fca445d2164fbdd81faad9918d748fa703678d8af237354d5744b1d1",
+        "bytes": 2703,
+        "local_file": "e06527b55e76298d50d0ea9c.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "debhelper-compat (= 13), po-debconf, libslang2-dev, libnewt-dev, libtextwrap-dev, libreadline-dev (>= 8.1.2-1.1), libdebian-installer4-dev | libdebian-installer-dev, libglib2.0-dev, libgtk2.0-dev <!pkg.cdebconf.nogtk>, libcairo2-dev <!pkg.cdebconf.nogtk>, libselinux1-dev [linux-any] | libselinux-dev [linux-any], dh-autoreconf, dh-exec",
+      "files": [
+        {
+          "filename": "cdebconf_0.280.tar.xz",
+          "url": "https://snapshot.debian.org/file/eaddf7a38a41aa060d81a5cdf659561d1ab0a4e3",
+          "snapshot_sha1": "eaddf7a38a41aa060d81a5cdf659561d1ab0a4e3",
+          "sha256": "c42115131939845e452a323ceded937efad3b2e3e1b80a1a186f9d5c494a43a2",
+          "bytes": 286132,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    },
+    {
+      "source": "coreutils",
+      "version": "9.7-3",
+      "index": {
+        "url": "https://snapshot.debian.org/mr/package/coreutils/9.7-3/srcfiles",
+        "sha256": "5ca67d11b189176b18f980e9b7b004c0f5b57075ac8d7df634644ded44229d8a",
+        "bytes": 278,
+        "local_file": "8c352096a386eed109a31b99.body"
+      },
+      "dsc": {
+        "url": "https://snapshot.debian.org/file/8cab01ea1c688c66c5b76274f92f6a36d27aba71",
+        "sha256": "c3a207e3aaad165765c7a6fab89045f5fd20035fea6830b9f9ebbb92ebfbff89",
+        "bytes": 2122,
+        "local_file": "9b609042b6e329960b6d58eb.body"
+      },
+      "snapshot_sha1_verified": true,
+      "signature_verified": false,
+      "build_depends": "gettext (>= 0.10.37), debhelper-compat (= 13), texinfo (>= 4.2) <!nodoc>, libattr1-dev [linux-any], libacl1-dev [linux-any], libselinux1-dev (>= 1.32) [linux-any], gperf, bison, libgmp3-dev, libssl-dev, libsystemd-dev",
+      "files": [
+        {
+          "filename": "coreutils_9.7.orig.tar.xz",
+          "url": "https://snapshot.debian.org/file/920791e12e7471479565a066e116a087edcc0df9",
+          "snapshot_sha1": "920791e12e7471479565a066e116a087edcc0df9",
+          "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+          "bytes": 6158960,
+          "kind": "source_or_debian_patch_archive"
+        },
+        {
+          "filename": "coreutils_9.7.orig.tar.xz.asc",
+          "url": "https://snapshot.debian.org/file/10ba8173099a993fdb9cac8a7a3042b455ce54f5",
+          "snapshot_sha1": "10ba8173099a993fdb9cac8a7a3042b455ce54f5",
+          "sha256": "5070e9428bd372a7fa1f66b395b81092bb40c98f9f56a2e2bc55c47fd387e901",
+          "bytes": 833,
+          "kind": "signature"
+        },
+        {
+          "filename": "coreutils_9.7-3.debian.tar.xz",
+          "url": "https://snapshot.debian.org/file/850e25c476de51e09af13540425ec42669d0a210",
+          "snapshot_sha1": "850e25c476de51e09af13540425ec42669d0a210",
+          "sha256": "483f77876a080577f63da1d004cc1cf17d16df65d6925aefdd3294c6101eccfb",
+          "bytes": 26820,
+          "kind": "source_or_debian_patch_archive"
+        }
+      ]
+    }
+  ]
+}
