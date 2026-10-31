@@ -4,7 +4,7 @@
 
 ## 当前交付方向
 
-当前主线是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；Docker 与独立用户试用仍待完成。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
+当前主线是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制及备份迁移已验收；独立用户试用仍待完成。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
 
 ## 这份文档讲什么
 
@@ -388,9 +388,9 @@ docker compose -f deploy/docker-compose.local.yaml down
 
 ## 当前还不能算完成的能力
 
-- 本机持久工作台的统一入口、配置、首次进入与整体恢复验收；新规划尚未成为可运行交付。
+- 本机持久工作台的独立用户首次与持续使用验收；宿主机和 `linux/arm64` 容器已有实际技术证据，Windows PowerShell 与 `linux/amd64` 容器仍未验收。
 - 真实模型的任务效果、独立用户使用收益和真实提供方故障回退。
-- 正式产品 Web 的完整部署包、镜像发布、生产密钥后端、进程监管、环境隔离与目标环境恢复演练。
+- 正式产品 Web 的共享 / 生产部署包、镜像发布、生产密钥后端、进程监管、环境隔离与目标环境恢复演练；本机工作台镜像不代表这些条件成立。
 - 真实 Radish OIDC 联调、生产认证、生产 API 密钥 / 配额 / 计费；本地身份和成员能力已有开发测试实现。
 - 通用 durable checkpoint、长期记忆和恢复执行；应用 Session / Turn、显式结果资产和领域审计已有持久化。
 - 图片真实后端、引用解析、生产存储、public URL 与 HTTP / Gateway / Web 交付；固定响应 adapter、二进制交付和私有存储协调已实现。

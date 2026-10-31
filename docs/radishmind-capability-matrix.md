@@ -12,7 +12,7 @@
 
 | 能力 | 开发测试态实现与证据 | 仍未成立或未完成 | 权威专题 |
 | --- | --- | --- | --- |
-| 本机持久工作台 | 已实现统一运行档、启动命令、同源 Web / 公开配置、显式身份初始化、冷备份 / 升级 / 新目录恢复；复用既有领域与 SQL；2026-10-31 宿主机 Chrome 完成 Prompt / Workflow、显式保存、冷重启与新目录恢复 | 容器实际运行、Windows PowerShell、独立用户持续使用与真实模型效果尚未验收 | [交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md) |
+| 本机持久工作台 | 已实现统一运行档、启动命令、同源 Web / 公开配置、显式身份初始化、冷备份 / 升级 / 新目录恢复；复用既有领域与 SQL；2026-10-31 宿主机 Chrome 完成 Prompt / Workflow、显式保存、冷重启与新目录恢复，`linux/arm64` 容器构建 / 运行、挂载限制及容器与宿主机备份迁移通过 | `linux/amd64` 容器、Windows PowerShell、独立用户持续使用与真实模型效果尚未验收 | [交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md) |
 | Workflow 草案与定义 | v1 / v2 网页创建、有序合同编辑、保存 / 历史恢复、Definition 派生与两版运行审查；晋级选择隔离、冲突重读及 Case / Suite 交接已通过双语隔离验收 | 新增局部设计未登记项目所有者视觉批准；独立用户使用和真实模型质量未验收。任意节点执行、通用 replay、自动 release 与业务写回仍关闭 | [Workflow](features/workflow/README.md) |
 | 应用工作区 | 配置、Prompt / Agent 档案、Prompt 结构化输出契约网页编辑与审查、调用 / Session 结构化变量输入与四项失败恢复修复（双语隔离验收通过）、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
 | 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已通过无服务、双语连续交互与三视口浏览器验收；Workflow v2 表单 / JSON 单一状态、显式采用 Definition 引用与确认失效已完成双语隔离验收 | 跨计划版本批次配对不受支持。真实模型答案质量与用户耗时收益尚无结论；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
@@ -25,7 +25,7 @@
 | 持久化与审计 | memory / SQLite / PostgreSQL 开发测试仓储、migration、CAS、scope、no fallback 与重启测试 | 生产数据库资源与运行验收；production secret backend 的 audit store 未因应用审计完成而成立 | [SQLite](platform/local-sqlite-dev-persistence-v1.md)、[运行手册](platform/platform-service-operations-runbook-v1.md) |
 | UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；十三组双语浏览器回归本地 100/100 通过，保留为本地按需入口，退出 PR / Release 门禁；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 远端暴露的 RAG 请求标识碰撞已修复并通过四组本地中英 44/44 复验，未重跑远端 CI；浏览器覆盖仅限 Chromium 中已登记的流程与状态，固定响应不代表真实模型质量；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
 | Web 中英界面 | 登记的现有可达范围内 A 至 F 完成；F 最终结果证据 24 次、基础 Prompt / Workflow 44 次、离线投影 8 次通过，519 项单测与覆盖率、原构建预算和最终仓库门禁通过，环境已清理；证据见 [2026-W41](devlogs/2026-W41.md) | 保持内部开发者预览；记录原文与协议值不翻译，F 阶段分窗口证据与后续十三组本地全量分别记录，不含真实模型质量或生产验收 | [中英国际化](features/web-internationalization-zh-en-v1.md) |
-| 部署与运维 | 本地 Console、启动入口、Docker 静态边界和历史本地容器 smoke | production secret、环境隔离、process supervisor、产品 Web 正式包装、真实镜像发布和恢复演练 | [部署说明](../deploy/README.md) |
+| 部署与运维 | 本地 Console、启动入口、Docker 静态边界；工作台 `linux/arm64` 构建 / 运行、挂载限制及备份迁移通过 | production secret、环境隔离、process supervisor、产品 Web 生产包装、镜像发布与目标环境恢复演练 | [部署说明](../deploy/README.md) |
 | 模型适配 | 原始 / 修复双轨、小规模 holdout 和 builder 审查记录 | raw 晋级、训练准入、稳定业务收益和生产模型声明 | [训练目录](../training/README.md) |
 | 外部业务接入 | RadishFlow / Radish 的协议、样例、candidate 与离线回归证据；Catalyst 文档预留 | 真实挂载点与验收环境未齐备，不建立模拟接入完成声明 | [集成入口](integrations/README.md) |
 

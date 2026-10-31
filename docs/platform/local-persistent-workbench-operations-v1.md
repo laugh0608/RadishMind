@@ -2,7 +2,7 @@
 
 更新时间：2026-10-31
 
-状态：命令、配置、Web 接线和运维实现已完成；2026-10-31 宿主机 Chrome 的首次使用、Prompt / Workflow、显式保存、冷重启与新目录恢复已完成固定响应验收，证据见 [W44 周志](../devlogs/2026-W44.md#2026-10-31-宿主机工作台验收与修复)。Docker 实际运行、Windows PowerShell 和独立用户试用尚未验收；真实模型窗口继续暂停。
+状态：命令、配置、Web 接线和运维实现已完成；2026-10-31 宿主机 Chrome 的首次使用、Prompt / Workflow、显式保存、冷重启与新目录恢复已完成固定响应验收，证据见 [W44 周志](../devlogs/2026-W44.md#2026-10-31-宿主机工作台验收与修复)。另行授权的 `linux/arm64` Docker 构建 / 运行、挂载限制、重启及容器与宿主机备份迁移也已通过技术验收，见 [Docker 验收记录](../devlogs/2026-W44.md#2026-10-31-docker-工作台交付验收)。`linux/amd64`、Windows PowerShell 和独立用户试用尚未验收；真实模型窗口继续暂停。
 
 范围与停止线见[交付专题](../features/user-workspace/local-persistent-workbench-delivery-v1.md)。工作台只面向回环地址上的内部开发者预览，使用既有本地 Session 和 SQLite。Prompt 与基本 Workflow 共用同一配置；旧开发入口、PostgreSQL 和生产门禁保持各自边界。
 
@@ -105,7 +105,7 @@ cp deploy/workbench-docker.example.json deploy/workbench/platform.json
 cp deploy/.env.workbench.example deploy/.env.workbench
 ```
 
-编辑 `.env.workbench`，将 `RADISHMIND_WORKBENCH_BUILD_VERSION` 设为本次源代码提交标识；有未提交修改时附加 `-dirty`，默认 `local-workbench-unversioned` 只表示未标识构建。再使 UID / GID 与准备好的目录所有者一致，例如使用 `id -u` / `id -g` 的结果；不要直接照抄 `10001` 后放宽所有目录权限。运行用户需能读取配置 / 凭据并写入数据与备份目录。目录缺失不会被 Compose 自动创建；权限错误停止，由用户修正目录，不自动递归改所有者。
+编辑 `.env.workbench`，将 `RADISHMIND_WORKBENCH_BUILD_VERSION` 设为本次源代码提交标识；有未提交修改时附加 `-dirty`，默认 `local-workbench-unversioned` 只表示未标识构建。隔离验收时使用独立项目名 `-p <本次项目名>`，避免接管已有工作台；挂载路径建议填写绝对路径，相对路径按 Compose 文件所在目录解析。再使 UID / GID 与准备好的目录所有者一致，例如使用 `id -u` / `id -g` 的结果；不要直接照抄 `10001` 后放宽所有目录权限。运行用户需能读取配置 / 凭据并写入数据与备份目录。目录缺失不会被 Compose 自动创建；权限错误停止，由用户修正目录，不自动递归改所有者。
 
 ```bash
 docker compose --env-file deploy/.env.workbench -f deploy/docker-compose.workbench.yaml config --quiet
@@ -123,7 +123,7 @@ docker compose --env-file deploy/.env.workbench -f deploy/docker-compose.workben
 docker compose --env-file deploy/.env.workbench -f deploy/docker-compose.workbench.yaml up --no-build
 ```
 
-根文件系统只读，只有数据目录和临时目录可写；配置 / 凭据只读挂载。容器非 root、无额外 capability、不自动重启，停止宽限期为 30 秒，日志有界。健康检查不调用模型，只证明服务已通过启动检查并回应 `/healthz`。实际 amd64 / arm64 运行、停止回收和挂载权限仍需逐项验收。
+根文件系统只读，只有数据目录和临时目录可写；配置 / 凭据只读挂载。容器非 root、无额外 capability、不自动重启，停止宽限期为 30 秒，日志有界。健康检查不调用模型，只证明服务已通过启动检查并回应 `/healthz`。2026-10-31 已实际验证本机 `linux/arm64` 构建 / 运行、正常停止、挂载权限与只读限制；`linux/amd64` 仍待实际验收。健康检查通过不能代替 Prompt / Workflow 执行、显式结果保存或独立用户验收。
 
 ## Docker 备份与载体迁移
 

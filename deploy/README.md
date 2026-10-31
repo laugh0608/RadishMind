@@ -4,9 +4,9 @@
 
 ## 当前交付范围
 
-旧 Compose 继续面向 Platform 与 Console 的开发 / 验证。新增 `Dockerfile.workbench`、`docker-compose.workbench.yaml`、`.env.workbench.example` 和宿主机 / Docker JSON 样例，按[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)使用同一运行档。Compose 静态检查已通过，镜像构建、容器启动、挂载权限与停止恢复尚未实际验收；不声明生产就绪。
+旧 Compose 继续面向 Platform 与 Console 的开发 / 验证。新增 `Dockerfile.workbench`、`docker-compose.workbench.yaml`、`.env.workbench.example` 和宿主机 / Docker JSON 样例，按[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)使用同一运行档。Compose 静态检查及 2026-10-31 `linux/arm64` 镜像构建、容器启动、挂载限制、停止重启和容器与宿主机备份迁移已通过固定响应验收；`linux/amd64`、独立用户使用和共享交付仍未验收，不声明生产就绪。
 
-已新增独立工作台 Compose：一个包含 Go、Python 与正式 Web 的服务，默认只映射 `127.0.0.1:4100`，配置 / 凭据只读挂载，SQLite 数据目录持久保留；初始化、升级和恢复是显式离线动作。复用宿主机运行档，不照搬 Radish 的多库与多服务拓扑。镜像构建、容器启动、共享环境和发布仍需实际验证及对应授权，不把下文旧 Console 命令当成新工作台入口。
+已新增独立工作台 Compose：一个包含 Go、Python 与正式 Web 的服务，默认只映射 `127.0.0.1:4100`，配置 / 凭据只读挂载，SQLite 数据目录持久保留；初始化、升级和恢复是显式离线动作。复用宿主机运行档，不照搬 Radish 的多库与多服务拓扑。后续镜像构建与容器服务窗口仍需各自授权；共享环境和发布未验证，不把下文旧 Console 命令当成新工作台入口。
 
 ## 目录职责
 
@@ -24,7 +24,7 @@
 
 ### `host_dev`
 
-本节保留旧 Console 的宿主机运行路径；正式产品 Web 的现有开发入口见[项目指南](../docs/radishmind-project-guide.md#37-运行产品-ui-shell开发测试态)，统一持久工作台尚未交付：
+本节保留旧 Console 的宿主机运行路径；正式产品 Web 的现有开发入口见[项目指南](../docs/radishmind-project-guide.md#37-运行产品-ui-shell开发测试态)，统一持久工作台按上方运行指南使用，独立用户验收仍待完成：
 
 macOS / Linux / WSL 使用：
 

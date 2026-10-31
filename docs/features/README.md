@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-项目所有者在全项目复审后批准[本机持久工作台交付 v1](user-workspace/local-persistent-workbench-delivery-v1.md)为当前主线。首轮整合正式 Web、启动配置、本地身份与 SQLite、Prompt / Workflow 运行、结果显式保存和重启恢复。实施范围已确认，统一运行档、命令、Web 接线与冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；Docker 实际运行和独立用户验收仍待完成。操作见[运行指南](../platform/local-persistent-workbench-operations-v1.md)。
+项目所有者在全项目复审后批准[本机持久工作台交付 v1](user-workspace/local-persistent-workbench-delivery-v1.md)为当前主线。首轮整合正式 Web、启动配置、本地身份与 SQLite、Prompt / Workflow 运行、结果显式保存和重启恢复。实施范围已确认，统一运行档、命令、Web 接线与冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制与备份迁移已验收，独立用户验收仍待完成。操作见[运行指南](../platform/local-persistent-workbench-operations-v1.md)。
 
 后续先取得真实任务效果证据，再按需求选择共享交付或业务接入；跨版本回归审查改为候选。阶段条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)，下一动作与授权边界见[当前推进焦点](../radishmind-current-focus.md)。真实模型试用继续暂停。
 
