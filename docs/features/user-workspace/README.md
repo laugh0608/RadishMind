@@ -35,13 +35,17 @@
 - [应用发布治理与晋级审查 v1](application-publish-governance-promotion-v1.md)：已完成不可变候选版本、版本绑定、审查 CAS、漂移识别、阻塞式晋级资格判断，以及既有接入区、调试台和请求历史交接；不直接发布正式应用。
 - [应用运行观测与用量归因 v1](application-operations-observability-usage-attribution-v1.md)：已完成应用作用域 Gateway Request History 与 Workflow Run History 的独立来源覆盖、当前窗口归因摘要和合并时间线；2026-08-19 后续准入评审为 `no_entry`，不启动跨页 summary，也不推测跨来源关联或估算 token、成本、配额、计费。
 
+## Agent 协作开发设计
+
+[多 Agent 协同与受控软件开发团队](../workflow/controlled-software-development-team-v1.md)已纳入下一功能设计，正式 Web 拟提供团队、计划确认、任务 / 群聊与交付审阅。运行与隔离合同由 Workflow / Agent Runtime 主专题负责，本目录不另建平行团队状态；当前没有新页面或可执行入口。
+
 ## 下一步
 
 [本机持久工作台](local-persistent-workbench-delivery-v1.md)的启动、配置、数据、身份、Docker 资产与恢复实现已提交；2026-10-31 已按明确运行授权完成宿主机主链、冷重启与新目录恢复验收，所属进程已清理；另行授权的 `linux/arm64` Docker 构建 / 运行、挂载限制和容器与宿主机备份迁移也已验收并清理；独立用户试用仍待安排。Prompt 与 Workflow 共用交付基础，保留各自运行规则；真实模型质量另在恢复窗口后验证。
 
 已完成的应用、会话、结果、评测、调度与授权专题继续作为实现事实源。技术交付需要的修正回写对应专题，不重新建立平行领域模块，不为每个普通步骤追加任务卡或检查器。
 
-跨版本批次审查、跨页服务端汇总、长期记忆、Agent 循环和生产能力不因本次交付自动进入。候选的触发依据见[路线图](../../radishmind-roadmap.md#后续开发方向2026-10-26)；应用运行观测后续仍为 `no_entry`。
+受控软件开发团队按明确选择进入阶段 0 设计，尚未开始实施；跨版本批次审查、跨页服务端汇总、长期记忆、通用 Agent 循环和生产能力不因本次规划自动进入。候选的触发依据见[路线图](../../radishmind-roadmap.md#后续开发方向2026-10-26)；应用运行观测后续仍为 `no_entry`。
 
 ## 目录停止线
 

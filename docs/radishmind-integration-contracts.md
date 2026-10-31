@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-08-30
+更新时间：2026-10-31
 
 ## 文档目的
 
@@ -138,6 +138,12 @@
 - `workflow-execution-plan-preview-offline-v1` 已固定为 `workflow_execution_plan_preview_offline_defined`，仍属于离线产品面，不新增跨项目私有协议，也不要求 `RadishFlow` 或 `Radish` 先提供真实挂载点。它只展示 selected draft 派生的 execution plan preview、stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates 和 blocked runtime / publish / writeback / replay reasons；不实现 execution plan persistence、runtime API、executor、confirmation decision、business writeback、replay、真实数据库、Radish OIDC 或 production API consumer。
 - `workflow-runtime-readiness-inspector-offline-v1` 已固定为 `workflow_runtime_readiness_inspector_offline_defined`，仍属于离线产品面，不新增跨项目私有协议，也不要求 `RadishFlow` 或 `Radish` 先提供真实挂载点。它只展示 selected draft 和 execution plan preview 派生的 runtime readiness inspector、runtime prerequisites、readiness blockers、implementation gates、auth / database / repository gate 和 route / request / audit metadata；不实现 runtime readiness persistence、runtime API、executor、confirmation decision store、durable run/result store、business writeback、replay、真实数据库、Radish OIDC、repository adapter 或 production API consumer。
 - `workflow-function-surface-readiness-close-v1` 已固定为 `workflow_function_surface_readiness_closed`，仍属于离线产品面聚合门禁，不新增跨项目私有协议，也不要求 `RadishFlow` 或 `Radish` 先提供真实挂载点。它只证明当前 workflow surface matrix、依赖 fixture、前端 render binding 和停止线可复验；普通 overview、context selection、scenario inspector 和 review workspace 只属于该聚合 gate 之后的只读组织层；不实现 runtime API、workflow builder mutation、draft / validation / execution plan / runtime readiness / scenario / review persistence、publish、executor、confirmation decision store、business writeback、replay、真实数据库、Radish OIDC、repository adapter 或 production API consumer。
+
+## 受控开发团队的拟新增合同
+
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入功能设计，尚未形成 canonical schema 或公开 API。需要明确 SDK / Gateway 工具往返、任务级委托、长任务 / 事件、隔离工具动作与开发产物；旧 Agent / Copilot、通用 Tooling、Session 和 Action Safety 合同保持原语义。
+
+框架只拥有一次执行尝试，Go 平台负责启动、取消与继续资格；历史读取不自动重放代码或命令。交付包显式保存需要独立决定产物类型、体积、导出权限及保留规则，不能直接复用旧文本结果的保存入口。详细设计从[框架接入](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)与[运行状态 / 证据](features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)读取，本轮不修改本文件列出的既有 schema。
 
 ## 专题索引
 

@@ -1,12 +1,14 @@
 # RadishMind 文档入口
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 ## 阅读原则
 
 `docs/` 是 RadishMind 的正式文档源。入口负责定位和路由，功能 / 平台专题负责当前事实与长期边界，任务卡负责实施批次，周志与运行记录负责历史证据。
 
-当前成熟度为**内部开发者预览**。当前主线为[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一运行档、Web 接线和冷备份恢复已实现，实际浏览器 / 容器验收待完成；当前状态、下一动作和停止线只以[当前推进焦点](radishmind-current-focus.md)为准，专题完成不扩大生产能力。
+当前成熟度为**内部开发者预览**。当前主线为[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一运行档、Web 接线和冷备份恢复已实现，宿主机与 `linux/arm64` 容器技术验收已完成、独立用户仍待验收；当前状态、下一动作和停止线只以[当前推进焦点](radishmind-current-focus.md)为准，专题完成不扩大生产能力。
+
+项目所有者已将[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)纳入下一功能设计。主专题统一目标与阶段，五个子专题承接接入、状态、隔离、界面与评测；当前仅为设计，未开放编码执行或恢复真实模型。
 
 ## 从哪里开始
 

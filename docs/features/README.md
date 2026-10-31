@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 ## 文档目的
 
@@ -10,9 +10,9 @@
 
 ## 当前目标
 
-项目所有者在全项目复审后批准[本机持久工作台交付 v1](user-workspace/local-persistent-workbench-delivery-v1.md)为当前主线。首轮整合正式 Web、启动配置、本地身份与 SQLite、Prompt / Workflow 运行、结果显式保存和重启恢复。实施范围已确认，统一运行档、命令、Web 接线与冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制与备份迁移已验收，独立用户验收仍待完成。操作见[运行指南](../platform/local-persistent-workbench-operations-v1.md)。
+项目所有者在全项目复审后批准以[本机持久工作台交付 v1](user-workspace/local-persistent-workbench-delivery-v1.md)作为本机交付基座。首轮整合正式 Web、启动配置、本地身份与 SQLite、Prompt / Workflow 运行、结果显式保存和重启恢复。实施范围已确认，统一运行档、命令、Web 接线与冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制与备份迁移已验收，独立用户验收仍待完成。操作见[运行指南](../platform/local-persistent-workbench-operations-v1.md)。
 
-后续先取得真实任务效果证据，再按需求选择共享交付或业务接入；跨版本回归审查改为候选。阶段条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)，下一动作与授权边界见[当前推进焦点](../radishmind-current-focus.md)。真实模型试用继续暂停。
+项目所有者另行选择[多 Agent 协同与受控软件开发团队 v1](workflow/controlled-software-development-team-v1.md)为下一功能设计，先阶段 0 方案 / 选型验证设计，再单 Agent 隔离交付、固定团队、持续协作和真实效果对照；当前未实现。真实质量验证与按需共享 / 业务接入的成熟度要求保持；跨版本回归审查仍为候选。阶段条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)，下一动作与授权边界见[当前推进焦点](../radishmind-current-focus.md)。真实模型试用继续暂停。
 
 邀请治理、中英国际化、定时回归、Workflow 模板与 Action Safety、既有应用和评测专题保持完成，不派生同层续批。10 月的编辑 / 恢复、RAG 请求标识与首次使用修正均已完成对应本地验收；长证据从[周志](../devlogs/README.md)与对应专题追溯。真实 Radish OIDC 保持 `real_radish_integration_deferred`，运行观测后续保持 `no_entry`。
 
@@ -44,6 +44,7 @@
 - 接入与受控运行：[应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md)、[应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md)、[运行开发测试指南](user-workspace/application-controlled-runtime-dev-test-guide.md)、[工作流定义的 HTTP 工具](workflow/workflow-definition-http-tool-v1.md)。
 - 结果与回归：[结果资产库](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)、[应用评测计划与受控批次](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。
 - 团队协作：[本地账户与联合登录](admin-control-plane/local-account-radish-oidc-federated-login-v1.md)、[工作区邀请](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)。
+- Agent 协作开发：[功能主专题与五个子专题](workflow/controlled-software-development-team-v1.md)，覆盖角色、模型、受限执行、任务 / 讨论 / 交付及阶段安排；设计登记不代表已经可执行。
 - 平台支撑：[SQLite 持久化](../platform/local-sqlite-dev-persistence-v1.md)、[运行手册](../platform/platform-service-operations-runbook-v1.md)、[Family UI](user-workspace/radishmind-family-ui-productization-v1.md)。
 
 ## 设计与验收要求

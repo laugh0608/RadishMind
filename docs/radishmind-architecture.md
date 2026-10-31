@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 ## 架构职责
 
@@ -10,7 +10,7 @@ RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，�
 
 ## 本机交付目标与架构约束
 
-[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)已按确认范围实现统一配置、Web 接线和数据生命周期；真实浏览器与容器运行验收尚未完成。它组合正式 Web、Go Platform、Python Runtime、本地 Session 和共享 SQLite；不增加语言栈、数据库抽象或账户真相源，不移除既有 PostgreSQL 开发测试能力。
+[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)已按确认范围实现统一配置、Web 接线和数据生命周期；宿主机浏览器与 `linux/arm64` 容器技术验收已完成，独立用户与真实模型效果仍待验证。它组合正式 Web、Go Platform、Python Runtime、本地 Session 和共享 SQLite；不增加语言栈、数据库抽象或账户真相源，不移除既有 PostgreSQL 开发测试能力。
 
 由现有 Go 服务提供正式 Web 静态资源、严格的公开运行时配置和既有 API，形成单一浏览器来源；Python 仍为受控工作进程。宿主机与一个工作台容器共用运行档，默认只公开回环地址 `4100`，不增加 Node、反向代理、Auth 或数据库服务。首次初始化、日常启动、显式升级及冷备份恢复分开，复用已有 SQLite 迁移和身份 bootstrap，不复制领域实现。实现落点为 `internal/workbench`、平台 `workbench` 子命令及 Web `src/runtime/workbenchConfiguration.ts`；SQLite 迁移集合统一由 `migrations/sqlite` 导出，领域 SQL 不变。运行步骤见[工作台指南](platform/local-persistent-workbench-operations-v1.md)。Session / Run / Result Artifact 保持各自数据职责，重启读取不自动恢复执行或重放；开发身份头不用于共享网络认证。本机交付不授予生产能力，也不以全量拆包或通用协议重写为前提。现有实现映射与请求边界如下。
 
@@ -85,6 +85,16 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 通用 `/v1/tools/actions` 保持 blocked shell。Workflow HTTP Tool 通过独立 action plan、confirmation、执行档案和既有 Run / Audit owner 工作，不开放通用工具执行器或业务写回。
 
 应用定时评测运行器仅在明确开发测试门禁下启动；区分系统执行主体与受委托用户，每次调度触发时重新验证权限和配置，使用确定性 Campaign / Run 交接。关闭时先取消并等待任务结束，再释放桥接层与存储；不等于生产工作进程或通用调度器。
+
+## 拟新增的受控开发团队边界
+
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入下一功能设计，尚未实现。Go 继续拥有团队 / 任务 / 尝试权威状态及授权、预算、取消和证据判定；Python 编码 SDK 只执行一次角色任务，OpenHands 为首选候选。长任务使用独立生命周期，不长期占用已有短请求桥接池，不新建第二套通用工作流与恢复权威。
+
+拟采用可信执行控制层与独立代码容器分离：SDK 经受限 Gateway 通道访问模型，经授权工具入口操作隔离副本；代码进程不继承平台 / 提供方密钥，不挂载平台数据库、用户原工作树或 Docker socket。工作台容器验收不替代这一新增边界，具体方案见[隔离执行子专题](features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。
+
+拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包 / 日志保存、事件正文、权限与 canonical 合同须单独设计，不能直接塞入旧 Session 或文本结果字段。重启默认只读回记录，不自动重放代码 / 工具命令。
+
+现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托、状态 / 事件和长任务接口在阶段 0 确认后才能实施，本次没有修改现有 API、schema、迁移、工作进程或运行配置。
 
 ## 图片产物链
 

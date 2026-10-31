@@ -1,12 +1,18 @@
 # Workflow / Agent Runtime 设计与开发文档
 
-更新时间：2026-08-29
+更新时间：2026-10-31
 
 ## 功能定位
 
 `Workflow / Agent Runtime` 承载 AI 应用执行链路，包括 Prompt、LLM、HTTP tool、RAG retrieval、condition、output、后续受控 code / sandbox 和 agent loop。
 
 它面向 `RadishMind` 用户工作区中的 workflow 设计、审查和后续受控执行：先让用户能保存、读取、列出和校验 workflow 草案，再进入 publish、run、confirmation、writeback 或 replay 等更高风险能力。
+
+## 新增设计：受控软件开发团队
+
+[多 Agent 协同与受控软件开发团队 v1](workflow/controlled-software-development-team-v1.md)已于 2026-10-31 纳入下一功能设计，提供主专题与五个职责子专题。先验证单 Agent 隔离编辑 / 测试 / 候选交付，再实现固定团队、有限并行、独立审查和有上限返修。Go 保有权威状态，OpenHands SDK 是编码执行首选候选，未锁定依赖或验证接入。
+
+该场景需要专属代码隔离、长任务、工具与证据合同，当前均未实现；不原地放宽既有 Workflow、Agent Profile、Action Safety 或通用 Tooling 合同。群聊是用户交互，不能成为任务完成或扩大权限的依据。工作台独立用户与真实模型质量继续待验收，规划登记不授予运行权限。
 
 ## 当前状态
 

@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-10-26
+更新时间：2026-10-31
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -47,6 +47,10 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)统一维护语言选择、术语、格式化、迁移与双语验收方案。A 至 F 在登记的可达范围完成，覆盖 Prompt、Workflow / RAG / HTTP Tool、身份与成员邀请、管理主页面、Agent、Gateway、运营、评测与结果库；确认等待、失败恢复、CAS、业务语言隔离及代表三视口按切片验收，证据见专题和周志。F 阶段补齐主壳可达证据和应用交互会话的固定文案，三窗口 76 次最终浏览器复验及截图复核通过。React Flow 当前可见控件和键盘辅助提示使用应用资源；浏览器原生控件菜单随浏览器语言。固定说明使用稳定消息键，记录原文与协议值不通过正文匹配推断译文；界面语言切换不得更换组件身份、触发请求或清空确认状态。
 
 语言入口位于桌面导航底部、移动菜单内、认证页页头及账户安全 / 确认 / 邀请认领弹层。语言变化不得清空表单、重发业务请求或改变业务 `locale`；保留协议标识、状态样式与用户原文。实施时检查中英文长度、内部容器溢出和可访问名称，继续沿用本附录的视觉与 token 规则。
+
+## 规划中的开发团队工作区
+
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)拟在正式 User Workspace 内提供团队配置、计划授权、任务 / 讨论及候选交付审阅，复用项目语义 token、组件、作用域与双语规则。当前只有[交互子专题](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md)，尚无画板、设计等级评定、视觉批准或 React 实现；实施前按功能复杂度确定 Pencil 范围，不将已有页面批准自动迁移到新工作区。
 
 ## Token 与构建映射
 

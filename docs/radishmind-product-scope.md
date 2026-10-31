@@ -14,6 +14,8 @@ RadishMind 是 Radish 体系下的 AI 工具、工作流、模型网关和 Copil
 
 当前优先交付[本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)，让用户完成明确配置后在正式 Web 使用 Prompt 与 Workflow，显式保存结果并在重启后继续。Gateway 提供模型调用，Admin 提供本地身份、成员、路由和治理；上层业务接入不作为本机使用的前提，外部条件缺失不应拖慢 RadishMind 已明确的本机交付。统一运行档、同源 Web、本地身份 / SQLite 接线和冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 完成固定响应验收；`linux/arm64` Docker 运行、挂载限制及容器与宿主机备份迁移也已完成技术验收；独立用户体验仍待验收，整体交付目标尚未关闭。
 
+2026-10-31 已按项目所有者要求将[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)纳入下一功能设计：面向一个授权仓库和明确需求，在隔离副本内组织实现、测试与独立审查，交付 patch 和证据，由用户决定接受及合入。先建立单 Agent 交付基线，再扩展固定团队；当前只完成规划，SDK、长任务与代码工具尚未实现。
+
 下一功能应说明目标用户、遇到的具体阻塞、现有路径与缺口，以及完成后的可观察改善。功能数量、画板数量、批次关闭和 checker 通过不能单独证明用户收益。
 
 ## 四个产品面
@@ -42,6 +44,8 @@ RadishMind 是 Radish 体系下的 AI 工具、工作流、模型网关和 Copil
 独立 Workflow HTTP Tool 已有受控确认与执行链；通用 `/v1/tools/actions` 的 blocked shell 不因该专题完成而开放。相邻 owner 的授权、状态和审计不能互相代替。
 
 Image Path 已完成开发测试态 fixture client、adapter、一次性 binary delivery、私有存储协调和成功引用延后释放。metadata-only response builder 独立消费产物元数据，不读取图片二进制。真实生图 backend、引用解析、生产对象存储、public URL、HTTP / Gateway / Web 交付继续未实现。
+
+多 Agent 开发团队是拟新增的专属执行场景，不等于现有建议型 Agent 已具备工具执行。Go 保有团队权威状态，代码容器与工作台分离；候选交付、用户接受与 Git 合入分开。团队讨论 / 临时工具材料和显式保存产物需独立保留策略，不自动扩大应用 Session 全文或旧结果资产类型。
 
 ## 使用与效果验收
 
