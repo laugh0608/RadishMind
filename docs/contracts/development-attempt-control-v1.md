@@ -65,7 +65,7 @@ Go 生成 256 位随机不透明 `devtask_` bearer，仅可信 SDK 工作进程�
 
 stdin 一次交接任务凭据与计划输入，后续只交回已提交的事件确认和可信工具观察值；stdout 帧只允许既定类型、最多 128 项和每帧 262144 字节。Go 校验 SDK 序号、类型、请求身份和工具摘要后才写事件 / 回复确认。SDK 普通日志不公开，错误只接受固定诊断码；未知帧或失败报告立即停止，不解析原始错误文本猜授权。
 
-SDK 原基线 `1.59.0` 和待验的精确变体 `1.59.0+radishmind.1` 使用真实 Agent / LocalConversation 与显式模型传输适配，只注册 `development_tool`，禁用默认工具、MCP、插件、动态上下文、压缩、critic、fallback 及其它模型入口。会话仅内存保存；首版限一条系统消息与一条用户任务，均纳入 Go 计划确认。工具仍只可先入队，由可信 Go 回调形成观察值；默认未配置实际工具；可信宿主可另行显式绑定固定 Go 探针的 `WorkerLaunch.Sandbox`，细节见[沙箱合同](development-code-sandbox-v1.md)。
+SDK 原基线 `1.59.0` 和已独立固定响应复验的精确变体 `1.59.0+radishmind.1` 使用真实 Agent / LocalConversation 与显式模型传输适配，只注册 `development_tool`，禁用默认工具、MCP、插件、动态上下文、压缩、critic、fallback 及其它模型入口。会话仅内存保存；首版限一条系统消息与一条用户任务，均纳入 Go 计划确认。工具仍只可先入队，由可信 Go 回调形成观察值；默认未配置实际工具；可信宿主可另行显式绑定固定 Go 探针的 `WorkerLaunch.Sandbox`，细节见[沙箱合同](development-code-sandbox-v1.md)。
 
 每个生命周期和允许的 SDK 事件以 Go 观察事件追加，包括认领 / 启动 / 就绪、系统提示 / 用户 / 助手消息观察、动作 / 观察值 / 错误 / 安全报告观察、工具等待、SDK 完成报告、进程退出 / 失败 / 清理未确认。它们不复制 SDK 正文，也不直接赋予执行资格或把 SDK 自报完成当作终态。
 

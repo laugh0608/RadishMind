@@ -23,11 +23,11 @@
 | 受限 SDK 工作进程 | 固定响应验收通过 | 真实 Agent / LocalConversation 经 Go 专属通道完成工具往返、允许事件、错误不重试、未知用量与模型等待取消；父存活管道失联退出已验，工具观察值仍为合成值 |
 | 固定 Go 沙箱与工具 | 真实容器验收通过 | 私有副本读取 / 原子替换，按候选摘要测试，只读源码、资源限制、硬期限、取消 / 遗留归属清理与输出超限；SDK 收尾接线已定向验证 |
 | 开发产物保存 / 导出 | 本轮实现并定向验证 | 独立负责模块、严格包合同、计划 / 基准 / 候选 / patch / 测试绑定、显式确认、独立权限、SQLite 配额 / 幂等 / 重启与失败恢复；未开放 HTTP / Web |
-| 联合任务 / 正式采用 | 联合技术验收通过，复评暂不通过正式采用 | 同次任务覆盖 SDK 修改候选、真实代码测试、保存 / 导出、旧测试失效与命令中取消；资格 / 提供方为合成适配，旧 Gateway 保持建议语义；真实 HTTP 适配未实现，必需专有依赖未决，阶段 1 范围 / 视觉依据待确认 |
+| 联合任务 / 正式采用 | 联合技术验收通过，复评暂不通过正式采用 | 同次任务覆盖 SDK 修改候选、真实代码测试、保存 / 导出、旧测试失效与命令中取消；资格 / 提供方为合成适配，旧 Gateway 保持建议语义；真实 HTTP 适配未实现；新候选已移除默认专有代理链并复验，剩余许可及阶段 1 范围 / 视觉依据待确认 |
 
 ## 已确认的依赖调整
 
-项目所有者已确认 `1.59.0+radishmind.1` 遥测可选化路线。[补丁、来源与运行配方](../../scripts/eval/development_probe/sdk_variant/README.md)和离线验证已准备；原始锁 / 镜像保持历史对照，新闭包、wheel、镜像和真实 SDK / 联合复验尚待具体授权窗口。探针合同仅新增该精确本地版本，版本变化绑定新的计划摘要；工作进程拒绝该候选携带 Laminar 分发包。未完成真实复验前不替换原基线或登记正式采用。
+项目所有者已授权并完成 `1.59.0+radishmind.1` 遥测可选化候选的构建和复验。[补丁、来源与运行记录](../../scripts/eval/development_probe/sdk_variant/README.md)绑定独立 119 项锁和实际镜像；4 项遥测检查、7 项 LLM 子合同、完整 SDK 工作进程及联合正常 / 旧测试失效 / 命令中取消通过。默认集合不含 Laminar / 专有代理，余下依赖版本和摘要不变；SDK wheel 的 MIT 正文与修改记录已核对。原始锁 / 镜像保持历史对照，新版本绑定新计划摘要；剩余依赖 / 基础镜像许可未全部闭合，不登记正式采用。本次所属容器已清理，运行窗口结束。
 
 ## 合同与边界
 
@@ -42,4 +42,4 @@
 
 已完成 Go race / 覆盖率定向测试、schema / 冻结摘要 / 锁生成测试，以及合成任务先失败后通过的人工复验。完整命令、摘要及仓库门禁记录见 [W44 周志](../devlogs/2026-W44.md#2026-10-31-受控开发代表任务与离线探针)。
 
-已按明确授权完成候选镜像、完整锁、接口核对与固定响应子合同检查，详情见[SDK 检查说明](../../scripts/eval/development_probe/README.md)和 [W44 运行记录](../devlogs/2026-W44.md#2026-10-31-sdk-候选镜像与固定响应契约验收)。上述合同、持久尝试 / 提议 / 事件事务、真实资格与专属回环接线已实现，见[尝试控制合同](../contracts/development-attempt-control-v1.md)。随后已按单独授权复用锁定镜像，以真实 SDK Agent 验证受限工作进程、完整允许事件、两次模型请求 / 合成工具观察值往返、模型失败不重试、工具失败、缺失用量、等待取消及父存活管道失联退出，见[本轮记录](../devlogs/2026-W44.parts/development-sdk-worker-20261031.md)。适配显式关闭 SDK 默认重试 / 动态上下文等旁路，`summary` 单独转换，Go 保留未知账目，完成须等待真实 OS 退出和空进程组。固定 Go 探针代码沙箱、受限文件 / 固定测试工具和资源归属终止已实施并真实验收，详见[沙箱合同](../contracts/development-code-sandbox-v1.md)及[运行记录](../devlogs/2026-W44.parts/development-code-sandbox-20261031.md)。开发产物保存 / 导出合同和内部 SQLite 链已完成，见[开发产物合同](../contracts/development-artifact-v1.md)及[本轮记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。真实 SDK 与代码容器同次任务的修改、测试、保存 / 导出及取消已按独立授权完成，见[联合验收记录](../devlogs/2026-W44.parts/development-joint-20261031.md)。[采用复评已完成](../devlogs/2026-W44.parts/development-adoption-20261031.md)，暂不通过正式采用；下一工作按已确认的遥测可选化路线构建并复验候选，再确认原生 HTTP 适配、固定 Go 单 Agent 的公开合同 / 实现范围及 A 级视觉依据。四项剩余退出条件见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。阶段 0 尚未退出；暂不真实用户试用或真实模型，不启动固定 A/B/C/D/R 团队，不自动合并 / 推送 / 发布。
+已按明确授权完成候选镜像、完整锁、接口核对与固定响应子合同检查，详情见[SDK 检查说明](../../scripts/eval/development_probe/README.md)和 [W44 运行记录](../devlogs/2026-W44.md#2026-10-31-sdk-候选镜像与固定响应契约验收)。上述合同、持久尝试 / 提议 / 事件事务、真实资格与专属回环接线已实现，见[尝试控制合同](../contracts/development-attempt-control-v1.md)。随后已按单独授权复用锁定镜像，以真实 SDK Agent 验证受限工作进程、完整允许事件、两次模型请求 / 合成工具观察值往返、模型失败不重试、工具失败、缺失用量、等待取消及父存活管道失联退出，见[本轮记录](../devlogs/2026-W44.parts/development-sdk-worker-20261031.md)。适配显式关闭 SDK 默认重试 / 动态上下文等旁路，`summary` 单独转换，Go 保留未知账目，完成须等待真实 OS 退出和空进程组。固定 Go 探针代码沙箱、受限文件 / 固定测试工具和资源归属终止已实施并真实验收，详见[沙箱合同](../contracts/development-code-sandbox-v1.md)及[运行记录](../devlogs/2026-W44.parts/development-code-sandbox-20261031.md)。开发产物保存 / 导出合同和内部 SQLite 链已完成，见[开发产物合同](../contracts/development-artifact-v1.md)及[本轮记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。真实 SDK 与代码容器同次任务的修改、测试、保存 / 导出及取消已按独立授权完成，见[联合验收记录](../devlogs/2026-W44.parts/development-joint-20261031.md)。[采用复评已完成](../devlogs/2026-W44.parts/development-adoption-20261031.md)，暂不通过正式采用；遥测可选化候选已构建并独立复验；下一工作收口剩余许可，确认原生 HTTP 适配、固定 Go 单 Agent 的公开合同 / 实现范围及 A 级视觉依据。四项剩余退出条件见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。阶段 0 尚未退出；暂不真实用户试用或真实模型，不启动固定 A/B/C/D/R 团队，不自动合并 / 推送 / 发布。

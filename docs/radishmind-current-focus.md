@@ -31,7 +31,11 @@ Docker 窗口已按另行明确授权完成：独立 Compose 项目使用 `14100
 
 随后已按单独授权完成固定 Go 探针的实际文件 / 测试容器验收，覆盖只读快照、摘要绑定、资源上限、硬期限、取消与遗留容器归属清理，见[沙箱合同](contracts/development-code-sandbox-v1.md)。
 
-[开发产物合同](contracts/development-artifact-v1.md)与内部 SQLite 链已实现：独立权限、摘要确认、64 份 / 64 MiB 配额、24 小时临时保留、敏感规则及失败恢复已定向验证，随后按独立授权完成[联合技术验收](devlogs/2026-W44.parts/development-joint-20261031.md)：正常候选、旧测试失效、命令中取消均经真实 SDK / 代码容器接入保存与导出。[采用复评](devlogs/2026-W44.parts/development-adoption-20261031.md)已完成：`openhands-sdk → lmnr → lmnr-claude-code-proxy` 为必需链，代理声明专有许可；`NativeBackend` 只有测试实现。项目所有者已确认 SDK 遥测可选化路线；`1.59.0+radishmind.1` 的补丁、独立配方与离线检查已准备，下一动作按[候选命令](../scripts/eval/development_probe/sdk_variant/README.md)取得新依赖构建 / SDK 联合复验窗口；新镜像尚未产生，随后再补原生 HTTP 固定上游证据、确认固定 Go 单 Agent 的公开合同 / 实现范围与 A 级视觉依据。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
+[开发产物合同](contracts/development-artifact-v1.md)与内部 SQLite 链已实现：独立权限、摘要确认、64 份 / 64 MiB 配额、24 小时临时保留、敏感规则及失败恢复已定向验证，随后按独立授权完成[联合技术验收](devlogs/2026-W44.parts/development-joint-20261031.md)：正常候选、旧测试失效、命令中取消均经真实 SDK / 代码容器接入保存与导出。
+
+[采用复评](devlogs/2026-W44.parts/development-adoption-20261031.md)已完成：`openhands-sdk → lmnr → lmnr-claude-code-proxy` 为必需链，代理声明专有许可；`NativeBackend` 只有测试实现。项目所有者已确认 SDK 遥测可选化路线；`1.59.0+radishmind.1` 已完成[119 项独立锁、镜像及 SDK / 联合复验](../scripts/eval/development_probe/sdk_variant/README.md)，默认依赖不含 Laminar / 专有代理。
+
+本次运行窗口已结束；下一步收口剩余依赖 / 基础镜像许可，确认原生 HTTP 固定上游实现范围、固定 Go 单 Agent 的公开合同及 A 级视觉依据。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
 
 **工作台剩余交付：独立用户按运行指南完成首次使用与持续使用；按项目所有者要求暂不安排。** 记录完成情况、求助点和恢复成本后修复，AI 技术验收不代替该项；它与新功能设计分别记录。Windows PowerShell 与 `linux/amd64` 容器仍未验收，不由已有平台结果推定通过。
 

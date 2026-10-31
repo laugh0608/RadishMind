@@ -8,7 +8,7 @@
 
 Go 先提交不可重放的 `worker_claimed`，再启动进程；失败不自动重试。环境只保留明确的运行变量，凭据只经 stdin 交接。额外 FD 3 是父进程存活管道，父进程消失时 Python 终止自身所属进程组；不依赖 SDK pause 或 PID 猜测。stdout 只承载有界、连续序号的私有协议，SDK 常规日志重定向后由 Go 丢弃，不进入事件或公开错误。
 
-`worker.py` 只接受原基线 `1.59.0` 与待验候选 `1.59.0+radishmind.1`；后者还拒绝已安装的 `lmnr` / 代理分发包，见[变体准备说明](../../../scripts/eval/development_probe/sdk_variant/README.md)。版本允许表不是采用或运行授权，现有真实证据仍属于原基线。工作进程使用真实 `Agent` / `LocalConversation`、内存会话存储及唯一自定义 `development_tool`。默认工具、MCP、插件、动态上下文、condenser、critic 和 fallback 关闭；只接受一条经确认的系统消息和一条用户任务，后续上下文仍由 Go 核对摘要。SDK 的同步 `generate` 显式转换为专属通道请求，其他同步 / 异步模型入口拒绝。`openai/gpt-4o` 只用于 SDK 本地类型 / 能力初始化，实际传输模型名称来自 Go 冻结选择，不调用该模型。
+`worker.py` 只接受原基线 `1.59.0` 与技术候选 `1.59.0+radishmind.1`；后者还拒绝已安装的 `lmnr` / 代理分发包，见[变体说明与独立复验证据](../../../scripts/eval/development_probe/sdk_variant/README.md)。版本允许表不是正式采用或运行授权，两版真实固定响应证据分别保留。工作进程使用真实 `Agent` / `LocalConversation`、内存会话存储及唯一自定义 `development_tool`。默认工具、MCP、插件、动态上下文、condenser、critic 和 fallback 关闭；只接受一条经确认的系统消息和一条用户任务，后续上下文仍由 Go 核对摘要。SDK 的同步 `generate` 显式转换为专属通道请求，其他同步 / 异步模型入口拒绝。`openai/gpt-4o` 只用于 SDK 本地类型 / 能力初始化，实际传输模型名称来自 Go 冻结选择，不调用该模型。
 
 工具描述来自 Go 的 canonical 目录，不直接透传 SDK 自动增加的参数。SDK 报告与工具请求先由 Go 校验、持久提交，再通过 stdin 确认；确认前不能继续下一步。工具观察值只能来自可信 Go `ToolHandler` 经 `DispatchTool / CompleteTool` 的核对结果；默认没有 handler，不产生执行成功。该回调必须遵守取消上下文，固定 Go 任务现可由 `WorkerLaunch.Sandbox` 接到独立[代码沙箱](../../platform/internal/developmentsandbox/README.md)，实际文件由 Go 私有工具处理，固定验证在全只读快照容器运行；不能借此直接在宿主机执行用户代码。
 
