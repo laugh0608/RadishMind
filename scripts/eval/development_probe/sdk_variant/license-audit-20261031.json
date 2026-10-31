@@ -1,0 +1,82 @@
+{
+  "schema_version": "development_license_image_evidence.v1",
+  "baseline_commit": "1d2c175c40310eb6d6cfdfc0c247ce80e17a2cb6",
+  "status": "static_evidence_collected_license_conditions_open",
+  "scope": "SDK candidate and fixed Go sandbox; no new downloads or runtime execution",
+  "evidence_root": "tmp/development-license-audit-20261031/image-evidence",
+  "images": {
+    "sdk": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+    "go": "sha256:b17af760035fc2f338eed92d448a6c67f2d45438844fc6c60678fa5f99e44b57"
+  },
+  "archive_count": 15,
+  "archives_copied": 14,
+  "archives_bytes": 12317184,
+  "missing_paths": [
+    "/usr/share/licenses"
+  ],
+  "sdk_os": {
+    "id": "debian",
+    "version": "13",
+    "full_version": "13.7",
+    "codename": "trixie"
+  },
+  "go_os": {
+    "alpine_release_package": "3.23.5-r0",
+    "release_evidence": "APK database",
+    "os_release_archive_only_contains_symlink": true
+  },
+  "counts": {
+    "debian_binary_packages": 87,
+    "debian_source_groups": 61,
+    "debian_copyright_paths_resolved": 87,
+    "alpine_binary_packages": 17,
+    "alpine_origin_groups": 10,
+    "pip_vendor_manifest_items": 18,
+    "go_src_vendor_modules": 4
+  },
+  "cleanup": {
+    "created_containers": 2,
+    "started_containers": 0,
+    "remaining_containers": 0,
+    "fallback_cleanup_needed": false
+  },
+  "parts": {
+    "alpine.json": "c488b26b6f3e0b2f23ae0f1d5ecd9f6c797e49189672accf75e92b2385560b78",
+    "bundled.json": "52153a02b8443a69899fe23956329d5659cce10ce3acbb15db97d355fcff90b0",
+    "debian.json": "523c0752cd0085595453da3612b267bf8ae4483b8f94e62fae037a0bb7c26a88"
+  },
+  "evidence_sha256": {
+    "extract_image_licenses.py": "5f2b571d42fbb88dc7e4438a662c422147741f1d3a19647c6ed46c10df993047",
+    "image-evidence/files.json": "9aef0a64b3f512842c1ef40dec86d832f0bf8670ee957a916db0ac4e004f57f5",
+    "image-evidence/inventory.json": "3812c0fe83b92864ead7bd948ff63dee458c263afe29fd9b625aec344fc62eca",
+    "image-evidence/summary.json": "c83824c98a2b1f9bc9e1d1251f3dc759b75d0873c62d3b07899963bd26f82bc2",
+    "image-evidence/sdk.container.json": "a498f61bc57b7e7b6089664cd1e5c3613507187020815342619f78ffa59e5218",
+    "image-evidence/go.container.json": "b5713ed7ae3d79c5e3139c1c4218615f798c96ce37a82dd7b5b160ea8420323d",
+    "image-evidence/sdk.state.json": "b4bb5627bbbfb53043e7c03cc725a52718e8e9cb3a1107a9a30b2aa960cba4a7",
+    "image-evidence/go.state.json": "b4bb5627bbbfb53043e7c03cc725a52718e8e9cb3a1107a9a30b2aa960cba4a7",
+    "image-evidence/cleanup.json": "377afdfddad312c8471f73e4f133002cbe045ea1806d6c74125bf4e5e828fee1",
+    "image-evidence/final-cleanup.json": "61105d18b7041fc546e0adf0febd6d4b825a63d756a48c8514cf738f3b00280f"
+  },
+  "download_plan": {
+    "status": "not_authorized_not_started",
+    "first_stage": "only exact provenance metadata, release manifests, build recipes, LICENSE and NOTICE; no dependency resolution/install/build",
+    "first_stage_max_total_bytes": 134217728,
+    "first_stage_max_file_bytes": 16777216,
+    "destination": "tmp/development-license-audit-20261031/downloads-stage1/",
+    "allowed_sources": [
+      "Debian official archive/security/snapshot metadata",
+      "Alpine official aports at recorded full commits",
+      "PyPI exact-version metadata and official project source repositories",
+      "Python and Go official release metadata",
+      "Docker CLI official source repository if distribution scope requires it"
+    ],
+    "verification": "Pin metadata bytes and provenance; verify trusted release signatures where provided and archive hashes from authenticated metadata; absent or conflicting identity stops that item",
+    "second_stage": "prepare exact source archive URLs, hashes, sizes and build/patch inputs from stage1 evidence; obtain separate bounded download approval",
+    "remaining_unknowns": [
+      "exact source archive URLs and hashes beyond known CPython hash",
+      "static Rust/C/C++ components and build revisions for native wheels",
+      "final license/NOTICE mapping and covered-source delivery method",
+      "complete Go cmd/vendor and CPython incorporated-library mapping"
+    ]
+  }
+}

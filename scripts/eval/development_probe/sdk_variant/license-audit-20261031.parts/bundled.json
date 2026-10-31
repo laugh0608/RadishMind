@@ -1,0 +1,307 @@
+{
+  "status": "exact_release_source_and_build_mapping_pending_download",
+  "pip": {
+    "version": "25.0.1",
+    "own_license_present": true,
+    "vendor_manifest_items": 18,
+    "standalone_vendor_license_or_notice_files_found": 0,
+    "inline_notices_not_fully_reviewed": true,
+    "items": [
+      {
+        "name": "CacheControl",
+        "version": "0.14.1"
+      },
+      {
+        "name": "distlib",
+        "version": "0.3.9"
+      },
+      {
+        "name": "distro",
+        "version": "1.9.0"
+      },
+      {
+        "name": "msgpack",
+        "version": "1.1.0"
+      },
+      {
+        "name": "packaging",
+        "version": "24.2"
+      },
+      {
+        "name": "platformdirs",
+        "version": "4.3.6"
+      },
+      {
+        "name": "pyproject-hooks",
+        "version": "1.2.0"
+      },
+      {
+        "name": "requests",
+        "version": "2.32.3"
+      },
+      {
+        "name": "certifi",
+        "version": "2024.8.30"
+      },
+      {
+        "name": "idna",
+        "version": "3.10"
+      },
+      {
+        "name": "urllib3",
+        "version": "1.26.20"
+      },
+      {
+        "name": "rich",
+        "version": "13.9.4"
+      },
+      {
+        "name": "pygments",
+        "version": "2.18.0"
+      },
+      {
+        "name": "typing_extensions",
+        "version": "4.12.2"
+      },
+      {
+        "name": "resolvelib",
+        "version": "1.0.1"
+      },
+      {
+        "name": "setuptools",
+        "version": "70.3.0"
+      },
+      {
+        "name": "tomli",
+        "version": "2.2.1"
+      },
+      {
+        "name": "truststore",
+        "version": "0.10.0"
+      }
+    ]
+  },
+  "go": {
+    "version": "1.26.7",
+    "license_and_patents_present": true,
+    "src_vendor_modules": [
+      {
+        "module": "golang.org/x/crypto",
+        "version": "v0.46.1-0.20251210140736-7dacc380ba00",
+        "license_and_patents_present": true
+      },
+      {
+        "module": "golang.org/x/net",
+        "version": "v0.47.1-0.20260731170545-cb1d721f7fb3",
+        "license_and_patents_present": true
+      },
+      {
+        "module": "golang.org/x/sys",
+        "version": "v0.39.0",
+        "license_and_patents_present": true
+      },
+      {
+        "module": "golang.org/x/text",
+        "version": "v0.32.0",
+        "license_and_patents_present": true
+      }
+    ],
+    "cmd_vendor_not_copied": true,
+    "full_toolchain_mapping_complete": false,
+    "next_evidence_preference": "inspect existing image source paths under a separately confirmed scope before downloading duplicate full Go source"
+  },
+  "cpython": {
+    "version": "3.12.16",
+    "source_sha256_from_image_env": "b5796915dc45ff745cfb4e990a7e7c93d6f546328a102ce31448d69ebc37575c",
+    "license_present": true,
+    "incorporated_libraries_mapping_complete": false
+  },
+  "python_evidence_roots": [
+    {
+      "name": "aiohttp",
+      "version": "3.14.5",
+      "wheel_sha256": "abfda5cb094a829f7bc25216a32f7db2e85cc65bd59910f8e7b40b3d9b224764",
+      "reason": "native_components"
+    },
+    {
+      "name": "caio",
+      "version": "0.12.10",
+      "wheel_sha256": "93bb3a3f0bd684ac6b559c33a84817395c4d2c75d98dae2b7c40c57acce83737",
+      "reason": "native_components"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.10.23",
+      "wheel_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "reason": "covered_source_mapping"
+    },
+    {
+      "name": "cffi",
+      "version": "2.1.1",
+      "wheel_sha256": "68e62fe11f30d5ca8289242866f0a5291402d8529ca2178ab8afc5c9694ae890",
+      "reason": "native_components"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "wheel_sha256": "b91363207bd9dc966a691e959bb47f64b30f7ac4b072be9968b366982f7db77c",
+      "reason": "native_components"
+    },
+    {
+      "name": "cryptography",
+      "version": "50.0.2",
+      "wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "reason": "native_components"
+    },
+    {
+      "name": "fastmcp-slim",
+      "version": "3.4.11",
+      "wheel_sha256": "24535dd843b3dcb3272b86c88fdf6ada5026c39ec5b56e2426557223c4d2c8bf",
+      "reason": "missing_notice"
+    },
+    {
+      "name": "fastuuid",
+      "version": "0.14.0",
+      "wheel_sha256": "0c9ec605ace243b6dbe3bd27ebdd5d33b00d8d1d3f580b39fdd15cd96fd71796",
+      "reason": "native_components"
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "wheel_sha256": "96f423a119f4777a4a056b66ce11527366a8bb92f54e541ade21f2374433f6d4",
+      "reason": "native_components"
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.8.0",
+      "wheel_sha256": "8800e3444770f2c630b361bc6d5c6ebb770b7830646cf632fbb79d0e5bbc9e7f",
+      "reason": "native_components"
+    },
+    {
+      "name": "jiter",
+      "version": "0.18.0",
+      "wheel_sha256": "d7424194e68ef44e94290961f59319850d7ce11a329a3957f91709c15ded6618",
+      "reason": "native_components"
+    },
+    {
+      "name": "litellm",
+      "version": "1.105.7",
+      "wheel_sha256": "40310aaaee2385df1afc9c91d0a0bd61884a8d2940b91e3d5d7739a4dac6b2dd",
+      "reason": "native_components"
+    },
+    {
+      "name": "lupa",
+      "version": "2.8",
+      "wheel_sha256": "27044f3363047f946b3d3aab9157cbd172b3538ada9ec1baef43432bf7d03a78",
+      "reason": "native_components"
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.4",
+      "wheel_sha256": "6a45c3d514f2436064db00d7fc8778d888f0236ebfed649b53d13a59e69ad51b",
+      "reason": "native_components"
+    },
+    {
+      "name": "multidict",
+      "version": "7.2.1",
+      "wheel_sha256": "fa0ecd064b0ae18d235283abb5adbc4e07304dba8f2aa7c0d61f28bebcc70d4c",
+      "reason": "native_components"
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0",
+      "wheel_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "reason": "native_components"
+    },
+    {
+      "name": "propcache",
+      "version": "0.5.4",
+      "wheel_sha256": "60a64cbccaa11b7760ce705a14ada17ba459e7ca9f23ba587eb013821032d7ef",
+      "reason": "native_components"
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.50.2",
+      "wheel_sha256": "43a8fd56f3c681f3cda2d5c842ad28e88241df742dfcbe8fd1dd437a3056e1f6",
+      "reason": "native_components"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "wheel_sha256": "9149cad251584d5fb4981be1ecde53a1ca46c891a79788c0df828d2f166bda28",
+      "reason": "native_components"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "reason": "native_components"
+    },
+    {
+      "name": "rpds-py",
+      "version": "2026.9.1",
+      "wheel_sha256": "2693b2728bbcc48d09a981a356954b0c47c53ff25b545856f28a889ea619f69a",
+      "reason": "native_components"
+    },
+    {
+      "name": "tiktoken",
+      "version": "0.14.0",
+      "wheel_sha256": "7db45b98e94adf4173a5cd7422b150999a7ee11ff847783a14f6e1b80cc38cb6",
+      "reason": "native_components"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "wheel_sha256": "ec82e80e65a862275b97c3d90b7a523df8d9519ee48aeb4e9625b2cc909274e0",
+      "reason": "native_components"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "wheel_sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "reason": "covered_source_mapping"
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.26.0",
+      "wheel_sha256": "30a88be89ff1f2755297f81e8080d88b795dd98720c3f9fa2acf93873182cc95",
+      "reason": "native_components"
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "wheel_sha256": "e76c4cfb20b076552406782b7f8c2a3946835993df0a44df006de54b7030c7dc",
+      "reason": "native_components"
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.3.0",
+      "wheel_sha256": "4af9c464d410e8c44b58ddf1cbec7c3a02c1cb2c6c80df9c74659ba2fbda0ab5",
+      "reason": "native_components"
+    },
+    {
+      "name": "websockets",
+      "version": "17.4",
+      "wheel_sha256": "51adfc30f467077293a6695d8149bcef501c0728386f3a491054f835dadb60b2",
+      "reason": "native_components"
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1",
+      "wheel_sha256": "4d781294bb815ecb5ea57ff6bbf8038e0a31a95fdf3e1788f66e0dc100d64b58",
+      "reason": "native_components"
+    }
+  ],
+  "docker_cli": {
+    "version": "29.8.2",
+    "reported_git_commit_prefix": "7fc2dff",
+    "go_version": "1.26.8",
+    "cgo_enabled": true,
+    "link_mode": "external_static",
+    "archive_sha256": "76a624e4a8e5da654d1150e808175125efb5a6f1b6aa1cbd9caee18f51047a50",
+    "binary_sha256": "37a53fed3445028a49443fd6f9338ccedeeeda9776de5d7fd4d7e7c936b789cc",
+    "shipped_in_sdk_image": false,
+    "download_condition": "only if CLI remains in the intended distributed tool set",
+    "archive_contains_no_license_or_notice_files": true
+  }
+}

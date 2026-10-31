@@ -35,7 +35,7 @@ Docker 窗口已按另行明确授权完成：独立 Compose 项目使用 `14100
 
 [采用复评](devlogs/2026-W44.parts/development-adoption-20261031.md)已完成：`openhands-sdk → lmnr → lmnr-claude-code-proxy` 为必需链，代理声明专有许可；`NativeBackend` 只有测试实现。项目所有者已确认 SDK 遥测可选化路线；`1.59.0+radishmind.1` 已完成[119 项独立锁、镜像及 SDK / 联合复验](../scripts/eval/development_probe/sdk_variant/README.md)，默认依赖不含 Laminar / 专有代理。
 
-本次运行窗口已结束；剩余许可已完成[本地 wheel / 原生对象与镜像证据审计](devlogs/2026-W44.parts/development-sdk-variant-20261031.md#剩余许可只读取证与处理方案)；下一步确认无网络镜像静态取证窗口，再按实际组件补许可 / 源码。原生 HTTP 固定上游实现范围、固定 Go 单 Agent 的公开合同及 A 级视觉依据仍待确认。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
+本次运行窗口已结束；剩余许可已完成[wheel / 原生对象审计及镜像无网络静态取证](devlogs/2026-W44.parts/development-sdk-variant-20261031.md#已授权的无网络镜像静态取证)，容器始终未启动且已清理；精确 OS / 内嵌依赖清单和缺口已登记。下一步确认有界的来源元数据 / 告知下载范围，核定源码归档后再另报下载；网络窗口尚未授权。原生 HTTP 固定上游实现范围、固定 Go 单 Agent 的公开合同及 A 级视觉依据仍待确认。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
 
 **工作台剩余交付：独立用户按运行指南完成首次使用与持续使用；按项目所有者要求暂不安排。** 记录完成情况、求助点和恢复成本后修复，AI 技术验收不代替该项；它与新功能设计分别记录。Windows PowerShell 与 `linux/amd64` 容器仍未验收，不由已有平台结果推定通过。
 

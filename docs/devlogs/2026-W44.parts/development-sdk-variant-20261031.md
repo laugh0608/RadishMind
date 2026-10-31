@@ -93,7 +93,7 @@ SDK 实际 UID / GID 为 `65532`、附加组为空、capability 全零、`no_new
 
 [Python 官方镜像说明](https://raw.githubusercontent.com/docker-library/docs/master/python/README.md#license)明确提醒镜像还有其他许可组件；[Python 3.12.16 的许可页](https://docs.python.org/3.12/license.html)也列有捆绑软件告知。两者只能提供审计原则，不能替代精确镜像清单。本机 `python:3.12-slim@aa943ce4…` 不能直接按该名称读取独立镜像，构建缓存中是否可独立导出未验证；未为补证拉取镜像。下一步从已存在的最终 SDK 镜像读取其基础层文件。
 
-### 建议的下一取证窗口（尚未执行）
+### 静态取证窗口方案（后续执行结果见下节）
 
 先做无网络静态提取，再据实际清单拟定下载清单，避免一次授权无限范围的依赖下载：
 
@@ -102,7 +102,7 @@ SDK 实际 UID / GID 为 `65532`、附加组为空、capability 全零、`no_new
 3. 输出只写 `tmp/development-license-audit-20261031/image-evidence/`，总量上限 512 MiB，超过即停止并保留失败记录；每次 Docker 操作超时 60 秒。归档只作静态读取，不执行其中程序。按精确容器 ID 清理成功和失败路径，核对状态从未运行、资源清零；保留提取材料与摘要。
 4. 不安装扫描器、不启动 Docker 守护进程、不连接管理 socket 到容器、不拉取 / 重建 / 推送镜像、不执行 SDK 或真实模型。此窗口只补证，不改变既有锁或宣布分发准入。
 
-对应静态提取程序已准备于 `tmp/development-license-audit-20261031/extract_image_licenses.py`，仅做语法检查，尚未执行。批准窗口后的命令为：
+上述只读审计提交时，静态提取程序准备于 `tmp/development-license-audit-20261031/extract_image_licenses.py`，仅做语法检查，尚未执行。批准窗口后的命令为：
 
 ```sh
 .venv/bin/python tmp/development-license-audit-20261031/extract_image_licenses.py
@@ -110,4 +110,43 @@ SDK 实际 UID / GID 为 `65532`、附加组为空、capability 全零、`no_new
 
 后续下载应分两类另报清单：一类为上述缺失正文 / 精确源码 / 原生构建清单；另一类为静态提取后实际发现的 OS 源包或捆绑组件。每项固定来源、版本、摘要或验证方式、体积上限及保存路径；目前尚缺 OS 清单，不能先声称来源集合已经完整。不因告知缺失直接降版、删除运行依赖或重建候选；若确需依赖调整，先说明影响并确认。
 
-本次审计验证：119 个 wheel 摘要与冻结报告一致，所有已声明的 `License-File` 路径均存在；两项缺失包同时没有该声明，不能靠字段存在性检查发现。`./scripts/check-repo.sh` 全量通过（退出码 0，日志 `tmp/development-license-audit-20261031/check-repo-full.log`）；收尾文本、篇幅、中文规范、Markdown 链接及 `git diff --check` 复核通过。提交范围只包含审计结论与方案文档；静态取证程序仅在忽略目录准备并检查语法，没有执行，后续窗口尚未授权。
+本次审计验证：119 个 wheel 摘要与冻结报告一致，所有已声明的 `License-File` 路径均存在；两项缺失包同时没有该声明，不能靠字段存在性检查发现。`./scripts/check-repo.sh` 全量通过（退出码 0，日志 `tmp/development-license-audit-20261031/check-repo-full.log`）；收尾文本、篇幅、中文规范、Markdown 链接及 `git diff --check` 复核通过。该次提交范围只包含审计结论与方案文档；当时静态取证程序仅在忽略目录准备并检查语法，没有执行，后续窗口尚未授权。
+
+## 已授权的无网络镜像静态取证
+
+起点为干净 `dev@1d2c175c`。项目所有者明确批准上述无网络窗口：复用现有 SDK / Go 镜像，创建但不启动临时容器，按既定路径提取并清理，再更新缺口与补下载清单，验证后提交 `dev`、不推送。本次没有新增下载、安装、构建、镜像拉取或任何容器内程序执行。
+
+静态提取程序正常退出。两个容器均使用固定镜像 ID，实际配置无网络、只读根、无挂载 / 端口、非 root、capability 全移除和 `no-new-privileges`。取证前后均为 `created`，`Running=false`、PID 为 0、启动时间为零值；不是以进程退出码推定“没有执行”。容器已按精确 ID 删除，归属查询为空，没有补救清理。15 项路径中 14 项形成归档，合计 12317184 字节（约 11.75 MiB）；缺失项明确保留错误信息，未扩展路径或联网找替代品。
+
+机器可读的[取证主记录](../../../scripts/eval/development_probe/sdk_variant/license-audit-20261031.json)固定镜像、结果、分片与原始证据摘要；原始归档、容器配置 / 状态、清理记录和解析清单位于 `tmp/development-license-audit-20261031/image-evidence/`。归档仅按成员读取，没有解包到系统路径或导入其中程序。所有归档摘要重新核对，Debian 文档链接只在已捕获的虚拟文件树内解析。
+
+### 许可缺口的变化
+
+| 范围 | 本次补齐的证据 | 仍需处理 |
+| --- | --- | --- |
+| SDK 基础 OS | `/usr/lib/os-release` 确认 Debian 13 / trixie、完整版本 13.7；87 个已安装包，归并为 61 个精确源包 / 版本；87 条版权路径全部可解析 | 保留 Debian 修订与 epoch，继续匹配实际源码 / Debian 补丁和获取方式；版权文件可能包含多文件许可，不按单个标题概括整个二进制包 |
+| Debian 通用许可 | 已捕获 common-licenses 及各包版权，GPL / LGPL / MPL 等引用可继续逐项绑定 | 通用目录含某种许可不证明镜像有对应许可的组件；反之，版权文件存在也不等于对应源码义务和最终交付告知已经完成 |
+| Python / pip | Python `3.12.16` 主 LICENSE、`pip==25.0.1` 自身 MIT 正文、完整 `_vendor/vendor.txt` 与内嵌文件已保留 | Python 捆绑库映射仍缺；pip 的 18 项内嵌依赖没有独立 LICENSE / NOTICE 文件，内联告知尚未逐项审完，需按内嵌精确版本补证，不能使用 119 项运行锁中的新版覆盖 |
+| Go 基础 OS | APK 数据库确认 17 个包、10 个 origin；`alpine-release==3.23.5-r0`，每个 origin 有完整 aports commit 和版本 | `/usr/share/licenses` 缺失；`/etc/os-release` 只捕获到指向未取路径的符号链接，版本证据来自 APK 包而非该文件正文；按固定 aports 提取 APKBUILD、补丁与校验和，再补正文 / 源码 |
+| Go 工具链 | `VERSION` 为 `go1.26.7`；主 LICENSE / PATENTS 和 `src/vendor` 四个模块的同类文件均在 | 已取 `x/crypto / x/net / x/sys / x/text` 的精确版本；本窗口没有取 `src/cmd/vendor`，不能声称全部 Go 编译工具内嵌依赖已覆盖；优先另行确认镜像内源码补取范围，确有不足再补对应发布源码 |
+| 119 项运行依赖与测试 CLI | 原 wheel、二进制和许可审计证据保持，未改锁或镜像 | fastmcp-slim / tokenizers 告知、regex / Lupa 历史与捆绑正文、MPL 覆盖源码、26 个原生包构建映射、CLI 条件性交付及统一告知仍按前表处理 |
+
+Alpine 声明可分为：`alpine-baselayout / apk-tools / busybox / pax-utils` 的相关包声明 GPL，`musl-utils` 是复合声明，CA 证书包声明 MPL / MIT，OpenSSL 为 Apache，另有 MIT / Zlib。此处是已捕获 APK 的声明，未以标签推断逐文件适用范围或直接得出侵权结论。两个镜像中的 OpenSSL 版本也不能用来代填 cryptography wheel 内静态 OpenSSL 的版本。
+
+### 已更新的补下载清单（未授权、未执行）
+
+所有精确版本和分组已进入主记录的三个分片，不把长清单复制回当前焦点：
+
+| 清单 | 已固定的选择条件 | 下一步获取内容与验证 |
+| --- | --- | --- |
+| [Debian 源包清单](../../../scripts/eval/development_probe/sdk_variant/license-audit-20261031.parts/debian.json) | 61 个源包 / 精确版本，关联 87 个二进制包 | 先取 Debian 官方 archive / security / snapshot 的来源元数据和对应 `.dsc`；核对可信签名及 Sources / `.dsc` 摘要链，再列实际源码、Debian 修订 / 补丁的 URL / 大小 / 哈希，不以最新版代替。本表是保守取证候选集合，不宣称每个包都必须按同一方式提供源码 |
+| [Alpine 来源清单](../../../scripts/eval/development_probe/sdk_variant/license-audit-20261031.parts/alpine.json) | 10 个 origin / 版本 / 完整 aports commit，关联 17 个二进制包 | 按固定 commit 取 APKBUILD、引用补丁和许可文件，保留来源及上游校验和。APK 数据库的 `Q1…` 是包校验信息，不冒充源码 SHA-256；不执行 APKBUILD，不安装 APK |
+| [内嵌与 Python 来源清单](../../../scripts/eval/development_probe/sdk_variant/license-audit-20261031.parts/bundled.json) | pip 的 18 项内嵌版本、Go 的 4 个已见模块、Python `3.12.16`、Go `1.26.7`、29 个 Python 取证根项及条件性 Docker CLI `29.8.2` | 29 项为 26 个原生 wheel 加 fastmcp-slim / certifi / tqdm；先取对应发布元数据、官方来源版本 / 构建记录、LICENSE / NOTICE 和依赖锁。静态子依赖需从这些材料继续枚举，不声称 29 项就是最终闭包。Python 源码摘要已有镜像环境记录；其他源码摘要尚未取得，不能预填 |
+
+优先顺序为发行物告知缺失与 pip 内嵌告知、Alpine 来源正文、Debian / Python / Go 精确来源映射，随后闭合原生捆绑依赖及最终告知。已有 18 项 pip 内嵌版本保留独立身份，例如 `certifi==2024.8.30`、`urllib3==1.26.20`、`setuptools==70.3.0`；它们与运行锁中的版本或包集合不同，不建议为许可取证直接升级 pip 或删除内嵌包。
+
+建议下一步仅申请**来源元数据与告知下载**：总量上限 128 MiB、单文件 16 MiB，只写 `tmp/development-license-audit-20261031/downloads-stage1/`；限定上述官方来源和精确版本，逐项保存 URL、原始字节摘要与验证结果。只获取发布 / 构建元数据、固定版本来源文件、许可 / NOTICE、签名与校验材料；不下载大型源码归档、二进制 wheel / APK / DEB 或镜像，不执行 `setup.py`、APKBUILD、安装器或任何下载内容，不启动容器 / 服务。可信签名验证所需的信任依据应单列，不能把同时下载但未核验的公钥当作已可信。
+
+该小批次完成后，再据真实元数据列出源码归档的精确地址、摘要、体积、补丁与生成材料，另行申请有界下载；定位失败、版本冲突或超限时停止对应项并记录缺口。此次静态取证授权不包含上述网络下载，也不授予重新构建、镜像发布或正式采用资格。静态窗口已完成并关闭；许可退出条件保持未完成。
+
+本次收口验证：所有提取归档、原始清单、状态与记录分片的摘要一致；61 / 10 组来源分别与原始 87 / 17 条包记录逐项对应；两个容器的实际配置、零启动时间、PID 为 0 和清理结果复核通过。`./scripts/check-repo.sh` 全量通过（退出码 0，日志 `tmp/development-license-audit-20261031/check-repo-image-evidence-full.log`），Docker / SDK / 联合运行测试入口保持关闭；文档收尾后再次通过文本、篇幅、中文规范、链接及 `git diff --check`。提交仅含取证记录、清单分片与文档同步，不改依赖锁或执行配置，不推送。
