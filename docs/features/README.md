@@ -16,6 +16,8 @@
 
 邀请治理、中英国际化、定时回归、Workflow 模板与 Action Safety、既有应用和评测专题保持完成，不派生同层续批。10 月的编辑 / 恢复、RAG 请求标识与首次使用修正均已完成对应本地验收；长证据从[周志](../devlogs/README.md)与对应专题追溯。真实 Radish OIDC 保持 `real_radish_integration_deferred`，运行观测后续保持 `no_entry`。
 
+未来能力已登记[Gateway 路由决策解释与尝试轨迹](gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)：随受控开发阶段 1 运行详情设计统筹，优先复用可信事实进行只读解释与历史回放，动态策略后置；当前主线与应用运行观测 `no_entry` 保持。
+
 ## 专题分层
 
 | 层级 | 路径 | 职责 |

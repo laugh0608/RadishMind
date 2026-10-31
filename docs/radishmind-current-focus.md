@@ -48,6 +48,8 @@ Docker 证据位于忽略目录 `tmp/workbench-docker-20261031/` 与 `output/pla
 
 外部条件提前齐备时可以明确重排下一窗口；不自动并行开多条主线。真实故障与安全问题优先处理，具体条件见[路线图](radishmind-roadmap.md#后续开发方向2026-10-26)。
 
+已登记未来能力：[Gateway 路由决策解释与尝试轨迹](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)。随阶段 1 运行详情设计统筹，先只读解释与历史回放，策略优化后置；当前 SDK / 隔离执行顺位及应用观测 `no_entry` 保持，不自动开启第二条实施主线。
+
 ## 已完成范围与剩余边界
 
 - 邀请治理、中英国际化、定时回归、Workflow 模板与 Action Safety 保持关闭；工程 R2 至 R6、身份策略首个切片与既有双数据库回归不派生续批。实现事实从[功能入口](features/README.md)追溯。

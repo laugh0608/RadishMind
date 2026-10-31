@@ -1,6 +1,6 @@
 # Gateway 细专题入口
 
-更新时间：2026-08-15
+更新时间：2026-10-31
 
 本目录承接 `Model Gateway / API Distribution` 的具体运行时、协议兼容和用户路径专题。上层方向、优先级与生产停止线仍以 [Model Gateway / API Distribution](../model-gateway-api-distribution.md) 为准。
 
@@ -17,3 +17,7 @@
 | [Gateway Playground / Request Review Loop v1](gateway-playground-request-review-loop-v1.md) | `gateway_playground_request_review_loop_v1_complete` | 三协议 unary / stream、取消、稳定失败和 request-id history handoff 已完成；S5 只开放目录真实协议并要求 active application、workspace 一致与易失 credential，输入输出仅保留在组件内存 |
 
 普通 Gateway UI 文案、只读 evidence 和布局改动不在本目录新增专题；它们继续复用 Web build、Gateway smoke 与仓库聚合门禁。
+
+## 未来规划
+
+[Gateway 路由决策解释与尝试轨迹 v1](gateway-routing-decision-explanation-attempt-trace-v1.md)已登记，尚未实施：随受控开发阶段 1 运行详情设计统筹，复用既有快照、请求历史和开发事件，顺序交付单请求解释与只读历史回放；余额 / 价格 / 速度 / 意图路由后置评估。当前主线与已有路由执行边界保持，应用观测 `no_entry` 不变。

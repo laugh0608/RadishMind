@@ -56,6 +56,12 @@ Go 平台拥有任务权威状态，OpenHands SDK 为编码执行首选候选；
 
 本方向属于已有 User Workspace 与 Workflow / Agent Runtime 产品面，不新增一级产品面。它不要求先实现跨版本回归审查、团队共享部署、生产密钥或真实 OIDC，也不解锁通用自治、任意工具、业务写回、自动合并 / 推送 / 发布。详细阶段判据只在[实施子专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)维护。
 
+### 未来能力：路由决策解释与尝试轨迹（2026-10-31）
+
+项目所有者已要求将 Magpie 路由界面的借鉴方向纳入未来规划，专题为[Gateway 路由决策解释与尝试轨迹](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)。在既有 Gateway / Request History 与开发运行详情中展示调用链、冻结配置、实际尝试、确定性原因及已知 / 未知用量，不增加一级产品面或第二套路由负责模块。
+
+排期随受控开发阶段 1 的运行详情统筹：先核对证据与界面，再交付单请求 / 尝试解释，之后交付只读历史轨迹回放。当前 SDK、代码沙箱、归属终止与开发产物主线保持，尚不实施本方向；价格 / 厂商余额 / 速度 / 意图选模各自作为后置策略候选，有真实来源与任务基线后再确认。回放不触发模型或工具，开发尝试内的模型 / 价格 / 工具策略继续冻结；应用运行观测的 `no_entry` 不因此改变。
+
 ### 第二阶段：真实任务与模型效果
 
 真实模型试用继续暂停。恢复后，在已能持续使用的工作台内固定任务集、提供方 / 模型、配置版本、数据和费用窗口，记录结构合规、事实正确、建议有用、人工修改、延迟与可信用量；技术成功、人工浏览器与真实质量分别报告。
@@ -83,6 +89,7 @@ Go 平台拥有任务权威状态，OpenHands SDK 为编码执行首选候选；
 
 | 方向 | 排入开发的依据 |
 | --- | --- |
+| [Gateway 路由决策解释与尝试轨迹](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md) | 已登记未来规划，随阶段 1 运行详情确认设计与范围；可信决策事实和身份关联齐备后交付解释与只读回放，动态策略优化后置 |
 | [应用跨版本回归审查](features/user-workspace/application-cross-version-regression-review-dev-test-v1.md) | 持续版本迭代中存在重复逐对查找和证据整理负担，样本一致性与人工审查依据明确；获选后先 Workflow 后 Prompt |
 | 图片生成后端与产物交付 | 具体图片任务、后端、运行资源和数据边界明确；现有 adapter 不自动产生续批 |
 | 账户恢复与 MFA | 共享访问风险、可信身份核验及恢复渠道明确 |

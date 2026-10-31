@@ -1,6 +1,6 @@
 # Model Gateway / API Distribution 设计与开发文档
 
-更新时间：2026-08-15
+更新时间：2026-10-31
 
 ## 功能定位
 
@@ -54,6 +54,10 @@ Provider Attempt 批次 A 至 D 已把 Route v2、Request History v3、既有 Ad
 7. API 密钥 Gateway 认证、本地连续链、PostgreSQL migration / 角色 / 方言 / 并发门禁、Web 一次性交接和浏览器重启复验均已通过；Provider reported usage 已进入 canonical envelope、三协议、历史与应用审查。独立 application request quota 已完成三模式 owner、Admin API、六条 route provider 前准入、S9 完整 Pencil、React 严格 consumer、CAS 确认与真实浏览器连续链；不提前打开 production distribution、token 估算、价格、production quota 或计费。
 8. 价格与成本专题设计、S9 / S10 Visual R3、S7 Pricing / S5 Cost Review Visual R1、领域、三模式 owner、Admin API、Request History v2、React strict consumer、数据库实例和真实浏览器连续链均已关闭。
 9. Provider Attempt 批次 A 至 E、Visual R1、React strict consumer、双数据库、三个 unary 协议、真实浏览器三视口和最终门禁已关闭；唯一高风险任务卡已完成，不从静态 retry / fallback policy 派生同层 checker 链。
+
+## 已登记的未来能力
+
+[Gateway 路由决策解释与尝试轨迹 v1](gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)计划复用现有路由快照、逐次请求记录及开发尝试事件，提供调用链、确定性原因、用量覆盖与只读历史回放。尚未实施，随受控开发阶段 1 运行详情设计统筹；当前 SDK / 隔离执行顺序保持。价格、厂商余额、速度与意图选模分别列为后置候选，不据界面规划扩大故障回退或生产边界。
 
 ## 验收方式
 
