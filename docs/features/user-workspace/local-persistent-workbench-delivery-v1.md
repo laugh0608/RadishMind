@@ -4,6 +4,8 @@
 
 状态：统一运行档、命令、Web 接线、Docker 资产及冷备份恢复已实现；2026-10-31 已完成 macOS 宿主机 Chrome 的首次使用、Prompt / Workflow、显式保存、冷重启和新目录恢复验收，并修复实际阻塞。`linux/arm64` Docker 构建 / 运行、挂载限制、冷重启及容器与宿主机备份迁移也已完成技术验收；Windows PowerShell、`linux/amd64` 容器与独立用户验收尚未完成，真实模型窗口继续暂停。
 
+主要归属：[User Workspace](../user-workspace.md)；协同身份、Workflow、Gateway 与平台运维。本专题“实施范围与验证安排”及“连续实施与完成依据”承载唯一交付工作包，实际证据按下文宿主机 / Docker / 独立用户范围分别判断；不将技术验收合称用户或真实模型验收，不另建平行任务卡。
+
 ## 决策与用户目标
 
 项目所有者在全项目复审后批准整合未来规划。本专题成为当前唯一产品主线，替代此前跨版本回归审查的优先排期。审阅依据见[工程健康专题](../../platform/engineering-health-productization-remediation-v1.md#2026-10-26-全项目复审交付后移与开发循环)，长期顺序见[路线图](../../radishmind-roadmap.md#后续开发方向2026-10-26)。

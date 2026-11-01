@@ -32,6 +32,8 @@
 
 ## 主专题与子专题分工
 
+主要归属：[Workflow / Agent Runtime](../workflow-agent-runtime.md)；User Workspace、Gateway 与平台隔离为协同。五个职责文件共同支撑本功能，不因目录深度另造五条产品主线。[实施与评测子专题](controlled-software-development-team/implementation-and-evaluation-plan-v1.md)拥有阶段进入 / 退出标准，[集中任务卡](../../task-cards/development-task-probe-v1-plan.md)唯一维护阶段 0 任务结果；其余四个子专题维护对应合同，详细运行证据进入周志。
+
 本专题统一拥有目标、首轮范围、角色、阶段顺序和完成判据。子专题按实际职责拆分，不按每个 Agent 建文档，不复制一套任务卡或准备门禁。
 
 | 子专题 | 负责的问题 |

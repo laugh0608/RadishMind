@@ -8,6 +8,8 @@
 
 ## 本轮范围
 
+规划归属：Workflow / Agent Runtime → 受控软件开发团队 → [实施顺序与效果验证](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)。本卡是阶段 0 任务结果源；框架、运行状态、隔离与界面职责子专题提供关联合同。下表完成项只证明对应技术范围，阶段退出仍须满足实施专题的四项条件。
+
 项目所有者要求按建议继续推进：先落实 SDK / Gateway 兼容验证与代表任务，再推进单 Agent 隔离交付。现阶段已实现离线计划 / 工具请求校验、副本准备及独立 SDK LLM 契约测试；SDK 候选、执行镜像、正式 Gateway 扩展及代码沙箱不能凭准备结果视为已接入。
 
 | 工作 | 当前结果 | 完成依据 / 剩余项 |

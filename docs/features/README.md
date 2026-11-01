@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-31
+更新时间：2026-11-01
 
 ## 文档目的
 
@@ -10,15 +10,15 @@
 
 ## 当前目标
 
-项目所有者在全项目复审后批准以[本机持久工作台交付 v1](user-workspace/local-persistent-workbench-delivery-v1.md)作为本机交付基座。首轮整合正式 Web、启动配置、本地身份与 SQLite、Prompt / Workflow 运行、结果显式保存和重启恢复。实施范围已确认，统一运行档、命令、Web 接线与冷备份恢复已实现；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制与备份迁移已验收，独立用户验收仍待完成。操作见[运行指南](../platform/local-persistent-workbench-operations-v1.md)。
+当前开发主线与停止线由[当前推进焦点](../radishmind-current-focus.md)维护；受控开发团队的阶段 0 工作集中在[任务卡](../task-cards/development-task-probe-v1-plan.md)，四项退出条件见[实施与评测子专题](workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。登记与局部技术验收不代表正式采用。
 
-项目所有者另行选择[多 Agent 协同与受控软件开发团队 v1](workflow/controlled-software-development-team-v1.md)为下一功能设计，先阶段 0 合同 / 选型验证，再单 Agent 隔离交付、固定团队、持续协作和真实效果对照；当前已有冻结合成任务与离线准备，SDK LLM 固定响应已验证，受限 SDK Agent 已经专属通道通过固定响应与取消验证，固定 Go 隔离执行与归属清理已真实验收，真实提供方原生适配、联合任务和开发产物仍待收口。真实质量验证与按需共享 / 业务接入的成熟度要求保持；跨版本回归审查仍为候选。阶段条件见[路线图](../radishmind-roadmap.md#后续开发方向2026-10-26)，下一动作与授权边界见[当前推进焦点](../radishmind-current-focus.md)。真实模型试用继续暂停。
-
-邀请治理、中英国际化、定时回归、Workflow 模板与 Action Safety、既有应用和评测专题保持完成，不派生同层续批。10 月的编辑 / 恢复、RAG 请求标识与首次使用修正均已完成对应本地验收；长证据从[周志](../devlogs/README.md)与对应专题追溯。真实 Radish OIDC 保持 `real_radish_integration_deferred`，运行观测后续保持 `no_entry`。
-
-未来能力已登记[Gateway 路由决策解释与尝试轨迹](gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)：随受控开发阶段 1 运行详情设计统筹，优先复用可信事实进行只读解释与历史回放，动态策略后置；当前主线与应用运行观测 `no_entry` 保持。
+[本机持久工作台](user-workspace/local-persistent-workbench-delivery-v1.md)是交付基座；技术证据、独立用户及未验平台按该专题分别记录。真实模型继续暂停；既有完成专题不由本次导航整理派生续批。未来 Gateway 解释与尝试轨迹随受控开发阶段 1 统筹，应用运行观测保持 `no_entry`。
 
 ## 专题分层
+
+[产品范围](../radishmind-product-scope.md)与[路线图](../radishmind-roadmap.md)构成整体规划；下表和产品面导航是能力地图，产品面是大专题，具体功能及职责专题承接子专题。逻辑层级不强制等于目录深度：受控开发保留主功能及五个职责文件，阶段 0 使用一张集中任务卡。
+
+每个功能指定一个主要归属，跨产品面只登记协同；平台与集成是支撑主线，不新增第五产品面。任务状态只在已指定任务卡或功能文档维护，地图只链接来源。任务完成、阶段退出、真实质量和生产准入分别验收。
 
 | 层级 | 路径 | 职责 |
 | --- | --- | --- |
@@ -39,6 +39,17 @@
 | `Workflow / Agent Runtime` | [工作流与运行时](workflow-agent-runtime.md) | [草案、定义、执行、模板与 RAG](workflow/README.md) |
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | 固定响应测试后端与私有存储已完成；真实后端和公开交付独立验收，不另立第五产品主线 |
 | 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 F 在登记的可达范围完成关闭；界面语言不改写业务语言、协议字段、用户原文或导出 JSON；日程双语浏览器证据限定合成投影 |
+
+## 活跃专题的任务与验收来源
+
+| 主要归属 | 子专题 | 任务与验收唯一来源 | 协同 |
+| --- | --- | --- | --- |
+| User Workspace | [本机持久工作台交付](user-workspace/local-persistent-workbench-delivery-v1.md) | 原文“实施范围与验证安排”“连续实施与完成依据”及实际证据；不另建任务卡 | 管理端身份、Workflow、Gateway、平台运维 |
+| Workflow / Agent Runtime | [受控软件开发团队](workflow/controlled-software-development-team-v1.md)及五个职责子专题 | [阶段 0 集中任务卡](../task-cards/development-task-probe-v1-plan.md)维护任务结果；[实施子专题](workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)维护阶段 0–4 的准入 / 退出 | User Workspace 审阅、Gateway 传输、平台隔离 |
+| Model Gateway / API Distribution | [路由决策解释与尝试轨迹](gateway/gateway-routing-decision-explanation-attempt-trace-v1.md) | 原专题的阶段范围与验收；尚不独立开实施线 | 受控开发阶段 1 运行详情 |
+| User Workspace | [跨版本回归审查](user-workspace/application-cross-version-regression-review-dev-test-v1.md) | 原候选专题的触发依据，未获选前不建任务批次 | Workflow / Prompt 评测 |
+
+平台支撑由[平台索引](../platform/README.md)路由身份、存储、运行和工程合同；外部接入由[集成索引](../integrations/README.md)路由上游与验收条件。跨主线任务引用原合同，不在两处勾选同一完成状态。历史细案继续沿原目录查阅，本轮只梳理活跃工作链。
 
 ## 常用用户流程
 

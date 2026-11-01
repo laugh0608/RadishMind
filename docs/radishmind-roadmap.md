@@ -100,11 +100,11 @@ Go 平台拥有任务权威状态，OpenHands SDK 为编码执行首选候选；
 
 ## 当前执行顺位
 
-2026-10-31 已分别按项目所有者明确授权完成宿主机浏览器主链及 `linux/arm64` Docker 构建 / 运行、挂载限制、冷重启和容器与宿主机备份迁移，所属容器、网络和进程均已清理。下一步由独立用户按[运行指南](platform/local-persistent-workbench-operations-v1.md)完成首次与持续使用，记录实际障碍后修复。Windows PowerShell、`linux/amd64` 容器和真实模型仍未验收，不据技术验收关闭全部交付；后续服务窗口仍需各自明确授权。
+当前动作、阻塞与停止线只由[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-31)维护；[能力专题地图](features/README.md)连接产品面、功能子专题与任务 / 验收来源。
 
-新功能开发按受控软件开发团队阶段 0 推进；单 Agent 隔离开发交付是其下一实施目标。设计、原工作台独立用户验收与真实模型质量分别记录；尚未正式采用 SDK 或开放通用代码工具；固定 Go 任务仅有显式可信接线的内部执行档案。
+工作台交付与新功能开发分别沿[工作台专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)和[受控开发实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)记录。既有完成专题不因本次规划整理重新进入；历史状态和技术验收见[能力矩阵](radishmind-capability-matrix.md)与[W44 周志](devlogs/2026-W44.md)。
 
-当前动作由[当前推进焦点](radishmind-current-focus.md#接下来事项2026-10-31)维护，细节归[交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)。邀请、国际化、定时回归与工程 R2 至 R6 保持完成；`P3 Local Product Shell / Ops Surface` 保持 `local usable / read-only close`，不默认续建旧 Console。历史事实见[能力矩阵](radishmind-capability-matrix.md)与[W44 周志](devlogs/2026-W44.md)。
+历史 `P3 Local Product Shell / Ops Surface` 的 `local usable / read-only close` 边界仍按原阶段理解；不因本次整理恢复旧 Console 实施。
 
 ## 执行节奏与阶段选择
 
