@@ -1,0 +1,66 @@
+{
+  "schema_version": "development_license_source_followup.v1",
+  "status": "prepared_awaiting_explicit_authorization",
+  "purpose": "核对 wheel SBOM 指向的 OpenSSL 归档字节，并取得 Python 1.6 历史来源候选；不替代独立构建证明或许可结论。",
+  "command": "python3 tmp/development-delivery-20261105/fetch_source_followup.py --execute",
+  "output_directory": "tmp/development-delivery-20261105/source-followup",
+  "limits": {
+    "logical_items": 4,
+    "http_requests_including_redirects": 5,
+    "body_bytes_total": 77594624,
+    "seconds_per_request": 45,
+    "connect_seconds": 10,
+    "concurrency": 1,
+    "retries": 0
+  },
+  "items": [
+    {
+      "id": "openssl-4-0-3-source",
+      "url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
+      "max_bytes": 67108864,
+      "expected_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+      "basis": "license-metadata-20261105.json 的精确 wheel 内嵌 SBOM",
+      "allowed_redirect_hosts": [
+        "release-assets.githubusercontent.com"
+      ],
+      "max_redirects": 1
+    },
+    {
+      "id": "python-1-6-source",
+      "url": "https://www.python.org/ftp/python/1.6/Python-1.6.tar.gz",
+      "max_bytes": 8388608,
+      "basis": "官方历史发行目录候选，尚未验证在线存在；不能以 URL 或本次自算摘要证明来源可信",
+      "allowed_redirect_hosts": [],
+      "max_redirects": 0
+    },
+    {
+      "id": "python-1-6-release-page",
+      "url": "https://www.python.org/download/releases/1.6/",
+      "max_bytes": 1048576,
+      "basis": "官方历史发行页候选，尚未验证在线存在",
+      "allowed_redirect_hosts": [],
+      "max_redirects": 0
+    },
+    {
+      "id": "python-1-6-matching-refs",
+      "url": "https://api.github.com/repos/python/cpython/git/matching-refs/tags/v1.6",
+      "max_bytes": 1048576,
+      "basis": "枚举 v1.6 前缀候选；1.6a/1.6b/1.6.1 等不能冒充最终 1.6",
+      "allowed_redirect_hosts": [],
+      "max_redirects": 0
+    }
+  ],
+  "failure_policy": "404、限流、超限、摘要不符或未获准重定向记录为缺口；不重试、换源、翻页或追取返回链接。OpenSSL 仅允许一次 HTTPS 重定向到列明的发行资产域名。",
+  "review_after_download": "只读检查归档目录和选定许可/构建文本；不按归档路径解包，不执行源码。OpenSSL 核对预期 SHA-256 后才标记字节一致；Python 1.6 来源与现有 regex 声明逐项比对。",
+  "boundary": {
+    "dependency_installation": false,
+    "source_execution": false,
+    "image_or_container_operations": false,
+    "real_models": false,
+    "publish": false,
+    "automatic_license_approval": false,
+    "retain_evidence": true
+  },
+  "cleanup": "只写新的输出目录并保留审计材料；无后台进程、服务或容器。取证结果独立记录，执行完成即关闭此窗口。",
+  "executor_sha256": "de811b5d1afcd6c73b593758f918275486d6d775a598d4134007537b0fe26467"
+}

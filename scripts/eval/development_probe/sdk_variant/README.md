@@ -104,3 +104,5 @@ python3 scripts/eval/development_probe/run_joint.py \
 许可补证进度：已按单独授权静态提取现有 SDK / Go 镜像文件，两个容器始终未启动且已清理。实际 OS 包、内嵌依赖、缺失路径和后续下载候选见 [license-audit-20261031.json](license-audit-20261031.json) 及其分片；镜像清单本身不代表来源已取齐或已获准分发。后续已按明确授权完成有界来源元数据 / 告知下载，结果与源码候选见 [license-sources-20261031.json](license-sources-20261031.json)；后续已按独立授权完成[来源归档与签名链核验](license-archives-20261031.json)：61 个 Debian 源包通过仓库签名链绑定，9 项 Alpine 来源体积 / SHA-512 已核对，191 项候选字节完整取得并核对。下载与隔离验签窗口已关闭，10 个验证容器已清理。2026-11-05 已从保留材料生成[补充告知](notice-supplements/README.md)与[精确映射](license-delivery-20261105.json)，覆盖 fastmcp-slim、tokenizers、Lupa 与 cryptography 内嵌 OpenSSL 的 11 份正文；仅准备仓库材料，未安装到镜像。原生组件构建映射、完整告知交付与最终覆盖源码交付仍未闭合；不自动下载新发现的依赖或重建镜像。
 
 本轮随后按单独批准的八个地址取得[来源元数据](license-metadata-20261105.json)：六项 HTTP 200，两项历史 Python 1.6 地址为 404，总正文 1357427 字节。cryptography 精确 wheel 内的 OpenSSL SBOM 已绑定 4.0.3 源码 URL / SHA-256 / 构建参数，PyPI 发布声明的 wheel 摘要一致；尚未取得该源码归档、验证签名信任或确认历史构建容器摘要。Rust SBOM 标记 `all_targets=true`，不能作为仅已链接组件清单。窗口已关闭，不自动追加下载。
+
+下一步已准备[四项来源补证窗口](license-source-followup-20261105.json)，当前为待授权：OpenSSL 4.0.3 归档及三个 Python 1.6 历史来源候选。请求总正文上限 74 MiB，仅 OpenSSL 允许向指定发行资产域名重定向一次；不执行源码或重建镜像。预览与语法检查已完成，尚未发出网络请求；历史八项窗口不续用。
