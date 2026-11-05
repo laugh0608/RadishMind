@@ -108,3 +108,11 @@ python3 scripts/eval/development_probe/run_joint.py \
 [四项来源补证窗口](license-source-followup-20261105.json)已获准并完成，结果见[源码核对记录](license-source-result-20261105.json)：五次 HTTP 请求共 55282876 字节，OpenSSL 4.0.3 归档摘要与 wheel SBOM 一致、许可正文与仓库副本相同。Python 1.6 归档候选为 404，官方发行页已取得；返回的两个 Git 标签均为 alpha，不能作为最终版。下载窗口已关闭，未追取发行页链接。随后另获批准执行[两项官方页面补证](license-page-followup-20261105.json)：下载说明页取得最终 1.6 八条全文，FAQ 为 404，总正文 69066 字节。已补充 regex 所声明的 CNRI Python 1.6 正文，现为五包 12 份、48485 字节；与既有 1.6.1 文本的版本、年份、handle 和第 7 条差异明确记录，见[页面结果](license-page-result-20261105.json)。正文缺失已补齐，regex 继承来源 / 完整告知范围仍待核对；未点击接受、提交表单或下载源码，窗口已关闭。
 
 补充告知交付代码已通过离线正反例测试，并与摘要已复核的历史候选安装报告匹配。此结果只证明构建材料与已安装 wheel 的对应关系；实际新镜像安装、完整原生组件清单与覆盖源码交付仍待验收。
+
+### 原生组件离线对应
+
+[原生组件记录](license-native-20261105.json)将 26 个已锁定 wheel、63 个 AArch64 ELF、现有许可正文及 10 份内嵌 SBOM 对应，原文件摘要与冻结锁 / 既有 ELF 证据一致。Pillow 的 18 个捆绑共享库可由 23 条动态链接、SONAME 与 ORIGIN 搜索路径作静态对应；其余动态链接集中在八个外部 SONAME。文件名、声明版本和系统包存在分别记录，不冒充运行时实际加载。
+
+七份 Rust SBOM 带 `all_targets=true`，其中 required / excluded 条目不能直接等同最终静态链接清单。Pillow 的 optional 项不自动计为已交付；其 OpenJPEG ancestor 的名称 / purl 冲突、zlib 声明版本与外部 `libz.so.1` 的边界、组合许可正文中的 AOM / DAV1D 等组件均保留为待核对项。原生对象与 SBOM 没有被导入或执行。
+
+[静态镜像取证](license-native-image-result-20261105.json)已单独获准并完成：25 次复制共 8353280 字节，八个库的 SONAME、原路径 / 链接目标、正文及 dpkg 清单 / MD5 声明均匹配；对应 glibc、GCC、zlib 三组已留存源码版本。库自身未引出新动态依赖名称。容器始终处于未启动状态，已按精确 ID 删除并复核归属容器为空；未启动 Docker、拉取 / 重建镜像或执行原生程序，窗口关闭。该结果不替代实际加载、静态组件、独立构建来源与最终告知 / 覆盖源码交付验证。

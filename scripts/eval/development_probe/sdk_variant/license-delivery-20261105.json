@@ -276,7 +276,7 @@
   "open_items": [
     "cryptography OpenSSL 4.0.3 independent build attestation and Rust selected components (source archive bytes now match wheel SBOM)",
     "regex derivation and full notice-retention scope: final CNRI Python 1.6 text is now retained; CPython 2.6/3.1 carry differing 1.6.1 text",
-    "Other native/static linked components and complete third-party notices",
+    "Static/native component selection and full third-party notices; 63 ELF objects mapped and eight external system library files/ownership verified in the exact SDK image",
     "Covered-source delivery for MPL and OS packages, certifi generator inputs",
     "Actual SDK/Go image installation and full delivery verification",
     "Docker CLI delivery decision and source mapping if included"
@@ -289,5 +289,7 @@
   },
   "download_authorization_record": "license-metadata-20261105.json",
   "source_followup_result": "license-source-result-20261105.json",
-  "historical_license_page_result": "license-page-result-20261105.json"
+  "historical_license_page_result": "license-page-result-20261105.json",
+  "native_component_evidence": "license-native-20261105.json",
+  "external_library_image_evidence": "license-native-image-result-20261105.json"
 }

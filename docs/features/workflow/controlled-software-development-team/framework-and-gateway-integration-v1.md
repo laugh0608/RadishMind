@@ -132,6 +132,8 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 
 补充告知的离线准备与镜像构建配方已接通，按冻结 wheel 校验来源清单，并在构建时检查实际 pip 安装报告；缺失、摘要 / 版本不符和路径问题均拒绝。离线测试及历史安装报告匹配通过，镜像尚未重建，因此不能登记实际告知安装通过。完整原生组件、覆盖源码交付和整体采用继续未闭合，详见 [W45 周志](../../../devlogs/2026-W45.md)。
 
+[原生组件离线对应](../../../../scripts/eval/development_probe/sdk_variant/license-native-20261105.json)已覆盖 26 个原生 wheel、63 个 ELF、现有告知及 10 份 SBOM。23 条链接通过同 wheel SONAME / 搜索路径对应到 Pillow 的 18 个捆绑库；八个外部 SONAME 的实际镜像文件、链接目标和 dpkg 归属已通过[停止态容器静态取证](../../../../scripts/eval/development_probe/sdk_variant/license-native-image-result-20261105.json)，对应三组已有源码版本；容器已删除，未验证实际加载或可复现构建。七份 Rust SBOM 的 `all_targets=true`、Pillow 的 optional 声明及字段冲突分别保留，未据此关闭静态组件、独立构建或覆盖源码交付条件。
+
 <a id="原生传输的建议实施范围待确认"></a>
 
 ### 原生 HTTP 传输档案与验证（2026-11-05）

@@ -1,0 +1,61 @@
+{
+  "items": {
+    "ld-linux-aarch64.so.1": {
+      "binary_package_candidate": "libc6",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libc.so.6": {
+      "binary_package_candidate": "libc6",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libdl.so.2": {
+      "binary_package_candidate": "libc6",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libgcc_s.so.1": {
+      "binary_package_candidate": "libgcc-s1",
+      "source_package": "gcc-14",
+      "source_version": "14.2.0-19",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libm.so.6": {
+      "binary_package_candidate": "libc6",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libpthread.so.0": {
+      "binary_package_candidate": "libc6",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libstdc++.so.6": {
+      "binary_package_candidate": "libstdc++6",
+      "source_package": "gcc-14",
+      "source_version": "14.2.0-19",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    },
+    "libz.so.1": {
+      "binary_package_candidate": "zlib1g",
+      "source_package": "zlib",
+      "source_version": "1:1.3.dfsg+really1.3.1-1",
+      "evidence": "license-audit-20261031.parts/debian.json",
+      "object_file_and_ownership_verified": false
+    }
+  },
+  "boundary": "Package presence is recorded in retained image dpkg metadata; actual file bytes, symlink targets and ownership have not been inspected. These are candidates, not verified loader resolutions."
+}

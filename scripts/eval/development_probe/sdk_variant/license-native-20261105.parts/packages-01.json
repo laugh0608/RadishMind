@@ -1,0 +1,240 @@
+{
+  "items": [
+    {
+      "name": "aiohttp",
+      "version": "3.14.5",
+      "wheel": "aiohttp-3.14.5-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "abfda5cb094a829f7bc25216a32f7db2e85cc65bd59910f8e7b40b3d9b224764",
+      "native_object_count": 4,
+      "existing_notices": [
+        {
+          "path": "aiohttp-3.14.5.dist-info/licenses/LICENSE.txt",
+          "sha256": "2e4be5fc6c4c72a466fcb665d726e049a6891981fe536c4f04b6366749461d23"
+        },
+        {
+          "path": "aiohttp-3.14.5.dist-info/licenses/vendor/llhttp/LICENSE",
+          "sha256": "628168d68bb5a8a17e0bbefb3bd74e326e1edc20583d76f52f457c82c921867d"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "caio",
+      "version": "0.12.10",
+      "wheel": "caio-0.12.10-cp312-cp312-manylinux_2_34_aarch64.whl",
+      "wheel_sha256": "93bb3a3f0bd684ac6b559c33a84817395c4d2c75d98dae2b7c40c57acce83737",
+      "native_object_count": 3,
+      "existing_notices": [
+        {
+          "path": "caio-0.12.10.dist-info/licenses/COPYING",
+          "sha256": "c79de288bfd6d645a0c668a9e64672ad15f4f0279af216d8dcf20b9699603329"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "cffi",
+      "version": "2.1.1",
+      "wheel": "cffi-2.1.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "wheel_sha256": "68e62fe11f30d5ca8289242866f0a5291402d8529ca2178ab8afc5c9694ae890",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "cffi-2.1.1.dist-info/licenses/LICENSE",
+          "sha256": "5ba24ddc57067f9249add644c3afc41a5d6dc37e23433ef759d95df370b0af63"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "wheel": "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "b91363207bd9dc966a691e959bb47f64b30f7ac4b072be9968b366982f7db77c",
+      "native_object_count": 2,
+      "existing_notices": [
+        {
+          "path": "charset_normalizer-3.5.2.dist-info/licenses/LICENSE",
+          "sha256": "6d0d41bfe170ac6c7dc248c9a63e254d0fb45a60d50a8257d0af92c6e249b887"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "cryptography",
+      "version": "50.0.2",
+      "wheel": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+      "wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "cryptography-50.0.2.dist-info/licenses/LICENSE",
+          "sha256": "3e0c7c091a948b82533ba98fd7cbb40432d6f1a9acbf85f5922d2f99a93ae6bb"
+        },
+        {
+          "path": "cryptography-50.0.2.dist-info/licenses/LICENSE.APACHE",
+          "sha256": "aac73b3148f6d1d7111dbca32099f68d26c644c6813ae1e4f05f6579aa2663fe"
+        },
+        {
+          "path": "cryptography-50.0.2.dist-info/licenses/LICENSE.BSD",
+          "sha256": "602c4c7482de6479dd2e9793cda275e5e63d773dacd1eca689232ab7008fb4fb"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "cryptography-50.0.2.dist-info/sboms/cryptography-rust.cyclonedx.json",
+          "sha256": "fee819a6ce3cffc8a3f152acf6e0933c9bc719f8ccf76766d799f844f8b22772"
+        },
+        {
+          "member": "cryptography-50.0.2.dist-info/sboms/sbom.json",
+          "sha256": "b0bf7d97f711a6abea7658c0e84ad5954226663559cba3ae14321e70adb72184"
+        }
+      ]
+    },
+    {
+      "name": "fastuuid",
+      "version": "0.14.0",
+      "wheel": "fastuuid-0.14.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "wheel_sha256": "0c9ec605ace243b6dbe3bd27ebdd5d33b00d8d1d3f580b39fdd15cd96fd71796",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "fastuuid-0.14.0.dist-info/licenses/LICENSE",
+          "sha256": "00736c852386ac15a12283c00677b46ef4b303be53ab0a1d05f48a9291355fa4"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "wheel": "frozenlist-1.8.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "96f423a119f4777a4a056b66ce11527366a8bb92f54e541ade21f2374433f6d4",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "frozenlist-1.8.0.dist-info/licenses/LICENSE",
+          "sha256": "6fd5243e92dd7f98ec69c7ac377728e74905709ff527a5bf98d6d0263c04f5b6"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.8.0",
+      "wheel": "hf_xet-1.8.0-cp38-abi3-manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "8800e3444770f2c630b361bc6d5c6ebb770b7830646cf632fbb79d0e5bbc9e7f",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "hf_xet-1.8.0.dist-info/licenses/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "hf_xet-1.8.0.dist-info/sboms/hf_xet.cyclonedx.json",
+          "sha256": "9649d76472bdfac3dfc50f5fc9aa02019b2d52b081dc0529a6e413d7af642d15"
+        }
+      ]
+    },
+    {
+      "name": "jiter",
+      "version": "0.18.0",
+      "wheel": "jiter-0.18.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "wheel_sha256": "d7424194e68ef44e94290961f59319850d7ce11a329a3957f91709c15ded6618",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "jiter-0.18.0.dist-info/licenses/LICENSE",
+          "sha256": "7c7134b9f7b978c03fca875517cf398db91f19bbb8109b6685e742aa3f57468e"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "jiter-0.18.0.dist-info/sboms/jiter-python.cyclonedx.json",
+          "sha256": "500b930d7388c163f88f9181ed4219507da4940f03f4de157e3255ae532d67e0"
+        }
+      ]
+    },
+    {
+      "name": "litellm",
+      "version": "1.105.7",
+      "wheel": "litellm-1.105.7-cp310-abi3-manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "40310aaaee2385df1afc9c91d0a0bd61884a8d2940b91e3d5d7739a4dac6b2dd",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "litellm-1.105.7.dist-info/licenses/LICENSE",
+          "sha256": "b170d6bf8e8835dd357e011681db028f4d51e2fb0ea892058f56e01fb39b8273"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "lupa",
+      "version": "2.8",
+      "wheel": "lupa-2.8-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "27044f3363047f946b3d3aab9157cbd172b3538ada9ec1baef43432bf7d03a78",
+      "native_object_count": 6,
+      "existing_notices": [
+        {
+          "path": "lupa-2.8.dist-info/licenses/LICENSE.txt",
+          "sha256": "957afe4913dfc469fd60541d847a581c5bddd6ba0ccb72390ed78c75837768a1"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.4",
+      "wheel": "markupsafe-3.0.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "6a45c3d514f2436064db00d7fc8778d888f0236ebfed649b53d13a59e69ad51b",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "markupsafe-3.0.4.dist-info/licenses/LICENSE.txt",
+          "sha256": "489a8e1108509ed98a37bb983e11e0f7e1d31f0bd8f99a79c8448e7ff37d07ea"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "multidict",
+      "version": "7.2.1",
+      "wheel": "multidict-7.2.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "fa0ecd064b0ae18d235283abb5adbc4e07304dba8f2aa7c0d61f28bebcc70d4c",
+      "native_object_count": 2,
+      "existing_notices": [
+        {
+          "path": "multidict-7.2.1.dist-info/licenses/LICENSE",
+          "sha256": "2e4be5fc6c4c72a466fcb665d726e049a6891981fe536c4f04b6366749461d23"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0",
+      "wheel": "pillow-13.0.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "native_object_count": 26,
+      "existing_notices": [
+        {
+          "path": "pillow-13.0.0.dist-info/licenses/LICENSE",
+          "sha256": "dda12a98c1979cf3d94df1cff45d27a4cb3f04a60c76f76902ac54cac03ec0ce"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "pillow-13.0.0.dist-info/sboms/auditwheel.cdx.json",
+          "sha256": "5f697fb7e95317bf345baecd64dda9179a848f77cab12dd8c595dd7906479824"
+        },
+        {
+          "member": "pillow-13.0.0.dist-info/sboms/pillow-13.0.0.cdx.json",
+          "sha256": "fe1ca6e3a4f73e7018a3805a75a19377453f342d203712f37387ad6ee853fd44"
+        }
+      ]
+    }
+  ]
+}

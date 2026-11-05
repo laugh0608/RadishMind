@@ -1,0 +1,173 @@
+{
+  "schema_version": "development_native_image_read_window.v1",
+  "status": "explicitly_authorized_window_completed",
+  "purpose": "核对八个外部 SONAME 的实际镜像文件、符号链接目标与 dpkg 文件归属 / 校验声明。",
+  "image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "command": "python3 tmp/development-native-map-20261105/read_image.py --execute",
+  "output_directory": "tmp/development-native-map-20261105/image-read",
+  "container": {
+    "count": 1,
+    "start": false,
+    "pull": "never",
+    "network": "none",
+    "read_only": true,
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "memory": "64m",
+    "cpus": "0.5",
+    "pids_limit": 16,
+    "entrypoint": "/bin/false",
+    "host_mounts": [],
+    "ports": []
+  },
+  "limits": {
+    "copy_commands": 25,
+    "tar_bytes_total": 33554432,
+    "tar_bytes_per_copy": 8388608,
+    "seconds_per_command": 30,
+    "stderr_bytes_per_command": 65536,
+    "parallelism": 1,
+    "retries": 0
+  },
+  "items": [
+    {
+      "id": "ld-linux-aarch64.so.1-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "follow_link": false
+    },
+    {
+      "id": "ld-linux-aarch64.so.1-target",
+      "path": "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "follow_link": true
+    },
+    {
+      "id": "libc.so.6-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "follow_link": false
+    },
+    {
+      "id": "libc.so.6-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "follow_link": true
+    },
+    {
+      "id": "libdl.so.2-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "follow_link": false
+    },
+    {
+      "id": "libdl.so.2-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "follow_link": true
+    },
+    {
+      "id": "libgcc_s.so.1-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "follow_link": false
+    },
+    {
+      "id": "libgcc_s.so.1-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "follow_link": true
+    },
+    {
+      "id": "libm.so.6-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "follow_link": false
+    },
+    {
+      "id": "libm.so.6-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "follow_link": true
+    },
+    {
+      "id": "libpthread.so.0-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "follow_link": false
+    },
+    {
+      "id": "libpthread.so.0-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "follow_link": true
+    },
+    {
+      "id": "libstdc++.so.6-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libstdc++.so.6",
+      "follow_link": false
+    },
+    {
+      "id": "libstdc++.so.6-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libstdc++.so.6",
+      "follow_link": true
+    },
+    {
+      "id": "libz.so.1-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libz.so.1",
+      "follow_link": false
+    },
+    {
+      "id": "libz.so.1-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libz.so.1",
+      "follow_link": true
+    },
+    {
+      "id": "libc6-list",
+      "path": "/var/lib/dpkg/info/libc6:arm64.list",
+      "follow_link": false
+    },
+    {
+      "id": "libc6-md5sums",
+      "path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
+      "follow_link": false
+    },
+    {
+      "id": "libgcc-s1-list",
+      "path": "/var/lib/dpkg/info/libgcc-s1:arm64.list",
+      "follow_link": false
+    },
+    {
+      "id": "libgcc-s1-md5sums",
+      "path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
+      "follow_link": false
+    },
+    {
+      "id": "libstdc++6-list",
+      "path": "/var/lib/dpkg/info/libstdc++6:arm64.list",
+      "follow_link": false
+    },
+    {
+      "id": "libstdc++6-md5sums",
+      "path": "/var/lib/dpkg/info/libstdc++6:arm64.md5sums",
+      "follow_link": false
+    },
+    {
+      "id": "zlib1g-list",
+      "path": "/var/lib/dpkg/info/zlib1g:arm64.list",
+      "follow_link": false
+    },
+    {
+      "id": "zlib1g-md5sums",
+      "path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
+      "follow_link": false
+    },
+    {
+      "id": "dpkg-status",
+      "path": "/var/lib/dpkg/status",
+      "follow_link": false
+    }
+  ],
+  "boundary": {
+    "daemon_start": false,
+    "image_pull_or_build": false,
+    "container_start_or_exec": false,
+    "native_execution": false,
+    "downloads": false,
+    "dependency_changes": false,
+    "real_models": false,
+    "publish": false
+  },
+  "cleanup": "只删除本脚本创建且 ID 与归属标签匹配的停止态容器；finally 清理并复核。保留 tar/摘要/配置证据，不清理其他容器或镜像。Docker 未运行或镜像缺失即停止，不自行启动或拉取。",
+  "failure_policy": "任一路径缺失、字节超限或命令失败停止本窗口，保留缺口并清理归属容器，不改路径重试。所有 tar 仅按成员读取，不解包到宿主文件系统。",
+  "executor_sha256": "18dd9bcc120f16689a0050fbdc703d739bc6cf51633ce2e680f609dc23d4530b",
+  "result": "license-native-image-result-20261105.json"
+}

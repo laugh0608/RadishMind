@@ -1,0 +1,146 @@
+{
+  "items": [
+    {
+      "name": "libjpeg / libjpeg-turbo",
+      "declared_version": "3.2.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "IJG"
+          }
+        },
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libjpeg-80045241.so.62.4.0"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "libtiff",
+      "declared_version": "4.7.2",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "libtiff"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libtiff-0c352bdc.so.6.3.0"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "libwebp",
+      "declared_version": "1.6.0",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libsharpyuv-5dac68d0.so.0.1.2",
+        "pillow.libs/libwebp-bac0fc6b.so.7.2.0",
+        "pillow.libs/libwebpdemux-b0a60f8c.so.2.0.17",
+        "pillow.libs/libwebpmux-fec2c160.so.3.1.2"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "libxcb",
+      "declared_version": "1.17.0",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "X11"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libxcb-cbbede0a.so.1.1.0"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "Little CMS 2",
+      "declared_version": "2.19.1",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/liblcms2-4345ab8b.so.2.0.19"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "OpenJPEG",
+      "declared_version": "2.5.4",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libopenjp2-4495a901.so.2.5.4"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "pybind11",
+      "declared_version": null,
+      "declared_scope": "excluded",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "zlib",
+      "declared_version": "2.3.3",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "Zlib"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "libXau",
+      "declared_version": "1.0.9-3.el8",
+      "declared_scope": "unspecified",
+      "declared_licenses": [],
+      "matching_bundled_paths": [
+        "pillow.libs/libXau-7926f62a.so.6.0.0"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    }
+  ]
+}

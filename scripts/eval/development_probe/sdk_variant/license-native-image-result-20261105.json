@@ -1,0 +1,217 @@
+{
+  "schema_version": "development_native_image_read_evidence.v1",
+  "status": "authorized_stopped_image_read_complete",
+  "authorization": "项目所有者单独批准本轮静态镜像取证。",
+  "plan": "license-native-image-plan-20261105.json",
+  "image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "copies_part": "license-native-20261105.parts/image-copies.json",
+  "copies_sha256": "67161e7ac572270709cf2f094b92349f621572055a75d09283e31cdac3eef449",
+  "copy_count": 25,
+  "total_tar_bytes": 8353280,
+  "libraries": [
+    {
+      "soname": "ld-linux-aarch64.so.1",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "symlink_target": null,
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "bytes": 201344,
+      "sha256": "1b882eddacd494b060413a8aa4f0a4754ee3f84775e68cecbf8a86092b59cca6",
+      "dt_soname_matches": true,
+      "needed": [],
+      "binary_package": "libc6",
+      "binary_version": "2.41-12+deb13u4",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "list_sha256": "76b415ddeb8c07ba199ffaaa1c574566eab7036010e80a1b66bf27d0cbf01dd1",
+      "md5sums_sha256": "c6195153efcabef255c00e0b737584d152717c9855ef7b7f3b301f51076e9543",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libc.so.6",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "symlink_target": null,
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "bytes": 1716616,
+      "sha256": "70fa4c4cf57eabeb96097cce47582d02379c4cd1de3db3e98ade4dd7089a1b13",
+      "dt_soname_matches": true,
+      "needed": [
+        "ld-linux-aarch64.so.1"
+      ],
+      "binary_package": "libc6",
+      "binary_version": "2.41-12+deb13u4",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "list_sha256": "76b415ddeb8c07ba199ffaaa1c574566eab7036010e80a1b66bf27d0cbf01dd1",
+      "md5sums_sha256": "c6195153efcabef255c00e0b737584d152717c9855ef7b7f3b301f51076e9543",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libdl.so.2",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "symlink_target": null,
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "bytes": 67592,
+      "sha256": "8023ba7cb6ecabb57d1910ecd24ce347cba5653d1b547d9c7950301ed59716ca",
+      "dt_soname_matches": true,
+      "needed": [
+        "libc.so.6"
+      ],
+      "binary_package": "libc6",
+      "binary_version": "2.41-12+deb13u4",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "list_sha256": "76b415ddeb8c07ba199ffaaa1c574566eab7036010e80a1b66bf27d0cbf01dd1",
+      "md5sums_sha256": "c6195153efcabef255c00e0b737584d152717c9855ef7b7f3b301f51076e9543",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libgcc_s.so.1",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "symlink_target": null,
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "bytes": 133768,
+      "sha256": "9a146967dc38c3820c5dc21c3209812655f66b6551264072b187bd0e787947e0",
+      "dt_soname_matches": true,
+      "needed": [
+        "libc.so.6"
+      ],
+      "binary_package": "libgcc-s1",
+      "binary_version": "14.2.0-19",
+      "source_package": "gcc-14",
+      "source_version": "14.2.0-19",
+      "list_sha256": "4784cb2686be414b3ffbca4ec052395646d8615b541baed8157ebace35b43c37",
+      "md5sums_sha256": "2ff73bb867856f54cd6492ecae4178b22de4db498a3691ef6c12c846d335ef87",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libm.so.6",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "symlink_target": null,
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "bytes": 591960,
+      "sha256": "a8afb2d1f4a0c5e14c0fc82f794ec839eafe29738907aa92895410f57630bbe2",
+      "dt_soname_matches": true,
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "binary_package": "libc6",
+      "binary_version": "2.41-12+deb13u4",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "list_sha256": "76b415ddeb8c07ba199ffaaa1c574566eab7036010e80a1b66bf27d0cbf01dd1",
+      "md5sums_sha256": "c6195153efcabef255c00e0b737584d152717c9855ef7b7f3b301f51076e9543",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libpthread.so.0",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "symlink_target": null,
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "bytes": 67592,
+      "sha256": "b4f0bcbb029e42861545757592356a490d87ef42cfa8a7f2d4295846e42698b5",
+      "dt_soname_matches": true,
+      "needed": [
+        "libc.so.6"
+      ],
+      "binary_package": "libc6",
+      "binary_version": "2.41-12+deb13u4",
+      "source_package": "glibc",
+      "source_version": "2.41-12+deb13u4",
+      "list_sha256": "76b415ddeb8c07ba199ffaaa1c574566eab7036010e80a1b66bf27d0cbf01dd1",
+      "md5sums_sha256": "c6195153efcabef255c00e0b737584d152717c9855ef7b7f3b301f51076e9543",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libstdc++.so.6",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libstdc++.so.6",
+      "symlink_target": "libstdc++.so.6.0.33",
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.33",
+      "bytes": 2502136,
+      "sha256": "fff1f0050a33ddf29c44634c7639ac16e2573a61e3daab4fcc4c007b432ccf19",
+      "dt_soname_matches": true,
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "libgcc_s.so.1"
+      ],
+      "binary_package": "libstdc++6",
+      "binary_version": "14.2.0-19",
+      "source_package": "gcc-14",
+      "source_version": "14.2.0-19",
+      "list_sha256": "815bdb6732504774d2cbdf4dac86dbedfe418359066222405f0d0485508a3dc9",
+      "md5sums_sha256": "58a76f387630725be73c3f6076a4cbcec106ee3eb3cc54747a4a4d9da3d35351",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    },
+    {
+      "soname": "libz.so.1",
+      "requested_path": "/usr/lib/aarch64-linux-gnu/libz.so.1",
+      "symlink_target": "libz.so.1.3.1",
+      "resolved_path": "/usr/lib/aarch64-linux-gnu/libz.so.1.3.1",
+      "bytes": 133600,
+      "sha256": "6fe00acadf8119ff245855e5dcc7f26c6c0ffaf4bfa2baa88feab58f23727d65",
+      "dt_soname_matches": true,
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "binary_package": "zlib1g",
+      "binary_version": "1:1.3.dfsg+really1.3.1-1+b1",
+      "source_package": "zlib",
+      "source_version": "1:1.3.dfsg+really1.3.1-1",
+      "list_sha256": "02f6c331abcab6ba6504349afc73e312d353e80bcb230e2099a7cdf68b18f0c9",
+      "md5sums_sha256": "617805d119f4aab94e57059a06a7d498d4517da55ca2bfd8bbdf0e4780a72fb8",
+      "both_paths_in_package_list": true,
+      "content_matches_package_md5_declaration": true
+    }
+  ],
+  "source_mapping": [
+    {
+      "source": "gcc-14",
+      "version": "14.2.0-19",
+      "historical_authentication_part": "license-archives-20261031.parts/debian-auth-01.json",
+      "dsc_sha256": "7db1e202cce66617e9134a662c877a3a773de5b612fd52179815877e0ecfb847",
+      "status": "archive_chain_authenticated",
+      "independent_maintainer_signature_verified": false
+    },
+    {
+      "source": "glibc",
+      "version": "2.41-12+deb13u4",
+      "historical_authentication_part": "license-archives-20261031.parts/debian-auth-02.json",
+      "dsc_sha256": "0915324aa646bb99abfaa9aa6ecb734b30babd28454a3e51f3152912370fbd3e",
+      "status": "archive_chain_authenticated",
+      "independent_maintainer_signature_verified": false
+    },
+    {
+      "source": "zlib",
+      "version": "1:1.3.dfsg+really1.3.1-1",
+      "historical_authentication_part": "license-archives-20261031.parts/debian-auth-03.json",
+      "dsc_sha256": "ede2791e29c1d3b422f9208bdd7edf040c20445ea1e7453a72037576e64fa197",
+      "status": "archive_chain_authenticated",
+      "independent_maintainer_signature_verified": false
+    }
+  ],
+  "additional_system_needed_not_in_read_set": [],
+  "dpkg_status_matches_previous_image_evidence": true,
+  "cleanup": {
+    "created_id": "6e8592bf1f462f5575390ec2239dcf7d040c44c4bfa5942d96148afc61357643",
+    "never_started": true,
+    "zero_pid": true,
+    "constraints_verified": true,
+    "removed_by_exact_id": true,
+    "remaining_owned_containers": []
+  },
+  "boundary": [
+    "八个库的实际字节、SONAME、链接目标与已安装包文件清单 / MD5 声明一致；MD5 仅用于与同镜像声明比对，不作为独立供应链签名。",
+    "三组源码版本引用此前已经完成的 Debian 仓库签名链证据；本轮未重复验签，也未建立二进制可复现构建证明。",
+    "只读静态取证，不执行加载器 / 原生库，不验证运行时环境变量导致的覆盖路径、dlopen、静态组件或最终许可交付。",
+    "未拉取 / 重建镜像、启动 Docker / 容器、联网下载、修改依赖或调用真实模型；窗口结束。"
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "items": [
+    {
+      "package": "cryptography",
+      "member": "cryptography-50.0.2.dist-info/sboms/cryptography-rust.cyclonedx.json",
+      "bytes": 45685,
+      "sha256": "fee819a6ce3cffc8a3f152acf6e0933c9bc719f8ccf76766d799f844f8b22772",
+      "spec_version": "1.5",
+      "top_level_components": 39,
+      "scope_counts": {
+        "required": 32,
+        "excluded": 7
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    },
+    {
+      "package": "cryptography",
+      "member": "cryptography-50.0.2.dist-info/sboms/sbom.json",
+      "bytes": 1207,
+      "sha256": "b0bf7d97f711a6abea7658c0e84ad5954226663559cba3ae14321e70adb72184",
+      "spec_version": "1.5",
+      "top_level_components": 1,
+      "scope_counts": {
+        "unspecified": 1
+      },
+      "all_targets": false,
+      "components_without_license_declaration": 1,
+      "classification": "embedded_build_declaration_not_independent_attestation"
+    },
+    {
+      "package": "hf-xet",
+      "member": "hf_xet-1.8.0.dist-info/sboms/hf_xet.cyclonedx.json",
+      "bytes": 283481,
+      "sha256": "9649d76472bdfac3dfc50f5fc9aa02019b2d52b081dc0529a6e413d7af642d15",
+      "spec_version": "1.5",
+      "top_level_components": 231,
+      "scope_counts": {
+        "required": 218,
+        "excluded": 13
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    },
+    {
+      "package": "jiter",
+      "member": "jiter-0.18.0.dist-info/sboms/jiter-python.cyclonedx.json",
+      "bytes": 44552,
+      "sha256": "500b930d7388c163f88f9181ed4219507da4940f03f4de157e3255ae532d67e0",
+      "spec_version": "1.5",
+      "top_level_components": 38,
+      "scope_counts": {
+        "required": 34,
+        "excluded": 4
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    },
+    {
+      "package": "pillow",
+      "member": "pillow-13.0.0.dist-info/sboms/auditwheel.cdx.json",
+      "bytes": 1368,
+      "sha256": "5f697fb7e95317bf345baecd64dda9179a848f77cab12dd8c595dd7906479824",
+      "spec_version": "1.4",
+      "top_level_components": 2,
+      "scope_counts": {
+        "unspecified": 2
+      },
+      "all_targets": false,
+      "components_without_license_declaration": 2,
+      "classification": "embedded_build_declaration_not_independent_attestation"
+    },
+    {
+      "package": "pillow",
+      "member": "pillow-13.0.0.dist-info/sboms/pillow-13.0.0.cdx.json",
+      "bytes": 21892,
+      "sha256": "fe1ca6e3a4f73e7018a3805a75a19377453f342d203712f37387ad6ee853fd44",
+      "spec_version": "1.7",
+      "top_level_components": 24,
+      "scope_counts": {
+        "unspecified": 13,
+        "optional": 10,
+        "excluded": 1
+      },
+      "all_targets": false,
+      "components_without_license_declaration": 0,
+      "classification": "embedded_build_declaration_not_independent_attestation"
+    },
+    {
+      "package": "pydantic-core",
+      "member": "pydantic_core-2.50.2.dist-info/sboms/pydantic-core.cyclonedx.json",
+      "bytes": 122778,
+      "sha256": "2ef42c45b8ded811d0695d3ce675dad307d2603fcff3ff0cefc15e76a74b7e14",
+      "spec_version": "1.5",
+      "top_level_components": 101,
+      "scope_counts": {
+        "required": 97,
+        "excluded": 4
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    },
+    {
+      "package": "rpds-py",
+      "member": "rpds_py-2026.9.1.dist-info/sboms/rpds-py.cyclonedx.json",
+      "bytes": 20594,
+      "sha256": "f62bb2b0f51e4e479f7c34e2160c526e12d1a44f0b58c5b0d4ec7e37fb9918c3",
+      "spec_version": "1.5",
+      "top_level_components": 17,
+      "scope_counts": {
+        "required": 15,
+        "excluded": 2
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    },
+    {
+      "package": "tokenizers",
+      "member": "tokenizers-0.23.3.dist-info/sboms/tokenizers-python.cyclonedx.json",
+      "bytes": 151305,
+      "sha256": "950788cf8d0bd531aac28fbc58cbbe7297a743115c5310dbd8371d4d95bf5be5",
+      "spec_version": "1.5",
+      "top_level_components": 127,
+      "scope_counts": {
+        "required": 119,
+        "excluded": 8
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    },
+    {
+      "package": "watchfiles",
+      "member": "watchfiles-1.3.0.dist-info/sboms/watchfiles_rust_notify.cyclonedx.json",
+      "bytes": 32134,
+      "sha256": "426761ccbbac26a4604dd905ca47a1de1ba99480945b26a49bd84b77051e05e2",
+      "spec_version": "1.5",
+      "top_level_components": 26,
+      "scope_counts": {
+        "required": 24,
+        "excluded": 2
+      },
+      "all_targets": true,
+      "components_without_license_declaration": 0,
+      "classification": "all_target_dependency_declaration_not_linked_inventory"
+    }
+  ]
+}
