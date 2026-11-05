@@ -38,9 +38,12 @@ RUN --network=none python -c 'import platform; assert platform.machine() == "aar
     && python -m pip check \
     && rm -rf /opt/wheels
 COPY third-party/ /usr/local/share/radishmind/third-party/
-COPY sdk_notice_delivery.py ./
+COPY sdk_notice_delivery.py pip_notice_delivery.py ./
 RUN --network=none python sdk_notice_delivery.py \
-    --directory /usr/local/share/radishmind/third-party --installation-report /opt/probe/installation.json
+    --directory /usr/local/share/radishmind/third-party --installation-report /opt/probe/installation.json \
+    && python pip_notice_delivery.py --directory /usr/local/share/radishmind/third-party/pip \
+        --pip-root /usr/local/lib/python3.12/site-packages/pip \
+        --metadata /usr/local/lib/python3.12/site-packages/pip-25.0.1.dist-info/METADATA
 COPY inspect_sdk.py fixed_endpoint.py test_sdk_contract.py test_sdk_optional_laminar.py tool-request.schema.json ./
 USER 65532:65532
 CMD ["python", "/opt/probe/test_sdk_optional_laminar.py"]

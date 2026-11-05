@@ -19,7 +19,7 @@
 
 接下来按以下顺序推进，不并行扩张实施主线：
 
-1. **先收口许可证据与交付范围。** 六包 14 份补充告知已接入候选配方；[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)已覆盖 119 个 wheel、61 个 Debian 源包和 10 个 Alpine origin。Pillow 来源差异、两个 certifi 版本的生成步骤及 pip / Go 内嵌源码对应已核对。下一步取得未固定的历史构建 / 生成输入，核对 CPython 扩展、Go 工具链及基础镜像告知，再落实源码获取验收；详见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#构建输入与完整镜像范围的后续核对)。镜像未重建、源码包未组装；新增下载、重锁、打包或重建另报范围授权，阶段 0 不因此退出。
+1. **先收口许可证据与交付范围。** 六包 14 份 wheel 告知及 pip 21 份内嵌告知已接入候选配方；[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)已覆盖 119 个 wheel、61 个 Debian 源包和 10 个 Alpine origin。Pillow 来源差异、两个 certifi 版本的生成步骤及 pip / Go 内嵌源码对应已核对。下一步取得未固定的历史构建 / 生成输入，按已准备清单核对 CPython 扩展、Go 工具链及实际告知安装，再落实源码获取验收；详见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#构建输入与完整镜像范围的后续核对)。镜像未重建、源码包未组装；新增下载、重锁、打包或重建另报范围授权，阶段 0 不因此退出。
 2. **原生 HTTP 技术切片已完成。** 单一非流式档案已验证实际 HTTP 工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据边界，见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#原生传输的建议实施范围待确认)。真实厂商 / 模型资格及输入 token 上界仍待验，通道默认关闭；不因固定上游通过而恢复真实模型。
 3. **确认阶段 1 的单 Agent 固定 Go 交付合同与 A 级视觉依据。** 明确公开权限 / API、生命周期与重启行为、候选审阅 / 保存 / 导出，再复评阶段 0；退出条件齐备前不提前开发正式 Web 或固定团队。
 

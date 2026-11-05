@@ -14,7 +14,7 @@
 
 `build-requirements.lock` 仅锁定构建工具；原 138 项锁派生的 `constraints.txt` 仅约束既有版本，不强制安装未被使用的包。正常 pip 解析决定新的依赖闭包；只有明确构建的本地 SDK wheel 可使用本地 URL，其余发行物必须为有 SHA-256 的 PyPI wheel，出现 `lmnr` 或代理包即拒绝生成候选锁。实际生成的独立锁为 [requirements-linux-arm64-py312.lock](requirements-linux-arm64-py312.lock)，运行解析、全部 wheel 与安装报告的版本 / 摘要已逐项核对。
 
-`--no-deps` 仅用于单独构建 SDK wheel。依赖解析、下载和最终安装均保留依赖检查，最终执行 `pip check`；没有安装后删包。最终镜像的冻结安装阶段禁用网络，只读取导出的 wheel 集合与锁。构建配方会将补充告知与其部分范围清单复制到 `/usr/local/share/radishmind/third-party/`，再使用 pip 安装报告检查五包版本 / wheel 摘要及告知字节；不一致时构建失败。目录 / 文件按 `0755` / `0644` 准备，供镜像内非 root 用户读取。此配方更新尚未构建验收，旧构建目录必须重新准备，不能声称历史镜像已安装补充告知。
+`--no-deps` 仅用于单独构建 SDK wheel。依赖解析、下载和最终安装均保留依赖检查，最终执行 `pip check`；没有安装后删包。最终镜像的冻结安装阶段禁用网络，只读取导出的 wheel 集合与锁。构建配方会将补充告知与其部分范围清单复制到 `/usr/local/share/radishmind/third-party/`，再使用 pip 安装报告检查六包版本 / wheel 摘要及告知字节；不一致时构建失败。目录 / 文件按 `0755` / `0644` 准备，供镜像内非 root 用户读取。此配方更新尚未构建验收，旧构建目录必须重新准备，不能声称历史镜像已安装补充告知。
 
 ## 已验候选与证据
 
@@ -116,3 +116,8 @@ python3 scripts/eval/development_probe/run_joint.py \
 七份 Rust SBOM 带 `all_targets=true`，其中 required / excluded 条目不能直接等同最终静态链接清单。Pillow 的 optional 项不自动计为已交付；其 OpenJPEG ancestor 的名称 / purl 冲突、zlib 声明版本与外部 `libz.so.1` 的边界、组合许可正文中的 AOM / DAV1D 等组件均保留为待核对项。原生对象与 SBOM 没有被导入或执行。
 
 [静态镜像取证](license-native-image-result-20261105.json)已单独获准并完成：25 次复制共 8353280 字节，八个库的 SONAME、原路径 / 链接目标、正文及 dpkg 清单 / MD5 声明均匹配；对应 glibc、GCC、zlib 三组已留存源码版本。库自身未引出新动态依赖名称。容器始终处于未启动状态，已按精确 ID 删除并复核归属容器为空；未启动 Docker、拉取 / 重建镜像或执行原生程序，窗口关闭。该结果不替代实际加载、静态组件、独立构建来源与最终告知 / 覆盖源码交付验证。
+
+
+### 基础镜像 pip 告知
+
+`prepare_sdk_variant.py` 同时准备 wheel 告知与 `third-party/pip/`。后者由 `pip_notice_delivery.py` 消费精确 pip 证据，校验 21 份正文和 280 个内嵌文件指纹。候选 Dockerfile 在无网络步骤读取实际 pip 元数据和完整 `_vendor` 集合，版本、重复元数据、缺失 / 新增 / 篡改文件或符号链接均拒绝。源码内容只读校验，不导入 pip；离线测试不代替镜像重建验收。取证与当前状态见[清单](license-pip-notices-20261105.json)和[说明](pip-notice-supplements/README.md)。

@@ -90,6 +90,7 @@ def prepare(source_archive: Path, directory: Path) -> None:
         PROBE / "test_sdk_contract.py": "test_sdk_contract.py",
         PROBE / "test_sdk_optional_laminar.py": "test_sdk_optional_laminar.py",
         PROBE / "sdk_notice_delivery.py": "sdk_notice_delivery.py",
+        PROBE / "pip_notice_delivery.py": "pip_notice_delivery.py",
         ROOT / "contracts/development-task-probe-tool-request.schema.json": "tool-request.schema.json",
     }
     for original, name in copies.items():
@@ -97,6 +98,9 @@ def prepare(source_archive: Path, directory: Path) -> None:
     subprocess.run([sys.executable, str(PROBE / "sdk_notice_delivery.py"),
                     "--variant", str(VARIANT), "--directory", str(directory / "third-party")],
                    check=True, timeout=15)
+    subprocess.run([sys.executable, str(PROBE / "pip_notice_delivery.py"),
+                    "--evidence", str(VARIANT / "license-pip-notices-20261105.json"),
+                    "--directory", str(directory / "third-party/pip")], check=True, timeout=15)
     # Constraints retain existing dependency versions without installing unused
     # distributions. The new dependency closure is produced by pip's resolver.
     stock = (PROBE / "requirements-linux-arm64-py312.lock").read_text().splitlines()

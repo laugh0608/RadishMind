@@ -1,0 +1,125 @@
+{
+  "schema_version": "development_toolchain_image_read_plan.v1",
+  "status": "prepared_not_authorized_not_executed",
+  "purpose": "静态核对 CPython 构建配置 / 原生扩展和 Go cmd/vendor，供源码与告知对应；不执行镜像程序。",
+  "images": [
+    {
+      "role": "sdk",
+      "image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+      "output_directory": "tmp/development-pip-delivery-20261105/sdk-image-read",
+      "container": {
+        "count": 1,
+        "start": false,
+        "pull": "never",
+        "network": "none",
+        "read_only": true,
+        "cap_drop": "ALL",
+        "no_new_privileges": true,
+        "memory": "64m",
+        "cpus": "0.5",
+        "pids_limit": 16,
+        "entrypoint": "/bin/false",
+        "host_mounts": [],
+        "ports": []
+      },
+      "limits": {
+        "copy_commands": 6,
+        "tar_bytes_total": 100663296,
+        "tar_bytes_per_copy": 67108864,
+        "seconds_per_command": 30
+      },
+      "items": [
+        {
+          "id": "python-build-config",
+          "path": "/usr/local/lib/python3.12/config-3.12-aarch64-linux-gnu",
+          "follow_link": false
+        },
+        {
+          "id": "python-extensions",
+          "path": "/usr/local/lib/python3.12/lib-dynload",
+          "follow_link": false
+        },
+        {
+          "id": "python-sysconfig",
+          "path": "/usr/local/lib/python3.12/_sysconfigdata__linux_aarch64-linux-gnu.py",
+          "follow_link": false
+        },
+        {
+          "id": "python-config-header",
+          "path": "/usr/local/include/python3.12/pyconfig.h",
+          "follow_link": false
+        },
+        {
+          "id": "libpython",
+          "path": "/usr/local/lib/libpython3.12.so.1.0",
+          "follow_link": false
+        },
+        {
+          "id": "python-executable",
+          "path": "/usr/local/bin/python3.12",
+          "follow_link": false
+        }
+      ]
+    },
+    {
+      "role": "go",
+      "image": "sha256:b17af760035fc2f338eed92d448a6c67f2d45438844fc6c60678fa5f99e44b57",
+      "output_directory": "tmp/development-pip-delivery-20261105/go-image-read",
+      "container": {
+        "count": 1,
+        "start": false,
+        "pull": "never",
+        "network": "none",
+        "read_only": true,
+        "cap_drop": "ALL",
+        "no_new_privileges": true,
+        "memory": "64m",
+        "cpus": "0.5",
+        "pids_limit": 16,
+        "entrypoint": "/bin/false",
+        "host_mounts": [],
+        "ports": []
+      },
+      "limits": {
+        "copy_commands": 2,
+        "tar_bytes_total": 33554432,
+        "tar_bytes_per_copy": 33554432,
+        "seconds_per_command": 30
+      },
+      "items": [
+        {
+          "id": "go-cmd-vendor",
+          "path": "/usr/local/go/src/cmd/vendor",
+          "follow_link": false
+        },
+        {
+          "id": "go-build-defaults",
+          "path": "/usr/local/go/go.env",
+          "follow_link": false
+        }
+      ]
+    }
+  ],
+  "total_limits": {
+    "containers_created": 2,
+    "containers_started": 0,
+    "copy_commands": 8,
+    "tar_bytes": 134217728,
+    "seconds_per_command": 30,
+    "parallelism": 1,
+    "retries": 0
+  },
+  "command": "python3 tmp/development-pip-delivery-20261105/read_toolchain_images.py --execute",
+  "executor_sha256": "943a66b09d3518fc05a96317b208cf88579090f43816c5069f67aa2caf32d82a",
+  "failure_policy": "目录 / 文件不存在、预算超限或命令失败即停止；不换路径重试，不启动 Docker 或拉取镜像。",
+  "cleanup": "逐镜像只创建一个无网络、端口和挂载的停止态容器，复制后按本轮 ID / 标签删除并复核；保留 tar 与配置 / 清理证据。",
+  "boundary": {
+    "daemon_start": false,
+    "image_pull_or_build": false,
+    "container_start_or_exec": false,
+    "native_execution": false,
+    "new_downloads": false,
+    "dependency_changes": false,
+    "publish": false
+  }
+}

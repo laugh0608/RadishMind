@@ -1,0 +1,354 @@
+{
+  "files": [
+    {
+      "path": "_vendor/packaging/utils.py",
+      "bytes": 5050,
+      "sha256": "d05dc787d385b9182b8538066549792b6d85bf560fdad665d73ff680eea42620"
+    },
+    {
+      "path": "_vendor/packaging/version.py",
+      "bytes": 16688,
+      "sha256": "a221eacd352ffe9d768698e0b0b0d571a179853ee90da48e56250d303e064d6d"
+    },
+    {
+      "path": "_vendor/pkg_resources/__init__.py",
+      "bytes": 124463,
+      "sha256": "8eb84345b3ae6cfef842e3d7c5ded4ecfa38d8f1f697e2d9d977dc3bb965a59e"
+    },
+    {
+      "path": "_vendor/platformdirs/__init__.py",
+      "bytes": 22344,
+      "sha256": "26e791d9c44b93163b8b08a4faa356242c0a3ab025060560719fc81d0cea18b1"
+    },
+    {
+      "path": "_vendor/platformdirs/__main__.py",
+      "bytes": 1505,
+      "sha256": "8c127ccdbecca71e5e6dca85f37c6ba4ef7831a782a4d18755ff5cbc337624b8"
+    },
+    {
+      "path": "_vendor/platformdirs/android.py",
+      "bytes": 9007,
+      "sha256": "915e682f75770d9e9664abbdc85890ba9bf5f32a7f8e5495d82847d5398f71db"
+    },
+    {
+      "path": "_vendor/platformdirs/api.py",
+      "bytes": 9246,
+      "sha256": "d9d7d40cd6c45de0e10ca6abaad479358ee852291467845986cde8cecb668414"
+    },
+    {
+      "path": "_vendor/platformdirs/macos.py",
+      "bytes": 6154,
+      "sha256": "5256f2159f11ceedf19dd0aa4041eb7ec613787c187456a9d48a33fb2c6f793e"
+    },
+    {
+      "path": "_vendor/platformdirs/py.typed",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "_vendor/platformdirs/unix.py",
+      "bytes": 10393,
+      "sha256": "b913c9591c9012dbfbc8e4af53de2b526b1b968e572832c0d52cc5839e646cad"
+    },
+    {
+      "path": "_vendor/platformdirs/version.py",
+      "bytes": 411,
+      "sha256": "a07e0a8137cae009256d3615715ff2ca7bc9f492c8de9caf0d56b2d2146c2c2b"
+    },
+    {
+      "path": "_vendor/platformdirs/windows.py",
+      "bytes": 10125,
+      "sha256": "205a62a21501c313ed0b39722b036dc725b8264f2169ae96f28e7d99fac35d5a"
+    },
+    {
+      "path": "_vendor/pygments/__init__.py",
+      "bytes": 2983,
+      "sha256": "ecdd6889a5ae970fe70ac4d8e04122c582f3d79a56639bb8b8f005162fa27a55"
+    },
+    {
+      "path": "_vendor/pygments/__main__.py",
+      "bytes": 353,
+      "sha256": "8ac2210712e0eb99cb957ba41b856432e3df35d77b805cd367f47fcf743c7626"
+    },
+    {
+      "path": "_vendor/pygments/cmdline.py",
+      "bytes": 23656,
+      "sha256": "2c8573980ba7964f6c449269e783b8291cbd18320de16bb5deff69f50cdf18f3"
+    },
+    {
+      "path": "_vendor/pygments/console.py",
+      "bytes": 1718,
+      "sha256": "ca13fd52c2c056658a5507f6e38e8925ec2403b0225de7937f821e8373a2d9f5"
+    },
+    {
+      "path": "_vendor/pygments/filter.py",
+      "bytes": 1910,
+      "sha256": "fc00cd3c2b240fcfc69a87478bafcba1580f537661df7e9a0424f970e79332cd"
+    },
+    {
+      "path": "_vendor/pygments/filters/__init__.py",
+      "bytes": 40392,
+      "sha256": "45d79d2b629629794ac11edcbe47ebdcd523f588994203208a544c1548368cf0"
+    },
+    {
+      "path": "_vendor/pygments/formatter.py",
+      "bytes": 4390,
+      "sha256": "8c35814e7765047d99e486191550e73f4aa7d426934234d6b7b8801ad0a72448"
+    },
+    {
+      "path": "_vendor/pygments/formatters/__init__.py",
+      "bytes": 5385,
+      "sha256": "f0da3e354b3cac14d2481248bf8852110b76334705078870013d2c9d57364061"
+    },
+    {
+      "path": "_vendor/pygments/formatters/_mapping.py",
+      "bytes": 4176,
+      "sha256": "d42c37ec5b9094d69c9f144a9ad94f5f89f22e85fdfedb64a39670b1c354659e"
+    },
+    {
+      "path": "_vendor/pygments/formatters/bbcode.py",
+      "bytes": 3320,
+      "sha256": "dc940b238e6d72b43f91150c8ee69be82ec76f45d4b1b556aaa6d29fd70c8e42"
+    },
+    {
+      "path": "_vendor/pygments/formatters/groff.py",
+      "bytes": 5106,
+      "sha256": "337f64d0f692499467c568ea05254f905d26bb5f95afb6e6e91b05becf8234de"
+    },
+    {
+      "path": "_vendor/pygments/formatters/html.py",
+      "bytes": 35669,
+      "sha256": "484da3737602a9b312deb656f440260e501485d571279da003876295e12f0865"
+    },
+    {
+      "path": "_vendor/pygments/formatters/img.py",
+      "bytes": 23287,
+      "sha256": "330038c563cb3b087a8fb61cea81f38eea923edd0cd5f879afee414c82147ec5"
+    },
+    {
+      "path": "_vendor/pygments/formatters/irc.py",
+      "bytes": 4981,
+      "sha256": "769d59d25fce6c9e4d161f4c86a2c6839a6d1b986026a79d4f6564badb7dbf43"
+    },
+    {
+      "path": "_vendor/pygments/formatters/latex.py",
+      "bytes": 19306,
+      "sha256": "5cc9a1382a94283050b46e66189340158c40a6a682e69ba8e5c3263df2b7f78e"
+    },
+    {
+      "path": "_vendor/pygments/formatters/other.py",
+      "bytes": 5034,
+      "sha256": "e7a3cc24e9628a7fab01476744cd22d70b15d467543ddfddbd0ab4fd43df17d7"
+    },
+    {
+      "path": "_vendor/pygments/formatters/pangomarkup.py",
+      "bytes": 2218,
+      "sha256": "cb5e94d34695618105a5e09f19795805231a706e36e426dfa06f2829b29e8088"
+    },
+    {
+      "path": "_vendor/pygments/formatters/rtf.py",
+      "bytes": 11957,
+      "sha256": "653f7476670ac896e8201d2602b84bec8844e3aec65d13741bb4005201b4dd3a"
+    },
+    {
+      "path": "_vendor/pygments/formatters/svg.py",
+      "bytes": 7174,
+      "sha256": "28ab22a2984fba91eec66d12a3e32c6d0116393e7820089217b8593e6c6d2971"
+    },
+    {
+      "path": "_vendor/pygments/formatters/terminal.py",
+      "bytes": 4674,
+      "sha256": "0288cd1b83252aad8be88b02fd59d71eee006c70819fd3ada20eaee395efc5e2"
+    },
+    {
+      "path": "_vendor/pygments/formatters/terminal256.py",
+      "bytes": 11753,
+      "sha256": "90690d515a37169c23cad2034b489fefd12e528ae8029adc5adde282b708a93d"
+    },
+    {
+      "path": "_vendor/pygments/lexer.py",
+      "bytes": 35349,
+      "sha256": "4d81c3b7ffff80d5b86b14e5db3bcf65f7fe5508bc7cf68887938a45c5528d43"
+    },
+    {
+      "path": "_vendor/pygments/lexers/__init__.py",
+      "bytes": 12115,
+      "sha256": "a48971c9026ebbfb3287d944d3cd1cabc71e55b11570aa74a2c0055397dac095"
+    },
+    {
+      "path": "_vendor/pygments/lexers/_mapping.py",
+      "bytes": 76097,
+      "sha256": "eb5fa1df3af5d379b4d4e4b9054abf01f5222fd608d3a55eb3d8a943b938bebe"
+    },
+    {
+      "path": "_vendor/pygments/lexers/python.py",
+      "bytes": 53687,
+      "sha256": "d89fd826b3d3aff03a7c963fa8a88abf41a980fc0732b94c49ea39f6a3777dee"
+    },
+    {
+      "path": "_vendor/pygments/modeline.py",
+      "bytes": 1005,
+      "sha256": "82d4586414be08a3820d71e1199a80a5ba0705a670187f20ce73773ba9eec63e"
+    },
+    {
+      "path": "_vendor/pygments/plugin.py",
+      "bytes": 1891,
+      "sha256": "8a8789dd07a827e510859a58f492fbbdbc6c4d5bb0c0cec10aef896fc9cdd005"
+    },
+    {
+      "path": "_vendor/pygments/regexopt.py",
+      "bytes": 3072,
+      "sha256": "1e4cb8101d77ac85c41d050d930982ad8aad2259d70de84d477333b5a7d9e37c"
+    },
+    {
+      "path": "_vendor/pygments/scanner.py",
+      "bytes": 3092,
+      "sha256": "343cb7a1f2bf7c74452b88480efc696a61bcef569ec2a72c21beac8138bb1619"
+    },
+    {
+      "path": "_vendor/pygments/sphinxext.py",
+      "bytes": 7981,
+      "sha256": "88ea6d24172a3863f0304276a7bd0fbf0a593c819dbdd67c771beaea4cf10e00"
+    },
+    {
+      "path": "_vendor/pygments/style.py",
+      "bytes": 6420,
+      "sha256": "ad2099585a60d7f0f014c5c35349c456601c047a6e4067fd471bce3cf42f28b4"
+    },
+    {
+      "path": "_vendor/pygments/styles/__init__.py",
+      "bytes": 2042,
+      "sha256": "a9493aff5cf92a64fc11d2456588044a61ba3ff1c917fdaf56b0c3ec74821986"
+    },
+    {
+      "path": "_vendor/pygments/styles/_mapping.py",
+      "bytes": 3312,
+      "sha256": "ea5a2f154136f6dcfa12c5775d8638860a3327bab524bedc7cedd43a58274bcc"
+    },
+    {
+      "path": "_vendor/pygments/token.py",
+      "bytes": 6226,
+      "sha256": "a99c13ecb48fcb96016372600e3badeb8d820b2ec9750cc07e6a83f4d993e63d"
+    },
+    {
+      "path": "_vendor/pygments/unistring.py",
+      "bytes": 63208,
+      "sha256": "a797358be1e1a088567a6cbd094b1a37da37f68a266073715e59745dfc3ab440"
+    },
+    {
+      "path": "_vendor/pygments/util.py",
+      "bytes": 10031,
+      "sha256": "dad8f69d2d57f7f3a972e4a37fc74e113d9b0d5661b3c70429dfee4faf85820f"
+    },
+    {
+      "path": "_vendor/pyproject_hooks/__init__.py",
+      "bytes": 691,
+      "sha256": "70f07f6bd2d7cf9c6fb116d7d68daac807632dab5925d43f2dce4c70d5fe5fb6"
+    },
+    {
+      "path": "_vendor/pyproject_hooks/_impl.py",
+      "bytes": 14936,
+      "sha256": "8d8fab6b19e6c91c81e7baee022b6b25153311ec6e021193a6033282ac7aed9e"
+    },
+    {
+      "path": "_vendor/pyproject_hooks/_in_process/__init__.py",
+      "bytes": 557,
+      "sha256": "30934fa5f23170ef85821c6905bc641b5ac58907fa1ce51b5785399aad07167b"
+    },
+    {
+      "path": "_vendor/pyproject_hooks/_in_process/_in_process.py",
+      "bytes": 12216,
+      "sha256": "a9c5cc866c7ffcc209ab5d201875b7980e1397c772f18cc731c7309cda0a970d"
+    },
+    {
+      "path": "_vendor/pyproject_hooks/py.typed",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "_vendor/requests/__init__.py",
+      "bytes": 5057,
+      "sha256": "1e507f1f386bcc6b5f0ff69a614c14875cd65cb67be7f6022f28adef9774573f"
+    },
+    {
+      "path": "_vendor/requests/__version__.py",
+      "bytes": 435,
+      "sha256": "1557e09606663509e660f5e93a8843539f05e4451bffe5674936807ac4b5f3b8"
+    },
+    {
+      "path": "_vendor/requests/_internal_utils.py",
+      "bytes": 1495,
+      "sha256": "9cc4329abe21b37d93a95a3901b0ab99c24486f3d487bc57965bb2ab0b252e24"
+    },
+    {
+      "path": "_vendor/requests/adapters.py",
+      "bytes": 27607,
+      "sha256": "27b55e571281bdac1bb655f60c4455a34e49f415d371660b30735dd4169af9b9"
+    },
+    {
+      "path": "_vendor/requests/api.py",
+      "bytes": 6449,
+      "sha256": "fd96fd39aeedcd5222cd32b016b3e30c463d7a3b66fce9d2444467003c46b10b"
+    },
+    {
+      "path": "_vendor/requests/auth.py",
+      "bytes": 10186,
+      "sha256": "905ef9b6a9cb72d67d31ffe19bd4d9223e1c4169cde6ec51cfca16b31e70991d"
+    },
+    {
+      "path": "_vendor/requests/certs.py",
+      "bytes": 441,
+      "sha256": "9070e590afdb7ae1d778c3dce63b5adb0825f2074a7945ade5fda74c356bbedf"
+    },
+    {
+      "path": "_vendor/requests/compat.py",
+      "bytes": 1485,
+      "sha256": "328f5ff7166979fa1df199be9fdfd2b497154e6c12ba45d1da9dc8432c955ef5"
+    },
+    {
+      "path": "_vendor/requests/cookies.py",
+      "bytes": 18590,
+      "sha256": "6cd8be8aa123e0d3d9d34fa86feac7bf392f39bccdde5129830de0ea9692dd7c"
+    },
+    {
+      "path": "_vendor/requests/exceptions.py",
+      "bytes": 4272,
+      "sha256": "0f5c2acd85a77b5992dab538ded3fd09e3751bb400cbb7aa2fda3582877a123c"
+    },
+    {
+      "path": "_vendor/requests/help.py",
+      "bytes": 3813,
+      "sha256": "85129a7fdbb41bb7ddc2ba8c1ed177a06d7a44a92d45fe8a8b0b52ab6168d7fd"
+    },
+    {
+      "path": "_vendor/requests/hooks.py",
+      "bytes": 733,
+      "sha256": "0a2bb2b221c0dfd57951f702057148c7cdc8ac3a6ec1f37d45c4d482fdbc7ed4"
+    },
+    {
+      "path": "_vendor/requests/models.py",
+      "bytes": 35483,
+      "sha256": "c782b80a61fe942d25d8a6fe88f7cc3787515f11c471b39a11604bfe2d3d0302"
+    },
+    {
+      "path": "_vendor/requests/packages.py",
+      "bytes": 1057,
+      "sha256": "fd94030894c9f123f79155ae9d2a81b1164d3f38f673558556a6ddaf4f29cf75"
+    },
+    {
+      "path": "_vendor/requests/sessions.py",
+      "bytes": 30495,
+      "sha256": "ca44c8f145864a5b4e7c7d3b1caa25947ee44c11b0e168620556901a67244f0e"
+    },
+    {
+      "path": "_vendor/requests/status_codes.py",
+      "bytes": 4322,
+      "sha256": "889500780db96da4ddc3ee8f7c3d1e178aa1a48343251248fb268cab1b382c42"
+    },
+    {
+      "path": "_vendor/requests/structures.py",
+      "bytes": 2912,
+      "sha256": "f886e6855cf4e92fb968f499b94b6167afba0fd5ce8d1b935c739a6d8d38d573"
+    }
+  ]
+}
