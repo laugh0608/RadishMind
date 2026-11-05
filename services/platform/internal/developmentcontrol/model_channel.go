@@ -15,7 +15,10 @@ func (r *Runtime) model(ctx context.Context, record *Record, requestID string, r
 		return NativeResult{}, ErrContext
 	}
 	policy, err := r.backend.Policy(ctx, record.Binding.Plan.ModelRef)
-	if err != nil || policy.InputTokenCeiling != record.Binding.InputTokenCeiling || policy.MaxOutputTokens < request.MaxCompletionTokens || policy.Timeout <= 0 || policy.Timeout > 2*time.Minute {
+	if err != nil {
+		return NativeResult{}, nativeHTTPFailure(err)
+	}
+	if policy.InputTokenCeiling != record.Binding.InputTokenCeiling || policy.MaxOutputTokens < request.MaxCompletionTokens || policy.Timeout <= 0 || policy.Timeout > 2*time.Minute {
 		return NativeResult{}, ErrTransport
 	}
 	deadline := r.now().Add(policy.Timeout)
@@ -105,7 +108,7 @@ func (r *Runtime) model(ctx context.Context, record *Record, requestID string, r
 		if err != nil {
 			return NativeResult{}, err
 		}
-		return NativeResult{}, ErrTransport
+		return NativeResult{}, nativeHTTPFailure(backendErr)
 	}
 	normalized, action, normalizeErr := normalizedResult(result, record.Binding.Plan.Tools)
 	if action != nil && len(request.Messages) > 62 {

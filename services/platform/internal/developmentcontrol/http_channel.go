@@ -196,7 +196,10 @@ func writeChannelJSON(w http.ResponseWriter, status int, value any) {
 }
 func channelError(w http.ResponseWriter, err error) {
 	status, code := http.StatusServiceUnavailable, "development_unavailable"
+	var nativeFailure nativeHTTPError
 	switch {
+	case errors.As(err, &nativeFailure):
+		status, code = http.StatusBadGateway, nativeFailure.Error()
 	case errors.Is(err, ErrCredential):
 		status, code = 401, ErrCredential.Error()
 	case errors.Is(err, ErrNotFound):

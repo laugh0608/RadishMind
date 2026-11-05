@@ -1,8 +1,8 @@
 # 受控开发尝试：工具通道、委托、事件与取消 / 预算合同 v1
 
-更新时间：2026-10-31
+更新时间：2026-11-05
 
-状态：单尝试领域规则、SQLite 持久状态 / 提议 / 事件事务、当前资格读取、任务凭据与独立回环通道已实现并以固定响应验证。默认未启用；受限 SDK Agent 工作进程 / 事件、模型等待取消及所属 SDK 进程组终止已固定响应验证；固定 Go 探针代码沙箱、受限工具与归属清理现已真实验收，SDK 收尾接线已定向验证；真实 SDK 与固定代码容器同次任务的候选 / 测试 / 产物及命令中取消已联合验证；真实提供方原生传输及通用沙箱仍待收口。所属功能见[主专题](../features/workflow/controlled-software-development-team-v1.md)，实施记录见[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
+状态：单尝试领域规则、SQLite 持久状态 / 提议 / 事件事务、当前资格读取、任务凭据与独立回环通道已实现并以固定响应验证。默认未启用；受限 SDK Agent 工作进程 / 事件、模型等待取消及所属 SDK 进程组终止已固定响应验证；固定 Go 探针代码沙箱、受限工具与归属清理现已真实验收，SDK 收尾接线已定向验证；真实 SDK 与固定代码容器同次任务的候选 / 测试 / 产物及命令中取消已联合验证；原生 HTTP 已通过固定上游验证，真实厂商资格及通用沙箱仍待收口。所属功能见[主专题](../features/workflow/controlled-software-development-team-v1.md)，实施记录见[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
 
 ## 接入与默认状态
 
@@ -10,7 +10,7 @@
 
 | 独立内部入口 | 职责 | 当前边界 |
 | --- | --- | --- |
-| `POST /internal/development/v1/attempts/{attempt_id}/chat/completions` | 严格原生模型请求，先提交预留 / 派发记录，再调用后端 | 固定响应后端已验；实际提供方适配未接入，未配置后端则拒绝 |
+| `POST /internal/development/v1/attempts/{attempt_id}/chat/completions` | 严格原生模型请求，先提交预留 / 派发记录，再调用后端 | 单一非流式 HTTP 适配已通过固定上游验证；真实厂商资格待验，未配置后端则拒绝 |
 | `POST /internal/development/v1/attempts/{attempt_id}/tool-calls` | 精确回显已登记的工具提议，事务内消费并预留 | 返回 `202 queued`；不执行文件或命令，不返回伪造观察值 |
 | `GET /internal/development/v1/attempts/{attempt_id}/tool-offers/{tool_call_id}` | 读取 Go 分配的工具请求身份及摘要 | 不含工具正文 |
 | `GET /internal/development/v1/attempts/{attempt_id}/tool-catalog` | 读取本通道唯一冻结工具目录 | 不开放 SDK 默认终端、MCP 或递归委派 |
@@ -21,6 +21,22 @@
 模型请求只接受 `model / messages / max_completion_tokens / tools` 及显式为 `false` 的 `stream / parallel_tool_calls`。未知、重复、空值、大小写别名、尾随 JSON 拒绝；总请求最多 262144 字节、消息最多 64 条、单条文本最多 65536 UTF-8 字节。消息仅文本及原生 assistant `tool_calls` / tool `tool_call_id`；不解析答案正文里的 JSON。模型必须精确匹配冻结模型名，单响应最多一个工具调用，多个调用整体拒绝。
 
 `tools` 精确匹配目录，仅 `development_tool`，动作是 `read_file / replace_file / run_tests`。目录内参数来自 canonical schema 的内嵌分发副本，Go 测试逐字节对比源文件。旧 SDK 探针的 `development_probe` 保持原语义；受限 SDK 已显式关闭隐式重试、fallback、压缩和 critic，以固定响应验证代表任务的全部模型调用经过此通道；不外推到未开放的 SDK 插件或执行档案。
+
+## 原生 HTTP 档案
+
+可信宿主可显式调用 `Server.ConnectDevelopmentNativeHTTP(ctx, policy)`，只连接 Go 平台配置中已经明确的一个 `openai-compatible` 提供方 / 档案 / 模型。此方法复用 `buildBridgeEnvelopeOptions` 的地址与凭据来源，并核对当前目录；不解析 Python 环境中的其他档案，不使用路由回退，不从 SDK 请求取地址或密钥。配置中的 `api_key_file` 沿既有 `ResolveWorkbenchCredential` 启动时读取语义，不新增轮询、热更新或 secret backend。
+
+`NativeHTTPConnection` 只在可信 Go 内存传递，不属于公开 JSON 合同。构造时冻结模型引用、实际模型名、地址、密钥与 `NativePolicy`；策略读取和实际派发均重读当前配置，任何变化或目录不匹配均拒绝。账户、应用、模型目录和价格修订继续由原尝试资格规则核对；正常工作台构造不调用接线入口，不自动授予真实模型资格。
+
+- 地址由平台配置明确提供，路径追加 `/chat/completions`；只接受 HTTPS，拒绝用户信息、查询、片段及不明确路径。TLS 最低 1.2，证书验证保持开启；不使用环境代理、重定向、连接复用或自动重试 / 回退。
+- DNS 返回地址全部校验并选择一个已校验地址直接拨号，拒绝私网、回环、链路本地及保留地址；不进行第二次主机解析。仅 `Options.TestOnly` 的固定上游测试允许有明确端口的 `http://127.0.0.1`，不是普通运行配置的外连例外。
+- 请求显式发送 `stream=false / parallel_tool_calls=false`，避免提供方缺省开启并行工具。输入仍严格消费本通道唯一工具目录；正文与响应均最多 262144 字节，响应头最多 16384 字节，总期限由冻结策略限定且不超过两分钟。
+- 响应为单个 `chat.completion`、单个索引 0 的 choice，模型名必须精确相同；结束原因仅 `stop / tool_calls`。正文只允许文本或工具调用时的空值；工具名称、调用标识与参数均验证，工具身份和观察值继续绑定尝试上下文。未知模式、重复字段、大小写别名、尾随值、超过 24 层的 JSON 及非法 / 超限响应均拒绝。
+- `usage` 缺失或为 `null` 时保持未知；存在时三个 token 计数必须齐全、非负整数且总数相符。不完整用量或非法响应返回失败，并保留已派发请求的未知预留，不以零补齐。提供方额外用量细项不参与平台核账。
+- 错误只返回固定类别，如 `native_authentication_failed / native_rate_limited / native_upstream_failed / native_redirect_denied / native_timeout / native_canceled / native_response_invalid`；不包含地址、密钥或上游响应原文。尝试及请求归因继续由现有预留 / 回执 / 事件保存，不另建用量账本。
+- 取消中断本地 HTTP 连接，已派发请求保留未决预留；本地连接关闭不证明远端计算停止或不计费。其他后端错误继续映射为原有通用安全错误。
+
+固定上游已经验证三次模型请求、两轮工具提议 / 合成观察值往返及错误 / 取消；真实 SQLite 身份、应用、价格和凭据文件接线同时参与测试。该证据不证明实际厂商 / 模型兼容、计量或输入 token 上界；`InputTokenCeiling` 当前只能用于经核对的固定响应试验，恢复真实模型前须为精确档案补足完整输入计量依据。实际 SDK 与代码容器的联合证据仍沿 10 月 31 日记录，本轮未重跑镜像。
 
 ## canonical 文件与可信来源
 
@@ -126,4 +142,4 @@ SDK 进程由独立控制路径立即发出软停止，两秒未退出则强制�
 
 Go 验证覆盖隔离 SQLite 的创建 / 关闭重开、事件 / 请求 / 提议不可变、并发消费和取消、CAS、事务故障注入、坏状态拒绝、固定原生工具往返、可信观察值 / 上下文、防止缺失用量变零、等待时撤销与监听关闭。平台测试使用真实 SQLite 身份 / 应用 / 定价 repository、现有 Workflow 权威及本地 Session 中间件；资格当前性不是由测试请求自报。
 
-受限 SDK 工作进程与代表任务的完整 Agent 事件链已固定响应验证。固定 Go 沙箱的文件 / 固定测试执行、所属资源终止及硬期限已独立真实验收。开发产物合同、内部 SQLite 链及真实 SDK / 固定 Go 代码容器的联合任务已验，见[联合记录](../devlogs/2026-W44.parts/development-joint-20261031.md)。下一步采用复评，真实提供方原生传输须单独验证。固定响应证据不代替通用代码沙箱、真实模型质量或真实用户试用。阶段 0 尚未退出，真实模型与用户试用继续暂停。
+受限 SDK 工作进程与代表任务的完整 Agent 事件链已固定响应验证。固定 Go 沙箱的文件 / 固定测试执行、所属资源终止及硬期限已独立真实验收。开发产物合同、内部 SQLite 链及真实 SDK / 固定 Go 代码容器的联合任务已验，见[联合记录](../devlogs/2026-W44.parts/development-joint-20261031.md)。原生 HTTP 已于 11 月 5 日取得固定上游技术证据，见 [W45 周志](../devlogs/2026-W45.md)；正式采用仍需收口许可、阶段 1 合同与视觉依据，真实厂商资格另验。固定响应证据不代替通用代码沙箱、真实模型质量或真实用户试用。阶段 0 尚未退出，真实模型与用户试用继续暂停。

@@ -1,0 +1,62 @@
+{
+  "schema_version": "development_license_metadata_window.v1",
+  "status": "explicitly_approved_window_completed",
+  "purpose": "Resolve exact cryptography wheel build provenance, OpenSSL 4.0.3 notice identity, regex historical license source and fastmcp NOTICE inventory.",
+  "command": "python3 tmp/development-delivery-20261105/fetch_metadata.py --execute",
+  "output_directory": "tmp/development-delivery-20261105/metadata",
+  "limits": {
+    "requests": 8,
+    "body_bytes_per_request": 1048576,
+    "body_bytes_total": 8388608,
+    "seconds_per_request": 30,
+    "concurrency": 1,
+    "redirects": false,
+    "retries": 0
+  },
+  "items": [
+    {
+      "id": "cryptography-wheel-provenance",
+      "url": "https://pypi.org/integrity/cryptography/50.0.2/cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl/provenance"
+    },
+    {
+      "id": "cryptography-release-tree",
+      "url": "https://api.github.com/repos/pyca/cryptography/git/trees/50.0.2?recursive=1"
+    },
+    {
+      "id": "cryptography-wheel-workflow",
+      "url": "https://raw.githubusercontent.com/pyca/cryptography/50.0.2/.github/workflows/wheel-builder.yml"
+    },
+    {
+      "id": "openssl-4-0-3-license",
+      "url": "https://raw.githubusercontent.com/openssl/openssl/openssl-4.0.3/LICENSE.txt"
+    },
+    {
+      "id": "python-1-6-tag",
+      "url": "https://api.github.com/repos/python/cpython/git/ref/tags/v1.6"
+    },
+    {
+      "id": "python-1-6-license-page",
+      "url": "https://www.python.org/download/releases/1.6/license/"
+    },
+    {
+      "id": "regex-release-tree",
+      "url": "https://api.github.com/repos/mrabarnett/mrab-regex/git/trees/0e8cb0596ba6572c66e5d153a1d7c901b381e15e?recursive=1"
+    },
+    {
+      "id": "fastmcp-release-tree",
+      "url": "https://api.github.com/repos/PrefectHQ/fastmcp/git/trees/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434?recursive=1"
+    }
+  ],
+  "boundary": {
+    "source_archives": false,
+    "binaries": false,
+    "dependency_installation": false,
+    "image_or_container_operations": false,
+    "execute_downloaded_content": false,
+    "real_models": false,
+    "publish": false,
+    "retain_evidence": true
+  },
+  "failure_policy": "Record HTTP status, SHA-256, bytes and curl exit; missing URLs, redirects and rate limits remain evidence gaps. No discovered URL is fetched automatically.",
+  "result": "license-metadata-20261105.json"
+}

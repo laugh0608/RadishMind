@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-11-01（本次整理导航，阶段决策沿用原记录）
+更新时间：2026-11-05
 
 ## 文档职责
 
@@ -10,17 +10,17 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验；剩余许可、原生 HTTP 传输、阶段 1 范围及 A 级视觉依据尚未闭合，正式采用暂不通过，阶段 0 不退出。
+- **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验；原生 HTTP 已通过固定上游技术验证；剩余许可、阶段 1 范围及 A 级视觉依据尚未闭合，正式采用暂不通过，阶段 0 不退出。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
 - 既有授权窗口已结束，当前规划不延续下载、Docker 或服务运行授权；详细运行事实与清理记录沿任务卡和[W44 周志](devlogs/2026-W44.md)查证。
 
-## 接下来事项（2026-10-31）
+## 接下来事项（2026-11-05）
 
 接下来按以下顺序推进，不并行扩张实施主线：
 
-1. **先收口许可证据与交付范围。** 优先核对 cryptography 内嵌 OpenSSL 4.0.3 的精确来源 / 构建映射与 regex 历史 CNRI 条款，再落实 fastmcp-slim 等缺失告知、原生 / 内嵌组件清单及最终告知 / 覆盖源码交付映射。先复用已保留材料列出准确缺口；新增下载、依赖调整、重锁或重建须另报范围并取得授权。源码已取得不等于整镜像许可条件通过。
-2. **确认并补齐原生 HTTP 传输。** 按[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#原生传输的建议实施范围待确认)收口单一非流式档案，实施前确认范围；用固定上游验证实际 HTTP 工具往返、错误 / 超时 / 取消、未知用量及凭据边界，保留真实厂商 / 模型资格待验。
+1. **先收口许可证据与交付范围。** 继续核对 cryptography 内嵌 OpenSSL 4.0.3 的源码字节 / 独立构建依据（wheel SBOM 已给出来源与摘要）和 regex 历史 CNRI 条款，再落实 fastmcp-slim 等缺失告知、原生 / 内嵌组件清单及最终告知 / 覆盖源码交付映射。已复用保留材料完成四包补充告知与映射，实际镜像尚未安装；新增下载、依赖调整、重锁或重建须另报范围并取得授权。源码已取得不等于整镜像许可条件通过。
+2. **原生 HTTP 技术切片已完成。** 单一非流式档案已验证实际 HTTP 工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据边界，见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#原生传输的建议实施范围待确认)。真实厂商 / 模型资格及输入 token 上界仍待验，通道默认关闭；不因固定上游通过而恢复真实模型。
 3. **确认阶段 1 的单 Agent 固定 Go 交付合同与 A 级视觉依据。** 明确公开权限 / API、生命周期与重启行为、候选审阅 / 保存 / 导出，再复评阶段 0；退出条件齐备前不提前开发正式 Web 或固定团队。
 
 上述事项是后续推进计划，不延续已结束的下载、Docker 或服务运行授权。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。

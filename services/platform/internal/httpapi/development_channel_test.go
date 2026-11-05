@@ -42,6 +42,12 @@ type developmentServerFixture struct {
 }
 
 func newDevelopmentServerFixture(t *testing.T) *developmentServerFixture {
+	return newDevelopmentServerFixtureWithConnector(t, func(s *Server) (*developmentcontrol.Runtime, error) {
+		return s.ConnectDevelopmentControl(developmentFixtureBackend{})
+	})
+}
+
+func newDevelopmentServerFixtureWithConnector(t *testing.T, connect func(*Server) (*developmentcontrol.Runtime, error)) *developmentServerFixture {
 	t.Helper()
 	ctx := context.Background()
 	now := time.Now().UTC()
@@ -100,7 +106,7 @@ func newDevelopmentServerFixture(t *testing.T) *developmentServerFixture {
 	if _, err = s.gatewayModelPricingRepository.PutRevision(pricingContext, GatewayModelPricingPolicyInput{Currency: "USD", InputPriceMicrosPerTokenUnit: 1000000, OutputPriceMicrosPerTokenUnit: 2000000, Reason: "synthetic fixed price"}, now); err != nil {
 		t.Fatal(err)
 	}
-	runtime, err := s.ConnectDevelopmentControl(developmentFixtureBackend{})
+	runtime, err := connect(s)
 	if err != nil {
 		t.Fatal(err)
 	}
