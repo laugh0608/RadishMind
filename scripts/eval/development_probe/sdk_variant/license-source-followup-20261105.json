@@ -1,6 +1,6 @@
 {
   "schema_version": "development_license_source_followup.v1",
-  "status": "prepared_awaiting_explicit_authorization",
+  "status": "explicitly_authorized_window_completed",
   "purpose": "核对 wheel SBOM 指向的 OpenSSL 归档字节，并取得 Python 1.6 历史来源候选；不替代独立构建证明或许可结论。",
   "command": "python3 tmp/development-delivery-20261105/fetch_source_followup.py --execute",
   "output_directory": "tmp/development-delivery-20261105/source-followup",
@@ -62,5 +62,6 @@
     "retain_evidence": true
   },
   "cleanup": "只写新的输出目录并保留审计材料；无后台进程、服务或容器。取证结果独立记录，执行完成即关闭此窗口。",
-  "executor_sha256": "de811b5d1afcd6c73b593758f918275486d6d775a598d4134007537b0fe26467"
+  "executor_sha256": "de811b5d1afcd6c73b593758f918275486d6d775a598d4134007537b0fe26467",
+  "result": "license-source-result-20261105.json"
 }

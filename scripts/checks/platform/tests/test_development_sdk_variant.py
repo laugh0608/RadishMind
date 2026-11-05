@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import shutil
 import tarfile
 import tempfile
 import unittest
@@ -13,6 +14,23 @@ ROOT = Path(__file__).resolve().parents[4]
 spec = importlib.util.spec_from_file_location("sdk_variant_prepare", ROOT / "scripts/eval/development_probe/prepare_sdk_variant.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
+notice_spec = importlib.util.spec_from_file_location("sdk_notice_delivery", ROOT / "scripts/eval/development_probe/sdk_notice_delivery.py")
+notices = importlib.util.module_from_spec(notice_spec)
+notice_spec.loader.exec_module(notices)
+
+
+def notice_fixture(variant):
+    (variant / "notice-supplements").mkdir(parents=True)
+    body = b"synthetic notice\n"
+    (variant / "notice-supplements/package-LICENSE.txt").write_bytes(body)
+    (variant / "requirements-linux-arm64-py312.lock").write_text("package==1 --hash=sha256:" + "a" * 64 + "\n")
+    evidence = {"schema_version": "development_notice_supplement_evidence.v1", "items": [
+        {"name": "package", "version": "1", "wheel_sha256": "a" * 64, "supplements": [
+            {"file": "notice-supplements/package-LICENSE.txt", "bytes": len(body),
+             "sha256": hashlib.sha256(body).hexdigest(),
+             "candidate_image_destination": notices.DESTINATION + "/package-LICENSE.txt"}]}]}
+    (variant / "license-delivery-20261105.json").write_text(json.dumps(evidence))
+    return evidence
 
 
 class SDKVariantSourceTests(unittest.TestCase):
@@ -77,6 +95,8 @@ class SDKVariantSourceTests(unittest.TestCase):
                 file.write_text("synthetic fixture; never executed\n")
             (probe / "requirements-linux-arm64-py312.lock").write_text(
                 "# fixture\nopenhands-sdk==1.59.0 --hash=sha256:old\njsonschema==4.23.0 --hash=sha256:test\n")
+            shutil.copyfile(ROOT / "scripts/eval/development_probe/sdk_notice_delivery.py", probe / "sdk_notice_delivery.py")
+            notice_fixture(variant)
             target = root / "tmp/context"
             with patch.object(module, "ROOT", root), patch.object(module, "PROBE", probe), patch.object(module, "VARIANT", variant):
                 module.prepare(archive_path, target)
@@ -88,6 +108,69 @@ class SDKVariantSourceTests(unittest.TestCase):
             self.assertEqual((target / "constraints.txt").read_text(), "jsonschema==4.23.0\n")
             report = json.loads((target / "preparation.json").read_text())
             self.assertEqual(report["files"]["source/pyproject.toml"], sha(b"after\n"))
+            self.assertEqual(report["files"]["third-party/package-LICENSE.txt"], sha(b"synthetic notice\n"))
+
+
+class SDKNoticeDeliveryTests(unittest.TestCase):
+    def test_preparation_rejects_incorrect_wheel_notice_and_path(self):
+        for failure in ("version", "wheel", "missing", "digest", "path", "destination", "duplicate", "unlisted", "symlink"):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                variant = root / "variant"
+                evidence = notice_fixture(variant)
+                item = evidence["items"][0]
+                supplement = item["supplements"][0]
+                source = variant / supplement["file"]
+                if failure == "version": item["version"] = "2"
+                if failure == "wheel": item["wheel_sha256"] = "b" * 64
+                if failure == "missing": source.unlink()
+                if failure == "digest": source.write_bytes(b"tampered! notice\n")
+                if failure == "path": supplement["file"] = "notice-supplements/../package-LICENSE.txt"
+                if failure == "destination": supplement["candidate_image_destination"] = "/outside.txt"
+                if failure == "duplicate": item["supplements"].append(dict(supplement))
+                if failure == "unlisted": (source.parent / "extra.txt").write_text("extra")
+                if failure == "symlink":
+                    source.unlink()
+                    source.symlink_to(root / "outside")
+                (variant / "license-delivery-20261105.json").write_text(json.dumps(evidence))
+                with self.assertRaises(ValueError): notices.prepare(variant, root / "output")
+                self.assertFalse((root / "output").exists())
+
+    def test_delivery_matches_installed_wheels_and_retains_partial_scope(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            variant = root / "variant"
+            evidence = notice_fixture(variant)
+            directory = root / "delivery"
+            notices.prepare(variant, directory)
+            manifest = json.loads((directory / "manifest.json").read_text())
+            self.assertFalse(manifest["license_gate_closed"])
+            self.assertEqual(directory.stat().st_mode & 0o777, 0o755)
+            self.assertEqual((directory / "package-LICENSE.txt").stat().st_mode & 0o777, 0o644)
+            report = {"version": "1", "install": [{"metadata": {"name": "Package", "version": "1"},
+                      "download_info": {"archive_info": {"hashes": {"sha256": "a" * 64}}}}]}
+            report_path = root / "installation.json"
+            report_path.write_text(json.dumps(report))
+            notices.verify(directory, report_path)
+            for failure in ("missing", "version", "wheel", "duplicate"):
+                modified = json.loads(json.dumps(report))
+                if failure == "missing": modified["install"] = []
+                if failure == "version": modified["install"][0]["metadata"]["version"] = "2"
+                if failure == "wheel": modified["install"][0]["download_info"]["archive_info"]["hashes"]["sha256"] = "b" * 64
+                if failure == "duplicate": modified["install"].append(modified["install"][0])
+                report_path.write_text(json.dumps(modified))
+                with self.subTest(failure=failure), self.assertRaises(ValueError): notices.verify(directory, report_path)
+            report_path.write_text(json.dumps(report))
+            (directory / "package-LICENSE.txt").write_bytes(b"tampered! notice\n")
+            with self.assertRaisesRegex(ValueError, "digest mismatch"): notices.verify(directory, report_path)
+
+    def test_repository_notices_match_frozen_evidence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp) / "delivery"
+            notices.prepare(ROOT / "scripts/eval/development_probe/sdk_variant", directory)
+            manifest = json.loads((directory / "manifest.json").read_text())
+            self.assertEqual(len(manifest["packages"]), 5)
+            self.assertEqual(sum(len(p["files"]) for p in manifest["packages"]), 12)
 
 
 if __name__ == "__main__":

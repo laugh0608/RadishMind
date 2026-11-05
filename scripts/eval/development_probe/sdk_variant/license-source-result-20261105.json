@@ -1,0 +1,192 @@
+{
+  "schema_version": "development_license_source_followup_result.v1",
+  "status": "authorized_window_completed_license_gate_open",
+  "authorization": "项目所有者明确同意按四项清单执行下载，完成核对后继续推进。",
+  "plan": "license-source-followup-20261105.json",
+  "requests": [
+    {
+      "id": "openssl-4-0-3-source",
+      "hop": 0,
+      "request_host": "github.com",
+      "exit_code": 0,
+      "http_status": "302",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": "",
+      "body": "openssl-4-0-3-source.0.body",
+      "redirect_followed": true,
+      "expected_sha256_matches": false,
+      "redirect_host": "release-assets.githubusercontent.com"
+    },
+    {
+      "id": "openssl-4-0-3-source",
+      "hop": 1,
+      "request_host": "release-assets.githubusercontent.com",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 55235667,
+      "sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+      "error": "",
+      "body": "openssl-4-0-3-source.1.body",
+      "redirect_followed": false,
+      "expected_sha256_matches": true
+    },
+    {
+      "id": "python-1-6-source",
+      "hop": 0,
+      "request_host": "www.python.org",
+      "exit_code": 0,
+      "http_status": "404",
+      "bytes": 146,
+      "sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0",
+      "error": "",
+      "body": "python-1-6-source.0.body",
+      "redirect_followed": false
+    },
+    {
+      "id": "python-1-6-release-page",
+      "hop": 0,
+      "request_host": "www.python.org",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 46386,
+      "sha256": "f8ca7c8533ceec75656bb97f1d790e5d87f22202d5b7cf5d5ade39a6ff448ca1",
+      "error": "",
+      "body": "python-1-6-release-page.0.body",
+      "redirect_followed": false
+    },
+    {
+      "id": "python-1-6-matching-refs",
+      "hop": 0,
+      "request_host": "api.github.com",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 677,
+      "sha256": "bf97bc46f86c747d146bd5fc36d9c07fabf20987078c44881451ac7cad53d037",
+      "error": "",
+      "body": "python-1-6-matching-refs.0.body",
+      "redirect_followed": false
+    }
+  ],
+  "total_body_bytes": 55282876,
+  "openssl": {
+    "source_url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
+    "source_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+    "source_bytes": 55235667,
+    "matches_wheel_sbom_source_sha256": true,
+    "members_scanned": 6358,
+    "expanded_member_bytes": 135651861,
+    "selected": [
+      {
+        "member": "openssl-4.0.3/AUTHORS.md",
+        "bytes": 1022,
+        "sha256": "b9f638dfc06b59c2d3b808186c3b30f713805a5db390f5b77b1703ac58acb83e",
+        "text_file": "selected-text/b9f638dfc06b59c2d3b808186c3b30f713805a5db390f5b77b1703ac58acb83e.txt"
+      },
+      {
+        "member": "openssl-4.0.3/LICENSE.txt",
+        "bytes": 10175,
+        "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+        "text_file": "selected-text/7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a.txt"
+      },
+      {
+        "member": "openssl-4.0.3/README.md",
+        "bytes": 8586,
+        "sha256": "ae4d7773db05353b31ce1a022bac002df03506d818e94ea087b23a80c8e4084f",
+        "text_file": "selected-text/ae4d7773db05353b31ce1a022bac002df03506d818e94ea087b23a80c8e4084f.txt"
+      },
+      {
+        "member": "openssl-4.0.3/VERSION.dat",
+        "bytes": 100,
+        "sha256": "10a0068332a55a6621fe7f2a8b6f6c775cb6b30b5530a91f8513b347da4d9d6e",
+        "text_file": "selected-text/10a0068332a55a6621fe7f2a8b6f6c775cb6b30b5530a91f8513b347da4d9d6e.txt"
+      },
+      {
+        "member": "openssl-4.0.3/external/perl/Text-Template-1.56/LICENSE",
+        "bytes": 18412,
+        "sha256": "9837f05336ef3cbacb6a96e1672a0426d81ad01191f214b8d48e22ca62338181",
+        "text_file": "selected-text/9837f05336ef3cbacb6a96e1672a0426d81ad01191f214b8d48e22ca62338181.txt"
+      },
+      {
+        "member": "openssl-4.0.3/util/perl/OpenSSL/copyright.pm",
+        "bytes": 1145,
+        "sha256": "04213b69dbebc8ba0dd8a6216af1d9422f9b63619c1cf2f1d8aa107b83bbb608",
+        "text_file": "selected-text/04213b69dbebc8ba0dd8a6216af1d9422f9b63619c1cf2f1d8aa107b83bbb608.txt"
+      }
+    ],
+    "notice_matches_retained_copy": true,
+    "independent_build_attestation_verified": false,
+    "boundary": "源码归档字节与精确 wheel SBOM 一致；未重建、未独立验证发布签名或历史构建容器，不能推定实际二进制可复现。",
+    "version_file": {
+      "major": "4",
+      "minor": "0",
+      "patch": "3",
+      "release_date": "29 Sep 2026"
+    },
+    "source_tree_only_components": [
+      "external/perl/Text-Template-1.56/LICENSE 是归档内构建工具的许可路径；不据此登记为 wheel 已链接组件。"
+    ]
+  },
+  "python_1_6": {
+    "source_candidate_http_status": 404,
+    "release_page_http_status": 200,
+    "matching_refs": [
+      {
+        "ref": "refs/tags/v1.6a1",
+        "node_id": "MDM6UmVmODE1OTg5NjE6cmVmcy90YWdzL3YxLjZhMQ==",
+        "url": "https://api.github.com/repos/python/cpython/git/refs/tags/v1.6a1",
+        "object": {
+          "sha": "c0605ad952b4dc16c89785d471adcfab5ad56e94",
+          "type": "commit",
+          "url": "https://api.github.com/repos/python/cpython/git/commits/c0605ad952b4dc16c89785d471adcfab5ad56e94"
+        }
+      },
+      {
+        "ref": "refs/tags/v1.6a2",
+        "node_id": "MDM6UmVmODE1OTg5NjE6cmVmcy90YWdzL3YxLjZhMg==",
+        "url": "https://api.github.com/repos/python/cpython/git/refs/tags/v1.6a2",
+        "object": {
+          "sha": "080daa04f1636224f2b0aeb34de80482a6d2496b",
+          "type": "commit",
+          "url": "https://api.github.com/repos/python/cpython/git/commits/080daa04f1636224f2b0aeb34de80482a6d2496b"
+        }
+      }
+    ],
+    "release_page_links": [
+      {
+        "href": "license_faq",
+        "resolved_url": "https://www.python.org/download/releases/1.6/license_faq"
+      },
+      {
+        "href": "../1.6.1/",
+        "resolved_url": "https://www.python.org/download/releases/1.6.1/"
+      },
+      {
+        "href": "http://hdl.handle.net/1895.22/1012",
+        "resolved_url": "http://hdl.handle.net/1895.22/1012"
+      },
+      {
+        "href": "download",
+        "resolved_url": "https://www.python.org/download/releases/1.6/download"
+      },
+      {
+        "href": "http://hdl.handle.net/1895.22/1011",
+        "resolved_url": "http://hdl.handle.net/1895.22/1011"
+      }
+    ],
+    "observations": [
+      "官方发行页将最终版日期列为 2000-09-05，并区分 1.6b1 与最终版许可的变化。",
+      "最终版许可指向 handle 1895.22/1012；beta 指向 1895.22/1011，两者不能互换。",
+      "所查 Git 标签前缀仅返回 v1.6a1 / v1.6a2；没有取得最终 1.6 标签或许可正文。"
+    ],
+    "boundary": "发行页提供了明确历史来源指向；本轮未追取链接，regex 的历史正文差异仍未闭合。"
+  },
+  "boundary": {
+    "source_executed": false,
+    "archive_paths_extracted": false,
+    "dependencies_changed": false,
+    "images_changed": false,
+    "window_closed": true,
+    "license_gate_closed": false
+  }
+}

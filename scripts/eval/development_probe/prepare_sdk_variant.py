@@ -11,6 +11,7 @@ import json
 from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
+import sys
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -88,10 +89,14 @@ def prepare(source_archive: Path, directory: Path) -> None:
         PROBE / "fixed_endpoint.py": "fixed_endpoint.py",
         PROBE / "test_sdk_contract.py": "test_sdk_contract.py",
         PROBE / "test_sdk_optional_laminar.py": "test_sdk_optional_laminar.py",
+        PROBE / "sdk_notice_delivery.py": "sdk_notice_delivery.py",
         ROOT / "contracts/development-task-probe-tool-request.schema.json": "tool-request.schema.json",
     }
     for original, name in copies.items():
         shutil.copyfile(original, directory / name)
+    subprocess.run([sys.executable, str(PROBE / "sdk_notice_delivery.py"),
+                    "--variant", str(VARIANT), "--directory", str(directory / "third-party")],
+                   check=True, timeout=15)
     # Constraints retain existing dependency versions without installing unused
     # distributions. The new dependency closure is produced by pip's resolver.
     stock = (PROBE / "requirements-linux-arm64-py312.lock").read_text().splitlines()

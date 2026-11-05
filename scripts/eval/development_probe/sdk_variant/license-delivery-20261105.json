@@ -205,7 +205,7 @@
       "embedded_sbom_sha256": "b0bf7d97f711a6abea7658c0e84ad5954226663559cba3ae14321e70adb72184",
       "source_url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
       "source_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
-      "source_archive_acquired": false,
+      "source_archive_acquired": true,
       "supplements": [
         {
           "file": "notice-supplements/cryptography-openssl-4.0.3-LICENSE.txt",
@@ -213,19 +213,69 @@
           "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
           "source": {
             "url": "https://raw.githubusercontent.com/openssl/openssl/openssl-4.0.3/LICENSE.txt",
-            "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+            "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+            "archive_url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
+            "archive_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+            "member": "openssl-4.0.3/LICENSE.txt",
+            "member_sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
           },
           "candidate_image_destination": "/usr/local/share/radishmind/third-party/cryptography-openssl-4.0.3-LICENSE.txt",
           "installed_in_image": false
         }
       ],
       "status": "repository_notice_supplement_prepared_image_installation_pending",
-      "remaining": "Exact source archive bytes, independently verified build provenance, Rust selected components and image notice installation remain open."
+      "remaining": "Independent build provenance, Rust selected components and actual image notice installation remain open.",
+      "source_archive_bytes": 55235667,
+      "source_matches_wheel_sbom_sha256": true,
+      "source_evidence": "license-source-result-20261105.json"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "wheel": "regex-2026.9.29-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "declared_license_expression": "Apache-2.0 AND CNRI-Python",
+      "existing_wheel_notice_sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d",
+      "supplements": [
+        {
+          "file": "notice-supplements/regex-2026.9.29-CNRI-Python-1.6-LICENSE.txt",
+          "bytes": 3511,
+          "sha256": "d4c9c432696dec0f8af87cf38160a671648c3591459d9edc785796938bba7c00",
+          "source": {
+            "url": "https://www.python.org/download/releases/1.6/download",
+            "page_sha256": "93229c6310e6c585d71255e4315703afc06eca60d4aa5e984d9aec6a85dfdf00",
+            "evidence": "license-page-result-20261105.json"
+          },
+          "normalization": {
+            "operation": "Decode outer HTML entities and embedded paragraph markup in two HTMLParser passes; remove tags, preserve paragraph text, trim line ends, collapse repeated blank lines, append final LF. No words replaced.",
+            "page_sha256": "93229c6310e6c585d71255e4315703afc06eca60d4aa5e984d9aec6a85dfdf00",
+            "fragment_byte_offset": 19733,
+            "fragment_byte_length": 4018,
+            "fragment_sha256": "f6f3fa3781d54ec5af312a33fbb36a5365d5abdbe6fdcb03f3cf3f476d24d6eb",
+            "output_sha256": "d4c9c432696dec0f8af87cf38160a671648c3591459d9edc785796938bba7c00",
+            "output_bytes": 3511,
+            "clauses": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ]
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/regex-2026.9.29-CNRI-Python-1.6-LICENSE.txt",
+          "installed_in_image": false
+        }
+      ],
+      "status": "declared_historical_notice_prepared_derivation_review_open",
+      "remaining": "Declared final Python 1.6 notice acquired. Review derivation from CPython 2.6/3.1 and full notice retention; image installation not performed."
     }
   ],
   "open_items": [
-    "cryptography OpenSSL 4.0.3 archive bytes and independent build attestation (source URL/hash now bound by wheel SBOM)",
-    "regex CNRI Python 1.6 provenance versus retained 1.6.1 text",
+    "cryptography OpenSSL 4.0.3 independent build attestation and Rust selected components (source archive bytes now match wheel SBOM)",
+    "regex derivation and full notice-retention scope: final CNRI Python 1.6 text is now retained; CPython 2.6/3.1 carry differing 1.6.1 text",
     "Other native/static linked components and complete third-party notices",
     "Covered-source delivery for MPL and OS packages, certifi generator inputs",
     "Actual SDK/Go image installation and full delivery verification",
@@ -237,5 +287,7 @@
     "images_changed": false,
     "license_gate_closed": false
   },
-  "download_authorization_record": "license-metadata-20261105.json"
+  "download_authorization_record": "license-metadata-20261105.json",
+  "source_followup_result": "license-source-result-20261105.json",
+  "historical_license_page_result": "license-page-result-20261105.json"
 }
