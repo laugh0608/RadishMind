@@ -1,0 +1,65 @@
+{
+  "version": "13.0.0",
+  "release_tree_sha1": "293218ad059d994baf1777d882911bed6a49704a",
+  "pyproject_matches_exact_sdist": true,
+  "pyproject_sha256": "31d2050093c5a24f8239adcac1ebbc2ce72bd893622a0ed247c8ba8b09bb25f3",
+  "dependency_versions": {
+    "brotli": "1.2.0",
+    "bzip2": "1.0.8",
+    "freetype": "2.14.3",
+    "fribidi": "1.0.17",
+    "harfbuzz": "14.5.0",
+    "jpegturbo": "3.2.0",
+    "lcms2": "2.19.1",
+    "libavif": "1.4.2",
+    "libimagequant": "4.4.1",
+    "libpng": "1.6.58",
+    "libwebp": "1.6.0",
+    "libxcb": "1.17.0",
+    "openjpeg": "2.5.4",
+    "tiff": "4.7.2",
+    "xz": "5.8.4",
+    "zlib-ng": "2.3.3",
+    "zstd": "1.5.7"
+  },
+  "dependencies_sha256": "63413d6dccf72367fc4c04c2560999e7a40ea14cf226dcc995d238cf3d25533b",
+  "gitlinks": [
+    {
+      "path": "wheels/multibuild",
+      "commit": "c893f305c6066b6d940e10d3333be8cb27fa3947"
+    }
+  ],
+  "openjpeg": {
+    "version": "2.5.4",
+    "source_patch_member": "pillow-13.0.0/patches/v2.5.4.tar.gz.patch",
+    "patch_sha256": "6b0a9250ec038826a811a7eb6ea1aa59abf42d6d562042cdfddb29c7ad98ef4e",
+    "patch_bytes": 1552,
+    "wheel_sbom_patch_bytes_identical": true,
+    "resolution": "版本清单、OpenJPEG purl 与同一补丁一致；ancestor name=libtiff 的原始错误字段保留，不再把它作为实际采用 libtiff 来源的依据。"
+  },
+  "zlib": {
+    "declared_build_component": "zlib-ng",
+    "declared_version": "2.3.3",
+    "build_option": "--zlib-compat",
+    "runtime_image_source": "Debian zlib 1:1.3.dfsg+really1.3.1-1",
+    "resolution": "SBOM 的 2.3.3 与构建配方 zlib-ng 版本对应；实际外部 libz.so.1 字节仍来自前轮验证的 Debian 包，构建头文件 / 库与运行时依赖分开登记。"
+  },
+  "configured_features": {
+    "raqm": "enable, vendor",
+    "fribidi": "vendor shim",
+    "imagequant": "disable",
+    "libavif": [
+      "AVIF_CODEC_DAV1D=LOCAL (非 iOS x86_64 分支)",
+      "AVIF_CODEC_AOM=LOCAL",
+      "AVIF_LIBYUV=LOCAL",
+      "AVIF_LIBSHARPYUV=LOCAL",
+      "CONFIG_AV1_HIGHBITDEPTH=0"
+    ]
+  },
+  "historical_build_inputs_open": [
+    "wheels/multibuild 子模块提交已识别，源码尚未取得；子模块中的构建函数和下载摘要仍待核对。",
+    "依赖脚本读取 pillow-depends/archive/main.zip；没有该次构建实际使用的 main 提交 / 归档摘要。",
+    "libavif 本地组件选择已解释，嵌套版本 / 补丁和该 wheel 的构建执行记录尚未取得。"
+  ],
+  "boundary": "发行树和来源配方可复核；未将配置声明等同于二进制可复现构建或实际运行功能测试。"
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": "development_build_input_plan.v1",
+  "status": "prepared_not_authorized",
+  "trees": [
+    {
+      "id": "pillow",
+      "repo": "python-pillow/Pillow",
+      "ref": "13.0.0",
+      "purpose": "取得精确发行树中的 wheel 依赖构建配方，与 sdist 的 cibuildwheel 配置对应",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/git/trees/13.0.0?recursive=1"
+    },
+    {
+      "id": "certifi-current",
+      "repo": "certifi/python-certifi",
+      "ref": "2026.10.23",
+      "purpose": "核对当前 SDK 证书生成工作流和精确输出",
+      "url": "https://api.github.com/repos/certifi/python-certifi/git/trees/2026.10.23?recursive=1"
+    },
+    {
+      "id": "certifi-pip",
+      "repo": "certifi/python-certifi",
+      "ref": "2024.08.30",
+      "purpose": "核对 pip 内嵌 certifi 独立版本的生成来源",
+      "url": "https://api.github.com/repos/certifi/python-certifi/git/trees/2024.08.30?recursive=1"
+    }
+  ],
+  "followup_rule": {
+    "max_blobs": 22,
+    "hosts": [
+      "api.github.com"
+    ],
+    "method": "仅在成功且未截断的上述树中按允许路径选择普通 blob，使用返回的 blob SHA-1 请求 GitHub blob API，解码后再次验证 Git blob 摘要；不递归追取外部仓库、子模块或脚本下载地址。",
+    "allowed_path_patterns": {
+      "pillow": [
+        "pyproject.toml",
+        ".github/workflows/wheels*.yml",
+        ".github/workflows/wheels*.sh",
+        ".github/workflows/*dependencies*",
+        ".github/workflows/*sbom*"
+      ],
+      "certifi": [
+        "certifi/cacert.pem",
+        "Makefile",
+        "scripts/*.py",
+        "scripts/*.sh",
+        ".github/workflows/*.yml",
+        ".github/workflows/*.yaml",
+        "certdata.txt"
+      ]
+    },
+    "priority": "每个 certifi 版本先取 cacert.pem；随后生成工作流 / 脚本；Pillow 先取 wheels-dependencies.sh 及其同目录配方，再取构建工作流；总计超过 22 个时停止选择并记录未取得路径。"
+  },
+  "fixed_blobs": [
+    {
+      "id": "cryptography-build-openssl",
+      "url": "https://api.github.com/repos/pyca/cryptography/git/blobs/476f054727b8c0f44094541ab938b969f1731412",
+      "expected_git_blob_sha1": "476f054727b8c0f44094541ab938b969f1731412"
+    },
+    {
+      "id": "cryptography-fetch-openssl",
+      "url": "https://api.github.com/repos/pyca/cryptography/git/blobs/d41a460f2b361693279a4ac35a5779e41b9514e9",
+      "expected_git_blob_sha1": "d41a460f2b361693279a4ac35a5779e41b9514e9"
+    }
+  ],
+  "limits": {
+    "requests": 27,
+    "total_body_bytes": 20971520,
+    "tree_bytes": 3145728,
+    "blob_bytes": 1048576,
+    "seconds_per_request": 30,
+    "connect_seconds": 10,
+    "concurrency": 1,
+    "redirects": 0,
+    "retries": 0
+  },
+  "output_directory": "tmp/development-build-scope-20261105/metadata",
+  "boundary": [
+    "仅元数据、工作流、脚本原文和证书文本；不执行下载内容、不下载归档 / 二进制、不安装、不重建。",
+    "404、截断、超限、摘要不符或重定向均停止该项，不换源或扩大清单。",
+    "原始响应及请求流水保留于仓库 tmp；窗口结束后不自动延续。"
+  ],
+  "executor": "tmp/development-build-scope-20261105/fetch_inputs.py",
+  "executor_sha256": "e07f8979822474a1f18e52e72a513517ceb4eb012a6c17e0ac3a0832148d21fe",
+  "commands": [
+    "python3 tmp/development-build-scope-20261105/fetch_inputs.py --phase initial --execute",
+    "python3 tmp/development-build-scope-20261105/fetch_inputs.py --phase blobs --execute"
+  ]
+}

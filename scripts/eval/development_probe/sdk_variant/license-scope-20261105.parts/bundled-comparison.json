@@ -1,0 +1,59 @@
+{
+  "items": [
+    {
+      "component": "pip",
+      "source_archive": "pip-25.0.1.tar.gz",
+      "source_archive_sha256": "88f96547ea48b940a3a385494e181e29fb8637898f88d88737c5049780f196ea",
+      "image_copy": "sdk-07.tar",
+      "image_copy_sha256": "bf2f8861ed9a78128ee6f119f997cb6cf00832111409a233523cb790a5b85052",
+      "image_files": 280,
+      "source_files": 302,
+      "identical_files": 280,
+      "different_files": [],
+      "image_only_files": [],
+      "source_only_files": [
+        "README.rst",
+        "cachecontrol/LICENSE.txt",
+        "certifi/LICENSE",
+        "distlib/LICENSE.txt",
+        "distro/LICENSE",
+        "idna/LICENSE.md",
+        "msgpack/COPYING",
+        "packaging/LICENSE",
+        "packaging/LICENSE.APACHE",
+        "packaging/LICENSE.BSD",
+        "pkg_resources/LICENSE",
+        "platformdirs/LICENSE",
+        "pygments/LICENSE",
+        "pyproject_hooks/LICENSE",
+        "requests/LICENSE",
+        "resolvelib/LICENSE",
+        "rich/LICENSE",
+        "tomli/LICENSE",
+        "tomli/LICENSE-HEADER",
+        "truststore/LICENSE",
+        "typing_extensions.LICENSE",
+        "urllib3/LICENSE.txt"
+      ],
+      "source_local_input": "tmp/development-license-audit-20261031/downloads-stage2/d5f82730be095fb7f6adaecc.1.0.body",
+      "comparison_sha256": "6e5ee21f62f7e453508a9ad6a848d9955b153d3bfde7d36bb79c1fe5a987a390",
+      "boundary": "pip 修改后的内嵌源码直接使用精确 pip sdist；各依赖上游 sdist 不替代它。"
+    },
+    {
+      "component": "go",
+      "source_archive": "go1.26.7.src.tar.gz",
+      "source_archive_sha256": "0ed24eac755105085b89fe9cabc2742b91a0ad7b94b59d3ad364918ebc8956ad",
+      "image_copy": "go-06.tar",
+      "image_copy_sha256": "f2d6ef8b54352a6cbc095f5e7f95599aefb41f66666476264118fd18852ee5ff",
+      "image_files": 165,
+      "source_files": 165,
+      "identical_files": 165,
+      "different_files": [],
+      "image_only_files": [],
+      "source_only_files": [],
+      "source_local_input": "tmp/development-license-audit-20261031/downloads-stage2/717ee9101b6e351fc29822bf.1.1.body",
+      "comparison_sha256": "889cf42f1ce0496aac91fc68d201e2c2a825c495bf95cecb388581f9c9031ae9",
+      "boundary": "只核对已保留的镜像路径；Go src/cmd/vendor 未从镜像读取，不能由 src/vendor 全部一致推定工具链全路径一致。"
+    }
+  ]
+}

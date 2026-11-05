@@ -1,0 +1,153 @@
+{
+  "source_archive_sha256": "88f96547ea48b940a3a385494e181e29fb8637898f88d88737c5049780f196ea",
+  "items": [
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/cachecontrol/LICENSE.txt",
+      "bytes": 558,
+      "sha256": "86eeee87be2a43f3ff1f56496f451f69243926f025fedbb033666c304c4c161b",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/cachecontrol/LICENSE.txt",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/certifi/LICENSE",
+      "bytes": 989,
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/certifi/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/distlib/LICENSE.txt",
+      "bytes": 14531,
+      "sha256": "808e10c8a6ab8deb149ff9b3fb19f447a808094606d712a9ca57fead3552599d",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/distlib/LICENSE.txt",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/distro/LICENSE",
+      "bytes": 11325,
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/distro/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/idna/LICENSE.md",
+      "bytes": 1541,
+      "sha256": "a59f0b0ef3635874109a4461ca44ff7a70d50696e814767bfaf721d4c9b0db0f",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/idna/LICENSE.md",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/msgpack/COPYING",
+      "bytes": 614,
+      "sha256": "492dedba85da5872f78e6091bcd1fea474d660d35acb4dee964b8aab3f007427",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/msgpack/COPYING",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/packaging/LICENSE",
+      "bytes": 197,
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/packaging/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/packaging/LICENSE.APACHE",
+      "bytes": 10174,
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/packaging/LICENSE.APACHE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/packaging/LICENSE.BSD",
+      "bytes": 1344,
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/packaging/LICENSE.BSD",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/pkg_resources/LICENSE",
+      "bytes": 1023,
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/pkg_resources/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/platformdirs/LICENSE",
+      "bytes": 1089,
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/platformdirs/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/pygments/LICENSE",
+      "bytes": 1331,
+      "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/pygments/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/pyproject_hooks/LICENSE",
+      "bytes": 1081,
+      "sha256": "1b22b049b5267d6dfc23a67bf4a84d8ec04b9fdfb1a51d360e42b4342c8b4154",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/pyproject_hooks/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/requests/LICENSE",
+      "bytes": 10142,
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/requests/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/resolvelib/LICENSE",
+      "bytes": 751,
+      "sha256": "f388fd38cad13112c1dc0f669bbe80e7f84541edbafb72f3030d2ca7642c3c9d",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/resolvelib/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/rich/LICENSE",
+      "bytes": 1056,
+      "sha256": "deed7c17a4318158190a3ea239cc879a5a50271cebb98ae7025f48fbe58dca15",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/rich/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/tomli/LICENSE",
+      "bytes": 1072,
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/tomli/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/tomli/LICENSE-HEADER",
+      "bytes": 121,
+      "sha256": "97ce9330905a172dde870ee0361d89beb95ba3bd0f4545796aa91a8c01a43531",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/tomli/LICENSE-HEADER",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/truststore/LICENSE",
+      "bytes": 1086,
+      "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/truststore/LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/typing_extensions.LICENSE",
+      "bytes": 13936,
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/typing_extensions.LICENSE",
+      "installed_in_current_image": false
+    },
+    {
+      "source_member": "pip-25.0.1/src/pip/_vendor/urllib3/LICENSE.txt",
+      "bytes": 1115,
+      "sha256": "c37bf186e27cf9dbe9619e55edfe3cea7b30091ceb3da63c7dacbe0e6d77907b",
+      "candidate_image_destination": "/usr/local/share/radishmind/third-party/pip-25.0.1/urllib3/LICENSE.txt",
+      "installed_in_current_image": false
+    }
+  ],
+  "boundary": "路径已映射，未复制进镜像，现有 wheel 补充告知准备器不覆盖基础镜像 pip。"
+}

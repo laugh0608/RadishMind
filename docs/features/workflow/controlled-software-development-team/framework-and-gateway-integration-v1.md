@@ -158,3 +158,16 @@ hf-xet 的 `colored 3.1.1` 有二进制源码路径依据；`dirs → dirs-sys �
 覆盖源码采用伴随精确镜像交付的候选布局：`sources/<SDK-image-sha256>/` 保存原始归档、Debian 修订及 `.dsc`，索引记录镜像 / wheel 身份、组件版本、文件摘要和相对位置；镜像内第三方告知说明对应获取位置。SDK 与 Go 代码镜像分别登记。接收方须随镜像取得对应源码与告知；临时 `tmp/` 路径和上游 URL 只作取证来源，不能冒充交付通道。此轮不选择仅作书面承诺的路线，也未设置公共下载服务。
 
 [首批映射](../../../../scripts/eval/development_probe/sdk_variant/license-static-20261105.parts/covered-source-map.json)覆盖九组、15 个已有文件，全部重新核对字节摘要，其中三组系统源包的归档集合同时匹配 `.dsc`。这只是本地材料与候选路径，不是已经组装或可交付的完整源码包。正式交付前须补齐其余内嵌 / 基础镜像 / 工具组件，以及实际构建修改、生成输入和安装材料，再单独安排打包、实际获取与镜像内告知验收。certifi 生成输入、regex 继承来源、静态精确构建依据等继续未闭合；不改变正式采用或阶段 0 结论。
+
+
+#### 构建输入与完整镜像范围的后续核对
+
+[构建输入记录](../../../../scripts/eval/development_probe/sdk_variant/license-build-inputs-20261105.json)已补齐 Pillow / certifi 的精确发行树、指定工作流和脚本，以及 cryptography 两份构建脚本。Pillow 的 `zlib-ng 2.3.3` 与 `--zlib-compat` 解释了构建声明；实际运行时 `libz.so.1` 仍归属已核对的 Debian zlib。OpenJPEG 2.5.4 的补丁与 wheel SBOM 逐字节一致，保留错误的 ancestor 名称，但不据此改判来源。发行配置禁用 imagequant，libavif 选择本地 dav1d / AOM / libyuv / libsharpyuv；它们的精确嵌套来源和历史构建记录仍需补齐。
+
+两个 certifi 版本（当前 wheel 的 2026.10.23、pip 内嵌的 2024.8.30）分别匹配精确发行证书输出。生成过程已明确为 `mkcert.org/generate/` 加 `strip-non-ascii`，过滤器只将非 ASCII 字符转义；工作流未固定历史响应摘要、生成器版本或 Mozilla 输入提交。未用当前动态端点替代历史材料。Pillow 的 `pillow-depends/main.zip` 和 cryptography 的构建容器 tag 也需要对应运行时的不可变记录；后续取得更多同版本源码本身不能填补这类历史来源缺口。若无法取得，应先评估具备可留存输入的新候选构建范围，不自行重锁、重建或延续下载窗口。
+
+[镜像交付范围索引](../../../../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)已扩至 SDK 的 119 个 wheel、87 个 Debian 包 / 61 个源包，以及 Go 镜像的 17 个 Alpine 包 / 10 个 origin。61 份 `.dsc` 的全部 132 个来源文件、10 份 Alpine 配方与 139 个已枚举输入均对应到本地字节。候选目录保留原始归档、发行修订、配方及其输入；未把配方输入集合的完整对应表述为全部生成步骤已证明。
+
+pip 的 280 个实际内嵌文件、Go `src/vendor` 的 165 个实际文件均与各自精确源码逐字节一致。pip 使用修改后的内嵌树作为交付来源，21 份镜像缺失许可已映射到候选告知位置；现有六包 wheel 告知准备器尚不覆盖基础镜像 pip。Go `cmd/vendor` 和 CPython 扩展 / 构建配置仍待实际镜像核对。当前联合探针的 Docker CLI 是只读挂载的外部工具，单独列在双镜像范围之外；未来若随离线包分发，必须另纳入来源 / 告知，不由本次范围排除推定未来无交付义务。
+
+上述结果补齐了来源对应和交付范围，不代表历史构建输入、镜像告知安装或接收方源码获取已经验收。实际打包、镜像重建与发布均未执行，正式采用及阶段 0 结论保持。

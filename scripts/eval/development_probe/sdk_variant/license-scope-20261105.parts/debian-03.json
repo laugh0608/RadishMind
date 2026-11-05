@@ -1,0 +1,196 @@
+{
+  "items": [
+    {
+      "source": "debianutils",
+      "version": "5.23.2",
+      "binary_packages": [
+        "debianutils"
+      ],
+      "dsc_sha256": "471b65deec232bb033f3e3e06d5bf64dac0ced474c6fd61d41538f3f3de876f8",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/65473656c1f8ec83aaec3061.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/debianutils/5.23.2",
+      "source_files": [
+        {
+          "filename": "debianutils_5.23.2.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "79e524b7526dba2ec5c409d0ee52ebec135815cf5b2907375d444122e0594b69"
+        }
+      ]
+    },
+    {
+      "source": "diffutils",
+      "version": "1:3.10-4",
+      "binary_packages": [
+        "diffutils"
+      ],
+      "dsc_sha256": "087b414ddfc92161a30186926bc4b4ac02c7cba589b0323561cacd54c8b48392",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/1b13113dd0f2316fa8db0a22.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/diffutils/1%3A3.10-4",
+      "source_files": [
+        {
+          "filename": "diffutils_3.10.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "90e5e93cc724e4ebe12ede80df1634063c7a855692685919bfe60b556c9bd09e"
+        },
+        {
+          "filename": "diffutils_3.10.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "a94faf8f1baa04ff220f7b2ccb137c16337284e023ebc4a1d5df475c08d810f7"
+        },
+        {
+          "filename": "diffutils_3.10-4.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "8588b6ffb897ccff46c583e58ef50500b2511eee41949b21e8afa5439712c2c7"
+        }
+      ]
+    },
+    {
+      "source": "dpkg",
+      "version": "1.22.22",
+      "binary_packages": [
+        "dpkg"
+      ],
+      "dsc_sha256": "fc481d9b87cd4416cd55673cc1fa716b57480a6b23253ac0d87c1abbfad4c964",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/fdb073b57f7bfb735454efda.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/dpkg/1.22.22",
+      "source_files": [
+        {
+          "filename": "dpkg_1.22.22.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "d5ea9f132deec8030b50ab2a02ade2b49f0c7a195805a302c8301156fe833a57"
+        }
+      ]
+    },
+    {
+      "source": "findutils",
+      "version": "4.10.0-3",
+      "binary_packages": [
+        "findutils"
+      ],
+      "dsc_sha256": "fa6b67056d9e5b4d8edbfc8ab95ac15ac769b140284426973f6a1ef07a4594ec",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/1578fb2d463684f0bb971699.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/findutils/4.10.0-3",
+      "source_files": [
+        {
+          "filename": "findutils_4.10.0.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "1387e0b67ff247d2abde998f90dfbf70c1491391a59ddfecb8ae698789f0a4f5"
+        },
+        {
+          "filename": "findutils_4.10.0.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "7f53670eea6bd114e014571221eb652855c1129a3ed99f2a9257c2a313cc216f"
+        },
+        {
+          "filename": "findutils_4.10.0-3.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "7d19668508523a6fcfb7731f5646305a8b1a00a3105ee3f0a5f167adf93a8a46"
+        }
+      ]
+    },
+    {
+      "source": "gcc-14",
+      "version": "14.2.0-19",
+      "binary_packages": [
+        "gcc-14-base",
+        "libgcc-s1",
+        "libstdc++6"
+      ],
+      "dsc_sha256": "7db1e202cce66617e9134a662c877a3a773de5b612fd52179815877e0ecfb847",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/b739b792f116e142e5dc8594.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/gcc-14/14.2.0-19",
+      "source_files": [
+        {
+          "filename": "gcc-14_14.2.0.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "e162a5ef3f0077ecae598c6556908d2ab80841532df3398072a96a6df6e6aa29"
+        },
+        {
+          "filename": "gcc-14_14.2.0-19.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "31cbab4bafa48aa1c540497bd8098cbcf98e673778f927651ed944709f687781"
+        }
+      ]
+    },
+    {
+      "source": "gdbm",
+      "version": "1.24-2",
+      "binary_packages": [
+        "libgdbm6t64"
+      ],
+      "dsc_sha256": "28acecf1cf00240942833c04079a02bb4c199a48faa1f4ca90f0ea9b79dc5841",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/4853880687f0a286825700c5.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/gdbm/1.24-2",
+      "source_files": [
+        {
+          "filename": "gdbm_1.24.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "695e9827fdf763513f133910bc7e6cfdb9187943a4fec943e57449723d2b8dbf"
+        },
+        {
+          "filename": "gdbm_1.24.orig.tar.gz.asc",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "8fb2f87e817ed6bd1d7ef2ab976f6a0046814a5ff28a06c521b796e0d3fd1226"
+        },
+        {
+          "filename": "gdbm_1.24-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "736d23450674c1bf0b03a2f65b83870b0801bc3747df3099df970c1479b0ab63"
+        }
+      ]
+    },
+    {
+      "source": "glibc",
+      "version": "2.41-12+deb13u4",
+      "binary_packages": [
+        "libc-bin",
+        "libc6"
+      ],
+      "dsc_sha256": "0915324aa646bb99abfaa9aa6ecb734b30babd28454a3e51f3152912370fbd3e",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/377a1af86749d06106427633.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/glibc/2.41-12+deb13u4",
+      "source_files": [
+        {
+          "filename": "glibc_2.41.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "f24aa441021121a79266f0d75242706cab8843a47901fefe74527491807f1998"
+        },
+        {
+          "filename": "glibc_2.41-12+deb13u4.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "dda4153511bfd543502d18e5bc9323110996fe9c531f14ae3fad6eb17f027c7d"
+        }
+      ]
+    },
+    {
+      "source": "gmp",
+      "version": "2:6.3.0+dfsg-3",
+      "binary_packages": [
+        "libgmp10"
+      ],
+      "dsc_sha256": "f7b64af28f52b7346bb8581e01d3c19daf769639345f234f8ae1e29c42171443",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/5dda33127fcfbace20343a8f.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/gmp/2%3A6.3.0+dfsg-3",
+      "source_files": [
+        {
+          "filename": "gmp_6.3.0+dfsg.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "bd2966e6d277f79328e894a5a9f3ba3fbf2ed2be81def5f48623e30c23fb1572"
+        },
+        {
+          "filename": "gmp_6.3.0+dfsg-3.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "1d890bbe25dd649d2ddba1926483176520e50f22115a00566f250b613b8c20ad"
+        }
+      ]
+    }
+  ]
+}

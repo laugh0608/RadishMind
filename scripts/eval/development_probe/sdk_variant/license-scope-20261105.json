@@ -1,0 +1,65 @@
+{
+  "schema_version": "development_image_delivery_scope.v1",
+  "date": "2026-11-05",
+  "status": "retained_source_sets_mapped_actual_delivery_open",
+  "images": {
+    "sdk": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+    "go": "sha256:b17af760035fc2f338eed92d448a6c67f2d45438844fc6c60678fa5f99e44b57"
+  },
+  "summary": {
+    "sdk_wheels": 119,
+    "debian_binary_packages": 87,
+    "debian_source_groups": 61,
+    "debian_dsc_files": 61,
+    "debian_source_files": 132,
+    "alpine_binary_packages": 17,
+    "alpine_origins": 10,
+    "alpine_recipe_local_inputs": 130,
+    "alpine_external_inputs": 9,
+    "retained_source_items_rehashed": 191,
+    "pip_vendor_files_identical": 280,
+    "pip_vendor_notices_missing_in_image": 21,
+    "go_src_vendor_files_identical": 165,
+    "verified_build_input_files": 22
+  },
+  "scope_rule": "按精确 SDK 与 Go 镜像分别交付原始源码、修改 / 配方 / 生成材料及告知。现有来源全集作候选材料，不把每个取证上游包都当作实际链接组件；pip 使用其修改后的内嵌树。",
+  "parts": {
+    "alpine-01.json": "eea0d0ddb3805e9959f55d14d52cbf60c31b205a1a26e08fa0a854d9e8237435",
+    "alpine-02.json": "bef2d9e5cf709a9d4cb80c5d4ef838e0282aafd5d4c8e7f41f2123b0c92aaa05",
+    "build-input-delivery.json": "a64f823e567d0a41fc8dc042a4631117693dcd9dad27044b0e96a1a883042362",
+    "bundled-comparison.json": "d17c01077abeb9e5f72bbb4328a2d43ed6a456450fb5ae49179fa7d94bc4cc04",
+    "debian-01.json": "1597420646cd221c653f8fa180eff53f0b503efac663021b2138f0e668a169bf",
+    "debian-02.json": "b5e807bcda2bf2d422c93542938ed57b50f775ba1c6e82ef8abc8621c111b8cf",
+    "debian-03.json": "75dc9ec25bf4a4164f44acf4e819207087e1ce066f3584479002feea25dc0b53",
+    "debian-04.json": "a679c9b267b33d36075e593d89efc73a239c68ebd091c91ca16622fe190108b5",
+    "debian-05.json": "9d26f7ee78d48234c6d66c3ecbd178e7891d72a3f4988be39bfc2977b69c0869",
+    "debian-06.json": "d50feed6b72d15d88ad12bb68230f937b37a6881c16e037c80afd63121e5ef65",
+    "debian-07.json": "3a7a3416e026a4e2b346d8214f7dfeadd35f2b17d0c4747c099bcf229987fff1",
+    "debian-08.json": "5c09594aec5f3f9eb9c805bfee73731cbc2a9f08f1263751a1f6d3d095d3fbcf",
+    "pip-notices.json": "48f14ef0f49e7c9024ac50ae3a326b7036e910de2baaad9fa8c76c4fbb376c94",
+    "toolchain-and-variant.json": "fd0ed4369e0c4bdb288a0912a1373d69e1cdd8690cd387728bec345072f6707e",
+    "wheels-01.json": "a9b4710e6e166c299173211c357ba15afba77c831fc6f340d9d5dc2a1090df8a",
+    "wheels-02.json": "ddd3172027ded94fed2e80ae537980d7e2856c2adfc19bd13f274ba44eaf1018",
+    "wheels-03.json": "bd0f103a4cf5b04e93c5cabd3d1e1e64fbb695442c2829f3dbb999c0c6bdd0aa",
+    "wheels-04.json": "60f06af238ea1a4a4968099ed3c91f838440f0686ac107d1f16d42343b73743c"
+  },
+  "reproduction": {
+    "map_scope.py": "c63bc5f7a717b10860ef6b5ccefe138bddcddd24562eba490b76449b39506708",
+    "compare_bundled.py": "9d4bfc2b0169105a92b9a7659d291b0c240c162008d875f91ffd308e53e0a383",
+    "os-scope.json": "d1edb538d7ec15ee4579ba4b3e3d51b42fb88d9655ee8e5951773f91530a82b3",
+    "bundled-comparison.json": "598a26f0c24b04bb6a048b8a6f7aa0a275acee5c8d362a2ae7f2d54bdbfe6395"
+  },
+  "remaining": [
+    "目标 wheel 对应的 Pillow 历史 pillow-depends 归档、multibuild 来源及嵌套组件；cryptography 历史构建容器 digest / 来源集合。",
+    "两个 certifi 版本的历史生成端点响应、生成器版本与 Mozilla 输入提交；regex 精确继承来源。",
+    "CPython 扩展与实际构建配置、Go cmd/vendor 镜像路径、基础镜像 pip 缺失的 21 份许可安装。",
+    "最终伴随源码目录、获取告知和实际接收方可用性；当前未打包、发布或重建。"
+  ],
+  "boundary": {
+    "runtime_changes": false,
+    "image_rebuild": false,
+    "assembled_source_delivery": false,
+    "license_gate_closed": false
+  },
+  "build_input_evidence": "license-build-inputs-20261105.json"
+}

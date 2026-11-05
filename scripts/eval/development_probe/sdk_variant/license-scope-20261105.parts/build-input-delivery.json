@@ -1,0 +1,181 @@
+{
+  "items": [
+    {
+      "component": "cryptography-50.0.2",
+      "source_path": ".github/bin/build_openssl.sh",
+      "git_blob_sha1": "476f054727b8c0f44094541ab938b969f1731412",
+      "sha256": "7b03b6abf7a57c3cd3c329cf81f107d6f1657f82701e9fb657df5cf8cb14a503",
+      "local_input": "tmp/development-build-scope-20261105/metadata/cryptography-build-openssl.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/cryptography-50.0.2/.github/bin/build_openssl.sh"
+    },
+    {
+      "component": "cryptography-50.0.2",
+      "source_path": ".github/actions/fetch-openssl/action.yml",
+      "git_blob_sha1": "d41a460f2b361693279a4ac35a5779e41b9514e9",
+      "sha256": "f86fd645a4b45c5fdfd192396d4468e80c31803fd7091ab084d87e21b66b3239",
+      "local_input": "tmp/development-build-scope-20261105/metadata/cryptography-fetch-openssl.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/cryptography-50.0.2/.github/actions/fetch-openssl/action.yml"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": "certifi/cacert.pem",
+      "git_blob_sha1": "7b1cc2d81b6a3ae341aeb34225a0bb03842c53c6",
+      "sha256": "2ef52ad56b4803e264045c915e55c236cbfa045b84b81efefc218a19eb44bd2b",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-current-e1f673cf40a49b35.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/certifi/cacert.pem"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": "certifi/cacert.pem",
+      "git_blob_sha1": "3c165a1b85e5fd8940bddbf2349c24ae2b4f314b",
+      "sha256": "94edeb66e91774fcae93a05650914e29096259a5c7e871a1f65d461ab5201b47",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-pip-e1f673cf40a49b35.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/certifi/cacert.pem"
+    },
+    {
+      "component": "pillow-13.0.0",
+      "source_path": ".github/workflows/wheels-dependencies.sh",
+      "git_blob_sha1": "625e54c050b0d6e8bf05129ee6c2e342f2a24a47",
+      "sha256": "6408b160bacc969023a6d7e45cb7db8d248948ec59750e2c0ce41a359342877a",
+      "local_input": "tmp/development-build-scope-20261105/metadata/pillow-1e178a24e97fb76e.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/pillow-13.0.0/.github/workflows/wheels-dependencies.sh"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": ".github/workflows/bump.yml",
+      "git_blob_sha1": "31c7f7d71c956338f1d046efbbe15160d7512532",
+      "sha256": "85c36da81dec70414ce530ecf9df25ce020190d8ddf50f625e29dcae5978c84f",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-current-5f52eaedfd785b5c.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/.github/workflows/bump.yml"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": ".github/workflows/bump.yml",
+      "git_blob_sha1": "17efb80afda14662bf7549ac780318b112aeb726",
+      "sha256": "6b2335d2aad08b8529e248dfcd816580fe40ed369ddab267e8c31a97327483f1",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-pip-5f52eaedfd785b5c.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/.github/workflows/bump.yml"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": ".github/workflows/ci.yml",
+      "git_blob_sha1": "35e13a6c7fcfc81882dead4ccf5ad15a7180196b",
+      "sha256": "927f1872cf8caebf64c5bd62b19f2a1453fbb569667a514f64e9bdea5eafb136",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-current-b803fcb7f17ed923.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/.github/workflows/ci.yml"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": ".github/workflows/ci.yml",
+      "git_blob_sha1": "9f52550a639636b014933a38e96f6fbcf35fde9c",
+      "sha256": "e57f190bc805553f264c1f5aaed93c88e70714caf075839eed01164e5c22c401",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-pip-b803fcb7f17ed923.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/.github/workflows/ci.yml"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": ".github/workflows/lock.yml",
+      "git_blob_sha1": "b2953ad9450567968c9a51ab8d2b219d0f2a65e6",
+      "sha256": "a5bb4cff201af3793d7a39dd8d105130bd794d4426e910dd368796b9f21075be",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-current-d53fada4c18b028e.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/.github/workflows/lock.yml"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": ".github/workflows/lock.yml",
+      "git_blob_sha1": "1f47154cde38dff79359526d068fc6eb4fabf780",
+      "sha256": "5837ea1b54ef1cbb8a52c75d52230d37f7c92e918650af8e0e9157939c878aca",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-pip-d53fada4c18b028e.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/.github/workflows/lock.yml"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": ".github/workflows/release.yml",
+      "git_blob_sha1": "a88f02609b0925f9def3472c2b99e6ff7279dca9",
+      "sha256": "f485601b30c95eb53d33b9222d847ee75a299e0775114d29784b92eecaaf4437",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-current-87db21a973eed4fe.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/.github/workflows/release.yml"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": ".github/workflows/release.yml",
+      "git_blob_sha1": "4c940c2007026e8b5deb6ebd6a9606c8b1365283",
+      "sha256": "463b9f41b324b1074288bdd2eabda20d1ad8187245c49923a17f1055a5ab861e",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-pip-87db21a973eed4fe.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/.github/workflows/release.yml"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": "Makefile",
+      "git_blob_sha1": "cb29db08a37766ba01e9b25086438adbc5d276f6",
+      "sha256": "ca810f526668d1cffca90428cb6d13030a66afdcd3c5ccf88e5f91fc7956d04c",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-current-76ed074a9305c040.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/Makefile"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": "Makefile",
+      "git_blob_sha1": "cb29db08a37766ba01e9b25086438adbc5d276f6",
+      "sha256": "ca810f526668d1cffca90428cb6d13030a66afdcd3c5ccf88e5f91fc7956d04c",
+      "local_input": "tmp/development-build-scope-20261105/metadata/certifi-pip-76ed074a9305c040.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/Makefile"
+    },
+    {
+      "component": "pillow-13.0.0",
+      "source_path": ".github/workflows/wheels-test.sh",
+      "git_blob_sha1": "14906039bea4f6cdfde36a2c12b7c075a8bc1094",
+      "sha256": "7383ea89cfd1b215fd575a72ced9bf0daff274a605553d27305d41739125a5bf",
+      "local_input": "tmp/development-build-scope-20261105/metadata/pillow-3986342f6995d344.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/pillow-13.0.0/.github/workflows/wheels-test.sh"
+    },
+    {
+      "component": "pillow-13.0.0",
+      "source_path": ".github/workflows/wheels.yml",
+      "git_blob_sha1": "2a9e26a41a69a0d17acbe09acd3b6c1c002d3fa5",
+      "sha256": "3556b2d4f11e16bf72d6d3af95ef2493b6a5221917416c595ce5a67eebc96060",
+      "local_input": "tmp/development-build-scope-20261105/metadata/pillow-75627befeafda60a.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/pillow-13.0.0/.github/workflows/wheels.yml"
+    },
+    {
+      "component": "pillow-13.0.0",
+      "source_path": "pyproject.toml",
+      "git_blob_sha1": "d978f394324f634099f3eaf68947d250308b45a2",
+      "sha256": "31d2050093c5a24f8239adcac1ebbc2ce72bd893622a0ed247c8ba8b09bb25f3",
+      "local_input": "tmp/development-build-scope-20261105/metadata/pillow-50c86b7ed8ac2cf9.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/pillow-13.0.0/pyproject.toml"
+    },
+    {
+      "component": "pillow-13.0.0",
+      "source_path": ".github/dependencies.json",
+      "git_blob_sha1": "989997da27b88936a9b8a5955fa67bf9441ad45a",
+      "sha256": "63413d6dccf72367fc4c04c2560999e7a40ea14cf226dcc995d238cf3d25533b",
+      "local_input": "tmp/development-build-scope-20261105/details/pillow--github_dependencies-json.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/pillow-13.0.0/.github/dependencies.json"
+    },
+    {
+      "component": "pillow-13.0.0",
+      "source_path": ".gitmodules",
+      "git_blob_sha1": "80d5ab16c7087cea5a21636fe887511782b325c1",
+      "sha256": "14d02156aed8854eaace2fb4abab1c7e347b2e786faac03fb3292fd49fb33444",
+      "local_input": "tmp/development-build-scope-20261105/details/pillow--gitmodules.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/pillow-13.0.0/.gitmodules"
+    },
+    {
+      "component": "certifi-2026.10.23",
+      "source_path": "strip-non-ascii",
+      "git_blob_sha1": "c5f0195a8ffe0a9676e305b98c4c8b5cf75dd676",
+      "sha256": "2b7c7335328c80a6b0ef6819a8e864dd4e9eff36e525db5e34999a02123c3c16",
+      "local_input": "tmp/development-build-scope-20261105/details/certifi-current-strip-non-ascii.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2026.10.23/strip-non-ascii"
+    },
+    {
+      "component": "certifi-2024.8.30",
+      "source_path": "strip-non-ascii",
+      "git_blob_sha1": "c5f0195a8ffe0a9676e305b98c4c8b5cf75dd676",
+      "sha256": "2b7c7335328c80a6b0ef6819a8e864dd4e9eff36e525db5e34999a02123c3c16",
+      "local_input": "tmp/development-build-scope-20261105/details/certifi-pip-strip-non-ascii.decoded",
+      "candidate_destination": "sources/<SDK-image-sha256>/build-inputs/certifi-2024.8.30/strip-non-ascii"
+    }
+  ],
+  "boundary": "这些是精确发行配方 / 证书输出，保存供复核；它们不替代缺失的历史构建运行、动态端点输入或可复现构建证明。"
+}

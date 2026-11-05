@@ -1,0 +1,56 @@
+{
+  "schema_version": "development_build_input_evidence.v1",
+  "date": "2026-11-05",
+  "status": "authorized_metadata_windows_completed_historical_inputs_open",
+  "windows": [
+    {
+      "plan": "license-build-input-plan-20261105.json",
+      "plan_sha256": "06c2f14acdac1be9aa509c06ad29f96cb5743488138a95a255a45231da21172f",
+      "explicitly_authorized": true,
+      "requests": 21,
+      "body_bytes": 1390422,
+      "results_sha256": "682b146d98545e0b9b0308c0ad123f10ee2fafae2712fa11b6e9be6146a50f72",
+      "window_closed": true
+    },
+    {
+      "plan": "license-build-detail-plan-20261105.json",
+      "plan_sha256": "8f9f6e1801b920981e5370603ec46950811548a860d24cfe600128fe2a21f261",
+      "explicitly_authorized": true,
+      "requests": 4,
+      "body_bytes": 2804,
+      "results_sha256": "2a22813533e762a64272c0693b0f9c677a85ae453b3c13046ada16559e4a26b9",
+      "window_closed": true
+    }
+  ],
+  "summary": {
+    "requests": 25,
+    "body_bytes": 1393226,
+    "verified_git_blobs": 22,
+    "certifi_release_outputs_matched": 2,
+    "pillow_source_patch_matches_sbom": true
+  },
+  "parts": {
+    "certifi-generation.json": "21fc772cba667d6765e1e7870d4148c54aeefd439a412f92eb278811e5236e0c",
+    "cryptography-build.json": "1f498df279eaab581c17e1f91a3b83cddd633008b9ef05bc481c340c154a3740",
+    "pillow-build.json": "d192cbe980499faf8cf24d098b208efa04b2fa2511c8b8b2fcff1649c6d8aa04",
+    "requests-01.json": "77d8d0c0d5885366ab1681fa318a1aa8432a4ce23812cc19195b586d9794e245",
+    "requests-02.json": "a8c3875206cac72375a4d6818ddd3e90776afba8f1da03a8b4866051fdcd1873",
+    "requests-03.json": "c3bae3603d36be9c93dbc60c9a336cd89c706a51e032d4ec7776e0f6ba720f58",
+    "requests-04.json": "b8cd57e1d7d718ad8d41735eee71ec92a1f3e21cd6751e59a98c3dd696fc589a",
+    "requests-05.json": "585bd4bb07777cdc81cd1327c8f77005a0dd93e068a5350c21682f9406faf3fd"
+  },
+  "resolved": [
+    "两个 certifi 发行输出、生成命令和过滤器已对应到交付版本。",
+    "Pillow zlib-ng 版本与兼容构建选项、OpenJPEG 补丁、libavif 本地组件选择及禁用 imagequant 的发行配置已核对。",
+    "cryptography 两份精确构建脚本及未固定的外部构建输入已识别。"
+  ],
+  "boundary": {
+    "downloaded_code_executed": false,
+    "archives_downloaded": false,
+    "mutable_generation_endpoint_fetched": false,
+    "dependency_changes": false,
+    "image_operations": false,
+    "historical_build_provenance_complete": false,
+    "license_gate_closed": false
+  }
+}

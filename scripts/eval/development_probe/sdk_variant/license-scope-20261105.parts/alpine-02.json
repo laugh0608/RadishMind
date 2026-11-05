@@ -1,0 +1,92 @@
+{
+  "items": [
+    {
+      "origin": "alpine-base",
+      "version": "3.23.5-r0",
+      "aports_commit": "1fa9ca1a79c5fd52c46a70b2199059c41ead572a",
+      "recipe_sha256": "0ddd6f619824d5299f9b52c879e4942a96f93d8f6c646d75aaa84824e9ba1aee",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/875e148d54784f2c085794bd.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/alpine-base/3.23.5-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 0,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-01.json",
+      "external_source_files": []
+    },
+    {
+      "origin": "alpine-baselayout",
+      "version": "3.7.2-r0",
+      "aports_commit": "15b3b78187b3808104f98f765e9632e0b09281a7",
+      "recipe_sha256": "3e87be1806f9513edfd22a555bf16cba43c5e66b9b1b91319925bea4d5c385c3",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/990954c1a3c11dc3105a4931.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/alpine-baselayout/3.7.2-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 12,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-01.json",
+      "external_source_files": [
+        {
+          "filename": "protocols-6.4",
+          "sha256": "4959498abbadaa1e50894a266f8d0d94500101cfe5b5f09dcad82e9d5bdfab46",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        },
+        {
+          "filename": "services-6.4",
+          "sha256": "f6183055fd949f9c53d49ee620f85d0150123ea691d25ed1bba0c641b4ee2f48",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    },
+    {
+      "origin": "alpine-keys",
+      "version": "2.6-r0",
+      "aports_commit": "b9f23becced4d7b3ccc0fa0f28530243ccd314a0",
+      "recipe_sha256": "cb352e13b9e481b424763bd36d3afdb81ac308e508abed15eb7175530050bd3f",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/a33185086c0b2c06b646345a.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/alpine-keys/2.6-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 18,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-01.json",
+      "external_source_files": []
+    },
+    {
+      "origin": "apk-tools",
+      "version": "3.0.6-r0",
+      "aports_commit": "3812c9da974bef8b28f995490ca8233f1472ccc4",
+      "recipe_sha256": "9f76c34490ad5a32f50f9a875839322b69c09eecfde37d55c2e4b12c136ef2db",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/0a797514d3103e37a41e9f5a.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/apk-tools/3.0.6-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 2,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-01.json",
+      "external_source_files": [
+        {
+          "filename": "apk-tools-v3.0.6.tar.gz",
+          "sha256": "e9b62742ef7e9e8c1c051efdaed3a2f49d06d8ce20c707697aa23d29bbc7c86a",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    },
+    {
+      "origin": "busybox",
+      "version": "1.37.0-r30",
+      "aports_commit": "1e823a60eb85606954b3a5af5f8e5bbd1ea680cf",
+      "recipe_sha256": "fb2323ac3121c6cd1122c42cabbd19ec28a29a1cf434a4c0759792c63a1c63a8",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/a488b53dfdb06e24f8be7814.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/busybox/1.37.0-r30",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 74,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-01.json",
+      "external_source_files": [
+        {
+          "filename": "busybox-1.37.0.tar.bz2",
+          "sha256": "3311dff32e746499f4df0d5df04d7eb396382d7e108bb9250e7b519b837043a4",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    }
+  ]
+}

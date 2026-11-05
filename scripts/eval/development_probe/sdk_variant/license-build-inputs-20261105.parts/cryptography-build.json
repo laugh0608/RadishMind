@@ -1,0 +1,14 @@
+{
+  "version": "50.0.2",
+  "verified_git_blobs": [
+    "476f054727b8c0f44094541ab938b969f1731412",
+    "d41a460f2b361693279a4ac35a5779e41b9514e9"
+  ],
+  "observations": [
+    "build_openssl.sh 由 TYPE / VERSION / CONFIG_FLAGS / OSSL_PATH 驱动，含 SHLIB_VERSION=100 修改；取得脚本不证明目标 Linux wheel 使用了该修改。",
+    "fetch-openssl action 从 pyca/infra 的 main 成功工作流取得命名产物；本记录未追取外部仓库或产物。",
+    "原 wheel-builder 的 manylinux_2_34 aarch64 路径仍使用容器 tag，未取得该次构建的容器 digest / 来源集合。"
+  ],
+  "resolved": "补齐两份精确发行脚本及其修改 / 外部输入行为。",
+  "unresolved": "独立构建来源仍需目标 Linux wheel 对应运行记录、容器 digest、配置和源修改。PyPI 发布声明不自动变成构建证明。"
+}
