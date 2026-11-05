@@ -1,0 +1,54 @@
+{
+  "schema_version": "development_static_source_result.v1",
+  "status": "authorized_four_crate_window_completed",
+  "plan": "license-static-source-plan-20261105.json",
+  "plan_sha256": "5e04c15340fc73ecc8527d63307f4d574cd97c425effb502afec1b4112f085a9",
+  "authorization": "项目所有者明确批准四份归档下载；不安装、构建或运行。",
+  "request_count": 4,
+  "total_bytes": 67908,
+  "all_hashes_match_lock_and_sbom": true,
+  "archives": [
+    {
+      "id": "colored",
+      "version": "3.1.1",
+      "sha256": "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34",
+      "bytes": 36216,
+      "members": 32,
+      "expanded_bytes": 147245
+    },
+    {
+      "id": "option-ext",
+      "version": "0.2.0",
+      "sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+      "bytes": 7345,
+      "members": 8,
+      "expanded_bytes": 22611
+    },
+    {
+      "id": "dirs",
+      "version": "6.0.0",
+      "sha256": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e",
+      "bytes": 14190,
+      "members": 14,
+      "expanded_bytes": 56329
+    },
+    {
+      "id": "dirs-sys",
+      "version": "0.5.0",
+      "sha256": "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab",
+      "bytes": 10157,
+      "members": 11,
+      "expanded_bytes": 31040
+    }
+  ],
+  "inspection_script_sha256": "9ed67a26ef8ffaf541642ef1ce5af7d3a3b2045b4bfcb22b6550ca5055d5926d",
+  "raw_results_sha256": "a309321c1cd818a0fa4b7c472f0a29fb7b873fd3ea92072bf087b7e377928e21",
+  "boundary": {
+    "window_closed": true,
+    "dependency_installation": false,
+    "code_execution": false,
+    "container_operations": false,
+    "image_rebuild": false,
+    "license_gate_closed": false
+  }
+}

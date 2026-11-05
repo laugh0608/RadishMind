@@ -271,6 +271,54 @@
       ],
       "status": "declared_historical_notice_prepared_derivation_review_open",
       "remaining": "Declared final Python 1.6 notice acquired. Review derivation from CPython 2.6/3.1 and full notice retention; image installation not performed."
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.8.0",
+      "wheel": "hf_xet-1.8.0-cp38-abi3-manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "8800e3444770f2c630b361bc6d5c6ebb770b7830646cf632fbb79d0e5bbc9e7f",
+      "source_url": "https://files.pythonhosted.org/packages/2f/18/d91c20f815df6cc496a5d0ad8db6d274dad5c0cfcd59babfa2440a9aba44/hf_xet-1.8.0.tar.gz",
+      "source_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "supplements": [
+        {
+          "file": "notice-supplements/hf-xet-1.8.0-colored-3.1.1-MPL-2.0.txt",
+          "bytes": 16725,
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+          "source": {
+            "archive_url": "https://static.crates.io/crates/colored/colored-3.1.1.crate",
+            "archive_sha256": "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34",
+            "member": "colored-3.1.1/LICENSE",
+            "member_sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/hf-xet-1.8.0-colored-3.1.1-MPL-2.0.txt",
+          "installed_in_image": false,
+          "normalization": {
+            "operation": "remove_trailing_space_on_line_38",
+            "original_sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+            "original_bytes": 16726
+          }
+        },
+        {
+          "file": "notice-supplements/hf-xet-1.8.0-option-ext-0.2.0-MPL-2.0.txt",
+          "bytes": 16726,
+          "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+          "source": {
+            "archive_url": "https://static.crates.io/crates/option-ext/option-ext-0.2.0.crate",
+            "archive_sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+            "member": "option-ext-0.2.0/LICENSE.txt",
+            "member_sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/hf-xet-1.8.0-option-ext-0.2.0-MPL-2.0.txt",
+          "installed_in_image": false,
+          "normalization": {
+            "operation": "remove_trailing_space_on_line_38",
+            "original_sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172",
+            "original_bytes": 16727
+          }
+        }
+      ],
+      "status": "repository_notice_supplement_prepared_image_installation_pending",
+      "remaining": "colored 二进制路径及 option-ext Linux 来源调用已核对；完整静态链接 / 构建修改对应、覆盖源码实际交付与镜像告知安装仍待验收。"
     }
   ],
   "open_items": [
@@ -291,5 +339,7 @@
   "source_followup_result": "license-source-result-20261105.json",
   "historical_license_page_result": "license-page-result-20261105.json",
   "native_component_evidence": "license-native-20261105.json",
-  "external_library_image_evidence": "license-native-image-result-20261105.json"
+  "external_library_image_evidence": "license-native-image-result-20261105.json",
+  "static_component_evidence": "license-static-20261105.json",
+  "static_source_followup_result": "license-static-source-result-20261105.json"
 }

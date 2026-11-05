@@ -1,0 +1,70 @@
+{
+  "items": [
+    {
+      "id": "pillow-fribidi-shim",
+      "status": "shim_source_hash_matches_sbom_runtime_load_observed",
+      "evidence": [
+        "src/thirdparty/fribidi-shim/fribidi.c 的 SHA-256 与 wheel SBOM 完全一致；该文件声明 MIT-CMU，并通过 dlopen / dlsym 加载 FriBiDi。",
+        "PIL/_imagingft 定义 28 个 raqm 符号与 10 个 fribidi 符号；对象中含 libfribidi.so 与 libfribidi.so.0 字符串。",
+        "pythoncapi_compat.h 摘要也与 wheel SBOM 一致，头部记录精确提交 b4cf22061a629428ceb19927f903732b8c20ef87。"
+      ],
+      "resolution": "将垫片与外部 FriBiDi 实现分列；函数名前缀不直接认定携带 LGPL 实现。保留运行时 dlopen 文件归属待核对。"
+    },
+    {
+      "id": "pillow-static-dav1d",
+      "status": "defined_codec_symbols_observed",
+      "evidence": [
+        "libavif-ba04b566.so.16.4.2 定义 20 个 dav1d 符号，既有 DT_NEEDED 没有独立 dav1d 共享库。",
+        "组合 LICENSE 已有 DAV1D 段。"
+      ],
+      "resolution": "将 dav1d 作为静态并入的强证据候选；精确版本、构建来源与实际选项仍待供应方配方 / 构建依据，不由 libavif 版本推导。"
+    },
+    {
+      "id": "pillow-source-conflicts",
+      "status": "declaration_conflicts_preserved",
+      "evidence": [
+        "OpenJPEG ancestor name=libtiff、purl=openjpeg；未擅自改写。",
+        "Pillow SBOM 将 zlib 标为 2.3.3；_imaging 的 zlibVersion / inflate / deflate 属未定义符号。实际外部 libz.so.1 已归属 Debian zlib 1:1.3.dfsg+really1.3.1-1。",
+        "没有命中 liq_ 符号；have_libimagequant 字符串是条件能力字段，源码以 HAVE_LIBIMAGEQUANT 控制实现。"
+      ],
+      "resolution": "系统 zlib 与 SBOM 字段分开；imagequant 继续标为可选声明，未据字符串或未命中宣布存在 / 不存在。"
+    },
+    {
+      "id": "hf-xet-mpl",
+      "status": "exact_crates_verified_target_source_path_confirmed",
+      "evidence": [
+        "colored 3.1.1 的两个源码路径出现在冻结 hf-xet ELF；hf-xet 的 xet_runtime/Cargo.toml 对 colored 与 dirs 无目标条件。",
+        "dirs 6.0.0 → dirs-sys 0.5.0 → option-ext 0.2.0 的依赖均无目标条件；dirs-sys 的 xdg_user_dirs.rs 使用 option_ext::OptionExt，Linux 目标包含该模块。",
+        "四份 .crate 的摘要同时匹配 Cargo.lock 与 SBOM，colored / option-ext 的 MPL 正文已取得。"
+      ],
+      "resolution": "两项纳入候选覆盖源码和补充告知；option-ext 不作仅其它目标排除，仍保留链接优化和完整构建来源待证。"
+    },
+    {
+      "id": "rust-license-alternatives",
+      "status": "expressions_preserved_not_flattened",
+      "evidence": [
+        "cryptography self_cell 为 Apache-2.0 OR GPL-2.0-only。",
+        "jiter / pydantic-core 的 r-efi 为 MIT OR Apache-2.0 OR LGPL-2.1-or-later。",
+        "七份 Rust SBOM 均 all_targets=true。"
+      ],
+      "resolution": "保留 OR 原表达式，不改成 AND 或据 GPL 子串扩大源码范围；实际目标 / 组件选择及相应告知继续待核对。"
+    },
+    {
+      "id": "regex-lineage",
+      "status": "declaration_verified_exact_ancestry_open",
+      "evidence": [
+        "精确 sdist 的 _regex.c 头部明确 Secret Labs AB 1997–2001 与 CNRI Python 1.6。",
+        "同一历史块包含 2003 年实现与 2009 年重写记录；该文字不提供对应 CPython 提交或逐文件继承证明。"
+      ],
+      "resolution": "保留最终 1.6 正文及 wheel Apache 告知；不因头部日期推定完整继承链，也不删除 1.6.1 差异记录。"
+    },
+    {
+      "id": "frozen-scope",
+      "status": "orjson_not_in_current_wheel_set",
+      "evidence": [
+        "冻结锁和 119 个实际 wheel 清单均未列 orjson。"
+      ],
+      "resolution": "当前覆盖源码清单使用 certifi / tqdm / hf-xet 下两项 MPL 组件；orjson 只属于旧基线材料，不登记为当前交付。"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": "development_static_source_plan.v1",
+  "status": "prepared_not_authorized_not_downloaded",
+  "basis": {
+    "wheel": "hf-xet 1.8.0",
+    "sbom_sha256": "9649d76472bdfac3dfc50f5fc9aa02019b2d52b081dc0529a6e413d7af642d15",
+    "cargo_lock_sha256": "9f185fbac4a0d16444956b8fde15eb99470a8c3716ec58b38a7c1da1171ea3ad",
+    "checksum_agreement": true,
+    "url_basis": "由 crates.io registry 包名及版本组成的官方静态归档候选；尚未请求确认存在，不换源。"
+  },
+  "items": [
+    {
+      "id": "colored",
+      "version": "3.1.1",
+      "url": "https://static.crates.io/crates/colored/colored-3.1.1.crate",
+      "expected_sha256": "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34",
+      "max_bytes": 2097152,
+      "max_redirects": 0,
+      "allowed_redirect_hosts": [],
+      "purpose": "取得覆盖源码与完整告知"
+    },
+    {
+      "id": "option-ext",
+      "version": "0.2.0",
+      "url": "https://static.crates.io/crates/option-ext/option-ext-0.2.0.crate",
+      "expected_sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+      "max_bytes": 2097152,
+      "max_redirects": 0,
+      "allowed_redirect_hosts": [],
+      "purpose": "取得覆盖源码与完整告知"
+    },
+    {
+      "id": "dirs",
+      "version": "6.0.0",
+      "url": "https://static.crates.io/crates/dirs/dirs-6.0.0.crate",
+      "expected_sha256": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e",
+      "max_bytes": 2097152,
+      "max_redirects": 0,
+      "allowed_redirect_hosts": [],
+      "purpose": "核对 option-ext 的目标条件和依赖路径"
+    },
+    {
+      "id": "dirs-sys",
+      "version": "0.5.0",
+      "url": "https://static.crates.io/crates/dirs-sys/dirs-sys-0.5.0.crate",
+      "expected_sha256": "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab",
+      "max_bytes": 2097152,
+      "max_redirects": 0,
+      "allowed_redirect_hosts": [],
+      "purpose": "核对 option-ext 的目标条件和依赖路径"
+    }
+  ],
+  "limits": {
+    "http_requests_including_redirects": 4,
+    "body_bytes_total": 8388608,
+    "seconds_per_request": 30,
+    "connect_seconds": 10,
+    "concurrency": 1,
+    "retries": 0
+  },
+  "output_directory": "tmp/development-static-20261105/crates",
+  "executor": "tmp/development-static-20261105/fetch_crates.py",
+  "executor_sha256": "e85910f6e2174664c419fc8b904a1ef563a6661a0ad279e23323ec1ba96f2670",
+  "command": "python3 tmp/development-static-20261105/fetch_crates.py --execute",
+  "boundary": [
+    "只获取四份归档，不递归解析或下载依赖，不安装、不构建、不运行源码。",
+    "摘要不符、失败或重定向保留为缺口，不重试或换源；窗口结束不延续。",
+    "只在内存中读取限额成员，不按归档成员路径解包；产物保留在本仓库 tmp 下供审计。"
+  ]
+}

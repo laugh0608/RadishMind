@@ -169,8 +169,8 @@ class SDKNoticeDeliveryTests(unittest.TestCase):
             directory = Path(temp) / "delivery"
             notices.prepare(ROOT / "scripts/eval/development_probe/sdk_variant", directory)
             manifest = json.loads((directory / "manifest.json").read_text())
-            self.assertEqual(len(manifest["packages"]), 5)
-            self.assertEqual(sum(len(p["files"]) for p in manifest["packages"]), 12)
+            self.assertEqual(len(manifest["packages"]), 6)
+            self.assertEqual(sum(len(p["files"]) for p in manifest["packages"]), 14)
 
 
 if __name__ == "__main__":

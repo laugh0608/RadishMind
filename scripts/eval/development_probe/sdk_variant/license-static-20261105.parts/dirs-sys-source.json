@@ -1,0 +1,41 @@
+{
+  "id": "dirs-sys",
+  "version": "0.5.0",
+  "url": "https://static.crates.io/crates/dirs-sys/dirs-sys-0.5.0.crate",
+  "sha256": "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab",
+  "bytes": 10157,
+  "members": 11,
+  "expanded_bytes": 31040,
+  "selected_members": [
+    {
+      "member": "dirs-sys-0.5.0/Cargo.toml",
+      "bytes": 1300,
+      "sha256": "7085f746e45a405e7861e7ab3335cb92ecdf836863bd1baa350f961a5f06b04c"
+    },
+    {
+      "member": "dirs-sys-0.5.0/Cargo.toml.orig",
+      "bytes": 740,
+      "sha256": "4b51207fe73535bf0727b972a75dc84767e9dc4bb49002df398821335a1c7817"
+    },
+    {
+      "member": "dirs-sys-0.5.0/LICENSE-APACHE",
+      "bytes": 9694,
+      "sha256": "d3174ad63e721d4c9dccb8ad4320848992d314369bc46319720b5802c9153fe9"
+    },
+    {
+      "member": "dirs-sys-0.5.0/LICENSE-MIT",
+      "bytes": 1069,
+      "sha256": "6a2e0ade09a7d5f816f11566fee2b151b32235a7fad52b41d49cce96f833c1a9"
+    },
+    {
+      "member": "dirs-sys-0.5.0/src/lib.rs",
+      "bytes": 6388,
+      "sha256": "b519e22cfb5ccc4b307aed57f67a66641660f2b29496f00db761b7c49307e2dd"
+    },
+    {
+      "member": "dirs-sys-0.5.0/src/xdg_user_dirs.rs",
+      "bytes": 9155,
+      "sha256": "4b02f72e6b1868fbe76ce910edb53130a4712e5ff9e61801d8719aaa81f7a617"
+    }
+  ]
+}

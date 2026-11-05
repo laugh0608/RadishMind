@@ -108,7 +108,7 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 | 提供方原生传输 | `NativeBackend` 仅有测试实现；当前资格检查不证明工具协议兼容 | 实现明确提供方档案的真实 HTTP 传输，并以固定上游验证完整工具往返及失败 / 取消；真实厂商接入资格另验 |
 | 阶段 1 产品范围 | 已有完整目标，尚缺公共操作合同、生命周期接线及视觉依据 | 确认单 Agent 固定 Go 交付边界、正式权限 / API、启动和重启行为以及 A 级设计依据 |
 
-许可证核验必须区分包元数据、精确发行物正文和最终镜像分发义务。`agent-client-protocol==0.12.1` 的 wheel 含 Apache-2.0 正文；SDK wheel 没有许可证文件，上游 `v1.59.0` 为 MIT，不能据上游标签假称镜像内已包含告知。`certifi`、`orjson`、`tqdm` 含 MPL 条款，另有复合或笼统许可证声明需要逐项确认。此轮不是全部 wheel、原生捆绑库、基础镜像或 Docker CLI 的许可闭合。代理包[官方元数据](https://pypi.org/project/lmnr-claude-code-proxy/0.2.0/)和 wheel 正文指向[服务条款](https://laminar.sh/policies/terms)；专有声明本身不等于禁止采用；未决点是内部使用及拟交付方式的授权依据，现有证据不足以批准随本项目镜像再分发。不得以 `--no-deps` 删除必需包或静默降版制造合规结论。
+许可证核验必须区分包元数据、精确发行物正文和最终镜像分发义务。`agent-client-protocol==0.12.1` 的 wheel 含 Apache-2.0 正文；SDK wheel 没有许可证文件，上游 `v1.59.0` 为 MIT，不能据上游标签假称镜像内已包含告知。当前冻结候选的 `certifi`、`tqdm` 及 hf-xet 下的 `colored` / `option-ext` 含 MPL 声明（当前 119 个 wheel 不含 `orjson`），另有复合或笼统许可证声明需要逐项确认。此轮不是全部 wheel、原生捆绑库、基础镜像或 Docker CLI 的许可闭合。代理包[官方元数据](https://pypi.org/project/lmnr-claude-code-proxy/0.2.0/)和 wheel 正文指向[服务条款](https://laminar.sh/policies/terms)；专有声明本身不等于禁止采用；未决点是内部使用及拟交付方式的授权依据，现有证据不足以批准随本项目镜像再分发。不得以 `--no-deps` 删除必需包或静默降版制造合规结论。
 
 ### 已确认的许可证处理路线与候选复验
 
@@ -126,9 +126,9 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 
 后续已按明确授权完成[有界来源元数据与告知下载](../../../devlogs/2026-W44.parts/development-sdk-variant-20261031.md#已授权的来源元数据与告知下载)：61 份 Debian `.dsc`、10 份 Alpine 配方、48 份 PyPI 精确发布元数据及上游告知已留存，29 个目标 wheel 摘要全部匹配。Go 源码另外列出 12 个 `cmd/vendor` 模块；CPython 源码发布清单与镜像环境摘要一致，但均不替代实际镜像映射。随后已按独立授权完成[来源归档取证](../../../../scripts/eval/development_probe/sdk_variant/license-archives-20261031.json)：61 个 Debian 源包通过既有镜像密钥环的仓库签名链绑定，9 项 Alpine 外部来源体积与 SHA-512 均核对，191 项候选字节已取得并验证；历史快照只证明对应版本来源，不作为当前安装索引。下载 / 验签窗口已关闭，10 个所属容器清零。
 
-原生组件与最终交付仍待闭合：cryptography wheel 的静态版本文字为 OpenSSL 4.0.3，不能用本轮 3.5.7 归档替代；fastmcp-slim 的 wheel 与 sdist 均缺许可文件；regex 历史 CNRI 条款仍待核对。Lupa 六个解释器版本已与源码头文件交叉核对，certifi / tqdm 的 6 / 31 个源文件逐字节相同，但最终告知补入、覆盖源码提供方式、证书生成材料和实际镜像校验仍待完成。九份 Rust 锁是来源依赖集合，不等于已链接组件清单。下一步围绕这些具体缺口明确原生构建与实际交付范围；不自动扩张源码下载、重锁、重建或允许分发。
+10 月 31 日核对时，原生组件与最终交付尚有以下缺口：cryptography wheel 的静态版本文字为 OpenSSL 4.0.3，不能用本轮 3.5.7 归档替代；fastmcp-slim 的 wheel 与 sdist 均缺许可文件；regex 历史 CNRI 条款仍待核对。Lupa 六个解释器版本已与源码头文件交叉核对，certifi / tqdm 的 6 / 31 个源文件逐字节相同，但最终告知补入、覆盖源码提供方式、证书生成材料和实际镜像校验仍待完成。九份 Rust 锁是来源依赖集合，不等于已链接组件清单。下一步围绕这些具体缺口明确原生构建与实际交付范围；不自动扩张源码下载、重锁、重建或允许分发。
 
-2026-11-05 已形成[五包 12 份补充告知与精确映射](../../../../scripts/eval/development_probe/sdk_variant/license-delivery-20261105.json)。先前八项[元数据取证](../../../../scripts/eval/development_probe/sdk_variant/license-metadata-20261105.json)取得 wheel SBOM 与发行工作流；随后获准的[四项来源补证](../../../../scripts/eval/development_probe/sdk_variant/license-source-result-20261105.json)已核实 OpenSSL 4.0.3 归档摘要与 SBOM 一致，根许可正文与保留副本相同。独立构建来源与 Rust 实际链接组件仍待核对。Python 1.6 归档候选为 404；随后获准读取发行页实际链接，已取得官方最终 1.6 八条正文并补入 regex 告知。与 CPython 2.6 / 3.1 所带 1.6.1 的版本、年份、handle 和第 7 条差异见[核对记录](../../../../scripts/eval/development_probe/sdk_variant/license-page-result-20261105.json)；声明所指正文缺失已补齐，继承来源和完整告知范围仍待核对，不以 alpha / beta / 1.6.1 替换最终 1.6。
+2026-11-05 首批形成[五包 12 份补充告知与精确映射](../../../../scripts/eval/development_probe/sdk_variant/license-delivery-20261105.json)。先前八项[元数据取证](../../../../scripts/eval/development_probe/sdk_variant/license-metadata-20261105.json)取得 wheel SBOM 与发行工作流；随后获准的[四项来源补证](../../../../scripts/eval/development_probe/sdk_variant/license-source-result-20261105.json)已核实 OpenSSL 4.0.3 归档摘要与 SBOM 一致，根许可正文与保留副本相同。独立构建来源与 Rust 实际链接组件仍待核对。Python 1.6 归档候选为 404；随后获准读取发行页实际链接，已取得官方最终 1.6 八条正文并补入 regex 告知。与 CPython 2.6 / 3.1 所带 1.6.1 的版本、年份、handle 和第 7 条差异见[核对记录](../../../../scripts/eval/development_probe/sdk_variant/license-page-result-20261105.json)；声明所指正文缺失已补齐，继承来源和完整告知范围仍待核对，不以 alpha / beta / 1.6.1 替换最终 1.6。
 
 补充告知的离线准备与镜像构建配方已接通，按冻结 wheel 校验来源清单，并在构建时检查实际 pip 安装报告；缺失、摘要 / 版本不符和路径问题均拒绝。离线测试及历史安装报告匹配通过，镜像尚未重建，因此不能登记实际告知安装通过。完整原生组件、覆盖源码交付和整体采用继续未闭合，详见 [W45 周志](../../../devlogs/2026-W45.md)。
 
@@ -148,3 +148,13 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 固定上游可以证明真实传输实现的技术行为，不能证明某个厂商 / 模型支持工具、真实计量或开发质量。真实模型继续暂停；恢复后按精确提供方 / 模型另验并记录资格，不先开启该模型的正式执行能力。公共 Web 入口、生命周期与 UI 的纵向交付属于阶段 1；阶段 0 先确认它们的合同与范围，不提前编码。
 
 本轮实现与限制见[尝试控制合同](../../../contracts/development-attempt-control-v1.md#原生-http-档案)。三次模型 HTTP 请求完成两轮工具提议 / 观察值往返，覆盖当前配置 / 凭据接线与资格撤销；401 / 429 / 5xx、超时 / 取消、缺失用量、非法 JSON、超限和禁止重定向已定向验证。工具执行仍用合成观察值，本轮不重复声称真实 SDK / 代码容器联合验收。真实提供方的工具资格、输入 token 上界与费用继续待验。
+
+### 静态组件与覆盖源码交付方式
+
+[11 月 5 日静态核对](../../../../scripts/eval/development_probe/sdk_variant/license-static-20261105.json)将 Pillow 的 FriBiDi 运行时加载垫片与外部实现分开；垫片及 pythoncapi 头文件摘要匹配 SBOM，libavif 内见 dav1d 已定义符号。OpenJPEG 的 ancestor 字段冲突和 zlib 声明 / 实际系统库差异继续保留，不从符号名推定精确构建版本。
+
+hf-xet 的 `colored 3.1.1` 有二进制源码路径依据；`dirs → dirs-sys → option-ext 0.2.0` 的无条件依赖及 Linux 源码调用已核对。四份获准归档摘要同时匹配锁与 SBOM，两项 MPL 正文接入既有补充告知流程，当前共六包 14 份。七份 Rust SBOM 的全部目标声明与许可 `OR` 表达式保持原义，未作为完整已链接清单。
+
+覆盖源码采用伴随精确镜像交付的候选布局：`sources/<SDK-image-sha256>/` 保存原始归档、Debian 修订及 `.dsc`，索引记录镜像 / wheel 身份、组件版本、文件摘要和相对位置；镜像内第三方告知说明对应获取位置。SDK 与 Go 代码镜像分别登记。接收方须随镜像取得对应源码与告知；临时 `tmp/` 路径和上游 URL 只作取证来源，不能冒充交付通道。此轮不选择仅作书面承诺的路线，也未设置公共下载服务。
+
+[首批映射](../../../../scripts/eval/development_probe/sdk_variant/license-static-20261105.parts/covered-source-map.json)覆盖九组、15 个已有文件，全部重新核对字节摘要，其中三组系统源包的归档集合同时匹配 `.dsc`。这只是本地材料与候选路径，不是已经组装或可交付的完整源码包。正式交付前须补齐其余内嵌 / 基础镜像 / 工具组件，以及实际构建修改、生成输入和安装材料，再单独安排打包、实际获取与镜像内告知验收。certifi 生成输入、regex 继承来源、静态精确构建依据等继续未闭合；不改变正式采用或阶段 0 结论。

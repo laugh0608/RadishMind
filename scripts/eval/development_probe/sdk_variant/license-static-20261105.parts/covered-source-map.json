@@ -1,0 +1,252 @@
+{
+  "status": "local_inputs_verified_delivery_not_assembled",
+  "candidate_root": "sources/<SDK-image-sha256>/",
+  "groups": [
+    {
+      "component": "certifi",
+      "version": "2026.10.23",
+      "wheel_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "evidence": "license-archives-20261031.parts/covered-source.json",
+      "files": [
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/c6d0a3ca11501bbe598580f7.1.0.body",
+          "filename": "certifi-2026.10.23.tar.gz",
+          "bytes": 136225,
+          "sha256": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd",
+          "url": "https://files.pythonhosted.org/packages/fd/11/b524cbd9bbdaca58608e4cf4053fd463417549e1959fa8d3aa18319f9555/certifi-2026.10.23.tar.gz",
+          "candidate_relative_destination": "python/certifi-2026.10.23/certifi-2026.10.23.tar.gz"
+        }
+      ],
+      "open_items": [
+        "实际伴随源码交付和获取告知尚未验收",
+        "精确 Mozilla certdata.txt、生成脚本与输入版本仍未闭合"
+      ]
+    },
+    {
+      "component": "tqdm",
+      "version": "4.70.1",
+      "wheel_sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "evidence": "license-archives-20261031.parts/covered-source.json",
+      "files": [
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/2662ee64c935e934c0e0d4a9.1.0.body",
+          "filename": "tqdm-4.70.1.tar.gz",
+          "bytes": 171846,
+          "sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+          "url": "https://files.pythonhosted.org/packages/0d/ea/b2a5bd54b28a324dae8211928b2d730b6547500342c7e6c6dea08bd0a485/tqdm-4.70.1.tar.gz",
+          "candidate_relative_destination": "python/tqdm-4.70.1/tqdm-4.70.1.tar.gz"
+        }
+      ],
+      "open_items": [
+        "实际伴随源码交付和获取告知尚未验收"
+      ]
+    },
+    {
+      "component": "glibc",
+      "version": "2.41-12+deb13u4",
+      "evidence": "license-native-image-result-20261105.json",
+      "files": [
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/e24dd36d7c6ebb6d09dafd89.1.0.body",
+          "filename": "glibc_2.41.orig.tar.xz",
+          "bytes": 20323540,
+          "sha256": "f24aa441021121a79266f0d75242706cab8843a47901fefe74527491807f1998",
+          "url": "https://snapshot.debian.org/file/ecf54de179ba3fb468949af843c8270979e53cc8",
+          "candidate_relative_destination": "debian/glibc-2.41-12+deb13u4/glibc_2.41.orig.tar.xz"
+        },
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/fbdeb369890057cdc56b8668.1.0.body",
+          "filename": "glibc_2.41-12+deb13u4.debian.tar.xz",
+          "bytes": 499524,
+          "sha256": "dda4153511bfd543502d18e5bc9323110996fe9c531f14ae3fad6eb17f027c7d",
+          "url": "https://snapshot.debian.org/file/57751ec678751a3cf5bf3badb54f6ab6b9760eea",
+          "candidate_relative_destination": "debian/glibc-2.41-12+deb13u4/glibc_2.41-12+deb13u4.debian.tar.xz"
+        },
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage1/377a1af86749d06106427633.body",
+          "filename": "glibc_2.41-12+deb13u4.dsc",
+          "bytes": 7576,
+          "sha256": "0915324aa646bb99abfaa9aa6ecb734b30babd28454a3e51f3152912370fbd3e",
+          "candidate_relative_destination": "debian/glibc-2.41-12+deb13u4/glibc_2.41-12+deb13u4.dsc",
+          "source_authentication": {
+            "source": "glibc",
+            "version": "2.41-12+deb13u4",
+            "status": "archive_chain_authenticated",
+            "release_root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+            "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+            "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+            "dsc_sha256": "0915324aa646bb99abfaa9aa6ecb734b30babd28454a3e51f3152912370fbd3e",
+            "directory": "pool/main/g/glibc",
+            "maintainer_signature_verified": false
+          }
+        }
+      ],
+      "open_items": [
+        "原始归档、Debian 修订及 .dsc 字节齐备；构建 / 安装脚本与实际二进制构建对应完整性仍待复核",
+        "实际伴随源码交付和获取告知尚未验收"
+      ]
+    },
+    {
+      "component": "gcc-14",
+      "version": "14.2.0-19",
+      "evidence": "license-native-image-result-20261105.json",
+      "files": [
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/5a654026e5c702fea0ab115d.1.0.body",
+          "filename": "gcc-14_14.2.0.orig.tar.gz",
+          "bytes": 94299633,
+          "sha256": "e162a5ef3f0077ecae598c6556908d2ab80841532df3398072a96a6df6e6aa29",
+          "url": "https://snapshot.debian.org/file/40f4fae7a993865facd67321c28b95ef19aa7ab1",
+          "candidate_relative_destination": "debian/gcc-14-14.2.0-19/gcc-14_14.2.0.orig.tar.gz"
+        },
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/3fc01084b3852ffc8a5c917c.1.0.body",
+          "filename": "gcc-14_14.2.0-19.debian.tar.xz",
+          "bytes": 2577016,
+          "sha256": "31cbab4bafa48aa1c540497bd8098cbcf98e673778f927651ed944709f687781",
+          "url": "https://snapshot.debian.org/file/47c1fc8b2b6a5643058a6d903ba5734cae7c03b7",
+          "candidate_relative_destination": "debian/gcc-14-14.2.0-19/gcc-14_14.2.0-19.debian.tar.xz"
+        },
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage1/b739b792f116e142e5dc8594.body",
+          "filename": "gcc-14_14.2.0-19.dsc",
+          "bytes": 47347,
+          "sha256": "7db1e202cce66617e9134a662c877a3a773de5b612fd52179815877e0ecfb847",
+          "candidate_relative_destination": "debian/gcc-14-14.2.0-19/gcc-14_14.2.0-19.dsc",
+          "source_authentication": {
+            "source": "gcc-14",
+            "version": "14.2.0-19",
+            "status": "archive_chain_authenticated",
+            "release_root": "https://security.debian.org/debian-security/dists/trixie-security/",
+            "release_sha256": "89ebc1a5a52a4aee416901bd48c6bb13b098dda9d612ddd44a6d3ab32486c47d",
+            "sources_sha256": "12a2fb304b9b81204aae15628bbc8797df71446e0e2a5b4d0778e2e8f135d746",
+            "dsc_sha256": "7db1e202cce66617e9134a662c877a3a773de5b612fd52179815877e0ecfb847",
+            "directory": "pool/updates/main/g/gcc-14",
+            "maintainer_signature_verified": false
+          }
+        }
+      ],
+      "open_items": [
+        "原始归档、Debian 修订及 .dsc 字节齐备；构建 / 安装脚本与实际二进制构建对应完整性仍待复核",
+        "实际伴随源码交付和获取告知尚未验收"
+      ]
+    },
+    {
+      "component": "zlib",
+      "version": "1:1.3.dfsg+really1.3.1-1",
+      "evidence": "license-native-image-result-20261105.json",
+      "files": [
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/b5bd10d1505d341448688b6e.1.0.body",
+          "filename": "zlib_1.3.dfsg+really1.3.1.orig.tar.gz",
+          "bytes": 1325737,
+          "sha256": "60dd315c07f616887caa029408308a018ace66e3d142726a97db164b3b8f69fb",
+          "url": "https://snapshot.debian.org/file/3b19b81105d3436095134a648c521b678905eaac",
+          "candidate_relative_destination": "debian/zlib-1%3A1.3.dfsg+really1.3.1-1/zlib_1.3.dfsg+really1.3.1.orig.tar.gz"
+        },
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage2/4c90b2fc1b280a45dd9fe61e.1.0.body",
+          "filename": "zlib_1.3.dfsg+really1.3.1-1.debian.tar.xz",
+          "bytes": 16576,
+          "sha256": "9ed525955ce9fb0c1b39be8ff98f73450dbfc6305a9a27e6149c8972d38a0a9e",
+          "url": "https://snapshot.debian.org/file/8b454f72def33b4a329489b8dcb2568ba0ccac69",
+          "candidate_relative_destination": "debian/zlib-1%3A1.3.dfsg+really1.3.1-1/zlib_1.3.dfsg+really1.3.1-1.debian.tar.xz"
+        },
+        {
+          "local_input": "tmp/development-license-audit-20261031/downloads-stage1/7d4ddfe8cc84082aef6699fd.body",
+          "filename": "zlib_1.3.dfsg+really1.3.1-1.dsc",
+          "bytes": 2637,
+          "sha256": "ede2791e29c1d3b422f9208bdd7edf040c20445ea1e7453a72037576e64fa197",
+          "candidate_relative_destination": "debian/zlib-1%3A1.3.dfsg+really1.3.1-1/zlib_1.3.dfsg+really1.3.1-1.dsc",
+          "source_authentication": {
+            "source": "zlib",
+            "version": "1:1.3.dfsg+really1.3.1-1",
+            "status": "archive_chain_authenticated",
+            "release_root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+            "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+            "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+            "dsc_sha256": "ede2791e29c1d3b422f9208bdd7edf040c20445ea1e7453a72037576e64fa197",
+            "directory": "pool/main/z/zlib",
+            "maintainer_signature_verified": false
+          }
+        }
+      ],
+      "open_items": [
+        "原始归档、Debian 修订及 .dsc 字节齐备；构建 / 安装脚本与实际二进制构建对应完整性仍待复核",
+        "实际伴随源码交付和获取告知尚未验收"
+      ]
+    },
+    {
+      "component": "colored",
+      "version": "3.1.1",
+      "parent": "hf-xet 1.8.0",
+      "files": [
+        {
+          "local_input": "tmp/development-static-20261105/crates/colored.0.body",
+          "filename": "colored-3.1.1.crate",
+          "bytes": 36216,
+          "sha256": "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34",
+          "url": "https://static.crates.io/crates/colored/colored-3.1.1.crate",
+          "candidate_relative_destination": "cargo/colored-3.1.1.crate"
+        }
+      ],
+      "open_items": [
+        "精确上游源码已取得；最终链接范围 / 构建修改对应与实际交付验收尚未完成"
+      ]
+    },
+    {
+      "component": "option-ext",
+      "version": "0.2.0",
+      "parent": "hf-xet 1.8.0",
+      "files": [
+        {
+          "local_input": "tmp/development-static-20261105/crates/option-ext.0.body",
+          "filename": "option-ext-0.2.0.crate",
+          "bytes": 7345,
+          "sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+          "url": "https://static.crates.io/crates/option-ext/option-ext-0.2.0.crate",
+          "candidate_relative_destination": "cargo/option-ext-0.2.0.crate"
+        }
+      ],
+      "open_items": [
+        "精确上游源码已取得；最终链接范围 / 构建修改对应与实际交付验收尚未完成"
+      ]
+    },
+    {
+      "component": "dirs",
+      "version": "6.0.0",
+      "parent": "hf-xet 1.8.0",
+      "files": [
+        {
+          "local_input": "tmp/development-static-20261105/crates/dirs.0.body",
+          "filename": "dirs-6.0.0.crate",
+          "bytes": 14190,
+          "sha256": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e",
+          "url": "https://static.crates.io/crates/dirs/dirs-6.0.0.crate",
+          "candidate_relative_destination": "cargo/dirs-6.0.0.crate"
+        }
+      ],
+      "open_items": [
+        "精确上游源码已取得；最终链接范围 / 构建修改对应与实际交付验收尚未完成"
+      ]
+    },
+    {
+      "component": "dirs-sys",
+      "version": "0.5.0",
+      "parent": "hf-xet 1.8.0",
+      "files": [
+        {
+          "local_input": "tmp/development-static-20261105/crates/dirs-sys.0.body",
+          "filename": "dirs-sys-0.5.0.crate",
+          "bytes": 10157,
+          "sha256": "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab",
+          "url": "https://static.crates.io/crates/dirs-sys/dirs-sys-0.5.0.crate",
+          "candidate_relative_destination": "cargo/dirs-sys-0.5.0.crate"
+        }
+      ],
+      "open_items": [
+        "精确上游源码已取得；最终链接范围 / 构建修改对应与实际交付验收尚未完成"
+      ]
+    }
+  ]
+}

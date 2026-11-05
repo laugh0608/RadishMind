@@ -1,0 +1,165 @@
+{
+  "items": [
+    {
+      "package": "tqdm",
+      "archive_sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+      "member": "tqdm-4.70.1/Makefile",
+      "bytes": 4718,
+      "sha256": "19a146195f9193a2ec2ce51ac5fbe78fa339a9fbbe1d0f96d1759d1ad0d128ec"
+    },
+    {
+      "package": "tqdm",
+      "archive_sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+      "member": "tqdm-4.70.1/pyproject.toml",
+      "bytes": 6048,
+      "sha256": "47775d94555b7c5fc9c1d0dbdfddb3efe3aa35ea8f53768a4ff4aa1663fb5564"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/pyproject.toml",
+      "bytes": 2021,
+      "sha256": "07bec0c5fa229037df1d699880f92955a9444b7143a749bb7248b6763244baab"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/xet_core_structures/Cargo.toml",
+      "bytes": 3439,
+      "sha256": "b89108cf648ee7a2cf13d272ed78318ab5624562ff7974eab5446439e59934c0"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/xet_runtime/Cargo.toml",
+      "bytes": 2575,
+      "sha256": "333063dcb81e4b29ac7c547542a90e2c82980f1606829daa739f043057915b0b"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/xet_data/Cargo.toml",
+      "bytes": 3319,
+      "sha256": "80aef08e5d8ac6e83d7dfccc2304ff05330457951da216f7c6bbf39098a3f5f8"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/Cargo.toml",
+      "bytes": 3418,
+      "sha256": "6dab7967f6f1f55a31794832daec376f0ce5cfc14301f48738d6e352815085b0"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/xet_client/Cargo.toml",
+      "bytes": 3521,
+      "sha256": "c0d3ae7567b3b22e8e4a26420f58c9dea92df9e2f54c28f0f5bacbc67a6ce180"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/xet_pkg/Cargo.toml",
+      "bytes": 3781,
+      "sha256": "1f5aff9d6a810c6784add8b0607efb3dc413084d7a658b46923274f488864a79"
+    },
+    {
+      "package": "hf_xet",
+      "archive_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "member": "hf_xet-1.8.0/hf_xet/Cargo.toml",
+      "bytes": 2776,
+      "sha256": "eeed5a1f80a4548c98f8501cd9bf4beec51f8ee0b68faabf8e4c83d2345a75b7"
+    },
+    {
+      "package": "pydantic_core",
+      "archive_sha256": "1b0e8dc3932cf4e9ed5727570325cacc716b9409ffc794a221c0ccc72e8eb775",
+      "member": "pydantic_core-2.50.2/Cargo.toml",
+      "bytes": 2878,
+      "sha256": "807e853c515f1dcbe655d60c6849d939a4ae986eabd0ce91a67c393d330f8314"
+    },
+    {
+      "package": "pydantic_core",
+      "archive_sha256": "1b0e8dc3932cf4e9ed5727570325cacc716b9409ffc794a221c0ccc72e8eb775",
+      "member": "pydantic_core-2.50.2/pyproject.toml",
+      "bytes": 6121,
+      "sha256": "8f3f3036af4c3c67b626e17502ae12ee82080154f8cdcf3b9b9f6e3a880f0d29"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/Cargo.toml",
+      "bytes": 987,
+      "sha256": "3394db0f684339a40b53827888616f5b855c2547a857631dfddafb609b5edd9f"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/docs/development/custom-vectors/aes-192-gcm-siv/verify-aes192gcmsiv/Cargo.toml",
+      "bytes": 141,
+      "sha256": "4667ad812e0573c594cb1f6ba9d6f4a7cc59ecfb6753f77852bb6f4d63d13e6f"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/pyproject.toml",
+      "bytes": 6372,
+      "sha256": "c2a9d817e811d622f086ef4af0b90168392231f2b972ce5dd8ca4b19e9e11701"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/Cargo.toml",
+      "bytes": 1526,
+      "sha256": "255631745bb2f077f26cf7cdbfa9ee831f96ed0c013e9fa0dce3e78af43abc54"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-cffi/Cargo.toml",
+      "bytes": 458,
+      "sha256": "e533932e1d882f258105f50601013c18888a44a56e3fbd8153a01b07ac5970be"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-crypto/Cargo.toml",
+      "bytes": 235,
+      "sha256": "5d3499ad8c4e564a789453bcd721782250435735e94407d8de061dc7fc57b32d"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-keepalive/Cargo.toml",
+      "bytes": 235,
+      "sha256": "abe27146fda8c55a9ff3758bbcf34527b7fa42c677d7166d746cc9e541d37732"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-key-parsing/Cargo.toml",
+      "bytes": 788,
+      "sha256": "69904d1b1a7383a415924e379c496303f15e87bcb7a45a94512a43887b71480b"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-openssl/Cargo.toml",
+      "bytes": 608,
+      "sha256": "3109ef1f8a226c07e5728ac5a9475893a721694529d7d4dba4ef241bfb237399"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-x509/Cargo.toml",
+      "bytes": 230,
+      "sha256": "70252c64c92650285f8f6effac3cfc0a9ecc65c4af047ff33ae828e8ed1efb87"
+    },
+    {
+      "package": "cryptography",
+      "archive_sha256": "7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5",
+      "member": "cryptography-50.0.2/src/rust/cryptography-x509-verification/Cargo.toml",
+      "bytes": 338,
+      "sha256": "a3e20dcc02bc1ac52bdcd8f0b919b04b23d4d6dec03e1d487a16b387b511af3e"
+    }
+  ]
+}
