@@ -9,7 +9,7 @@
       "local_input": "tmp/development-license-audit-20261031/downloads-stage2/970f172025591ae092c3c371.1.0.body",
       "candidate_directory": "sources/<SDK-image-sha256>/toolchain/",
       "open_items": [
-        "精确镜像构建配置 / 原生扩展 / 完整工具链告知实际位置仍需核对"
+        "实际构建配置与 78 个扩展已静态核对；新增动态库实际路径 / 归属和 Expat / libmpdec 告知交付仍待完成。"
       ]
     },
     {
@@ -21,7 +21,7 @@
       "local_input": "tmp/development-license-audit-20261031/downloads-stage2/d5f82730be095fb7f6adaecc.1.0.body",
       "candidate_directory": "sources/<SDK-image-sha256>/toolchain/",
       "open_items": [
-        "精确镜像构建配置 / 原生扩展 / 完整工具链告知实际位置仍需核对"
+        "280 个内嵌文件已逐字节对应；21 份告知已接入配方，实际重建安装和交付仍待验收。"
       ]
     },
     {
@@ -33,7 +33,7 @@
       "local_input": "tmp/development-license-audit-20261031/downloads-stage2/717ee9101b6e351fc29822bf.1.1.body",
       "candidate_directory": "sources/<Go-image-sha256>/toolchain/",
       "open_items": [
-        "精确镜像构建配置 / 原生扩展 / 完整工具链告知实际位置仍需核对"
+        "cmd/vendor 853 个文件与 go.env 已逐字节对应；最终伴随源码与告知获取仍待验收。"
       ]
     },
     {

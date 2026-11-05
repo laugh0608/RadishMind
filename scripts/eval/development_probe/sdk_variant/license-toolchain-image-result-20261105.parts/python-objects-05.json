@@ -1,0 +1,113 @@
+{
+  "items": [
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_sqlite3.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 139960,
+      "sha256": "da307ede697b5b5d055df3a072c46b7cd424febc482172426ea7a68aaf2ba17a",
+      "needed": [
+        "libsqlite3.so.0",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_ssl.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 233232,
+      "sha256": "f3e96d4d7fed8dc320799bfb0fc61b05f99e9b3b0f3f38b5a0adbf3e16dead5b",
+      "needed": [
+        "libssl.so.3",
+        "libcrypto.so.3",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_statistics.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 67760,
+      "sha256": "586f41e81e9122ee964c98df010a854d1e8567b910918d996e76b71c263973a5",
+      "needed": [
+        "libm.so.6"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_struct.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 71216,
+      "sha256": "c6b732ef2edea97ef26a6cdfcaf2dda7b27af5a289dfca0af1599e1e965dc4a2",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_testbuffer.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 70360,
+      "sha256": "38756127dbf424eac7aa133b990f64776869e3c70ec31b237fc9d4c06a825388",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_testcapi.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 436864,
+      "sha256": "bc33e0f00cfccd9605ca7591d3bf2e7a8ffa996f5955725ebb6af1dfd3a96655",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_testclinic.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 72304,
+      "sha256": "2122cace28a5b5240aa50249f224ddb2260a4d7756e6ae43a0dd4283c301298d",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_testimportmultiple.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 67664,
+      "sha256": "4d77b81a9fc06b022431bf19e4aaddf273f5c5564042293619cd14e809cd092a",
+      "needed": [],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_testinternalcapi.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69736,
+      "sha256": "d93e94f20d05f8574c9a199db56e311f3537657ca82ad1317504539a0e6b58a0",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_testmultiphase.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 71976,
+      "sha256": "4f083d9f5b6b5778591e850de1e8bc9bca39b42b8f577098e11dac01085c33de",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "items": [
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_elementtree.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 137544,
+      "sha256": "6dbe655aeda3533dc09a135361463d1d8e70360a5e487d654e8f28a57ce73006",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_gdbm.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68808,
+      "sha256": "50b30039a37e8d42d85a8a00e0187bdb4ac37a01f9e60bbc6937937a77c98d7d",
+      "needed": [
+        "libgdbm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_hashlib.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 71864,
+      "sha256": "41307f9bf65b379d2abddec4abda4ece1246feb82b4e5d0f95aa20e826c8721c",
+      "needed": [
+        "libcrypto.so.3",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_heapq.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 67864,
+      "sha256": "0748263e009e391957b634147b90dd234969a55cde6450bf97ab0bb80be13192",
+      "needed": [],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_json.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69320,
+      "sha256": "3ae5dfadfe9ec8c5c8ce16df947c22a6f2f2ab915367e4c3d43983a396be3b20",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_lsprof.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68824,
+      "sha256": "a7ee03fffb50b3c35239cdb346e0869db7aa8b342df59d27205c5e0b1ce9b044",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_lzma.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69440,
+      "sha256": "6828b016cb5f724446f7bd5a026fad116a4b896e88eb0b54804637c353d81787",
+      "needed": [
+        "liblzma.so.5",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_md5.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68552,
+      "sha256": "e4eb378b153cf8b798aabecdb7b50859278cc04bf25a8897202904a960297078",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_multibytecodec.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 70632,
+      "sha256": "2f0c1331d3f44b70251c46cb8c402388e1c5af88c91d033c915d19148427a330",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/_multiprocessing.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69024,
+      "sha256": "6ee069bf618841d329b5d015f7bc1f7a429f7023c5ee9c4a57d9e91feae838c7",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    }
+  ]
+}

@@ -13,15 +13,15 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验；原生 HTTP 已通过固定上游技术验证；剩余许可、阶段 1 范围及 A 级视觉依据尚未闭合，正式采用暂不通过，阶段 0 不退出。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- 既有授权窗口已结束，当前规划不延续下载、Docker 或服务运行授权；详细运行事实与清理记录沿任务卡和[W44 周志](devlogs/2026-W44.md)查证。
+- 既有授权窗口已结束，当前规划不延续下载、Docker 或服务运行授权；详细运行事实与清理记录沿任务卡和[W45 周志](devlogs/2026-W45.md)查证。
 
 ## 接下来事项（2026-11-05）
 
 接下来按以下顺序推进，不并行扩张实施主线：
 
-1. **先收口许可证据与交付范围。** 六包 14 份 wheel 告知及 pip 21 份内嵌告知已接入候选配方；[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)已覆盖 119 个 wheel、61 个 Debian 源包和 10 个 Alpine origin。Pillow 来源差异、两个 certifi 版本的生成步骤及 pip / Go 内嵌源码对应已核对。下一步取得未固定的历史构建 / 生成输入，按已准备清单核对 CPython 扩展、Go 工具链及实际告知安装，再落实源码获取验收；详见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#构建输入与完整镜像范围的后续核对)。镜像未重建、源码包未组装；新增下载、重锁、打包或重建另报范围授权，阶段 0 不因此退出。
+1. **先收口许可证据与交付范围。** 六包 14 份 wheel 告知及 pip 21 份内嵌告知已接入候选配方；[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)已覆盖 119 个 wheel、61 个 Debian 源包和 10 个 Alpine origin。Pillow 来源差异、两个 certifi 版本的生成步骤及 pip / Go 内嵌源码对应已核对。CPython 扩展 / 配置与 Go 工具链路径已静态核对，本轮历史元数据窗口已结束；历史构建 / 生成输入仍缺。下一步收口新增动态库与内嵌告知，并评估可完整留存输入的候选构建路线，再落实实际安装和源码获取验收；详见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#构建输入与完整镜像范围的后续核对)。镜像未重建、源码包未组装；新增下载、重锁、打包或重建另报范围授权，阶段 0 不因此退出。
 2. **原生 HTTP 技术切片已完成。** 单一非流式档案已验证实际 HTTP 工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据边界，见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#原生传输的建议实施范围待确认)。真实厂商 / 模型资格及输入 token 上界仍待验，通道默认关闭；不因固定上游通过而恢复真实模型。
-3. **确认阶段 1 的单 Agent 固定 Go 交付合同与 A 级视觉依据。** 明确公开权限 / API、生命周期与重启行为、候选审阅 / 保存 / 导出，再复评阶段 0；退出条件齐备前不提前开发正式 Web 或固定团队。
+3. **确认阶段 1 的单 Agent 固定 Go 交付合同与 A 级视觉依据。** [公开交付合同](contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)已完成可评审设计，等待具体确认；[本轮采用评审](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)已更新，正式采用暂不通过；退出条件齐备前不提前开发正式 Web 或固定团队。
 
 上述事项是后续推进计划，不延续已结束的下载、Docker 或服务运行授权。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
 

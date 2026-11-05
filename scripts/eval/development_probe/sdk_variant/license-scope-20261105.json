@@ -20,7 +20,9 @@
     "pip_vendor_files_identical": 280,
     "pip_vendor_notices_missing_in_image": 21,
     "go_src_vendor_files_identical": 165,
-    "verified_build_input_files": 22
+    "verified_build_input_files": 22,
+    "go_cmd_vendor_files_identical": 853,
+    "python_native_extensions_inspected": 78
   },
   "scope_rule": "按精确 SDK 与 Go 镜像分别交付原始源码、修改 / 配方 / 生成材料及告知。现有来源全集作候选材料，不把每个取证上游包都当作实际链接组件；pip 使用其修改后的内嵌树。",
   "parts": {
@@ -37,7 +39,7 @@
     "debian-07.json": "3a7a3416e026a4e2b346d8214f7dfeadd35f2b17d0c4747c099bcf229987fff1",
     "debian-08.json": "5c09594aec5f3f9eb9c805bfee73731cbc2a9f08f1263751a1f6d3d095d3fbcf",
     "pip-notices.json": "48f14ef0f49e7c9024ac50ae3a326b7036e910de2baaad9fa8c76c4fbb376c94",
-    "toolchain-and-variant.json": "fd0ed4369e0c4bdb288a0912a1373d69e1cdd8690cd387728bec345072f6707e",
+    "toolchain-and-variant.json": "9c31e74e91d9c5f742b34a202f25e34202930ab186150a93e3f720b586affec8",
     "wheels-01.json": "a9b4710e6e166c299173211c357ba15afba77c831fc6f340d9d5dc2a1090df8a",
     "wheels-02.json": "ddd3172027ded94fed2e80ae537980d7e2856c2adfc19bd13f274ba44eaf1018",
     "wheels-03.json": "bd0f103a4cf5b04e93c5cabd3d1e1e64fbb695442c2829f3dbb999c0c6bdd0aa",
@@ -50,9 +52,9 @@
     "bundled-comparison.json": "598a26f0c24b04bb6a048b8a6f7aa0a275acee5c8d362a2ae7f2d54bdbfe6395"
   },
   "remaining": [
-    "目标 wheel 对应的 Pillow 历史 pillow-depends 归档、multibuild 来源及嵌套组件；cryptography 历史构建容器 digest / 来源集合。",
+    "目标 wheel 对应的 Pillow 历史 pillow-depends 归档及嵌套组件；cryptography 历史构建容器 digest / 来源集合。multibuild 指定文本已核对，不替代完整历史输入。",
     "两个 certifi 版本的历史生成端点响应、生成器版本与 Mozilla 输入提交；regex 精确继承来源。",
-    "CPython 扩展与实际构建配置、Go cmd/vendor 镜像路径、基础镜像 pip 缺失的 21 份许可安装。",
+    "CPython 新增动态库实际文件 / 归属、Expat / libmpdec 告知交付；wheel / pip 补充告知的实际镜像安装。",
     "最终伴随源码目录、获取告知和实际接收方可用性；当前未打包、发布或重建。"
   ],
   "boundary": {
@@ -61,5 +63,7 @@
     "assembled_source_delivery": false,
     "license_gate_closed": false
   },
-  "build_input_evidence": "license-build-inputs-20261105.json"
+  "build_input_evidence": "license-build-inputs-20261105.json",
+  "toolchain_evidence": "license-toolchain-image-result-20261105.json",
+  "historical_provenance_evidence": "license-historical-provenance-result-20261105.json"
 }

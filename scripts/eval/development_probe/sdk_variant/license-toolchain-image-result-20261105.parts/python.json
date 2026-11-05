@@ -1,0 +1,77 @@
+{
+  "source_sha256": "b5796915dc45ff745cfb4e990a7e7c93d6f546328a102ce31448d69ebc37575c",
+  "config_sha256": "98789ce0ebd76d843dbb1584db58d55080b6d28221fb28a79ac803492f703b98",
+  "config_args": "'--build=aarch64-linux-gnu' '--enable-loadable-sqlite-extensions' '--enable-optimizations' '--enable-option-checking=fatal' '--enable-shared' '--with-lto' '--with-ensurepip' 'build_alias=aarch64-linux-gnu'",
+  "soabi": "cpython-312-aarch64-linux-gnu",
+  "module_link_flags": {
+    "MODULE_AUDIOOP_LDFLAGS": "-lm",
+    "MODULE_BINASCII_LDFLAGS": "-lz",
+    "MODULE_CMATH_LDFLAGS": "-lm",
+    "MODULE_MATH_LDFLAGS": "-lm",
+    "MODULE_PYEXPAT_LDFLAGS": "-lm Modules/expat/libexpat.a",
+    "MODULE_READLINE_LDFLAGS": "-lreadline",
+    "MODULE_ZLIB_LDFLAGS": "-lz",
+    "MODULE__BZ2_LDFLAGS": "-lbz2",
+    "MODULE__CRYPT_LDFLAGS": "-lcrypt",
+    "MODULE__CTYPES_LDFLAGS": "-lffi  -ldl",
+    "MODULE__CTYPES_TEST_LDFLAGS": "-lm",
+    "MODULE__CURSES_LDFLAGS": "-lncursesw -ltinfo",
+    "MODULE__CURSES_PANEL_LDFLAGS": "-lpanelw  -lncursesw -ltinfo",
+    "MODULE__DATETIME_LDFLAGS": "-lm",
+    "MODULE__DBM_LDFLAGS": "-ldb",
+    "MODULE__DECIMAL_LDFLAGS": "-lm Modules/_decimal/libmpdec/libmpdec.a",
+    "MODULE__GDBM_LDFLAGS": "-lgdbm",
+    "MODULE__HASHLIB_LDFLAGS": "-lcrypto",
+    "MODULE__LZMA_LDFLAGS": "-llzma",
+    "MODULE__SQLITE3_LDFLAGS": "-lsqlite3",
+    "MODULE__SSL_LDFLAGS": "-lssl -lcrypto",
+    "MODULE__STATISTICS_LDFLAGS": "-lm",
+    "MODULE__TKINTER_LDFLAGS": "-ltk8.6 -ltkstub8.6 -ltcl8.6 -ltclstub8.6",
+    "MODULE__UUID_LDFLAGS": "-luuid"
+  },
+  "extensions": 78,
+  "source_notices": [
+    {
+      "path": "LICENSE",
+      "bytes": 13936,
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+    },
+    {
+      "path": "Modules/expat/COPYING",
+      "bytes": 1144,
+      "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87"
+    },
+    {
+      "path": "Modules/_decimal/libmpdec/mpdecimal.c",
+      "sha256": "4f89b8095e408a18deff79cfb605299e615bae747898eb105d8936064f7fb626",
+      "notice_prefix_bytes": 1358,
+      "notice_prefix_sha256": "e5217e08225fee5ea0c5b9dbbd0907a4f6bed878c806d1ded65482489f3865ad"
+    }
+  ],
+  "boundary": "仅静态配置 / 动态依赖与源码告知核对；不声称二进制可复现构建或所有外部库路径已经逐字节核实。",
+  "notice_delivery_status": "Expat 与 libmpdec 告知已定位到保留的精确 CPython 源码，尚未接入补充告知准备器或重建镜像；不把顶层 CPython LICENSE 视为全部内嵌组件告知。",
+  "external_sonames": [
+    "ld-linux-aarch64.so.1",
+    "libbz2.so.1.0",
+    "libc.so.6",
+    "libcrypt.so.1",
+    "libcrypto.so.3",
+    "libdb-5.3.so",
+    "libffi.so.8",
+    "libgdbm.so.6",
+    "liblzma.so.5",
+    "libm.so.6",
+    "libncursesw.so.6",
+    "libpanelw.so.6",
+    "libpython3.12.so.1.0",
+    "libreadline.so.8",
+    "libsqlite3.so.0",
+    "libssl.so.3",
+    "libtcl8.6.so",
+    "libtinfo.so.6",
+    "libtk8.6.so",
+    "libuuid.so.1",
+    "libz.so.1"
+  ],
+  "external_boundary": "动态依赖名称已枚举；此前八库静态取证只覆盖其中部分，新增外部库实际路径 / 归属 / 链接目标仍未全部核对。"
+}

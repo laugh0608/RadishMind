@@ -1,0 +1,66 @@
+{
+  "schema_version": "development_toolchain_image_result.v1",
+  "date": "2026-11-05",
+  "status": "static_bytes_verified_delivery_open",
+  "plan": "license-toolchain-image-plan-20261105.json",
+  "plan_sha256": "869f8b4e49242ad5b7e25b6d7f2313aacd4ce5e99c7c3468668d606c2b3d1632",
+  "authorized_command": "python3 tmp/development-pip-delivery-20261105/read_toolchain_images.py --execute",
+  "images": [
+    {
+      "role": "sdk",
+      "image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf"
+    },
+    {
+      "role": "go",
+      "image": "sha256:b17af760035fc2f338eed92d448a6c67f2d45438844fc6c60678fa5f99e44b57"
+    }
+  ],
+  "copy_commands": 8,
+  "total_tar_bytes": 34423296,
+  "containers_started": 0,
+  "cleanup": [
+    {
+      "role": "sdk",
+      "created_id": "0e90c1e89bc1b0ff97efedd4e19a9524601f7d45e895dfac939e7d25cf25df64",
+      "removed_ids": [
+        "0e90c1e89bc1b0ff97efedd4e19a9524601f7d45e895dfac939e7d25cf25df64"
+      ],
+      "remaining": ""
+    },
+    {
+      "role": "go",
+      "created_id": "25b73d93e7370396f369be4302c78418f191e4bab7523fbe5e3c2a66f8c0c9b5",
+      "removed_ids": [
+        "25b73d93e7370396f369be4302c78418f191e4bab7523fbe5e3c2a66f8c0c9b5"
+      ],
+      "remaining": ""
+    }
+  ],
+  "window_closed": true,
+  "parts": {
+    "copies.json": "215a4cfeb5e417c409225247fd550df5ab3971deff8acfdf6568b3801a54832e",
+    "go.json": "719df3889f9c73580f09ff043234adbe1bc6c234889145575991984d267582ae",
+    "python-objects-01.json": "781dfe126f8a4baf14f5b93ac3780d47622a19644aefaf1ff351e40712f41fce",
+    "python-objects-02.json": "701ead1f5ab111e8dcb7e3be484dfacac6cd22f5dd98ff65e6c92038cace6d91",
+    "python-objects-03.json": "dc76d36af6fb0e4f494458ec600f2f8da9d298ca23601562f9ddbf87956738c2",
+    "python-objects-04.json": "515a2d4061df73ee5f67075bdefbe093fdb476f028bead8b202f5751cf4d9fec",
+    "python-objects-05.json": "7d15e72af860cbd98536316b08398589ffbd0edba0d371b8d76e5829c65807cf",
+    "python-objects-06.json": "e21933e6b9dab46784a76c112fa73bf90c0547264d08fcb218e575566ee9b37c",
+    "python-objects-07.json": "6781ff018658b99cc4053cdf916ff002cd0ac0ccae430513b6d4fcc4100bd11e",
+    "python-objects-08.json": "de51287dd6f53cc8b4311b2421b19a6d0c71b9ee142f12c48a51e0bf70530f7b",
+    "python.json": "8e1dbbcaccda8f74f06f40ae7722cb98877a20d611a45fa165450427cbe01f28"
+  },
+  "reproduction": {
+    "directory": "tmp/development-pip-delivery-20261105",
+    "inspector_sha256": "df38d96351982cb5caaaad0ab666670b75808bf446957c10a5229b2d46d5217a",
+    "raw_evidence_sha256": "449bfb8f58a276ffbe51bb6de1c4b2f0b07a24f3f3edb21f2dbbff626a8b4997"
+  },
+  "boundary": {
+    "containers_started": 0,
+    "new_downloads": false,
+    "downloaded_code_executed": false,
+    "image_rebuilt": false,
+    "source_delivery_assembled": false,
+    "license_gate_closed": false
+  }
+}

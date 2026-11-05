@@ -97,6 +97,23 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 形成同一代表任务的兼容证据、采用 / 不采用结论、具体 SDK / 依赖版本锁方案、工具与凭据通道、事件 / 取消映射和旧行为回归范围。文档核对不能代替上述试验；未满足时保持框架“首选候选”，不转写为已接入或生产可用。
 
 
+## 2026-11-05 框架采用评审
+
+**评审完成，继续保留技术候选，暂不正式采用，阶段 0 不退出。** 本轮完成已有材料的工具链核对、有界历史来源取证，以及单 Agent 公开合同 / A 级设计；没有以设计完成代替许可交付、项目所有者确认或阶段 1 实现。
+
+| 退出条件 | 当前判断 | 尚需完成 |
+| --- | --- | --- |
+| 依赖与拟交付镜像 | 遥测可选化候选复验保持；Go `cmd/vendor` 853 个文件及 `go.env` 与精确源码一致；CPython 78 个扩展和另两个 ELF 已静态读取 | CPython 新增动态库实际路径 / 归属、内嵌 Expat / libmpdec 告知；历史来源缺口及最终安装 / 源码获取验收 |
+| 原生 HTTP 传输 | 已通过固定上游工具往返与正反例，技术条件保持 | 真实厂商工具资格、完整输入计量和费用另验，不作为本轮已通过项 |
+| 首版交付合同 | [公开任务合同](../../../contracts/development-task-delivery-v1.md)已可评审；固定 Go / 单 Agent / 一次尝试，独立权限、原子启动与重启不重放 | 项目所有者确认具体合同，之后在阶段 1 物化 schema、协调器、API 与 Web |
+| 视觉依据 | [六个 Pencil 代表面](collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)已保存并逐幅复核 | 项目所有者视觉确认；React 和浏览器验收属于阶段 1 |
+
+[工具链取证结果](../../../../scripts/eval/development_probe/sdk_variant/license-toolchain-image-result-20261105.json)记录八次复制，共 34423296 字节。两个容器始终未启动，按精确身份清理并确认无遗留。CPython 配置显示 Expat / libmpdec 使用内嵌静态库；正文分别位于精确源码的 `Modules/expat/COPYING` 和 `Modules/_decimal/libmpdec/mpdecimal.c` 首段，尚未接入告知安装。扩展的 `DT_NEEDED` 名称不能替代新增外部库的真实文件和归属核对。Go 默认 `go.env` 有联网 / 自动工具链选项，既有执行档案仍必须覆盖为离线值，源码一致不授予联网能力。
+
+[历史来源结果](../../../../scripts/eval/development_probe/sdk_variant/license-historical-provenance-result-20261105.json)记录已授权的 27 次请求、818704 字节和 11 份精确源码文本。三个 wheel 发布声明的 subject 摘要匹配，但 `predicate=null`，不提供构建材料；本轮未验证签名信任链。四个发行提交的运行列表已保留，旧 certifi 返回零项只表示本次端点未返回记录。脚本选取最新成功 jobs，Pillow 实际选到 Lint，不能当作 wheel 构建证据。cryptography 的 Wheel Builder jobs 也不含所缺构建容器 digest。libavif 文本补充了嵌套来源声明，未取得历史实际归档，短提交和 tag 不能直接等同已交付源码。
+
+后续不再默认重复下载同类元数据。若无法取得 Pillow 历史 `pillow-depends`、cryptography 构建容器来源、两个 certifi 的生成输入及 regex 继承依据，应评估可完整留存输入的新候选构建路线。路线评审先明确受影响包、依赖闭包、源码 / 告知集合、镜像变化及 SDK / 联合复验成本；任何重锁、下载、打包或重建须在具体方案准备后单独授权。本轮没有改变依赖或启动该路线。两项取证窗口均已结束。
+
 ## 2026-10-31 采用复评结论
 
 **保留首选候选，暂不正式采用，阶段 0 不退出。** 联合固定响应证据支持受控适配的技术可行性，但不能覆盖以下未决项。下表为原基线复评快照；后续变体结果见下节。复评证据与精确版本见[本次记录](../../../devlogs/2026-W44.parts/development-adoption-20261031.md)。
@@ -173,4 +190,4 @@ pip 的 280 个实际内嵌文件、Go `src/vendor` 的 165 个实际文件均�
 上述结果补齐了来源对应和交付范围，不代表历史构建输入、镜像告知安装或接收方源码获取已经验收。实际打包、镜像重建与发布均未执行，正式采用及阶段 0 结论保持。
 
 
-基础镜像 pip 的[告知交付证据](../../../../scripts/eval/development_probe/sdk_variant/license-pip-notices-20261105.json)包含 21 份正文与四个源码指纹分片。准备器在输出前验证全部输入；构建步骤无网络读取实际 pip 元数据与文件，拒绝版本 / 路径 / 集合 / 摘要不符。此前保存的镜像 tar 已用于离线复验，不等同于新镜像安装验收。CPython 与 Go 未取证路径已列为[双镜像停止态取证计划](../../../../scripts/eval/development_probe/sdk_variant/license-toolchain-image-plan-20261105.json)，尚未授权执行；不会因已有镜像而延续 Docker 操作授权。
+基础镜像 pip 的[告知交付证据](../../../../scripts/eval/development_probe/sdk_variant/license-pip-notices-20261105.json)包含 21 份正文与四个源码指纹分片。准备器在输出前验证全部输入；构建步骤无网络读取实际 pip 元数据与文件，拒绝版本 / 路径 / 集合 / 摘要不符。此前保存的镜像 tar 已用于离线复验，不等同于新镜像安装验收。CPython 与 Go 路径的[双镜像停止态取证计划](../../../../scripts/eval/development_probe/sdk_variant/license-toolchain-image-plan-20261105.json)随后已单独获准并完成，结果见本页 11 月 5 日评审；原计划保留准备时状态，执行结论以结果记录为准，窗口不延续。

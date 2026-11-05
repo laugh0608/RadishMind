@@ -121,3 +121,7 @@ python3 scripts/eval/development_probe/run_joint.py \
 ### 基础镜像 pip 告知
 
 `prepare_sdk_variant.py` 同时准备 wheel 告知与 `third-party/pip/`。后者由 `pip_notice_delivery.py` 消费精确 pip 证据，校验 21 份正文和 280 个内嵌文件指纹。候选 Dockerfile 在无网络步骤读取实际 pip 元数据和完整 `_vendor` 集合，版本、重复元数据、缺失 / 新增 / 篡改文件或符号链接均拒绝。源码内容只读校验，不导入 pip；离线测试不代替镜像重建验收。取证与当前状态见[清单](license-pip-notices-20261105.json)和[说明](pip-notice-supplements/README.md)。
+
+### 工具链与历史来源补证
+
+[工具链结果](license-toolchain-image-result-20261105.json)记录已授权的八次镜像复制、80 个 ELF 静态对象及 Go `cmd/vendor` 853 个文件的源码对应，两个容器始终未启动且已清理。[历史来源结果](license-historical-provenance-result-20261105.json)记录 27 次 HTTP 200、11 份源码文本和发布声明摘要核对；发布证明不含构建材料，本轮未验证签名信任。所有窗口已关闭，原计划的准备状态不作为当前执行结论。新增外部库、内嵌告知、历史输入及最终交付仍有缺口；完整判断见[框架采用评审](../../../../docs/features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)。

@@ -1,0 +1,11 @@
+{
+  "source_sha256": "0ed24eac755105085b89fe9cabc2742b91a0ad7b94b59d3ad364918ebc8956ad",
+  "cmd_vendor_files_identical": 853,
+  "cmd_vendor_inventory_sha256": "c51977ac7fdee2e77936c91ddf2e89e4e38ca789681fb4a81c31d077592455a0",
+  "image_only": [],
+  "source_only": [],
+  "different": [],
+  "go_env_identical": true,
+  "go_env": "# This file contains the initial defaults for go command configuration.\n# Values set by 'go env -w' and written to the user's go/env file override these.\n# The environment overrides everything else.\n\n# Use the Go module mirror and checksum database by default.\n# See https://proxy.golang.org for details.\nGOPROXY=https://proxy.golang.org,direct\nGOSUMDB=sum.golang.org\n\n# Automatically download newer toolchains as directed by go.mod files.\n# See https://go.dev/doc/toolchain for details.\nGOTOOLCHAIN=auto\n",
+  "boundary": "源码字节一致；默认联网选项不代表执行档案启用联网，运行时须继续冻结 GOPROXY=off / GOSUMDB=off / GOTOOLCHAIN=local。"
+}
