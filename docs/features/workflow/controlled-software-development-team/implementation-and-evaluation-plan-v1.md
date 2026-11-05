@@ -54,7 +54,7 @@
 
 采用复评后，项目所有者已确认同版 SDK 遥测可选化路线，并单独授权完成 `1.59.0+radishmind.1` 的[构建及真实 SDK / 联合复验](../../../../scripts/eval/development_probe/sdk_variant/README.md)。119 项新闭包不含 Laminar / 专有代理，SDK 的 MIT 正文与修改告知已进入 wheel；新锁、实际安装报告和镜像摘要独立保留。运行窗口已结束。
 
-后续镜像静态取证、来源元数据 / 告知下载及源码归档取证均已完成，Debian 仓库签名链和 Alpine 精确来源已核对；原生构建映射、缺失告知补入与最终覆盖源码交付仍待闭合，进度见[框架专题](framework-and-gateway-integration-v1.md#剩余许可取证顺序)。2026-11-05 已补充四包告知材料，整镜像许可退出条件仍未关闭；原生 HTTP 实施范围已获确认并完成固定上游正反例验证，详见 [W45 周志](../../../devlogs/2026-W45.md)。11 月 5 日已完成[公开交付合同](../../../contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)的可评审设计，待项目所有者具体确认；工具链与历史来源补证已完成本轮有界核对，正式采用仍未通过，见[本轮评审](framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)。真实厂商资格不由固定响应结果推定。
+后续镜像静态取证、来源元数据 / 告知下载及源码归档取证均已完成，Debian 仓库签名链和 Alpine 精确来源已核对；原生构建映射、缺失告知补入与最终覆盖源码交付仍待闭合，进度见[框架专题](framework-and-gateway-integration-v1.md#剩余许可取证顺序)。2026-11-05 六包 wheel 告知及基础镜像 pip 告知已接入离线准备和候选构建校验，镜像尚未重建，整镜像许可退出条件仍未关闭；原生 HTTP 实施范围已获确认并完成固定上游正反例验证，详见 [W45 周志](../../../devlogs/2026-W45.md)。11 月 5 日已完成[公开交付合同](../../../contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)的可评审设计，待项目所有者具体确认；工具链与历史来源补证已完成本轮有界核对，正式采用仍未通过，见[本轮评审](framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)。真实厂商资格不由固定响应结果推定。
 
 阶段 1 再实现和验收正式 Web / API、运行协调与历史恢复的完整纵向任务；这些成品不反向作为阶段 0 的已实现事实。真实厂商联调、模型自主修复质量、单 Agent / 团队效果比较继续后置，不能因真实模型暂停而伪造通过，也不阻断已授权的固定响应技术工作。
 

@@ -17,11 +17,14 @@
 
 ## 接下来事项（2026-11-05）
 
-接下来按以下顺序推进，不并行扩张实施主线：
+本次工作已收尾；下次按以下顺序推进，不延续今日运行窗口，也不重新开展已通过的原生 HTTP 固定上游切片：
 
-1. **先收口许可证据与交付范围。** 六包 14 份 wheel 告知及 pip 21 份内嵌告知已接入候选配方；[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)已覆盖 119 个 wheel、61 个 Debian 源包和 10 个 Alpine origin。Pillow 来源差异、两个 certifi 版本的生成步骤及 pip / Go 内嵌源码对应已核对。CPython 扩展 / 配置与 Go 工具链路径已静态核对，本轮历史元数据窗口已结束；历史构建 / 生成输入仍缺。下一步收口新增动态库与内嵌告知，并评估可完整留存输入的候选构建路线，再落实实际安装和源码获取验收；详见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#构建输入与完整镜像范围的后续核对)。镜像未重建、源码包未组装；新增下载、重锁、打包或重建另报范围授权，阶段 0 不因此退出。
-2. **原生 HTTP 技术切片已完成。** 单一非流式档案已验证实际 HTTP 工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据边界，见[框架专题](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#原生传输的建议实施范围待确认)。真实厂商 / 模型资格及输入 token 上界仍待验，通道默认关闭；不因固定上游通过而恢复真实模型。
-3. **确认阶段 1 的单 Agent 固定 Go 交付合同与 A 级视觉依据。** [公开交付合同](contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)已完成可评审设计，等待具体确认；[本轮采用评审](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)已更新，正式采用暂不通过；退出条件齐备前不提前开发正式 Web 或固定团队。
+1. **先补已有材料可完成的许可交付映射。** 核对 CPython 内嵌 Expat / libmpdec 的完整告知范围，纳入现有告知准备与离线校验；整理新增动态库的精确路径 / 归属缺口，需要镜像读取时再准备有界静态取证清单。[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)及[本轮采用评审](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)是起点，不重复已完成的 Go 内嵌文件比对。
+2. **明确历史输入缺口的处理路线。** 对 Pillow、cryptography、两个 certifi 和 regex 分别列出缺失材料、可追溯的不可变来源及无法补证时的候选替换 / 构建方案。先比较受影响依赖闭包、源码 / 告知集合和 SDK / 联合复验成本，再由项目所有者确认路线；不无限追加同类元数据，不把发布声明等同构建输入证明。
+3. **准备最终交付验收窗口。** 路线确认、来源和告知材料齐备后，准备具体下载 / 打包 / 重建命令、镜像身份、资源上限和清理方式，取得授权再执行。验收实际镜像告知字节与非 root 可读性、伴随源码完整性和接收方可获取性，以及受影响的 SDK / 联合路径；已有配方和离线检查不能替代此步。
+4. **确认单 Agent 设计，再复评阶段 0。** [公开交付合同](contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)已经可评审，等待具体确认；设计确认可先于最终镜像验收，但不替代许可条件。四项退出条件齐备后，按同一工作包实现 canonical schema / 权限、任务事务 / 协调、公开 API 和 Web，再做隔离执行及浏览器验收。此前不提前实现正式入口或固定团队。
+
+原生 HTTP 已通过固定上游工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据验证；真实厂商 / 模型资格、完整输入 token 上界和费用窗口仍待验。真实模型继续暂停，通道默认关闭。
 
 上述事项是后续推进计划，不延续已结束的下载、Docker 或服务运行授权。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
 

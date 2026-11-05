@@ -1,5 +1,7 @@
 # SDK 候选依赖与固定响应检查
 
+当前实现另含 Go 单一非流式原生 HTTP 适配及显式平台接线，固定上游的工具往返、配置 / 凭据、未知用量与取消已验证，详见[尝试控制合同](../../../docs/contracts/development-attempt-control-v1.md#原生-http-档案)。它未成为默认工作台入口，也未取得真实厂商资格。单 Agent 的[公开交付合同](../../../docs/contracts/development-task-delivery-v1.md)及 Pencil 代表面已设计待确认；本目录的 SDK / 联合探针命令不提供正式任务 API 或 Web。
+
 本目录只服务于[受控开发团队阶段 0](../../../docs/features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)，不属于工作台或既有 Python runtime 的依赖。
 
 ## 遥测可选依赖候选
