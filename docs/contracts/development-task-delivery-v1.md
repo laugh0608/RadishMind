@@ -1,10 +1,12 @@
 # 单 Agent 开发任务：公开交付合同 v1
 
-更新时间：2026-11-05
+更新时间：2026-11-10（收口规划，无新增运行证据）
 
 状态：阶段 0 的可评审设计，尚未实现公开 API、任务协调器或 Web；具体合同与视觉依据待项目所有者确认。固定 Go 单 Agent 的设计工作包已获授权，不等于阶段 1 执行能力已获准启用。
 
 所属功能：[实施与评测](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)、[协作界面](../features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md)。本页维护新增公开任务合同；底层委托、工具、事件与产物字段继续由[尝试控制](development-attempt-control-v1.md)和[开发产物](development-artifact-v1.md)负责。
+
+2026-11-10 已确认按本页固定 Go / 单 Agent 边界组织首版收口；具体字段、权限和视觉仍需原评审，未物化 schema 或实现公开入口。首版技术交付后先做有限真实单 Agent 价值复核，再决定团队范围，见[实施与评测](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#single-agent-value-review)。真实模型暂停不变。
 
 ## 交付范围与能力边界
 
