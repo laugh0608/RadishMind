@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./app/App";
+import { initializeWorkbenchConfiguration } from "./runtime/workbenchConfiguration.ts";
 import { uiI18n, initializeUiI18n } from "./i18n/instance.ts";
 import { createLocalePreferenceStore } from "./i18n/localePreference.ts";
 import { LocaleProvider } from "./i18n/LocaleProvider.tsx";
@@ -8,9 +8,12 @@ import "@xyflow/react/dist/style.css";
 import "./styles/family-ui/tokens.css";
 import "./styles/radishmind-aliases.css";
 import "./styles.css";
+import "./features/local-workbench/workbench.css";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);
 async function start() {
+  await initializeWorkbenchConfiguration(import.meta.env.VITE_RADISHMIND_RUNTIME_PROFILE, window.location.origin);
+  const { App } = await import("./app/App");
   const instance = uiI18n;
   const preference = createLocalePreferenceStore(() => window.localStorage, navigator.languages, async locale => {
     await instance.changeLanguage(locale);

@@ -1,67 +1,67 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-10-20
+更新时间：2026-11-05
 
 ## 文档职责
 
-本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实施事实见[能力矩阵](radishmind-capability-matrix.md)和对应[功能专题](features/README.md)，审阅数据与批次记录见[2026-W42 周志](devlogs/2026-W42.md)。
+本文只回答当前目标、下一动作、阻塞和停止线。产品范围见[产品范围与目标](radishmind-product-scope.md)，实现事实见[能力矩阵](radishmind-capability-matrix.md)与[功能专题](features/README.md)，阶段选择见[路线图](radishmind-roadmap.md)，历史证据见[周志](devlogs/README.md)。
 
 正文默认中文，代码标识符、路径、配置键和状态锚点保留原文。
 
 ## 当前结论（默认读取到本节结束）
 
-- 当前成熟度为**内部开发者预览**。工作流、应用运行与评测、模型网关、本地身份和开发测试态持久化已有连续实现；专题完成不等于真实模型提供方、团队试用或生产运行已通过验收。
-- 2026-10-15 已关闭开发阶段 RAG 晋级列表失败：修复共享请求标识与敏感材料检查的碰撞，确定性回归及四组本地中英 44/44 浏览器复验通过，所属进程、端口和临时数据库已清理。未重跑远端 CI 或调用真实模型；证据见[2026-W42 周志](devlogs/2026-W42.md)。
-- [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)已在登记的现有可达 Web 范围内完成 A 至 F 并关闭。身份、管理、Prompt / Workflow / RAG / HTTP Tool、Agent、Gateway、评测、结果库及主壳证据均按切片通过双语验收；F 最终三窗口 76 次复验、519 项单测、原包体预算与最终仓库检查通过。服务和临时库已清理，分窗口证据见[本周周志](devlogs/2026-W41.md#2026-10-11-f-阶段全站双语收口)。
-- [工作区成员邀请、认领与到期治理（开发 / 测试态）v1](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成并关闭，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。批次 E 已于 2026-09-08 获授权并完成 React、双数据库产品链、三视口、双标签与凭据隐私验收。
-- 2026-09-09 已修复 SQLite / 模拟工作流主链阻塞、完成草案前端状态归属收敛与工作区响应式裁切修正。三条自动浏览器回归已连续两轮通过，当时接入 PR / Release 配置；浏览器验证现已改为本地按需运行，历史证据详见[2026-W37 周志](devlogs/2026-W37.md)。该证据不等于真实模型提供方、团队试用或生产验收。
-- 2026-09-14 已完成[身份与成员领域首个切片](platform/engineering-health-productization-remediation-v1.md#身份与成员领域包边界与实现)：`internal/workspacepolicy` 已集中权限与四角色策略，调用点及既有覆盖率映射已迁移，身份、成员和邀请事务保留。独立策略、内存 / SQLite / HTTP、平台全量测试与 race / vet、覆盖率预算及仓库全量检查通过；PostgreSQL 四项隔离测试通过且环境已清理，详细结果见[2026-W38 周志](devlogs/2026-W38.md)。邀请[任务卡](task-cards/workspace-member-invitation-claim-expiry-governance-dev-test-v1-plan.md)不派生批次 F。
-- [应用定时回归评测](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、工作区 Workflow 模板目录与 Action Safety Ladder 保持完成关闭，不派生新的同层批次。
-- 工程整改 R2 至 R6 保持完成。前端状态收敛与三条工作流浏览器回归已分别获批实施，后者现作为本地按需验证，不再进入 PR `Candidate Quality`；不创建新工程批次。后端首个策略切片与双数据库回归已完成，进一步迁移须有具体维护问题，详见[工程健康专题的后续方向](platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。
-- 项目所有者已暂缓真实模型试用。[故障诊断试用素材](features/user-workspace/prompt-application-dev-test-usage-guide.md#内部故障诊断试用)与已完成的 [模型提供方消息 / 输出衔接修复](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#真实-provider-的消息与输出适配)保留；恢复试用前再落实模型、费用和操作窗口。隔离测试不能作为真实模型提供方或人工答案质量验收。
-- 2026-09-23 已完成 Prompt 结构化输出契约的网页编辑、精确版本审查与非空结果保存恢复；五条 Prompt 与原三条工作流连续两轮通过，测试服务和临时数据库已清理。实施与验收见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)及[2026-W39 周志](devlogs/2026-W39.md)，不新增同层任务卡或检查器。
-- 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。这些未满足项分别指生产密钥后端、进程监管、部署环境隔离和控制台生产打包；英文名称保留与现有检查器一致。
+- **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验；原生 HTTP 已通过固定上游技术验证；剩余许可、阶段 1 范围及 A 级视觉依据尚未闭合，正式采用暂不通过，阶段 0 不退出。
+- [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
+- 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
+- 既有授权窗口已结束，当前规划不延续下载、Docker 或服务运行授权；详细运行事实与清理记录沿任务卡和[W45 周志](devlogs/2026-W45.md)查证。
 
-## 当前完成与下一动作（2026-10-15）
+## 接下来事项（2026-11-05）
 
-[Prompt 结构化输出契约的 UI 编辑](features/user-workspace/prompt-application-template-version-review-controlled-invocation-dev-test-v1.md#结构化输出契约的-ui-编辑)已完成。开发者可在网页配置五字段诊断契约，经草案保存 / 恢复、不可变版本与源码审查进入受控运行；非空结果显式保存和刷新恢复、缺字段 / 额外字段拒绝且不重调已通过隔离浏览器验收。三条工作流与五条 Prompt 连续两轮通过，服务与临时数据库已清理；验证记录见[2026-W39 周志](devlogs/2026-W39.md)。
+本次工作已收尾；下次按以下顺序推进，不延续今日运行窗口，也不重新开展已通过的原生 HTTP 固定上游切片：
 
-项目所有者随后暂停手工测试，指定 i18n 为下一重点；本轮手工测试服务已停止，独立测试库与日志保留，未形成独立用户使用或答案质量验收。
+1. **先补已有材料可完成的许可交付映射。** 核对 CPython 内嵌 Expat / libmpdec 的完整告知范围，纳入现有告知准备与离线校验；整理新增动态库的精确路径 / 归属缺口，需要镜像读取时再准备有界静态取证清单。[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)及[本轮采用评审](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)是起点，不重复已完成的 Go 内嵌文件比对。
+2. **明确历史输入缺口的处理路线。** 对 Pillow、cryptography、两个 certifi 和 regex 分别列出缺失材料、可追溯的不可变来源及无法补证时的候选替换 / 构建方案。先比较受影响依赖闭包、源码 / 告知集合和 SDK / 联合复验成本，再由项目所有者确认路线；不无限追加同类元数据，不把发布声明等同构建输入证明。
+3. **准备最终交付验收窗口。** 路线确认、来源和告知材料齐备后，准备具体下载 / 打包 / 重建命令、镜像身份、资源上限和清理方式，取得授权再执行。验收实际镜像告知字节与非 root 可读性、伴随源码完整性和接收方可获取性，以及受影响的 SDK / 联合路径；已有配方和离线检查不能替代此步。
+4. **确认单 Agent 设计，再复评阶段 0。** [公开交付合同](contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)已经可评审，等待具体确认；设计确认可先于最终镜像验收，但不替代许可条件。四项退出条件齐备后，按同一工作包实现 canonical schema / 权限、任务事务 / 协调、公开 API 和 Web，再做隔离执行及浏览器验收。此前不提前实现正式入口或固定团队。
 
-项目所有者批准的首轮常读文档中文化已完成，范围与结果见[文档语言治理专题](document-language-governance-v1.md)。[中英 i18n 专题](features/web-internationalization-zh-en-v1.md)A、B 阶段已完成，保持原包体预算。草案编辑、冲突与修订恢复、候选审查 / 激活、Definition 运行、模板派生、RAG 与 HTTP Tool 已分窗口通过双语验收；离线投影解释于 2026-10-02 完成两语各两轮验收，服务与临时库已清理。C 阶段认证与账户安全已完成两语各两轮验收，会话冲突 / 撤销、密码轮换与双标签重新登录通过，服务与临时库已清理。工作区 / 成员 / 邀请与其余管理主页面亦已通过双语验收，C 阶段完成，D 阶段 Agent、Gateway 与运营亦已完成双语验收；不另起工程批次，E 阶段已登记切片与 F 全站覆盖、术语及帮助指南收口均已完成。真实模型试用继续暂缓，恢复前另行落实模型提供方 / 模型、费用与操作窗口。
+原生 HTTP 已通过固定上游工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据验证；真实厂商 / 模型资格、完整输入 token 上界和费用窗口仍待验。真实模型继续暂停，通道默认关闭。
 
-2026-10-07 已完成 C 阶段工作区、成员与邀请双语迁移，身份组六条流程中英各两轮共 24 次通过。范围与证据见[本周周志](devlogs/2026-W41.md)；Provider、路由、配额、价格与租户 / 审计主页面随后完成双语迁移，管理组四条流程中英各两轮共 16 次通过，C 阶段关闭。D 阶段 Agent 的 Profile、运行分配与 Session 单次建议随后完成中英各两轮共 12 次验收，服务和临时库已清理。Gateway 三协议与 API 示例、请求历史 / 用量及运营随后完成 12 次双语验收，D 阶段关闭。E 阶段随后按下述切片验收，F 最终收口亦已完成。
+上述事项是后续推进计划，不延续已结束的下载、Docker 或服务运行授权。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
 
-2026-10-11 已完成 E 阶段覆盖清单及首个运行审查切片：运行历史、精确详情与对比两条浏览器流程中英各两轮共 8 次通过，覆盖语言切换、等待 / 失败恢复、迟到响应隔离与三视口内部布局。隔离服务及临时数据库已清理。Case / Suite 用例与套件随后通过中英各两轮共 8 次浏览器验收，包含真实冲突、等待切换、历史版本、人工决定和三视口，所属服务与临时库已清理；应用评测 Plan / Campaign / Schedule 三条流程中英各两轮共 12 次通过，计划 / 批次使用真实隔离 API，日程 / 发生记录限定为合成投影；结果库 / 导出、RAG 数据集与其余可达辅助证据完成双语迁移，四条流程中英各两轮共 16 次通过，真实隔离 API、导出与冲突恢复及三视口已验收；辅助页面限定读侧投影，所属服务和临时库已清理。E 阶段已登记切片完成，其后 F 补齐主壳 / 会话与术语、帮助指南，最终结果见本节结论。详见[本周周志](devlogs/2026-W41.md#2026-10-11-e-阶段结果库与可达证据双语迁移)。
+**工作台剩余交付：独立用户按运行指南完成首次使用与持续使用；按项目所有者要求暂不安排。** 记录完成情况、求助点和恢复成本后修复，AI 技术验收不代替该项；它与新功能设计分别记录。Windows PowerShell 与 `linux/amd64` 容器仍未验收，不由已有平台结果推定通过。
 
-[十三组浏览器回归](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)已完成本地中英 100/100 验收和入口遮挡修复。远端后续重跑在中文 RAG 晋级列表断言处失败；2026-10-15 已修复请求标识碰撞并通过四组本地复验，详见下节。PR / Release 浏览器任务及 `Candidate Quality` 对应依赖已移除，保留本地按需入口和其余六项 CI 检查。配置提交 `75bd9c34` 已正常推送，两套远端检查依次全部通过，PR 耗时 19 分 30 秒、Release 耗时 15 分 13 秒；当时本地仓库全量检查通过。真实模型试用继续暂停，决策与结果见[2026-W41 周志](devlogs/2026-W41.md#2026-10-11-浏览器验证退出-ci-门禁)。
+技术证据、临时材料路径与清理记录见[工作台专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)；入口整理前的日期化摘要保留在[规划整理记录](devlogs/2026-W44.parts/planning-structure-20261101.md)。
 
-## 接下来事项（2026-10-15）
+不自动并行开启多条实施主线。当前只按明确要求推进受控软件开发团队阶段 0；真实模型继续暂停，独立使用证据未齐前不关闭工作台整体交付。已有配置 / 身份 / 存储和高风险执行契约保持，通用仓库准入与正式长任务交付仍需独立设计和验收，固定 Go 探针证据不替代这些条件。
 
-1. RAG 晋级列表问题与故障诊断应用的结果资产错配、变量名编辑焦点修复保持完成，相关验证与清理记录见[2026-W42 周志](devlogs/2026-W42.md#2026-10-15-故障诊断应用前端一致性修复)。下一项已选定为 [Prompt 计划结构化编辑与版本回归体验](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)：方案与四块局部 Pencil 已获批准，前端实现、完整 Web 单测和无服务构建验证已完成。项目所有者决定今晚结束，拟于 2026-10-16 继续验收：先运行隔离 `evaluation`，通过并核对清理后再运行 `workflow` 的 Prompt 子集；核对连续产品链、双语、焦点与三视口。完整命令、运行范围及通过标准见[明日验收建议](devlogs/2026-W42.md#2026-10-16-接下来事项)。服务启动窗口届时确认，今晚不执行；未扩大 API、schema、权限或存储。
-2. 项目所有者于 2026-10-20 明确启动阶段整合：先审查 `dev` 相对 `master` 的完整差异并完成必要检查，通过后创建 `dev → master` Pull Request。本轮范围为预检与创建 PR，合并后须按分支治理 ADR 回同步；新增 Prompt 计划编辑的隔离浏览器与 React 视觉验收仍待独立运行窗口，CI 通过不表示该项已验收或已发布。当前整合记录见 [2026-W43 周志](devlogs/2026-W43.md)。
-3. 真实模型试用继续暂停，不自动启动服务、新功能批次或生产交付。当前验收要求和停止线见[接下来事项](devlogs/2026-W42.md#2026-10-16-接下来事项)，此前决定保留于 [W41 周志](devlogs/2026-W41.md#2026-10-12-接下来事项)。
+## 阶段顺位与进入条件
 
-## 下一顺位的选择
-
-邀请产品链与项目所有者指定的中英 i18n 专题已完成。不自动派生同层续批；下一步仍围绕“内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证”按下表选择目标。四个产品面共同服务这条用户流程，不分别维持功能扩张队列。
-
-| 顺序 | 候选工作 | 进入条件与结果 |
+| 顺位 | 目标 | 完成或进入条件 |
 | --- | --- | --- |
-| 1 | 修复实际用户流程中的阻塞 | 记录目标用户、任务、现有路径和失败证据；完成后能重复验证任务成功 |
-| 2 | 按实际维护问题选择后端工作 | 首个权限 / 角色策略切片已完成；进一步迁移须有具体维护问题和行为验收依据，不自动连续拆包 |
-| 3 | 持续验证关键浏览器流程 | 本地按需使用现有十三组入口，不进入 PR / Release 门禁；已登记的 Prompt、Workflow、模板、RAG、HTTP Tool、离线投影、身份、管理、Agent 及 Gateway / 运营流程按各自隔离窗口验收，运行环境与次数见工程专题和周志。新切片按实际风险选择回归，不能把分窗口通过合称一次全量或远端 CI 通过 |
-| 4 | 内部真实任务试用与质量评测 | 明确参与者、模型 / 提供方、数据范围和运行窗口；记录完成率、耗时、求助点与输出质量 |
-| 5 | 外部接入或生产交付 | 只有挂载点、负责人、资源和验收环境明确时进入独立专题 |
+| 交付待办 | 本机持久工作台独立使用 | 宿主机与容器技术证据已完成；补独立用户按指南持续使用的证据 |
+| 当前开发 | 受控软件开发团队阶段 0 | [四项退出条件](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)闭合并复评通过后进入阶段 1；任务结果只在集中任务卡维护 |
+| 下一实施目标 | 单 Agent 隔离开发交付 | 阶段 0 条件满足并确认实现范围；Web 可发起 / 取消 / 审阅 / 保存候选，再推进固定团队 |
+| 后续 | 真实任务效果验证 | 恢复模型窗口，明确任务集、提供方 / 模型、数据与费用；记录质量和使用成本 |
+| 按需求选择 | 团队共享或业务接入 | 实际用户 / 环境 / 负责人或上层挂载点明确；选一个目标交付，不同时铺开 |
+| 候选 | 跨版本回归审查等增强 | 有持续使用证据，能说明现有手工路径的具体阻塞与收益 |
 
-该表是决策顺序，不表示同时启动五项工作。仍按一条产品线、必要时一条工程线控制在制范围；实现前在既有功能或平台专题中确认具体范围。
+外部条件提前齐备时可以明确重排下一窗口；不自动并行开多条主线。真实故障与安全问题优先处理，具体条件见[路线图](radishmind-roadmap.md#后续开发方向2026-10-26)。
+
+已登记未来能力：[Gateway 路由决策解释与尝试轨迹](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)。随阶段 1 运行详情设计统筹，先只读解释与历史回放，策略优化后置；当前 SDK / 隔离执行顺位及应用观测 `no_entry` 保持，不自动开启第二条实施主线。
+
+## 已完成范围与剩余边界
+
+- 邀请治理、中英国际化、定时回归、Workflow 模板与 Action Safety 保持关闭；工程 R2 至 R6、身份策略首个切片与既有双数据库回归不派生续批。实现事实从[功能入口](features/README.md)追溯。
+- 2026-10-15 RAG 晋级列表失败已修复并完成本地复验；2026-10-21 Prompt / Workflow 编辑与恢复、10 月 26 日首次使用指引及悬停修正均保持完成。分窗口证据见 [W42](devlogs/2026-W42.md)、[W43](devlogs/2026-W43.md)、[W44](devlogs/2026-W44.md)，不合称全站或真实用户验收。
+- 本地控制台保持 `local usable / read-only close`，不再默认继续补同类只读 console 小切片；production secret backend、process supervisor、部署环境隔离和 console production packaging 仍为 `not_satisfied`。正式 Web 的本机交付不默认扩展旧 Console 或授予生产能力。
+- 现有评测比较运行元数据；同计划版本批次配对不等于跨版本审查，也不判断答案质量。结果正文按 Session / Result Artifact 的既有显式保留规则处理。
 
 ## 保持关闭的边界
 
 - 邀请不发送邮件、不搜索目录，不邀请 `workspace_admin`；邀请码不直接授予权限，认领仍由既有身份 / 成员 / 角色负责模块原子处理。
 - 真实 Radish OIDC 联调保持 `real_radish_integration_deferred`。本地会话、开发身份头、签名测试成员断言和回环地址签发方不能作为生产授权证据。
 - 生产密钥后端、生产认证、生产 API 密钥 / 配额 / 计费、真实模型提供方故障回退、生产工作进程、进程监管和生产交付继续未满足准入条件。
-- 通用自治智能体循环、无限制工具、写方法工具、业务写回、自动确认提交、自动发布、重试 / 重放扩围继续关闭；Action Safety 不开放 `write_allowed_by_policy`。
+- 通用自治智能体循环、无限制工具、写方法工具、业务写回、自动确认提交、自动发布、重试 / 重放扩围继续关闭；Action Safety 不开放 `write_allowed_by_policy`。受控开发团队仅规划专属有界角色回合、隔离副本写入与命令档案，不放宽旧 Agent / Copilot 或通用工具入口，当前仅实现固定 Go 探针的专属执行档案，未开放通用仓库、真实模型或正式执行入口。
 - [应用运行观测与用量归因](features/user-workspace/application-operations-observability-usage-attribution-v1.md)后续仍为 `no_entry`：没有首分页窗口阻塞真实任务的证据时，不创建服务端汇总、跨存储库关联查询或计费账本。
 - 普通 UI、文案、布局和只读证据整理复用既有测试与门禁；不恢复准入 / 审查 / 刷新历史尾链，不因专题关闭派生新任务卡或检查器。
 - 未明确授权不启动常驻服务、Docker、真实模型长跑、模型或数据下载、生图后端、发布部署；不跨外部项目工作区写入。
@@ -69,9 +69,8 @@
 
 ## 读取与验证
 
-历史入口：[R6 文档与检查器收敛](platform/engineering-health-productization-remediation-v1.md#r6文档checker-与资产收敛)与[用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md)均保持完成，不提供新的执行顺位。
+历史索引：[R6 文档与检查器收敛](platform/engineering-health-productization-remediation-v1.md#r6文档checker-与资产收敛)、[用户工作区应用目录与生命周期（开发/测试态）v1](features/user-workspace/application-catalog-lifecycle-dev-test-v1.md)保持关闭，不提供执行顺位。
 
-1. 先读本文件与[功能设计入口](features/README.md)，再进入当前专题；仅在追溯时读取任务卡、周志和历史清单。
-2. 当前技术边界见[架构](radishmind-architecture.md)，后续决策见[路线图](radishmind-roadmap.md)，执行规则见[Agent 协作与执行规则](agent-collaboration.md)。
-3. 日常验证使用 `./scripts/check-repo.sh --fast`，Windows 使用 `pwsh ./scripts/check-repo.ps1 -Fast`；变更真相源、阶段或治理口径时补跑全量检查。
-4. 虚拟环境缺失时按[项目指南](radishmind-project-guide.md)单独准备，依赖安装不作为每次文档验证的默认步骤。
+1. 先读本文件与当前交付专题；架构、身份、存储和使用指南只按任务需要读取。历史任务卡与周志用于追溯，不决定排期。
+2. 日常验证使用 `./scripts/check-repo.sh --fast`，Windows 使用 `pwsh ./scripts/check-repo.ps1 -Fast`；变更真相源、阶段或治理口径时补跑全量检查。
+3. 依赖准备、服务、模型与外部操作按[协作规则](agent-collaboration.md)落实范围；不因文档规划自动执行。

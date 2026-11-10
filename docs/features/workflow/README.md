@@ -1,12 +1,16 @@
 # Workflow 细专题入口
 
-更新时间：2026-08-29
+更新时间：2026-10-31
 
 ## 文档目的
 
 本目录承接 `Workflow / Agent Runtime` 的细粒度专题。上层大方向仍在 [Workflow / Agent Runtime 设计与开发文档](../workflow-agent-runtime.md)，本目录只放需要长期跟踪的具体功能、复杂页面 / surface 和实现专题。
 
 普通只读展示、文案整理和布局调整不在本目录单独建文档，默认复用现有 workflow 聚合门禁、web build 和仓库基线。
+
+## 新增设计方向
+
+[多 Agent 协同与受控软件开发团队 v1](controlled-software-development-team-v1.md)主要归属本产品面。主专题统一目标与阶段，五个职责子专题维护接入、状态、隔离、界面和评测合同；[集中任务卡](../../task-cards/development-task-probe-v1-plan.md)记录阶段 0 任务结果，[实施子专题](controlled-software-development-team/implementation-and-evaluation-plan-v1.md)判断退出条件。当前顺位见[推进焦点](../../radishmind-current-focus.md)，不因本入口登记开放正式执行或改变下文已关闭批次范围。
 
 ## 当前专题
 
@@ -19,7 +23,7 @@
 | [Workflow Definition 绑定受控 HTTP Tool v1](workflow-definition-http-tool-v1.md) | 功能 / 高风险执行兼容专题 | `workflow_definition_http_tool_v1_completed` | 批次 A 至 D 已完成 profile、v3 Definition、action plan / decision v2、run v9、三种 store、React、SQLite 重启和真实浏览器三视口；专题关闭 |
 | [Workflow Definition 绑定受控 HTTP Tool v1 实施任务卡](../../task-cards/workflow-definition-http-tool-v1-plan.md) | 已归档高风险实现批次 | `completed` | A / B / C / D 全部完成，不派生批次 E 或同层 readiness 卡 |
 | [Workflow RAG 本地知识材料导入、审查与快照构建（开发 / 测试态）v1](workflow-rag-local-material-import-review-snapshot-building-dev-test-v1.md) | 功能 / 本地材料暂存与快照构建专题 | `workflow_rag_local_material_import_review_snapshot_building_dev_test_v1_completed` | Desktop / Narrow 局部 Pencil 已人工通过；单一结构化 editor、来源 / fragment 审查、create / version、真实 CAS、SQLite 重启、隐私与三视口均已关闭，不新增后端 owner |
-| [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 批次 A 至 E、三存储连续链、SQLite 产品浏览器、重启、隐私与旧版兼容均已完成；专题关闭 |
+| [Workflow Definition 结构化运行输入（开发 / 测试态）v1](workflow-definition-structured-runtime-inputs-dev-test-v1.md) | 功能 / 输入合同与执行兼容专题 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 原批次 A 至 E 证据保留；2026-10-21 已补齐 v2 网页编写、混合列表、修订恢复 / 派生及评测单一编辑状态，双语隔离验收通过，见专题范围补充 |
 | [Workflow Definition 结构化运行输入 v1 实施任务卡](../../task-cards/workflow-definition-structured-runtime-inputs-dev-test-v1-plan.md) | 已关闭高风险实现批次 | `workflow_definition_structured_runtime_inputs_dev_test_v1_completed` | 唯一实施卡已关闭，不派生平行任务卡或同层 gate-only 批次 |
 | [Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1](workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1.md) | 功能 / 版本与执行权威专题 | `workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed` | A 至 D 已完成不可变晋级、人工 activation、definition-bound run v5、Web、双数据库连续链与真实浏览器验收 |
 | [Workflow 不可变版本晋级与受控运行绑定 v1 实施任务卡](../../task-cards/workflow-definition-version-promotion-controlled-runtime-binding-dev-test-v1-plan.md) | 已归档高风险实现批次 | `completed` | A / B / C / D 全部完成，不派生平行任务卡 |
@@ -179,6 +183,8 @@
 - Task card：当实现批次开始落代码、route、schema、checker 或高风险 gate 时更新或新增。
 
 ## 当前下一步
+
+新功能按[受控软件开发团队](controlled-software-development-team-v1.md)阶段 0 推进：代表任务与离线准备已实施，SDK LLM 与单尝试控制合同 / 离线规则已验证，持久事务、真实资格 / 专属通道及受限 SDK Agent / 允许事件 / 等待取消已固定响应验证，固定 Go 沙箱 / 受限工具 / 归属清理已真实验收，下一项为开发产物与联合任务验收；工作台独立用户试用暂不安排，交付待办继续保留。以下已关闭能力提供复用事实，不派生续批。
 
 [Action Safety Ladder 与候选动作执行资格（开发 / 测试态）v1](action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)及[唯一高风险任务卡](../../task-cards/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1-plan.md)已完成并关闭：strict decision contract / compiler、response / candidate / assignment / Tool plan / pre-dispatch / Run 六个检查点、既有 owner 的 memory / SQLite / PostgreSQL 同构 snapshot、获人工批准的 8 个功能画板、单一 HTTP read projection、单一 React strict consumer、双数据库与真实浏览器证据均成立。模型、客户端与人工批准仍不能直接提升资格，`tool_callable` 只复用既有只读 HTTP Tool，`write_allowed_by_policy` 的有效结果在 v1 不可达。下一顺位回到功能设计评审。
 

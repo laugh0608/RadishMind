@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "../../i18n/evaluationPlanResources.ts";
 import { campaignOperation, campaignState } from "./applicationEvaluationMessages.ts";
-import { APPLICATION_EVALUATION_PROFILES, parseApplicationEvaluationPlanDraft, serializeApplicationEvaluationItems, type ApplicationEvaluationPlan, type ApplicationEvaluationPlanDraft, type ApplicationEvaluationPlanVersion, type ApplicationEvaluationProfile } from "./applicationEvaluationCampaignConsumer.ts";
+import { APPLICATION_EVALUATION_PROFILES, parseApplicationEvaluationPlanDraft, parseStructuredEvaluationFixtureSource, serializeApplicationEvaluationItems, type ApplicationEvaluationConfig, type ApplicationEvaluationDefinitionTarget, type ApplicationEvaluationPlan, type ApplicationEvaluationPlanDraft, type ApplicationEvaluationPlanVersion, type ApplicationEvaluationProfile } from "./applicationEvaluationCampaignConsumer.ts";
+import WorkflowEvaluationDefinitionReference from "./WorkflowEvaluationDefinitionReference.tsx";
 import StructuredRuntimeInputEditor from "./StructuredRuntimeInputEditor.tsx";
-import { structuredRuntimeInputAuthorityKey, validateStructuredRuntimeInputDrafts, type StructuredRuntimeInputDrafts, type StructuredRuntimeInputValues, type StructuredRuntimeInputFieldError } from "./structuredRuntimeInput.ts";
+import { validateStructuredRuntimeInputDrafts, type StructuredRuntimeInputDrafts, type StructuredRuntimeInputValues, validateStructuredRuntimeInputValues } from "./structuredRuntimeInput.ts";
 import type { PendingPlanOperation, LoadState } from "./applicationEvaluationCampaignPanel.tsx";
 export function PlanList({
   plans,
@@ -45,6 +46,8 @@ export function PlanList({
 }
 
 export function PlanOwner({
+  config,
+  onAdoptTarget,
   profile,
   planName,
   targetJSON,
@@ -64,6 +67,8 @@ export function PlanOwner({
   onCancel,
   onConfirm,
 }: {
+  config: ApplicationEvaluationConfig;
+  onAdoptTarget: (target: ApplicationEvaluationDefinitionTarget) => void;
   profile: ApplicationEvaluationProfile;
   planName: string;
   targetJSON: string;
@@ -84,6 +89,10 @@ export function PlanOwner({
   onConfirm: () => void;
 }) {
   const { t } = useTranslation("evaluation");
+  const validDraft = useMemo(() => {
+    try { return parseApplicationEvaluationPlanDraft(planName, profile, targetJSON, itemsJSON); }
+    catch { return null; }
+  }, [planName, profile, targetJSON, itemsJSON]);
   return (
     <section className="application-evaluation-plan-owner" id="application-evaluation-plan">
       <header>
@@ -100,6 +109,10 @@ export function PlanOwner({
         <div><span>{t($ => $.campaign.latestImmutable)}</span><strong>{selectedPlan ? `v${selectedPlan.latestPlanVersion}` : "—"}</strong></div>
         <div><span>{t($ => $.campaign.digest)}</span><strong>{shortRef(selectedPlan?.latestPlanDigest ?? "")}</strong></div>
       </div>
+      {profile.startsWith("workflow_definition_executor_") ? <>
+        <WorkflowEvaluationDefinitionReference config={config} disabled={operationPending} onAdopt={onAdoptTarget} />
+        <p className="application-evaluation-boundary-note">{t($ => $.campaign.workflowRegressionBoundary)}</p>
+      </> : null}
       <div className="application-evaluation-plan-editor">
         <label>
           <span>{t($ => $.campaign.planName)}</span>
@@ -131,8 +144,8 @@ export function PlanOwner({
       {!pending ? (
         <div className="application-evaluation-actions">
           <button type="button" className="secondary-action" onClick={onLoadVersion} disabled={!selectedVersion || operationPending}>{t($ => $.campaign.loadVersion)}</button>
-          <button type="button" className="secondary-action" onClick={() => onReview("create")} disabled={writeBlocked}>{t($ => $.campaign.reviewCreate)}</button>
-          <button type="button" onClick={() => onReview("revise")} disabled={writeBlocked || !selectedPlan}>{t($ => $.campaign.reviewRevision)}</button>
+          <button type="button" className="secondary-action" onClick={() => onReview("create")} disabled={writeBlocked || !validDraft}>{t($ => $.campaign.reviewCreate)}</button>
+          <button type="button" onClick={() => onReview("revise")} disabled={writeBlocked || !selectedPlan || !validDraft}>{t($ => $.campaign.reviewRevision)}</button>
           <button type="button" className="attention-action" onClick={onReviewArchive} disabled={writeBlocked || !selectedPlan}>{t($ => $.campaign.reviewArchive)}</button>
         </div>
       ) : (
@@ -142,6 +155,7 @@ export function PlanOwner({
           <p>{pending.kind === "archive"
             ? t($ => $.campaign.archiveBoundary)
             : t($ => $.campaign.orderedItems, { count: pending.draft?.items.length ?? 0, profile: pending.draft?.executionProfile ?? "" })}</p>
+          {pending.draft ? <pre className="application-evaluation-confirmation-values">{JSON.stringify({ target: pending.draft.target, items: pending.draft.items }, null, 2)}</pre> : null}
           <p>{t($ => $.campaign.planConfirmation, { version: selectedPlan?.recordVersion ?? 0 })}</p>
           <div><button type="button" className="secondary-action" onClick={onCancel} disabled={operationPending}>{t($ => $.campaign.cancel)}</button><button type="button" onClick={onConfirm} disabled={writeBlocked}>{t($ => $.campaign.confirmOperation, { operation: campaignOperation(t, pending.kind) })}</button></div>
         </div>
@@ -164,35 +178,17 @@ function StructuredEvaluationFixtureEditor({
   const { t } = useTranslation("evaluation");
   const source = useMemo(() => {
     try {
-      const draft = parseApplicationEvaluationPlanDraft(
-        "Structured evaluation fixture editor",
-        "workflow_definition_executor_v2",
-        targetJSON,
-        itemsJSON,
-      );
-      const contract = draft.target.workflowDefinition?.inputContract ?? null;
-      return contract ? { contract, items: draft.items } : null;
+      return parseStructuredEvaluationFixtureSource(targetJSON, itemsJSON);
     } catch {
       return null;
     }
   }, [itemsJSON, targetJSON]);
-  const [selectedItemKey, setSelectedItemKey] = useState("");
-  const selectedItem = source?.items.find((item) => item.itemKey === selectedItemKey) ?? source?.items[0] ?? null;
+  const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+  const selectedIndex = source && selectedItemIndex < source.items.length ? selectedItemIndex : 0;
+  const selectedItem = source?.items[selectedIndex] ?? null;
   const sourceInputs = selectedItem?.workflowDefinition?.inputs ?? {};
-  const sourceKey = source && selectedItem
-    ? `${structuredRuntimeInputAuthorityKey(source.contract)}:${selectedItem.itemKey}:${JSON.stringify(sourceInputs)}`
-    : "invalid";
-  const [drafts, setDrafts] = useState<StructuredRuntimeInputDrafts>(() => runtimeInputDrafts(sourceInputs));
-  const [fieldErrors, setFieldErrors] = useState<Record<string, StructuredRuntimeInputFieldError>>({});
-  const [validationSummary, setValidationSummary] = useState("");
-
-  useEffect(() => {
-    setSelectedItemKey(selectedItem?.itemKey ?? "");
-    setDrafts(runtimeInputDrafts(sourceInputs));
-    setFieldErrors({});
-    setValidationSummary("");
-  }, [sourceKey]);
-
+  const drafts = runtimeInputDrafts(sourceInputs);
+  const validation = source ? validateStructuredRuntimeInputValues(source.contract, sourceInputs) : null;
   if (!source || !selectedItem) {
     return <div className="application-evaluation-structured-fixture invalid">
       <strong>{t($ => $.campaign.fixtureUnavailable)}</strong>
@@ -203,14 +199,16 @@ function StructuredEvaluationFixtureEditor({
   const currentItem = selectedItem;
 
   function updateDrafts(next: StructuredRuntimeInputDrafts) {
-    setDrafts(next);
-    const validation = validateStructuredRuntimeInputDrafts(validSource.contract, next);
-    setFieldErrors(validation.fieldErrors);
-    setValidationSummary(validation.summary);
-    if (!validation.ok) return;
-    const nextItems = validSource.items.map((item) => item.itemKey === currentItem.itemKey ? {
+    const inputs: StructuredRuntimeInputValues = {};
+    for (const [name, value] of Object.entries(next)) {
+      if (value === undefined) continue;
+      const field = validSource.contract.fields.find(candidate => candidate.name === name);
+      const checked = field ? validateStructuredRuntimeInputDrafts({ ...validSource.contract, fields: [field] }, { [name]: value }) : null;
+      inputs[name] = checked?.ok ? checked.inputs[name] : value;
+    }
+    const nextItems = validSource.items.map((item) => item === currentItem ? {
       ...item,
-      workflowDefinition: item.workflowDefinition ? { ...item.workflowDefinition, inputs: validation.inputs } : null,
+      workflowDefinition: item.workflowDefinition ? { ...item.workflowDefinition, inputs } : null,
     } : item);
     onItemsJSONChange(serializeApplicationEvaluationItems(nextItems));
   }
@@ -223,19 +221,20 @@ function StructuredEvaluationFixtureEditor({
       </div>
       <label>
         <span>{t($ => $.campaign.fixture)}</span>
-        <select value={selectedItem.itemKey} onChange={(event) => setSelectedItemKey(event.target.value)} disabled={disabled}>
-          {source.items.map((item) => <option key={item.itemKey} value={item.itemKey}>{item.name} · {item.itemKey}</option>)}
+        <select value={selectedIndex} onChange={(event) => setSelectedItemIndex(Number(event.target.value))} disabled={disabled}>
+          {source.items.map((item, index) => <option key={index} value={index}>{item.name} · {item.itemKey}</option>)}
         </select>
       </label>
     </div>
     <StructuredRuntimeInputEditor
       contract={source.contract}
       drafts={drafts}
-      fieldErrors={fieldErrors}
+      fieldErrors={validation?.fieldErrors ?? {}}
+      boundary={t($ => $.campaign.fixturePersistence)}
       disabled={disabled}
       onChange={updateDrafts}
     />
-    {validationSummary ? <p className="application-evaluation-structured-fixture-error" role="alert">{t($ => $.campaign.fixtureInvalid)}</p> : null}
+    {validation && !validation.ok ? <p className="application-evaluation-structured-fixture-error" role="alert">{t($ => $.campaign.fixtureInvalid)}</p> : null}
   </div>;
 }
 

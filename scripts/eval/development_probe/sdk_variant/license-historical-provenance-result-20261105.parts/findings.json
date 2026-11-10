@@ -1,0 +1,13 @@
+{
+  "publication": "三个目标 wheel 的发布声明 subject 摘要一致；predicate 均为 null，没有构建材料清单。仅核对声明内容，未完成签名 / 透明日志信任验证。",
+  "run_selection": "按已批准脚本各选择最新成功运行读取 jobs；Pillow 选到 Lint、certifi 选到 Bump cacert.pem，不能冒称对应发行构建。精确提交的运行列表另保留 Wheels / release 线索；旧 certifi 返回 0 条不代表历史未运行。",
+  "cryptography": "取得相同提交的 Wheel Builder jobs 元数据，未取得实际构建容器 digest / 来源集合；不以 job 名称证明输入。",
+  "libavif_declared_inputs": {
+    "aom": "v3.14.1",
+    "dav1d": "1.5.3",
+    "libsharpyuv_libwebp": "v1.6.0",
+    "libyuv": "644251f25"
+  },
+  "boundary": "仅精确发行树的构建文本声明；libyuv 为短提交，tag 未在本轮解析为不可变源码集合，也不证明目标 Pillow wheel 实际使用这些字节。multibuild 四份允许文本已核对，历史 pillow-depends/main.zip 与嵌套来源仍缺。",
+  "next_review": "本窗口结束，不继续无上限追取。优先评估以可完整留存输入的新候选构建替换缺证发行物；须先明确依赖范围、构建来源及复验成本，再单独授权，不自动重锁或重建。"
+}

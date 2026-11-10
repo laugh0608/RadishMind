@@ -1,3 +1,5 @@
+import { LocalWorkbenchBoundary, LocalWorkbenchStatus } from "../features/local-workbench/LocalWorkbenchBoundary.tsx";
+import { readWebConfigurationEnvironment, isLocalWorkbench } from "../runtime/workbenchConfiguration.ts";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useEffect, useMemo, useState, type KeyboardEvent } from "react";
 
@@ -160,7 +162,7 @@ const LocalIdentityGateway = lazy(() =>
   })),
 );
 
-const localIdentityGatewayEnabled = (import.meta.env as Record<string, string | undefined>)
+const localIdentityGatewayEnabled = (readWebConfigurationEnvironment())
   .VITE_RADISHMIND_LOCAL_IDENTITY_MODE?.trim() === "local_identity_dev";
 const AdminControlPlaneWorkspace = lazy(() => import("../features/control-plane-read/adminControlPlaneWorkspace"));
 const ModelGatewayOverviewPanel = lazy(() => import("../features/control-plane-read/modelGatewayOverviewPanel").then(module => ({ default: module.ModelGatewayOverviewPanel })));
@@ -192,7 +194,7 @@ export function App() {
   return (
     <Suspense fallback={null}>
       <LocalIdentityGateway>
-        <ProductApp />
+        <LocalWorkbenchBoundary><ProductApp /></LocalWorkbenchBoundary>
       </LocalIdentityGateway>
     </Suspense>
   );
@@ -662,8 +664,8 @@ function ProductApp() {
     }
     applyWorkflowSelectionPatch(selectionForDraft(draftId, workflowDraftDesigner, { workspaceRunHistory }));
   };
-  const handleCreateWorkflowExecutorDraft = () => {
-    if (!draftWorkspace.handleCreateWorkflowExecutorDraft()) return;
+  const handleCreateWorkflowExecutorDraft = (schema: "v1" | "v2" = "v1") => {
+    if (!draftWorkspace.handleCreateWorkflowExecutorDraft(schema)) return;
     setWorkflowExecutorState(initialWorkflowExecutorConsumerState(workflowExecutorConsumerConfig));
     setWorkflowExecutorInput(DEFAULT_WORKFLOW_EXECUTOR_INPUT);
     setWorkflowExecutorModel("");
@@ -835,6 +837,15 @@ function ProductApp() {
     return true;
   };
 
+  if (isLocalWorkbench() && devLiveState.status !== "ready") {
+    return <main className="surface-band workbench-first-entry" role={devLiveState.status === "failed" ? "alert" : "status"}>
+      <LocalWorkbenchStatus />
+      <p>{devLiveState.status === "failed" ? t($ => $.localPersistence.loadFailed) : t($ => $.localPersistence.loading)}</p>
+      {devLiveState.status === "failed" ? <button type="button" onClick={() => window.location.reload()}>{t($ => $.localPersistence.retry)}</button> : null}
+    </main>;
+  }
+  const hasUserWorkflowDraft = activeWorkflowDraft.localOnlyInteraction === "local_edit" || savedDraftConsumerState.currentDraftVersion > 0;
+  const workbenchWorkflowSelected = applicationDevelopmentWorkspaceContext.applicationKind === "workflow_copilot";
   return (
     <main className="product-shell" data-rd-profile="workbench">
       <ProductNavigation
@@ -852,6 +863,7 @@ function ProductApp() {
       />
 
       <section className="product-workspace" aria-label={t($ => $.appShell.controlPlaneShell)}>
+        <LocalWorkbenchStatus />
         <Suspense fallback={null}>
           <WorkspaceProductOverviewPanel
             application={applicationDevelopmentWorkspaceContext}
@@ -886,6 +898,7 @@ function ProductApp() {
             }}
           />
         </Suspense>
+        {!isLocalWorkbench() && <>
         <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.evidenceLoading)}</p></section>}>
           <ModelGatewayOverviewPanel overview={modelGatewayOverview} />
         </Suspense>
@@ -921,6 +934,8 @@ function ProductApp() {
           selectedScenarioId={workflowScenarioInspector.selectedScenarioId}
           onSelectScenario={setSelectedWorkflowScenarioId}
         /></Suspense>
+
+        </>}
 
         <section
           className="surface-band workspace-applications"
@@ -997,7 +1012,7 @@ function ProductApp() {
             </div>
           ) : null}
 
-          {applicationDevelopmentWorkspaceContext.status !== "unavailable" ? (
+          {!isLocalWorkbench() && applicationDevelopmentWorkspaceContext.status !== "unavailable" ? (
             <Suspense fallback={null}><WorkflowApplicationDetailPanel detail={workflowApplicationDetail} /></Suspense>
           ) : null}
 
@@ -1048,16 +1063,16 @@ function ProductApp() {
             />
           </Suspense>
 
-          <div className="application-states" aria-label={t($ => $.appShell.applicationStates)}>
+          {!isLocalWorkbench() && <div className="application-states" aria-label={t($ => $.appShell.applicationStates)}>
             {workspaceApplications.statePreviews.map((state) => (
               <Suspense key={state.id} fallback={null}><ApplicationStatePreview key={state.id} state={state} /></Suspense>
             ))}
-          </div>
+          </div>}
         </section>
 
-        <Suspense fallback={null}>
+        {!isLocalWorkbench() && <Suspense fallback={null}>
           <WorkspaceUsageQuotaPanel view={workspaceUsageQuota} />
-        </Suspense>
+        </Suspense>}
 
         <section
           className="surface-band workspace-workflow-definitions"
@@ -1126,10 +1141,15 @@ function ProductApp() {
             ))}
           </div>
 
-          <Suspense fallback={null}><WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} /></Suspense>
+          {isLocalWorkbench() && <div className="workbench-draft-entry">
+            <p>{t($ => $.localPersistence.noWorkflow)}</p>
+            <button type="button" disabled={!workbenchWorkflowSelected || workflowExecutorOperationPending} onClick={() => handleCreateWorkflowExecutorDraft("v2")}>{t($ => $.localPersistence.newWorkflow)}</button>
+          </div>}
+          {!isLocalWorkbench() && <Suspense fallback={null}><WorkflowDefinitionDetailPanel detail={workflowDefinitionDetail} /></Suspense>}
+          {(!isLocalWorkbench() || hasUserWorkflowDraft) && <>
           <Suspense fallback={<section className="workflow-draft-designer"><p>{t($ => $.appShell.loadingDesigner)}</p></section>}>
             <WorkflowDraftDesignerPanel
-              designer={workflowDraftDesigner}
+              designer={isLocalWorkbench() ? { ...workflowDraftDesigner, templates: [] } : workflowDraftDesigner}
               selectedDraft={activeWorkflowDraft}
               validationInspector={activeWorkflowDraftValidationInspector}
               selectedDraftId={selectedWorkflowDraft.draftId}
@@ -1167,6 +1187,7 @@ function ProductApp() {
               onRestored={handleWorkflowDraftRevisionRestored}
             />
           </Suspense>
+          {!isLocalWorkbench() && <>
           <Suspense fallback={<section className="workflow-executor-v0"><p>{t($ => $.appShell.httpToolLoading)}</p></section>}>
             <WorkflowHTTPToolActionPanel
               draft={activeWorkflowDraft}
@@ -1205,6 +1226,8 @@ function ProductApp() {
               onExecutionRecorded={() => setWorkflowRunHistoryRefreshKey((key) => key + 1)}
             />
           </Suspense>
+          </>}
+          {!isLocalWorkbench() && <>
           <Suspense fallback={null}>
           <WorkflowExecutorPanel
             draft={activeWorkflowDraft}
@@ -1229,12 +1252,14 @@ function ProductApp() {
           <Suspense fallback={<section className="surface-band"><p>{t($ => $.appShell.workflowReviewLoading)}</p></section>}>
             <WorkflowReviewHandoffPanel handoff={workflowReviewHandoff} />
           </Suspense>
+          </>}
 
-          <div className="workflow-definition-states" aria-label={t($ => $.appShell.definitionStates)}>
+          </>}
+          {!isLocalWorkbench() && <div className="workflow-definition-states" aria-label={t($ => $.appShell.definitionStates)}>
             {workspaceWorkflowDefinitions.statePreviews.map((state) => (
               <Suspense key={state.id} fallback={null}><WorkflowDefinitionStatePreview key={state.id} state={state} /></Suspense>
             ))}
-          </div>
+          </div>}
         </section>
 
         <section hidden aria-hidden="true"
@@ -1313,6 +1338,7 @@ function ProductApp() {
           </>}
         </section>
 
+        {!isLocalWorkbench() && <>
         <section className="surface-band" id="routes" aria-labelledby="routes-title">
           <div className="section-heading">
             <div>
@@ -1365,6 +1391,7 @@ function ProductApp() {
             </div>
           </div>
         </section>
+        </>}
       </section>
     </main>
   );

@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 export class GatewayRequestHistoryError extends Error {
   readonly code: string;
   constructor(code: string) {
@@ -318,7 +319,7 @@ export const EMPTY_GATEWAY_REQUEST_HISTORY_FILTER: GatewayRequestHistoryFilter =
 };
 
 export function readModelGatewayRequestHistoryConfig(): ModelGatewayRequestHistoryConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_GATEWAY_REQUEST_HISTORY_SOURCE?.trim() === DEV_SOURCE
       ? "dev_gateway_request_history_http"

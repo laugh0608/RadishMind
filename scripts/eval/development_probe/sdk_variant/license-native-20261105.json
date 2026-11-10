@@ -1,0 +1,123 @@
+{
+  "schema_version": "development_native_component_evidence.v1",
+  "status": "offline_mapping_and_external_image_files_verified_static_provenance_open",
+  "date": "2026-11-05",
+  "sdk_image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "frozen_lock_sha256": "3e2f6bc2ca091acd36cb201ae5f66ed69b50d080af4b55c32314e0b1283983a3",
+  "summary": {
+    "packages": 26,
+    "objects": 63,
+    "sboms": 10,
+    "packages_with_sbom": 8,
+    "all_target_sboms": 7,
+    "pillow_bundled_objects": 18,
+    "dynamic_edges": 187,
+    "same_wheel_edges": 23,
+    "external_sonames": [
+      "ld-linux-aarch64.so.1",
+      "libc.so.6",
+      "libdl.so.2",
+      "libgcc_s.so.1",
+      "libm.so.6",
+      "libpthread.so.0",
+      "libstdc++.so.6",
+      "libz.so.1"
+    ]
+  },
+  "verification": {
+    "all_26_wheel_hashes_match_frozen_lock": true,
+    "all_63_elf_hashes_and_needed_match_prior_evidence": true,
+    "architecture": "AArch64 ELF64 little endian",
+    "same_wheel_match_rule": "Same package; exact DT_SONAME match; provider directory occurs in requester DT_RUNPATH or DT_RPATH after ORIGIN expansion. Runtime environment and loader execution not verified.",
+    "sbom_scope_rule": "all_targets=true and optional/excluded declarations do not establish final linked component selection.",
+    "external_image_files_verified": 8
+  },
+  "parts": [
+    {
+      "file": "packages-01.json",
+      "sha256": "fe3fbad5e7f5f8a6f86bdf757f9db8ab403892f9f02ada8be435b402ae7cacff",
+      "kind": "wheel_notice_and_sbom_identity"
+    },
+    {
+      "file": "packages-02.json",
+      "sha256": "305b0abb5b7c0d38e9064875daf75516aa4a16c9736b000f89676d0266895cee",
+      "kind": "wheel_notice_and_sbom_identity"
+    },
+    {
+      "file": "objects-01.json",
+      "sha256": "26b71c14cc9979fa452344350a59499bfcb9893c7cb3f13f632025beebd1ce60",
+      "kind": "elf_dynamic_metadata"
+    },
+    {
+      "file": "objects-02.json",
+      "sha256": "14ee342926887c429824cf2a7796b9305d03b82425042bd070d925ec8bde1dec",
+      "kind": "elf_dynamic_metadata"
+    },
+    {
+      "file": "objects-03.json",
+      "sha256": "08d4fa7f8cf6f5aae39469187adc0efd04b1c7ad1ec2bb68495788fa34279de9",
+      "kind": "elf_dynamic_metadata"
+    },
+    {
+      "file": "objects-04.json",
+      "sha256": "82f164bf5455d1e7c4351963d599e0f31fc628df2998646144c54b2b25d5bf1a",
+      "kind": "elf_dynamic_metadata"
+    },
+    {
+      "file": "objects-05.json",
+      "sha256": "b285682715ce585f1d62ee41254199b5d8ce9e5125b01882af209b6b5597d31b",
+      "kind": "elf_dynamic_metadata"
+    },
+    {
+      "file": "sboms-01.json",
+      "sha256": "fa5820cfcfd4dc1fcd4874e047e02a6689cdde617c7b21d3eb3ccf72eecf4fc7",
+      "kind": "embedded_sbom_summary"
+    },
+    {
+      "file": "pillow-declarations-01.json",
+      "sha256": "e86e4601fde462393a443d38dc5abc89d37f9fa4dc4187717f577a24d9f7b9c1",
+      "kind": "sbom_declaration_to_binary_name_candidates"
+    },
+    {
+      "file": "pillow-declarations-02.json",
+      "sha256": "fda28775a09f4f7ba0f6a3c06b18de24d94304e43d11fcbfa04ad83259398bb1",
+      "kind": "sbom_declaration_to_binary_name_candidates"
+    },
+    {
+      "file": "pillow-findings.json",
+      "sha256": "5dbf71eb486685d4cf7ebaf60040e328e7ead95236be9c6537b4c8f339b4da7e",
+      "kind": "bounded_findings"
+    },
+    {
+      "file": "external-candidates.json",
+      "sha256": "45fd11b4cf140475dfb394616cc29f4cfd4c44adf40da7b813431f0123b71b45",
+      "kind": "external_resolution_candidates"
+    },
+    {
+      "file": "image-copies.json",
+      "sha256": "67161e7ac572270709cf2f094b92349f621572055a75d09283e31cdac3eef449",
+      "kind": "authorized_image_copy_records"
+    }
+  ],
+  "reproduction": {
+    "script": "tmp/development-native-map-20261105/inspect_native_wheels.py",
+    "script_sha256": "186afee299f043d7451b127b0dd8e785a2baee9699174f9cfcf4dc10fbde1fb0",
+    "raw_inventory_sha256": "7174fe62df2eb755408efa6fe5306c77165ff0f51ad70dc1f27923e167ca574d",
+    "raw_sbom_directory": "tmp/development-native-map-20261105/sboms"
+  },
+  "next_evidence": [
+    "按已经核对的三组系统源码版本落实覆盖源码提供方式；不把同镜像 MD5 声明比对当作独立构建证明。",
+    "逐包核对静态组件 / Rust 目标选择、精确来源与既有告知；优先处理 Pillow 声明冲突及组合许可中的原生组件。",
+    "继续确定覆盖源码提供方式并核对实际镜像中的补充告知；本记录不改变 installed_in_image=false。"
+  ],
+  "boundary": {
+    "new_downloads": false,
+    "installed_or_imported_packages": false,
+    "executed_native_objects": false,
+    "container_operations": false,
+    "image_rebuilt": false,
+    "license_gate_closed": false
+  },
+  "image_read_result": "license-native-image-result-20261105.json",
+  "supplement_evidence": "license-delivery-20261105.json"
+}

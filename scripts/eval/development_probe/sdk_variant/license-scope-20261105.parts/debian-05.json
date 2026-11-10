@@ -1,0 +1,214 @@
+{
+  "items": [
+    {
+      "source": "libmd",
+      "version": "1.1.0-2",
+      "binary_packages": [
+        "libmd0"
+      ],
+      "dsc_sha256": "46cc951cd6d71bbfeff4522de66f968fb92601ec4cc622b07f6ac0a2a36ac5f0",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/3b9b67169e1f51169382cda8.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libmd/1.1.0-2",
+      "source_files": [
+        {
+          "filename": "libmd_1.1.0.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "1bd6aa42275313af3141c7cf2e5b964e8b1fd488025caf2f971f43b00776b332"
+        },
+        {
+          "filename": "libmd_1.1.0.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "402fd3024e43ab975733d09e661804a58ca58697194e4b15216b1217cfe1dadb"
+        },
+        {
+          "filename": "libmd_1.1.0-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "3b6ff35fc921eb5450fa9bf2d300c9e058e3771f96f8f13f759768fadd53324c"
+        }
+      ]
+    },
+    {
+      "source": "libseccomp",
+      "version": "2.6.0-2",
+      "binary_packages": [
+        "libseccomp2"
+      ],
+      "dsc_sha256": "d05f94536558d34fa339326c6f958a3357b51efac8234470b5d97b69472db765",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/4cbc1f802a2013365d4f9e40.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libseccomp/2.6.0-2",
+      "source_files": [
+        {
+          "filename": "libseccomp_2.6.0.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "83b6085232d1588c379dc9b9cae47bb37407cf262e6e74993c61ba72d2a784dc"
+        },
+        {
+          "filename": "libseccomp_2.6.0.orig.tar.gz.asc",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "52e338fa958128293cbd25d2be189e34da41c4f4abbb1b641cf58f373c001f94"
+        },
+        {
+          "filename": "libseccomp_2.6.0-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "ed705ec85719403e77d004c99c0b06b795f090c66fcae265c4bcf37ffea9cc27"
+        }
+      ]
+    },
+    {
+      "source": "libselinux",
+      "version": "3.8.1-1",
+      "binary_packages": [
+        "libselinux1"
+      ],
+      "dsc_sha256": "e430b782a396e266f86c32fa779efadebfd40e6a0d10ddbd786fc47905f723b9",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/49030c0f9853bfbf10772e45.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libselinux/3.8.1-1",
+      "source_files": [
+        {
+          "filename": "libselinux_3.8.1.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "ec2d2789f931152d21c1db1eb4bc202ce4eccede34d9be9e360e3b45243cee2c"
+        },
+        {
+          "filename": "libselinux_3.8.1.orig.tar.gz.asc",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "7f983714a780d89f7677e7ba140ce29974022b8ba225f60246b6c33de1477dd6"
+        },
+        {
+          "filename": "libselinux_3.8.1-1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "1af25952374f083cf3d6d0edd5beb938f2e53c30eb404afa1e32fcd1cb127db7"
+        }
+      ]
+    },
+    {
+      "source": "libsemanage",
+      "version": "3.8.1-1",
+      "binary_packages": [
+        "libsemanage-common",
+        "libsemanage2"
+      ],
+      "dsc_sha256": "b22bfc4ab2cd47fac46cc9e45d418bb30eb540c3e5c1052d6c669f53e180e4e5",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/833b85f3901e271dd9e0b47e.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libsemanage/3.8.1-1",
+      "source_files": [
+        {
+          "filename": "libsemanage_3.8.1.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "7b39127b219cc70bfd935a4af6b0f2ba83d4b35c916f253c7e942c23ab490f07"
+        },
+        {
+          "filename": "libsemanage_3.8.1.orig.tar.gz.asc",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "5b4856cb5823fba1b247ff1b5355692706da68a4df61a936d1b33b1f9e9b2f3d"
+        },
+        {
+          "filename": "libsemanage_3.8.1-1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "6d1e5bd4d06bbd25ced1b75fba394c3e2157bd604cf1cd33fb581793d70bd7b8"
+        }
+      ]
+    },
+    {
+      "source": "libsepol",
+      "version": "3.8.1-1",
+      "binary_packages": [
+        "libsepol2"
+      ],
+      "dsc_sha256": "0351ffc8c3f66918c9e4ecae9244ae2af27857d8795e424e384ddda794718c34",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/3088489130569f7e426aa877.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libsepol/3.8.1-1",
+      "source_files": [
+        {
+          "filename": "libsepol_3.8.1.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "0e78705305f955abd4c0654d37a5477ee26349ab74db9e2b03a7868897ae1ddf"
+        },
+        {
+          "filename": "libsepol_3.8.1.orig.tar.gz.asc",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "183f6cf96054986704d4224f89518e9139370385c43a533078f45ca688dca8b6"
+        },
+        {
+          "filename": "libsepol_3.8.1-1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "7aac515a941f8dd19581b16c664b3098962e6a8ed7fa0afdafd306a85c667619"
+        }
+      ]
+    },
+    {
+      "source": "libxcrypt",
+      "version": "1:4.4.38-1",
+      "binary_packages": [
+        "libcrypt1"
+      ],
+      "dsc_sha256": "feba1874a84616791c1c17f9a290c9e97562b2904b3b0200edc82a2db54f3f07",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/d0e444d60eb56c95e1e4db3c.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libxcrypt/1%3A4.4.38-1",
+      "source_files": [
+        {
+          "filename": "libxcrypt_4.4.38.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "6a275a356622c64ba9f693892215dbb399c003a7a4afeed9c4c74070eaab20f4"
+        },
+        {
+          "filename": "libxcrypt_4.4.38-1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "6b87bcb5325e417ab3f4c01c364233444b4c9008a69ec1d6fababb3f6e693a5e"
+        }
+      ]
+    },
+    {
+      "source": "libzstd",
+      "version": "1.5.7+dfsg-1",
+      "binary_packages": [
+        "libzstd1"
+      ],
+      "dsc_sha256": "8f6ab97fa772d921334e50fa5756a0951e23c718dc913e43a228f28c1a23adf9",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/1b08e40249097820fee43843.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libzstd/1.5.7+dfsg-1",
+      "source_files": [
+        {
+          "filename": "libzstd_1.5.7+dfsg.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "0c092ef267edce57ba7f3f2645c861f72eaf5e76273c6c3632869423464b90a5"
+        },
+        {
+          "filename": "libzstd_1.5.7+dfsg-1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "5e88424d919941291f79e1bfada6cb1a6f748671d9de7d4b7d931f361f183a15"
+        }
+      ]
+    },
+    {
+      "source": "lz4",
+      "version": "1.10.0-4",
+      "binary_packages": [
+        "liblz4-1"
+      ],
+      "dsc_sha256": "394c635aa75a21cd5896680e48821c05336645072ae866b2717d53f36b9ba851",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/6f7a5e73116120ddddeebfc2.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/lz4/1.10.0-4",
+      "source_files": [
+        {
+          "filename": "lz4_1.10.0.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "537512904744b35e232912055ccf8ec66d768639ff3abe5788d90d792ec5f48b"
+        },
+        {
+          "filename": "lz4_1.10.0-4.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-04.json",
+          "sha256": "8d276c3254182c2c9cf319b9a6504cf257c56b441f37d3db8ad97d33d46a0911"
+        }
+      ]
+    }
+  ]
+}

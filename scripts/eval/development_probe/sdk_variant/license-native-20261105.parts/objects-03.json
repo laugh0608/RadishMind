@@ -1,0 +1,237 @@
+{
+  "items": [
+    {
+      "package": "pillow",
+      "path": "PIL/_imagingmorph.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 225768,
+      "sha256": "0b0c3203cfbcc74d001ce231b6266e59159c271de6a69730a12573d8c715d5f2",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imagingtk.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 234168,
+      "sha256": "2274ea7868747d77c8ec3b4759f805ef0c598da5f039c8b9d2bee34285089273",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_webp.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 397321,
+      "sha256": "58bda50e883f0a7eec9c3da46fd7c47f7d69eac62ada27f17fadb04742ec0c28",
+      "needed": [
+        "libwebp-bac0fc6b.so.7.2.0",
+        "libwebpmux-fec2c160.so.3.1.2",
+        "libwebpdemux-b0a60f8c.so.2.0.17",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [
+        "$ORIGIN/../pillow.libs"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libwebp-bac0fc6b.so.7.2.0": "pillow.libs/libwebp-bac0fc6b.so.7.2.0",
+        "libwebpmux-fec2c160.so.3.1.2": "pillow.libs/libwebpmux-fec2c160.so.3.1.2",
+        "libwebpdemux-b0a60f8c.so.2.0.17": "pillow.libs/libwebpdemux-b0a60f8c.so.2.0.17"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libXau-7926f62a.so.6.0.0",
+      "bytes": 134585,
+      "sha256": "53d2e589ef6bc08f5ad0d68ffe6cbd6195c6aff861a7a71a4866ca419271d318",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": "libXau-7926f62a.so.6.0.0",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libavif-ba04b566.so.16.4.2",
+      "bytes": 3480033,
+      "sha256": "f509aa23e4724214afcd24dfac5e5b3c8853ea34564f4dd8d5e142b8093613f8",
+      "needed": [
+        "libdl.so.2",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libavif-ba04b566.so.16.4.2",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libbrotlicommon-f79e5820.so.1.2.0",
+      "bytes": 330489,
+      "sha256": "b0c19b13d87a51badb12fde55ced07aaea63a1c53e17e3d383563fc27b541600",
+      "needed": [
+        "libm.so.6",
+        "libc.so.6"
+      ],
+      "soname": "libbrotlicommon-f79e5820.so.1.2.0",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libbrotlidec-53ab751a.so.1.2.0",
+      "bytes": 395777,
+      "sha256": "2fe90af47ae040a87fa5ea86eb3b7fe79776a945c7a805c5ad04a6d4a37fc8b0",
+      "needed": [
+        "libm.so.6",
+        "libbrotlicommon-f79e5820.so.1.2.0",
+        "libc.so.6"
+      ],
+      "soname": "libbrotlidec-53ab751a.so.1.2.0",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libbrotlicommon-f79e5820.so.1.2.0": "pillow.libs/libbrotlicommon-f79e5820.so.1.2.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libfreetype-6d43b1fe.so.6.20.6",
+      "bytes": 1319065,
+      "sha256": "2199d7712872109686ed67f98e42f8156111db5322160aeb316eec2cd68ce4d5",
+      "needed": [
+        "libpng16-76a95936.so.16.58.0",
+        "libz.so.1",
+        "libm.so.6",
+        "libharfbuzz-38f28207.so.0.61450.0",
+        "libbrotlidec-53ab751a.so.1.2.0",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libfreetype-6d43b1fe.so.6.20.6",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libpng16-76a95936.so.16.58.0": "pillow.libs/libpng16-76a95936.so.16.58.0",
+        "libharfbuzz-38f28207.so.0.61450.0": "pillow.libs/libharfbuzz-38f28207.so.0.61450.0",
+        "libbrotlidec-53ab751a.so.1.2.0": "pillow.libs/libbrotlidec-53ab751a.so.1.2.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libharfbuzz-38f28207.so.0.61450.0",
+      "bytes": 1722049,
+      "sha256": "cbe26ec74aed11c614fe8ced52693a7bbf6a044c05426a36e21096a9ff46297b",
+      "needed": [
+        "libm.so.6",
+        "libfreetype-6d43b1fe.so.6.20.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libharfbuzz-38f28207.so.0.61450.0",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libfreetype-6d43b1fe.so.6.20.6": "pillow.libs/libfreetype-6d43b1fe.so.6.20.6"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libjpeg-80045241.so.62.4.0",
+      "bytes": 859465,
+      "sha256": "668f819ff49df3b7c0fe73af54c97d171e9635ffeede98fb1307c919b85e3cfa",
+      "needed": [
+        "libc.so.6"
+      ],
+      "soname": "libjpeg-80045241.so.62.4.0",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/liblcms2-4345ab8b.so.2.0.19",
+      "bytes": 537345,
+      "sha256": "f6fabe17c7391e4defccf3b7c033ea50168af851f8edac894ebd440ad3bf161d",
+      "needed": [
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "liblcms2-4345ab8b.so.2.0.19",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/liblzma-dcd007de.so.5.8.4",
+      "bytes": 333577,
+      "sha256": "f56a2abaa7e3a67102ae39369f4334f38d71de621352e5ca3ac5a8fcc8da155d",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "liblzma-dcd007de.so.5.8.4",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libopenjp2-4495a901.so.2.5.4",
+      "bytes": 599761,
+      "sha256": "1af46ffb196413dd58caa1fb719927e26458111d5b0b11cd4cde76d6d84bf4b7",
+      "needed": [
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libopenjp2-4495a901.so.2.5.4",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libpng16-76a95936.so.16.58.0",
+      "bytes": 402593,
+      "sha256": "59704b6198b73e0ed789861cde58085090fce38f9759bf5dd5dbc1fa16e0c8cb",
+      "needed": [
+        "libz.so.1",
+        "libm.so.6",
+        "libc.so.6"
+      ],
+      "soname": "libpng16-76a95936.so.16.58.0",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    }
+  ]
+}

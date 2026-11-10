@@ -1,0 +1,173 @@
+{
+  "items": [
+    {
+      "source": "bzip2",
+      "version": "1.0.8-6",
+      "binary_packages": [
+        "libbz2-1.0"
+      ],
+      "dsc_sha256": "cd3bfd77254a6b5ef1be144bdc90a0dd374bc8206afd98ba4abf828741b79820",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/ad5176c5309f0651eae1085a.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/bzip2/1.0.8-6",
+      "source_files": [
+        {
+          "filename": "bzip2_1.0.8.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269"
+        },
+        {
+          "filename": "bzip2_1.0.8-6.debian.tar.bz2",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "648ed0dac9a041ba6951e0cca521628aa39947cefee78139f7b934a5dc502095"
+        }
+      ]
+    },
+    {
+      "source": "ca-certificates",
+      "version": "20250419+deb13u1",
+      "binary_packages": [
+        "ca-certificates"
+      ],
+      "dsc_sha256": "347487e99c0b9f09150c8d78ad03e3552545c3904d5e0d7f731ef2ef79d484d4",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/1852d09dac1edf778db32d8a.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/ca-certificates/20250419+deb13u1",
+      "source_files": [
+        {
+          "filename": "ca-certificates_20250419+deb13u1.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "1b2e3d0b90cfc62ac8033d64e18ea4649fbb2a01c937c9ac9d36e762da6b9446"
+        }
+      ]
+    },
+    {
+      "source": "cdebconf",
+      "version": "0.280",
+      "binary_packages": [
+        "libdebconfclient0"
+      ],
+      "dsc_sha256": "36cdaa45fca445d2164fbdd81faad9918d748fa703678d8af237354d5744b1d1",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/e06527b55e76298d50d0ea9c.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/cdebconf/0.280",
+      "source_files": [
+        {
+          "filename": "cdebconf_0.280.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "c42115131939845e452a323ceded937efad3b2e3e1b80a1a186f9d5c494a43a2"
+        }
+      ]
+    },
+    {
+      "source": "coreutils",
+      "version": "9.7-3",
+      "binary_packages": [
+        "coreutils"
+      ],
+      "dsc_sha256": "c3a207e3aaad165765c7a6fab89045f5fd20035fea6830b9f9ebbb92ebfbff89",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/9b609042b6e329960b6d58eb.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/coreutils/9.7-3",
+      "source_files": [
+        {
+          "filename": "coreutils_9.7.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+        },
+        {
+          "filename": "coreutils_9.7.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "5070e9428bd372a7fa1f66b395b81092bb40c98f9f56a2e2bc55c47fd387e901"
+        },
+        {
+          "filename": "coreutils_9.7-3.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "483f77876a080577f63da1d004cc1cf17d16df65d6925aefdd3294c6101eccfb"
+        }
+      ]
+    },
+    {
+      "source": "dash",
+      "version": "0.5.12-12",
+      "binary_packages": [
+        "dash"
+      ],
+      "dsc_sha256": "589efc4d87a4ae4745c273bdb33198d7c4f28a71736a8ece81d3677cf9c6e5ce",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/e812f5faeafe2c04d7a19f2b.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/dash/0.5.12-12",
+      "source_files": [
+        {
+          "filename": "dash_0.5.12.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "6a474ac46e8b0b32916c4c60df694c82058d3297d8b385b74508030ca4a8f28a"
+        },
+        {
+          "filename": "dash_0.5.12-12.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "a278acb5d9a1f5d9a086d36a547287cbf3105b8f33c0e62d86d264decf5ba1ad"
+        }
+      ]
+    },
+    {
+      "source": "db5.3",
+      "version": "5.3.28+dfsg2-9",
+      "binary_packages": [
+        "libdb5.3t64"
+      ],
+      "dsc_sha256": "045f392c75dffc9d4f3bd44978b90ca8d45b935cf0ae4202bf79a760f2ce07b1",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/669112ecbd2cf3c270d01b03.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/db5.3/5.3.28+dfsg2-9",
+      "source_files": [
+        {
+          "filename": "db5.3_5.3.28+dfsg2.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "ad41b507415dec8316e828b2230242af2251d2c86eefa3c7aa9ef47c5239ef33"
+        },
+        {
+          "filename": "db5.3_5.3.28+dfsg2-9.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "21fe6ee0491c83d0c34fe52e0e0e423946172eff68262584a0cc8ef880c36b74"
+        }
+      ]
+    },
+    {
+      "source": "debconf",
+      "version": "1.5.91",
+      "binary_packages": [
+        "debconf"
+      ],
+      "dsc_sha256": "1aa3ceaef24ef533cfffe7f9ca750c6325dbaea86a7abca77cb4439ceae930d8",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/51434de62454508d48428333.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/debconf/1.5.91",
+      "source_files": [
+        {
+          "filename": "debconf_1.5.91.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "18f3f43924ccc870be483d7c5f1a9be59e51ae1da403059d654666b5a175bf15"
+        }
+      ]
+    },
+    {
+      "source": "debian-archive-keyring",
+      "version": "2025.1",
+      "binary_packages": [
+        "debian-archive-keyring"
+      ],
+      "dsc_sha256": "09604bd8d4562a1e942e5d1a19a6b82447cbdeb2e7c7f0df7c32a2503647ea47",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/43877a7fc0b29f33ce85cfc0.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/debian-archive-keyring/2025.1",
+      "source_files": [
+        {
+          "filename": "debian-archive-keyring_2025.1.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "2d019c3fa19c42da4d37571e473c296286dad0214cb3bd5cafd99f04a8bf5471"
+        }
+      ]
+    }
+  ]
+}

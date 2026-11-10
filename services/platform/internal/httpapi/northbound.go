@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/bridge"
+	"radishmind.local/services/platform/internal/config"
 )
 
 const (
@@ -178,6 +179,12 @@ func (s *Server) resolveNorthboundSelection(ctx context.Context, requestedModel 
 		} else {
 			selection.model = selection.provider
 		}
+	}
+	// The workbench explicitly configures its default provider and model. An
+	// inventory profile is descriptive and must not replace that connection.
+	if s.config.RuntimeProfile == config.LocalWorkbenchProfile && requestedModel == "" &&
+		(extension == nil || (strings.TrimSpace(extension.Provider) == "" && strings.TrimSpace(extension.ProviderProfile) == "")) {
+		return selection
 	}
 
 	inventory, err := s.bridge.DescribeInventory(ctx)

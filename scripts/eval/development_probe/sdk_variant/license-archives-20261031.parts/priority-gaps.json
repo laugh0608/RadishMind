@@ -1,0 +1,179 @@
+{
+  "status": "license_gate_open",
+  "cryptography": {
+    "package": "cryptography",
+    "version": "50.0.2",
+    "wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+    "object": "cryptography/hazmat/bindings/_rust.abi3.so",
+    "object_sha256": "b52e6ae53c343ce97478ee10d93a0263576d778de65333c234577298d1e9ef07",
+    "embedded_version_strings": [
+      "OpenSSL 4.0.3 29 Sep 2026"
+    ],
+    "status": "embedded_text_evidence_not_full_build_attestation",
+    "new_source_candidate": "OpenSSL 4.0.3",
+    "downloaded": false,
+    "gap": "The wheel embeds OpenSSL 4.0.3 text; Debian and Alpine source archives here are 3.5.7 and cannot substitute. Exact build provenance, OpenSSL 4.0.3 notices/source and selected Rust components remain open."
+  },
+  "lupa": {
+    "version": "2.8",
+    "components": [
+      {
+        "module": "lua51",
+        "version": "5.1.5",
+        "wheel_object": "lupa/lua51.cpython-312-aarch64-linux-gnu.so",
+        "object_sha256": "75cdb12987758f7f8b40749ef13318e61a19e7fedd052133c4fdb51189211564",
+        "source_headers": [
+          {
+            "path": "lupa-2.8/third-party/lua51/src/lua.h",
+            "sha256": "470551c185f058360f8d0f9e5c54a29a3950f78af6a93f3fe9e4039a380c7b87"
+          }
+        ],
+        "source_notice_locations": [
+          {
+            "path": "lupa-2.8/third-party/lua51/COPYRIGHT",
+            "sha256": "ee5e3e82af1e1b543c4f216e399d7c8cfee797711913f349e385101c4ae60a79"
+          },
+          {
+            "path": "lupa-2.8/third-party/lua51/src/lua.h",
+            "sha256": "470551c185f058360f8d0f9e5c54a29a3950f78af6a93f3fe9e4039a380c7b87"
+          }
+        ],
+        "status": "source_headers_and_binary_version_text_crosschecked_not_reproducible_build_attestation"
+      },
+      {
+        "module": "lua52",
+        "version": "5.2.4",
+        "wheel_object": "lupa/lua52.cpython-312-aarch64-linux-gnu.so",
+        "object_sha256": "267a289497ce80b72501f7ba83d788d1887c2e5f1fe62c0986ae10d2a789b5b7",
+        "source_headers": [
+          {
+            "path": "lupa-2.8/third-party/lua52/lua.h",
+            "sha256": "fae129f7098a4476c1457f2851c93d337092d1138f48e8ee06a342b8290ac0aa"
+          }
+        ],
+        "source_notice_locations": [
+          {
+            "path": "lupa-2.8/third-party/lua52/lua.h",
+            "sha256": "fae129f7098a4476c1457f2851c93d337092d1138f48e8ee06a342b8290ac0aa"
+          }
+        ],
+        "status": "source_headers_and_binary_version_text_crosschecked_not_reproducible_build_attestation"
+      },
+      {
+        "module": "lua53",
+        "version": "5.3.6",
+        "wheel_object": "lupa/lua53.cpython-312-aarch64-linux-gnu.so",
+        "object_sha256": "df5817fe5a59fb6c4e356d289d9e3ad841f969870ed31dc61f1e4a47df53d640",
+        "source_headers": [
+          {
+            "path": "lupa-2.8/third-party/lua53/lua.h",
+            "sha256": "d05e8e3b199aa51fec7c3d40f058a1e4f9aa76bb0587a9fe211f00c800f71a9d"
+          }
+        ],
+        "source_notice_locations": [
+          {
+            "path": "lupa-2.8/third-party/lua53/lua.h",
+            "sha256": "d05e8e3b199aa51fec7c3d40f058a1e4f9aa76bb0587a9fe211f00c800f71a9d"
+          }
+        ],
+        "status": "source_headers_and_binary_version_text_crosschecked_not_reproducible_build_attestation"
+      },
+      {
+        "module": "lua54",
+        "version": "5.4.8",
+        "wheel_object": "lupa/lua54.cpython-312-aarch64-linux-gnu.so",
+        "object_sha256": "fe8b137f50789a12791b5a2731eb616312202b6e358ed434beb8d5bd1b753228",
+        "source_headers": [
+          {
+            "path": "lupa-2.8/third-party/lua54/lua.h",
+            "sha256": "3b77329f9deed929a5cbe7a7d5fc81ebbb63fd869a49e0a9302fe9240caf1930"
+          }
+        ],
+        "source_notice_locations": [
+          {
+            "path": "lupa-2.8/third-party/lua54/lua.h",
+            "sha256": "3b77329f9deed929a5cbe7a7d5fc81ebbb63fd869a49e0a9302fe9240caf1930"
+          }
+        ],
+        "status": "source_headers_and_binary_version_text_crosschecked_not_reproducible_build_attestation"
+      },
+      {
+        "module": "lua55",
+        "version": "5.5.1",
+        "wheel_object": "lupa/lua55.cpython-312-aarch64-linux-gnu.so",
+        "object_sha256": "1a303393123434d0d22f2e6092916769b4a134efcdf53ac9e656b421741b5712",
+        "source_headers": [
+          {
+            "path": "lupa-2.8/third-party/lua55/lua.h",
+            "sha256": "5e00319e803893f4310b1206394c80b82f03f42609b40ceb306d92a6740d828e"
+          }
+        ],
+        "source_notice_locations": [
+          {
+            "path": "lupa-2.8/third-party/lua55/lua.h",
+            "sha256": "5e00319e803893f4310b1206394c80b82f03f42609b40ceb306d92a6740d828e"
+          }
+        ],
+        "status": "source_headers_and_binary_version_text_crosschecked_not_reproducible_build_attestation"
+      },
+      {
+        "module": "luajit21",
+        "version": "2.1.1774896198",
+        "wheel_object": "lupa/luajit21.cpython-312-aarch64-linux-gnu.so",
+        "object_sha256": "0020b069e5022c629c971105218cef15378cbd24d4d17c813bf8bee628bf1ddc",
+        "source_headers": [
+          {
+            "path": "lupa-2.8/third-party/luajit21/src/lua.h",
+            "sha256": "ecab8480aaedb648b75258453ab82e71c4d0db234175f455af72962c8578f787"
+          },
+          {
+            "path": "lupa-2.8/third-party/luajit21/src/luajit.h",
+            "sha256": "af81f3f8d08ff0982326719cef28299e9a030f4bcfe2c629d6d08b17c9691043"
+          }
+        ],
+        "source_notice_locations": [
+          {
+            "path": "lupa-2.8/third-party/luajit21/COPYRIGHT",
+            "sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47"
+          },
+          {
+            "path": "lupa-2.8/third-party/luajit21/src/lua.h",
+            "sha256": "ecab8480aaedb648b75258453ab82e71c4d0db234175f455af72962c8578f787"
+          }
+        ],
+        "status": "source_headers_and_binary_version_text_crosschecked_not_reproducible_build_attestation"
+      }
+    ],
+    "boundary": "LuaJIT 2.0 in sdist is not a shipped wheel object; text examples mentioning LuaJIT 2.0.1 are not binary component evidence. Final notice assembly still pending."
+  },
+  "fastmcp_slim": {
+    "version": "3.4.11",
+    "wheel_notice_files": 0,
+    "sdist_notice_files": 0,
+    "upstream_tree_license_evidence": {
+      "part": "license-sources-20261031.parts/notices-01.json",
+      "label": "PrefectHQ/fastmcp LICENSE",
+      "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/LICENSE",
+      "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+      "bytes": 11356,
+      "local_file": "e2e8e0b67a6e179c9a3c1daa.body"
+    },
+    "gap": "Exact upstream LICENSE and slim project identity were acquired in stage1; final delivery must add the appropriate notice mapping. Downloading this sdist alone does not supply the missing license copy."
+  },
+  "tokenizers": {
+    "version": "0.23.3",
+    "source_license_found": true,
+    "gap": "Source LICENSE acquired; Rust linked-component and final wheel notice delivery still pending."
+  },
+  "regex": {
+    "version": "2026.9.29",
+    "gap": "sdist repeats CNRI Python 1.6 provenance wording; exact historical license/derivation discrepancy with CPython 1.6.1 remains unresolved."
+  },
+  "other_open_items": [
+    "Native wheel linked/static component selection and build provenance, including Pillow/cffi/hf-xet/LiteLLM and Rust dependencies",
+    "certifi certificate-generation inputs and final covered-source delivery/access notices",
+    "Final third-party notice assembly and actual SDK/Go image packaging validation",
+    "CPython signature material has not been independently validated; archive hash matches official source SBOM and image environment",
+    "Docker CLI remains conditional on intended delivery scope; no new source download in this window"
+  ]
+}

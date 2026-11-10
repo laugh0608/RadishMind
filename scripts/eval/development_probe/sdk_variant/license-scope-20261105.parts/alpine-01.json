@@ -1,0 +1,99 @@
+{
+  "items": [
+    {
+      "origin": "ca-certificates",
+      "version": "20260611-r0",
+      "aports_commit": "6e30aafe4fa807ba70797509731f1e7d644dc8f3",
+      "recipe_sha256": "a1429622d05b27e016c1266312be8a9a7e4610da01d7d40826b1681677c53843",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/6001baab6d1e1ab876c09481.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/ca-certificates/20260611-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 0,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-02.json",
+      "external_source_files": [
+        {
+          "filename": "ca-certificates-20260611.tar.bz2",
+          "sha256": "32ca73f2e81e2b88dc614f12e1ee04a82b1ec5a8e29d9f359ddf8905a0afcbb0",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    },
+    {
+      "origin": "musl",
+      "version": "1.2.5-r23",
+      "aports_commit": "8aef0c37b0ad23dc4137f0e4755b97a59dc698b8",
+      "recipe_sha256": "e8425e24c5c3c6d8f74b4412b11c6990fda6dbf7648c79ec6e2efa082fc5adcf",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/32d8088faa44e314404d4758.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/musl/1.2.5-r23",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 22,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-02.json",
+      "external_source_files": [
+        {
+          "filename": "musl-1.2.5.tar.gz",
+          "sha256": "a9a118bbe84d8764da0ea0d28b3ab3fae8477fc7e4085d90102b8596fc7c75e4",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    },
+    {
+      "origin": "openssl",
+      "version": "3.5.7-r0",
+      "aports_commit": "0ca3c59c63240aaf5e762174f8d93109f9cabd8d",
+      "recipe_sha256": "63b8a9adf00a6076c830b79e4c1f56d9ac57f29a4b068e0d5bf7c62073758ea2",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/65eefb12373e423c522af5ad.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/openssl/3.5.7-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 1,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-02.json",
+      "external_source_files": [
+        {
+          "filename": "openssl-3.5.7.tar.gz",
+          "sha256": "a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    },
+    {
+      "origin": "pax-utils",
+      "version": "1.3.8-r2",
+      "aports_commit": "3912b4fa83437852312ad3c37a00229ff59fab1c",
+      "recipe_sha256": "d3ab7f1f1de34d023921a8f09cf80ba70063b05f1a99d8e2056ff8667c0f1213",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/c99293f5fbce8105c516c030.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/pax-utils/1.3.8-r2",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 1,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-02.json",
+      "external_source_files": [
+        {
+          "filename": "pax-utils-1.3.8.tar.xz",
+          "sha256": "12a168d1aeae2626efdbde3979da88a60ca80bb38e1db565e95ee441ff1d5a0c",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    },
+    {
+      "origin": "zlib",
+      "version": "1.3.2-r0",
+      "aports_commit": "f8c94d2e1d318ab29eb4ac5f00225341c877ed65",
+      "recipe_sha256": "e9ad3aa7ecf048f4bfa26b946275bee347f75254385320e90eecd3fd6651bcf4",
+      "recipe_local_input": "tmp/development-license-audit-20261031/downloads-stage1/8a7008d044cb452f89c96446.body",
+      "candidate_directory": "sources/<Go-image-sha256>/alpine/zlib/1.3.2-r0",
+      "declared_source_inputs_mapped": true,
+      "boundary": "配方与已枚举输入均有对应字节；未执行配方、重建或证明未声明生成输入完备。",
+      "local_input_count": 0,
+      "local_input_evidence": "license-sources-20261031.parts/alpine-02.json",
+      "external_source_files": [
+        {
+          "filename": "zlib-1.3.2.tar.gz",
+          "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+          "evidence": "license-archives-20261031.parts/sources-08.json"
+        }
+      ]
+    }
+  ]
+}

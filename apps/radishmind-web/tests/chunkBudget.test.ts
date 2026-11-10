@@ -70,3 +70,13 @@ test("web chunk budget rejects oversized lazy chunks and missing required chunks
     },
   );
 });
+
+
+test("bootstrap split shares the existing entry budget instead of expanding it", () => {
+  const bundle = validBundle();
+  bundle["index.js"] = chunk("index", 20 * 1024, { isEntry: true });
+  bundle["App.js"] = { ...chunk("App", 480 * 1024), moduleIds: ["/workspace/src/app/App.tsx"] };
+  assert.equal(enforceWebChunkBudgets(bundle).find(report => report.chunkName === "App")?.budgetKind, "entry");
+  bundle["App.js"].code += "x";
+  assert.throws(() => enforceWebChunkBudgets(bundle), /combined bootstrap chunks/);
+});

@@ -1,0 +1,180 @@
+{
+  "items": [
+    {
+      "source": "acl",
+      "version": "2.3.2-2",
+      "binary_packages": [
+        "libacl1"
+      ],
+      "dsc_sha256": "1f42130ccb5442fe2db2aee1dcc03c51a31512dd2519a38e8fc9270c5abbc807",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/5160eb808843b7d9ce5d5649.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/acl/2.3.2-2",
+      "source_files": [
+        {
+          "filename": "acl_2.3.2.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd"
+        },
+        {
+          "filename": "acl_2.3.2.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "184c6a903490885a096095db67b433a04542c6569f167cbe8115268c0f227273"
+        },
+        {
+          "filename": "acl_2.3.2-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "e27b6e194c0a7554595d76f96acdceb800631bdc46c36457b73bc7e4a0c5f2ee"
+        }
+      ]
+    },
+    {
+      "source": "adduser",
+      "version": "3.152",
+      "binary_packages": [
+        "adduser"
+      ],
+      "dsc_sha256": "5ad23648a879d006e7a57d351720d4cbbbe3fb5e274ea52beb4f619896b9d520",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/74f3ad42aff7657ebe3fe8a4.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/adduser/3.152",
+      "source_files": [
+        {
+          "filename": "adduser_3.152.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "484cdde2d48053be40657b564375469fc577e89f3b984b01aed247b6081355b8"
+        }
+      ]
+    },
+    {
+      "source": "apt",
+      "version": "3.0.3",
+      "binary_packages": [
+        "apt",
+        "libapt-pkg7.0"
+      ],
+      "dsc_sha256": "ccf1666e5b268d76bf62aafb22db089a2fdae9c17d1d1c446546b3621768add7",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/16c9ee8fb97f85dde393b981.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/apt/3.0.3",
+      "source_files": [
+        {
+          "filename": "apt_3.0.3.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "5b5f6f6d26121742a83aa80d4ed0eb0c6ce9bea259518db412edefd95760e4ef"
+        }
+      ]
+    },
+    {
+      "source": "attr",
+      "version": "1:2.5.2-3",
+      "binary_packages": [
+        "libattr1"
+      ],
+      "dsc_sha256": "c2ae3e15db059029030ddf4fdac179d8f90d423f2310a6ef8c745ba28ac18b0a",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/a050e08ee22327e3c2814e0b.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/attr/1%3A2.5.2-3",
+      "source_files": [
+        {
+          "filename": "attr_2.5.2.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "f2e97b0ab7ce293681ab701915766190d607a1dba7fae8a718138150b700a70b"
+        },
+        {
+          "filename": "attr_2.5.2.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "eeac729088d3c6379e91b7596cb3582e46b047c47f0fa3c5c77f9c9e84dc3a4c"
+        },
+        {
+          "filename": "attr_2.5.2-3.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "153f98c87575277ea021e24dae36293b7738699174438a2060b47e8312b771e3"
+        }
+      ]
+    },
+    {
+      "source": "audit",
+      "version": "1:4.0.2-2+deb13u1",
+      "binary_packages": [
+        "libaudit-common",
+        "libaudit1"
+      ],
+      "dsc_sha256": "f72198219d4a50967e328a143c9c0a7ba981c8f3790b2880465b8a80ac33850e",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/8ced3fac9e594303b06615a1.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/audit/1%3A4.0.2-2+deb13u1",
+      "source_files": [
+        {
+          "filename": "audit_4.0.2.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "d5d1b5d50ee4a2d0d17875bc6ae6bd6a7d5b34d9557ea847a39faec531faaa0a"
+        },
+        {
+          "filename": "audit_4.0.2-2+deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "ab39cb2d6dc6b0440da37f085b643dffc86d8cc5370b5cc6502d36b53edaa862"
+        }
+      ]
+    },
+    {
+      "source": "base-files",
+      "version": "13.8+deb13u7",
+      "binary_packages": [
+        "base-files"
+      ],
+      "dsc_sha256": "6240b5a02fc32bd6d925bb7776e00c467e80d930f8cf3c4a20c299ce692dc7e4",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/11e45178edd37bc3a309e590.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/base-files/13.8+deb13u7",
+      "source_files": [
+        {
+          "filename": "base-files_13.8+deb13u7.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "be32803b9408ac9aa46b96f68c83ee45e88d04d89854a87999986efc4cb34c69"
+        }
+      ]
+    },
+    {
+      "source": "base-passwd",
+      "version": "3.6.7",
+      "binary_packages": [
+        "base-passwd"
+      ],
+      "dsc_sha256": "23dafe71f85d7595d9e20efba17729c1c975a33bd469cf09bfad9e96b1f542f3",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/16baace657d1b150eb850db4.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/base-passwd/3.6.7",
+      "source_files": [
+        {
+          "filename": "base-passwd_3.6.7.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "cf869870fed7862b57bfa9e99cd5cd6f365e2349705a1b65af7fc182629bd1ab"
+        }
+      ]
+    },
+    {
+      "source": "bash",
+      "version": "5.2.37-2",
+      "binary_packages": [
+        "bash"
+      ],
+      "dsc_sha256": "7e5f6d5a26093e812f8841d5cf3245054102e86986017d8edd859417b03707f9",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/b49223f045c04de58e9e7459.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/bash/5.2.37-2",
+      "source_files": [
+        {
+          "filename": "bash_5.2.37.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "370704c9c859f4060b7df19055e43bb9b5fa09d887699cf6ba87885c5485d36a"
+        },
+        {
+          "filename": "bash_5.2.37-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-01.json",
+          "sha256": "42e03ef523258b61fa765b8c9719d7bf461f2a274260d07fbe45ca7e4627923a"
+        }
+      ]
+    }
+  ]
+}

@@ -3,13 +3,18 @@ package httpapi
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"radishmind.local/services/platform/internal/sqlitedev"
+	"radishmind.local/services/platform/internal/workbench"
+	localmigrations "radishmind.local/services/platform/migrations/sqlite"
 )
 
 type LocalIdentityDevTestBootstrapOptions struct {
+	Workbench           bool
 	StoreMode           string
 	SQLiteDatabasePath  string
 	PostgresDatabaseURL string
@@ -45,13 +50,29 @@ func BootstrapLocalIdentityWorkspaceAdministratorDevTest(
 		)
 	}
 
+	if mode == localIdentityStoreModeSQLiteDev {
+		if options.Workbench {
+			lock, err := workbench.Acquire(filepath.Dir(options.SQLiteDatabasePath))
+			if err != nil {
+				return LocalIdentityDevTestBootstrapResult{}, err
+			}
+			defer lock.Close()
+			if _, err := workbench.Inspect(ctx, options.SQLiteDatabasePath, false); err != nil {
+				return LocalIdentityDevTestBootstrapResult{}, err
+			}
+		} else if _, err := os.Lstat(filepath.Join(filepath.Dir(options.SQLiteDatabasePath), ".workbench.lock")); err == nil {
+			return LocalIdentityDevTestBootstrapResult{}, fmt.Errorf("use the workbench bootstrap-admin command for this data directory")
+		} else if !os.IsNotExist(err) {
+			return LocalIdentityDevTestBootstrapResult{}, err
+		}
+	}
 	var sqliteRuntime *sqlitedev.Runtime
 	if mode == localIdentityStoreModeSQLiteDev {
 		var err error
 		sqliteRuntime, err = sqlitedev.Open(identityContext(ctx), sqlitedev.Options{
 			DatabasePath: strings.TrimSpace(options.SQLiteDatabasePath),
 			BusyTimeout:  options.DatabaseTimeout,
-			Migrations:   localPersistenceSQLiteMigrations(),
+			Migrations:   localmigrations.Migrations(),
 		})
 		if err != nil {
 			return LocalIdentityDevTestBootstrapResult{}, fmt.Errorf(

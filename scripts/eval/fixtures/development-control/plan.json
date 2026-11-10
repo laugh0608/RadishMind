@@ -1,0 +1,26 @@
+{
+  "schema_version": "development_attempt_plan.v1",
+  "application_id": "app_fixture",
+  "execution_profile": "workflow_definition_executor_v1",
+  "definition_id": "definition_fixture",
+  "model_ref": "profile:fixture",
+  "baseline_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "tools": {
+    "read_paths": [
+      "main.go"
+    ],
+    "write_paths": [
+      "main.go"
+    ],
+    "verification_profile": "go_test_v1"
+  },
+  "limits": {
+    "max_model_calls": 4,
+    "max_tool_calls": 4,
+    "max_tokens": 1000,
+    "max_cost_microusd": 10000
+  },
+  "lifetime_ms": 60000,
+  "max_output_tokens": 50,
+  "initial_messages_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

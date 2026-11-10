@@ -1,0 +1,58 @@
+{
+  "schema_version": "development_build_detail_plan.v1",
+  "status": "prepared_not_authorized",
+  "trees": [],
+  "fixed_blobs": [
+    {
+      "id": "pillow--github_dependencies-json",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/git/blobs/989997da27b88936a9b8a5955fa67bf9441ad45a",
+      "expected_git_blob_sha1": "989997da27b88936a9b8a5955fa67bf9441ad45a",
+      "path": ".github/dependencies.json",
+      "repository": "python-pillow/Pillow",
+      "release_tree_sha1": "293218ad059d994baf1777d882911bed6a49704a"
+    },
+    {
+      "id": "pillow--gitmodules",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/git/blobs/80d5ab16c7087cea5a21636fe887511782b325c1",
+      "expected_git_blob_sha1": "80d5ab16c7087cea5a21636fe887511782b325c1",
+      "path": ".gitmodules",
+      "repository": "python-pillow/Pillow",
+      "release_tree_sha1": "293218ad059d994baf1777d882911bed6a49704a"
+    },
+    {
+      "id": "certifi-current-strip-non-ascii",
+      "url": "https://api.github.com/repos/certifi/python-certifi/git/blobs/c5f0195a8ffe0a9676e305b98c4c8b5cf75dd676",
+      "expected_git_blob_sha1": "c5f0195a8ffe0a9676e305b98c4c8b5cf75dd676",
+      "path": "strip-non-ascii",
+      "repository": "certifi/python-certifi",
+      "release_tree_sha1": "b60466c9f2882d9cf088943c650b0faac06c080c"
+    },
+    {
+      "id": "certifi-pip-strip-non-ascii",
+      "url": "https://api.github.com/repos/certifi/python-certifi/git/blobs/c5f0195a8ffe0a9676e305b98c4c8b5cf75dd676",
+      "expected_git_blob_sha1": "c5f0195a8ffe0a9676e305b98c4c8b5cf75dd676",
+      "path": "strip-non-ascii",
+      "repository": "certifi/python-certifi",
+      "release_tree_sha1": "325c2fde4f8eec10d682b09f3b0414dc05e69a81"
+    }
+  ],
+  "limits": {
+    "requests": 4,
+    "total_body_bytes": 4194304,
+    "tree_bytes": 0,
+    "blob_bytes": 1048576,
+    "seconds_per_request": 30,
+    "connect_seconds": 10,
+    "concurrency": 1,
+    "redirects": 0,
+    "retries": 0
+  },
+  "output_directory": "tmp/development-build-scope-20261105/details",
+  "executor": "tmp/development-build-scope-20261105/fetch_details.py",
+  "executor_sha256": "dbd875b26b8a5b196354c15b037b527fcaed37820c667ab131a91216ea897a35",
+  "command": "python3 tmp/development-build-scope-20261105/fetch_details.py --phase initial --execute",
+  "boundary": [
+    "仅四份已知 Git blob；不追取新链接、外部仓库或生成端点，不执行脚本。",
+    "Pillow 版本清单用于解释 zlib / zlib-ng 差异；certifi 过滤器用于明确生成步骤，不把当前生成端点冒充历史输入。"
+  ]
+}

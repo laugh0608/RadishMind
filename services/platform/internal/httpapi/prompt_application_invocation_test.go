@@ -706,3 +706,22 @@ func newPromptApplicationInvocationFixture(t *testing.T, sources ...PromptApplic
 		candidates: candidateRepository, bridge: testBridge, catalog: catalogRepository, catalogCtx: catalogContext,
 	}
 }
+
+func TestPromptInvocationPreservesEmptyConfiguredRuntimeProfile(t *testing.T) {
+	fixture := newPromptApplicationInvocationFixture(t)
+	fixture.service.resolveSelection = func(context.Context, string) northboundSelection {
+		return northboundSelection{provider: "openai-compatible", model: "profile:local-dev", upstreamModel: "fixture-model", source: "requested_concrete_model"}
+	}
+	server := &Server{config: config.Config{Provider: "openai-compatible", BaseURL: "http://127.0.0.1:18100/v1", APIKey: "test-only-key"}}
+	fixture.service.envelopeOptions = server.buildBridgeEnvelopeOptions
+	fixture.bridge.handle = func(_ context.Context, _ []byte, options bridge.EnvelopeOptions) (bridge.GatewayEnvelope, error) {
+		if options.ProviderProfile != "" || options.BaseURL != server.config.BaseURL || options.APIKey != server.config.APIKey || options.Model != "fixture-model" {
+			t.Fatal("audit placeholder replaced the configured runtime profile or discarded explicit connection settings")
+		}
+		return bridge.GatewayEnvelope{Status: "ok", Response: map[string]any{"summary": "Fixed test output"}}, nil
+	}
+	result := fixture.service.Invoke(fixture.ctx, PromptApplicationInvocationInput{ClientInvocationKey: "empty-runtime-profile", Variables: map[string]any{"question": "synthetic question", "tone": "clear"}})
+	if result.FailureCode != "" || result.Run == nil || result.Run.SelectedProfile != "default" || fixture.bridge.callCount() != 1 {
+		t.Fatalf("runtime selection or audit metadata drifted: failure=%s calls=%d", result.FailureCode, fixture.bridge.callCount())
+	}
+}

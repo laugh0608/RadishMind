@@ -1,3 +1,5 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
+import { isPromptClientKey } from "./promptExecutionRecovery.ts";
 import {
   parseApplicationResultArtifactSummary,
   type ApplicationResultArtifactSummary,
@@ -13,6 +15,7 @@ const FORBIDDEN_SESSION_RESPONSE_KEYS = new Set([
 
 export type PromptApplicationSessionConfig = {
   mode: "offline" | "dev_application_session_http";
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -67,8 +70,9 @@ export type PromptApplicationSessionListResult = {
 };
 
 export function readPromptApplicationSessionConfig(): PromptApplicationSessionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test" ? "local_session_dev_test" : "dev_headers",
     mode: env.VITE_RADISHMIND_APPLICATION_SESSION_SOURCE?.trim() === "dev-application-session-http"
       ? "dev_application_session_http"
       : "offline",
@@ -127,6 +131,7 @@ export async function listPromptApplicationSessions(
     const response = await fetch(
       `${config.baseUrl}/v1/user-workspace/application-sessions?${query}`,
       {
+        credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store",
         headers: sessionHeaders(config, applicationId, requestId, "application_sessions:read"),
         signal,
       },
@@ -153,6 +158,36 @@ export async function listPromptApplicationSessions(
   }
 }
 
+export async function readPromptApplicationSession(
+  config: PromptApplicationSessionConfig,
+  applicationId: string,
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<PromptApplicationSessionResult> {
+  if (config.mode === "offline") return initialPromptApplicationSessionResult(config);
+  const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId });
+  try {
+    const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(sessionId)}?${query}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
+      headers: sessionHeaders(config, applicationId, createRequestId("prompt-session-read"), "application_sessions:read"), signal,
+    });
+    const value: unknown = await response.json();
+    if (!isSessionEnvelope(value, config, applicationId, null) ||
+      !hasExactKeys(value, ["request_id", "tenant_ref", "workspace_id", "application_id", "session", "failure_code", "current_record_version", "current_state", "idempotent_replay", "audit_ref"]) ||
+      value.idempotent_replay !== false ||
+      (value.session !== null && ((value.session as Document).session_id !== sessionId ||
+        value.current_record_version !== (value.session as Document).record_version || value.current_state !== (value.session as Document).state))) {
+      return failed("application_session_response_invalid");
+    }
+    if (!response.ok || value.failure_code || value.session === null) return failed(nullableString(value.failure_code) || "application_session_response_invalid");
+    return { ...initialPromptApplicationSessionResult(config), session: mapSession(value.session as Document) };
+  } catch (error) {
+    return failed(error instanceof DOMException && error.name === "AbortError"
+      ? "application_session_request_canceled" : "application_session_store_unavailable");
+  }
+}
+
 export async function createPromptApplicationSession(
   config: PromptApplicationSessionConfig,
   applicationId: string,
@@ -175,7 +210,7 @@ export async function executePromptApplicationSessionTurn(
   signal?: AbortSignal,
 ): Promise<PromptApplicationSessionResult> {
   if (config.mode === "offline") return initialPromptApplicationSessionResult(config);
-  if (session.state !== "active" || !/^[A-Za-z0-9][A-Za-z0-9._:-]{7,159}$/u.test(clientTurnKey)) {
+  if (session.state !== "active" || !isPromptClientKey(clientTurnKey)) {
     return failed("application_session_payload_invalid");
   }
   return requestSession(
@@ -211,6 +246,8 @@ async function requestSession(
   const requestId = createRequestId("prompt-session");
   try {
     const response = await fetch(`${config.baseUrl}${path}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -422,6 +459,16 @@ function sessionHeaders(
   scope: string,
 ): HeadersInit {
   const mutationPermission = scope === "application_sessions:write" || scope === "application_sessions:execute" ? scope : "";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutationPermission ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json",
     "X-Request-Id": requestId,

@@ -18,12 +18,7 @@ SECRET_SENTINEL = "deployment-smoke-secret"
 
 def base_env() -> dict[str, str]:
     env = {key: value for key, value in os.environ.items() if not key.startswith("RADISHMIND_")}
-    env.setdefault("GOCACHE", str(platform_temp_dir() / "radishmind-go-build-cache"))
     return env
-
-
-def platform_temp_dir() -> Path:
-    return Path(os.getenv("TMPDIR") or os.getenv("TEMP") or os.getenv("TMP") or "/tmp")
 
 
 def run_platform_wrapper(

@@ -1,3 +1,4 @@
+import { isLocalWorkbench } from "../../runtime/workbenchConfiguration.ts";
 import "../../i18n/workflowReadProjectionResources.ts";
 import { formatDisplayDate } from "../../i18n/formatters.ts";
 import "../../i18n/workflowLibraryResources.ts";
@@ -84,11 +85,14 @@ export function WorkflowUserWorkspaceHomePanel({
           <p className="eyebrow">{t($ => $.library.home)}</p>
           <h3 id="workflow-user-workspace-home-title">{t($ => $.library.homeTitle)}</h3>
         </div>
+        {!isLocalWorkbench() && <>
         <StatusBadge tone={home.canRenderUserWorkspaceHome ? "neutral" : "bad"}>
           {home.canRenderUserWorkspaceHome ? "offline advisory" : "blocked"}
         </StatusBadge>
+        </>}
       </div>
 
+      {!isLocalWorkbench() && <>
       <article className="workflow-user-workspace-home-hero">
         <div>
           <p className="eyebrow">{home.homeMode}</p>
@@ -162,6 +166,7 @@ export function WorkflowUserWorkspaceHomePanel({
         </div>
       </div>
 
+      </>}
       <div className="workflow-user-workspace-home-section saved-draft-list" aria-label={t($ => $.library.savedList)}>
         <div className="workflow-user-workspace-home-subheading saved-draft-list-heading">
           <div>
@@ -334,6 +339,7 @@ export function WorkflowUserWorkspaceHomePanel({
         ) : null}
       </div>
 
+      {!isLocalWorkbench() && <>
       <div className="workflow-user-workspace-home-section">
         <div className="workflow-user-workspace-home-subheading">
           <p className="eyebrow">{t($ => $.library.readinessPriorities)}</p>
@@ -380,7 +386,7 @@ export function WorkflowUserWorkspaceHomePanel({
             <WorkflowUserWorkspaceHomeStopLineCard key={stopLine.stopLineId} stopLine={stopLine} />
           ))}
         </div>
-      </div>
+      </div>      </>}
     </section>
   );
 }

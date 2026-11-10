@@ -1,3 +1,4 @@
+import { isLocalWorkbench } from "../runtime/workbenchConfiguration.ts";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "../i18n/LanguageSelector.tsx";
 import { useEffect, useRef, useState } from "react";
@@ -273,7 +274,7 @@ function NavigationLinks({
     <nav className="product-nav-links" aria-label={t($ => $.sections)}>
       <div className="product-nav-group">
         <span className="product-nav-group-label">{t($ => $.workspace)}</span>
-        {PRIMARY_LINKS.map((link) => {
+        {PRIMARY_LINKS.filter(link => !isLocalWorkbench() || link.label !== "admin").map((link) => {
           const href = link.countKey === "apiKeys" ? apiKeysAnchor : link.href;
           const count = link.countKey ? counts[link.countKey] : null;
           return (
@@ -294,7 +295,7 @@ function NavigationLinks({
 
       <div className="product-nav-group">
         <span className="product-nav-group-label">{t($ => $.review)}</span>
-        {REVIEW_LINKS.map((link) => (
+        {REVIEW_LINKS.filter(link => !isLocalWorkbench() || link.label !== "evidenceReview").map((link) => (
           <a
             key={link.href}
             href={link.href}
@@ -308,7 +309,7 @@ function NavigationLinks({
         ))}
       </div>
 
-      <details className="product-nav-more">
+      {!isLocalWorkbench() && <details className="product-nav-more">
         <summary>{t($ => $.moreSurfaces)}</summary>
         <div>
           {SECONDARY_GROUPS.map((group) => (
@@ -320,7 +321,7 @@ function NavigationLinks({
             </section>
           ))}
         </div>
-      </details>
+      </details>}
     </nav>
   );
 }

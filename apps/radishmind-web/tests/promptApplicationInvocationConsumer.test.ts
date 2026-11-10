@@ -177,9 +177,37 @@ function successEnvelope() {
   };
 }
 
-function jsonResponse(body: unknown): Response {
+function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
-    status: 200,
+    status,
     headers: { "Content-Type": "application/json" },
   });
 }
+
+test("Prompt credential rejections retain only allowlisted pre-dispatch codes and never raw error text", async () => {
+  for (const code of ["api_key_invalid", "api_key_expired", "api_key_revoked", "api_key_scope_denied"]) {
+    const status = code === "api_key_invalid" ? 401 : 403;
+    const error = { message: "private upstream diagnostic", type: code === "api_key_scope_denied" ? "permission_error" : "authentication_error", code,
+      request_id: "credential-rejection", route: "POST /v1/prompt-applications/invocations", failure_boundary: "gateway_authentication", metadata: { latency_ms: 0 } };
+    let calls = 0;
+    const invoke = () => invokePromptApplication({ baseUrl: "http://platform.test" }, token, { question: "review" }, "credential-check-1");
+    globalThis.fetch = async () => { calls++; return jsonResponse({ error }, status); };
+    const result = await invoke();
+    assert.equal(result.failureCode, code);
+    assert.equal(JSON.stringify(result).includes(error.message), false);
+    assert.equal(result.run, null);
+    assert.equal(calls, 1);
+    for (const patch of [
+      { code: "unknown_failure" }, { type: "wrong" }, { route: "POST /elsewhere" },
+      { failure_boundary: "provider" }, { metadata: { latency_ms: -1 } },
+      { metadata: { latency_ms: 0, raw_response: "private" } }, { extra: "private" }, { request_id: null },
+    ]) {
+      globalThis.fetch = async () => jsonResponse({ error: { ...error, ...patch } }, status);
+      assert.equal((await invoke()).failureCode, "prompt_invocation_response_invalid");
+    }
+    for (const wrongStatus of [200, 500, status === 401 ? 403 : 401]) {
+      globalThis.fetch = async () => jsonResponse({ error }, wrongStatus);
+      assert.equal((await invoke()).failureCode, "prompt_invocation_response_invalid");
+    }
+  }
+});

@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-attempt-delegation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "delegation_id",
+    "revision",
+    "audience",
+    "executor_instance_id",
+    "scope",
+    "issued_at_ms",
+    "expires_at_ms",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_attempt_delegation.v1"
+    },
+    "delegation_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "audience": {
+      "const": "development-attempt-control.v1"
+    },
+    "executor_instance_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "account_id",
+        "workspace_id",
+        "application_id",
+        "binding_id",
+        "binding_revision",
+        "authorization_revision",
+        "run_id",
+        "task_id",
+        "attempt_id",
+        "plan_digest",
+        "baseline_digest",
+        "model_ref",
+        "pricing_digest",
+        "tool_policy_digest",
+        "application_authority_digest"
+      ],
+      "properties": {
+        "account_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "application_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "binding_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "binding_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        },
+        "authorization_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        },
+        "run_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "attempt_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "plan_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        },
+        "baseline_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        },
+        "model_ref": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}(?![\\s\\S])"
+        },
+        "pricing_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        },
+        "tool_policy_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        },
+        "application_authority_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        }
+      }
+    },
+    "issued_at_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "expires_at_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_model_calls",
+        "max_tool_calls",
+        "max_tokens",
+        "max_cost_microusd"
+      ],
+      "properties": {
+        "max_model_calls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 262144
+        },
+        "max_cost_microusd": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000000
+        }
+      }
+    }
+  },
+  "description": "Go 签发的委托描述，不包含 bearer 且不能自证授权。期限必须满足 0 < expires_at_ms - issued_at_ms <= 600000；运行时逐动作核对当前权限、应用绑定与模型/工具/定价摘要。"
+}

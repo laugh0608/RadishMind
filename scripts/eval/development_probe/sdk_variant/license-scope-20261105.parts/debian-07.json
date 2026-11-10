@@ -1,0 +1,201 @@
+{
+  "items": [
+    {
+      "source": "readline",
+      "version": "8.2-6",
+      "binary_packages": [
+        "libreadline8t64",
+        "readline-common"
+      ],
+      "dsc_sha256": "6f94c7144d6b6b1ff88aaebd81480e87f8773b7638031782aac12ef93ffd2e71",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/27671111e3a378941825cb3b.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/readline/8.2-6",
+      "source_files": [
+        {
+          "filename": "readline_8.2.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35"
+        },
+        {
+          "filename": "readline_8.2-6.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "d1cf806644dbce298cf929f1cc9b3af5a50cd7db97b6f69db280c1eb2f544376"
+        }
+      ]
+    },
+    {
+      "source": "rust-sequoia-sqv",
+      "version": "1.3.0-3",
+      "binary_packages": [
+        "sqv"
+      ],
+      "dsc_sha256": "98ad852ed30d42d3b0d6ce40d2f56a96fb443cc6fa2caeaa12516fe5bbe544af",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/9bba89115072be2cc6143921.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/rust-sequoia-sqv/1.3.0-3",
+      "source_files": [
+        {
+          "filename": "rust-sequoia-sqv_1.3.0.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "8924571d26720b245292ad3c450e4061fcb24890461874790549747bffa35e60"
+        },
+        {
+          "filename": "rust-sequoia-sqv_1.3.0-3.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "be04e0365bc1206617a3e55d507bfce2e972819fb737e23a1112a717cc89b9bc"
+        }
+      ]
+    },
+    {
+      "source": "sed",
+      "version": "4.9-2+deb13u1",
+      "binary_packages": [
+        "sed"
+      ],
+      "dsc_sha256": "9fcc5dffe5e712b4631757c057228ae57919aec1cca1c91a80e76719167f443b",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/9985a1a0cfd92f4af2ecadbb.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/sed/4.9-2+deb13u1",
+      "source_files": [
+        {
+          "filename": "sed_4.9.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181"
+        },
+        {
+          "filename": "sed_4.9-2+deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "9c9aacda91e02802f33fb6a1a6e86f80be1bc67b92a4dae009e78f77e26e130a"
+        }
+      ]
+    },
+    {
+      "source": "shadow",
+      "version": "1:4.17.4-2",
+      "binary_packages": [
+        "login.defs",
+        "passwd"
+      ],
+      "dsc_sha256": "920de0d3be5303f2c0511d5531c1815abc258b15af8f9c511c8aa6d8e1a91a86",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/5aea598ee9d17a808e2e33d1.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/shadow/1%3A4.17.4-2",
+      "source_files": [
+        {
+          "filename": "shadow_4.17.4.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "554801054694ff7d8a7abdf0d6ece34e2f16e111673cc01b8c9ee1278451181e"
+        },
+        {
+          "filename": "shadow_4.17.4.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "82437d2b54790b3a6734c526b757e693cd0c734ec6afd69f9a9cf0eb1dad8dc4"
+        },
+        {
+          "filename": "shadow_4.17.4-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "97eaf0b3682a8a1a1ae6e4c4fac00885a7433d2487e636bde7c1c406e66bdb23"
+        }
+      ]
+    },
+    {
+      "source": "sqlite3",
+      "version": "3.46.1-7+deb13u2",
+      "binary_packages": [
+        "libsqlite3-0"
+      ],
+      "dsc_sha256": "46e1eec171e11108fc436e45309b635b601029726b6ffd3bf435bb474e511638",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/6e84d2acc060d9e5afcbbf7a.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/sqlite3/3.46.1-7+deb13u2",
+      "source_files": [
+        {
+          "filename": "sqlite3_3.46.1.orig-www.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "648df41a8e532882b1905df45919aae4bafaf74c455f66bc86f1f52f45c8b8f0"
+        },
+        {
+          "filename": "sqlite3_3.46.1.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "d0cdd2ece271b29e7ce18095745d892517ee26d0f270065b3a25c2e9eb11639c"
+        },
+        {
+          "filename": "sqlite3_3.46.1-7+deb13u2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "59d33bc436258603702bb051d645743ab03612b82f79e7c7d638c65127c21261"
+        }
+      ]
+    },
+    {
+      "source": "systemd",
+      "version": "257.13-1~deb13u1",
+      "binary_packages": [
+        "libsystemd0",
+        "libudev1"
+      ],
+      "dsc_sha256": "1b3405d671a82d1e20c9d99f52d4336aafe8543b28d04e91b7f1f586d3a667c7",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/77299e7bd4c7a192673ffdca.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/systemd/257.13-1~deb13u1",
+      "source_files": [
+        {
+          "filename": "systemd_257.13.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "1eb7d5f9ff8a426ff880a3cded9ce819613ba8003ac5ddde9eca162f14ddabe7"
+        },
+        {
+          "filename": "systemd_257.13-1~deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "9c6e435d613b996efcdb3b7dd9a4cebaa745333a3f64dc722f3fad646f1fdc1a"
+        }
+      ]
+    },
+    {
+      "source": "sysvinit",
+      "version": "3.14-4",
+      "binary_packages": [
+        "sysvinit-utils"
+      ],
+      "dsc_sha256": "1cfe65682218077e6f76011f0c5caacc9f2ab214d55893307d4a54c93312ac92",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/8717094f35bbcc4e073f56ff.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/sysvinit/3.14-4",
+      "source_files": [
+        {
+          "filename": "sysvinit_3.14.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "4e90a148707cf64113fc97343c053f9c0c9589551936b053999dcc69731f295f"
+        },
+        {
+          "filename": "sysvinit_3.14-4.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "2ba0aa763232112696bce50ee5acc707a515fcbd5b2c194193bfa7a0a525bff6"
+        }
+      ]
+    },
+    {
+      "source": "tar",
+      "version": "1.35+dfsg-3.1",
+      "binary_packages": [
+        "tar"
+      ],
+      "dsc_sha256": "5bb58d4966d94c99a9f1b182676089ecc05058d62fdb927f5c07539d9cda4077",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/1479e2590dce4a774d73d861.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/tar/1.35+dfsg-3.1",
+      "source_files": [
+        {
+          "filename": "tar_1.35+dfsg.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "9ae57e981c1e73c0eebc2b26c9b0c4497fe310ef1d516ea430efb5470b71f7a8"
+        },
+        {
+          "filename": "tar_1.35+dfsg-3.1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-05.json",
+          "sha256": "0d0278034b82ed84dce04a461879b6e1871e4cb416a0ff04d3d35ff05fc30a53"
+        }
+      ]
+    }
+  ]
+}

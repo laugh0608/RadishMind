@@ -1,0 +1,282 @@
+{
+  "status": "static_symbols_and_strings_only",
+  "boundary": "符号定义与字符串只能作为组件存在依据；未命中不证明静态组件缺席，函数名也不证明版本或完整来源。",
+  "items": [
+    {
+      "package": "cryptography",
+      "path": "cryptography/hazmat/bindings/_rust.abi3.so",
+      "sha256": "b52e6ae53c343ce97478ee10d93a0263576d778de65333c234577298d1e9ef07",
+      "symbols": {},
+      "selected_strings": [
+        "OpenSSL 4.0.3 29 Sep 2026"
+      ]
+    },
+    {
+      "package": "hf-xet",
+      "path": "hf_xet/hf_xet.abi3.so",
+      "sha256": "8cd19c1c117b86787d72f812c8864881024f9434684c29bbe1e46c69831cf602",
+      "symbols": {},
+      "selected_strings": [
+        "/root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/colored-3.1.1/src/color.rs",
+        "/root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/colored-3.1.1/src/lib.rs"
+      ]
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imaging.cpython-312-aarch64-linux-gnu.so",
+      "sha256": "a1f2dccf2ded3e6bd99f83fca3fff51416e9060b81d2272b042a012a29be3206",
+      "symbols": {
+        "zlib": {
+          "defined_count": 0,
+          "defined_sample": [],
+          "undefined_count": 3,
+          "undefined_sample": [
+            "deflate",
+            "inflate",
+            "zlibVersion"
+          ]
+        }
+      },
+      "selected_strings": [
+        "have_libimagequant"
+      ]
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imagingft.cpython-312-aarch64-linux-gnu.so",
+      "sha256": "e860e3d69d7625a45435dd8e7fdb09d5244adbc6d316f0dbcbc24b00fb7bd451",
+      "symbols": {
+        "raqm": {
+          "defined_count": 28,
+          "defined_sample": [
+            "raqm_add_font_feature",
+            "raqm_allowed_grapheme_boundary",
+            "raqm_clear_contents",
+            "raqm_create",
+            "raqm_destroy",
+            "raqm_get_direction_at_index",
+            "raqm_get_glyphs",
+            "raqm_get_par_detected_direction",
+            "raqm_get_par_resolved_direction",
+            "raqm_index_to_position"
+          ],
+          "undefined_count": 0,
+          "undefined_sample": []
+        },
+        "fribidi": {
+          "defined_count": 10,
+          "defined_sample": [
+            "fribidi_charset_to_unicode",
+            "fribidi_get_bidi_types",
+            "fribidi_get_bracket_types",
+            "fribidi_get_bracket_types_compat",
+            "fribidi_get_par_direction",
+            "fribidi_get_par_embedding_levels",
+            "fribidi_get_par_embedding_levels_ex",
+            "fribidi_get_par_embedding_levels_ex_compat",
+            "fribidi_unicode_to_charset",
+            "fribidi_version_info"
+          ],
+          "undefined_count": 0,
+          "undefined_sample": []
+        }
+      },
+      "selected_strings": [
+        "libfribidi.so",
+        "libfribidi.so.0"
+      ]
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libavif-ba04b566.so.16.4.2",
+      "sha256": "f509aa23e4724214afcd24dfac5e5b3c8853ea34564f4dd8d5e142b8093613f8",
+      "symbols": {
+        "dav1d": {
+          "defined_count": 20,
+          "defined_sample": [
+            "dav1d_apply_grain",
+            "dav1d_close",
+            "dav1d_data_create",
+            "dav1d_data_props_unref",
+            "dav1d_data_unref",
+            "dav1d_data_wrap",
+            "dav1d_data_wrap_user_data",
+            "dav1d_default_settings",
+            "dav1d_flush",
+            "dav1d_get_decode_error_data_props"
+          ],
+          "undefined_count": 0,
+          "undefined_sample": []
+        }
+      },
+      "selected_strings": []
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libbrotlicommon-f79e5820.so.1.2.0",
+      "sha256": "b0c19b13d87a51badb12fde55ced07aaea63a1c53e17e3d383563fc27b541600",
+      "symbols": {
+        "brotli": {
+          "defined_count": 9,
+          "defined_sample": [
+            "BrotliDefaultAllocFunc",
+            "BrotliDefaultFreeFunc",
+            "BrotliGetDictionary",
+            "BrotliGetTransforms",
+            "BrotliSetDictionaryData",
+            "BrotliSharedDictionaryAttach",
+            "BrotliSharedDictionaryCreateInstance",
+            "BrotliSharedDictionaryDestroyInstance",
+            "BrotliTransformDictionaryWord"
+          ],
+          "undefined_count": 0,
+          "undefined_sample": []
+        }
+      },
+      "selected_strings": []
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libbrotlidec-53ab751a.so.1.2.0",
+      "sha256": "2fe90af47ae040a87fa5ea86eb3b7fe79776a945c7a805c5ad04a6d4a37fc8b0",
+      "symbols": {
+        "brotli": {
+          "defined_count": 14,
+          "defined_sample": [
+            "BrotliDecoderAttachDictionary",
+            "BrotliDecoderCreateInstance",
+            "BrotliDecoderDecompress",
+            "BrotliDecoderDecompressStream",
+            "BrotliDecoderDestroyInstance",
+            "BrotliDecoderErrorString",
+            "BrotliDecoderGetErrorCode",
+            "BrotliDecoderHasMoreOutput",
+            "BrotliDecoderIsFinished",
+            "BrotliDecoderIsUsed"
+          ],
+          "undefined_count": 6,
+          "undefined_sample": [
+            "BrotliDefaultAllocFunc",
+            "BrotliDefaultFreeFunc",
+            "BrotliSharedDictionaryAttach",
+            "BrotliSharedDictionaryCreateInstance",
+            "BrotliSharedDictionaryDestroyInstance",
+            "BrotliTransformDictionaryWord"
+          ]
+        }
+      },
+      "selected_strings": []
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libfreetype-6d43b1fe.so.6.20.6",
+      "sha256": "2199d7712872109686ed67f98e42f8156111db5322160aeb316eec2cd68ce4d5",
+      "symbols": {
+        "brotli": {
+          "defined_count": 0,
+          "defined_sample": [],
+          "undefined_count": 1,
+          "undefined_sample": [
+            "BrotliDecoderDecompress"
+          ]
+        },
+        "zlib": {
+          "defined_count": 0,
+          "defined_sample": [],
+          "undefined_count": 1,
+          "undefined_sample": [
+            "inflate"
+          ]
+        }
+      },
+      "selected_strings": []
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libpng16-76a95936.so.16.58.0",
+      "sha256": "59704b6198b73e0ed789861cde58085090fce38f9759bf5dd5dbc1fa16e0c8cb",
+      "symbols": {
+        "zlib": {
+          "defined_count": 0,
+          "defined_sample": [],
+          "undefined_count": 3,
+          "undefined_sample": [
+            "crc32",
+            "deflate",
+            "inflate"
+          ]
+        }
+      },
+      "selected_strings": []
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libtiff-0c352bdc.so.6.3.0",
+      "sha256": "330f0eaa7a5d2fa06985d6e472e47fc4fc9e2513188dcbec1e47fcc36a4db0a8",
+      "symbols": {
+        "zstd": {
+          "defined_count": 0,
+          "defined_sample": [],
+          "undefined_count": 12,
+          "undefined_sample": [
+            "ZSTD_compressStream",
+            "ZSTD_createCStream",
+            "ZSTD_createDStream",
+            "ZSTD_decompressStream",
+            "ZSTD_endStream",
+            "ZSTD_freeCStream",
+            "ZSTD_freeDStream",
+            "ZSTD_getErrorName",
+            "ZSTD_initCStream",
+            "ZSTD_initDStream"
+          ]
+        },
+        "zlib": {
+          "defined_count": 0,
+          "defined_sample": [],
+          "undefined_count": 2,
+          "undefined_sample": [
+            "deflate",
+            "inflate"
+          ]
+        }
+      },
+      "selected_strings": [
+        "libzstd-79fd2b21.so.1.5.7"
+      ]
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libzstd-79fd2b21.so.1.5.7",
+      "sha256": "b46e933af3b39347d33e8343ae48666fe0ce74b14574760f92149cf6dcc1bfd8",
+      "symbols": {
+        "zstd": {
+          "defined_count": 175,
+          "defined_sample": [
+            "ZSTD_CCtxParams_getParameter",
+            "ZSTD_CCtxParams_init",
+            "ZSTD_CCtxParams_init_advanced",
+            "ZSTD_CCtxParams_registerSequenceProducer",
+            "ZSTD_CCtxParams_reset",
+            "ZSTD_CCtxParams_setParameter",
+            "ZSTD_CCtx_getParameter",
+            "ZSTD_CCtx_loadDictionary",
+            "ZSTD_CCtx_loadDictionary_advanced",
+            "ZSTD_CCtx_loadDictionary_byReference"
+          ],
+          "undefined_count": 4,
+          "undefined_sample": [
+            "ZSTD_trace_compress_begin",
+            "ZSTD_trace_compress_end",
+            "ZSTD_trace_decompress_begin",
+            "ZSTD_trace_decompress_end"
+          ]
+        }
+      },
+      "selected_strings": [
+        "/project/build/zstd-1.5.7/lib//dictBuilder/divsufsort.c",
+        "libzstd-79fd2b21.so.1.5.7"
+      ]
+    }
+  ]
+}

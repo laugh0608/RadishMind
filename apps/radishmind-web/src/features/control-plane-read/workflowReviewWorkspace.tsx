@@ -1,3 +1,4 @@
+import { isLocalWorkbench } from "../../runtime/workbenchConfiguration.ts";
 import "../../i18n/runReviewResources.ts";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
@@ -103,6 +104,7 @@ export default function WorkflowReviewWorkspace({
   const consumeRunHandoff = useCallback((handoffId: string) => {
     controls.consumeHandoff("evidence_review", handoffId);
   }, [controls]);
+  if (isLocalWorkbench() && activeSurface && activeSurface !== "runs") return null;
   const activeTask = WORKFLOW_REVIEW_TASKS.find((task) => task.surface === activeSurface);
 
   return (
@@ -130,7 +132,7 @@ export default function WorkflowReviewWorkspace({
       <div className="workflow-review-layout">
         <nav className="workflow-review-path" aria-label={t($ => $.runReview.workflowReviewTasks)}>
           <header><span>{t($ => $.runReview.reviewPath)}</span><strong>{t($ => $.runReview.oneOwnerAtATime)}</strong></header>
-          {WORKFLOW_REVIEW_TASKS.map((task) => {
+          {WORKFLOW_REVIEW_TASKS.filter(task => !isLocalWorkbench() || task.surface === "runs").map((task) => {
             const selected = task.surface === activeSurface;
             return (
               <a
@@ -146,6 +148,7 @@ export default function WorkflowReviewWorkspace({
               </a>
             );
           })}
+          {!isLocalWorkbench() && <a className="secondary-action" href="#application-evaluation-plan">{t($ => $.runReview.openEvaluationPlan)}</a>}
           <p className="workflow-review-boundary">
             <span aria-hidden="true">!</span>
             {t($ => $.runReview.approvedIsAppendOnlyReviewEvidenceItNever)}</p>

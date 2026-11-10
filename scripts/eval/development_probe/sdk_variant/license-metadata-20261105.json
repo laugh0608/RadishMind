@@ -1,0 +1,197 @@
+{
+  "schema_version": "development_license_metadata_evidence.v1",
+  "date": "2026-11-05",
+  "authorization": "User explicitly approved the eight bounded HTTPS requests in license-next-evidence-20261105.json.",
+  "status": "metadata_window_completed_license_gate_open",
+  "requests": [
+    {
+      "id": "cryptography-wheel-provenance",
+      "url": "https://pypi.org/integrity/cryptography/50.0.2/cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl/provenance",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 9839,
+      "sha256": "11ae43cb78e17391bdbed664f1bcef5315bc52faab4947c334858f258bbbda60",
+      "error": "",
+      "body": "cryptography-wheel-provenance.body"
+    },
+    {
+      "id": "cryptography-release-tree",
+      "url": "https://api.github.com/repos/pyca/cryptography/git/trees/50.0.2?recursive=1",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 904989,
+      "sha256": "ce1f2fe52c7e363816c8e9eaa79e0859caeabe842f2d3dedb1aeca67bae970db",
+      "error": "",
+      "body": "cryptography-release-tree.body"
+    },
+    {
+      "id": "cryptography-wheel-workflow",
+      "url": "https://raw.githubusercontent.com/pyca/cryptography/50.0.2/.github/workflows/wheel-builder.yml",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 18734,
+      "sha256": "d5a13b5c376e9944488bf45ad9657ba10c98cee4f60af8f42c276d3ee6df7b01",
+      "error": "",
+      "body": "cryptography-wheel-workflow.body"
+    },
+    {
+      "id": "openssl-4-0-3-license",
+      "url": "https://raw.githubusercontent.com/openssl/openssl/openssl-4.0.3/LICENSE.txt",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 10175,
+      "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+      "error": "",
+      "body": "openssl-4-0-3-license.body"
+    },
+    {
+      "id": "python-1-6-tag",
+      "url": "https://api.github.com/repos/python/cpython/git/ref/tags/v1.6",
+      "exit_code": 0,
+      "http_status": "404",
+      "bytes": 114,
+      "sha256": "e2e3c64edab172132f77ce89a0e8c190db1cd30936a096344f45893bd5b75f8a",
+      "error": "",
+      "body": "python-1-6-tag.body"
+    },
+    {
+      "id": "python-1-6-license-page",
+      "url": "https://www.python.org/download/releases/1.6/license/",
+      "exit_code": 0,
+      "http_status": "404",
+      "bytes": 32602,
+      "sha256": "fb661ed9163b05818d24dee52b751ae14078c30cf7e9114909c18cf14d34782b",
+      "error": "",
+      "body": "python-1-6-license-page.body"
+    },
+    {
+      "id": "regex-release-tree",
+      "url": "https://api.github.com/repos/mrabarnett/mrab-regex/git/trees/0e8cb0596ba6572c66e5d153a1d7c901b381e15e?recursive=1",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 5799,
+      "sha256": "f7a797e9aa4a70d639e82c723d5d8bca7f2df6176aed32fbd89a1b28777c098b",
+      "error": "",
+      "body": "regex-release-tree.body"
+    },
+    {
+      "id": "fastmcp-release-tree",
+      "url": "https://api.github.com/repos/PrefectHQ/fastmcp/git/trees/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434?recursive=1",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 375175,
+      "sha256": "701bf50e7d62f98644ea0359e2e1ccc12bac1d554ad5eed96c9b1c5ff493177c",
+      "error": "",
+      "body": "fastmcp-release-tree.body"
+    }
+  ],
+  "total_body_bytes": 1357427,
+  "successful_http_responses": 6,
+  "cryptography": {
+    "embedded_openssl": {
+      "wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "sbom_member": "cryptography-50.0.2.dist-info/sboms/sbom.json",
+      "sbom_sha256": "b0bf7d97f711a6abea7658c0e84ad5954226663559cba3ae14321e70adb72184",
+      "components": [
+        {
+          "type": "library",
+          "name": "openssl",
+          "version": "4.0.3",
+          "purl": "pkg:generic/openssl@4.0.3?download_url=https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
+          "hashes": [
+            {
+              "alg": "SHA-256",
+              "content": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9"
+            }
+          ],
+          "externalReferences": [
+            {
+              "type": "distribution",
+              "url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz"
+            }
+          ],
+          "properties": [
+            {
+              "name": "build:operating-system",
+              "value": "linux"
+            },
+            {
+              "name": "build:architecture",
+              "value": "aarch64"
+            },
+            {
+              "name": "build:flags",
+              "value": "no-zlib no-shared no-module no-comp no-apps no-docs no-sm2-precomp no-atexit enable-ec_nistp_64_gcc_128"
+            }
+          ]
+        }
+      ],
+      "evidence_class": "exact_wheel_embedded_build_metadata_not_independent_build_attestation"
+    },
+    "rust_sbom": {
+      "member": "cryptography-50.0.2.dist-info/sboms/cryptography-rust.cyclonedx.json",
+      "sha256": "fee819a6ce3cffc8a3f152acf6e0933c9bc719f8ccf76766d799f844f8b22772",
+      "components": 39,
+      "properties": [
+        {
+          "name": "cdx:rustc:sbom:target:all_targets",
+          "value": "true"
+        }
+      ],
+      "boundary": "all_targets=true; this is not the final linked-only component inventory"
+    },
+    "publication_statements": [
+      {
+        "publisher": {
+          "environment": null,
+          "kind": "GitHub",
+          "repository": "pyca/cryptography",
+          "workflow": "pypi-publish.yml"
+        },
+        "statement": {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+              "digest": {
+                "sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04"
+              }
+            }
+          ],
+          "predicateType": "https://docs.pypi.org/attestations/publish/v1",
+          "predicate": null
+        }
+      }
+    ],
+    "attestation_signature_and_transparency_verified": false,
+    "publication_boundary": "Subject hash matches exact wheel. Publish predicate is not an OpenSSL build attestation. Certificate chain, signature and transparency trust were not independently verified.",
+    "workflow_blob_matches_release_tree": true,
+    "workflow_sha256": "d5a13b5c376e9944488bf45ad9657ba10c98cee4f60af8f42c276d3ee6df7b01",
+    "workflow_blob_sha1": "7510c096ae38737238dad0ccf10f4fb727f75d72",
+    "workflow_observation": "manylinux_2_34 aarch64 uses a mutable ghcr.io/pyca/cryptography-manylinux_2_34:aarch64 image tag; OPENSSL_DIR=/opt/pyca/cryptography/openssl and sbom-include embed the OpenSSL SBOM; exact historical container digest was not obtained."
+  },
+  "fastmcp": {
+    "requested_commit": "9dc7191c1b44291be05c7d7bcf4cb3c18d86c434",
+    "tree_not_truncated": true,
+    "license_blob_sha1": "f49a4e16e68b128803cc2dcea614603632b04eac",
+    "license_original_sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+    "notice_paths": [],
+    "license_blob_matches_retained_copy": true
+  },
+  "regex": {
+    "historical_urls_http_status": [
+      "404",
+      "404"
+    ],
+    "gap": "Both approved historical Python 1.6 URLs returned 404; no replacement source fetched. Existing 1.6.1 text does not close the declared 1.6 discrepancy."
+  },
+  "boundary": {
+    "new_source_archives": false,
+    "new_binaries": false,
+    "dependency_changes": false,
+    "image_operations": false,
+    "license_gate_closed": false,
+    "window_closed": true,
+    "downloaded_content_executed": false
+  }
+}

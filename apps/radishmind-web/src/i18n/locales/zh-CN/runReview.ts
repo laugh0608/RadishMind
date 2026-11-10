@@ -1,4 +1,5 @@
 export const runReview = {
+  "openEvaluationPlan": "评测计划 · 重复运行精确版本",
   "ownerRegion": "运行与评测审查模块",
   "handoffOffline": "未读取运行 {{runId}}：所属模块作用域不可用，未启动请求或重放。",
   "handoffLoading": "正在从所属模块读取精确运行 {{runId}}。",
@@ -155,6 +156,8 @@ export const runReview = {
   "exactRunPair": "精确运行记录对",
   "chooseCompatibleEvidence": "选择兼容证据",
   "compatibilityFollowsTheCurrentRunProfileAndImmutable": "兼容性由当前运行档案和不可变授权依据字段决定。",
+  "definitionComparisonHint": "可比较同一定义下不同内容版本的运行；单文本与结构化输入运行分别比较。候选仅来自当前已加载的记录。",
+  "structuredComparisonHint": "结构化运行还要求输入合同标识与摘要一致。合同改变后，请以新合同的一次运行作为基线，再选择相同合同的另一次运行。",
   "baseline": "基线",
   "candidate": "候选",
   "compareExactRuns": "对比精确运行记录",

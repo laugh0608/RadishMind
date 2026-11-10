@@ -1,16 +1,14 @@
+import { editPromptVariableValues, serializePromptVariableValues, type PromptVariableValue } from "./promptVariableValues.ts";
 import {
   parseApplicationEvaluationPlanDraft, serializeApplicationEvaluationItems,
   type ApplicationEvaluationPlan, type ApplicationEvaluationPlanDraft, type ApplicationEvaluationPlanItem,
-  type ApplicationEvaluationPlanVersion, type JsonValue,
+  type ApplicationEvaluationPlanVersion,
 } from "./applicationEvaluationCampaignConsumer.ts";
 import { renderPromptTemplatePreview, type PromptTemplateDraftInput } from "./promptApplicationTemplateConsumer.ts";
-import { parsePromptInputJSON, promptNumberIsLossless, type PromptInputJSONIssue } from "./promptInputJSON.ts";
+import { parsePromptInputJSON, type PromptInputJSONIssue } from "./promptInputJSON.ts";
 
 export const PROMPT_PLAN_PROFILE = "prompt_application_invocation_v1" as const;
-export type PromptPlanValue =
-  | { kind: "value"; value: JsonValue }
-  | { kind: "number"; text: string; integer: boolean }
-  | { kind: "list"; rows: Array<{ editorKey: string; value: string }> };
+export type PromptPlanValue = PromptVariableValue;
 export type PromptPlanSample = Pick<ApplicationEvaluationPlanItem, "itemKey" | "name" | "expectedClassification"> & {
   editorKey: string;
   variables: Record<string, PromptPlanValue>;
@@ -171,18 +169,10 @@ function contentItems(content: PromptPlanContent): { items: ApplicationEvaluatio
   }
   const issues: PromptPlanIssue[] = [];
   const items = content.samples.map(item => {
-    const entries: Array<[string, JsonValue]> = [];
-    for (const [name, value] of Object.entries(item.variables)) {
-      if (value.kind === "number") {
-        if (!promptNumberIsLossless(value.text) || value.integer && !Number.isSafeInteger(Number(value.text))) {
-          issues.push({ code: "numberValue", itemKey: item.itemKey, field: name });
-          continue;
-        }
-        entries.push([name, Number(value.text)]);
-      } else entries.push([name, value.kind === "list" ? value.rows.map(row => row.value) : value.value]);
-    }
+    const result = serializePromptVariableValues(item.variables);
+    for (const name of result.invalidNumbers) issues.push({ code: "numberValue", itemKey: item.itemKey, field: name });
     return { itemKey: item.itemKey, name: item.name, expectedClassification: item.expectedClassification,
-      workflowDefinition: null, applicationRAG: null, agentCopilot: null, promptApplication: { variables: Object.fromEntries(entries) } };
+      workflowDefinition: null, applicationRAG: null, agentCopilot: null, promptApplication: { variables: result.values } };
   });
   return { items, issues };
 }
@@ -195,10 +185,6 @@ function sampleFromItem(item: ApplicationEvaluationPlanItem, identities: Array<{
   if (!item.promptApplication) throw new Error("Expected a Prompt fixture.");
   return { itemKey: item.itemKey, name: item.name, expectedClassification: item.expectedClassification,
     editorKey: identities.find(identity => identity.itemKey === item.itemKey)?.editorKey ?? crypto.randomUUID(),
-    variables: Object.fromEntries(Object.entries(item.promptApplication.variables).map(([name, value]) => [name,
-      Array.isArray(value) && value.every(entry => typeof entry === "string")
-        ? { kind: "list", rows: value.map(entry => ({ editorKey: crypto.randomUUID(), value: entry })) }
-        : { kind: "value", value },
-    ])),
+    variables: editPromptVariableValues(item.promptApplication.variables),
   };
 }

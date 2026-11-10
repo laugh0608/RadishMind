@@ -72,6 +72,8 @@ def load_schema(path: Path) -> Any:
 
 
 def load_env_file(path: Path) -> None:
+    if os.getenv("RADISHMIND_DISABLE_ENV_FILE") == "1":
+        return
     if not path.is_file():
         return
     for raw_line in path.read_text(encoding="utf-8").splitlines():

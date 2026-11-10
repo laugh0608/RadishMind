@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-task-probe-tool-request.schema.json",
+  "title": "DevelopmentTaskProbeToolRequestV1",
+  "description": "离线解析合同；实际执行还必须验证探针绑定、单调序号、当前文件摘要、候选摘要与累计预算。content 的 UTF-8 大小不得超过 32768 字节。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "probe_id",
+    "sequence",
+    "action",
+    "path",
+    "expected_digest",
+    "content",
+    "candidate_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_task_probe_tool_request.v1"
+    },
+    "probe_id": {
+      "type": "string",
+      "pattern": "^probe_[a-z0-9_]{1,48}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8
+    },
+    "action": {
+      "enum": [
+        "read_file",
+        "replace_file",
+        "run_tests"
+      ]
+    },
+    "path": {
+      "type": "string",
+      "enum": [
+        "",
+        "list.go"
+      ]
+    },
+    "expected_digest": {
+      "type": "string",
+      "pattern": "^(|sha256:[0-9a-f]{64})$"
+    },
+    "content": {
+      "type": "string",
+      "maxLength": 32768,
+      "pattern": "^[^\\u0000]*$"
+    },
+    "candidate_digest": {
+      "type": "string",
+      "pattern": "^(|sha256:[0-9a-f]{64})$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "read_file"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "path": {
+            "const": "list.go"
+          },
+          "expected_digest": {
+            "const": ""
+          },
+          "content": {
+            "const": ""
+          },
+          "candidate_digest": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "replace_file"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "path": {
+            "const": "list.go"
+          },
+          "expected_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "content": {
+            "minLength": 1
+          },
+          "candidate_digest": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "run_tests"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "path": {
+            "const": ""
+          },
+          "expected_digest": {
+            "const": ""
+          },
+          "content": {
+            "const": ""
+          },
+          "candidate_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  ]
+}

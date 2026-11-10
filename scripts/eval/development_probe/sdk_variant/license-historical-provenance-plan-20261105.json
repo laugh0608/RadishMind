@@ -1,0 +1,110 @@
+{
+  "schema_version": "development_historical_provenance_plan.v1",
+  "status": "prepared_not_authorized_not_executed",
+  "purpose": "核对精确发布证明、发行提交对应运行线索、multibuild 与 libavif 嵌套来源；不以当前动态响应替代历史输入。",
+  "initial_requests": [
+    {
+      "id": "pillow-commit",
+      "kind": "commit",
+      "repo": "python-pillow/Pillow",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/commits/13.0.0"
+    },
+    {
+      "id": "cryptography-commit",
+      "kind": "commit",
+      "repo": "pyca/cryptography",
+      "url": "https://api.github.com/repos/pyca/cryptography/commits/50.0.2"
+    },
+    {
+      "id": "certifi-current-commit",
+      "kind": "commit",
+      "repo": "certifi/python-certifi",
+      "url": "https://api.github.com/repos/certifi/python-certifi/commits/2026.10.23"
+    },
+    {
+      "id": "certifi-pip-commit",
+      "kind": "commit",
+      "repo": "certifi/python-certifi",
+      "url": "https://api.github.com/repos/certifi/python-certifi/commits/2024.08.30"
+    },
+    {
+      "id": "pillow-provenance",
+      "kind": "provenance",
+      "artifact_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "url": "https://pypi.org/integrity/pillow/13.0.0/pillow-13.0.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl/provenance"
+    },
+    {
+      "id": "cryptography-provenance",
+      "kind": "provenance",
+      "artifact_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "url": "https://pypi.org/integrity/cryptography/50.0.2/cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl/provenance"
+    },
+    {
+      "id": "certifi-provenance",
+      "kind": "provenance",
+      "artifact_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "url": "https://pypi.org/integrity/certifi/2026.10.23/certifi-2026.10.23-py3-none-any.whl/provenance"
+    },
+    {
+      "id": "multibuild-tree",
+      "kind": "tree",
+      "repo": "matthew-brett/multibuild",
+      "url": "https://api.github.com/repos/matthew-brett/multibuild/git/trees/c893f305c6066b6d940e10d3333be8cb27fa3947?recursive=1",
+      "allowed_paths": [
+        "common_utils.sh",
+        "library_builders.sh",
+        "manylinux_utils.sh",
+        "LICENSE*",
+        "COPYING*"
+      ]
+    },
+    {
+      "id": "libavif-tree",
+      "kind": "tree",
+      "repo": "AOMediaCodec/libavif",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/trees/v1.4.2?recursive=1",
+      "allowed_paths": [
+        "ext/dav1d.cmd",
+        "ext/aom.cmd",
+        "ext/libyuv.cmd",
+        "ext/libsharpyuv.cmd",
+        "ext/avm.cmd",
+        "ext/libjpeg.cmd",
+        "ext/zlibpng.cmd",
+        "CMakeLists.txt"
+      ]
+    }
+  ],
+  "followup": {
+    "commit_runs": "仅四份成功 commit 响应的精确 SHA，各取一页最多 20 个 Actions run；每份最多读取一个相同 SHA 的成功 run 的一页 jobs。无分页、不取日志或构建产物。",
+    "max_source_blobs": 12,
+    "source_text": "仅上述两棵未截断树的允许路径，按返回的不可变 blob SHA 读取并核对 Git blob 摘要；不执行正文、不递归跟踪脚本中的 URL。"
+  },
+  "hosts": [
+    "api.github.com",
+    "pypi.org"
+  ],
+  "limits": {
+    "requests": 29,
+    "per_response_bytes": 2097152,
+    "total_body_bytes": 33554432,
+    "seconds_per_request": 30,
+    "connect_seconds": 10,
+    "concurrency": 1,
+    "redirects": 0,
+    "retries": 0
+  },
+  "output_directory": "tmp/development-pip-delivery-20261105/historical-provenance",
+  "command": "python3 tmp/development-pip-delivery-20261105/fetch_historical_provenance.py --execute",
+  "executor_sha256": "a9de26fbfb81b452af8ff4609be60ddde9e711aa55a70e3c83ed3ed9b795de34",
+  "cleanup": "仅前台 curl 子进程，超时终止并等待；不安装、无服务 / 容器，原始响应和摘要留在仓库 tmp 供审计。",
+  "boundary": {
+    "archive_or_binary_download": false,
+    "code_execution": false,
+    "dependency_install": false,
+    "container_operations": false,
+    "image_build": false,
+    "publish": false
+  },
+  "failure_policy": "每项非 200、无效 JSON、重定向或摘要不符即停止该项，不换源 / 重试；总量超限停止整个窗口。未取得内容如实列为缺口。"
+}

@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-attempt-reservation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "delegation_id",
+    "delegation_revision",
+    "attempt_id",
+    "request_id",
+    "sequence",
+    "kind",
+    "payload_digest",
+    "token_bound",
+    "cost_bound_microusd"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_attempt_reservation.v1"
+    },
+    "delegation_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "delegation_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000000
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40
+    },
+    "kind": {
+      "enum": [
+        "model",
+        "tool"
+      ]
+    },
+    "payload_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+      "minLength": 71,
+      "maxLength": 71
+    },
+    "token_bound": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 262144
+    },
+    "cost_bound_microusd": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000000
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "model"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "token_bound": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 262144
+          },
+          "cost_bound_microusd": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "tool"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "token_bound": {
+            "const": 0
+          },
+          "cost_bound_microusd": {
+            "const": 0
+          }
+        }
+      }
+    }
+  ],
+  "description": "由可信 Go 负责模块计算和预留的操作预算，不采纳 SDK 自报价格或估算。payload_digest 绑定完整规范请求，工具还必须绑定父模型请求与待执行工具标识。"
+}

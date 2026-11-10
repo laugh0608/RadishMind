@@ -1,0 +1,74 @@
+{
+  "items": [
+    {
+      "id": "libavif-tree-5c3877a8328f",
+      "kind": "blob",
+      "repo": "AOMediaCodec/libavif",
+      "path": "CMakeLists.txt",
+      "expected_git_blob_sha1": "5c3877a8328f9c39de01187ea4d396b459be0332",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/5c3877a8328f9c39de01187ea4d396b459be0332",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 50846,
+      "sha256": "bb5314627e13527e20096861556833cb832f69cff8523e7e5e4def49ae8f3760",
+      "git_blob_verified": true,
+      "decoded_sha256": "2734969c3a582302df2e09358518ec87b1f4107f86d8e5bc4aced0812b548143"
+    },
+    {
+      "id": "libavif-tree-ad4ffc19e96a",
+      "kind": "blob",
+      "repo": "AOMediaCodec/libavif",
+      "path": "ext/aom.cmd",
+      "expected_git_blob_sha1": "ad4ffc19e96afcf226c6b56d2f48613a008909b5",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/ad4ffc19e96afcf226c6b56d2f48613a008909b5",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 1634,
+      "sha256": "9bf5aa902a8292babfcd19c65c75383671c4aa549c11822d2b554c8573b4b7d1",
+      "git_blob_verified": true,
+      "decoded_sha256": "425106e77ecbeec4fe85cda60f2d9e975d137c7c31e64c43d10a1423807f4fb9"
+    },
+    {
+      "id": "libavif-tree-fe96a019e167",
+      "kind": "blob",
+      "repo": "AOMediaCodec/libavif",
+      "path": "ext/dav1d.cmd",
+      "expected_git_blob_sha1": "fe96a019e1678e0ce3429fba032aeea8ca5d02e0",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/fe96a019e1678e0ce3429fba032aeea8ca5d02e0",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 1931,
+      "sha256": "a164f3daa644bf88d3604143fa7ad26b46c5ff8d40c1c8720a4e9c14b3ebafd4",
+      "git_blob_verified": true,
+      "decoded_sha256": "d03539d9d2983af18566c6368d0dc5de41141f7681c37d32893a266b212dcfa1"
+    },
+    {
+      "id": "libavif-tree-ebd51af887ea",
+      "kind": "blob",
+      "repo": "AOMediaCodec/libavif",
+      "path": "ext/libjpeg.cmd",
+      "expected_git_blob_sha1": "ebd51af887ea1846a109711a6fe100e2aefc732c",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/ebd51af887ea1846a109711a6fe100e2aefc732c",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 1733,
+      "sha256": "0e1b3d197b1a0f1ed2b5c9bc37dc1708338999ed6d3d607afa5e76624c197e6d",
+      "git_blob_verified": true,
+      "decoded_sha256": "2db0246cf93ebd5cd0b0f0986dffc4dfacd801f232acaac4dd7a375ef06b5fd7"
+    },
+    {
+      "id": "libavif-tree-304b92552d30",
+      "kind": "blob",
+      "repo": "AOMediaCodec/libavif",
+      "path": "ext/libsharpyuv.cmd",
+      "expected_git_blob_sha1": "304b92552d30419a5ad7bfe81139f08b4e4cd3e9",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/304b92552d30419a5ad7bfe81139f08b4e4cd3e9",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 1783,
+      "sha256": "82b33993832bcbe5ba16238c13836c577f23df7d00cf526f5e11da97b0710f67",
+      "git_blob_verified": true,
+      "decoded_sha256": "916174fc2a3904d26c1208556e2ca499539d5032805595cfe80592fadbf0206d"
+    }
+  ]
+}

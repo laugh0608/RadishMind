@@ -1,4 +1,5 @@
 export const runReview = {
+  "openEvaluationPlan": "Evaluation plans · repeat exact versions",
   "ownerRegion": "Run and evaluation review owner",
   "handoffOffline": "Run {{runId}} was not loaded because its owner scope is unavailable. No request or replay was started.",
   "handoffLoading": "Loading exact run {{runId}} from its owner.",
@@ -155,6 +156,8 @@ export const runReview = {
   "exactRunPair": "Exact run pair",
   "chooseCompatibleEvidence": "Choose compatible evidence",
   "compatibilityFollowsTheCurrentRunProfileAndImmutable": "Compatibility follows the current run profile and immutable authority fields.",
+  "definitionComparisonHint": "Runs from different content versions of the same definition can be compared. Single-text and structured input runs are compared separately. Candidates come only from the currently loaded records.",
+  "structuredComparisonHint": "Structured runs also require matching input contract IDs and digests. After a contract change, choose a run using the new contract as the baseline, then another run using that same contract.",
   "baseline": "Baseline",
   "candidate": "Candidate",
   "compareExactRuns": "Compare exact runs",

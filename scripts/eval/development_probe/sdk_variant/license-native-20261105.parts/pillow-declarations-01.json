@@ -1,0 +1,234 @@
+{
+  "items": [
+    {
+      "name": "PIL._avif",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._imaging",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._imagingcms",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._imagingft",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._imagingmath",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._imagingmorph",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._imagingtk",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "PIL._webp",
+      "declared_version": "13.0.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "fribidi-shim",
+      "declared_version": "1.x",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "pythoncapi_compat",
+      "declared_version": null,
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "0BSD"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "raqm",
+      "declared_version": "0.11.0",
+      "declared_scope": "unspecified",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "FreeType",
+      "declared_version": "2.14.3",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "FTL"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libfreetype-6d43b1fe.so.6.20.6"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "FriBiDi",
+      "declared_version": "1.0.17",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-or-later"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "HarfBuzz",
+      "declared_version": "14.5.0",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libharfbuzz-38f28207.so.0.61450.0"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "libavif",
+      "declared_version": "1.4.2",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "matching_bundled_paths": [
+        "pillow.libs/libavif-ba04b566.so.16.4.2"
+      ],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    },
+    {
+      "name": "libimagequant",
+      "declared_version": "4.4.1",
+      "declared_scope": "optional",
+      "declared_licenses": [
+        {
+          "license": {
+            "id": "GPL-3.0-or-later"
+          }
+        }
+      ],
+      "matching_bundled_paths": [],
+      "boundary": "Name/prefix correspondence only; declared version is not independently verified binary build provenance."
+    }
+  ]
+}

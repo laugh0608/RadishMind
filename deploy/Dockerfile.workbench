@@ -1,0 +1,40 @@
+FROM node:22-bookworm-slim AS web
+WORKDIR /src/apps/radishmind-web
+COPY apps/radishmind-web/package.json apps/radishmind-web/package-lock.json ./
+RUN npm ci
+COPY apps/radishmind-web/ ./
+COPY contracts/ /src/contracts/
+RUN npm run build -- --mode workbench
+
+FROM golang:1.25-bookworm AS platform
+WORKDIR /src/services/platform
+COPY services/platform/go.mod services/platform/go.sum ./
+RUN go mod download && go mod verify
+COPY services/platform/ ./
+ARG TARGETOS=linux
+ARG TARGETARCH
+ARG BUILD_VERSION=local-workbench-unversioned
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+    -ldflags "-X main.buildVersion=${BUILD_VERSION}" -o /out/radishmind-platform ./cmd/radishmind-platform
+
+FROM python:3.12-slim AS runtime
+ENV RADISHMIND_WORKBENCH_CONTAINER=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+WORKDIR /workspace
+COPY requirements-dev.txt /tmp/requirements-runtime.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-runtime.txt \
+    && groupadd --gid 10001 radishmind \
+    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin radishmind
+COPY --from=platform /out/radishmind-platform /usr/local/bin/radishmind-platform
+COPY --from=web /src/apps/radishmind-web/dist/ /workspace/web/
+COPY services/__init__.py services/__init__.py
+COPY services/gateway/ services/gateway/
+COPY services/runtime/ services/runtime/
+COPY scripts/run-platform-bridge.py scripts/run-platform-bridge.py
+COPY contracts/ contracts/
+COPY prompts/ prompts/
+USER 10001:10001
+EXPOSE 7000
+ENTRYPOINT ["radishmind-platform", "workbench"]
+CMD ["serve", "--config", "/etc/radishmind/platform.json"]

@@ -1,4 +1,8 @@
 export const evaluationCampaign = {
+  "discardContinue": "Discard and continue",
+  "keepEditing": "Keep editing",
+  "discardBoundary": "Continuing replaces the current local edit. It has not been saved.",
+  "discardTitle": "Discard unsaved changes?",
   "eyebrow": "S10 · Scheduled regression evaluation",
   "title": "Scheduled regression campaign",
   "intro": "Run one exact Prompt plan on a guarded UTC cadence, inspect each occurrence, and hand off only an existing exact Campaign.",

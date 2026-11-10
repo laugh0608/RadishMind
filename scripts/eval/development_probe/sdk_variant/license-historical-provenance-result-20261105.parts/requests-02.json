@@ -1,0 +1,72 @@
+{
+  "items": [
+    {
+      "id": "cryptography-provenance",
+      "kind": "provenance",
+      "artifact_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "url": "https://pypi.org/integrity/cryptography/50.0.2/cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl/provenance",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 9839,
+      "sha256": "11ae43cb78e17391bdbed664f1bcef5315bc52faab4947c334858f258bbbda60"
+    },
+    {
+      "id": "certifi-provenance",
+      "kind": "provenance",
+      "artifact_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+      "url": "https://pypi.org/integrity/certifi/2026.10.23/certifi-2026.10.23-py3-none-any.whl/provenance",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 9774,
+      "sha256": "8cafc30a120ffeebf1239b003381c4a43a46920f4ad7a05fb8631200abbdc940"
+    },
+    {
+      "id": "multibuild-tree",
+      "kind": "tree",
+      "repo": "matthew-brett/multibuild",
+      "url": "https://api.github.com/repos/matthew-brett/multibuild/git/trees/c893f305c6066b6d940e10d3333be8cb27fa3947?recursive=1",
+      "allowed_paths": [
+        "common_utils.sh",
+        "library_builders.sh",
+        "manylinux_utils.sh",
+        "LICENSE*",
+        "COPYING*"
+      ],
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 11577,
+      "sha256": "bc621cf11fcda4377c7d4093fccc61be96fc62e9ad3b3a339f6642a36eb63ce5"
+    },
+    {
+      "id": "libavif-tree",
+      "kind": "tree",
+      "repo": "AOMediaCodec/libavif",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/trees/v1.4.2?recursive=1",
+      "allowed_paths": [
+        "ext/dav1d.cmd",
+        "ext/aom.cmd",
+        "ext/libyuv.cmd",
+        "ext/libsharpyuv.cmd",
+        "ext/avm.cmd",
+        "ext/libjpeg.cmd",
+        "ext/zlibpng.cmd",
+        "CMakeLists.txt"
+      ],
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 142728,
+      "sha256": "c0069c770373b10bd3542eb6ce3eefba47641dc167834bdc7a52273984e7ac2f"
+    },
+    {
+      "id": "pillow-commit-runs",
+      "kind": "runs",
+      "repo": "python-pillow/Pillow",
+      "head_sha": "293218ad059d994baf1777d882911bed6a49704a",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/actions/runs?head_sha=293218ad059d994baf1777d882911bed6a49704a&per_page=20",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 43549,
+      "sha256": "2d1b49d7412de16bbef51765d75896ccb989e59d64f036f255aac86c6a6dba96"
+    }
+  ]
+}

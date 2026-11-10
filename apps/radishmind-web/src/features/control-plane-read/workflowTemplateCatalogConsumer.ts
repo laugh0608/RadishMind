@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
 import {
   workflowDraftFromSavedWorkflowDraftDocument,
@@ -166,7 +167,7 @@ export class WorkflowTemplateRequestCoordinator {
 }
 
 export function readWorkflowTemplateCatalogConfig(): WorkflowTemplateCatalogConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_TEMPLATE_SOURCE?.trim() === DEV_SOURCE
       ? "dev_workflow_template_http"

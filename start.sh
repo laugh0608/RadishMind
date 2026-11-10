@@ -16,6 +16,7 @@ usage() {
 Usage: ./start.sh [command] [args]
 
 Commands:
+  workbench      Persistent local workbench: build/check/init/serve/bootstrap-admin/backup/upgrade/restore.
   web-live       Start product web UI + dev-only fake read backend. Default for frontend/backend integration.
   web-offline    Start product web UI with offline fixtures only.
   console        Start local ops console + platform backend.
@@ -112,6 +113,7 @@ run_command() {
   local command="$1"
   shift || true
   case "${command}" in
+    workbench) exec "${ROOT_DIR}/scripts/run-workbench.sh" "$@" ;;
     web-live | web | dev-live) run_web_live "$@" ;;
     web-offline | offline) run_web_offline "$@" ;;
     console) run_console "$@" ;;

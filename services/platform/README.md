@@ -1,5 +1,7 @@
 # RadishMind Platform Service Layer
 
+`workbench` 子命令提供同源正式 Web、严格公开配置、显式数据生命周期与冷备份恢复；领域 API 与 SQL 继续复用。使用见[工作台运行指南](../../docs/platform/local-persistent-workbench-operations-v1.md)，宿主机浏览器与容器实际运行仍待验收。
+
 本目录承载 `Go` 平台服务层，统一管理 northbound HTTP、Gateway bridge、开发测试态认证、产品 repository 选择与服务生命周期。它是运行时实现入口，不是产品规划、历史 readiness 或完整运维手册的真相源。
 
 ## 服务职责
@@ -28,6 +30,12 @@
 精确路由、核心配置、启动命令、smoke 和故障处理统一维护在[平台服务运行手册](../../docs/platform/platform-service-operations-runbook-v1.md)。schema、字段与失败 envelope 以 `contracts/` 和对应功能专题为准；README 不重复保存逐批 readiness 状态。Action Safety 没有独立 HTTP route：规则结果在 response、candidate、assignment、Tool plan、pre-dispatch 与 Run 的服务端 checkpoint 中计算，并作为版本化、脱敏 snapshot 进入既有 owner；单一 `action_safety_read_projection.v1` 只嵌入既有 Agent turn / assignment、Tool plan / execution 与 eligible Run read response。客户端不能提交 decision、authority、effective level，或把 snapshot 当作 execution token。
 
 Application Evaluation Schedule route 使用既有 Plan、Campaign、Run、quota 与 Workflow Run Store owner。后台 runner 默认关闭；只有显式设置 `RADISHMIND_APPLICATION_EVALUATION_SCHEDULE_RUNNER_DEV=true`，且 Campaign dev、本地身份 HTTP 与 `local_session_dev_test` 同时成立时才启动。runner 固定低频轮询，每次 occurrence 重新读取 delegated user 的账户、membership、permission、Plan、assignment、API Key 与 quota；崩溃恢复只观察确定性 Campaign key，不重放 Provider。该 gate 不启用通用 scheduler 或 production worker。
+
+## 受控开发尝试的可信宿主接线
+
+`internal/developmentcontrol` 已实现单尝试 SQLite、任务凭据、提议 / 账目 / 事件事务及严格原生消息通道，默认平台与工作台均不启动。可信 Go 宿主显式 `ConnectDevelopmentControl(backend)`，通过已验证本地 Session 的 `PrepareDevelopmentAttempt / IssueDevelopmentAttempt` 确认精确计划后，才可调用 `StartDevelopmentChannel(ctx)` 取得独立 `127.0.0.1:0` 地址；调用方须观察 Serve 结果并执行 `CloseDevelopmentControl`。原文凭据只交接可信 SDK 进程，不序列化给浏览器。
+
+可信宿主可另行显式调用 `Runtime.RunWorker`，使用确认的任务凭据、绝对 SDK 命令和新建 `0700` 私有空目录；目录由调用方分配和回收。Linux / macOS 实现独立进程组与父存活管道，`Close` 取消并等待所属 worker。真实 SDK Agent 的固定响应工具往返、允许事件、错误 / 用量未知、模型等待取消及父管道失联退出已验。工具入口先返回 `202 queued`，观察值由可信 Go 回调核对；现在可将可信 `developmentsandbox.Session` 绑定到 `WorkerLaunch.Sandbox`，接私有候选文件与固定 Go 测试容器；来源快照只读，归属清理确认前不能完成。代码容器及真实 SDK 同次候选修改 / 测试 / 保存 / 导出、旧测试失效和命令中取消已通过固定响应联合验收；实际提供方原生传输与通用仓库仍未验收。执行边界见[沙箱模块](internal/developmentsandbox/README.md)。SDK 运行入口见[模块说明](../runtime/development_sdk/README.md)。不能转发旧建议桥接或打开现成生产执行开关。共享迁移新增 `development_attempts`；旧工作台须停服、备份后显式 `upgrade`，`serve` 不自动应用新增迁移。契约、表与验证边界见[尝试控制合同](../../docs/contracts/development-attempt-control-v1.md)。
 
 ## Browser OIDC 开发测试配置
 
@@ -143,3 +151,5 @@ wrapper 默认使用 `local-product` 档；显式组件配置、PostgreSQL 专�
 - production secret backend、process supervisor、部署环境隔离、console production packaging、生产认证、生产 API key、quota 和 billing 未满足时保持失败关闭。
 - 不把 readiness 文档、fixture 或静态检查结果解释为运行能力；不从失败路径回退 `memory_dev` 或 fake store。
 - 不让 API key、token、DSN、provider 原始响应或异常正文进入 argv、公开错误、日志和 committed 资产。
+
+受控开发包由独立 `internal/developmentartifact` 负责，入口见[模块说明](internal/developmentartifact/README.md)。固定探针合同、显式摘要确认、SQLite 配额 / 幂等 / 精确重读及受控 JSON 导出已定向验证；共享迁移新增 `development_artifacts`，只在停服备份后显式升级，不操作既有运行库。真实 SDK 与代码容器的同次任务已通过[联合验收](../../docs/devlogs/2026-W44.parts/development-joint-20261031.md)，遥测可选化候选也已独立复验；没有新增公开路由、服务或内置角色授权，正式采用与阶段 1 交付仍待收口。

@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   applicationResultArtifactExportFilename,
+  parseApplicationResultArtifactSummary,
   applicationResultArtifactLibraryResponseMatchesScope,
   applicationResultArtifactResponseMatchesScope,
   exportApplicationResultArtifact,
@@ -444,3 +445,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 function sha256(value: string): string {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
 }
+
+test("local Session artifact parsing remains bound to the exact signed-in owner", () => {
+  const local = { ...config, authMode: "local_session_dev_test" as const, subjectRef: "user:usr_current" };
+  const exact = { ...summaryDocument(), owner_subject_ref: local.subjectRef };
+  assert.notEqual(parseApplicationResultArtifactSummary(exact, local, applicationId, sessionId), null);
+  assert.equal(parseApplicationResultArtifactSummary(summaryDocument(), local, applicationId, sessionId), null);
+});

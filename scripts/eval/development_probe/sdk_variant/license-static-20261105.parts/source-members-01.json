@@ -1,0 +1,165 @@
+{
+  "items": [
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/setup.py",
+      "bytes": 41392,
+      "sha256": "79e31d829959941b06b0b22ead40431f337a666408c32b09b2df35c431ad93f4"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/_imaging.c",
+      "bytes": 139661,
+      "sha256": "3145c84174cf30d0eedf2ef946f821f230b07ecf258d30c58dd301e0ade07053"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/_imagingft.c",
+      "bytes": 51945,
+      "sha256": "0149f17db673a5a13a1619c74c2675781896e66f1ab6132f90088548fbfebf82"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/libImaging/QuantPngQuant.c",
+      "bytes": 3153,
+      "sha256": "4c399f92f4aad6b3cd1c09ffb2effc973d08dd1bfe7daf0b7448911a82256baf"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/fribidi-shim/fribidi.c",
+      "bytes": 3281,
+      "sha256": "1237c1af420466696635bcbcf5a7738b4662872dae7066df9df28c2e2f8603ea"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/fribidi-shim/fribidi.h",
+      "bytes": 3429,
+      "sha256": "cb6be31da98e0286167782282766a33bef187b53b00949cd7ef7b7a566a677f6"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/pythoncapi_compat.h",
+      "bytes": 70661,
+      "sha256": "526f4e1a9f41c0dc641e24f723d85fe8b31b80405b6769510d998043907aa513"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/AUTHORS",
+      "bytes": 138,
+      "sha256": "e81eb8c13d248620f229af26700a5d8c928bac0fd971cae6e76e2f88228ea9e2"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/COPYING",
+      "bytes": 1180,
+      "sha256": "f6baa5c872ed0c35cde377735f930d97a23e08065d87cf34d766b3aad5beed1e"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/NEWS",
+      "bytes": 4999,
+      "sha256": "a4a134a4d09213953451e1579a7caafde1585090730cec25d024693c7028a237"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/README.md",
+      "bytes": 2402,
+      "sha256": "9eb7bd351aa0475eefba7d5ad560cf96ce782aabc96d582057ebe60dab123aab"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/grapheme-data.h",
+      "bytes": 25225,
+      "sha256": "82827234d713fd0787434649a92a28c7418944e4eeca07d456a9f99407853f70"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/raqm-version.h",
+      "bytes": 1556,
+      "sha256": "3099dd9bc1bf372914704717844737d16ffb89666f98d1ecb327c3072d360903"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/raqm.c",
+      "bytes": 72235,
+      "sha256": "d3cb7309f91c5804fd19adc04efdcaf167d26e156f3459844b205b25dedca001"
+    },
+    {
+      "package": "pillow",
+      "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "member": "pillow-13.0.0/src/thirdparty/raqm/raqm.h",
+      "bytes": 6170,
+      "sha256": "4f0d3fe6c98175f350072270ef1d33c1715067a30ca28ecd410f58eee3b767d4"
+    },
+    {
+      "package": "regex",
+      "archive_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+      "member": "regex-2026.9.29/LICENSE.txt",
+      "bytes": 11584,
+      "sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d"
+    },
+    {
+      "package": "regex",
+      "archive_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+      "member": "regex-2026.9.29/src/_regex.c",
+      "bytes": 832231,
+      "sha256": "5a09aba56ea3de42138cf0e7c00b65a5e85ee97f31bd6829c7aba376030a9a11"
+    },
+    {
+      "package": "regex",
+      "archive_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+      "member": "regex-2026.9.29/src/_regex.h",
+      "bytes": 6288,
+      "sha256": "17a001a575734dac177794b7fa45471234f6abac17f2aa7cd101efdc4106769c"
+    },
+    {
+      "package": "regex",
+      "archive_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+      "member": "regex-2026.9.29/src/_regex_unicode.c",
+      "bytes": 1983129,
+      "sha256": "a0c26f0cc64e733f429cbe8251e8156c4d80508eec1920626b3b868d86bd1642"
+    },
+    {
+      "package": "regex",
+      "archive_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+      "member": "regex-2026.9.29/src/_regex_unicode.h",
+      "bytes": 10827,
+      "sha256": "41c981143516f6cd244ae3aaaf9dfca2d7b38ff907a2d04190d56d898b466531"
+    },
+    {
+      "package": "certifi",
+      "archive_sha256": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd",
+      "member": "certifi-2026.10.23/LICENSE",
+      "bytes": 989,
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+    },
+    {
+      "package": "certifi",
+      "archive_sha256": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd",
+      "member": "certifi-2026.10.23/pyproject.toml",
+      "bytes": 91,
+      "sha256": "81562b11a9a84cb5d47f66a78e7338546fddb7f5c62f4308b337e891f7d8a0d7"
+    },
+    {
+      "package": "tqdm",
+      "archive_sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+      "member": "tqdm-4.70.1/LICENCE",
+      "bytes": 1985,
+      "sha256": "fcff87c3a47ce8028a8512aa182d4fcf0ad1c90544ee75cf9b343684cac194de"
+    }
+  ]
+}

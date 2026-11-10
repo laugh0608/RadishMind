@@ -1,3 +1,4 @@
+import { validateWorkflowDraftInputContract } from "./workflowDraftInputContract.ts";
 import type { WorkflowProjectionCopy, WorkflowProjectionMessage } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
@@ -101,7 +102,7 @@ export function buildWorkflowDraftValidationInspectorViewModel(
 ): WorkflowDraftValidationInspectorViewModel {
   const route = CONTROL_PLANE_READ_ROUTE_DEFINITIONS["workflow-definition-summary-list-route"];
   const routePath = CONTROL_PLANE_READ_ROUTES.workflowDefinitions;
-  const executorV0 = draft.executionProfile === "executor_v0";
+  const executorV0 = draft.executionProfile === "executor_v0" || draft.schemaVersion === "saved_workflow_draft.v2";
   const structuralChecks = executorV0
     ? buildExecutorV0StructuralChecks(draft)
     : buildStructuralChecks(draft.nodes, draft.edges);
@@ -110,6 +111,17 @@ export function buildWorkflowDraftValidationInspectorViewModel(
     executorV0 ? EXECUTOR_V0_REQUIRED_INPUT_FIELDS : REQUIRED_INPUT_FIELDS,
     executorV0 ? EXECUTOR_V0_REQUIRED_OUTPUT_FIELDS : REQUIRED_OUTPUT_FIELDS,
   );
+  if (draft.schemaVersion === "saved_workflow_draft.v2") {
+    const issues = validateWorkflowDraftInputContract(draft.inputContract);
+    contractChecks[0] = {
+      checkId: "structured_input_contract", label: "Structured input contract", labelMessage: { key: "structuredContractLabel" },
+      status: issues.length ? "blocked" : "passed", severity: issues.length ? "blocking" : "info",
+      requiredFields: draft.inputContract.fields.filter((field) => field.required).map((field) => field.name),
+      presentFields: draft.inputContract.fields.map((field) => field.name), missingFields: issues.map((issue) => issue.field),
+      summary: "Structured input contract is checked before server validation.", summaryMessage: { key: "structuredContractSummary" },
+    };
+    structuralChecks[0] = { ...structuralChecks[0]!, label: "Structured input execution profile", labelMessage: { key: "structuredProfileLabel" }, summary: "Requires immutable Definition review and explicit activation.", summaryMessage: { key: "structuredProfileSummary" } };
+  }
   const blockedCapabilityChecks = executorV0
     ? []
     : buildBlockedCapabilityChecks(draft.blockedCapabilities);

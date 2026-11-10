@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment, isLocalWorkbench } from "../../runtime/workbenchConfiguration.ts";
 import {
   CONTROL_PLANE_READ_ROUTE_DEFINITIONS,
   CONTROL_PLANE_READ_ROUTE_IDS,
@@ -25,7 +26,7 @@ const WORKSPACE_ROUTE_IDS = new Set<ControlPlaneReadRouteId>([
 
 export type ControlPlaneReadDataSourceMode = "offline_fixture" | "dev_live_http";
 export type ControlPlaneReadAuthMode = "dev_headers" | "signed_test_token" | "radish_oidc_integration_test" | "local_session_dev_test";
-export type ControlPlaneReadStoreMode = "fake_store_dev" | "postgres_dev_test";
+export type ControlPlaneReadStoreMode = "fake_store_dev" | "postgres_dev_test" | "sqlite_dev";
 
 export type ControlPlaneReadDevLiveConfig = {
   mode: ControlPlaneReadDataSourceMode;
@@ -35,6 +36,7 @@ export type ControlPlaneReadDevLiveConfig = {
   authMode?: ControlPlaneReadAuthMode;
   storeMode?: ControlPlaneReadStoreMode;
   workspaceId?: string;
+  availableRouteIds?: readonly ControlPlaneReadRouteId[];
 };
 
 export type ControlPlaneReadPageRequest = {
@@ -67,7 +69,7 @@ export type ControlPlaneReadDevLiveLoadState =
     };
 
 export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const source = env.VITE_RADISHMIND_READ_SOURCE?.trim();
   return {
     mode: source === DEV_LIVE_SOURCE ? "dev_live_http" : "offline_fixture",
@@ -75,7 +77,8 @@ export function readControlPlaneReadDevLiveConfig(): ControlPlaneReadDevLiveConf
     tenantRef: env.VITE_RADISHMIND_DEV_READ_TENANT_REF?.trim() || DEFAULT_TENANT_REF,
     subjectRef: env.VITE_RADISHMIND_DEV_READ_SUBJECT_REF?.trim() || DEFAULT_SUBJECT_REF,
     authMode: normalizeAuthMode(env.VITE_RADISHMIND_READ_AUTH_MODE),
-    storeMode: env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
+    storeMode: isLocalWorkbench() ? "sqlite_dev" : env.VITE_RADISHMIND_READ_STORE_MODE?.trim() === "postgres_dev_test" ? "postgres_dev_test" : "fake_store_dev",
+    availableRouteIds: isLocalWorkbench() ? ["application-summary-list-route", "api-key-summary-list-route", "workflow-definition-summary-list-route", "run-record-summary-list-route"] : undefined,
     workspaceId: normalizeActiveWorkspaceId(
       env.VITE_RADISHMIND_ACTIVE_WORKSPACE_ID ??
       env.VITE_RADISHMIND_APPLICATION_CATALOG_WORKSPACE_ID ??
@@ -112,7 +115,7 @@ export async function loadControlPlaneReadDevLiveCollections(
     return {};
   }
   const entries = await Promise.all(
-    CONTROL_PLANE_READ_ROUTE_IDS.map(async (routeId) => {
+    (config.availableRouteIds ?? CONTROL_PLANE_READ_ROUTE_IDS).map(async (routeId) => {
       const collection = await loadControlPlaneReadDevLiveCollection(config, routeId);
       return [routeId, collection] as const;
     }),

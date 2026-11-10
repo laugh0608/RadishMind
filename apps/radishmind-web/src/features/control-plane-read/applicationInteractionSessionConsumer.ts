@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import {
   parseStructuredRuntimeInputContractDocument,
   validateStructuredRuntimeInputDrafts,
@@ -42,6 +43,7 @@ export type ApplicationInteractionSessionState = "active" | "closed";
 
 export type ApplicationInteractionSessionConfig = {
   mode: "offline" | "dev_application_session_http";
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -249,8 +251,9 @@ type TurnEnvelope = {
 };
 
 export function readApplicationInteractionSessionConfig(): ApplicationInteractionSessionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test" ? "local_session_dev_test" : "dev_headers",
     mode: env.VITE_RADISHMIND_APPLICATION_SESSION_SOURCE?.trim() === DEV_SOURCE
       ? "dev_application_session_http"
       : "offline",
@@ -287,6 +290,8 @@ export async function listApplicationInteractionSessions(
   const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: applicationId, state: filter.state, limit: "100" });
   try {
     const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-sessions?${query}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
       headers: managementHeaders(config, applicationId, requestId, "application_sessions:read"), signal,
     });
     const document: unknown = await response.json();
@@ -349,6 +354,8 @@ export async function listApplicationInteractionTurns(
   const query = new URLSearchParams({ workspace_id: config.workspaceId, application_id: session.applicationId });
   try {
     const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(session.sessionId)}/turns?${query}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
       headers: managementHeaders(config, session.applicationId, requestId, "application_sessions:read"), signal,
     });
     const document: unknown = await response.json();
@@ -400,6 +407,8 @@ export async function executeApplicationInteractionTurn(
   const requestId = createRequestId("application-session-turn");
   try {
     const response = await fetch(`${config.baseUrl}/v1/user-workspace/application-sessions/${encodeURIComponent(input.session.sessionId)}/turns`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
       method: "POST",
       headers: { ...managementHeaders(config, input.session.applicationId, requestId, "application_sessions:execute"), "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -463,7 +472,7 @@ async function fetchSession(
   init: RequestInit,
 ): Promise<ApplicationInteractionSessionResult> {
   try {
-    const response = await fetch(url, init);
+    const response = await fetch(url, { ...init, credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store" });
     const document: unknown = await response.json();
     if (!isSessionEnvelope(document, config, applicationId)) return failedSession("application_session_store_contract_mismatch", requestId);
     const session = document.session === null ? null : parseSession(document.session, config, applicationId);
@@ -649,6 +658,16 @@ function envelopeScopeMatches(value: Record<string, unknown>, config: Applicatio
 
 function managementHeaders(config: ApplicationInteractionSessionConfig, applicationId: string, requestId: string, scope: string) {
   const mutationPermission = scope === "application_sessions:write" || scope === "application_sessions:execute" ? scope : "";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutationPermission ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationId,
+    };
+  }
   return {
     "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": `application-interaction-session-web:${config.subjectRef}`,

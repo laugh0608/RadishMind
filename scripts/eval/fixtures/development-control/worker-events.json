@@ -1,0 +1,37 @@
+[
+  {
+    "schema_version": "development_worker_message.v1",
+    "sequence": 1,
+    "kind": "ready",
+    "event_type": "",
+    "request_id": ""
+  },
+  {
+    "schema_version": "development_worker_message.v1",
+    "sequence": 2,
+    "kind": "event",
+    "event_type": "system_prompt",
+    "request_id": ""
+  },
+  {
+    "schema_version": "development_worker_message.v1",
+    "sequence": 3,
+    "kind": "event",
+    "event_type": "user_message",
+    "request_id": ""
+  },
+  {
+    "schema_version": "development_worker_message.v1",
+    "sequence": 4,
+    "kind": "event",
+    "event_type": "assistant_message",
+    "request_id": "model_1"
+  },
+  {
+    "schema_version": "development_worker_message.v1",
+    "sequence": 5,
+    "kind": "finished",
+    "event_type": "",
+    "request_id": ""
+  }
+]

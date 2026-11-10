@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 export type ModelGatewayPlaygroundProtocol = "chat_completions" | "responses" | "messages";
 export type ModelGatewayFallbackMode = "disabled" | "allow_configured";
 
@@ -110,7 +111,7 @@ export function modelGatewayQuotaFailureGuidance(
 }
 
 export function readModelGatewayPlaygroundConfig(): ModelGatewayPlaygroundConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_GATEWAY_PLAYGROUND_SOURCE?.trim() === DEV_SOURCE
       ? "dev_gateway_playground_http"

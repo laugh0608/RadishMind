@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-10-15
+更新时间：2026-11-01
 
 ## 文档目的
 
@@ -10,17 +10,15 @@
 
 ## 当前目标
 
-项目所有者指定的 [Web 中英国际化与本地化 v1](web-internationalization-zh-en-v1.md)已在登记的可达范围完成 A 至 F，主壳、身份、管理、应用、工作流、评测与结果证据通过双语验收。后续本地十三组回归 100/100 通过；远端暴露的 RAG 晋级列表失败已修复共享请求标识生成逻辑，并于 2026-10-15 完成四组本地中英 44/44 复验及清理，该开发阶段问题关闭。浏览器保持本地按需验证，既有六项组件 CI 已通过；本轮未重跑远端 CI。下一动作以[当前推进焦点](../radishmind-current-focus.md)为准，真实模型手工试用仍暂停。
+当前开发主线与停止线由[当前推进焦点](../radishmind-current-focus.md)维护；受控开发团队的阶段 0 工作集中在[任务卡](../task-cards/development-task-probe-v1-plan.md)，四项退出条件见[实施与评测子专题](workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。登记与局部技术验收不代表正式采用。
 
-[工作区成员邀请、认领与到期治理（开发 / 测试态）v1](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)已完成 A 至 E，状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`。本地成员入会的前端、双数据库与浏览器链已闭合，不派生同层续批。
-
-[应用定时回归评测](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)、[工作区 Workflow 模板目录](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)和[动作安全阶梯（Action Safety Ladder）](workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)保持完成关闭。真实 Radish OIDC 为 `real_radish_integration_deferred`，应用运行观测后续仍为 `no_entry`。
-
-前端草案状态收敛、Workflow / Prompt / 模板与 RAG 快照、检索执行、晋级审查、应用运行、HTTP Tool 及离线投影解释的自动浏览器回归已分窗口完成；后端权限 / 内建角色策略包及双数据库回归已完成；内部故障诊断素材已准备，真实模型试用由项目所有者暂缓，见[工程健康专题](../platform/engineering-health-productization-remediation-v1.md#2026-09-06-复审与后续方向)。当前排期与停止线只以[当前推进焦点](../radishmind-current-focus.md)为准，不自动创建批次。
-
-2026-10-15 新增的 [Prompt 计划结构化编辑](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#前端实施与无服务验证2026-10-15)已完成前端和无服务验证，新增浏览器与 React 视觉验收待下一窗口；既有完成状态不自动覆盖新增表面。
+[本机持久工作台](user-workspace/local-persistent-workbench-delivery-v1.md)是交付基座；技术证据、独立用户及未验平台按该专题分别记录。真实模型继续暂停；既有完成专题不由本次导航整理派生续批。未来 Gateway 解释与尝试轨迹随受控开发阶段 1 统筹，应用运行观测保持 `no_entry`。
 
 ## 专题分层
+
+[产品范围](../radishmind-product-scope.md)与[路线图](../radishmind-roadmap.md)构成整体规划；下表和产品面导航是能力地图，产品面是大专题，具体功能及职责专题承接子专题。逻辑层级不强制等于目录深度：受控开发保留主功能及五个职责文件，阶段 0 使用一张集中任务卡。
+
+每个功能指定一个主要归属，跨产品面只登记协同；平台与集成是支撑主线，不新增第五产品面。任务状态只在已指定任务卡或功能文档维护，地图只链接来源。任务完成、阶段退出、真实质量和生产准入分别验收。
 
 | 层级 | 路径 | 职责 |
 | --- | --- | --- |
@@ -42,12 +40,24 @@
 | 横切适配 | [图片生成与产物返回](image-generation-artifact-return.md) | 固定响应测试后端与私有存储已完成；真实后端和公开交付独立验收，不另立第五产品主线 |
 | 跨页面体验 | [Web 中英国际化与本地化](web-internationalization-zh-en-v1.md) | A 至 F 在登记的可达范围完成关闭；界面语言不改写业务语言、协议字段、用户原文或导出 JSON；日程双语浏览器证据限定合成投影 |
 
+## 活跃专题的任务与验收来源
+
+| 主要归属 | 子专题 | 任务与验收唯一来源 | 协同 |
+| --- | --- | --- | --- |
+| User Workspace | [本机持久工作台交付](user-workspace/local-persistent-workbench-delivery-v1.md) | 原文“实施范围与验证安排”“连续实施与完成依据”及实际证据；不另建任务卡 | 管理端身份、Workflow、Gateway、平台运维 |
+| Workflow / Agent Runtime | [受控软件开发团队](workflow/controlled-software-development-team-v1.md)及五个职责子专题 | [阶段 0 集中任务卡](../task-cards/development-task-probe-v1-plan.md)维护任务结果；[实施子专题](workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)维护阶段 0–4 的准入 / 退出 | User Workspace 审阅、Gateway 传输、平台隔离 |
+| Model Gateway / API Distribution | [路由决策解释与尝试轨迹](gateway/gateway-routing-decision-explanation-attempt-trace-v1.md) | 原专题的阶段范围与验收；尚不独立开实施线 | 受控开发阶段 1 运行详情 |
+| User Workspace | [跨版本回归审查](user-workspace/application-cross-version-regression-review-dev-test-v1.md) | 原候选专题的触发依据，未获选前不建任务批次 | Workflow / Prompt 评测 |
+
+平台支撑由[平台索引](../platform/README.md)路由身份、存储、运行和工程合同；外部接入由[集成索引](../integrations/README.md)路由上游与验收条件。跨主线任务引用原合同，不在两处勾选同一完成状态。历史细案继续沿原目录查阅，本轮只梳理活跃工作链。
+
 ## 常用用户流程
 
 - 创建与恢复：[草案设计](workflow/draft-designer-editing-model-v2.md)、[保存草案库生命周期](workflow/saved-workflow-draft-library-lifecycle-organization-dev-test-v1.md)、[模板目录与派生](workflow/workspace-workflow-template-catalog-review-controlled-derivation-dev-test-v1.md)。
 - 接入与受控运行：[应用 API 接入与调用 v1](user-workspace/application-api-integration-invocation-v1.md)、[应用发布治理与晋级审查 v1](user-workspace/application-publish-governance-promotion-v1.md)、[运行开发测试指南](user-workspace/application-controlled-runtime-dev-test-guide.md)、[工作流定义的 HTTP 工具](workflow/workflow-definition-http-tool-v1.md)。
 - 结果与回归：[结果资产库](user-workspace/application-result-artifact-library-controlled-export-dev-test-v1.md)、[应用评测计划与受控批次](user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md)。
 - 团队协作：[本地账户与联合登录](admin-control-plane/local-account-radish-oidc-federated-login-v1.md)、[工作区邀请](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)。
+- Agent 协作开发：[功能主专题与五个子专题](workflow/controlled-software-development-team-v1.md)，覆盖角色、模型、受限执行、任务 / 讨论 / 交付及阶段安排；设计登记不代表已经可执行。
 - 平台支撑：[SQLite 持久化](../platform/local-sqlite-dev-persistence-v1.md)、[运行手册](../platform/platform-service-operations-runbook-v1.md)、[Family UI](user-workspace/radishmind-family-ui-productization-v1.md)。
 
 ## 设计与验收要求

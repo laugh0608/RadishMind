@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-tool-action.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action",
+    "path",
+    "expected_digest",
+    "content",
+    "candidate_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_tool_action.v1"
+    },
+    "action": {
+      "enum": [
+        "read_file",
+        "replace_file",
+        "run_tests"
+      ]
+    },
+    "path": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "expected_digest": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        }
+      ]
+    },
+    "content": {
+      "type": "string",
+      "maxLength": 32768,
+      "pattern": "^[^\\u0000]*$(?![\\s\\S])"
+    },
+    "candidate_digest": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+          "minLength": 71,
+          "maxLength": 71
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "read_file"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*[/]$)[^\\\\:\\u0000-\\u001f\\u007f-\\u009f]+$(?![\\s\\S])"
+          },
+          "expected_digest": {
+            "const": ""
+          },
+          "content": {
+            "const": ""
+          },
+          "candidate_digest": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "replace_file"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*[/]$)[^\\\\:\\u0000-\\u001f\\u007f-\\u009f]+$(?![\\s\\S])"
+          },
+          "expected_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+            "minLength": 71,
+            "maxLength": 71
+          },
+          "candidate_digest": {
+            "const": ""
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "run_tests"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "path": {
+            "const": ""
+          },
+          "expected_digest": {
+            "const": ""
+          },
+          "content": {
+            "const": ""
+          },
+          "candidate_digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])",
+            "minLength": 71,
+            "maxLength": 71
+          }
+        }
+      }
+    }
+  ],
+  "description": "专属开发工具参数。路径与内容还须分别限制为 256/32768 UTF-8 字节；读取/写入路径由已冻结工具策略重新授权；验证命令只从策略解析，参数不能包含 shell。SDK summary 不属于本合同。"
+}

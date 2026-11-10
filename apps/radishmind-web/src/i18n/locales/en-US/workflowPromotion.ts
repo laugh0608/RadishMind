@@ -1,4 +1,9 @@
 export const workflowPromotion = {
+  "reloadAuthority": "Reload candidates and exact authority",
+  "loadingAuthority": "Reading the selected lineage. Actions remain unavailable until its versions and activation agree.",
+  "authorityUnavailable": "The previous authority cannot be used. Reload, review the current pointer and versions, then decide again. Your reason is retained; no action is retried automatically.",
+  "noCurrentAuthority": "Current authority has not been verified.",
+  "refreshed": "Candidates and exact authority were reloaded. Review the current state before deciding; no action was resubmitted.",
   "workflowDefinitionPromotion": "Workflow Definition · Promotion",
   "immutableVersionPromotionIsDisabled": "Immutable version promotion is disabled",
   "offlineZeroRequests": "offline · zero requests",

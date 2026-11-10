@@ -1,0 +1,263 @@
+{
+  "status": "29_exact_wheels_to_sources_and_notice_locations",
+  "native_packages": 26,
+  "boundary": "Cargo lock entries include build/optional dependencies and are not the linked binary component inventory",
+  "items": [
+    {
+      "name": "jiter",
+      "version": "0.18.0",
+      "wheel_sha256": "d7424194e68ef44e94290961f59319850d7ce11a329a3957f91709c15ded6618",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/63/5b/f68319f4fe624311a744a33d10fdbcac4c971991e348223cba60d31780b2/jiter-0.18.0.tar.gz",
+      "source_sha256": "a0ca63fd9450a212e4e658d4cfe0ab4977c4f9b0003c68828b843c65e27662ff",
+      "source_notices": [
+        {
+          "path": "jiter-0.18.0/LICENSE",
+          "bytes": 1091,
+          "sha256": "7c7134b9f7b978c03fca875517cf398db91f19bbb8109b6685e742aa3f57468e"
+        },
+        {
+          "path": "jiter-0.18.0/crates/jiter/LICENSE",
+          "bytes": 1091,
+          "sha256": "7c7134b9f7b978c03fca875517cf398db91f19bbb8109b6685e742aa3f57468e"
+        },
+        {
+          "path": "jiter-0.18.0/crates/jiter-python/LICENSE",
+          "bytes": 1091,
+          "sha256": "7c7134b9f7b978c03fca875517cf398db91f19bbb8109b6685e742aa3f57468e"
+        }
+      ],
+      "cargo_locks": [
+        {
+          "path": "jiter-0.18.0/Cargo.lock",
+          "sha256": "e8cc297870cc839942cbdb7f4ab01983287a92a7f9a380686e0d71ffa7718525",
+          "package_entries": 133,
+          "scope": "source_lock_superset_not_proof_of_linked_wheel_components"
+        }
+      ],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "litellm",
+      "version": "1.105.7",
+      "wheel_sha256": "40310aaaee2385df1afc9c91d0a0bd61884a8d2940b91e3d5d7739a4dac6b2dd",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/95/55/5a4513ef7ff6e9f3514eb66eda1bcb980bc510876f06edc4b82d82be27e1/litellm-1.105.7.tar.gz",
+      "source_sha256": "b8f4f61e71ceb8156632f277aa750bd55c979b2ce5ea27ebe14b1c7dd37018ad",
+      "source_notices": [
+        {
+          "path": "litellm-1.105.7/LICENSE",
+          "bytes": 1419,
+          "sha256": "b170d6bf8e8835dd357e011681db028f4d51e2fb0ea892058f56e01fb39b8273"
+        }
+      ],
+      "cargo_locks": [
+        {
+          "path": "litellm-1.105.7/litellm-rust/Cargo.lock",
+          "sha256": "0555957f3c9be54709d9a2c1055a329f6b2dafa47825efe2f81cf271c88102a7",
+          "package_entries": 737,
+          "scope": "source_lock_superset_not_proof_of_linked_wheel_components"
+        }
+      ],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "lupa",
+      "version": "2.8",
+      "wheel_sha256": "27044f3363047f946b3d3aab9157cbd172b3538ada9ec1baef43432bf7d03a78",
+      "native_objects": 6,
+      "source_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+      "source_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+      "source_notices": [
+        {
+          "path": "lupa-2.8/LICENSE.txt",
+          "bytes": 2231,
+          "sha256": "957afe4913dfc469fd60541d847a581c5bddd6ba0ccb72390ed78c75837768a1"
+        },
+        {
+          "path": "lupa-2.8/third-party/lua51/COPYRIGHT",
+          "bytes": 1528,
+          "sha256": "ee5e3e82af1e1b543c4f216e399d7c8cfee797711913f349e385101c4ae60a79"
+        },
+        {
+          "path": "lupa-2.8/third-party/luajit20/COPYRIGHT",
+          "bytes": 2935,
+          "sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47"
+        },
+        {
+          "path": "lupa-2.8/third-party/luajit21/COPYRIGHT",
+          "bytes": 2935,
+          "sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "markupsafe",
+      "version": "3.0.4",
+      "wheel_sha256": "6a45c3d514f2436064db00d7fc8778d888f0236ebfed649b53d13a59e69ad51b",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/38/9b/e422a865e1d5d57d0e509b4e0bf1c1a70a7f6382c29a5aa428df994c8bc8/markupsafe-3.0.4.tar.gz",
+      "source_sha256": "2e9ad7dd851bf45fab9f75cbff4cb493fee9979e8d8c7c9c3ee119022518edd6",
+      "source_notices": [
+        {
+          "path": "markupsafe-3.0.4/LICENSE.txt",
+          "bytes": 1475,
+          "sha256": "489a8e1108509ed98a37bb983e11e0f7e1d31f0bd8f99a79c8448e7ff37d07ea"
+        },
+        {
+          "path": "markupsafe-3.0.4/docs/license.rst",
+          "bytes": 100,
+          "sha256": "6fc7e80b75b5999783a328d90976a2585e0956c4a348c3c888453938ceca742d"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "multidict",
+      "version": "7.2.1",
+      "wheel_sha256": "fa0ecd064b0ae18d235283abb5adbc4e07304dba8f2aa7c0d61f28bebcc70d4c",
+      "native_objects": 2,
+      "source_url": "https://files.pythonhosted.org/packages/7b/6b/29ef8e752f5854dcc267ded0652c475bec99b86f255957a0d4fcad657b18/multidict-7.2.1.tar.gz",
+      "source_sha256": "e8af3e6f1bdbc31fd762b094133b478b89988eaebc63cbe82b1d9e3bbd15cede",
+      "source_notices": [
+        {
+          "path": "multidict-7.2.1/LICENSE",
+          "bytes": 11313,
+          "sha256": "2e4be5fc6c4c72a466fcb665d726e049a6891981fe536c4f04b6366749461d23"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0",
+      "wheel_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "native_objects": 26,
+      "source_url": "https://files.pythonhosted.org/packages/ce/a4/9cc30690a394a8305e8be4c9036aa16d0dfddadd09079860b582f562496d/pillow-13.0.0.tar.gz",
+      "source_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "source_notices": [
+        {
+          "path": "pillow-13.0.0/LICENSE",
+          "bytes": 1457,
+          "sha256": "15181e7363dca9aed78b79bebebc7fde7f1814b8bd311ea3b87ae8ccadfc185b"
+        },
+        {
+          "path": "pillow-13.0.0/Tests/fonts/DejaVuSans/LICENSE.txt",
+          "bytes": 4950,
+          "sha256": "ba4aee7ef5b2ebc285e76df2497953d8a6e7480bc249f4e0a55f1199a3396622"
+        },
+        {
+          "path": "pillow-13.0.0/Tests/fonts/LICENSE.txt",
+          "bytes": 1676,
+          "sha256": "b79f6f6a2fc060b2e0a6e7a6946c446ae199bec07b92a3df1295975e25c4d96b"
+        },
+        {
+          "path": "pillow-13.0.0/Tests/icc/LICENSE.txt",
+          "bytes": 1160,
+          "sha256": "09e62757edb34e284bc11c54e3429b438d9db37f46c9cb36bd57b1b25ae36184"
+        },
+        {
+          "path": "pillow-13.0.0/docs/COPYING",
+          "bytes": 1475,
+          "sha256": "d44ce2bbf81806be0eb34ec0ecb0cb013ccd56a94057daf214fb7381adde8f0c"
+        },
+        {
+          "path": "pillow-13.0.0/src/thirdparty/raqm/AUTHORS",
+          "bytes": 138,
+          "sha256": "e81eb8c13d248620f229af26700a5d8c928bac0fd971cae6e76e2f88228ea9e2"
+        },
+        {
+          "path": "pillow-13.0.0/src/thirdparty/raqm/COPYING",
+          "bytes": 1180,
+          "sha256": "f6baa5c872ed0c35cde377735f930d97a23e08065d87cf34d766b3aad5beed1e"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "propcache",
+      "version": "0.5.4",
+      "wheel_sha256": "60a64cbccaa11b7760ce705a14ada17ba459e7ca9f23ba587eb013821032d7ef",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/b3/9a/9fbf4e4ec0c2d7f1c32519fff782ef467859b8faa9fbc5331a96f6395d43/propcache-0.5.4.tar.gz",
+      "source_sha256": "ff6b113f50bc066a698db5d944d2c6dc7507168dd3341e255a8892fd0715a558",
+      "source_notices": [
+        {
+          "path": "propcache-0.5.4/LICENSE",
+          "bytes": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "propcache-0.5.4/NOTICE",
+          "bytes": 609,
+          "sha256": "56d6ac6c8105c0a51304c21db060e361af9a8ea0af9a75c239c28b5d13693838"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.50.2",
+      "wheel_sha256": "43a8fd56f3c681f3cda2d5c842ad28e88241df742dfcbe8fd1dd437a3056e1f6",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/af/8e/23ec1021834e35041fbb2f10946141e6acdfd39379c45cc4d65a4e8a1d98/pydantic_core-2.50.2.tar.gz",
+      "source_sha256": "1b0e8dc3932cf4e9ed5727570325cacc716b9409ffc794a221c0ccc72e8eb775",
+      "source_notices": [
+        {
+          "path": "pydantic_core-2.50.2/LICENSE",
+          "bytes": 1080,
+          "sha256": "2afdd30d54b4d62b6f488a6bcc1546e84ec5061f13f4209c03d012348783795a"
+        }
+      ],
+      "cargo_locks": [
+        {
+          "path": "pydantic_core-2.50.2/Cargo.lock",
+          "sha256": "d4c7d4bce9e5cd2f661f22fef35216a2340776ca76885606c40934b579663b11",
+          "package_entries": 102,
+          "scope": "source_lock_superset_not_proof_of_linked_wheel_components"
+        }
+      ],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "wheel_sha256": "9149cad251584d5fb4981be1ecde53a1ca46c891a79788c0df828d2f166bda28",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz",
+      "source_sha256": "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f",
+      "source_notices": [
+        {
+          "path": "pyyaml-6.0.3/LICENSE",
+          "bytes": 1101,
+          "sha256": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "native_objects": 1,
+      "source_url": "https://files.pythonhosted.org/packages/fc/f2/af1da9d3ceed77bfcdce40427d49ba0be94e4fe84245e3bfef68c10e75b6/regex-2026.9.29.tar.gz",
+      "source_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+      "source_notices": [
+        {
+          "path": "regex-2026.9.29/LICENSE.txt",
+          "bytes": 11584,
+          "sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d"
+        }
+      ],
+      "cargo_locks": [],
+      "status": "exact_source_evidence_acquired_binary_component_and_delivery_review_open"
+    }
+  ]
+}

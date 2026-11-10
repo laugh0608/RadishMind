@@ -1,0 +1,76 @@
+{
+  "items": [
+    {
+      "component": "CPython",
+      "image_role": "SDK",
+      "source_filename": "Python-3.12.16.tar.xz",
+      "source_sha256": "b5796915dc45ff745cfb4e990a7e7c93d6f546328a102ce31448d69ebc37575c",
+      "source_evidence": "license-archives-20261031.parts/sources-08.json",
+      "local_input": "tmp/development-license-audit-20261031/downloads-stage2/970f172025591ae092c3c371.1.0.body",
+      "candidate_directory": "sources/<SDK-image-sha256>/toolchain/",
+      "open_items": [
+        "实际构建配置与 78 个扩展已静态核对；新增动态库实际路径 / 归属和 Expat / libmpdec 告知交付仍待完成。"
+      ]
+    },
+    {
+      "component": "pip",
+      "image_role": "SDK",
+      "source_filename": "pip-25.0.1.tar.gz",
+      "source_sha256": "88f96547ea48b940a3a385494e181e29fb8637898f88d88737c5049780f196ea",
+      "source_evidence": "license-archives-20261031.parts/sources-07.json",
+      "local_input": "tmp/development-license-audit-20261031/downloads-stage2/d5f82730be095fb7f6adaecc.1.0.body",
+      "candidate_directory": "sources/<SDK-image-sha256>/toolchain/",
+      "open_items": [
+        "280 个内嵌文件已逐字节对应；21 份告知已接入配方，实际重建安装和交付仍待验收。"
+      ]
+    },
+    {
+      "component": "Go",
+      "image_role": "Go",
+      "source_filename": "go1.26.7.src.tar.gz",
+      "source_sha256": "0ed24eac755105085b89fe9cabc2742b91a0ad7b94b59d3ad364918ebc8956ad",
+      "source_evidence": "license-archives-20261031.parts/sources-08.json",
+      "local_input": "tmp/development-license-audit-20261031/downloads-stage2/717ee9101b6e351fc29822bf.1.1.body",
+      "candidate_directory": "sources/<Go-image-sha256>/toolchain/",
+      "open_items": [
+        "cmd/vendor 853 个文件与 go.env 已逐字节对应；最终伴随源码与告知获取仍待验收。"
+      ]
+    },
+    {
+      "component": "openhands-sdk local variant",
+      "image_role": "SDK",
+      "source_manifest": "source.json",
+      "source_sha256": "6999f4608630be8e3fb90f6797cd4f0849a0d39e68c03d07aed8f40e5b828512",
+      "patch_sha256": "863a2c0a28dc3490ad879c793ae68fd99f8cf03909429d358ca44b454e7c3d9f",
+      "variant_version": "1.59.0+radishmind.1",
+      "delivery_files": [
+        "source.json",
+        "optional-laminar.patch",
+        "build-requirements.lock",
+        "requirements-linux-arm64-py312.lock",
+        "deploy/Dockerfile.development-sdk-variant",
+        "scripts/eval/development_probe/prepare_sdk_variant.py"
+      ],
+      "boundary": "保留原始源码、项目补丁、前后文件摘要和构建输入；不以原版上游 sdist 替代本地变体。"
+    }
+  ],
+  "docker_cli": {
+    "scope": "当前双镜像的外部挂载工具，不由 SDK / Go 镜像源码目录宣称已交付",
+    "evidence": [
+      {
+        "path": "scripts/eval/development_probe/run_joint.py",
+        "sha256": "4053c21e9b908511753026a814e74d87b5c76d24824f44362ddf0d19f9e83fc2"
+      },
+      {
+        "path": "services/platform/internal/developmentsandbox/docker.go",
+        "sha256": "3688afdf11cb12728d4b8a6b5c437d2f5f43fdbca9af154561117d34f090b56a"
+      },
+      {
+        "path": "deploy/Dockerfile.development-sdk-variant",
+        "sha256": "489017ed370986a6599103f3a3eac13f7af2032853e95864a41f55def96509f6"
+      }
+    ],
+    "observation": "run_joint.py 将仓库临时工具目录的 CLI 只读挂载到 /opt/docker；代码沙箱以配置的 DockerPath 调用，RunnerPath 另行挂载。",
+    "future_boundary": "如果未来离线包附带 Docker CLI 或其它外部工具，需将该分发物及其来源 / 告知单独纳入；此轮不下载 CLI 源码。"
+  }
+}

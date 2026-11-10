@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-task-probe-plan.schema.json",
+  "title": "DevelopmentTaskProbePlanV1",
+  "description": "仅用于固定响应兼容验证，不授予平台身份、模型或代码执行权限；总时限不得小于命令时限。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "probe_id",
+    "mode",
+    "task_id",
+    "sdk_candidate",
+    "source_files",
+    "writable_paths",
+    "verify_argv",
+    "limits"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_task_probe_plan.v1"
+    },
+    "probe_id": {
+      "type": "string",
+      "pattern": "^probe_[a-z0-9_]{1,48}$"
+    },
+    "mode": {
+      "const": "fixed_response_only"
+    },
+    "task_id": {
+      "const": "task_list_filter_v1"
+    },
+    "sdk_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package",
+        "version"
+      ],
+      "properties": {
+        "package": {
+          "const": "openhands-sdk"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^([0-9]+\\.[0-9]+\\.[0-9]+|1\\.59\\.0\\+radishmind\\.1)$"
+        }
+      }
+    },
+    "source_files": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "const": "go.mod"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "const": "list.go"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "const": "list_test.go"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        }
+      ],
+      "items": false
+    },
+    "writable_paths": {
+      "const": [
+        "list.go"
+      ]
+    },
+    "verify_argv": {
+      "const": [
+        "go",
+        "test",
+        "-json",
+        "-count=1",
+        "./..."
+      ]
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_model_requests",
+        "max_tool_calls",
+        "max_request_bytes",
+        "max_output_bytes",
+        "command_timeout_seconds",
+        "wall_timeout_seconds"
+      ],
+      "properties": {
+        "max_model_requests": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_request_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 262144
+        },
+        "max_output_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 65536
+        },
+        "command_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "wall_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 600
+        }
+      }
+    }
+  }
+}

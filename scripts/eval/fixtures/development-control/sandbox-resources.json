@@ -1,0 +1,22 @@
+{
+  "schema_version": "development_sandbox_resources.v1",
+  "session_id": "sandbox_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "binding": {
+    "attempt_id": "attempt_fixture",
+    "executor_instance_id": "executor_fixture",
+    "plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "baseline_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "image": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "runner_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "resources": [
+    {
+      "request_id": "tool_fixture",
+      "name": "radishmind-code-sandbox_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-tool_fixture",
+      "container_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "candidate_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "state": "removed"
+    }
+  ],
+  "closed": true
+}

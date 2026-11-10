@@ -1,0 +1,36 @@
+{
+  "id": "option-ext",
+  "version": "0.2.0",
+  "url": "https://static.crates.io/crates/option-ext/option-ext-0.2.0.crate",
+  "sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+  "bytes": 7345,
+  "members": 8,
+  "expanded_bytes": 22611,
+  "selected_members": [
+    {
+      "member": "option-ext-0.2.0/Cargo.toml",
+      "bytes": 866,
+      "sha256": "ecd67cb17a0586f1406b7d494ef93191ed8ebf149db46667a7778052d94e1e6c"
+    },
+    {
+      "member": "option-ext-0.2.0/Cargo.toml.orig",
+      "bytes": 399,
+      "sha256": "202b034590ddf9857aaa639982f7fa8d0b2d36abc4e8223b0211bcd104e34180"
+    },
+    {
+      "member": "option-ext-0.2.0/LICENSE.txt",
+      "bytes": 16727,
+      "sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172"
+    },
+    {
+      "member": "option-ext-0.2.0/src/impl.rs",
+      "bytes": 490,
+      "sha256": "2f0b6f0421c4d37b1a8f0412cf71e9720cb8c5ddcec61ac802474e40ab8a3f9b"
+    },
+    {
+      "member": "option-ext-0.2.0/src/lib.rs",
+      "bytes": 2397,
+      "sha256": "5a0a1fb2ca896a06bcbc32024c8fe64be682170585be6313ba3ff2a87672d1fc"
+    }
+  ]
+}

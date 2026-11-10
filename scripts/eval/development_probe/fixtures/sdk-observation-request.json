@@ -1,0 +1,86 @@
+{
+  "messages": [
+    {
+      "content": "Inspect the fixed synthetic task.",
+      "role": "user"
+    },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "call-probe-001",
+          "type": "function",
+          "function": {
+            "name": "development_probe",
+            "arguments": "{\"schema_version\": \"development_task_probe_tool_request.v1\", \"probe_id\": \"probe_list_filter\", \"sequence\": 1, \"action\": \"read_file\", \"path\": \"list.go\", \"expected_digest\": \"\", \"content\": \"\", \"candidate_digest\": \"\"}"
+          }
+        }
+      ]
+    },
+    {
+      "content": "{\"status\":\"fixture_observation_only\"}",
+      "role": "tool",
+      "tool_call_id": "call-probe-001",
+      "name": "development_probe"
+    }
+  ],
+  "model": "gpt-4o",
+  "max_completion_tokens": 128,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "development_probe",
+        "description": "Validate a bounded synthetic task request; no execution.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "description": "A concise summary (approximately 10 words) describing what this specific action does. Focus on the key operation and target. Example: 'List all Python files in current directory'"
+            },
+            "schema_version": {
+              "type": "string"
+            },
+            "probe_id": {
+              "type": "string"
+            },
+            "sequence": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "read_file",
+                "replace_file",
+                "run_tests"
+              ]
+            },
+            "path": {
+              "type": "string"
+            },
+            "expected_digest": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "candidate_digest": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "schema_version",
+            "probe_id",
+            "sequence",
+            "action",
+            "path",
+            "expected_digest",
+            "content",
+            "candidate_digest"
+          ]
+        }
+      }
+    }
+  ]
+}

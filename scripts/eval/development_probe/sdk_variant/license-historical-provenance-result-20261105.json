@@ -1,0 +1,35 @@
+{
+  "schema_version": "development_historical_provenance_result.v1",
+  "date": "2026-11-05",
+  "status": "metadata_verified_historical_materials_open",
+  "explicitly_authorized": true,
+  "command": "python3 tmp/development-pip-delivery-20261105/fetch_historical_provenance.py --execute",
+  "plan": "license-historical-provenance-plan-20261105.json",
+  "plan_sha256": "b8b327bfbb7a94a0cec7179d5c934bc9608397479492c905ca3800d56d82eefd",
+  "requests": 27,
+  "http_200": 27,
+  "total_body_bytes": 818704,
+  "source_text_files": 11,
+  "parts": {
+    "commits-and-runs.json": "3b4bae2569f1ce29cca40356398deb5c4447a6963095cc9233194a91492057f8",
+    "findings.json": "be6bfd4024e4607cbb1e0fdf06073162fae0b127ff63c1c45fb192de9e70c714",
+    "publication.json": "0a5107deca65c902abebff639c6f3926751b1608fc14afb1ad05440e63fa27ce",
+    "requests-01.json": "79931b36ffef5dc5b4d487f901136d96415b7865087043f08eaaf424b2397eb3",
+    "requests-02.json": "0b834005c52fd47f3e7349e2fa243de1dffad3a87dc762fa865592d100687f64",
+    "requests-03.json": "b966c0d8bc00c4068cba5ec7b21621e51029e304f5418c11c30604d03687f3f8",
+    "requests-04.json": "70900eb0e50c271e7cd6751b0cadede3c0df5e4dc902cdf564ef3a21abfd2d07",
+    "requests-05.json": "d24760c49ccc041db9b58b24e7bb7a32c4c2e6c4903ce67f1dc6b10666b91f74",
+    "requests-06.json": "5e85844b4ded3af8256298103c77f0d20810664715ddfa729c8c4936344c50cd",
+    "source-texts.json": "aa44ec5a5881eaecf1d5a6618a6c4a720ec5fc61a1da5d469ad5888a97e4177f"
+  },
+  "raw_directory": "tmp/development-pip-delivery-20261105/historical-provenance",
+  "raw_results_sha256": "9da30b8749e67c37c1b730b7b5b4b3acf47afcb457a7ee2af52764d79ac377aa",
+  "window_closed": true,
+  "boundary": {
+    "archive_or_binary_download": false,
+    "downloaded_code_executed": false,
+    "signature_trust_verified": false,
+    "historical_build_materials_complete": false,
+    "license_gate_closed": false
+  }
+}

@@ -1,6 +1,12 @@
 # scripts/ 目录说明
 
-更新时间：2026-09-09
+`run-workbench.sh` / `run-workbench.ps1` 由根 `start` 的 `workbench` 子命令进入，提供显式 build、check、init、serve、bootstrap-admin、backup、upgrade 和 restore。它们不复用旧开发脚本的临时配置，不自动安装依赖；操作与权限边界见[工作台运行指南](../docs/platform/local-persistent-workbench-operations-v1.md)。
+
+受控开发阶段 0 的合成任务、冻结计划和离线 CLI 命令见 `scripts/eval/fixtures/development-task/README.md`；SDK 独立候选镜像、哈希锁准备和运行授权范围见 `scripts/eval/development_probe/README.md`；同版遥测可选化变体的源码补丁、离线准备与独立构建入口见 `scripts/eval/development_probe/sdk_variant/README.md`。固定 Go 代码沙箱的明确授权测试与归属清理见 [模块说明](../services/platform/internal/developmentsandbox/README.md)。真实 SDK / 代码容器 / 产物联合测试由同一 SDK 目录下的 `run_joint.py` 驱动，必须另行授权可信控制容器的 Docker 管理通道；普通门禁不启动该入口。这些入口不启动既有工作台或调用真实模型。
+
+单尝试委托、工具绑定、预算与取消的跨语言样例和验证命令见 `scripts/eval/fixtures/development-control/README.md`，复用现有平台聚合测试，不新增独立门禁入口或执行服务。
+
+更新时间：2026-10-31
 
 ## 目录目标
 
@@ -52,7 +58,9 @@
   - `control-plane-read-schema-artifact-evidence-v1` 通过 `control-plane-read-schema-artifact-evidence-v1.json` 与 `check-control-plane-read-schema-artifact-evidence-v1.py` 固定 `schema_artifact_evidence_defined`：补齐 durable read store 前的 DDL review evidence、rollback fixture evidence、schema version、tenant index、read-only role 和七条 read route 到未来 schema artifact 的映射关系；该检查不新增 UI、不启动开发服务器、不接真实数据库、不写 SQL migration、不实现 store selector、repository adapter 或 runtime artifact。
   - `control-plane-read-implementation-entry-review-v1` 通过 `control-plane-read-implementation-entry-review-v1.json` 与 `check-control-plane-read-implementation-entry-review-v1.py` 固定 `implementation_entry_review_defined`：读取 trigger review、schema artifact evidence 和 product surface recheck 后确认当前不打开实现入口；该检查不新增 UI、不启动开发服务器、不创建 implementation task card、不接真实数据库、不写 SQL migration、不实现 store selector、repository adapter 或 runtime artifact。
   - `product-surface-usage-gap-triage-v1` 通过 `product-surface-usage-gap-triage-v1.json` 与 `check-product-surface-usage-gap-triage-v1.py` 固定 `product_surface_usage_gap_triage_defined`：跨读四个产品面、schema artifact evidence 和 implementation entry review，定义真实阅读缺口出现后的定向修正口径；该检查不新增同层 UI、不启动开发服务器、不打开实现入口、不创建数据库 / OIDC / repository / selector / executor / writeback / replay artifact。
-  - 当前还提供 `check-platform-ops-smoke.py`，用于固定 Go platform service 的测试入口、bridge registry 和 provider/profile inventory 基线
+  - 当前还提供 `check-platform-ops-smoke.py`，用于固定 Go platform service 的测试入口、bridge registry 和 provider/profile inventory 基线；默认执行 `go test ./...` 并继承 Go 默认或调用者指定的缓存。
+  - PR / Release 的仓库基线使用 `--skip-platform-go-tests`，仅把平台 smoke 中的普通 Go 全包测试委托给同一工作流的独立 Go 覆盖率 / race 任务；bridge registry、inventory 和其余检查仍执行。独立 Go 任务、覆盖率预算、race / vet 及 PostgreSQL 集成保持；单独运行 `check-repo`、`--fast` 或平台 smoke 默认不跳过 Go 测试。PowerShell 对应参数为 `-SkipPlatformGoTests`，平台 smoke 单独委托参数为 `--skip-go-tests`，只用于已由独立任务承接 Go 测试的组合验证。
+  - 两套工作流的三个 Go 任务均以 `services/platform/go.sum` 定位缓存依赖；平台 smoke、配置 / 部署 / 诊断检查和 Bash / PowerShell 启动入口统一继承 Go 默认或调用者指定的 `GOCACHE`，不再各自设置临时缓存。新参数不表示整个仓库已经通过独立 Go 门禁。
   - 当前还提供 `check-provider-capability-matrix.py`，用于校验 `scripts/checks/fixtures/provider-capability-matrix-v1.json` 固定的 `Provider Runtime & Health v1` 第一切片：provider capability matrix 必须逐项匹配 `services/runtime/provider_registry.py`，并固定 profile model id、northbound protocol / route、offline-only baseline、无默认联网、无 credential 要求、无模型下载和无隐式 fallback 口径；该检查不执行 provider health、不访问外部 provider、不声明 production ready
   - 当前还提供 `check-provider-health-smoke.py`，用于校验 `scripts/checks/fixtures/provider-health-smoke-v1.json` 固定的 `Provider Runtime & Health v1` 第二切片：默认 fast baseline 只覆盖 mock runtime smoke 与 config-level inventory smoke，optional live health 保留为未来手动入口；该检查不联网、不要求真实 credential、不下载模型、不把 live probe 失败写成 production outage
   - 当前还提供 `check-provider-selection-policy.py`，用于校验 `scripts/checks/fixtures/provider-selection-policy-v1.json` 固定的 `Provider Runtime & Health v1` 第三切片：request-side profile / provider / concrete model selection 与 Go 单元测试、`/v1/models/{id}` 负向边界、credential missing、unsupported capability、timeout 和 no implicit fallback 口径保持一致；该检查不访问 provider、不重试、不下载模型
@@ -475,3 +483,5 @@ Production secret backend audit store storage adapter 相关 checker 需要同�
 - 内部 helper、共享实现和大型 fixture 不应继续堆在根目录
 - 目录层级保持浅，优先两层；非必要不要继续嵌套更深
 - 训练 / 蒸馏相关脚本应优先输出 summary 与 manifest；大规模 JSONL、权重、checkpoint 和本地 provider dump 默认放在 `tmp/` 或外部工作区，不提交到仓库
+
+开发产物 canonical fixture 位于 `scripts/eval/fixtures/development-control/artifact.json`，由既有平台 Python 聚合和 Go 定向测试共同校验；保存 / 导出合同见[专题](../docs/contracts/development-artifact-v1.md)。该样例只含合成材料，不代表真实 SDK 或代码沙箱联合验收。

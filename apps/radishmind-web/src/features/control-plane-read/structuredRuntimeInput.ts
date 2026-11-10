@@ -39,7 +39,7 @@ export type StructuredRuntimeInputValidation = {
 export function parseStructuredRuntimeInputContractDocument(value: unknown): StructuredRuntimeInputContract | null {
   if (!isExactRecord(value, ["contract_id", "fields", "summary", "contract_digest"])) return null;
   if (!ID_PATTERN.test(String(value.contract_id)) || !DIGEST_PATTERN.test(String(value.contract_digest)) ||
-    typeof value.summary !== "string" || utf8Length(value.summary) > 4000 || containsSensitiveText(value.summary) ||
+    typeof value.summary !== "string" || utf8Length(value.summary) > 4000 || structuredInputContainsSensitiveText(value.summary) ||
     !Array.isArray(value.fields) || value.fields.length < 1 || value.fields.length > MAX_INPUT_FIELDS) return null;
 
   const fields: StructuredRuntimeInputField[] = [];
@@ -49,7 +49,7 @@ export function parseStructuredRuntimeInputContractDocument(value: unknown): Str
       !FIELD_NAME_PATTERN.test(String(candidate.name)) || !isValueType(candidate.value_type) || typeof candidate.required !== "boolean" ||
       typeof candidate.label !== "string" || candidate.label.length < 1 || utf8Length(candidate.label) > 160 ||
       typeof candidate.description !== "string" || utf8Length(candidate.description) > 4000 ||
-      containsSensitiveText(String(candidate.name)) || containsSensitiveText(candidate.label) || containsSensitiveText(candidate.description) ||
+      structuredInputContainsSensitiveText(String(candidate.name)) || structuredInputContainsSensitiveText(candidate.label) || structuredInputContainsSensitiveText(candidate.description) ||
       names.has(String(candidate.name))) return null;
     names.add(String(candidate.name));
     fields.push({
@@ -60,7 +60,7 @@ export function parseStructuredRuntimeInputContractDocument(value: unknown): Str
       description: candidate.description,
     });
   }
-  if (containsSensitiveText(String(value.contract_id))) return null;
+  if (structuredInputContainsSensitiveText(String(value.contract_id))) return null;
   return {
     contractId: String(value.contract_id),
     fields,
@@ -104,7 +104,7 @@ export function validateStructuredRuntimeInputDrafts(
       if (utf8Length(draft) > MAX_STRING_BYTES) {
         fieldErrors[field.name] = "string_budget";
         valueFailureCode = "workflow_input_budget_exceeded";
-      } else if (containsSensitiveText(draft)) {
+      } else if (structuredInputContainsSensitiveText(draft)) {
         fieldErrors[field.name] = "secret_material";
         valueFailureCode = "workflow_input_secret_material_forbidden";
       }
@@ -135,6 +135,21 @@ export function validateStructuredRuntimeInputDrafts(
   return { ok: true, inputs, fieldErrors: {}, failureCode: "", summary: "" };
 }
 
+export function validateStructuredRuntimeInputValues(
+  contract: StructuredRuntimeInputContract,
+  values: StructuredRuntimeInputValues,
+): StructuredRuntimeInputValidation {
+  const drafts: StructuredRuntimeInputDrafts = {};
+  for (const [name, value] of Object.entries(values)) {
+    const field = contract.fields.find(candidate => candidate.name === name);
+    if (!field) return failure("workflow_input_unknown_field", "Unknown input field.", { [name]: "unknown_field" });
+    const expectedType = field.valueType === "integer" ? "number" : field.valueType;
+    if (typeof value !== expectedType) return failure("workflow_input_value_type_invalid", "Input type does not match the contract.", { [name]: field.valueType });
+    drafts[name] = typeof value === "boolean" ? value : String(value);
+  }
+  return validateStructuredRuntimeInputDrafts(contract, drafts);
+}
+
 export function structuredRuntimeInputAuthorityKey(contract: StructuredRuntimeInputContract): string {
   return `${contract.contractId}:${contract.contractDigest}`;
 }
@@ -147,7 +162,7 @@ function isValueType(value: unknown): value is StructuredRuntimeInputValueType {
   return value === "string" || value === "integer" || value === "number" || value === "boolean";
 }
 
-function containsSensitiveText(value: string): boolean {
+export function structuredInputContainsSensitiveText(value: string): boolean {
   return /(authorization\s*:|bearer\s+|api[_ -]?key|token\s*[=:]|password\s*[=:]|secret\s*[=:]|cookie\s*:|client_secret\s*=|access_token\s*=|refresh_token\s*=|postgres(?:ql)?:\/\/|private[_ ]?key)/iu.test(value);
 }
 

@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-code-sandbox.schema.json",
+  "description": "固定三文件 Go 探针的私有沙箱观察值与归属资源账册；不是公开 API 或交付包。Go 补充字节、摘要、状态与归属关联核对。",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/observation"
+    },
+    {
+      "$ref": "#/$defs/ledger"
+    }
+  ],
+  "$defs": {
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "action",
+        "path",
+        "file_digest",
+        "candidate_digest",
+        "content"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "development_sandbox_observation.v1"
+        },
+        "action": {
+          "enum": [
+            "read_file",
+            "replace_file",
+            "run_tests"
+          ]
+        },
+        "path": {
+          "enum": [
+            "",
+            "go.mod",
+            "list.go",
+            "list_test.go"
+          ]
+        },
+        "file_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+            },
+            {
+              "const": ""
+            }
+          ]
+        },
+        "candidate_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 32768
+        },
+        "verification": {
+          "$ref": "#/$defs/verification"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "run_tests"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "verification"
+            ],
+            "properties": {
+              "path": {
+                "const": ""
+              },
+              "file_digest": {
+                "const": ""
+              },
+              "content": {
+                "const": ""
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "verification"
+              ]
+            },
+            "properties": {
+              "path": {
+                "enum": [
+                  "go.mod",
+                  "list.go",
+                  "list_test.go"
+                ]
+              },
+              "file_digest": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "replace_file"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "path": {
+                "const": "list.go"
+              },
+              "content": {
+                "const": ""
+              }
+            }
+          }
+        }
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "image",
+        "runner_digest",
+        "exit_code",
+        "oom_killed",
+        "output_truncated",
+        "output",
+        "status",
+        "argv",
+        "started_at",
+        "finished_at",
+        "duration_ms"
+      ],
+      "properties": {
+        "profile": {
+          "const": "go_test_v1"
+        },
+        "image": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "runner_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "exit_code": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "oom_killed": {
+          "type": "boolean"
+        },
+        "output_truncated": {
+          "type": "boolean"
+        },
+        "output": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "status": {
+          "enum": [
+            "command_passed",
+            "command_failed",
+            "output_truncated",
+            "timeout",
+            "oom_killed"
+          ]
+        },
+        "argv": {
+          "const": [
+            "/usr/local/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "./..."
+          ]
+        },
+        "started_at": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "finished_at": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 180000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "command_passed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "exit_code": {
+                "const": 0
+              },
+              "oom_killed": {
+                "const": false
+              },
+              "output_truncated": {
+                "const": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "session_id",
+        "binding",
+        "image",
+        "runner_digest",
+        "resources",
+        "closed"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "development_sandbox_resources.v1"
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^sandbox_[a-f0-9]{32}(?![\\s\\S])"
+        },
+        "binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attempt_id",
+            "executor_instance_id",
+            "plan_digest",
+            "baseline_digest"
+          ],
+          "properties": {
+            "attempt_id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+            },
+            "executor_instance_id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+            },
+            "plan_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+            },
+            "baseline_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+            }
+          }
+        },
+        "image": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "runner_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "resources": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/resource"
+          }
+        },
+        "closed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "name",
+        "container_id",
+        "candidate_digest",
+        "state"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^radishmind-code-sandbox_[a-f0-9]{32}-[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "container_id": {
+          "type": "string",
+          "pattern": "^(?:[a-f0-9]{64})?(?![\\s\\S])"
+        },
+        "candidate_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "state": {
+          "enum": [
+            "intent",
+            "created",
+            "dispatched",
+            "unknown",
+            "create_unknown",
+            "finished",
+            "removed"
+          ]
+        }
+      }
+    }
+  }
+}

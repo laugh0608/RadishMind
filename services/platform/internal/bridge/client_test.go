@@ -36,7 +36,7 @@ func TestBridgeCredentialTransport(t *testing.T) {
 		t.Fatalf("bridge command arguments must not expose credentials: %q", args)
 	}
 
-	environment := bridgeCommandEnvironment(apiKey)
+	environment := bridgeCommandEnvironment(apiKey, false)
 	if value, found := bridgeEnvironmentValue(environment, bridgeAPIKeyEnvironmentVariable); !found || value != apiKey {
 		t.Fatalf("bridge credential was not scoped to the child environment: found=%v value=%q", found, value)
 	}
@@ -84,7 +84,7 @@ func TestProcessBridgeFailureDoesNotExposeLocalPath(t *testing.T) {
 func TestBridgeCredentialEnvironmentDoesNotLeakAcrossRequests(t *testing.T) {
 	t.Setenv(bridgeAPIKeyEnvironmentVariable, "inherited-secret")
 
-	environment := bridgeCommandEnvironment("")
+	environment := bridgeCommandEnvironment("", false)
 	if value, found := bridgeEnvironmentValue(environment, bridgeAPIKeyEnvironmentVariable); found {
 		t.Fatalf("request without a credential inherited stale bridge secret %q", value)
 	}
@@ -306,4 +306,26 @@ func bridgeEnvironmentValue(environment []string, key string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func TestWorkbenchBridgeDoesNotInheritModelProfilesOrSecrets(t *testing.T) {
+	t.Setenv("RADISHMIND_MODEL_PROFILE", "ambient")
+	t.Setenv("RADISHMIND_PLATFORM_API_KEY", "ambient-secret")
+	t.Setenv("OPENAI_API_KEY", "ambient-openai")
+	environment := bridgeCommandEnvironment("explicit-key", true)
+	for _, name := range []string{"RADISHMIND_MODEL_PROFILE", "RADISHMIND_PLATFORM_API_KEY", "OPENAI_API_KEY"} {
+		if _, found := bridgeEnvironmentValue(environment, name); found {
+			t.Fatalf("inherited %s", name)
+		}
+	}
+	if value, _ := bridgeEnvironmentValue(environment, "RADISHMIND_DISABLE_ENV_FILE"); value != "1" {
+		t.Fatal("implicit .env not disabled")
+	}
+	if value, _ := bridgeEnvironmentValue(environment, bridgeAPIKeyEnvironmentVariable); value != "explicit-key" {
+		t.Fatal("explicit request credential missing")
+	}
+	legacy := bridgeCommandEnvironment("", false)
+	if value, _ := bridgeEnvironmentValue(legacy, "RADISHMIND_MODEL_PROFILE"); value != "ambient" {
+		t.Fatal("legacy behavior changed")
+	}
 }

@@ -1,0 +1,8 @@
+{
+  "schema_version": "development_tool_action.v1",
+  "action": "replace_file",
+  "path": "list.go",
+  "expected_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "content": "package list\n",
+  "candidate_digest": ""
+}

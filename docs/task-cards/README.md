@@ -1,6 +1,6 @@
 # 首批任务卡
 
-更新时间：2026-09-08
+更新时间：2026-10-26
 
 本目录用于把路线图中的高优先级任务，从“任务名”收口到“可实现、可评测、可对齐协议”的正式任务卡或前置条件清单。
 
@@ -12,7 +12,7 @@
 
 ## 当前活跃任务
 
-当前没有活跃高风险任务卡。邀请批次 A 至 E 已完成并关闭；下一目标先在[当前推进焦点](../radishmind-current-focus.md)和对应专题中确认范围。
+[受控开发阶段 0：代表任务与 SDK 探针](development-task-probe-v1-plan.md)集中维护任务结果，主要归属 Workflow / Agent Runtime 的受控开发实施与评测子专题；其他职责子专题提供合同，不各建一份任务状态。工作台任务及验收沿[原交付专题](../features/user-workspace/local-persistent-workbench-delivery-v1.md)维护，当前顺位见[推进焦点](../radishmind-current-focus.md)。
 
 ## 当前外部阻塞任务
 

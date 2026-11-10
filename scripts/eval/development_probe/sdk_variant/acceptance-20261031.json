@@ -1,0 +1,134 @@
+{
+  "schema_version": "development_sdk_variant_acceptance.v1",
+  "distribution_count": 119,
+  "old_distribution_count": 138,
+  "removed": [
+    "blake3",
+    "googleapis-common-protos",
+    "grpcio",
+    "lmnr",
+    "lmnr-claude-code-proxy",
+    "opentelemetry-exporter-http-transport",
+    "opentelemetry-exporter-otlp-common",
+    "opentelemetry-exporter-otlp-proto-common",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "opentelemetry-exporter-otlp-proto-http",
+    "opentelemetry-instrumentation",
+    "opentelemetry-instrumentation-threading",
+    "opentelemetry-proto",
+    "opentelemetry-sdk",
+    "opentelemetry-semantic-conventions",
+    "opentelemetry-semantic-conventions-ai",
+    "orjson",
+    "protobuf",
+    "wrapt"
+  ],
+  "unchanged_remaining_dependency_versions_and_hashes": true,
+  "sdk_wheel_sha256": "9c46398603f5e6cf39e33525e9731c519bf8b2040dde12915092ee005c0b36d4",
+  "lock_sha256": "3e2f6bc2ca091acd36cb201ae5f66ed69b50d080af4b55c32314e0b1283983a3",
+  "source_manifest_sha256": "93d40af3b4688ba77530b6260ecd23aa0130d8be0d7ffebf8e82b566fdc04136",
+  "all_wheel_hashes_verified": true,
+  "image_id": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "os": "linux",
+  "architecture": "arm64",
+  "python": "3.12.16",
+  "resolution_report_sha256": "9454bdf7341ac3496998e520e43df420c42cced7857765536d1377aa0c382bed",
+  "installation_report_sha256": "db2d2fad8c3867445617bfdfe5dfb8635ace487f4fa4834a5e96b4aaab68b2d0",
+  "source_commit": "f816bfa97cde927f08e49b4a1077ff280ba8fe10",
+  "scope": "fixed_response_technical_candidate_not_formal_adoption_or_distribution_approval",
+  "base_image": "python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+  "evidence_root": "tmp/development-sdk-variant-20261031",
+  "installation_matches_resolution": true,
+  "installed_distributions_including_base_pip": 120,
+  "base_pip": "25.0.1",
+  "checks": {
+    "optional_dependency_tests": 4,
+    "llm_contract_tests": 7,
+    "sdk_worker_tests": [
+      "AgentFixedResponseRoundTrip",
+      "FailureDoesNotRetry",
+      "ModelWaitCancellation"
+    ],
+    "joint_modes": [
+      "normal",
+      "stale",
+      "cancel"
+    ],
+    "fixed_go_tests_in_normal_case": 8
+  },
+  "joint_cases": [
+    {
+      "path": "joint/case-cancel-2833692045",
+      "event_count": 41,
+      "last_phase": "outcome_unknown",
+      "sdk_boundaries": {
+        "uid": 65532,
+        "gid": 65532,
+        "groups": [],
+        "capabilities_zero": true,
+        "no_new_privileges": true,
+        "docker_denied": true,
+        "controller_data_denied": true
+      },
+      "export_sha256": "329f7cc45e13c0ed73a4042a1476bfc6b4404e9f89484f11034f887a147ae1e0",
+      "cancellation": {
+        "elapsed_ms": 128,
+        "worker": {
+          "ProcessExited": true,
+          "GroupEmpty": true,
+          "Finished": false,
+          "Frames": 11
+        }
+      }
+    },
+    {
+      "path": "joint/case-normal-3342242603",
+      "event_count": 48,
+      "last_phase": "completed",
+      "sdk_boundaries": {
+        "uid": 65532,
+        "gid": 65532,
+        "groups": [],
+        "capabilities_zero": true,
+        "no_new_privileges": true,
+        "docker_denied": true,
+        "controller_data_denied": true
+      },
+      "export_sha256": "a52eda42d7535cb9b2a56a9b1cd3b874f73ba5a8033f5e7edcac35fa139b50df"
+    },
+    {
+      "path": "joint/case-stale-1459330670",
+      "event_count": 48,
+      "last_phase": "completed",
+      "sdk_boundaries": {
+        "uid": 65532,
+        "gid": 65532,
+        "groups": [],
+        "capabilities_zero": true,
+        "no_new_privileges": true,
+        "docker_denied": true,
+        "controller_data_denied": true
+      },
+      "export_sha256": "d143f77c87dec2165e904241816694579244009aa0ad7b20e54ff285433f13aa"
+    }
+  ],
+  "cleanup": {
+    "owned_containers_remaining": 0,
+    "host_fallback_cleanup_needed": false,
+    "sdk_checks_and_controller_exit_zero_without_oom": true
+  },
+  "evidence_sha256": {
+    "context/preparation.json": "3f444319651af9ce61badd090728f448a4050be4a7e92db5f336beea9367bf16",
+    "resolution-build-02.log": "ebfabca629f57aea9ca8d4d72b42bddffec9f3fe917931d8b9f39cf4445bf050",
+    "runtime-build.log": "e171d546929623f203e445feec0be1e92d6fc513e515454a63b884516873e5e3",
+    "optional_laminar.log": "be7a6c18a64f9fa2199c7cc800250d64c9988fda5b8c966c655b39a5d8f5e361",
+    "contract.log": "9f66956fbe6c7f1d9a93620ca87ba0af89b0036a1116ed83c8f00400c71a4eb1",
+    "inspect.log": "17972b262184858114531e49cc914fb2aa7ce9fa81722fe83fb7ad997d516677",
+    "worker.log": "37c6a433a040462365356332bf18f9638c6db3fc313fe556eabdcebaa0e29da9",
+    "sdk-check.test": "5654205f317e22e89b2bbd0d64137b220bb058c39ff4bc92324ed06b34f08455",
+    "joint/run-01.command.json": "fe54517f5ce3788cb2d94995965f699bb38538cfdb356a904512edec8bc02cae",
+    "joint/run-01.log": "762d1ff9e86848401bf611195094994ae1d3d4b145245ba611aa4c8e00ca29ec",
+    "joint/run-01.cleanup.json": "3bca20c3ef58695f3ce22fa80be5e4ce5584d0d6444cc48bcb0ce6d464b0d440"
+  },
+  "sdk_license_and_change_notice_verified": true
+}

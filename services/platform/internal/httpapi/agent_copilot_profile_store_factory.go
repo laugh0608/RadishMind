@@ -22,7 +22,7 @@ func newAgentCopilotProfileRepositoryFromConfigWithSQLiteRuntime(cfg config.Conf
 		return newMemoryAgentCopilotProfileRepository(), func() {}, nil
 	}
 	if mode == "sqlite_dev" {
-		if !cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled {
+		if cfg.RuntimeProfile != config.LocalWorkbenchProfile && (!cfg.ControlPlaneReadDevAuthEnabled || !cfg.AgentCopilotProfileDevHTTPEnabled || !cfg.AgentCopilotProfileDevWriteEnabled) {
 			return nil, nil, errors.New("sqlite_dev agent copilot profile config is incomplete")
 		}
 		if sqliteRuntime == nil || sqliteRuntime.DB() == nil {

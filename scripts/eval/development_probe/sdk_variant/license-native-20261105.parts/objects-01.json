@@ -1,0 +1,238 @@
+{
+  "items": [
+    {
+      "package": "aiohttp",
+      "path": "aiohttp/_http_parser.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 3426576,
+      "sha256": "80e17c20a6c5a216c9fd31b8cb3675d9dab50bb85b84706210a64adda19f8274",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "aiohttp",
+      "path": "aiohttp/_http_writer.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 617536,
+      "sha256": "5c9ee5d8c9d9df610167dc50e794d356641dda8e92850a2525ea14ba3c9097c2",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "aiohttp",
+      "path": "aiohttp/_websocket/mask.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 417184,
+      "sha256": "2aa90bfdba889313b8bf890a14f727ea4fddfd7455392d60d5f3f1a6456ca334",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "aiohttp",
+      "path": "aiohttp/_websocket/reader_c.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 2111056,
+      "sha256": "d5a04fba6beb291b5357a5df70213cb0ca2d414b90ab023770fd78cca925c185",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "caio",
+      "path": "caio/linux_aio.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 254624,
+      "sha256": "efda16fabbc754b8710eb5385f44cc18f6122a1571f5ffd06ef128155a03f267",
+      "needed": [
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "caio",
+      "path": "caio/linux_uring.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 262808,
+      "sha256": "6992b5652a74681434e8e6fac113f74a9221a79a4c96d3ed47f13bee41806c80",
+      "needed": [
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "caio",
+      "path": "caio/thread_aio.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 255360,
+      "sha256": "aed5f19e8dc8b2286d0ba29f78eb7672329b46d1c046d3b173cddf72d55460c4",
+      "needed": [
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "cffi",
+      "path": "_cffi_backend.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 452656,
+      "sha256": "23e198f625ece5106ebdf2f90c7219b1fe204bb6d264021aa5a6dd892195e59a",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "charset-normalizer",
+      "path": "charset_normalizer/cd.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 286440,
+      "sha256": "7b5f6f73ebe2e33b7c564d01cb82b202d1ad52b4ba1e83456b77e1e8b7c350bc",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "charset-normalizer",
+      "path": "charset_normalizer/md.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 390800,
+      "sha256": "7841cc2965f2715e71fcddd2ba157774188ba4fd9531f686a0ee5f0dad9e1743",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "cryptography",
+      "path": "cryptography/hazmat/bindings/_rust.abi3.so",
+      "bytes": 13652416,
+      "sha256": "b52e6ae53c343ce97478ee10d93a0263576d778de65333c234577298d1e9ef07",
+      "needed": [
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "fastuuid",
+      "path": "fastuuid/fastuuid.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 639464,
+      "sha256": "49dc0d6e38bf66fcdc39b2fecbba5f7842fa124930040603317a62c7d76ceae6",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "frozenlist",
+      "path": "frozenlist/_frozenlist.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 916224,
+      "sha256": "111659811c862ca6e80545ceb2de3437fe4550a7dda72333e425aa3ec0b38c15",
+      "needed": [
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "hf-xet",
+      "path": "hf_xet/hf_xet.abi3.so",
+      "bytes": 11207968,
+      "sha256": "8cd19c1c117b86787d72f812c8864881024f9434684c29bbe1e46c69831cf602",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libm.so.6",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "jiter",
+      "path": "jiter/jiter.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 782088,
+      "sha256": "e8e5530456aae1a99d722edc292437ef001f7562aafb535760e869a423cca7a3",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "litellm",
+      "path": "litellm/rust_bridge/_native.abi3.so",
+      "bytes": 37566416,
+      "sha256": "42bfe8bd231be220c062e2a8fc20017e98a40ac6365f8a6593954527511c7392",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libm.so.6",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    }
+  ]
+}

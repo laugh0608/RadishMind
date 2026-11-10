@@ -1,0 +1,94 @@
+{
+  "items": [
+    {
+      "package": "tokenizers",
+      "path": "tokenizers/tokenizers.abi3.so",
+      "bytes": 11130232,
+      "sha256": "eb4d4fab7a667086711cfc6b7f0fba6c0275c2059da0f07d52c917bfa854a20d",
+      "needed": [
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libm.so.6",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "tree-sitter",
+      "path": "tree_sitter/_binding.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 2032656,
+      "sha256": "394e04b36d3a8210ed9be309853611f01bd24a62adf6cad05e31e5a9ebae65a0",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "tree-sitter-bash",
+      "path": "tree_sitter_bash/_binding.abi3.so",
+      "bytes": 1686480,
+      "sha256": "53f8740954d5c56b19daf3c8400e63149405e7c3f07e4fc11010fd80d2933e84",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "watchfiles",
+      "path": "watchfiles/_rust_notify.abi3.so",
+      "bytes": 1167952,
+      "sha256": "8539392242262525908138ae806bbbdf56730b05b126de101f2b1fe7d9922fe3",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "websockets",
+      "path": "websockets/speedups.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 224096,
+      "sha256": "ad18039b92eea45f4647aa6f85296ddbcd708b172e94a700733f26eebb51312e",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "yarl",
+      "path": "yarl/_quoting_c.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 268344,
+      "sha256": "9298de1070b0019f4a5b90c0d6f5be5e7440878cace29a0bfa465472f3e053ac",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    }
+  ]
+}

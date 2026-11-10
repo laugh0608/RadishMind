@@ -1,0 +1,117 @@
+{
+  "items": [
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/cmath.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68832,
+      "sha256": "f35b5a8110562b847206e8e8ff28e7aa118cc34fda783b3eb85dff75c87094d3",
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/fcntl.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68016,
+      "sha256": "59265a3467fbfbf434a80c36ece54a03ca78f45149f01f9149b5b06cd6ddb3ff",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/grp.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68344,
+      "sha256": "1649cfe1268bb37eaa89768df4eccdd0df554337e4fdd50f98b92670981c66a8",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/math.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 70336,
+      "sha256": "6fcc3f3285b1d6f2ea00b8fc72f5bc573051bac95a8cc937067e9157632a59d1",
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/mmap.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69208,
+      "sha256": "d150c418fd2d23749fc267ab29c768d7b4a6860c722ab1b6897ff0cca89a2ad7",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/ossaudiodev.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 70208,
+      "sha256": "aacbca97bf823958e0bb9ec7aead58abc8d94700db1ad8f5c91356edb5c60998",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/pyexpat.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 271152,
+      "sha256": "074bf13e0f10b9203ee1191dff15eecec584fff8a2df7ec1c55083a1b00ed0cf",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/readline.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69152,
+      "sha256": "a32f48cc43552dbde7086cb80ef8b7f617f4f2d890ff3a39fd10bcb91dd3e71e",
+      "needed": [
+        "libreadline.so.8",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/resource.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68352,
+      "sha256": "5a4dcba6bb6e55a7ce575c019992c46db6dfe8975e943e2f2843a17743d2ee3c",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/select.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69456,
+      "sha256": "c1abe6ea4946806e0f8b60b984749c53bab64801a9751792cf9af390d41fb28a",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    }
+  ]
+}

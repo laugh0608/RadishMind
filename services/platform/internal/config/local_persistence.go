@@ -6,6 +6,9 @@ import (
 )
 
 func ValidateServerStart(cfg Config) error {
+	if err := ValidateWorkbench(cfg); err != nil {
+		return err
+	}
 	if err := validateLocalIdentityConfig(EffectiveLocalPersistenceConfig(cfg)); err != nil {
 		return err
 	}

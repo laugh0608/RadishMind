@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 
 const APPLICATION_CATALOG_SCHEMA_VERSION = "application_catalog_record.v1";
@@ -147,7 +148,7 @@ type ApplicationCatalogListEnvelope = {
 };
 
 export function readApplicationCatalogConfig(): ApplicationCatalogConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_APPLICATION_CATALOG_SOURCE?.trim() === DEV_SOURCE
       ? "dev_application_catalog_http"

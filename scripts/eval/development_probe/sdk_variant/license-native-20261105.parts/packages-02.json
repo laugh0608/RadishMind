@@ -1,0 +1,195 @@
+{
+  "items": [
+    {
+      "name": "propcache",
+      "version": "0.5.4",
+      "wheel": "propcache-0.5.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "60a64cbccaa11b7760ce705a14ada17ba459e7ca9f23ba587eb013821032d7ef",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "propcache-0.5.4.dist-info/licenses/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "propcache-0.5.4.dist-info/licenses/NOTICE",
+          "sha256": "56d6ac6c8105c0a51304c21db060e361af9a8ea0af9a75c239c28b5d13693838"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "pydantic-core",
+      "version": "2.50.2",
+      "wheel": "pydantic_core-2.50.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "wheel_sha256": "43a8fd56f3c681f3cda2d5c842ad28e88241df742dfcbe8fd1dd437a3056e1f6",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "pydantic_core-2.50.2.dist-info/licenses/LICENSE",
+          "sha256": "2afdd30d54b4d62b6f488a6bcc1546e84ec5061f13f4209c03d012348783795a"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "pydantic_core-2.50.2.dist-info/sboms/pydantic-core.cyclonedx.json",
+          "sha256": "2ef42c45b8ded811d0695d3ce675dad307d2603fcff3ff0cefc15e76a74b7e14"
+        }
+      ]
+    },
+    {
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "wheel": "pyyaml-6.0.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "9149cad251584d5fb4981be1ecde53a1ca46c891a79788c0df828d2f166bda28",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "pyyaml-6.0.3.dist-info/licenses/LICENSE",
+          "sha256": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "wheel": "regex-2026.9.29-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "regex-2026.9.29.dist-info/licenses/LICENSE.txt",
+          "sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "rpds-py",
+      "version": "2026.9.1",
+      "wheel": "rpds_py-2026.9.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "wheel_sha256": "2693b2728bbcc48d09a981a356954b0c47c53ff25b545856f28a889ea619f69a",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "rpds_py-2026.9.1.dist-info/licenses/LICENSE",
+          "sha256": "314e4e91be3baa93c0fb4bccc9e4e97cd643eb839b065af921782c2175fe9909"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "rpds_py-2026.9.1.dist-info/sboms/rpds-py.cyclonedx.json",
+          "sha256": "f62bb2b0f51e4e479f7c34e2160c526e12d1a44f0b58c5b0d4ec7e37fb9918c3"
+        }
+      ]
+    },
+    {
+      "name": "tiktoken",
+      "version": "0.14.0",
+      "wheel": "tiktoken-0.14.0-cp312-cp312-manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "7db45b98e94adf4173a5cd7422b150999a7ee11ff847783a14f6e1b80cc38cb6",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "tiktoken-0.14.0.dist-info/licenses/LICENSE",
+          "sha256": "418cb499b436128d653d79941333a5437b7be2ea9213dcc2f04d15d5d2c51d86"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "wheel": "tokenizers-0.23.3-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "wheel_sha256": "ec82e80e65a862275b97c3d90b7a523df8d9519ee48aeb4e9625b2cc909274e0",
+      "native_object_count": 1,
+      "existing_notices": [],
+      "sboms": [
+        {
+          "member": "tokenizers-0.23.3.dist-info/sboms/tokenizers-python.cyclonedx.json",
+          "sha256": "950788cf8d0bd531aac28fbc58cbbe7297a743115c5310dbd8371d4d95bf5be5"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.26.0",
+      "wheel": "tree_sitter-0.26.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "30a88be89ff1f2755297f81e8080d88b795dd98720c3f9fa2acf93873182cc95",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "tree_sitter-0.26.0.dist-info/licenses/LICENSE",
+          "sha256": "1af0790543fffac99dd3bd290bf83ca963f4f8029065eb6f35638f4df863ae8e"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "wheel": "tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "e76c4cfb20b076552406782b7f8c2a3946835993df0a44df006de54b7030c7dc",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "tree_sitter_bash-0.25.1.dist-info/licenses/LICENSE",
+          "sha256": "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.3.0",
+      "wheel": "watchfiles-1.3.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "wheel_sha256": "4af9c464d410e8c44b58ddf1cbec7c3a02c1cb2c6c80df9c74659ba2fbda0ab5",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "watchfiles-1.3.0.dist-info/licenses/LICENSE",
+          "sha256": "4fd78355b67ce2677ede9fb6f63a250f377bb7e22088136a5f4699adb4bc069f"
+        }
+      ],
+      "sboms": [
+        {
+          "member": "watchfiles-1.3.0.dist-info/sboms/watchfiles_rust_notify.cyclonedx.json",
+          "sha256": "426761ccbbac26a4604dd905ca47a1de1ba99480945b26a49bd84b77051e05e2"
+        }
+      ]
+    },
+    {
+      "name": "websockets",
+      "version": "17.4",
+      "wheel": "websockets-17.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "51adfc30f467077293a6695d8149bcef501c0728386f3a491054f835dadb60b2",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "websockets-17.4.dist-info/licenses/LICENSE",
+          "sha256": "3d6a0c050d8bec52fabad502e45fb25bd02bcadbd70dea34d447b6a0ff4e6da8"
+        }
+      ],
+      "sboms": []
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1",
+      "wheel": "yarl-1.25.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "4d781294bb815ecb5ea57ff6bbf8038e0a31a95fdf3e1788f66e0dc100d64b58",
+      "native_object_count": 1,
+      "existing_notices": [
+        {
+          "path": "yarl-1.25.1.dist-info/licenses/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "yarl-1.25.1.dist-info/licenses/NOTICE",
+          "sha256": "56d6ac6c8105c0a51304c21db060e361af9a8ea0af9a75c239c28b5d13693838"
+        }
+      ],
+      "sboms": []
+    }
+  ]
+}

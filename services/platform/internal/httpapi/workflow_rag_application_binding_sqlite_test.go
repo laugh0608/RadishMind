@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"radishmind.local/services/platform/internal/sqlitedev"
+	localmigrations "radishmind.local/services/platform/migrations/sqlite"
 )
 
 func TestWorkflowRAGPromotionBindingPublishSQLiteContinuousRestartChain(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "workflow-rag-promotion-chain.db")
-	first, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: localPersistenceSQLiteMigrations()})
+	first, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: localmigrations.Migrations()})
 	if err != nil {
 		t.Fatalf("open shared SQLite promotion chain: %v", err)
 	}
@@ -84,7 +85,7 @@ func TestWorkflowRAGPromotionBindingPublishSQLiteContinuousRestartChain(t *testi
 		t.Fatalf("closed SQLite publish store fell back: %#v", result)
 	}
 
-	restarted, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: localPersistenceSQLiteMigrations()})
+	restarted, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: databasePath, Migrations: localmigrations.Migrations()})
 	if err != nil {
 		t.Fatalf("restart shared SQLite promotion chain: %v", err)
 	}

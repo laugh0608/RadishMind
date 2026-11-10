@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [switch]$SkipTextFiles
+    [switch]$SkipTextFiles,
+    [switch]$SkipPlatformGoTests
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,6 +16,10 @@ if (-not (Test-Path -LiteralPath $wrapperPath -PathType Leaf)) {
 $arguments = @()
 if ($SkipTextFiles) {
     $arguments += "-SkipTextFiles"
+}
+
+if ($SkipPlatformGoTests) {
+    $arguments += "-SkipPlatformGoTests"
 }
 $arguments += "-Fast"
 

@@ -1,0 +1,158 @@
+{
+  "source_created_at": "2026-10-31T07:59:00Z",
+  "schema_version": "development_artifact.v1",
+  "scope": {
+    "tenant_ref": "tenant_fixture",
+    "workspace_id": "workspace_fixture",
+    "account_id": "account_fixture",
+    "application_id": "application_fixture"
+  },
+  "origin": {
+    "account_id": "account_fixture",
+    "workspace_id": "workspace_fixture",
+    "application_id": "application_fixture",
+    "application_authority_digest": "sha256:b592a1760cde51b595e402bff6eb963945e6f86ab304c86436b518e295c0d05c",
+    "binding_id": "binding_fixture",
+    "binding_revision": 1,
+    "authorization_revision": 1,
+    "run_id": "run_fixture",
+    "task_id": "task_fixture",
+    "attempt_id": "attempt_fixture",
+    "plan_digest": "sha256:d6378e9799db1070ed0a05de7c5425ff565e8673a77f3691ade66097c0f434b8",
+    "baseline_digest": "sha256:a46359b152f0284e7973792632c1f88a216170485d9947e9d7aa72aff48e45d9",
+    "model_ref": "profile:fixture",
+    "pricing_digest": "sha256:b592a1760cde51b595e402bff6eb963945e6f86ab304c86436b518e295c0d05c",
+    "tool_policy_digest": "sha256:f45cdbd06403ef8083c45bde531da5b2dea3061d47bb6bbeae8b035bd927d5bb"
+  },
+  "plan": {
+    "schema_version": "development_attempt_plan.v1",
+    "application_id": "application_fixture",
+    "execution_profile": "prompt_invoke_v2",
+    "definition_id": "",
+    "model_ref": "profile:fixture",
+    "baseline_digest": "sha256:a46359b152f0284e7973792632c1f88a216170485d9947e9d7aa72aff48e45d9",
+    "initial_messages_digest": "sha256:b592a1760cde51b595e402bff6eb963945e6f86ab304c86436b518e295c0d05c",
+    "tools": {
+      "read_paths": [
+        "go.mod",
+        "list.go",
+        "list_test.go"
+      ],
+      "write_paths": [
+        "list.go"
+      ],
+      "verification_profile": "go_test_v1"
+    },
+    "limits": {
+      "max_model_calls": 8,
+      "max_tool_calls": 8,
+      "max_tokens": 1000,
+      "max_cost_microusd": 1000
+    },
+    "lifetime_ms": 600000,
+    "max_output_tokens": 50
+  },
+  "probe": {
+    "schema_version": "development_task_probe_plan.v1",
+    "probe_id": "probe_list_filter",
+    "mode": "fixed_response_only",
+    "task_id": "task_list_filter_v1",
+    "sdk_candidate": {
+      "package": "openhands-sdk",
+      "version": "1.59.0"
+    },
+    "source_files": [
+      {
+        "path": "go.mod",
+        "sha256": "sha256:de33aec1972ee8fa1af5cc5c8f9bd443a7ac7946eefa0473914cbab2a4938a82"
+      },
+      {
+        "path": "list.go",
+        "sha256": "sha256:41f47158166f870a4f823b887fdcad514a4ebc97633be8459c4b3a00e1d482a0"
+      },
+      {
+        "path": "list_test.go",
+        "sha256": "sha256:ff7a8582e24f11fce90528f479c57b7a1b95d59db2fa1d87d3bd2dd3fe425a43"
+      }
+    ],
+    "writable_paths": [
+      "list.go"
+    ],
+    "verify_argv": [
+      "go",
+      "test",
+      "-json",
+      "-count=1",
+      "./..."
+    ],
+    "limits": {
+      "max_model_requests": 4,
+      "max_tool_calls": 3,
+      "max_request_bytes": 262144,
+      "max_output_bytes": 65536,
+      "command_timeout_seconds": 120,
+      "wall_timeout_seconds": 600
+    }
+  },
+  "source_kind": "frozen_probe_tree",
+  "attempt_state": "completed",
+  "snapshot_at": "2026-10-31T08:00:00Z",
+  "expires_at": "2026-11-01T07:59:00Z",
+  "files": [
+    {
+      "path": "go.mod",
+      "base": "module radishmind.local/fixtures/list-filter\n\ngo 1.25.0\n",
+      "base_digest": "sha256:de33aec1972ee8fa1af5cc5c8f9bd443a7ac7946eefa0473914cbab2a4938a82",
+      "candidate": "module radishmind.local/fixtures/list-filter\n\ngo 1.25.0\n",
+      "candidate_digest": "sha256:de33aec1972ee8fa1af5cc5c8f9bd443a7ac7946eefa0473914cbab2a4938a82"
+    },
+    {
+      "path": "list.go",
+      "base": "// Package tasklist is synthetic input for the development-task probe.\n// The limit boundary defect is intentional; it is not a platform implementation.\npackage tasklist\n\nimport (\n\t\"encoding/json\"\n\t\"net/http\"\n\t\"strconv\"\n)\n\ntype Task struct {\n\tID    string `json:\"id\"`\n\tState string `json:\"state\"`\n}\n\nfunc Handler(tasks []Task) http.Handler {\n\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tstate := r.URL.Query().Get(\"state\")\n\t\tif state != \"\" \u0026\u0026 state != \"open\" \u0026\u0026 state != \"done\" {\n\t\t\thttp.Error(w, \"invalid state\", http.StatusBadRequest)\n\t\t\treturn\n\t\t}\n\t\tlimit := 0\n\t\tif raw := r.URL.Query().Get(\"limit\"); raw != \"\" {\n\t\t\tparsed, err := strconv.Atoi(raw)\n\t\t\tif err != nil || parsed \u003c 1 || parsed \u003e 100 {\n\t\t\t\thttp.Error(w, \"invalid limit\", http.StatusBadRequest)\n\t\t\t\treturn\n\t\t\t}\n\t\t\tlimit = parsed\n\t\t}\n\t\tresult := make([]Task, 0)\n\t\tfor _, task := range tasks {\n\t\t\tif state == \"\" || task.State == state {\n\t\t\t\tresult = append(result, task)\n\t\t\t}\n\t\t}\n\t\tif limit \u003e 0 \u0026\u0026 len(result) \u003e limit {\n\t\t\tresult = result[:limit-1]\n\t\t}\n\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n\t\tif err := json.NewEncoder(w).Encode(result); err != nil {\n\t\t\treturn\n\t\t}\n\t})\n}\n",
+      "base_digest": "sha256:41f47158166f870a4f823b887fdcad514a4ebc97633be8459c4b3a00e1d482a0",
+      "candidate": "// Package tasklist is synthetic input for the development-task probe.\n// The limit boundary defect is intentional; it is not a platform implementation.\npackage tasklist\n\nimport (\n\t\"encoding/json\"\n\t\"net/http\"\n\t\"strconv\"\n)\n\ntype Task struct {\n\tID    string `json:\"id\"`\n\tState string `json:\"state\"`\n}\n\nfunc Handler(tasks []Task) http.Handler {\n\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tstate := r.URL.Query().Get(\"state\")\n\t\tif state != \"\" \u0026\u0026 state != \"open\" \u0026\u0026 state != \"done\" {\n\t\t\thttp.Error(w, \"invalid state\", http.StatusBadRequest)\n\t\t\treturn\n\t\t}\n\t\tlimit := 0\n\t\tif raw := r.URL.Query().Get(\"limit\"); raw != \"\" {\n\t\t\tparsed, err := strconv.Atoi(raw)\n\t\t\tif err != nil || parsed \u003c 1 || parsed \u003e 100 {\n\t\t\t\thttp.Error(w, \"invalid limit\", http.StatusBadRequest)\n\t\t\t\treturn\n\t\t\t}\n\t\t\tlimit = parsed\n\t\t}\n\t\tresult := make([]Task, 0)\n\t\tfor _, task := range tasks {\n\t\t\tif state == \"\" || task.State == state {\n\t\t\t\tresult = append(result, task)\n\t\t\t}\n\t\t}\n\t\tif limit \u003e 0 \u0026\u0026 len(result) \u003e limit {\n\t\t\tresult = result[:limit]\n\t\t}\n\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n\t\tif err := json.NewEncoder(w).Encode(result); err != nil {\n\t\t\treturn\n\t\t}\n\t})\n}\n",
+      "candidate_digest": "sha256:1148f6eba4405d288c5d6b43d1c358f4b28463053dde1991c09cfdba8ef31cee"
+    },
+    {
+      "path": "list_test.go",
+      "base": "package tasklist\n\nimport (\n\t\"encoding/json\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestTaskList(t *testing.T) {\n\tfor _, tc := range []struct {\n\t\tname   string\n\t\tquery  string\n\t\ttasks  []Task\n\t\tstatus int\n\t\tids    []string\n\t}{\n\t\t{\"all\", \"\", []Task{{\"a\", \"open\"}, {\"b\", \"done\"}, {\"c\", \"open\"}}, 200, []string{\"a\", \"b\", \"c\"}},\n\t\t{\"filter_before_limit\", \"?state=open\u0026limit=1\", []Task{{\"a\", \"open\"}, {\"b\", \"done\"}, {\"c\", \"open\"}}, 200, []string{\"a\"}},\n\t\t{\"limit_two\", \"?limit=2\", []Task{{\"a\", \"open\"}, {\"b\", \"done\"}, {\"c\", \"open\"}}, 200, []string{\"a\", \"b\"}},\n\t\t{\"exact_limit\", \"?limit=1\", []Task{{\"a\", \"open\"}}, 200, []string{\"a\"}},\n\t\t{\"empty\", \"?state=done\", []Task{{\"a\", \"open\"}}, 200, []string{}},\n\t\t{\"invalid_state\", \"?state=unknown\", nil, 400, nil},\n\t\t{\"zero_limit\", \"?limit=0\", nil, 400, nil},\n\t\t{\"invalid_limit\", \"?limit=one\", nil, 400, nil},\n\t} {\n\t\tt.Run(tc.name, func(t *testing.T) {\n\t\t\tw := httptest.NewRecorder()\n\t\t\tHandler(tc.tasks).ServeHTTP(w, httptest.NewRequest(http.MethodGet, \"/tasks\"+tc.query, nil))\n\t\t\tif w.Code != tc.status {\n\t\t\t\tt.Fatalf(\"status=%d want=%d\", w.Code, tc.status)\n\t\t\t}\n\t\t\tif tc.status != http.StatusOK {\n\t\t\t\treturn\n\t\t\t}\n\t\t\tvar got []Task\n\t\t\tif err := json.Unmarshal(w.Body.Bytes(), \u0026got); err != nil || got == nil {\n\t\t\t\tt.Fatalf(\"expected JSON array: %s, error=%v\", w.Body, err)\n\t\t\t}\n\t\t\tids := make([]string, 0, len(got))\n\t\t\tfor _, task := range got {\n\t\t\t\tids = append(ids, task.ID)\n\t\t\t}\n\t\t\tif !reflect.DeepEqual(ids, tc.ids) {\n\t\t\t\tt.Fatalf(\"ids=%v want=%v\", ids, tc.ids)\n\t\t\t}\n\t\t})\n\t}\n}\n",
+      "base_digest": "sha256:ff7a8582e24f11fce90528f479c57b7a1b95d59db2fa1d87d3bd2dd3fe425a43",
+      "candidate": "package tasklist\n\nimport (\n\t\"encoding/json\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"reflect\"\n\t\"testing\"\n)\n\nfunc TestTaskList(t *testing.T) {\n\tfor _, tc := range []struct {\n\t\tname   string\n\t\tquery  string\n\t\ttasks  []Task\n\t\tstatus int\n\t\tids    []string\n\t}{\n\t\t{\"all\", \"\", []Task{{\"a\", \"open\"}, {\"b\", \"done\"}, {\"c\", \"open\"}}, 200, []string{\"a\", \"b\", \"c\"}},\n\t\t{\"filter_before_limit\", \"?state=open\u0026limit=1\", []Task{{\"a\", \"open\"}, {\"b\", \"done\"}, {\"c\", \"open\"}}, 200, []string{\"a\"}},\n\t\t{\"limit_two\", \"?limit=2\", []Task{{\"a\", \"open\"}, {\"b\", \"done\"}, {\"c\", \"open\"}}, 200, []string{\"a\", \"b\"}},\n\t\t{\"exact_limit\", \"?limit=1\", []Task{{\"a\", \"open\"}}, 200, []string{\"a\"}},\n\t\t{\"empty\", \"?state=done\", []Task{{\"a\", \"open\"}}, 200, []string{}},\n\t\t{\"invalid_state\", \"?state=unknown\", nil, 400, nil},\n\t\t{\"zero_limit\", \"?limit=0\", nil, 400, nil},\n\t\t{\"invalid_limit\", \"?limit=one\", nil, 400, nil},\n\t} {\n\t\tt.Run(tc.name, func(t *testing.T) {\n\t\t\tw := httptest.NewRecorder()\n\t\t\tHandler(tc.tasks).ServeHTTP(w, httptest.NewRequest(http.MethodGet, \"/tasks\"+tc.query, nil))\n\t\t\tif w.Code != tc.status {\n\t\t\t\tt.Fatalf(\"status=%d want=%d\", w.Code, tc.status)\n\t\t\t}\n\t\t\tif tc.status != http.StatusOK {\n\t\t\t\treturn\n\t\t\t}\n\t\t\tvar got []Task\n\t\t\tif err := json.Unmarshal(w.Body.Bytes(), \u0026got); err != nil || got == nil {\n\t\t\t\tt.Fatalf(\"expected JSON array: %s, error=%v\", w.Body, err)\n\t\t\t}\n\t\t\tids := make([]string, 0, len(got))\n\t\t\tfor _, task := range got {\n\t\t\t\tids = append(ids, task.ID)\n\t\t\t}\n\t\t\tif !reflect.DeepEqual(ids, tc.ids) {\n\t\t\t\tt.Fatalf(\"ids=%v want=%v\", ids, tc.ids)\n\t\t\t}\n\t\t})\n\t}\n}\n",
+      "candidate_digest": "sha256:ff7a8582e24f11fce90528f479c57b7a1b95d59db2fa1d87d3bd2dd3fe425a43"
+    }
+  ],
+  "candidate_digest": "sha256:1162b475f832e1c5e5305bb49f906f9f8894b1be408568e10b46a13055d44453",
+  "patch": "--- a/list.go\n+++ b/list.go\n@@ -1,46 +1,46 @@\n-// Package tasklist is synthetic input for the development-task probe.\n-// The limit boundary defect is intentional; it is not a platform implementation.\n-package tasklist\n-\n-import (\n-\t\"encoding/json\"\n-\t\"net/http\"\n-\t\"strconv\"\n-)\n-\n-type Task struct {\n-\tID    string `json:\"id\"`\n-\tState string `json:\"state\"`\n-}\n-\n-func Handler(tasks []Task) http.Handler {\n-\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n-\t\tstate := r.URL.Query().Get(\"state\")\n-\t\tif state != \"\" \u0026\u0026 state != \"open\" \u0026\u0026 state != \"done\" {\n-\t\t\thttp.Error(w, \"invalid state\", http.StatusBadRequest)\n-\t\t\treturn\n-\t\t}\n-\t\tlimit := 0\n-\t\tif raw := r.URL.Query().Get(\"limit\"); raw != \"\" {\n-\t\t\tparsed, err := strconv.Atoi(raw)\n-\t\t\tif err != nil || parsed \u003c 1 || parsed \u003e 100 {\n-\t\t\t\thttp.Error(w, \"invalid limit\", http.StatusBadRequest)\n-\t\t\t\treturn\n-\t\t\t}\n-\t\t\tlimit = parsed\n-\t\t}\n-\t\tresult := make([]Task, 0)\n-\t\tfor _, task := range tasks {\n-\t\t\tif state == \"\" || task.State == state {\n-\t\t\t\tresult = append(result, task)\n-\t\t\t}\n-\t\t}\n-\t\tif limit \u003e 0 \u0026\u0026 len(result) \u003e limit {\n-\t\t\tresult = result[:limit-1]\n-\t\t}\n-\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n-\t\tif err := json.NewEncoder(w).Encode(result); err != nil {\n-\t\t\treturn\n-\t\t}\n-\t})\n-}\n+// Package tasklist is synthetic input for the development-task probe.\n+// The limit boundary defect is intentional; it is not a platform implementation.\n+package tasklist\n+\n+import (\n+\t\"encoding/json\"\n+\t\"net/http\"\n+\t\"strconv\"\n+)\n+\n+type Task struct {\n+\tID    string `json:\"id\"`\n+\tState string `json:\"state\"`\n+}\n+\n+func Handler(tasks []Task) http.Handler {\n+\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n+\t\tstate := r.URL.Query().Get(\"state\")\n+\t\tif state != \"\" \u0026\u0026 state != \"open\" \u0026\u0026 state != \"done\" {\n+\t\t\thttp.Error(w, \"invalid state\", http.StatusBadRequest)\n+\t\t\treturn\n+\t\t}\n+\t\tlimit := 0\n+\t\tif raw := r.URL.Query().Get(\"limit\"); raw != \"\" {\n+\t\t\tparsed, err := strconv.Atoi(raw)\n+\t\t\tif err != nil || parsed \u003c 1 || parsed \u003e 100 {\n+\t\t\t\thttp.Error(w, \"invalid limit\", http.StatusBadRequest)\n+\t\t\t\treturn\n+\t\t\t}\n+\t\t\tlimit = parsed\n+\t\t}\n+\t\tresult := make([]Task, 0)\n+\t\tfor _, task := range tasks {\n+\t\t\tif state == \"\" || task.State == state {\n+\t\t\t\tresult = append(result, task)\n+\t\t\t}\n+\t\t}\n+\t\tif limit \u003e 0 \u0026\u0026 len(result) \u003e limit {\n+\t\t\tresult = result[:limit]\n+\t\t}\n+\t\tw.Header().Set(\"Content-Type\", \"application/json\")\n+\t\tif err := json.NewEncoder(w).Encode(result); err != nil {\n+\t\t\treturn\n+\t\t}\n+\t})\n+}\n",
+  "patch_digest": "sha256:e512687e81716825ad242b5cca3720b30559b94e09f9b98226cd117ecfd8bc6d",
+  "tests": [
+    {
+      "request_id": "tool_test",
+      "candidate_digest": "sha256:1162b475f832e1c5e5305bb49f906f9f8894b1be408568e10b46a13055d44453",
+      "profile": "go_test_v1",
+      "argv": [
+        "/usr/local/go/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "./..."
+      ],
+      "image_digest": "sha256:b592a1760cde51b595e402bff6eb963945e6f86ab304c86436b518e295c0d05c",
+      "runner_digest": "sha256:b592a1760cde51b595e402bff6eb963945e6f86ab304c86436b518e295c0d05c",
+      "started_at": "2026-10-31T07:59:58Z",
+      "finished_at": "2026-10-31T07:59:59Z",
+      "exit_known": true,
+      "exit_code": 0,
+      "oom_killed": false,
+      "output_truncated": false,
+      "log": "synthetic command result\n",
+      "log_digest": "sha256:56120b3390f489442764721df5e457d6a2316184f450419293a0018095d40bf2",
+      "log_redacted": false,
+      "status": "command_passed"
+    }
+  ],
+  "verification_state": "command_passed",
+  "review_state": "not_reviewed",
+  "acceptance_state": "not_accepted",
+  "sensitive_policy": "text_allowlist_v1",
+  "digest": "sha256:62841924ee4967e5a503ba33e7cdb3136f3c9475e5d286e9b2c32d764d7b0cae"
+}

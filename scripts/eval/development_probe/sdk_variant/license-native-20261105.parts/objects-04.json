@@ -1,0 +1,225 @@
+{
+  "items": [
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libsharpyuv-5dac68d0.so.0.1.2",
+      "bytes": 264961,
+      "sha256": "d29d52f026e8b7d23571a2fff3623564c2bff4e18d38d42a0ec6b28ce780d31a",
+      "needed": [
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libsharpyuv-5dac68d0.so.0.1.2",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libtiff-0c352bdc.so.6.3.0",
+      "bytes": 859089,
+      "sha256": "330f0eaa7a5d2fa06985d6e472e47fc4fc9e2513188dcbec1e47fcc36a4db0a8",
+      "needed": [
+        "libzstd-79fd2b21.so.1.5.7",
+        "liblzma-dcd007de.so.5.8.4",
+        "libjpeg-80045241.so.62.4.0",
+        "libz.so.1",
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libtiff-0c352bdc.so.6.3.0",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libzstd-79fd2b21.so.1.5.7": "pillow.libs/libzstd-79fd2b21.so.1.5.7",
+        "liblzma-dcd007de.so.5.8.4": "pillow.libs/liblzma-dcd007de.so.5.8.4",
+        "libjpeg-80045241.so.62.4.0": "pillow.libs/libjpeg-80045241.so.62.4.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libwebp-bac0fc6b.so.7.2.0",
+      "bytes": 790265,
+      "sha256": "54e7e6e1e79491eed84e4ec1ae9bfdff4704a636ae8cb7953352346d3a3510d8",
+      "needed": [
+        "libsharpyuv-5dac68d0.so.0.1.2",
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libwebp-bac0fc6b.so.7.2.0",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libsharpyuv-5dac68d0.so.0.1.2": "pillow.libs/libsharpyuv-5dac68d0.so.0.1.2"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libwebpdemux-b0a60f8c.so.2.0.17",
+      "bytes": 396465,
+      "sha256": "c677c619ef13944e0a1eb9fc5fb19a01ad17afac4db0a74c7cf38037dd27f6b7",
+      "needed": [
+        "libwebp-bac0fc6b.so.7.2.0",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libwebpdemux-b0a60f8c.so.2.0.17",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libwebp-bac0fc6b.so.7.2.0": "pillow.libs/libwebp-bac0fc6b.so.7.2.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libwebpmux-fec2c160.so.3.1.2",
+      "bytes": 397729,
+      "sha256": "2b2c4a94e49b23e5931dd283638977e1654f5c09b4da58d77cddf29cfc2a7e2a",
+      "needed": [
+        "libm.so.6",
+        "libwebp-bac0fc6b.so.7.2.0",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libwebpmux-fec2c160.so.3.1.2",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libwebp-bac0fc6b.so.7.2.0": "pillow.libs/libwebp-bac0fc6b.so.7.2.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libxcb-cbbede0a.so.1.1.0",
+      "bytes": 412897,
+      "sha256": "61144ceaca75baab603c58e8c31c122e2deabd1b4c92aad92b16d33ec4487815",
+      "needed": [
+        "libXau-7926f62a.so.6.0.0",
+        "libc.so.6"
+      ],
+      "soname": "libxcb-cbbede0a.so.1.1.0",
+      "rpath": [
+        "$ORIGIN"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libXau-7926f62a.so.6.0.0": "pillow.libs/libXau-7926f62a.so.6.0.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "pillow.libs/libzstd-79fd2b21.so.1.5.7",
+      "bytes": 860113,
+      "sha256": "b46e933af3b39347d33e8343ae48666fe0ce74b14574760f92149cf6dcc1bfd8",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": "libzstd-79fd2b21.so.1.5.7",
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "propcache",
+      "path": "propcache/_helpers_c.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 969856,
+      "sha256": "ad11803467652022ec7944d56cc8a273b2fecb387b7c6fd348eb4113ec8fd712",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pydantic-core",
+      "path": "pydantic_core/_pydantic_core.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 4483176,
+      "sha256": "a2307d48341d73b88de196f6646493b26eb43145c62b39f46591e6a8536b2b19",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pyyaml",
+      "path": "yaml/_yaml.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 2700272,
+      "sha256": "edc51c14c75bd17789a97020a8472e051b5adce1a7667d63edc27e4825c23cf2",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "regex",
+      "path": "regex/_regex.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 2758120,
+      "sha256": "84790e1b2b1e4b0c543f80e2003d19e2dbdb88552efab4f6a018ffcf5ddac10e",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "rpds-py",
+      "path": "rpds/rpds.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 1058496,
+      "sha256": "cf3c990c838352c2071633e9c5f15877721b9ba4775579a5a7099b3c9f292746",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "tiktoken",
+      "path": "tiktoken/_tiktoken.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 3706656,
+      "sha256": "dc2eb4793ab4927487a3abdcbffd0f648cb5d46df8f234b1601b0d319bc61b16",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    }
+  ]
+}

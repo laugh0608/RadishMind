@@ -1,0 +1,294 @@
+{
+  "items": [
+    {
+      "name": "referencing",
+      "version": "0.37.0",
+      "wheel_sha256": "381329a9f99628c9069361716891d34ad94af76e461dcb0335825aecc7692231",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 1,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "wheel_sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "native_objects": 0,
+      "existing_license_files": 2,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0",
+      "wheel_sha256": "33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "rich-rst",
+      "version": "2.2.0",
+      "wheel_sha256": "1ea1c43813dc4a8d86475fce27ffb74e0ada3d4656c9f8130ba2a59868055fe9",
+      "native_objects": 0,
+      "existing_license_files": 2,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "rpds-py",
+      "version": "2026.9.1",
+      "wheel_sha256": "2693b2728bbcc48d09a981a356954b0c47c53ff25b545856f28a889ea619f69a",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "s3transfer",
+      "version": "0.19.3",
+      "wheel_sha256": "24eb7535804306355e31c952a90022bf5b2f9d760f9a11062c7493a217c08553",
+      "native_objects": 0,
+      "existing_license_files": 2,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "secretstorage",
+      "version": "3.5.0",
+      "wheel_sha256": "0ce65888c0725fcb2c5bc0fdb8e5438eece02c523557ea40ce0703c266248137",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "wheel_sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "sniffio",
+      "version": "1.3.1",
+      "wheel_sha256": "2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2",
+      "native_objects": 0,
+      "existing_license_files": 3,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "socksio",
+      "version": "1.0.0",
+      "wheel_sha256": "95dc1f15f9b34e8d7b16f06d74b8ccf48f609af32ab33c608d08761c5dcbb1f3",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "sortedcontainers",
+      "version": "2.4.0",
+      "wheel_sha256": "a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "sse-starlette",
+      "version": "3.6.0",
+      "wheel_sha256": "e4dfa4d237d2712cb2b4d4918eda9b457cd6b44bbecdc838af75de836565bafd",
+      "native_objects": 0,
+      "existing_license_files": 2,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "starlette",
+      "version": "1.10.0",
+      "wheel_sha256": "478c0ab3b4ced6e82719849c118fa406f0278a3499c1a898cd15cd31bdc38ce4",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "tenacity",
+      "version": "9.2.1",
+      "wheel_sha256": "9e56f17539296baab7beabb08b92f6ee3d7be92d8be72d763360677c2ad6580e",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "tiktoken",
+      "version": "0.14.0",
+      "wheel_sha256": "7db45b98e94adf4173a5cd7422b150999a7ee11ff847783a14f6e1b80cc38cb6",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "wheel_sha256": "ec82e80e65a862275b97c3d90b7a523df8d9519ee48aeb4e9625b2cc909274e0",
+      "native_objects": 1,
+      "existing_license_files": 0,
+      "supplement_files": 1,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "wheel_sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.26.0",
+      "wheel_sha256": "30a88be89ff1f2755297f81e8080d88b795dd98720c3f9fa2acf93873182cc95",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "wheel_sha256": "e76c4cfb20b076552406782b7f8c2a3946835993df0a44df006de54b7030c7dc",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.16.0",
+      "wheel_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "wheel_sha256": "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "uncalled-for",
+      "version": "0.4.1",
+      "wheel_sha256": "b611b38879d9fe5088297e7bb28f2ddd12d2d73dad933d93da107fb63eb4058e",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "wheel_sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.54.0",
+      "wheel_sha256": "505bdb0f318731d45f1f712071fc781a8981f6847a31c902c9f5e652d4f67faf",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.3.0",
+      "wheel_sha256": "4af9c464d410e8c44b58ddf1cbec7c3a02c1cb2c6c80df9c74659ba2fbda0ab5",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "websockets",
+      "version": "17.4",
+      "wheel_sha256": "51adfc30f467077293a6695d8149bcef501c0728386f3a491054f835dadb60b2",
+      "native_objects": 1,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1",
+      "wheel_sha256": "4d781294bb815ecb5ea57ff6bbf8038e0a31a95fdf3e1788f66e0dc100d64b58",
+      "native_objects": 1,
+      "existing_license_files": 2,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "实际原生 / 静态构建对应待补齐"
+    },
+    {
+      "name": "zipp",
+      "version": "4.1.2",
+      "wheel_sha256": "b30cb6cd253122169c47de245ca24a86bac2a5d3802ba15bf7ba6414eb9e144d",
+      "native_objects": 0,
+      "existing_license_files": 1,
+      "supplement_files": 0,
+      "scope": "完整 wheel 随 SDK 安装；保留其自带许可及已映射补充告知",
+      "source_state": "源码随 wheel 的范围需按包内文件及许可分别核对，未用纯 Python 判定自动关闭"
+    }
+  ]
+}

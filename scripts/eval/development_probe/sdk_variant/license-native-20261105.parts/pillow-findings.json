@@ -1,0 +1,105 @@
+{
+  "wheel": "pillow-13.0.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+  "notice": {
+    "path": "pillow-13.0.0.dist-info/licenses/LICENSE",
+    "sha256": "dda12a98c1979cf3d94df1cff45d27a4cb3f04a60c76f76902ac54cac03ec0ce"
+  },
+  "notice_headings": [
+    {
+      "heading": "AOM",
+      "byte_offset": 1465
+    },
+    {
+      "heading": "BROTLI",
+      "byte_offset": 2793
+    },
+    {
+      "heading": "BZIP2",
+      "byte_offset": 3893
+    },
+    {
+      "heading": "DAV1D",
+      "byte_offset": 5799
+    },
+    {
+      "heading": "FREETYPE2",
+      "byte_offset": 7131
+    },
+    {
+      "heading": "HARFBUZZ",
+      "byte_offset": 19913
+    },
+    {
+      "heading": "LCMS2",
+      "byte_offset": 21902
+    },
+    {
+      "heading": "LIBAVIF",
+      "byte_offset": 22995
+    },
+    {
+      "heading": "LIBJPEG",
+      "byte_offset": 43427
+    },
+    {
+      "heading": "LIBLZMA",
+      "byte_offset": 45623
+    },
+    {
+      "heading": "LIBPNG",
+      "byte_offset": 48412
+    },
+    {
+      "heading": "LIBTIFF",
+      "byte_offset": 53773
+    },
+    {
+      "heading": "LIBWEBP",
+      "byte_offset": 54929
+    },
+    {
+      "heading": "LIBYUV",
+      "byte_offset": 56441
+    },
+    {
+      "heading": "OPENJPEG",
+      "byte_offset": 57963
+    },
+    {
+      "heading": "RAQM",
+      "byte_offset": 60089
+    },
+    {
+      "heading": "TCL_TK",
+      "byte_offset": 61280
+    },
+    {
+      "heading": "XAU",
+      "byte_offset": 63522
+    },
+    {
+      "heading": "XCB",
+      "byte_offset": 64683
+    },
+    {
+      "heading": "XDMCP",
+      "byte_offset": 66033
+    },
+    {
+      "heading": "ZLIB",
+      "byte_offset": 67226
+    },
+    {
+      "heading": "ZSTD",
+      "byte_offset": 68752
+    }
+  ],
+  "observations": [
+    "Pillow 的 18 个捆绑共享库均有同 wheel SONAME 匹配；23 条动态链接同时匹配 ORIGIN 搜索路径。此为静态对应，不是实际加载验证。",
+    "wheel 已带 70307 字节组合许可正文，含 AOM、DAV1D、BROTLI、ZLIB、ZSTD 等分段；正文存在不提供其精确构建版本。",
+    "FriBiDi 和 libimagequant 是 SBOM 的 optional 声明，未在本次捆绑文件名或 DT_NEEDED 中观察到；不据此宣称静态实现不存在，也不计作已证实交付组件。",
+    "OpenJPEG SBOM 的 ancestor name 写作 libtiff，但该 ancestor purl 为 openjpeg；原元数据不改写，这一字段冲突不能用于确认来源。",
+    "SBOM 将 zlib 声明为 2.3.3，但 ELF 只记录外部 libz.so.1；不能由 SONAME 推断它采用声明版本，也不能与 OS 库版本合并。"
+  ],
+  "boundary": "Preserve SBOM declarations, observed native bytes and unresolved provenance separately. No new license conclusion."
+}

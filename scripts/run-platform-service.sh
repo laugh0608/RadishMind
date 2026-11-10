@@ -91,7 +91,6 @@ if ! command -v go >/dev/null 2>&1; then
   exit 1
 fi
 
-export GOCACHE="${GOCACHE:-/tmp/radishmind-go-build-cache}"
 if [[ -z "${RADISHMIND_PLATFORM_PYTHON_BIN:-}" ]]; then
   if [[ -x "${repo_root}/.venv/bin/python" ]]; then
     export RADISHMIND_PLATFORM_PYTHON_BIN="${repo_root}/.venv/bin/python"

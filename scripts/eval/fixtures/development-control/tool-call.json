@@ -1,0 +1,15 @@
+{
+  "schema_version": "development_tool_call.v1",
+  "attempt_id": "id_attempt_id",
+  "request_id": "req_tool_001",
+  "parent_request_id": "req_model_001",
+  "tool_call_id": "call-sdk-A01",
+  "arguments": {
+    "schema_version": "development_tool_action.v1",
+    "action": "replace_file",
+    "path": "list.go",
+    "expected_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "content": "package list\n",
+    "candidate_digest": ""
+  }
+}

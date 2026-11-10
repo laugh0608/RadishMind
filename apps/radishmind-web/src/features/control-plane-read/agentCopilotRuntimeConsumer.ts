@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { AgentCopilotProfileVersionSummary } from "./agentCopilotProfileConsumer.ts";
 import {
   parseActionSafetyReadProjection,
@@ -57,7 +58,7 @@ export type AgentCopilotRuntimeState = {
 type Document = Record<string, any>;
 
 export function readAgentCopilotRuntimeConfig(): AgentCopilotRuntimeConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_AGENT_COPILOT_SOURCE?.trim() === DEV_SOURCE
       ? "dev_agent_copilot_http"

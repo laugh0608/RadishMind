@@ -1,6 +1,12 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-10-02
+更新时间：2026-11-05
+
+## 当前交付方向
+
+本机交付基座是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制及备份迁移已验收；独立用户试用仍待完成。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
+
+当前开发主线见[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)：先设计并验证单 Agent 隔离交付，再推进固定团队。阶段 0 已有冻结合成任务、探针合同与离线准备 CLI；单尝试 SQLite 事务、任务凭据与独立通道、受限 SDK 工作进程、固定 Go 代码沙箱和开发产物保存 / 导出均已实现，真实 SDK 与代码容器同次任务已通过固定响应联合验收。遥测可选化 SDK 仍为技术候选；Go 原生 HTTP 已通过固定上游工具往返与失败 / 取消验证，真实厂商 / 模型资格和完整输入计量仍待验。单 Agent 公开合同及六个 Pencil 代表面已完成可评审设计，具体确认与剩余许可交付尚未闭合；通道默认关闭，正式 Web、通用仓库及团队交付尚未实现。离线命令见[代表任务说明](../scripts/eval/fixtures/development-task/README.md)，下文不提供正式团队服务启动入口。
 
 ## 这份文档讲什么
 
@@ -63,7 +69,9 @@ A 至 F 在登记的现有可达页面和流程中已按切片完成双语验收
 
 切换语言保留当前选择、未保存编辑及显式确认状态，不触发业务请求。固定状态与恢复建议按界面语言展示；用户内容、模型输出、错误码、路径、ID、摘要和下载 JSON 保持原值。普通日期按界面语言和浏览器本地时区显示；审计、安全和日程等既有 UTC 页面保持 UTC 并标明时区，不能把显示格式变化视为时间值变化；主壳日期可悬停查看原始时间。应用交互会话刷新仅恢复持久元数据，临时对话正文不恢复。
 
-## 当前五条主线
+## 长期能力分类（不表示并行排期）
+
+以下为既有能力分类与历史治理证据，当前仅推进本机持久工作台一条产品主线。应用 Session / Turn 与显式结果保存已有实现；通用历史压缩、长期记忆和恢复执行未实现。
 
 1. `Runtime Service`：本地启动、网关、路由、提供方及档案、协议兼容、响应封装、部署基础；当前已达到阶段性收口，请求观测与错误分类已进入平台门禁。
 2. `Conversation & Session`：会话标识、历史压缩、恢复和审计边界；当前已有会话记录、恢复检查点记录 / 清单 / 读取结果、北向会话元数据、仅元数据路由冒烟验证、确认 / 审计 / 结果 / 执行器 / 存储设计门禁、阶段性收口准入差量、停止线清单和收口候选状态摘要。
@@ -73,7 +81,7 @@ A 至 F 在登记的现有可达页面和流程中已按切片完成双语验收
 
 当前可运行的开发测试产品路径已经覆盖：Gateway 三协议调用与脱敏的 Request History；Application Catalog 创建 / 编辑 / 归档 / 安全重新启用，API Key 生命周期与引导式轮换；Application API Integration、Configuration Draft、Publish Candidate Review；Saved Draft 活动 / 归档草案库、HTTP Tool、RAG v3、Application RAG v4、Workflow Definition v5 / v8、工作区 Workflow Template Catalog / Review / Listing / Derive、Application Interaction Session v1 / v4、持久化的 Run History / Comparison / Evaluation 与 Application Operations；Admin 已验证身份、Tenant / Audit 的 PostgreSQL 只读存储库，以及确定性 OIDC 验证器。Action Safety 决策在六个服务端检查点与既有所有者的内存 / SQLite / PostgreSQL 快照中形成，并通过单一 `action_safety_read_projection.v1` 进入既有 Agent、Tool 与符合条件的 Run 只读封套；它没有独立路由，不是客户端可提交的授权令牌。Application Evaluation Schedule 的 HTTP 接口、内存 / SQLite / PostgreSQL 所有者、显式低频运行器与单一 React 严格消费者也已成立，只接受 Prompt 精确 Plan、每次受限委托重验和确定性 Campaign 交接，并已通过开发 / 测试态双数据库、CAS、重启 / 重连、三视口与隐私验收。长期契约入口分别见 [服务/API 接入契约](contracts/service-api.md)、[Control Plane Read-Side 契约](contracts/control-plane-read-side.md)、[Radish OIDC Token Validation 契约](contracts/radish-oidc-token-validation.md)和[应用受控运行开发测试态指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md)。这些路径仍由显式开发 / 测试门禁保护，不是公开生产 API。
 
-`Saved Workflow Draft v1` 已实现平台 Go 领域服务、内存 / SQLite / PostgreSQL 开发测试态存储库、HTTP / Web 消费者、严格游标、超过 `200` 条的键集分页 / 组合筛选、内容版本与生命周期版本分离、仅追加的生命周期事件、归档 / 解除归档和相邻操作活动资格重读。Draft Designer 遇到 `version_conflict` 时保留当前本地活动草案，刷新当前应用的脱敏活动草案列表；用户可继续编辑本地草案或显式打开当前保存记录，同一份冲突审查摘要会交给 Review Handoff。它不自动覆盖、不自动合并。不可变修订版的恢复由独立历史面板承载，不与打开当前记录混用。当前仍不开放生产存储库、真实 OIDC / 成员关系、生产密钥、自动保存 / 合并、永久删除、批量生命周期、业务写回、重放 / 恢复执行或公开生产 API。
+`Saved Workflow Draft v1` 已实现平台 Go 领域服务、内存 / SQLite / PostgreSQL 开发测试态存储库、HTTP / Web 消费者、严格游标、超过 `200` 条的键集分页 / 组合筛选、内容版本与生命周期版本分离、仅追加的生命周期事件、归档 / 解除归档和相邻操作活动资格重读。Draft Designer 遇到 `version_conflict` 时保留当前本地活动草案，刷新当前应用的脱敏活动草案列表；用户可继续编辑本地草案或显式打开当前保存记录，同一份冲突审查摘要会交给 Review Handoff。它不自动覆盖、不自动合并。不可变修订版的恢复由独立历史面板承载，不与打开当前记录混用。当前仍不开放生产存储库、真实 Radish OIDC / 外部成员关系、生产密钥、自动保存 / 合并、永久删除、批量生命周期、业务写回、重放 / 恢复执行或公开生产 API。
 
 2026-07-12 覆盖：Gateway Request History、Application Configuration Draft、Application Publish Candidate 和 Admin Tenant / Audit read 均支持显式 PostgreSQL dev/test repository、manual migration、marker / checksum、runtime role、no-fallback 与重启恢复。Control Plane auth 已支持 signed test token 和 `radish_oidc_integration_test`；后者只开放 Tenant Summary / Audit，workspace operation 因 membership 未成立而 fail closed。真实 Radish 联调已 deferred，不把 deterministic issuer 或本地浏览器路径解释为真实接入。
 
@@ -297,9 +305,17 @@ Model Gateway 的读法是先看 Overview / Route / Usage-Audit / Evidence Revie
 
 Prompt Application 与 Agent / Copilot 使用同一治理原则但拥有不同源码 owner。Prompt 依次建立 Template Version、Configuration / Candidate v3 与 Prompt Runtime Assignment；Agent 依次建立结构化 Profile Version、Configuration / Candidate v4 与 Agent Copilot Runtime Assignment。两者的 API key 和 Session 分别委托唯一 invocation service。默认完整输出只在首次同步响应或当前 Web 内存中可见；Session 可逐 turn 显式选择保存成功结果，由独立 Result Artifact owner 持有正文并提供精确读取，Run v6 / v7 与 Session 仍只保存 metadata。操作顺序分别见 [Prompt Application 使用指南](features/user-workspace/prompt-application-dev-test-usage-guide.md)和 [Agent / Copilot 使用指南](features/user-workspace/agent-copilot-dev-test-usage-guide.md)。
 
+Workflow 结构化草案现在可从网页新建，编辑有序输入合同，保存、精确重读、恢复历史修订，并从不可变 Definition 派生下一版；v1 / v2 草案共存。晋级冲突通过面板内精确重读恢复，不自动重发。评测计划支持显式读取并采用当前 Definition 引用；表单与 JSON 共用草稿，无效输入不会提交最后一次有效值。两版运行可继续交接 Comparison、Case / Suite；详细步骤与同计划批次配对边界见[受控运行指南](features/user-workspace/application-controlled-runtime-dev-test-guide.md#workflow-definition-准备与运行)。
+
 Draft Designer 的保存路径需要额外区分：默认仍展示 sample / local draft；显式 Saved Draft 配置可写入 `memory_dev`、`sqlite_dev` 或 `postgres_dev_test`。同一 launcher 还会设置 `RADISHMIND_WORKFLOW_EXECUTOR_DEV=1` 与 `VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE=dev-workflow-executor-http`，允许已保存、未修改且合规的 executor v0 草案运行并回读 record。该路径用于开发 / 测试，不是 production persistence、production API、publish 或 unrestricted runtime。
 
-本地按需浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`，默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation / results-evidence` 十三组；使用 `-- --suite=admin --repeat-each=2 --max-failures=1` 可定向运行单组。每组使用独立临时 SQLite 和 `4100 / 17000` 回环服务，前一组清理后才复用端口，不复用用户已有服务。身份组使用受构建标签限定的测试宿主，管理组复用产品启动器的不可调用模型元数据，Agent、Gateway 与 Results Evidence 组使用现有 mock，其余组的固定响应环境见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。退出时清理所管进程和临时数据库并保留报告；身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动截图，避免保留密码、邀请码与 API key 原文。Results Evidence 组覆盖结果库 / 导出、RAG 数据集、辅助证据、主壳读取面及应用交互会话，六条流程中英各两轮共 24 次通过，所属服务和临时库已清理。Evaluation 组三条流程中英各两轮 12 次通过，其中日程 / 发生记录仅为合成投影；其余双语切片已分窗口验收，最新身份组 24 次、管理组 16 次、Agent 组 12 次与 Gateway 组 12 次证据见[本周周志](devlogs/2026-W41.md)，后续十三组本地全量已 100/100 通过。浏览器验证现已退出 PR / Release CI 门禁，开发时按改动选择相关组，较大 UI 变更或发布前按需全量；远端中文 RAG 晋级失败保留为开发阶段待排查项，详情见同一周志。服务启动继续遵循[协作规则](agent-collaboration.md#服务启动与真实联调)；普通 `npm test` 不启动这些服务。
+本地按需浏览器回归使用 `apps/radishmind-web/` 下的 `npm run test:e2e`，默认依次执行 `templates / workflow / rag / rag-promotion / rag-application / http-tool / offline-projection / identity / admin / agent / gateway / evaluation / results-evidence` 十三组；使用 `-- --suite=admin --repeat-each=2 --max-failures=1` 可定向运行单组。每组使用独立临时 SQLite 和 `4100 / 17000` 回环服务，前一组清理后才复用端口，不复用用户已有服务。
+
+身份组使用受构建标签限定的测试宿主，管理组复用产品启动器的不可调用模型元数据，Agent、Gateway 与 Results Evidence 组使用现有 mock，其余组的固定响应环境见[工程健康专题](platform/engineering-health-productization-remediation-v1.md#workflow-自动浏览器回归)。退出时清理所管进程和临时数据库并保留报告；身份、Gateway、Evaluation 与 Results Evidence 组关闭 trace 和自动截图，避免保留密码、邀请码与 API key 原文。
+
+Results Evidence 组覆盖结果库 / 导出、RAG 数据集、辅助证据、主壳读取面及应用交互会话，六条流程中英各两轮共 24 次通过，所属服务和临时库已清理。Evaluation 组在 2026-10-21 扩为六条流程，中英各两轮 24 次通过，覆盖 Prompt / Workflow 编辑及引用恢复；日程 / 发生记录仍仅为合成投影，详情见 [W43 实施记录](devlogs/2026-W43.md#2026-10-21-workflow-四段实现与连续验收)。其余双语切片已分窗口验收，最新身份组 24 次、管理组 16 次、Agent 组 12 次与 Gateway 组 12 次证据见[本周周志](devlogs/2026-W41.md)，2026-10-11 十三组本地全量曾 100/100 通过，该次数不代表随后新增用例的同窗口全量验收。
+
+浏览器验证现已退出 PR / Release CI 门禁，开发时按改动选择相关组，较大 UI 变更或发布前按需全量；远端中文 RAG 晋级失败已于 2026-10-15 完成请求标识碰撞修复和本地四组 44/44 复验，详情见 [W42 周志](devlogs/2026-W42.md)，未重跑远端浏览器。服务启动继续遵循[协作规则](agent-collaboration.md#服务启动与真实联调)；普通 `npm test` 不启动这些服务。
 
 Saved draft 冲突处理的本地读法：当保存返回 `version_conflict` 时，Draft Designer 保留本地 active draft，刷新当前 application 的活动草案列表，并显示 saved version metadata、validation state、blocked capability count 和下一步选择。继续本地草案会进入 `conflict_local_continued`，下一次保存以当前 saved version 作为 expected version；打开当前 saved record 必须由用户从 refreshed list 显式触发。Review Handoff 只把 conflict review summary 作为 advisory-only 审查证据展示，不保存 handoff、不自动合并、不覆盖本地草案、不解锁 publish / run / confirmation / writeback；不可变 revision 恢复仍使用独立历史流程。
 
@@ -369,28 +385,21 @@ docker compose -f deploy/docker-compose.local.yaml down
 - 南向已有一部分：`openai-compatible` 主入口、`HuggingFace`、`Ollama`、`gemini-native`、`anthropic-messages`，以及评测链路中的 `local_transformers`
 - 北向已有第一版兼容面：`/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models`、`/v1/models/{id}`、overview / local-smoke、session/tooling、SSE bridge、provider/profile selection metadata 和 diagnostics discoverability；本地产品 API 另有 gated Workflow、Application、Gateway History 与七条 Control Plane Read-Side route
 - `P1 Runtime Foundation` 已达到 short close，当前不应继续把 provider/config/diagnostics/observability 同层细节当作主线
-- 当前仍是窄切片：已经具备 Docker local/test/prod 的静态部署边界、镜像命名治理、deployment readiness 静态 smoke、container smoke runbook、运行记录模板、一次 `docker_local` container smoke 运行记录、provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 和 `provider-runtime-docs-refresh` 文档收口，但还缺真实镜像发布 workflow、production secret backend、部署隔离、外部 provider live health check、retry/fallback execution、console runtime config、测试环境 smoke、生产前复核记录，以及 session/tooling 的真实确认流接线、存储、执行和完整负向回归；P3 checklist 已把本地只读产品壳标为可用，并把这些生产前置条件继续保持为 `not_satisfied`，P2 现有 route / gate / negative regression 资产仍是 governance-only。没有测试或生产前复核窗口时，不把 Docker / deployment 当作默认开发主线
+- 已有 Docker 静态部署边界和历史本地容器验证；provider capability matrix、provider health smoke、provider selection policy、provider retry/fallback policy 与 `provider-runtime-docs-refresh` 保留原验证范围。受控开发测试回退、本地账户、成员和应用存储已由后续专题实现，不再按早期治理切片判定缺失。
+- P3 本地只读产品壳保持可用，生产密钥、监管、隔离和 console production packaging 仍为 `not_satisfied`；通用 Session / Tool shell 的历史限制不覆盖应用 Session / Turn 或独立 Workflow HTTP Tool。
 
 ## 当前还不能算完成的能力
 
-当前仓库还没有这些正式能力：
+- 本机持久工作台的独立用户首次与持续使用验收；宿主机和 `linux/arm64` 容器已有实际技术证据，Windows PowerShell 与 `linux/amd64` 容器仍未验收。
+- 多 Agent 受控软件开发团队的 SDK 接入、隔离代码执行、长任务 / 事件、候选交付和协作 Web；当前仅有阶段 0 离线准备基础，不能用建议型 Agent 或工作台容器代替。
+- 真实模型的任务效果、独立用户使用收益和真实提供方故障回退。
+- 正式产品 Web 的共享 / 生产部署包、镜像发布、生产密钥后端、进程监管、环境隔离与目标环境恢复演练；本机工作台镜像不代表这些条件成立。
+- 真实 Radish OIDC 联调、生产认证、生产 API 密钥 / 配额 / 计费；本地身份和成员能力已有开发测试实现。
+- 通用 durable checkpoint、长期记忆和恢复执行；应用 Session / Turn、显式结果资产和领域审计已有持久化。
+- 图片真实后端、引用解析、生产存储、public URL 与 HTTP / Gateway / Web 交付；固定响应 adapter、二进制交付和私有存储协调已实现。
+- 业务写回、自动确认 / 发布、重放和自治 Agent 循环；独立 Workflow HTTP Tool 的受控确认 / 执行链已有实现。
 
-- production deployment package 与镜像发布 workflow
-- production secret backend
-- process supervisor 与环境隔离
-- 外部 provider health check
-- console production packaging / runtime config
-- 完整 user workspace / production admin control plane React UI
-- `apps/radishmind-web/` 的 production API consumer、Radish 登录 / 长期 session、workspace membership、production repository 和用户端 / 管理端 production 写入能力
-- Control Plane Read-Side 的 production Radish OIDC、workspace membership adapter、五条 workspace PostgreSQL repository、production repository 与管理写入
-- Workflow / Agent Runtime 的 production builder / repository / executor、validation result persistence、publish、confirmation decision、execution unlock、business writeback、run replay 和 run resume；当前 durable draft / run / evaluation 与 executor 都只属于受控 dev/test
-- Image Path 的 artifact store、binary reader、public URL resolver、真实 backend adapter、安全 runtime、图片生成和 artifact upload
-- 测试环境 smoke 和生产前复核记录
-- 更完整的 route-level smoke、stream 组合和兼容性矩阵
-- durable session/checkpoint/audit/result store、materialized checkpoint/result reader 和 recovery runbook
-- 真实工具执行器、materialized tool result cache、上层确认流接线和完整 session/tooling 负向回归 implementation consumer
-
-所以如果你问“现在怎么部署”，准确答案是：仓库已支持本地 CLI、Go Platform + Python bridge、Web / Console launcher、Docker 静态部署边界，以及多组显式 `memory_dev` / `sqlite_dev` / `postgres_dev_test` 产品 runtime。开发者可复验 Gateway 调用与 History、Application Draft / Publish Review、Workflow RAG v3、Application RAG v4、Workflow Definition v5 / v8、Application Session v1 / v4、Run / Comparison / Evaluation / Operations，以及 Admin signed-token 与 deterministic OIDC path。它们仍不是 production deployment：真实镜像发布、测试环境 smoke、production preflight、production secret backend、Radish 登录与 membership、production repository、正式 application promotion、业务写回和 replay 均未开放。
+当前可按上文及专题指南复验已有 CLI、Go Platform + Python bridge、Web / Console 与显式 `memory_dev` / `sqlite_dev` / `postgres_dev_test` 路径。它们仍是开发测试能力，具体事实见[能力矩阵](radishmind-capability-matrix.md)，统一交付目标见[本机工作台专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)。
 
 ## 读文档顺序
 

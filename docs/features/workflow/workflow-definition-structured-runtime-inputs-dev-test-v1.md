@@ -1,14 +1,20 @@
 # Workflow Definition 结构化运行输入（开发 / 测试态）v1
 
-更新时间：2026-08-11
+更新时间：2026-10-21
 
 状态：`workflow_definition_structured_runtime_inputs_dev_test_v1_completed`
+
+## 当前实现范围补充（2026-10-21）
+
+下文 A 至 E 保留当时的合同、后端存储、网页运行值输入及 API 准备资源后的连续链证据。2026-10-21 后续四段实现已补齐 v2 草案网页编写、v1 / v2 混合列表、精确读取、修订恢复和 Definition 派生；有序字段元数据完整保留，保存时由服务端生成合同 digest，不自动改写历史 v1 资源。
+
+Plan 的字段表单与高级 JSON 现共用当前编辑状态，所有样本参与校验，无效原文保留并阻止提交；修改会撤销旧确认。Definition 引用须显式读取并采用，旧值提交问题已修复；Web Case / Suite 亦已补齐既有 v7 比较和 v2 评测档案的严格配对。实现与双语隔离验收见[Workflow 四段实施结果](../user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)，与原批次证据分别记录。后端 schema、运行档案及比较兼容域未改变。
 
 ## 功能定位
 
 本专题把 Workflow Definition 从单一 `input_text` 扩展为由不可变输入合同驱动的扁平强类型表单，使内部开发者能够在直接运行、Application Interaction Session 和 Application Evaluation Campaign 中提交同一种可校验输入，并让 Run、Comparison、Evaluation Case 与 Suite 保持可复验身份。
 
-当前链路虽然已经完成 Saved Draft、不可变 Definition、受控运行、Session、Comparison、Evaluation 与 Campaign，但 `saved_workflow_draft.v1` 的 input contract 只保存字段名，`workflow_definition_executor_v1` 只接收一段 `input_text`。客户端无法根据不可变 Definition 生成可靠表单，服务端也无法证明直接运行、Session 与评测 fixture 使用同一输入结构。
+本专题启动前，链路虽然已经完成 Saved Draft、不可变 Definition、受控运行、Session、Comparison、Evaluation 与 Campaign，但 `saved_workflow_draft.v1` 的 input contract 只保存字段名，`workflow_definition_executor_v1` 只接收一段 `input_text`。客户端无法根据不可变 Definition 生成可靠表单，服务端也无法证明直接运行、Session 与评测 fixture 使用同一输入结构。
 
 本专题采用显式版本升级，不在 `additional_fields` 或旧 `input_text` 中暗塞结构化语义。现有 v1/v5 资源继续可读、可运行和可比较；新资源通过 v2 Definition、v2 executor、Run v8 与 Comparison v7 形成独立兼容域。
 

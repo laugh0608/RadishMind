@@ -1,3 +1,4 @@
+import type { WorkflowDraftInputContract } from "./workflowDraftInputContract.ts";
 import type { WorkflowProjectionCopy } from "./workflowProjectionCopy.ts";
 import {
   CONTROL_PLANE_READ_FORBIDDEN_OUTPUT_KEYS,
@@ -118,7 +119,7 @@ export type WorkflowSavedDraftDerivation =
       sourceDefinitionDigest: string;
     };
 
-export type WorkflowDraftDesignerDraft = WorkflowProjectionCopy & {
+type WorkflowDraftDesignerBase = WorkflowProjectionCopy & {
   draftId: string;
   templateRef: string;
   label: string;
@@ -135,10 +136,15 @@ export type WorkflowDraftDesignerDraft = WorkflowProjectionCopy & {
   blockedCapabilities: WorkflowDraftDesignerBlockedCapability[];
   routeMetadata: WorkflowDraftDesignerRouteMetadata;
   localOnlyInteraction: "inspect_only" | "local_edit";
-  executionProfile?: "review_only" | "executor_v0" | "rag_retrieval_v1";
+  executionProfile?: "review_only" | "executor_v0" | "executor_v2" | "rag_retrieval_v1";
   requestedCapabilities?: string[];
   derivation?: WorkflowSavedDraftDerivation;
 };
+
+export type WorkflowDraftDesignerDraft = WorkflowDraftDesignerBase & (
+  | { schemaVersion?: "saved_workflow_draft.v1"; inputContract?: never }
+  | { schemaVersion: "saved_workflow_draft.v2"; inputContract: WorkflowDraftInputContract }
+);
 
 export type WorkflowDraftDesignerSource = {
   workflowDefinitions?: WorkspaceWorkflowDefinitionRow[];

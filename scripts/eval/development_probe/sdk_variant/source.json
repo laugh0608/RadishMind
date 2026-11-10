@@ -1,0 +1,22 @@
+{
+  "schema_version": "development_sdk_variant_source.v1",
+  "package": "openhands-sdk",
+  "upstream_version": "1.59.0",
+  "variant_version": "1.59.0+radishmind.1",
+  "source_url": "https://files.pythonhosted.org/packages/77/2c/3c6a59e4088deeae25bf7255844e53374c337e69ec2446c0549df269af92/openhands_sdk-1.59.0.tar.gz",
+  "source_sha256": "6999f4608630be8e3fb90f6797cd4f0849a0d39e68c03d07aed8f40e5b828512",
+  "archive_root": "openhands_sdk-1.59.0",
+  "upstream_license_url": "https://github.com/OpenHands/software-agent-sdk/blob/v1.59.0/LICENSE",
+  "upstream_license_git_blob": "b0bd86a6335a564bd3766666bebbf014fd6a8013",
+  "patch_sha256": "863a2c0a28dc3490ad879c793ae68fd99f8cf03909429d358ca44b454e7c3d9f",
+  "files_before": {
+    "pyproject.toml": "c1401e8fbb2aaec55c9304709705e0e085852e0097d97f4ec989fae9a282405d",
+    "openhands/sdk/observability/laminar.py": "af80589e6d851502458bd9d586a7925560a8fb85311710ee63c5ad0f0ad53bad"
+  },
+  "files_after": {
+    "pyproject.toml": "a232ded2ae91b1ef407424521690a6618e464760c35c8e4e30589ec9c30218c5",
+    "openhands/sdk/observability/laminar.py": "498410126b2b27ce94cc3037936e7e013e1f51f410bb7b241c3de8cfd8beb61d",
+    "LICENSE": "14a9b631c658eee682c6c2973525fbdf808c3457176bc47513052c559cc5ce86",
+    "RADISHMIND-CHANGES.txt": "b4b1985591814eacf9d786a13600aa23c81f25d04002af8c6ec88b162c3a755b"
+  }
+}

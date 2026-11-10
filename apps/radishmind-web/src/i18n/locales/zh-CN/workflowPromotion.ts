@@ -1,4 +1,9 @@
 export const workflowPromotion = {
+  "reloadAuthority": "重新读取候选与精确执行依据",
+  "loadingAuthority": "正在读取所选版本族；版本与激活信息一致后才可操作。",
+  "authorityUnavailable": "原执行依据已不可用。请重新读取并审查当前指针和版本，再作决定。已保留理由，不会自动重试操作。",
+  "noCurrentAuthority": "当前执行依据尚未核实。",
+  "refreshed": "已重新读取候选与精确执行依据。请审查当前状态后再作决定；未重新提交任何操作。",
   "workflowDefinitionPromotion": "工作流定义 · 晋级",
   "immutableVersionPromotionIsDisabled": "不可变版本晋级未启用",
   "offlineZeroRequests": "离线 · 零请求",

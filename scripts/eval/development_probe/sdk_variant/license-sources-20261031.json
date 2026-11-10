@@ -1,0 +1,97 @@
+{
+  "schema_version": "development_license_source_evidence.v1",
+  "baseline_commit": "e4fa5da8ab19c2627c619c48dc30fa6eeb5edf14",
+  "status": "bounded_metadata_window_completed_license_conditions_open",
+  "authorization": {
+    "max_total_bytes": 134217728,
+    "max_file_bytes": 16777216,
+    "source_archives_authorized": false,
+    "install_or_execute_downloads_authorized": false
+  },
+  "evidence_root": "tmp/development-license-audit-20261031/downloads-stage1",
+  "download": {
+    "requests": 600,
+    "successful": 598,
+    "charged_bytes": 15641241,
+    "max_saved_file_bytes": 3958033,
+    "failures": [
+      {
+        "label": "Alpine exact recipe",
+        "url": "https://gitlab.alpinelinux.org/alpine/aports/-/raw/15b3b78187b3808104f98f765e9632e0b09281a7/main/alpine-baselayout/APKBUILD",
+        "status": 418,
+        "sha256": "5ebc6e6d46b1bb9cfb633561fc2a177274d7ba89e8f623fb701730c93f49c311",
+        "error": "HTTP 418"
+      },
+      {
+        "label": "CPython 1.6 historical license",
+        "url": "https://raw.githubusercontent.com/python/cpython/v1.6/LICENSE",
+        "status": 404,
+        "sha256": "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed",
+        "error": "HTTP 404"
+      }
+    ]
+  },
+  "verification": {
+    "all_saved_bytes_rehashed": true,
+    "debian_exact_sources_and_dsc_snapshot_sha1": 61,
+    "debian_signatures_verified": false,
+    "signature_gap": "gpg/gpgv unavailable; no trusted keyring established; no installation performed",
+    "python_installed_wheel_hash_matches": 29,
+    "pip_versions_matched": 18,
+    "git_blobs_verified": 69,
+    "alpine_recipes_version_matched": 10,
+    "alpine_local_inputs_sha512_verified": 130
+  },
+  "next_source_download": {
+    "status": "not_authorized_not_started",
+    "debian_files_including_signatures": 132,
+    "debian_bytes": 313154899,
+    "python_sdist_files": 48,
+    "python_sdist_bytes": 100108968,
+    "go_source_bytes": 34150794,
+    "cpython_source_bytes": 20839652,
+    "known_candidate_bytes": 468254313,
+    "alpine_external_sizes_known": false,
+    "note": "This conservative candidate inventory is not a decision that all archives must be downloaded/distributed. Debian trust verification and Alpine sizes precede a bounded request. Native subdependency/build source closure remains incomplete."
+  },
+  "parts": {
+    "debian-01.json": "c0fec4cfec854b24455c0ec3c67e19e71f5d4bfba41d781a9ca12a8c9363e2e0",
+    "debian-02.json": "dabd345a1bcd5d792812b2d8daac16a4fbfa7a8b69403a13886b18b802e0526d",
+    "debian-03.json": "1341a5c0593ff27fd68b234179b3c026ec2ad415ced9e766c8a46195209361b9",
+    "debian-04.json": "cbd7a7d8558552f72b53c4be19062db8feaeb3da3f9b4c64e093e3cb4b02034c",
+    "debian-05.json": "ac6bd3e46fa729269db9607d1f98a7b3e719369bdfb193dc2eecd5338163effc",
+    "debian-06.json": "f1f334d9e05ac1706d71bf09b0508a9635326c0d2ac9a98f2b157d3f567f883d",
+    "python-01.json": "b71e5bbce552e0b982cee0f14f5522e23610cca732b4b672016f8ef1ade63508",
+    "python-02.json": "8254cb4130ef3757ca99919177b295544a7db29f397f53feee66561f2d24a404",
+    "python-03.json": "aca45832e492eec5fafc70d04716fdd9432b53f3ee5e8d0cfca01eacbc6f6a21",
+    "alpine-01.json": "9b2dde01549b037fc49812b41721786d660fb4a42d073bc27f47df4018c802fa",
+    "alpine-02.json": "6a48e0f57bcbe3aeb5125fc0d933db368496555e1bfdd61c049bf116c5c01626",
+    "bundled.json": "8e5886891146e3cf438a0a8fb9240b672d2f41c9d07715011cc665a125c035f1",
+    "notices-01.json": "3ffdb19d8d19e48df174e7f45771faf4897181d62266cda86a04a96cb818d462",
+    "notices-02.json": "809b396541564f936fc58cc8551018b5ef39b5d4450cf4cc092d15ebe1bd7e95",
+    "notices-03.json": "7ce2d5b7755280ddfb406fac429bfd9fb8e49be3fa0079b411d934674575f8c0"
+  },
+  "local_evidence_sha256": {
+    "alpine-input-requests.json": "99ce19186d0cc61bbe8894ec73b253cb5bfaa451081579bcee05cc6606ccc8ae",
+    "build_record.py": "1ee08d603be9466e48f1b061557ec12bf7e00ac8f3b9bbd9f6a03a9a6b04bf39",
+    "fetch.py": "46172d0de45ac6c6cbe659e1c6c07d901f26014a42d9cc692c7c7f17cf3c938d",
+    "final-requests.json": "3f283ac8065cf182cb9a9abd0d06cc1b8abec41fc344c89c26c75af8245b8003",
+    "ledger.jsonl": "d6d5ccd522d7b8e2c76f9453b587b171b1e96442317ec04ae399097c3a057cff",
+    "pip-notice-blobs.json": "e411658c38d3593f40c24a1f61f133607c06522d4cb60d82cedde96f81e8ba77",
+    "pip-notice-requests.json": "292e27d03ff5c58b9b36dfdce7c2eef9f7699330c864ccf40342cdda13ba548a",
+    "primary-requests.json": "a9829143d00814699ce65a7908056269e261f659a704f30926aed319f256f8dd",
+    "probe-requests.json": "6e6658c710ae6cadb32eb67363e4af7acbe1e851b9869012326da484380706b4",
+    "python-release-requests.json": "475162debdef51c62aac5e02511f2f6c1ac078c04bf762398a8018efb3b1fb04",
+    "regex-history-requests.json": "f46ccbcf02621090fdc8b3ccd60530cd9a2c5f2d23b01c99724c3e50d5c44beb",
+    "secondary-requests.json": "856fe7b1172a64f656b945ef4a136c30e278a9dcddb69cc57d2269ec21acbf25",
+    "source-blobs.json": "d8c550a17b3018e96d11675cbc0837bc332ae5a609425d823dc0db76eb58495e",
+    "tertiary-requests.json": "08b73c9f1a59c4322a002d9f6f3bb82e6a2ed4176639b368b8d58e285a50a01d"
+  },
+  "boundary": {
+    "containers_or_services_started": false,
+    "dependency_installation": false,
+    "source_archives_downloaded": false,
+    "runtime_or_lock_changes": false,
+    "license_gate_closed": false
+  }
+}

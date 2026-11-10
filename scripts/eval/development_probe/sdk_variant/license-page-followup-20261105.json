@@ -1,0 +1,52 @@
+{
+  "schema_version": "development_license_page_followup.v1",
+  "status": "explicitly_authorized_window_completed",
+  "purpose": "根据已取得的 Python 1.6 官方发行页，读取最终版下载说明和许可 FAQ，寻找最终 CNRI 条款正文及其来源。",
+  "command": "python3 tmp/development-delivery-20261105/fetch_license_pages.py --execute",
+  "output_directory": "tmp/development-delivery-20261105/license-pages",
+  "limits": {
+    "logical_items": 2,
+    "http_requests_including_redirects": 4,
+    "body_bytes_total": 2097152,
+    "seconds_per_request": 30,
+    "connect_seconds": 10,
+    "concurrency": 1,
+    "retries": 0
+  },
+  "items": [
+    {
+      "id": "python-1-6-download-page",
+      "url": "https://www.python.org/download/releases/1.6/download",
+      "max_bytes": 1048576,
+      "allowed_redirect_hosts": [
+        "www.python.org"
+      ],
+      "max_redirects": 1
+    },
+    {
+      "id": "python-1-6-license-faq",
+      "url": "https://www.python.org/download/releases/1.6/license_faq",
+      "max_bytes": 1048576,
+      "allowed_redirect_hosts": [
+        "www.python.org"
+      ],
+      "max_redirects": 1
+    }
+  ],
+  "failure_policy": "仅允许每项一次同域 HTTPS 跳转；不追取页面中发现的新链接，不接受许可按钮、不提交表单、不取得源码或二进制。404、限流、超限和其他重定向保留为缺口。",
+  "boundary": {
+    "source_archives": false,
+    "binaries": false,
+    "dependency_installation": false,
+    "image_or_container_operations": false,
+    "source_execution": false,
+    "real_models": false,
+    "publish": false,
+    "automatic_license_approval": false,
+    "retain_evidence": true
+  },
+  "cleanup": "只写新的输出目录并保留响应正文与摘要；无后台进程、服务或容器。",
+  "basis": "license-source-result-20261105.json 中官方 Python 1.6 发行页实际包含的 download / license_faq 相对链接。",
+  "executor_sha256": "2f983a066a0c8500a4cf1b9d1703fb2fe3bf47cbd06cea1150b4b0882eaaef5c",
+  "result": "license-page-result-20261105.json"
+}

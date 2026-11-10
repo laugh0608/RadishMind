@@ -184,15 +184,17 @@ func (service promptApplicationInvocationService) resolveAuthority(ctx PromptApp
 		return promptApplicationInvocationAuthority{}, PromptApplicationRuntimeFailureAuthorityChanged
 	}
 	selection := service.selection(ctx.RequestContext, resolved.Candidate.Configuration.DefaultModel)
-	selection = normalizePromptApplicationSelection(selection)
-	if !promptApplicationSelectionEligible(resolved.Candidate.Configuration.DefaultProtocol, resolved.Candidate.Configuration.DefaultModel, selection) {
+	// Audit placeholders must not become runtime profile overrides: an empty
+	// configured profile carries the explicitly configured endpoint and key.
+	auditSelection := normalizePromptApplicationSelection(selection)
+	if !promptApplicationSelectionEligible(resolved.Candidate.Configuration.DefaultProtocol, resolved.Candidate.Configuration.DefaultModel, auditSelection) {
 		return promptApplicationInvocationAuthority{}, PromptApplicationRuntimeFailureAuthorityChanged
 	}
 	protocolDigest, err := promptApplicationProtocolPolicyDigest(resolved.Candidate.Configuration.DefaultProtocol, resolved.Candidate.Configuration.AllowedProtocols)
 	if err != nil {
 		return promptApplicationInvocationAuthority{}, PromptApplicationRuntimeFailureStoreContract
 	}
-	selectionDigest, err := promptApplicationModelEligibilityDigest(selection)
+	selectionDigest, err := promptApplicationModelEligibilityDigest(auditSelection)
 	if err != nil {
 		return promptApplicationInvocationAuthority{}, PromptApplicationRuntimeFailureStoreContract
 	}
@@ -316,7 +318,7 @@ func newPromptApplicationRunRecord(
 	authority promptApplicationInvocationAuthority,
 	startedAt time.Time,
 ) WorkflowRunRecord {
-	selection := authority.Selection
+	selection := normalizePromptApplicationSelection(authority.Selection)
 	return WorkflowRunRecord{
 		SchemaVersion: workflowRunRecordPromptSchemaVersion, RunID: runID,
 		TenantRef: ctx.TenantRef, WorkspaceID: ctx.WorkspaceID, ApplicationID: ctx.ApplicationID,

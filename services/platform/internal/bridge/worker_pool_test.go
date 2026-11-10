@@ -296,7 +296,11 @@ func TestWorkerPoolCloseInterruptsActiveRequestWithinBudget(t *testing.T) {
 
 func TestBridgeWorkerEnvironmentClearsInheritedCredential(t *testing.T) {
 	t.Setenv(bridgeAPIKeyEnvironmentVariable, "stale-worker-secret")
-	if value, found := bridgeEnvironmentValue(bridgeWorkerEnvironment(), bridgeAPIKeyEnvironmentVariable); found {
+	command, err := newPythonWorkerCommandFactory("python3", "scripts/run-platform-bridge.py", true)()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if value, found := bridgeEnvironmentValue(command.Env, bridgeAPIKeyEnvironmentVariable); found {
 		t.Fatalf("persistent worker inherited stale credential %q", value)
 	}
 }

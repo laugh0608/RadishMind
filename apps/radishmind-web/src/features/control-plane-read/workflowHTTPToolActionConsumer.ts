@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { WorkflowSavedDraftConsumerState } from "./savedWorkflowDraftConsumer.ts";
 import type {
   WorkflowDraftDesignerDraft,
@@ -326,7 +327,7 @@ type ConfirmationDecisionDocument = {
 };
 
 export function readWorkflowHTTPToolActionConsumerConfig(): WorkflowHTTPToolActionConsumerConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const scopeGrants = parseScopeGrants(env.VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SCOPE_GRANTS);
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_HTTP_TOOL_SOURCE?.trim() === DEV_WORKFLOW_HTTP_TOOL_SOURCE

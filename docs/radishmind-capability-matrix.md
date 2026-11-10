@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-10-15
+更新时间：2026-11-05
 
 ## 读取口径
 
@@ -12,10 +12,13 @@
 
 | 能力 | 开发测试态实现与证据 | 仍未成立或未完成 | 权威专题 |
 | --- | --- | --- | --- |
-| Workflow 草案与定义 | 创建、编辑、校验、版本 / 生命周期、三存储、冲突 / 重启、审查与受控运行；模板目录和结构化输入已关闭 | 任意节点执行、通用 replay、自动 release 与业务写回 | [Workflow](features/workflow/README.md) |
-| 应用工作区 | 配置、Prompt / Agent 档案、Prompt 结构化输出契约网页编辑与审查、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
-| 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已实现并通过无服务验证 | 新增 Prompt 编辑器的浏览器交互、焦点与视觉验收待执行；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
+| 本机持久工作台 | 已实现统一运行档、启动命令、同源 Web / 公开配置、显式身份初始化、冷备份 / 升级 / 新目录恢复；复用既有领域与 SQL；2026-10-31 宿主机 Chrome 完成 Prompt / Workflow、显式保存、冷重启与新目录恢复，`linux/arm64` 容器构建 / 运行、挂载限制及容器与宿主机备份迁移通过 | `linux/amd64` 容器、Windows PowerShell、独立用户持续使用与真实模型效果尚未验收 | [交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md) |
+| 多 Agent 受控软件开发团队 | 阶段 0 已有主 / 子专题、冻结合成任务、严格探针 schema 与 Go 离线准备 / 候选检查 CLI；人工候选 8 项通过；SDK LLM 固定响应 7 项通过，arm64 完整依赖锁与镜像复建完成；七份计划 / 控制 / 工具合同；SQLite 状态 / 提议 / 事件事务、真实资格、任务凭据与独立通道固定响应验证通过，受限 SDK Agent 实际工具往返、允许事件、失败 / 未知量及等待取消 / 父管道失联终止已验；固定 Go 沙箱 / 文件 / 测试工具、只读快照、资源限制、取消 / 遗留清理与硬期限已真实验收，不属于真实 Agent 效果证据；固定探针开发包合同、独立 SQLite 保存 / 导出、权限 / 配额与恢复已定向验证；真实 SDK 同次修改 / 测试 / 保存 / 导出及命令中取消已固定响应联合验收；Go 原生 HTTP 已通过固定上游工具往返、配置 / 凭据、失败及取消验证 | SDK 尚未正式采用；旧 Gateway 不支持工具往返，通道默认关闭；真实厂商 / 模型资格、依赖许可证完整核验、通用仓库、正式团队产物展示、Web 与效果评测未完成；单 Agent 公开合同 / 六个 Pencil 代表面已设计待确认，下一实施目标为该纵向交付 | [功能专题](features/workflow/controlled-software-development-team-v1.md) |
+| Workflow 草案与定义 | v1 / v2 网页创建、有序合同编辑、保存 / 历史恢复、Definition 派生与两版运行审查；晋级选择隔离、冲突重读及 Case / Suite 交接已通过双语隔离验收 | 新增局部设计未登记项目所有者视觉批准；独立用户使用和真实模型质量未验收。任意节点执行、通用 replay、自动 release 与业务写回仍关闭 | [Workflow](features/workflow/README.md) |
+| 应用工作区 | 配置、Prompt / Agent 档案、Prompt 结构化输出契约网页编辑与审查、调用 / Session 结构化变量输入与四项失败恢复修复（双语隔离验收通过）、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
+| 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已通过无服务、双语连续交互与三视口浏览器验收；Workflow v2 表单 / JSON 单一状态、显式采用 Definition 引用与确认失效已完成双语隔离验收 | 跨计划版本批次配对不受支持。真实模型答案质量与用户耗时收益尚无结论；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
 | Gateway | 三类北向推理协议、Models、SSE、Provider 选择、stdio worker pool；开发测试态 API key / quota、reported usage、价格快照与受控 unary fallback | 真实 Provider fallback、生产 API key / quota / price、限流、billing ledger、optional live health | [模型网关](features/model-gateway-api-distribution.md) |
+| Gateway 路由决策解释与尝试轨迹 | 未来规划已登记，明确来源、分期、进入条件与只读边界 | 尚无专属界面、决策记录扩展或轨迹回放实现；随阶段 1 运行详情确认设计，动态路由策略后置，当前主线保持 | [规划专题](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md) |
 | 本地身份与成员 | 账户、Web Session、角色、成员、凭据轮换、确定性 OIDC 与双数据库 / 浏览器证据 | 真实 Radish 联调 `real_radish_integration_deferred`；production auth、MFA、账户恢复 | [管理端](features/admin-control-plane/README.md) |
 | 工作区邀请 | A 至 E 完成；五条 strict HTTP、四态目录、一次性交接与显式认领、双数据库权限 / 重启 / 并发、三视口与双标签凭据清理；已纳入隔离 SQLite 双语自动浏览器回归 | 邮件、目录搜索、管理员邀请、真实 Radish 和 production delivery 关闭；本轮未复跑 PostgreSQL | [邀请专题](features/admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md) |
 | 受控工具与 Action Safety | Workflow HTTP Tool 的独立确认 / 执行链与安全资格快照已实现 | 通用 `/v1/tools/actions` 仍 blocked；写方法 Tool、`write_allowed_by_policy`、通用动作执行器未开放 | [HTTP Tool](features/workflow/workflow-definition-http-tool-v1.md)、[Action Safety](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md) |
@@ -24,11 +27,15 @@
 | 持久化与审计 | memory / SQLite / PostgreSQL 开发测试仓储、migration、CAS、scope、no fallback 与重启测试 | 生产数据库资源与运行验收；production secret backend 的 audit store 未因应用审计完成而成立 | [SQLite](platform/local-sqlite-dev-persistence-v1.md)、[运行手册](platform/platform-service-operations-runbook-v1.md) |
 | UI 与工程验证 | Family UI、草案前端状态收敛、工作区容器响应式修正；十三组双语浏览器回归本地 100/100 通过，保留为本地按需入口，退出 PR / Release 门禁；消费层、构建、Go race / vet 与 PostgreSQL integration 继续保留；后端首个策略包提取及双数据库回归完成 | 远端暴露的 RAG 请求标识碰撞已修复并通过四组本地中英 44/44 复验，未重跑远端 CI；浏览器覆盖仅限 Chromium 中已登记的流程与状态，固定响应不代表真实模型质量；部分模块覆盖率不等于全 UI；整体身份领域尚未拆分 | [工程健康](platform/engineering-health-productization-remediation-v1.md) |
 | Web 中英界面 | 登记的现有可达范围内 A 至 F 完成；F 最终结果证据 24 次、基础 Prompt / Workflow 44 次、离线投影 8 次通过，519 项单测与覆盖率、原构建预算和最终仓库门禁通过，环境已清理；证据见 [2026-W41](devlogs/2026-W41.md) | 保持内部开发者预览；记录原文与协议值不翻译，F 阶段分窗口证据与后续十三组本地全量分别记录，不含真实模型质量或生产验收 | [中英国际化](features/web-internationalization-zh-en-v1.md) |
-| 部署与运维 | 本地 Console、启动入口、Docker 静态边界和历史本地容器 smoke | production secret、环境隔离、process supervisor、产品 Web 正式包装、真实镜像发布和恢复演练 | [部署说明](../deploy/README.md) |
+| 部署与运维 | 本地 Console、启动入口、Docker 静态边界；工作台 `linux/arm64` 构建 / 运行、挂载限制及备份迁移通过 | production secret、环境隔离、process supervisor、产品 Web 生产包装、镜像发布与目标环境恢复演练 | [部署说明](../deploy/README.md) |
 | 模型适配 | 原始 / 修复双轨、小规模 holdout 和 builder 审查记录 | raw 晋级、训练准入、稳定业务收益和生产模型声明 | [训练目录](../training/README.md) |
 | 外部业务接入 | RadishFlow / Radish 的协议、样例、candidate 与离线回归证据；Catalyst 文档预留 | 真实挂载点与验收环境未齐备，不建立模拟接入完成声明 | [集成入口](integrations/README.md) |
 
 ## 下一动作与验收区分
+
+2026-10-26 全项目复审后的正式规划选定[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)为主线；[跨版本回归审查](features/user-workspace/application-cross-version-regression-review-dev-test-v1.md)转为候选、暂不排期。规划不改变已有实现与验证结论，跨计划版本批次配对仍未实现；现有比较主要审查运行元数据，不判断答案质量。
+
+2026-10-31 项目所有者明确将受控软件开发团队纳入下一功能设计；该方向先验证单 Agent 隔离开发交付，再推进固定团队。方向已登记不代表 SDK 选型通过或执行权限已开放，跨版本回归审查仍为候选。
 
 当前执行项只在[当前推进焦点](radishmind-current-focus.md)维护。邀请状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`；R2 至 R6 与已关闭产品专题不因本次复审重开批次。
 

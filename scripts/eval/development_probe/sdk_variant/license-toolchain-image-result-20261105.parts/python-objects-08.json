@@ -1,0 +1,118 @@
+{
+  "items": [
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/spwd.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68152,
+      "sha256": "46f3d01238911c48f835e02f67f19b235cb1d774fbc3996791e66bcc05cf6bda",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/syslog.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68240,
+      "sha256": "444236cfe0513e72c2aa8ff5e49360b0ab5f2ae0572891ad8cfa7c0de4ee4170",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/termios.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 72168,
+      "sha256": "dc3d17090b8e883f10d3bb186ccf08b7004bbd6aafc3b78722d5eabc4681ca7d",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/unicodedata.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 1184856,
+      "sha256": "347b6e3599723655b2ad26c94c60f416e7cbcf6cb7cc4724d159a90f0ceda302",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/xxlimited.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68352,
+      "sha256": "7d66eba2677599ced70aa03b6f78adb33598ec701f840dde44e41cedde687c52",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/xxlimited_35.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 68288,
+      "sha256": "9610276c14e0034f1d06407c2d8429a8501795ba1271f69abb03933e79a61e3b",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/xxsubtype.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 69048,
+      "sha256": "66783257379f2e4befe66520879ddc0956781ac1e00a3b3df93427f1e7dc38dc",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "python-extensions",
+      "path": "lib-dynload/zlib.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 70344,
+      "sha256": "c0f3051080bd4a5dab28c2f1e2879a19c129fafac8c1aa7becc49edad73c0f06",
+      "needed": [
+        "libz.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": []
+    },
+    {
+      "kind": "libpython",
+      "path": "libpython3.12.so.1.0",
+      "bytes": 6611800,
+      "sha256": "f4f1070a5d40133e1baa396c53db518c96171f16f93aeda425b5c6e36d49b15a",
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": [
+        "libpython3.12.so.1.0"
+      ]
+    },
+    {
+      "kind": "python-executable",
+      "path": "python3.12",
+      "bytes": 67680,
+      "sha256": "36727872f3be3469d83c23705431d90ab2b408a0ba1e3008ba3d4dd337b7f481",
+      "needed": [
+        "libpython3.12.so.1.0",
+        "libc.so.6"
+      ],
+      "soname": []
+    }
+  ]
+}

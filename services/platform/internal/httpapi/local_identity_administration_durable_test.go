@@ -13,6 +13,7 @@ import (
 
 	"radishmind.local/services/platform/internal/sqlitedev"
 	"radishmind.local/services/platform/internal/workspacepolicy"
+	localmigrations "radishmind.local/services/platform/migrations/sqlite"
 	sqlitelocalidentitymigrations "radishmind.local/services/platform/migrations/sqlite/local_identity_records"
 )
 
@@ -58,7 +59,7 @@ func TestSQLiteLocalIdentityAdministrationContractRestartAndQueryPlan(t *testing
 
 func TestSQLiteLocalIdentityDevTestBootstrapCoordinatorIsExplicitAndOneShot(t *testing.T) {
 	databasePath := filepath.Join(t.TempDir(), "identity-bootstrap.db")
-	runtime := openSQLiteLocalIdentityAdministrationRuntime(t, databasePath, localPersistenceSQLiteMigrations())
+	runtime := openSQLiteLocalIdentityAdministrationRuntime(t, databasePath, localmigrations.Migrations())
 	repository := newSQLiteLocalIdentityRepository(runtime.DB())
 	account, credential := localIdentityTestAccount(
 		"usr_0000000000000b01", "cred_0000000000000b01", "bootstrap-coordinator@example.com", localIdentityTestNow,
@@ -85,7 +86,7 @@ func TestSQLiteLocalIdentityDevTestBootstrapCoordinatorIsExplicitAndOneShot(t *t
 		t.Fatalf("repeated SQLite bootstrap was not denied: %v", err)
 	}
 
-	restarted := openSQLiteLocalIdentityAdministrationRuntime(t, databasePath, localPersistenceSQLiteMigrations())
+	restarted := openSQLiteLocalIdentityAdministrationRuntime(t, databasePath, localmigrations.Migrations())
 	t.Cleanup(func() { _ = restarted.Close() })
 	detail, err := newSQLiteLocalIdentityRepository(restarted.DB()).ReadWorkspaceMember(
 		context.Background(), options.TenantRef, options.WorkspaceID, options.UserID, localIdentityTestNow.Add(time.Hour),

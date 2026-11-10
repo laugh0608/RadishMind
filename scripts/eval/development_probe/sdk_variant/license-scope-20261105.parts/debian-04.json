@@ -1,0 +1,193 @@
+{
+  "items": [
+    {
+      "source": "grep",
+      "version": "3.11-4",
+      "binary_packages": [
+        "grep"
+      ],
+      "dsc_sha256": "dd6f8eb933bc05446e483f7792c8bf0a1aba9d498e65c6ccafe64e9bf27ac054",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/4dd43f89d7698fe7ec7241fc.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/grep/3.11-4",
+      "source_files": [
+        {
+          "filename": "grep_3.11.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "1db2aedde89d0dea42b16d9528f894c8d15dae4e190b59aecc78f5a951276eab"
+        },
+        {
+          "filename": "grep_3.11.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "89ec23ffd59b68822732dc8204fc89883c3af30a90ae390feb94346d9d09a589"
+        },
+        {
+          "filename": "grep_3.11-4.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "f10394b7589c58ca7de4b580692b1b59431f898cb2068e86222c174e093fdf49"
+        }
+      ]
+    },
+    {
+      "source": "gzip",
+      "version": "1.13-1+deb13u1",
+      "binary_packages": [
+        "gzip"
+      ],
+      "dsc_sha256": "0c25763da4f7242fbe7e9185b69bcb3f986011b04446b66a84c52bbdf731d308",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/7d32549818f7fcefba71efbc.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/gzip/1.13-1+deb13u1",
+      "source_files": [
+        {
+          "filename": "gzip_1.13.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-02.json",
+          "sha256": "7454eb6935db17c6655576c2e1b0fabefd38b4d0936e0f87f48cd062ce91a057"
+        },
+        {
+          "filename": "gzip_1.13-1+deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "ffc69d13290009f42dbb4d10a34839350eff3fdaf4be1fda03d10b238ba2f77d"
+        }
+      ]
+    },
+    {
+      "source": "hostname",
+      "version": "3.25",
+      "binary_packages": [
+        "hostname"
+      ],
+      "dsc_sha256": "80aadf116c3423044be69a4cef8ba2766f412bd4d46a500aacb61f303c19c4ef",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/448073c62c79b8850adfb7c5.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/hostname/3.25",
+      "source_files": [
+        {
+          "filename": "hostname_3.25.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "5bb5d1be011158090157c9e7587ae5606c262a5020ecdc5caac6686b9910592e"
+        }
+      ]
+    },
+    {
+      "source": "init-system-helpers",
+      "version": "1.69~deb13u1",
+      "binary_packages": [
+        "init-system-helpers"
+      ],
+      "dsc_sha256": "873082d72727267b6207e38df47e3002aeb0ed554f876db17c7bbfeb26174ee6",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/6a37f5989c0336001696f77a.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/init-system-helpers/1.69~deb13u1",
+      "source_files": [
+        {
+          "filename": "init-system-helpers_1.69~deb13u1.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "bbd65c63420b6335b91cbf5daad9a70632a087657eb9078ea000f0a16c2d83da"
+        }
+      ]
+    },
+    {
+      "source": "libbsd",
+      "version": "0.12.2-2",
+      "binary_packages": [
+        "libbsd0"
+      ],
+      "dsc_sha256": "01eb1d0c896096f9038213f5f00376ecfd1c0d1def21b7042f28ae070e4837e3",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/31878d887f9a796abcf4154f.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libbsd/0.12.2-2",
+      "source_files": [
+        {
+          "filename": "libbsd_0.12.2.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "b88cc9163d0c652aaf39a99991d974ddba1c3a9711db8f1b5838af2a14731014"
+        },
+        {
+          "filename": "libbsd_0.12.2.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "620dc92f158ebe0a650c0e92214a8121b927276895dc9a1dcaa38f627fa0fcb0"
+        },
+        {
+          "filename": "libbsd_0.12.2-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "36c878a32c1f190ca2cb474de5c6139990a6c029906493d3566770b1ebd569bf"
+        }
+      ]
+    },
+    {
+      "source": "libcap-ng",
+      "version": "0.8.5-4",
+      "binary_packages": [
+        "libcap-ng0"
+      ],
+      "dsc_sha256": "a5745b7d68a11068ae5beddcc7fbc94cd87dd81cb2d7495e7d48610603be3526",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/36e80c76a813980d435e60a1.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libcap-ng/0.8.5-4",
+      "source_files": [
+        {
+          "filename": "libcap-ng_0.8.5.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "e4be07fdd234f10b866433f224d183626003c65634ed0552b02e654a380244c2"
+        },
+        {
+          "filename": "libcap-ng_0.8.5-4.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "f5d4e7f38bdbca87de77317ce95f973883081370ef257019b484e29e3368a20d"
+        }
+      ]
+    },
+    {
+      "source": "libcap2",
+      "version": "1:2.75-10+deb13u1",
+      "binary_packages": [
+        "libcap2"
+      ],
+      "dsc_sha256": "cb6af220de216655ec55bb1f5abf3fa8f03e82c9956f120b313056e895c02ea6",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/a8b395405f00c8b2eb79e805.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libcap2/1%3A2.75-10+deb13u1",
+      "source_files": [
+        {
+          "filename": "libcap2_2.75.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "de4e7e064c9ba451d5234dd46e897d7c71c96a9ebf9a0c445bc04f4742d83632"
+        },
+        {
+          "filename": "libcap2_2.75.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "c71b593e7c3160fd7f406641074d93462bbc4906c9243937a0e232f42d5c54d2"
+        },
+        {
+          "filename": "libcap2_2.75-10+deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "d375de2f743f112835fc0eef2a9c305c1109371954cf53e109b7f046fe58c1bc"
+        }
+      ]
+    },
+    {
+      "source": "libffi",
+      "version": "3.4.8-2",
+      "binary_packages": [
+        "libffi8"
+      ],
+      "dsc_sha256": "4424defe3f37c0084f062e03330b2ba3d3f927367c33be455cfacf7f85a78161",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/7c1776e0290b224ef47098f5.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/libffi/3.4.8-2",
+      "source_files": [
+        {
+          "filename": "libffi_3.4.8.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "cbb7f0b3b095dc506387ec1e35b891bfb4891d05b90a495bc69a10f2293f80ff"
+        },
+        {
+          "filename": "libffi_3.4.8-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-03.json",
+          "sha256": "f23ac79a19895ebb6bbb539263d0d945ebc2d3e91217a597f5819777f08b401c"
+        }
+      ]
+    }
+  ]
+}

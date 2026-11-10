@@ -1,0 +1,54 @@
+{
+  "items": [
+    {
+      "id": "pillow-commit",
+      "kind": "commit",
+      "repo": "python-pillow/Pillow",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/commits/13.0.0",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 4602,
+      "sha256": "7d3be6247430bbe7d98ec7ba7bf41c181620ef91c51280ce74aca959efde0dc8"
+    },
+    {
+      "id": "cryptography-commit",
+      "kind": "commit",
+      "repo": "pyca/cryptography",
+      "url": "https://api.github.com/repos/pyca/cryptography/commits/50.0.2",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 15376,
+      "sha256": "0b534d20ca861932f14d6d3f4ed666f3384bb3dc427d0146b61b00ba2bc6befe"
+    },
+    {
+      "id": "certifi-current-commit",
+      "kind": "commit",
+      "repo": "certifi/python-certifi",
+      "url": "https://api.github.com/repos/certifi/python-certifi/commits/2026.10.23",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 10064,
+      "sha256": "5016fb3bd2ebea8f2edf69e0e6fe4e121ce989e1aba39b88f7814088ab6b244b"
+    },
+    {
+      "id": "certifi-pip-commit",
+      "kind": "commit",
+      "repo": "certifi/python-certifi",
+      "url": "https://api.github.com/repos/certifi/python-certifi/commits/2024.08.30",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 15061,
+      "sha256": "3b83db0c45714b4cbbf4ac888fe4159fbc03f51039fb5392d6be43a883adf146"
+    },
+    {
+      "id": "pillow-provenance",
+      "kind": "provenance",
+      "artifact_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "url": "https://pypi.org/integrity/pillow/13.0.0/pillow-13.0.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl/provenance",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 9748,
+      "sha256": "b40ab9f93e0525eebeb5db89a144bd852cd6a9e61b39b2a920f44c91575c64f1"
+    }
+  ]
+}

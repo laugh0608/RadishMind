@@ -1,0 +1,81 @@
+{
+  "items": [
+    {
+      "id": "pillow",
+      "repo": "python-pillow/Pillow",
+      "ref": "13.0.0",
+      "purpose": "取得精确发行树中的 wheel 依赖构建配方，与 sdist 的 cibuildwheel 配置对应",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/git/trees/13.0.0?recursive=1",
+      "kind": "tree",
+      "max_bytes": 3145728,
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 562100,
+      "sha256": "1572762b89a2b10bee84ff12589b081570acd246f45b00360be8e3f7986b12e2",
+      "error": "",
+      "directory": "metadata"
+    },
+    {
+      "id": "certifi-current",
+      "repo": "certifi/python-certifi",
+      "ref": "2026.10.23",
+      "purpose": "核对当前 SDK 证书生成工作流和精确输出",
+      "url": "https://api.github.com/repos/certifi/python-certifi/git/trees/2026.10.23?recursive=1",
+      "kind": "tree",
+      "max_bytes": 3145728,
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 7316,
+      "sha256": "32def5eaaf102ec584fe239e3c041c85470dcde7ed4f864e874e48a87fed637b",
+      "error": "",
+      "directory": "metadata"
+    },
+    {
+      "id": "certifi-pip",
+      "repo": "certifi/python-certifi",
+      "ref": "2024.08.30",
+      "purpose": "核对 pip 内嵌 certifi 独立版本的生成来源",
+      "url": "https://api.github.com/repos/certifi/python-certifi/git/trees/2024.08.30?recursive=1",
+      "kind": "tree",
+      "max_bytes": 3145728,
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 7032,
+      "sha256": "08e176b48ba8cd1c92eec30267687c3abd2a599fd1d1b5c08914f14ad1af8ce3",
+      "error": "",
+      "directory": "metadata"
+    },
+    {
+      "id": "cryptography-build-openssl",
+      "url": "https://api.github.com/repos/pyca/cryptography/git/blobs/476f054727b8c0f44094541ab938b969f1731412",
+      "expected_git_blob_sha1": "476f054727b8c0f44094541ab938b969f1731412",
+      "kind": "blob",
+      "max_bytes": 1048576,
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 4144,
+      "sha256": "a15428741248eefaf4e03102e20fd59114e8436d33d2250f8ee93b839dd86608",
+      "error": "",
+      "git_blob_verified": true,
+      "decoded_sha256": "7b03b6abf7a57c3cd3c329cf81f107d6f1657f82701e9fb657df5cf8cb14a503",
+      "decoded_bytes": 2777,
+      "directory": "metadata"
+    },
+    {
+      "id": "cryptography-fetch-openssl",
+      "url": "https://api.github.com/repos/pyca/cryptography/git/blobs/d41a460f2b361693279a4ac35a5779e41b9514e9",
+      "expected_git_blob_sha1": "d41a460f2b361693279a4ac35a5779e41b9514e9",
+      "kind": "blob",
+      "max_bytes": 1048576,
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 2168,
+      "sha256": "b887dddf9e7fa41e95933d4ccca160081b754029f07da631e6b1ecedcf3fb682",
+      "error": "",
+      "git_blob_verified": true,
+      "decoded_sha256": "f86fd645a4b45c5fdfd192396d4468e80c31803fd7091ab084d87e21b66b3239",
+      "decoded_bytes": 1344,
+      "directory": "metadata"
+    }
+  ]
+}

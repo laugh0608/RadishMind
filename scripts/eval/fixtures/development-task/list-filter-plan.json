@@ -1,0 +1,42 @@
+{
+  "schema_version": "development_task_probe_plan.v1",
+  "probe_id": "probe_list_filter",
+  "mode": "fixed_response_only",
+  "task_id": "task_list_filter_v1",
+  "sdk_candidate": {
+    "package": "openhands-sdk",
+    "version": "1.59.0"
+  },
+  "source_files": [
+    {
+      "path": "go.mod",
+      "sha256": "sha256:de33aec1972ee8fa1af5cc5c8f9bd443a7ac7946eefa0473914cbab2a4938a82"
+    },
+    {
+      "path": "list.go",
+      "sha256": "sha256:41f47158166f870a4f823b887fdcad514a4ebc97633be8459c4b3a00e1d482a0"
+    },
+    {
+      "path": "list_test.go",
+      "sha256": "sha256:ff7a8582e24f11fce90528f479c57b7a1b95d59db2fa1d87d3bd2dd3fe425a43"
+    }
+  ],
+  "writable_paths": [
+    "list.go"
+  ],
+  "verify_argv": [
+    "go",
+    "test",
+    "-json",
+    "-count=1",
+    "./..."
+  ],
+  "limits": {
+    "max_model_requests": 4,
+    "max_tool_calls": 3,
+    "max_request_bytes": 262144,
+    "max_output_bytes": 65536,
+    "command_timeout_seconds": 120,
+    "wall_timeout_seconds": 600
+  }
+}

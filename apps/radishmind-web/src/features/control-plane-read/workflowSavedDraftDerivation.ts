@@ -85,7 +85,7 @@ export function buildDerivedWorkflowDraft(
 export function cloneWorkflowDraftForEditing(
   draft: WorkflowDraftDesignerDraft,
 ): WorkflowDraftDesignerDraft {
-  return {
+  const cloned = {
     ...draft,
     nodes: draft.nodes.map((node) => ({
       ...node,
@@ -100,6 +100,9 @@ export function cloneWorkflowDraftForEditing(
     routeMetadata: { ...draft.routeMetadata },
     ...(draft.derivation ? { derivation: { ...draft.derivation } } : {}),
   };
+  return draft.schemaVersion === "saved_workflow_draft.v2"
+    ? { ...cloned, schemaVersion: draft.schemaVersion, inputContract: { ...draft.inputContract, fields: draft.inputContract.fields.map((field) => ({ ...field })) } }
+    : cloned;
 }
 
 function cloneWorkflowDraftDesignerLayout(

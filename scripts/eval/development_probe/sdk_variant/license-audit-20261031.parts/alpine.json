@@ -1,0 +1,163 @@
+{
+  "status": "aports_recipes_and_notices_pending_download",
+  "source": "image APK database; package checksum is not an upstream source archive SHA-256",
+  "binary_package_count": 17,
+  "origin_count": 10,
+  "items": [
+    {
+      "origin": "alpine-base",
+      "package_version": "3.23.5-r0",
+      "aports_commit": "1fa9ca1a79c5fd52c46a70b2199059c41ead572a",
+      "binary_packages": [
+        {
+          "name": "alpine-release",
+          "declared_license": "MIT",
+          "package_checksum": "Q1N6IAsfScPwL+ZfoWYYhGAHUU610="
+        }
+      ]
+    },
+    {
+      "origin": "alpine-baselayout",
+      "package_version": "3.7.2-r0",
+      "aports_commit": "15b3b78187b3808104f98f765e9632e0b09281a7",
+      "binary_packages": [
+        {
+          "name": "alpine-baselayout",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1QkUOKD6u7R2NPH0hNZLIoLCqxGI="
+        },
+        {
+          "name": "alpine-baselayout-data",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1T7JfQG4z3Ng25B508cv6zEZtjmg="
+        }
+      ]
+    },
+    {
+      "origin": "alpine-keys",
+      "package_version": "2.6-r0",
+      "aports_commit": "b9f23becced4d7b3ccc0fa0f28530243ccd314a0",
+      "binary_packages": [
+        {
+          "name": "alpine-keys",
+          "declared_license": "MIT",
+          "package_checksum": "Q1ttok1Zot0OOAMgV+EWlX5I5y9DQ="
+        }
+      ]
+    },
+    {
+      "origin": "apk-tools",
+      "package_version": "3.0.6-r0",
+      "aports_commit": "3812c9da974bef8b28f995490ca8233f1472ccc4",
+      "binary_packages": [
+        {
+          "name": "apk-tools",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1p3e6WTbVZJJxHq3JP92LF7EqNWM="
+        },
+        {
+          "name": "libapk",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q15kS+qWUIV2re7F/MCpKeSYvGLBo="
+        }
+      ]
+    },
+    {
+      "origin": "busybox",
+      "package_version": "1.37.0-r30",
+      "aports_commit": "1e823a60eb85606954b3a5af5f8e5bbd1ea680cf",
+      "binary_packages": [
+        {
+          "name": "busybox",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1ikqlwHVQiBbHyd5Y5R6TMlf4pN8="
+        },
+        {
+          "name": "busybox-binsh",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1/YFiyYlIXezr4VKV5b+L7sCjd1o="
+        },
+        {
+          "name": "ssl_client",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1gy9qWYcbvxYTV3MWRqCzY5fVHes="
+        }
+      ]
+    },
+    {
+      "origin": "ca-certificates",
+      "package_version": "20260611-r0",
+      "aports_commit": "6e30aafe4fa807ba70797509731f1e7d644dc8f3",
+      "binary_packages": [
+        {
+          "name": "ca-certificates",
+          "declared_license": "MPL-2.0 AND MIT",
+          "package_checksum": "Q1wIZQ6/udTI52ZwwrmgNRJTr0qBI="
+        },
+        {
+          "name": "ca-certificates-bundle",
+          "declared_license": "MPL-2.0 AND MIT",
+          "package_checksum": "Q1FvcpexzkFoAe8cDYS86ZMqsx85E="
+        }
+      ]
+    },
+    {
+      "origin": "musl",
+      "package_version": "1.2.5-r23",
+      "aports_commit": "8aef0c37b0ad23dc4137f0e4755b97a59dc698b8",
+      "binary_packages": [
+        {
+          "name": "musl",
+          "declared_license": "MIT",
+          "package_checksum": "Q1htKIaEsBKo1P1SXDlnR87oYkBzM="
+        },
+        {
+          "name": "musl-utils",
+          "declared_license": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+          "package_checksum": "Q1tciDNWavSBIvy8D7i3Vju1wL+fc="
+        }
+      ]
+    },
+    {
+      "origin": "openssl",
+      "package_version": "3.5.7-r0",
+      "aports_commit": "0ca3c59c63240aaf5e762174f8d93109f9cabd8d",
+      "binary_packages": [
+        {
+          "name": "libcrypto3",
+          "declared_license": "Apache-2.0",
+          "package_checksum": "Q1oJMtbBUlWm8WLIsW21i1in2yav0="
+        },
+        {
+          "name": "libssl3",
+          "declared_license": "Apache-2.0",
+          "package_checksum": "Q198gf1bMV7THfdHLWkOSAgmcx5jw="
+        }
+      ]
+    },
+    {
+      "origin": "pax-utils",
+      "package_version": "1.3.8-r2",
+      "aports_commit": "3912b4fa83437852312ad3c37a00229ff59fab1c",
+      "binary_packages": [
+        {
+          "name": "scanelf",
+          "declared_license": "GPL-2.0-only",
+          "package_checksum": "Q1n864lrGFcx4BDLQ3sfHVol7hNqw="
+        }
+      ]
+    },
+    {
+      "origin": "zlib",
+      "package_version": "1.3.2-r0",
+      "aports_commit": "f8c94d2e1d318ab29eb4ac5f00225341c877ed65",
+      "binary_packages": [
+        {
+          "name": "zlib",
+          "declared_license": "Zlib",
+          "package_checksum": "Q16KxKLHZrgH2jspuUJ44nsWpSfZk="
+        }
+      ]
+    }
+  ]
+}

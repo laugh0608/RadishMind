@@ -1,0 +1,238 @@
+{
+  "status": "archive_Release_Sources_dsc_chain_authenticated",
+  "independent_maintainer_signature_verified": false,
+  "trust_root": "debian-archive-keyring 2025.1 in the previously approved immutable SDK image",
+  "items": [
+    {
+      "source": "gdbm",
+      "version": "1.24-2",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "28acecf1cf00240942833c04079a02bb4c199a48faa1f4ca90f0ea9b79dc5841",
+      "directory": "pool/main/g/gdbm",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "glibc",
+      "version": "2.41-12+deb13u4",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+      "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+      "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+      "dsc_sha256": "0915324aa646bb99abfaa9aa6ecb734b30babd28454a3e51f3152912370fbd3e",
+      "directory": "pool/main/g/glibc",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "gmp",
+      "version": "2:6.3.0+dfsg-3",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "f7b64af28f52b7346bb8581e01d3c19daf769639345f234f8ae1e29c42171443",
+      "directory": "pool/main/g/gmp",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "grep",
+      "version": "3.11-4",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "dd6f8eb933bc05446e483f7792c8bf0a1aba9d498e65c6ccafe64e9bf27ac054",
+      "directory": "pool/main/g/grep",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "gzip",
+      "version": "1.13-1+deb13u1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "0c25763da4f7242fbe7e9185b69bcb3f986011b04446b66a84c52bbdf731d308",
+      "directory": "pool/main/g/gzip",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "hostname",
+      "version": "3.25",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "80aadf116c3423044be69a4cef8ba2766f412bd4d46a500aacb61f303c19c4ef",
+      "directory": "pool/main/h/hostname",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "init-system-helpers",
+      "version": "1.69~deb13u1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "873082d72727267b6207e38df47e3002aeb0ed554f876db17c7bbfeb26174ee6",
+      "directory": "pool/main/i/init-system-helpers",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libbsd",
+      "version": "0.12.2-2",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "01eb1d0c896096f9038213f5f00376ecfd1c0d1def21b7042f28ae070e4837e3",
+      "directory": "pool/main/libb/libbsd",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libcap-ng",
+      "version": "0.8.5-4",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "a5745b7d68a11068ae5beddcc7fbc94cd87dd81cb2d7495e7d48610603be3526",
+      "directory": "pool/main/libc/libcap-ng",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libcap2",
+      "version": "1:2.75-10+deb13u1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+      "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+      "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+      "dsc_sha256": "cb6af220de216655ec55bb1f5abf3fa8f03e82c9956f120b313056e895c02ea6",
+      "directory": "pool/main/libc/libcap2",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libffi",
+      "version": "3.4.8-2",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "4424defe3f37c0084f062e03330b2ba3d3f927367c33be455cfacf7f85a78161",
+      "directory": "pool/main/libf/libffi",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libmd",
+      "version": "1.1.0-2",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "46cc951cd6d71bbfeff4522de66f968fb92601ec4cc622b07f6ac0a2a36ac5f0",
+      "directory": "pool/main/libm/libmd",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libseccomp",
+      "version": "2.6.0-2",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "d05f94536558d34fa339326c6f958a3357b51efac8234470b5d97b69472db765",
+      "directory": "pool/main/libs/libseccomp",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libselinux",
+      "version": "3.8.1-1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "e430b782a396e266f86c32fa779efadebfd40e6a0d10ddbd786fc47905f723b9",
+      "directory": "pool/main/libs/libselinux",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libsemanage",
+      "version": "3.8.1-1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "b22bfc4ab2cd47fac46cc9e45d418bb30eb540c3e5c1052d6c669f53e180e4e5",
+      "directory": "pool/main/libs/libsemanage",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libsepol",
+      "version": "3.8.1-1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "0351ffc8c3f66918c9e4ecae9244ae2af27857d8795e424e384ddda794718c34",
+      "directory": "pool/main/libs/libsepol",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libxcrypt",
+      "version": "1:4.4.38-1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "feba1874a84616791c1c17f9a290c9e97562b2904b3b0200edc82a2db54f3f07",
+      "directory": "pool/main/libx/libxcrypt",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "libzstd",
+      "version": "1.5.7+dfsg-1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+      "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+      "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+      "dsc_sha256": "8f6ab97fa772d921334e50fa5756a0951e23c718dc913e43a228f28c1a23adf9",
+      "directory": "pool/main/libz/libzstd",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "lz4",
+      "version": "1.10.0-4",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://snapshot.debian.org/archive/debian/20261022T203737Z/dists/trixie-proposed-updates/",
+      "release_sha256": "57cc831a4bb752c08f05efd9e2a7a3907d33524c3cfee7c87fdf6808ce83669d",
+      "sources_sha256": "4dcb8d7016894bf014ef5d3a96d9c122952d4f06eedfa5839b9e245d6ee6851c",
+      "dsc_sha256": "394c635aa75a21cd5896680e48821c05336645072ae866b2717d53f36b9ba851",
+      "directory": "pool/main/l/lz4",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "mawk",
+      "version": "1.3.4.20250131-1",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "147dd01670e2ebf61f3c78470e0025b87d14e69c7ba9cfafd54da32a355dea84",
+      "directory": "pool/main/m/mawk",
+      "maintainer_signature_verified": false
+    },
+    {
+      "source": "ncurses",
+      "version": "6.5+20250216-2",
+      "status": "archive_chain_authenticated",
+      "release_root": "https://deb.debian.org/debian/dists/trixie/",
+      "release_sha256": "ed56aac47e7911e65ee63aae8d67e29f20e023f840e49f8ed037043a33de138a",
+      "sources_sha256": "6002f81f463a2d976d84b34170367cc16da2d60bd0ba9ab9d868d6e1c1a935d9",
+      "dsc_sha256": "00539cc2bc6bb84be1b8a8a5decf606682e14b6f39b76b9aa090e65d2c2d4580",
+      "directory": "pool/main/n/ncurses",
+      "maintainer_signature_verified": false
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "development_static_component_evidence.v1",
+  "date": "2026-11-05",
+  "status": "static_evidence_and_partial_source_delivery_map_verified",
+  "sdk_image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "frozen_lock_sha256": "3e2f6bc2ca091acd36cb201ae5f66ed69b50d080af4b55c32314e0b1283983a3",
+  "summary": {
+    "elf_objects_scanned": 30,
+    "source_members_read": 46,
+    "new_crate_archives_verified": 4,
+    "covered_source_groups": 9,
+    "covered_source_files": 15,
+    "covered_source_input_bytes": 119475565,
+    "supplement_packages": 6,
+    "supplement_files": 14
+  },
+  "parts": {
+    "binary-observations.json": "034f7e0b6f07b5e69bb393797927096ff7ad96dd730a6fe38722c6a7b2b3aa7c",
+    "colored-source.json": "faa07db691d40363a194e34611156a8a6eb37ca8890f455ff4dae6ea85fc91f9",
+    "covered-source-map.json": "c360aa71e364a62cf85657a6a7644aeb6bd7c7065b520a5b47ae201ba07b51e1",
+    "dirs-source.json": "bedaede62fc0637bf1937d837ce278868aaa054ce96b62e2e9e83ea2327fd1b7",
+    "dirs-sys-source.json": "8f58a576a326332c799cfdcf13ba973d04e80e12bb2017d62c08d2a0ceacbb9b",
+    "findings.json": "5f5f15c81b6329fa4fd550bb21174d91e11e159aae054dca01b4aa1117504c9f",
+    "option-ext-source.json": "b1eb881a184a02e8fd40280c5755df02c70a0699f2706cdbe9454269acb5ae1d",
+    "source-members-01.json": "aa3c0c6a7325b397c75d230f61d0c937606c137dbb204e8cd09558acfd32fca8",
+    "source-members-02.json": "dddadc540c7db8992d7f736c271bee8d21d82ec57920a6c381098747a2c7f372"
+  },
+  "reproduction": {
+    "static_script": "tmp/development-static-20261105/inspect_static.py",
+    "static_script_sha256": "4fdd862d314cc0303f5fcc7590c2916468f5d886573b29d4936004709cd86308",
+    "full_symbol_observations_sha256": "23d174e4f39d8daff35a64eca58192575d79375e8ed0e2e0c6e9221e717f2df9"
+  },
+  "source_delivery": {
+    "method": "随精确镜像附带原始源码目录和摘要索引；镜像内告知提供相对路径与来源映射。",
+    "state": "候选交付布局与本地输入已核对，未打包、上传、发布或验收接收方获取。",
+    "scope": "九组当前优先材料；不是整个镜像的完整源码集合。",
+    "required_before_delivery": [
+      "把剩余 Python / Rust / Pillow 内嵌、CPython / pip、其余 Debian 与 Go / Alpine / Docker CLI 的实际交付范围合并到各自镜像索引。",
+      "逐组件补齐真实构建所需修改、生成输入及构建 / 安装材料；不把同版上游归档单独认定为完整对应源码。",
+      "完成后生成伴随源码目录与获取告知，验证内容摘要、镜像绑定和实际接收方可用性；此轮未请求打包 / 发布授权。"
+    ]
+  },
+  "next_evidence": [
+    "Pillow dav1d 等静态编入组件的精确构建版本、OpenJPEG / zlib 声明冲突及 dlopen 实际文件归属。",
+    "Rust 实际目标 / 特性 / 静态链接选择、regex 继承来源和 certifi 生成输入。",
+    "补齐其余镜像组件的告知及源码交付范围，然后单独安排实际构建 / 获取验收。"
+  ],
+  "boundary": {
+    "image_rebuilt": false,
+    "installed_in_image": false,
+    "source_delivery_assembled": false,
+    "license_gate_closed": false
+  }
+}

@@ -1,6 +1,6 @@
 # RadishMind
 
-`RadishMind` 是 `Radish` 体系下的外部智能层仓库，负责协议、评测、工具编排与模型实验，不是上层业务真相源。
+`RadishMind` 是 `Radish` 体系下的 AI 工具、工作流、模型网关和 Copilot 集成平台，不是上层业务真相源。
 
 ## 入口
 
@@ -23,8 +23,12 @@
 
 - macOS / Linux / WSL：`./start.sh`
 - Windows / PowerShell：`pwsh ./start.ps1`
-- 产品 UI 联调直达：`./start.sh web-live`
+- 产品 UI 开发联调：`./start.sh web-live`（默认使用开发假数据读取后端）
 - 产品 UI 离线预览：`./start.sh web-offline`
+
+这些是现有开发入口，持久化产品链需要按[项目指南](docs/radishmind-project-guide.md)选择对应配置。当前[本机持久工作台交付](docs/features/user-workspace/local-persistent-workbench-delivery-v1.md)已实现统一启动 / 配置与恢复命令，使用见[工作台指南](docs/platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链及 `linux/arm64` 容器运行、重启与备份迁移已验收；独立用户交付验收仍待完成。
+
+下一功能设计已登记为[多 Agent 协同与受控软件开发团队](docs/features/workflow/controlled-software-development-team-v1.md)，先单 Agent 隔离开发交付，再固定团队协作；阶段 0 已有冻结代表任务与离线准备 CLI，SDK LLM 固定响应契约已验证，正式 Gateway / Agent 和代码沙箱仍待接入，正式执行入口未开放。
 
 ## 仓库约定
 

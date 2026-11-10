@@ -1,0 +1,70 @@
+{
+  "items": [
+    {
+      "request_id": "pillow-provenance",
+      "publisher": {
+        "environment": "release-pypi",
+        "kind": "GitHub",
+        "repository": "python-pillow/Pillow",
+        "workflow": "wheels.yml"
+      },
+      "subject": [
+        {
+          "name": "pillow-13.0.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "digest": {
+            "sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d"
+          }
+        }
+      ],
+      "predicate_type": "https://docs.pypi.org/attestations/publish/v1",
+      "predicate": null,
+      "digest_matches_target": true,
+      "signature_trust_verified": false,
+      "build_materials_proven": false
+    },
+    {
+      "request_id": "cryptography-provenance",
+      "publisher": {
+        "environment": null,
+        "kind": "GitHub",
+        "repository": "pyca/cryptography",
+        "workflow": "pypi-publish.yml"
+      },
+      "subject": [
+        {
+          "name": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+          "digest": {
+            "sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04"
+          }
+        }
+      ],
+      "predicate_type": "https://docs.pypi.org/attestations/publish/v1",
+      "predicate": null,
+      "digest_matches_target": true,
+      "signature_trust_verified": false,
+      "build_materials_proven": false
+    },
+    {
+      "request_id": "certifi-provenance",
+      "publisher": {
+        "environment": "release",
+        "kind": "GitHub",
+        "repository": "certifi/python-certifi",
+        "workflow": "release.yml"
+      },
+      "subject": [
+        {
+          "name": "certifi-2026.10.23-py3-none-any.whl",
+          "digest": {
+            "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1"
+          }
+        }
+      ],
+      "predicate_type": "https://docs.pypi.org/attestations/publish/v1",
+      "predicate": null,
+      "digest_matches_target": true,
+      "signature_trust_verified": false,
+      "build_materials_proven": false
+    }
+  ]
+}

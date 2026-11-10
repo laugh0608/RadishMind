@@ -1,0 +1,345 @@
+{
+  "schema_version": "development_notice_supplement_evidence.v1",
+  "date": "2026-11-05",
+  "status": "partial_supplements_prepared_license_gate_open",
+  "scope": "Existing linux/arm64 SDK candidate only; repository notice files, no image rebuild or distribution. Existing wheel notices must also be retained.",
+  "sdk_image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "items": [
+    {
+      "name": "fastmcp-slim",
+      "version": "3.4.11",
+      "wheel": "fastmcp_slim-3.4.11-py3-none-any.whl",
+      "wheel_sha256": "24535dd843b3dcb3272b86c88fdf6ada5026c39ec5b56e2426557223c4d2c8bf",
+      "source_url": "https://files.pythonhosted.org/packages/9d/35/5f61dc70141df213eddff40bb2b8ccf68b02ecd666da6a1efab7c55b5694/fastmcp_slim-3.4.11.tar.gz",
+      "source_sha256": "50e29b0830fb216aba437f35cfc7dd4bce7451f2f85f8786d6fff3da78d79386",
+      "supplements": [
+        {
+          "file": "notice-supplements/fastmcp-slim-3.4.11-LICENSE.txt",
+          "bytes": 11357,
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "source": {
+            "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/LICENSE",
+            "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/fastmcp-slim-3.4.11-LICENSE.txt",
+          "installed_in_image": false,
+          "normalization": {
+            "operation": "append_final_lf",
+            "original_sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+            "original_bytes": 11356
+          }
+        }
+      ],
+      "status": "repository_notice_supplement_prepared_image_installation_pending",
+      "wheel_source_files_identical": 270,
+      "remaining": "Exact complete tree has no NOTICE-named file and LICENSE blob matches; full image installation and other bundled-component obligations remain open.",
+      "upstream_notice_inventory": {
+        "requested_commit": "9dc7191c1b44291be05c7d7bcf4cb3c18d86c434",
+        "tree_not_truncated": true,
+        "license_blob_sha1": "f49a4e16e68b128803cc2dcea614603632b04eac",
+        "license_original_sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+        "notice_paths": [],
+        "license_blob_matches_retained_copy": true
+      }
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "wheel": "tokenizers-0.23.3-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "wheel_sha256": "ec82e80e65a862275b97c3d90b7a523df8d9519ee48aeb4e9625b2cc909274e0",
+      "source_url": "https://files.pythonhosted.org/packages/e0/7c/2cabb2174e772636683008f2c5621949b645da7d303c596589e84516a184/tokenizers-0.23.3.tar.gz",
+      "source_sha256": "cded33237c77caeef62944d32aa9a7ef42bdce2b3497e18d137e072a8c4be438",
+      "supplements": [
+        {
+          "file": "notice-supplements/tokenizers-0.23.3-LICENSE.txt",
+          "bytes": 11357,
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/e0/7c/2cabb2174e772636683008f2c5621949b645da7d303c596589e84516a184/tokenizers-0.23.3.tar.gz",
+            "archive_sha256": "cded33237c77caeef62944d32aa9a7ef42bdce2b3497e18d137e072a8c4be438",
+            "member": "tokenizers-0.23.3/tokenizers/LICENSE",
+            "member_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/tokenizers-0.23.3-LICENSE.txt",
+          "installed_in_image": false
+        }
+      ],
+      "status": "repository_notice_supplement_prepared_image_installation_pending",
+      "remaining": "Native linked-component/build provenance and actual image installation still require verification."
+    },
+    {
+      "name": "lupa",
+      "version": "2.8",
+      "wheel": "lupa-2.8-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "27044f3363047f946b3d3aab9157cbd172b3538ada9ec1baef43432bf7d03a78",
+      "source_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+      "source_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+      "supplements": [
+        {
+          "file": "notice-supplements/lupa-2.8-lua51-COPYRIGHT.txt",
+          "bytes": 1528,
+          "sha256": "ee5e3e82af1e1b543c4f216e399d7c8cfee797711913f349e385101c4ae60a79",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/lua51/COPYRIGHT",
+            "member_sha256": "ee5e3e82af1e1b543c4f216e399d7c8cfee797711913f349e385101c4ae60a79"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-lua51-COPYRIGHT.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-lua51-lua-header-LICENSE.txt",
+          "bytes": 1285,
+          "sha256": "9c177bcc42b8cadb3a8c86e38a2323b9d1a195084af956956b4e1d90d6a3f14a",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/lua51/src/lua.h",
+            "member_sha256": "470551c185f058360f8d0f9e5c54a29a3950f78af6a93f3fe9e4039a380c7b87",
+            "byte_offset": 10394,
+            "byte_length": 1285
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-lua51-lua-header-LICENSE.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-lua52-lua-header-LICENSE.txt",
+          "bytes": 1263,
+          "sha256": "fe788ea32c21c5a0bbd2d1e8677226cf23ac461ae0b6fbea1331e6616478eacd",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/lua52/lua.h",
+            "member_sha256": "fae129f7098a4476c1457f2851c93d337092d1138f48e8ee06a342b8290ac0aa",
+            "byte_offset": 12338,
+            "byte_length": 1263
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-lua52-lua-header-LICENSE.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-lua53-lua-header-LICENSE.txt",
+          "bytes": 1263,
+          "sha256": "49f9a998c46743cfca8c32bbb867a24dedaeeeb68219b5e1d9fa425da141f575",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/lua53/lua.h",
+            "member_sha256": "d05e8e3b199aa51fec7c3d40f058a1e4f9aa76bb0587a9fe211f00c800f71a9d",
+            "byte_offset": 13505,
+            "byte_length": 1263
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-lua53-lua-header-LICENSE.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-lua54-lua-header-LICENSE.txt",
+          "bytes": 1263,
+          "sha256": "d83103413067359fa162d5c465c076d6a9a25f8d678f06b7ed2a7c9d9e4fa704",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/lua54/lua.h",
+            "member_sha256": "3b77329f9deed929a5cbe7a7d5fc81ebbb63fd869a49e0a9302fe9240caf1930",
+            "byte_offset": 14677,
+            "byte_length": 1263
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-lua54-lua-header-LICENSE.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-lua55-lua-header-LICENSE.txt",
+          "bytes": 1263,
+          "sha256": "fe7591799d3e229b3c9640314215dd085777889df9a35d4ea78d1c7aa5c351c6",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/lua55/lua.h",
+            "member_sha256": "5e00319e803893f4310b1206394c80b82f03f42609b40ceb306d92a6740d828e",
+            "byte_offset": 15402,
+            "byte_length": 1263
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-lua55-lua-header-LICENSE.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-luajit21-COPYRIGHT.txt",
+          "bytes": 2935,
+          "sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/luajit21/COPYRIGHT",
+            "member_sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-luajit21-COPYRIGHT.txt",
+          "installed_in_image": false
+        },
+        {
+          "file": "notice-supplements/lupa-2.8-luajit21-lua-header-LICENSE.txt",
+          "bytes": 1285,
+          "sha256": "6e94f1ef46b8fc0909661f57ec5e9637df328ef802233a11e88722c5460d1781",
+          "source": {
+            "archive_url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+            "archive_sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+            "member": "lupa-2.8/third-party/luajit21/src/lua.h",
+            "member_sha256": "ecab8480aaedb648b75258453ab82e71c4d0db234175f455af72962c8578f787",
+            "byte_offset": 11030,
+            "byte_length": 1285
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/lupa-2.8-luajit21-lua-header-LICENSE.txt",
+          "installed_in_image": false
+        }
+      ],
+      "status": "repository_notice_supplement_prepared_image_installation_pending",
+      "remaining": "Native linked-component/build provenance and actual image installation still require verification."
+    },
+    {
+      "name": "cryptography",
+      "version": "50.0.2",
+      "wheel": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+      "wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "embedded_component": "OpenSSL 4.0.3",
+      "embedded_sbom_member": "cryptography-50.0.2.dist-info/sboms/sbom.json",
+      "embedded_sbom_sha256": "b0bf7d97f711a6abea7658c0e84ad5954226663559cba3ae14321e70adb72184",
+      "source_url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
+      "source_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+      "source_archive_acquired": true,
+      "supplements": [
+        {
+          "file": "notice-supplements/cryptography-openssl-4.0.3-LICENSE.txt",
+          "bytes": 10175,
+          "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+          "source": {
+            "url": "https://raw.githubusercontent.com/openssl/openssl/openssl-4.0.3/LICENSE.txt",
+            "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+            "archive_url": "https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz",
+            "archive_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+            "member": "openssl-4.0.3/LICENSE.txt",
+            "member_sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/cryptography-openssl-4.0.3-LICENSE.txt",
+          "installed_in_image": false
+        }
+      ],
+      "status": "repository_notice_supplement_prepared_image_installation_pending",
+      "remaining": "Independent build provenance, Rust selected components and actual image notice installation remain open.",
+      "source_archive_bytes": 55235667,
+      "source_matches_wheel_sbom_sha256": true,
+      "source_evidence": "license-source-result-20261105.json"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "wheel": "regex-2026.9.29-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "declared_license_expression": "Apache-2.0 AND CNRI-Python",
+      "existing_wheel_notice_sha256": "bff55ef4cdcc8c14ce259f8e8ab60e264418440d6335f4dc138273fbd506144d",
+      "supplements": [
+        {
+          "file": "notice-supplements/regex-2026.9.29-CNRI-Python-1.6-LICENSE.txt",
+          "bytes": 3511,
+          "sha256": "d4c9c432696dec0f8af87cf38160a671648c3591459d9edc785796938bba7c00",
+          "source": {
+            "url": "https://www.python.org/download/releases/1.6/download",
+            "page_sha256": "93229c6310e6c585d71255e4315703afc06eca60d4aa5e984d9aec6a85dfdf00",
+            "evidence": "license-page-result-20261105.json"
+          },
+          "normalization": {
+            "operation": "Decode outer HTML entities and embedded paragraph markup in two HTMLParser passes; remove tags, preserve paragraph text, trim line ends, collapse repeated blank lines, append final LF. No words replaced.",
+            "page_sha256": "93229c6310e6c585d71255e4315703afc06eca60d4aa5e984d9aec6a85dfdf00",
+            "fragment_byte_offset": 19733,
+            "fragment_byte_length": 4018,
+            "fragment_sha256": "f6f3fa3781d54ec5af312a33fbb36a5365d5abdbe6fdcb03f3cf3f476d24d6eb",
+            "output_sha256": "d4c9c432696dec0f8af87cf38160a671648c3591459d9edc785796938bba7c00",
+            "output_bytes": 3511,
+            "clauses": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ]
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/regex-2026.9.29-CNRI-Python-1.6-LICENSE.txt",
+          "installed_in_image": false
+        }
+      ],
+      "status": "declared_historical_notice_prepared_derivation_review_open",
+      "remaining": "Declared final Python 1.6 notice acquired. Review derivation from CPython 2.6/3.1 and full notice retention; image installation not performed."
+    },
+    {
+      "name": "hf-xet",
+      "version": "1.8.0",
+      "wheel": "hf_xet-1.8.0-cp38-abi3-manylinux_2_28_aarch64.whl",
+      "wheel_sha256": "8800e3444770f2c630b361bc6d5c6ebb770b7830646cf632fbb79d0e5bbc9e7f",
+      "source_url": "https://files.pythonhosted.org/packages/2f/18/d91c20f815df6cc496a5d0ad8db6d274dad5c0cfcd59babfa2440a9aba44/hf_xet-1.8.0.tar.gz",
+      "source_sha256": "10ed23b51dacf7917d64f335c25048deb470efa755e9989b218fc0531386138e",
+      "supplements": [
+        {
+          "file": "notice-supplements/hf-xet-1.8.0-colored-3.1.1-MPL-2.0.txt",
+          "bytes": 16725,
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+          "source": {
+            "archive_url": "https://static.crates.io/crates/colored/colored-3.1.1.crate",
+            "archive_sha256": "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34",
+            "member": "colored-3.1.1/LICENSE",
+            "member_sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/hf-xet-1.8.0-colored-3.1.1-MPL-2.0.txt",
+          "installed_in_image": false,
+          "normalization": {
+            "operation": "remove_trailing_space_on_line_38",
+            "original_sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+            "original_bytes": 16726
+          }
+        },
+        {
+          "file": "notice-supplements/hf-xet-1.8.0-option-ext-0.2.0-MPL-2.0.txt",
+          "bytes": 16726,
+          "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+          "source": {
+            "archive_url": "https://static.crates.io/crates/option-ext/option-ext-0.2.0.crate",
+            "archive_sha256": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+            "member": "option-ext-0.2.0/LICENSE.txt",
+            "member_sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172"
+          },
+          "candidate_image_destination": "/usr/local/share/radishmind/third-party/hf-xet-1.8.0-option-ext-0.2.0-MPL-2.0.txt",
+          "installed_in_image": false,
+          "normalization": {
+            "operation": "remove_trailing_space_on_line_38",
+            "original_sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172",
+            "original_bytes": 16727
+          }
+        }
+      ],
+      "status": "repository_notice_supplement_prepared_image_installation_pending",
+      "remaining": "colored 二进制路径及 option-ext Linux 来源调用已核对；完整静态链接 / 构建修改对应、覆盖源码实际交付与镜像告知安装仍待验收。"
+    }
+  ],
+  "open_items": [
+    "cryptography OpenSSL 4.0.3 independent build attestation and Rust selected components (source archive bytes now match wheel SBOM)",
+    "regex derivation and full notice-retention scope: final CNRI Python 1.6 text is now retained; CPython 2.6/3.1 carry differing 1.6.1 text",
+    "Static/native component selection and full third-party notices; 63 ELF objects mapped and eight external system library files/ownership verified in the exact SDK image",
+    "Covered-source delivery for MPL and OS packages, certifi generator inputs",
+    "Actual SDK/Go image installation and full delivery verification",
+    "Docker CLI delivery decision and source mapping if included"
+  ],
+  "boundary": {
+    "downloaded": true,
+    "dependencies_changed": false,
+    "images_changed": false,
+    "license_gate_closed": false
+  },
+  "download_authorization_record": "license-metadata-20261105.json",
+  "source_followup_result": "license-source-result-20261105.json",
+  "historical_license_page_result": "license-page-result-20261105.json",
+  "native_component_evidence": "license-native-20261105.json",
+  "external_library_image_evidence": "license-native-image-result-20261105.json",
+  "static_component_evidence": "license-static-20261105.json",
+  "static_source_followup_result": "license-static-source-result-20261105.json"
+}

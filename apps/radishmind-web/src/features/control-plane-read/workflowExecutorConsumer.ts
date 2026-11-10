@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { WorkflowSavedDraftConsumerState } from "./savedWorkflowDraftConsumer.ts";
 import type {
   WorkflowDraftDesignerDraft,
@@ -23,6 +24,7 @@ export type WorkflowExecutorConsumerMode = "disabled" | "dev_workflow_executor_h
 
 export type WorkflowExecutorConsumerConfig = {
   mode: WorkflowExecutorConsumerMode;
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   workspaceId: string;
   tenantRef: string;
@@ -76,9 +78,10 @@ type WorkflowRunEnvelopeDocument = {
 };
 
 export function readWorkflowExecutorConsumerConfig(): WorkflowExecutorConsumerConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const source = env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_SOURCE?.trim();
   return {
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test" ? "local_session_dev_test" : "dev_headers",
     mode: source === DEV_EXECUTOR_SOURCE ? "dev_workflow_executor_http" : "disabled",
     baseUrl: normalizeBaseUrl(
       env.VITE_RADISHMIND_WORKFLOW_EXECUTOR_BASE_URL ??
@@ -281,6 +284,7 @@ export function evaluateWorkflowExecutorEligibility(
 ): WorkflowExecutorEligibility {
   const graphEligibility = evaluateWorkflowExecutorGraphEligibility(draft);
   const reasons: WorkflowExecutorEligibilityReason[] = [...graphEligibility.reasons];
+  if (draft.schemaVersion === "saved_workflow_draft.v2") reasons.push({ code: "executor_profile_missing", summary: "Structured input drafts require an approved and active Definition before execution." });
   if (savedDraftState.currentDraftVersion <= 0 ||
     savedDraftState.currentLifecycleState !== "active" ||
     !["saved_dev_record", "validation_ready"].includes(savedDraftState.status)) {
@@ -308,7 +312,7 @@ export function evaluateWorkflowExecutorGraphEligibility(
   draft: WorkflowDraftDesignerDraft,
 ): Pick<WorkflowExecutorEligibility, "eligible" | "conditionNodeIds" | "reasons"> {
   const reasons: WorkflowExecutorEligibilityReason[] = [];
-  if (draft.executionProfile !== "executor_v0") {
+  if (draft.executionProfile !== "executor_v0" && !(draft.executionProfile === "executor_v2" && draft.schemaVersion === "saved_workflow_draft.v2")) {
     reasons.push({
       code: "executor_profile_missing",
       summary: "Create a dedicated executor v0 draft instead of running the current review-only graph.",
@@ -615,6 +619,8 @@ async function requestWorkflowRunEnvelope(
     throw new Error("workflow executor dev HTTP source is disabled");
   }
   const response = await fetch(`${config.baseUrl}${path}`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
     ...init,
     headers: workflowExecutorHeaders(config, applicationRef, requestId, init.method === "POST"),
   });
@@ -634,6 +640,17 @@ function workflowExecutorHeaders(
   requestId: string,
   mutation: boolean,
 ): HeadersInit {
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutation ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationRef,
+    };
+  }
   return {
     Accept: "application/json",
     "Content-Type": "application/json",

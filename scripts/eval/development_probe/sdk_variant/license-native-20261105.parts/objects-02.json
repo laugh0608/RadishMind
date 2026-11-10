@@ -1,0 +1,231 @@
+{
+  "items": [
+    {
+      "package": "lupa",
+      "path": "lupa/lua51.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 607120,
+      "sha256": "75cdb12987758f7f8b40749ef13318e61a19e7fedd052133c4fdb51189211564",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "lupa",
+      "path": "lupa/lua52.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 607240,
+      "sha256": "267a289497ce80b72501f7ba83d788d1887c2e5f1fe62c0986ae10d2a789b5b7",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "lupa",
+      "path": "lupa/lua53.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 672736,
+      "sha256": "df5817fe5a59fb6c4e356d289d9e3ad841f969870ed31dc61f1e4a47df53d640",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "lupa",
+      "path": "lupa/lua54.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 672784,
+      "sha256": "fe8b137f50789a12791b5a2731eb616312202b6e358ed434beb8d5bd1b753228",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "lupa",
+      "path": "lupa/lua55.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 738344,
+      "sha256": "1a303393123434d0d22f2e6092916769b4a134efcdf53ac9e656b421741b5712",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "lupa",
+      "path": "lupa/luajit21.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 1131576,
+      "sha256": "0020b069e5022c629c971105218cef15378cbd24d4d17c813bf8bee628bf1ddc",
+      "needed": [
+        "libgcc_s.so.1",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "markupsafe",
+      "path": "markupsafe/_speedups.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 230792,
+      "sha256": "383c13aa0f0941bcfa64d466f37d809540903029637a8c9a20f1037b622cb8c8",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "multidict",
+      "path": "multidict/_multidict.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 1667376,
+      "sha256": "d7a3a29edfc6ee2c3433a650dbde860badac7d021683c07fb2387c2571b17097",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "multidict",
+      "path": "multidict/_testcapi.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 283968,
+      "sha256": "7a8a866045b030d073f00a0856bca84309375d49f3e9e4c6542fca527dc73d3a",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_avif.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 396881,
+      "sha256": "1f134afa7020c4256d1474cc70f14b4a383d6fa85037657aece28cb7e5461d00",
+      "needed": [
+        "libavif-ba04b566.so.16.4.2",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [
+        "$ORIGIN/../pillow.libs"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libavif-ba04b566.so.16.4.2": "pillow.libs/libavif-ba04b566.so.16.4.2"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imaging.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 3617217,
+      "sha256": "a1f2dccf2ded3e6bd99f83fca3fff51416e9060b81d2272b042a012a29be3206",
+      "needed": [
+        "libtiff-0c352bdc.so.6.3.0",
+        "libjpeg-80045241.so.62.4.0",
+        "libopenjp2-4495a901.so.2.5.4",
+        "libz.so.1",
+        "libxcb-cbbede0a.so.1.1.0",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [
+        "$ORIGIN/../pillow.libs"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libtiff-0c352bdc.so.6.3.0": "pillow.libs/libtiff-0c352bdc.so.6.3.0",
+        "libjpeg-80045241.so.62.4.0": "pillow.libs/libjpeg-80045241.so.62.4.0",
+        "libopenjp2-4495a901.so.2.5.4": "pillow.libs/libopenjp2-4495a901.so.2.5.4",
+        "libxcb-cbbede0a.so.1.1.0": "pillow.libs/libxcb-cbbede0a.so.1.1.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imagingcms.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 397209,
+      "sha256": "f6daa7cec92a3288bbce59bb9905cbcdb57584cf3a2b2f2ee3c04f1a85d2f6f2",
+      "needed": [
+        "liblcms2-4345ab8b.so.2.0.19",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [
+        "$ORIGIN/../pillow.libs"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "liblcms2-4345ab8b.so.2.0.19": "pillow.libs/liblcms2-4345ab8b.so.2.0.19"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imagingft.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 595113,
+      "sha256": "e860e3d69d7625a45435dd8e7fdb09d5244adbc6d316f0dbcbc24b00fb7bd451",
+      "needed": [
+        "libfreetype-6d43b1fe.so.6.20.6",
+        "libharfbuzz-38f28207.so.0.61450.0",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [
+        "$ORIGIN/../pillow.libs"
+      ],
+      "runpath": [],
+      "same_wheel_providers": {
+        "libfreetype-6d43b1fe.so.6.20.6": "pillow.libs/libfreetype-6d43b1fe.so.6.20.6",
+        "libharfbuzz-38f28207.so.0.61450.0": "pillow.libs/libharfbuzz-38f28207.so.0.61450.0"
+      }
+    },
+    {
+      "package": "pillow",
+      "path": "PIL/_imagingmath.cpython-312-aarch64-linux-gnu.so",
+      "bytes": 309696,
+      "sha256": "19706fb5a289c5e5a66d2a4f6485dbf65a21ae98213e185ab65bc4af9d3e61be",
+      "needed": [
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "soname": null,
+      "rpath": [],
+      "runpath": [],
+      "same_wheel_providers": {}
+    }
+  ]
+}

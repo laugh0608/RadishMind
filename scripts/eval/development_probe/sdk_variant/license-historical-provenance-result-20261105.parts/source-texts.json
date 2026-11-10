@@ -1,0 +1,81 @@
+{
+  "items": [
+    {
+      "repo": "matthew-brett/multibuild",
+      "source_path": "LICENSE",
+      "git_blob_sha1": "338dd5cc1b16b454bcf864ec039255231ed163ad",
+      "sha256": "ce4aa8533d69c184f7697fe634f8390ff38e93ebfc794d8bfddea9e0f486b664",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/multibuild-tree-338dd5cc1b16.decoded"
+    },
+    {
+      "repo": "matthew-brett/multibuild",
+      "source_path": "common_utils.sh",
+      "git_blob_sha1": "946836445c565038f9740a3ccf46d0960c916c06",
+      "sha256": "9b8da898a68a7f5ed1e99ec8e80b563c2cec9838b4ca93c3ca48b0febdefedcd",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/multibuild-tree-946836445c56.decoded"
+    },
+    {
+      "repo": "matthew-brett/multibuild",
+      "source_path": "library_builders.sh",
+      "git_blob_sha1": "28bcbc55a6b71cb27674692d3dec81575c6b19ba",
+      "sha256": "a84cd0d8186dbdf1ccc54a3bebeeeb83a76a3e6c4d65c74acb7b741107e44f6e",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/multibuild-tree-28bcbc55a6b7.decoded"
+    },
+    {
+      "repo": "matthew-brett/multibuild",
+      "source_path": "manylinux_utils.sh",
+      "git_blob_sha1": "8eecd5f9d2549a5018ef37a87356888fce0ca7d4",
+      "sha256": "ebe437b497152263cf1ed3199050005f419360405fbaf69fb93f910842aee71b",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/multibuild-tree-8eecd5f9d254.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "CMakeLists.txt",
+      "git_blob_sha1": "5c3877a8328f9c39de01187ea4d396b459be0332",
+      "sha256": "2734969c3a582302df2e09358518ec87b1f4107f86d8e5bc4aced0812b548143",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-5c3877a8328f.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "ext/aom.cmd",
+      "git_blob_sha1": "ad4ffc19e96afcf226c6b56d2f48613a008909b5",
+      "sha256": "425106e77ecbeec4fe85cda60f2d9e975d137c7c31e64c43d10a1423807f4fb9",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-ad4ffc19e96a.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "ext/dav1d.cmd",
+      "git_blob_sha1": "fe96a019e1678e0ce3429fba032aeea8ca5d02e0",
+      "sha256": "d03539d9d2983af18566c6368d0dc5de41141f7681c37d32893a266b212dcfa1",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-fe96a019e167.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "ext/libjpeg.cmd",
+      "git_blob_sha1": "ebd51af887ea1846a109711a6fe100e2aefc732c",
+      "sha256": "2db0246cf93ebd5cd0b0f0986dffc4dfacd801f232acaac4dd7a375ef06b5fd7",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-ebd51af887ea.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "ext/libsharpyuv.cmd",
+      "git_blob_sha1": "304b92552d30419a5ad7bfe81139f08b4e4cd3e9",
+      "sha256": "916174fc2a3904d26c1208556e2ca499539d5032805595cfe80592fadbf0206d",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-304b92552d30.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "ext/libyuv.cmd",
+      "git_blob_sha1": "4fbcd930c6882567773d40b240eb51f8b7137ef8",
+      "sha256": "843bede85784551adf36f3faf13b794b8623a4f6e1b9797d6d14c8384dcebbce",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-4fbcd930c688.decoded"
+    },
+    {
+      "repo": "AOMediaCodec/libavif",
+      "source_path": "ext/zlibpng.cmd",
+      "git_blob_sha1": "bc4f06a257c00e3e3524ab8e9d775114ff1c2098",
+      "sha256": "8842c102d45bc1e5e25429dda83dc9f251c44417b1a10ff723dfd1055ef46c6f",
+      "local_input": "tmp/development-pip-delivery-20261105/historical-provenance/libavif-tree-bc4f06a257c0.decoded"
+    }
+  ]
+}

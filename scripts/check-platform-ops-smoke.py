@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -77,9 +77,7 @@ def require(condition: bool, message: str) -> None:
 
 
 def check_go_platform_tests() -> None:
-    env = os.environ.copy()
-    env.setdefault("GOCACHE", str(Path(tempfile.gettempdir()) / "radishmind-go-build-cache"))
-    run_command(["go", "test", "./..."], cwd=PLATFORM_DIR, env=env)
+    run_command(["go", "test", "./..."], cwd=PLATFORM_DIR)
 
 
 def check_bridge_provider_registry(env: dict[str, str]) -> None:
@@ -176,8 +174,17 @@ def provider_profile_model_id(provider_id: str, profile: str) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--skip-go-tests", action="store_true",
+        help="delegate Go tests to the separate CI coverage/race job; keep bridge smoke checks",
+    )
+    args = parser.parse_args()
     env = bridge_env()
-    check_go_platform_tests()
+    if args.skip_go_tests:
+        print("platform Go tests delegated to the separate CI coverage/race job.")
+    else:
+        check_go_platform_tests()
     check_bridge_provider_registry(env)
     check_bridge_inventory(env)
     print("platform ops smoke checks passed.")

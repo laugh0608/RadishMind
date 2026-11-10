@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 const DEV_SOURCE = "dev-agent-copilot-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const PROFILE_PATH = "/v1/user-workspace/agent-copilot-profiles";
@@ -153,7 +154,7 @@ export const AGENT_COPILOT_TASKS: Record<AgentCopilotProject, readonly string[]>
 };
 
 export function readAgentCopilotProfileConfig(): AgentCopilotProfileConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_AGENT_COPILOT_SOURCE?.trim() === DEV_SOURCE
       ? "dev_agent_copilot_http"

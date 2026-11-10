@@ -1,6 +1,6 @@
 # RadishMind 战略定义
 
-更新时间：2026-09-06
+更新时间：2026-10-26
 
 ## 这份文档回答什么
 
@@ -33,7 +33,7 @@ RadishMind 的长期形态会参考三类开源项目，但不直接复刻任意
 - `sub2api`（https://github.com/Wei-Shaw/sub2api）：参考模型 API 分发、订阅 / key 中转和共享调用场景。
 - `axonhub`（https://github.com/looplj/axonhub）：参考 AI gateway、多模型 SDK 兼容、路由、failover、成本控制和 tracing。
 
-部署方式、数据库和登录 / 授权默认参考 `Radish`（https://github.com/laugh0608/Radish）。未来 RadishMind 应作为 OIDC client 接入 `Radish`，避免自建第二套身份与权限真相源。
+部署方式、数据库和登录 / 授权默认参考 `Radish`（https://github.com/laugh0608/Radish）。RadishMind 已拥有平台本地账户、会话、角色与工作区成员关系，并实现确定性 OIDC 客户端链；真实 Radish 联调仍待外部条件。联合身份不复制 Radish 自身身份、组织和业务真相源。
 
 这里的“参考 Radish”是协议、部署、数据库和身份边界对齐，不是复制 Radish 的后端语言栈。RadishMind 当前已经有 `Go + Python + TypeScript/Vite` 三栈，长期默认不再新增 `.NET` / ASP.NET Core；Control Plane 默认用 Go 独立成服务或模块，Model Gateway / API distribution 继续用 Go，模型、评测和 AI 生态相关 worker 继续用 Python。
 
@@ -110,10 +110,12 @@ Control Plane 可以拆成独立 Go 服务；拆分依据是租户 / 权限 / qu
 
 - 外部客户端如何调用 `RadishMind`
 - `/v1/chat/completions`、`/v1/responses`、`/v1/messages`、`/v1/models` 如何兼容
-- 内部 native Copilot API 如何保持为真相源
+- 内部 canonical contract 如何保持唯一规范入口；现有 Copilot 信封是实现事实，通用化迁移需要独立兼容设计
 - 不同 northbound 协议如何共享同一条 runtime / gateway truth
 
-这一层的目标不是复制一堆接口，而是保证：
+当前通用模型请求仍部分复用 Copilot 领域信封。长期应避免把业务专属字段强加给通用调用，但本轮规划不修改协议；只有具体任务受到约束时，才评审兼容迁移范围。
+
+这一层的目标是保证：
 
 - 兼容层只做翻译
 - 业务真相不分叉
@@ -226,7 +228,7 @@ Provider capability、health 和 selection 必须分层理解：
 ### 2. `Session Runtime`
 
 - 保留 `conversation_id`
-- 管理历史压缩、恢复和会话审计
+- 已有应用 Session / Turn 和显式结果保留；通用历史压缩、长期记忆与恢复执行属于后续方向
 - 适合多轮解释、问答和半结构化辅助
 
 ### 3. `Agent Runtime`
@@ -239,9 +241,7 @@ Provider capability、health 和 selection 必须分层理解：
 
 ## Action Safety Ladder
 
-当前只有 `requires_confirmation` 还不够，后续建议固定为动作梯度，而不是二元开关。
-
-建议层级：
+[动作安全阶梯](features/workflow/action-safety-ladder-candidate-action-execution-eligibility-dev-test-v1.md)已在开发测试态实现资格快照与规则收口；`requires_confirmation` 仍由规则约束。以下为层级词汇，`write_allowed_by_policy` 不开放：
 
 - `answer_only`
 - `proposal_only`
@@ -257,7 +257,7 @@ Provider capability、health 和 selection 必须分层理解：
 - `handoff_ready`：可以交给上层命令层或人工确认流
 - `tool_callable`：允许进入受控工具层
 - `write_blocked`：即使模型想写，也必须阻断
-- `write_allowed_by_policy`：只有在规则层明确允许时才可进入更高风险动作
+- `write_allowed_by_policy`：预留词汇，当前不实现；人工批准也不能直接授予该级别
 
 这比单独的高低风险更适合平台化治理。
 
@@ -276,7 +276,7 @@ Provider capability、health 和 selection 必须分层理解：
 
 - 能规则化的逻辑优先进入工具层
 - 工具层输出证据、候选或受控结果，不直接成为业务真相源
-- 工具调用必须可重放、可限权、可审计
+- 工具调用必须可限权、可审计；历史证据可重读，重放执行继续关闭
 
 ## 训练战略
 
@@ -311,7 +311,7 @@ Provider capability、health 和 selection 必须分层理解：
 
 当前已经具备丰富的开发测试态产品链，成熟度保持内部开发者预览。具体执行顺位只由[当前推进焦点](radishmind-current-focus.md)维护；本战略不再保留 2026-05 的 Provider 或 secret readiness 下一依赖。
 
-下一阶段围绕内部开发者独立创建可复用 AI 应用、受控运行、审查结果与回归验证，优先完成已选择的用户闭环。随后按真实阻塞逐项收敛公共模块职责、补齐关键自动浏览器回归，并在明确窗口内积累内部使用与输出质量证据。
+当前优先把已有能力交付为可持续使用的本机工作台：正式 Web、明确配置、本地身份与持久化、应用运行、显式结果保留和重启恢复。随后在获授权的真实模型窗口内验证任务效果，再依据实际需求选择共享交付或业务接入。增强评测、领域拆分和通用协议收敛需要具体使用或维护问题，不作为进入交付的预置工程队列。
 
 模型适配继续后置。任务集应区分结构合规、事实正确、建议有用、人工修改量、延迟与可信用量；raw、guided、builder、repaired 分别报告。新能力假设、代表性任务和运行窗口不足时，不由小规模修复通过率推导训练或生产准入。
 

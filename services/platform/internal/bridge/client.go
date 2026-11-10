@@ -95,12 +95,13 @@ type StreamEvent struct {
 }
 
 type Client struct {
-	pythonBinary   string
-	scriptPath     string
-	mode           Mode
-	pool           *workerPool
-	processCommand func(context.Context, string, ...string) *exec.Cmd
-	processStarts  atomic.Int64
+	isolateModelEnvironment bool
+	pythonBinary            string
+	scriptPath              string
+	mode                    Mode
+	pool                    *workerPool
+	processCommand          func(context.Context, string, ...string) *exec.Cmd
+	processStarts           atomic.Int64
 }
 
 func NewClient(pythonBinary string, scriptPath string) *Client {
@@ -127,6 +128,7 @@ func NewClientWithOptions(pythonBinary string, scriptPath string, options Client
 	}
 	client := NewClient(pythonBinary, scriptPath)
 	client.mode = normalizedOptions.Mode
+	client.isolateModelEnvironment = normalizedOptions.IsolateModelEnvironment
 	if normalizedOptions.Mode == ModeStdioPool {
 		client.pool = newWorkerPool(workerPoolConfig{
 			workerCount:      normalizedOptions.WorkerCount,
@@ -136,6 +138,7 @@ func NewClientWithOptions(pythonBinary string, scriptPath string, options Client
 			commandFactory: newPythonWorkerCommandFactory(
 				client.pythonBinary,
 				client.scriptPath,
+				client.isolateModelEnvironment,
 			),
 		})
 	}
@@ -272,7 +275,7 @@ func (c *Client) run(ctx context.Context, args []string, stdin []byte, apiKey st
 
 	commandArgs := append([]string{scriptPath}, args...)
 	command := c.newProcessCommand(ctx, commandArgs...)
-	command.Env = bridgeCommandEnvironment(apiKey)
+	command.Env = bridgeCommandEnvironment(apiKey, c.isolateModelEnvironment)
 	if len(stdin) > 0 {
 		command.Stdin = bytes.NewReader(stdin)
 	}
@@ -305,7 +308,7 @@ func (c *Client) runStream(
 
 	commandArgs := append([]string{scriptPath}, args...)
 	command := c.newProcessCommand(ctx, commandArgs...)
-	command.Env = bridgeCommandEnvironment(apiKey)
+	command.Env = bridgeCommandEnvironment(apiKey, c.isolateModelEnvironment)
 	if len(stdin) > 0 {
 		command.Stdin = bytes.NewReader(stdin)
 	}
@@ -367,15 +370,21 @@ func (c *Client) newProcessCommand(ctx context.Context, args ...string) *exec.Cm
 	return commandFactory(ctx, c.pythonBinary, args...)
 }
 
-func bridgeCommandEnvironment(apiKey string) []string {
+func bridgeCommandEnvironment(apiKey string, isolated bool) []string {
 	prefix := bridgeAPIKeyEnvironmentVariable + "="
 	environment := os.Environ()
 	filtered := make([]string, 0, len(environment)+1)
 	for _, entry := range environment {
+		if isolated && !inheritedWorkbenchEnvironment(entry) {
+			continue
+		}
 		if strings.HasPrefix(entry, prefix) {
 			continue
 		}
 		filtered = append(filtered, entry)
+	}
+	if isolated {
+		filtered = append(filtered, "RADISHMIND_DISABLE_ENV_FILE=1")
 	}
 	if normalizedAPIKey := strings.TrimSpace(apiKey); normalizedAPIKey != "" {
 		filtered = append(filtered, prefix+normalizedAPIKey)
@@ -413,4 +422,16 @@ func resolveScriptPath(scriptPath string) (string, error) {
 		return "", fmt.Errorf("resolve bridge script path: %w", err)
 	}
 	return "", fmt.Errorf("resolve bridge script path: %s was not found from current directory or parents", resolvedPath)
+}
+
+// Keep only process/toolchain settings. Model settings and credentials travel in
+// the explicit request envelope, never through ambient provider profiles.
+func inheritedWorkbenchEnvironment(entry string) bool {
+	name := strings.ToUpper(strings.SplitN(entry, "=", 2)[0])
+	switch name {
+	case "PATH", "HOME", "USERPROFILE", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "TMPDIR", "LANG", "LC_ALL", "TZ", "VIRTUAL_ENV", "PYTHONUTF8", "PYTHONIOENCODING", "PYTHONDONTWRITEBYTECODE", "SSL_CERT_FILE", "SSL_CERT_DIR":
+		return true
+	default:
+		return false
+	}
 }

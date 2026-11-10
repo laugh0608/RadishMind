@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import type { WorkflowExecutorConsumerConfig } from "./workflowExecutorConsumer.ts";
 import {
   parseWorkflowRunRecordDocument,
@@ -19,7 +20,7 @@ const DEFAULT_TENANT_REF = "tenant_demo";
 const DEFAULT_SUBJECT_REF = "subject_demo_user";
 
 export function readWorkflowRunHistoryConfig(): WorkflowExecutorConsumerConfig {
-  return resolveWorkflowRunHistoryConfig(import.meta.env as Record<string, string | undefined>);
+  return resolveWorkflowRunHistoryConfig(readWebConfigurationEnvironment());
 }
 
 export function resolveWorkflowRunHistoryConfig(

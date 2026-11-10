@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import {
   initialApplicationModelCatalogState,
   loadApplicationModelCatalog,
@@ -171,7 +172,7 @@ type DraftListEnvelope = {
 };
 
 export function readApplicationConfigurationDraftConfig(): ApplicationConfigurationDraftConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
     mode: env.VITE_RADISHMIND_APPLICATION_DRAFT_SOURCE?.trim() === DEV_SOURCE ? "dev_application_draft_http" : "offline",
     baseUrl: (env.VITE_RADISHMIND_APPLICATION_DRAFT_BASE_URL ?? env.VITE_RADISHMIND_CONTROL_PLANE_READ_BASE_URL ?? DEFAULT_BASE_URL).trim().replace(/\/$/u, ""),

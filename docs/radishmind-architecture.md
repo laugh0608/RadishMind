@@ -1,12 +1,18 @@
 # RadishMind 系统架构
 
-更新时间：2026-10-11
+更新时间：2026-11-05
 
 ## 架构职责
 
 本文描述当前进程、模块、请求流与数据归属，并区分实现事实、逻辑职责和后续收敛方向。能力成熟度见[能力矩阵](radishmind-capability-matrix.md)，执行顺位见[当前推进焦点](radishmind-current-focus.md)，功能细节见[功能设计入口](features/README.md)。
 
 RadishMind 是 AI 工具、工作流、模型网关和 Copilot 集成平台，不是上层业务真相源。RadishMind 本地账户、角色与工作区成员关系是平台内部真相；Radish 自身身份、组织成员关系和业务数据仍由 Radish 负责。
+
+## 本机交付目标与架构约束
+
+[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)已按确认范围实现统一配置、Web 接线和数据生命周期；宿主机浏览器与 `linux/arm64` 容器技术验收已完成，独立用户与真实模型效果仍待验证。它组合正式 Web、Go Platform、Python Runtime、本地 Session 和共享 SQLite；不增加语言栈、数据库抽象或账户真相源，不移除既有 PostgreSQL 开发测试能力。
+
+由现有 Go 服务提供正式 Web 静态资源、严格的公开运行时配置和既有 API，形成单一浏览器来源；Python 仍为受控工作进程。宿主机与一个工作台容器共用运行档，默认只公开回环地址 `4100`，不增加 Node、反向代理、Auth 或数据库服务。首次初始化、日常启动、显式升级及冷备份恢复分开，复用已有 SQLite 迁移和身份 bootstrap，不复制领域实现。实现落点为 `internal/workbench`、平台 `workbench` 子命令及 Web `src/runtime/workbenchConfiguration.ts`；SQLite 迁移集合统一由 `migrations/sqlite` 导出，领域 SQL 不变。运行步骤见[工作台指南](platform/local-persistent-workbench-operations-v1.md)。Session / Run / Result Artifact 保持各自数据职责，重启读取不自动恢复执行或重放；开发身份头不用于共享网络认证。本机交付不授予生产能力，也不以全量拆包或通用协议重写为前提。现有实现映射与请求边界如下。
 
 ## 当前进程与代码映射
 
@@ -79,6 +85,22 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 通用 `/v1/tools/actions` 保持 blocked shell。Workflow HTTP Tool 通过独立 action plan、confirmation、执行档案和既有 Run / Audit owner 工作，不开放通用工具执行器或业务写回。
 
 应用定时评测运行器仅在明确开发测试门禁下启动；区分系统执行主体与受委托用户，每次调度触发时重新验证权限和配置，使用确定性 Campaign / Run 交接。关闭时先取消并等待任务结束，再释放桥接层与存储；不等于生产工作进程或通用调度器。
+
+## 拟新增的受控开发团队边界
+
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已进入阶段 0，单尝试控制基座已实现，完整团队尚未启用。Go 继续拥有团队 / 任务 / 尝试权威状态及授权、预算、取消和证据判定；Python 编码 SDK 只执行一次角色任务，OpenHands 为首选候选。长任务使用独立生命周期，不长期占用已有短请求桥接池，不新建第二套通用工作流与恢复权威。
+
+固定 Go 探针已采用可信执行控制层与独立代码容器分离：SDK 经受限 Gateway 通道访问模型，经授权工具入口操作隔离副本；代码进程不继承平台 / 提供方密钥，不挂载平台数据库、用户原工作树或 Docker socket。工作台容器验收不替代这一新增边界，具体方案见[隔离执行子专题](features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。
+
+拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包已由独立 `developmentartifact` 负责，使用共享 SQLite 的独立 `development_artifacts` 组件；显式保存、不可变包、配额与精确导出遵守[产物合同](contracts/development-artifact-v1.md)，不写入旧 Session 或文本结果字段。团队事件正文仍须按后续合同处理。阶段 1 单 Agent 的独立权限、原子启动和资源核对已形成[公开交付设计](contracts/development-task-delivery-v1.md)，尚未实现公开路由 / 协调器；当前管理员签发方式不自动成为正式执行权限。重启默认只读回记录，不自动重放代码 / 工具命令。
+
+现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托和单尝试状态 / 事件已取得固定响应证据；正式公开任务接口与运行协调留待阶段 1，通用仓库和团队并发不由探针结果推定通过。现有 API 语义、工作进程与默认运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。
+
+`internal/developmentcontrol` 承接单尝试合同、SDK 参数转换、预算 / 取消规则、共享 SQLite 的独立 `development_attempts` 组件、提议 / 事件事务及严格原生 HTTP 消费；`internal/strictjson` 由两者复用。`httpapi` 通过显式 Go 接口连接现有身份、应用 AuthorityDigest、精确模型目录与定价，签发须验证本地 Session、当前管理员资格和逐任务计划确认；专属监听器只在明确调用时绑定回环临时端口。没有默认配置开关或公开管理路由。`ConnectDevelopmentNativeHTTP` 已实现单一非流式 `openai-compatible` HTTP 接线，复用 Go 配置 / 凭据来源并重查当前目录；固定上游工具往返已验证，真实厂商资格和完整输入计量仍未验收。它不改变旧建议型 Gateway 的工具关闭语义。工具只入队，文件 / 命令只在显式接线的固定 Go 探针沙箱中执行；新组件仅 SQLite，不继承其它负责模块的双数据库声明。
+
+可选 `services/runtime/development_sdk` 通过真实 SDK Agent 接受 Go 私有 stdin / stdout 协议，唯一模型出口为专属通道，工具经可信 Go 回调；`Runtime.RunWorker` 持久声明一次执行，监督独立进程组、父存活管道和取消，SDK 事件仅是观察。原生最终响应不直接完成尝试，须同时满足 SDK 报告、正常 OS 退出、空进程组和最新资格。该路径已固定响应验证，正常平台构造不启用；
+
+可选 `internal/developmentsandbox` 已实现固定 Go 探针的私有候选读取 / 原子替换、全只读验证快照、独立代码容器和私有归属账册；容器 PID 1 watchdog 来自 `cmd/radishmind-development-sandbox`，不复用 Python SDK 或短请求池。`WorkerLaunch.Sandbox` 绑定尝试 / 执行器 / 计划 / 基准并在完成前关闭；取消 / 失败结合 SDK、代码容器和本地模型连接证据记录终止状态。固定容器已真实验收，开发产物已增加可信关闭快照与内部保存接线，真实 SDK 与固定代码容器同次任务的修改 / 测试 / 保存 / 导出及命令中取消已固定响应验证；可信控制容器使用管理通道，SDK 降权并以 Linux 私有目录隔离管理通道及控制数据，宿主共享目录的模式位不能单独作为该边界；通用仓库仍待收口，见[沙箱合同](contracts/development-code-sandbox-v1.md)。专属监听器与任务级委托接线见[尝试控制合同](contracts/development-attempt-control-v1.md)。
 
 ## 图片产物链
 

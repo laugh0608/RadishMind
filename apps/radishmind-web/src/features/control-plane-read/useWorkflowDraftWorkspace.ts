@@ -1,3 +1,4 @@
+import { workbenchConfiguration } from "../../runtime/workbenchConfiguration.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   continueLocalWorkflowDraftAfterVersionConflict, initialWorkflowSavedDraftConsumerState,
@@ -12,7 +13,7 @@ import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
 import { buildDerivedWorkflowDraft, canDeriveSavedWorkflowDraft, cloneWorkflowDraftForEditing } from "./workflowSavedDraftDerivation.ts";
 import { buildWorkflowExecutorV0Draft } from "./workflowExecutorConsumer.ts";
 import { buildWorkflowWorkspaceContextViewModel, type WorkflowWorkspaceContextSource, type WorkflowWorkspaceSelectionPatch } from "./workflowWorkspaceContext";
-import { buildWorkspaceCreatedDraft, workspaceDraftCreatedConsumerState, workflowTemplateDerivedConsumerState } from "./workflowDraftCreation.ts";
+import { buildWorkflowStructuredInputDraft, buildWorkspaceCreatedDraft, workspaceDraftCreatedConsumerState, workflowTemplateDerivedConsumerState } from "./workflowDraftCreation.ts";
 import { useWorkflowSavedDraftLibrary } from "./useWorkflowSavedDraftLibrary.ts";
 
 type WorkflowDraftWorkspaceSource = Pick<WorkflowWorkspaceContextSource,
@@ -232,7 +233,7 @@ export function useWorkflowDraftWorkspace({
     setWorkflowDraftEditDirty(true);
     setSavedDraftConsumerState(workspaceDraftCreatedConsumerState(activeSavedDraftConsumerConfig, createdDraft));
   };
-  const handleCreateWorkflowExecutorDraft = () => {
+  const handleCreateWorkflowExecutorDraft = (schema: "v1" | "v2" = "v1") => {
     if (workflowExecutorOperationPending) {
       return;
     }
@@ -241,11 +242,19 @@ export function useWorkflowDraftWorkspace({
         draft.applicationRef === workflowScopedApplicationId &&
         draft.executionProfile === "executor_v0",
     ).length + 1;
-    const createdDraft = buildWorkflowExecutorV0Draft(
+    const createdDraft = (schema === "v2" ? buildWorkflowStructuredInputDraft : buildWorkflowExecutorV0Draft)(
       activeWorkflowDraft,
       nextDraftNumber,
       workflowScopedApplicationId,
     );
+    const workbench = workbenchConfiguration();
+    if (workbench) {
+      createdDraft.workflowDefinitionId = `workflow_${crypto.randomUUID()}`;
+      createdDraft.templateRef = "workbench-basic-workflow";
+      createdDraft.label = `Workflow ${nextDraftNumber}`;
+      createdDraft.providerProfileRef = `provider:${workbench.provider_mode}`;
+      createdDraft.nodes = createdDraft.nodes.map(node => node.nodeType === "llm" ? { ...node, providerRef: createdDraft.providerProfileRef } : node);
+    }
     setWorkspaceCreatedDrafts((drafts) => [...drafts, createdDraft]);
     applyWorkflowSelectionPatch({
       applicationRef: createdDraft.applicationRef,

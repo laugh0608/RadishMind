@@ -1,0 +1,104 @@
+{
+  "schema_version": "development_license_page_result.v1",
+  "status": "authorized_window_completed_declared_text_acquired_derivation_review_open",
+  "authorization": "项目所有者单独批准两项官方页面下载。",
+  "plan": "license-page-followup-20261105.json",
+  "requests": [
+    {
+      "id": "python-1-6-download-page",
+      "hop": 0,
+      "request_host": "www.python.org",
+      "exit_code": 0,
+      "http_status": "301",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": "",
+      "body": "python-1-6-download-page.0.body",
+      "redirect_followed": true,
+      "redirect_host": "www.python.org"
+    },
+    {
+      "id": "python-1-6-download-page",
+      "hop": 1,
+      "request_host": "www.python.org",
+      "exit_code": 0,
+      "http_status": "200",
+      "bytes": 36458,
+      "sha256": "93229c6310e6c585d71255e4315703afc06eca60d4aa5e984d9aec6a85dfdf00",
+      "error": "",
+      "body": "python-1-6-download-page.1.body",
+      "redirect_followed": false
+    },
+    {
+      "id": "python-1-6-license-faq",
+      "hop": 0,
+      "request_host": "www.python.org",
+      "exit_code": 0,
+      "http_status": "404",
+      "bytes": 32608,
+      "sha256": "5a5daf3c8ed6871b6dc7c3b8caa00ff25a8719811aea24d80483b8e41eba3819",
+      "error": "",
+      "body": "python-1-6-license-faq.0.body",
+      "redirect_followed": false
+    }
+  ],
+  "total_body_bytes": 69066,
+  "python_1_6": {
+    "source_url": "https://www.python.org/download/releases/1.6/download",
+    "official_release_page_reference": "license-source-result-20261105.json",
+    "license_file": "notice-supplements/regex-2026.9.29-CNRI-Python-1.6-LICENSE.txt",
+    "normalization": {
+      "operation": "Decode outer HTML entities and embedded paragraph markup in two HTMLParser passes; remove tags, preserve paragraph text, trim line ends, collapse repeated blank lines, append final LF. No words replaced.",
+      "page_sha256": "93229c6310e6c585d71255e4315703afc06eca60d4aa5e984d9aec6a85dfdf00",
+      "fragment_byte_offset": 19733,
+      "fragment_byte_length": 4018,
+      "fragment_sha256": "f6f3fa3781d54ec5af312a33fbb36a5365d5abdbe6fdcb03f3cf3f476d24d6eb",
+      "output_sha256": "d4c9c432696dec0f8af87cf38160a671648c3591459d9edc785796938bba7c00",
+      "output_bytes": 3511,
+      "clauses": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    "final_release_date": "2000-09-05",
+    "handle": "1895.22/1012",
+    "all_eight_clauses_retained": true
+  },
+  "prior_cpython_notices": [
+    {
+      "url": "https://raw.githubusercontent.com/python/cpython/v2.6/LICENSE",
+      "sha256": "f7a0d9a43d04eade9ecb2f677a617b7c22794355ac49f0b141ab194fb030a64f",
+      "cnri_section_sha256": "492e27a1283941448686adbce4e49b7bcf31465763b5fa94dbd30dfae943a0d0",
+      "declared_version": "1.6.1",
+      "handle": "1895.22/1013"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.1/LICENSE",
+      "sha256": "1524dab343bfa65c65f0450cebaf6472d98f668ecf615df1eadb149f88912fff",
+      "cnri_section_sha256": "492e27a1283941448686adbce4e49b7bcf31465763b5fa94dbd30dfae943a0d0",
+      "declared_version": "1.6.1",
+      "handle": "1895.22/1013"
+    }
+  ],
+  "comparison": [
+    "regex 精确 wheel / sdist 的 LICENSE 声明来源为 CPython 2.6 / 3.1，并指向 CNRI Python 1.6。",
+    "官方最终 1.6 正文与此前 CPython 2.6 / 3.1 携带的 1.6.1 正文不是同一文本：版本、版权年份、handle 和第 7 条内容不同。",
+    "已保留声明所指的最终 1.6 全文，不以 1.6.1 静默替换；正文缺失已补齐，实际继承来源与应随交付保留的告知范围仍待核对。"
+  ],
+  "boundary": {
+    "form_submitted": false,
+    "accept_clicked": false,
+    "source_downloaded": false,
+    "source_executed": false,
+    "image_operations": false,
+    "links_followed_beyond_approved_redirect": false,
+    "window_closed": true,
+    "license_gate_closed": false
+  }
+}

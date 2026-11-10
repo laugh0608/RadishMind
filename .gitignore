@@ -238,3 +238,10 @@ tmp/
 # Frontend build output
 apps/radishmind-console/dist/
 apps/radishmind-web/dist/
+
+# Persistent local workbench state and deployment secrets
+var/workbench/
+var/workbench-backups/
+deploy/workbench/
+deploy/workbench-backups/
+deploy/.env.workbench

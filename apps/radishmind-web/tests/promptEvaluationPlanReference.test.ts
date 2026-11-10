@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readPromptPlanReference } from "../src/features/control-plane-read/promptEvaluationPlanReference.ts";
+import { readPromptTemplateReference } from "../src/features/control-plane-read/promptTemplateReference.ts";
 import type { PromptApplicationRuntimeConfig } from "../src/features/control-plane-read/promptApplicationRuntimeConsumer.ts";
 
 const config: PromptApplicationRuntimeConfig = {
@@ -9,7 +9,7 @@ const config: PromptApplicationRuntimeConfig = {
 const applicationId = "app_aaaaaaaaaaaaaaaa";
 const templateId = "ptpl_aaaaaaaaaaaaaaaa";
 const digest = `sha256:${"a".repeat(64)}`;
-const read = (isCurrent = () => true) => readPromptPlanReference(config, config, applicationId, isCurrent);
+const read = (isCurrent = () => true) => readPromptTemplateReference(config, config, applicationId, isCurrent);
 const response = (body: unknown) => new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
 
 test("Prompt reference reads assignment, exact source, then verifies assignment again using current scope", async () => {
@@ -42,9 +42,9 @@ test("Prompt reference reads assignment, exact source, then verifies assignment 
 test("offline and mismatched reference scopes cannot start requests", async () => {
   globalThis.fetch = async () => { throw new Error("unexpected request"); };
   assert.deepEqual(await read(() => false), { status: "cancelled" });
-  assert.deepEqual(await readPromptPlanReference({ ...config, mode: "offline" }, config, applicationId, () => true), { status: "unavailable", code: "prompt_plan_reference_offline" });
+  assert.deepEqual(await readPromptTemplateReference({ ...config, mode: "offline" }, config, applicationId, () => true), { status: "unavailable", code: "prompt_template_reference_offline" });
   for (const different of [{ tenantRef: "other" }, { workspaceId: "other" }, { subjectRef: "other" }, { authMode: "local_session_dev_test" as const }]) {
-    assert.deepEqual(await readPromptPlanReference(config, { ...config, ...different }, applicationId, () => true), { status: "unavailable", code: "prompt_plan_reference_scope_mismatch" });
+    assert.deepEqual(await readPromptTemplateReference(config, { ...config, ...different }, applicationId, () => true), { status: "unavailable", code: "prompt_template_reference_scope_mismatch" });
   }
 });
 
@@ -82,7 +82,7 @@ test("missing, revoked, denied, malformed and drifting authorities never supply 
       }
       return response(body);
     };
-    assert.deepEqual(await read(), { status: "unavailable", code: "prompt_plan_reference_changed" });
+    assert.deepEqual(await read(), { status: "unavailable", code: "prompt_template_reference_changed" });
   }
 });
 
@@ -128,3 +128,16 @@ function source() {
     failure_code: null, current_draft_version: 1, current_template_version: 1, validation_summary: { state: "valid", is_valid: true, findings: [] }, audit_ref: "audit-ref-source",
   };
 }
+
+test("Session input reference requires its pinned assignment and exact template before reading source", async () => {
+  const expected = { applicationId, assignmentId: "ptra_aaaaaaaaaaaaaaaa", assignmentVersion: 4, templateId, templateVersion: 1 };
+  for (const change of [{ applicationId: "app_bbbbbbbbbbbbbbbb" }, { assignmentId: "ptra_bbbbbbbbbbbbbbbb" }, { assignmentVersion: 5 }, { templateId: "ptpl_bbbbbbbbbbbbbbbb" }, { templateVersion: 2 }]) {
+    let requests = 0;
+    globalThis.fetch = async () => { requests += 1; return response(assignment()); };
+    assert.deepEqual(await readPromptTemplateReference(config, config, applicationId, () => true, { ...expected, ...change }),
+      { status: "unavailable", code: "prompt_input_session_authority_changed" });
+    assert.equal(requests, 1);
+  }
+  globalThis.fetch = async url => response(String(url).includes("/versions/") ? source() : assignment());
+  assert.equal((await readPromptTemplateReference(config, config, applicationId, () => true, expected)).status, "ready");
+});

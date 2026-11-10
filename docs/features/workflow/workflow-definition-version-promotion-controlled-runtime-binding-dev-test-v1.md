@@ -1,8 +1,10 @@
 # Workflow 不可变版本晋级与受控运行绑定（开发 / 测试态）v1
 
-更新时间：2026-09-09
+更新时间：2026-10-21
 
 状态：`workflow_definition_version_promotion_controlled_runtime_binding_dev_test_v1_completed`
+
+2026-10-21 完整走查确认的两项前端问题已修复并通过双语隔离验收：版本族选择、作用域和身份修订隔离迟到响应；激活指针冲突使旧依据失效、保留理由，并提供显式重读与重新决定入口。v2 Definition 亦可派生可编辑草案。具体实现与证据见[Workflow 四段实施结果](../user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)，不改变服务端权限、CAS 或精确执行契约。
 
 ## 功能定位
 

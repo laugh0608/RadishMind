@@ -1,6 +1,6 @@
 # RadishMind UI 差异附录
 
-更新时间：2026-10-15
+更新时间：2026-11-05
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
 
@@ -47,6 +47,10 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 [Web 中英国际化与本地化 v1](features/web-internationalization-zh-en-v1.md)统一维护语言选择、术语、格式化、迁移与双语验收方案。A 至 F 在登记的可达范围完成，覆盖 Prompt、Workflow / RAG / HTTP Tool、身份与成员邀请、管理主页面、Agent、Gateway、运营、评测与结果库；确认等待、失败恢复、CAS、业务语言隔离及代表三视口按切片验收，证据见专题和周志。F 阶段补齐主壳可达证据和应用交互会话的固定文案，三窗口 76 次最终浏览器复验及截图复核通过。React Flow 当前可见控件和键盘辅助提示使用应用资源；浏览器原生控件菜单随浏览器语言。固定说明使用稳定消息键，记录原文与协议值不通过正文匹配推断译文；界面语言切换不得更换组件身份、触发请求或清空确认状态。
 
 语言入口位于桌面导航底部、移动菜单内、认证页页头及账户安全 / 确认 / 邀请认领弹层。语言变化不得清空表单、重发业务请求或改变业务 `locale`；保留协议标识、状态样式与用户原文。实施时检查中英文长度、内部容器溢出和可访问名称，继续沿用本附录的视觉与 token 规则。
+
+## 规划中的开发团队工作区
+
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)拟在正式 User Workspace 内提供计划授权及候选交付审阅，复用项目语义 token、组件、作用域与双语规则。单 Agent 首版已按 A 级（8 分）完成六个 Pencil 代表面，覆盖桌面计划 / 执行 / 审阅、窄屏、取消未确认与保存风险，索引和合同对应见[交互子专题](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)。具体视觉待确认，无 React 或浏览器验收；团队配置与群聊后置，不将已有页面批准自动迁移到新工作区。
 
 ## Token 与构建映射
 
@@ -96,6 +100,14 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 
 专属组件不得复制领域 owner，也不得从 UI 推导生产 readiness、全量统计或自动执行资格。
 
+## 2026-10-26 工作台接线与验证范围
+
+当日 Workflow 首次使用修正沿用既有 C 级动作区，区分单文本 / 结构化格式、内容版本与激活指针，并修复比较主按钮悬停文字；中英及三视口的局部最终证据见 [W44 周志](devlogs/2026-W44.md#2026-10-26-workflow-首次使用复核与局部修正)。
+
+随后新增 `local-workbench` 入口，复用认证、应用五阶段和 Workflow 页面，只增加首次初始化说明、运行模式 / 正文保留提示及现有草案创建动作，隐藏此档未开放的演示与扩展面，继续使用项目语义 token。该接线按交付专题登记为 C 级直接实现；2026-10-31 已在独立宿主机窗口完成中英 `1440×900 / 390×844` 的 Prompt / Workflow 会话、保存结果与恢复复核，证据独立于当天较早开发入口的截图。范围见[工作台交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md#实现与当前证据2026-10-31)。
+
+2026-10-31 同一 C 级范围内修复嵌套接入区域的密钥表单：按容器宽度重排，避免固定最小列宽压缩复选框；显式保存复选框保持 `16px` 点击区域，会话与结果控件沿用语义 token。恢复既有 Playground 模型目录入口，清除工作台误露的演示草案模板、旧执行器与离线交接投影。代表双语结果页无横向溢出，正文及操作可通过正常滚动访问；未将该窗口外推为全站或独立用户视觉批准。
+
 ## 当前迁移偏差
 
 ### 已接受的临时偏差
@@ -107,7 +119,7 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - `S1 R5` / `S2 R3` 的人工评审结论为现代产品感不足；`S1 R6` / `S2 R4` 修正了整体方向，`S1 R7` / `S2 R5` 取消了无职责的桌面外圈容器，但局部仍偏规整文字面板。`S1 R8` / `S2 R6` 已用 Operations Inbox 紧凑窗口与 evidence path、Source evidence 分布矩阵、当前阶段轻量选中轨、十三段 contribution window、九格 readiness 与 authorization path 增强信息密度和视觉焦点；选中只归属于当前导航或详情 owner，普通状态项不得因 `missing`、`blocked` 或 `partial` 获得选中底色。2026-08-06 人工复评已通过，`S1 R8` React 也已按真实 view model 落地并完成严格浏览器验收；设计中的代表计数不覆盖运行时计数。当前进入 `S2 R6`，不把尚未实现的 Application Workspace 新基准写成已落地产品行为。
 - S9 / S10 原 R1 的首次返工只把独立米棕色板映射回项目 token，未改变宽 hero、等权卡片、稀疏工作面和另一套侧栏，因此被人工退回；Visual R2 虽完成连续 Workbench 结构归位，又把上下文、任务、owner 与 boundary 全部处理成硬方形，仍未继承 S7 / S8 和 `reference-ui` 的形态语言，因此再次被退回。2026-08-10 已完成 Visual R3：连续窗格与表格事实行保持方正发丝边界，业务表面使用 `8–11px` 职责圆角，紧凑控件使用 `7–8px`，标签使用全圆角。S9 与 S10 Visual R3 已于 2026-08-12 人工通过；已有 React 功能证据仍不得冒充逐项采用 Visual R3。
 - 结构化输入局部稿的 Visual R3 虽满足上述圆角层级，字段区仍像用整页横线切出的静态列表，因此继续修订为 Visual R4。类型化编辑器使用带留白层级的表单画布：长短字段按任务关系非对称编排，文本、数值和布尔值呈现真实控件，错误与帮助文字归属于精确输入；不可变合同、authority 与易失值边界继续分离。Visual R4 已于 2026-08-10 通过人工复核并冻结，但不表示共享 React editor 已实现。
-- 2026-10-15 [Prompt 计划结构化编辑方案](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)新增 `q3ngo0 / a3sRe / fFIKS / MsAk8` 四块局部画板，评分 `1 / 1 / 1 / 2 / 0 = 5`，采用 B 级覆盖。继承 S10 的单一任务区域与既有结构化输入表单，只补样本维护、值语义、版本审查和失败恢复；四块画板的原生静态及实际渲染复核完成，项目所有者已批准方案，React 已按其实现样本、来源、值语义、审查与恢复。原稿 R1 标题保留设计阶段记录；实际 React 双语、三视口与连续操作尚待独立浏览器窗口验收，不沿用画板检查作为运行态证据。
+- 2026-10-15 [Prompt 计划结构化编辑方案](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md#prompt-计划结构化编辑与版本回归体验2026-10-15-方案)新增 `q3ngo0 / a3sRe / fFIKS / MsAk8` 四块局部画板，评分 `1 / 1 / 1 / 2 / 0 = 5`，采用 B 级覆盖。继承 S10 的单一任务区域与既有结构化输入表单，只补样本维护、值语义、版本审查和失败恢复；四块画板的原生静态及实际渲染复核完成，项目所有者已批准方案，React 已按其实现样本、来源、值语义、审查与恢复。原稿 R1 标题保留设计阶段记录；2026-10-21 已独立获授权并完成 React 双语、三视口与连续操作验收，修正基础按钮样式遗漏及普通保存确认的警示外观，补齐参考变更 / 采用、作用域迟到响应与真实 CAS 证据；所属环境已清理。分窗口结果见 [2026-W43 周志](devlogs/2026-W43.md#2026-10-21-prompt-计划编辑浏览器验收)，不沿用画板检查作为运行态证据。
 - Gateway Provider Attempt Visual R1 继续复用 S7 / S5 的连续 Workbench：桌面使用资源路径、单一主 owner 和一个 evidence rail，窄屏固定 `context → plan → attempts → cost / boundary`；主 / 备 target 主要由顺序、角色文字和连续 attempt 行区分，只有当前审查对象使用墨蓝选中轨。失败、quota 阻断与 partial cost 同时使用稳定文字、符号和语义状态，不依赖颜色。七个根节点已完成结构与实际渲染复核，并于 2026-08-13 获得人工视觉批准；批准不表示 React 已采用。
 - Authentication Self-Service Security Visual R1 延续 Authentication Gateway 的简化 shell 与 Family UI token：Desktop `pOLcz` 把 session directory 作为唯一主对象，Narrow `LMi7H` 以纵向 bulk confirmation 重排，danger state `n2O8A5` 单独承接 credential rotation 与 forced re-login，Decision `DASE0` 固定五维评分、隐私边界和状态失效规则。四张根画板已完成结构与实际渲染复核，并于 2026-08-25 获得人工视觉批准；2026-08-26 React 已在既有 Gateway owner 内采用该结构，以单一 strict consumer、语义 token、`900px` / `620px` 响应式边界和 metadata-only invalidation 落地。同日 in-app Browser 完成 `1440×900`、`720×900`、`390×844`、双标签、console / network / URL / storage / cookie 审计；真实窄屏发现并修复单列 grid implicit row 压缩裁切 session row，以及 account trigger 被 sticky mobile navigation 覆盖两个根因。复验后三视口无横向溢出、账户入口可命中，Visual R1 的 React 采用与浏览器验收均已关闭；这些证据仍只属于开发 / 测试态，不构成 production auth、设备管理或全局 session console。
 - Workspace Invitation & Claim Visual R1 复用 S7 与 Authentication Gateway，不建立 S11。S7 Admin Desktop `q4s4X` / one-time handoff Narrow `L2SJt`、Authentication Claim Desktop `MsAm1` / invalid terminal Narrow `HSfOp` 与 R25 Decision `RY0Xx` 覆盖 invitation directory、role / TTL review、一次性 code、preview / confirmed claim、claimed / revoked / expired / invalid、scope / actor 失效和窄屏顺序。R25 五维评分为 `1 / 2 / 2 / 2 / 1 = 8`；五块根画板共 `630` 个节点，Pencil 原生静态 QA 对裁切、placeholder、命名、文字 fill、硬编码 fill / stroke、原始 code 与微缩文字均为 `0` 问题，并于 2026-09-05 获项目所有者人工视觉与安全边界批准。2026-09-08 批次 E 已独立获授权并完成 React 与真实浏览器验收：四态目录按既有契约默认 Pending，交接 / 预览 / 显式认领复用语义 token 与共享失效模型；`1440×900`、`720×900`、`390×844` 无横向溢出，双标签撤销、账户 / 工作区 / 页面切换与一次性凭据清理通过。源码与浏览器确认不存在未经契约支持的 All 聚合目录；验收不修改 Pencil 设计源或扩大生产能力。
@@ -118,6 +130,10 @@ RadishMind 当前选择精确镜像所采用 family-ui 版本的参考实现；�
 - 2026-10-11 已稳定定位另一项入口遮挡：英文长标题把中栏内部默认 Grid 列撑过其实际宽度，导致领域入口被右侧证据栏拦截。中栏内部列现为 `minmax(0, 1fr)`，标题区使用剩余宽度，使既有省略规则在有限空间内生效；保持外层 `928px` 容器断点和窄屏顺序。现有 HTTP Tool Definition 回归检查中英十三个视口的中栏内部边界、链接命中与正常点击可达性，再完成真实领域流程；八张代表入口截图已复核，未使用强制点击、增加点击超时或提高层叠顺序。证据见[本周周志](devlogs/2026-W41.md#2026-10-11-application-workspace-入口遮挡修复与复验)。
 - family-ui 已包含暗色映射，但 RadishMind 尚未完成暗色页面设计、切换策略和双态视觉验收，因此当前不提供暗色主题开关。
 - 旧 [UI 设计规范](radishmind-ui-design-spec.md) 暂作为历史迁移源保留；其中家族通用视觉规则已由 family-ui 取代，领域状态和产品边界逐步迁入功能专题与本附录。
+
+2026-10-21 Prompt 调用 / Session 的变量输入沿用 S8 区域与已审 Prompt 计划字段模式，评分 `0 / 0 / 0 / 1 / 1 = 2`，采用 `C / 直接实现`。共享五类控件、参考状态、双模式与显式采用，补齐输入区域间距，并按容器实际宽度收为单列；不新建画板。浏览器证据见 [W43 周志](devlogs/2026-W43.md)。随后批准的四项失败恢复修复沿用相同 C 级评分，在原动作区增加新执行准备、精确会话重读与凭据恢复链接；补齐 Session 动作按钮与键输入框的语义样式，不引入新页面、风险确认或设计画板。中英桌面 / 窄屏 React 复验及 16 张代表截图检查通过，环境已清理。
+
+2026-10-21 Workflow [四段实施](features/user-workspace/application-development-workspace-release-readiness-review-v1.md#实施结果与使用边界2026-10-21)已完成。晋级选择与冲突恢复复用原动作区，采用 C 级；v2 输入合同编写和评测目标参考各按 `1 / 1 / 1 / 1 / 1 = 5` 采用 B 级局部 Pencil。原设计源已增加合同桌面 / 窄屏 `dGX5B / wiflC`、评测引用桌面 / 窄屏 `T5Ery / MbSKu` 和状态说明 `EvMyK`，先完成布局与截图复核再实现。React 双语及代表视口复核已完成，长标识折行、布尔控件宽度与控件尺度已修正；项目所有者尚未登记新的视觉批准。原 Visual R4 继续只证明运行值表单，分窗口证据见 [W43 实施记录](devlogs/2026-W43.md#2026-10-21-workflow-四段实现与连续验收)。
 
 ### 不接受的偏差
 

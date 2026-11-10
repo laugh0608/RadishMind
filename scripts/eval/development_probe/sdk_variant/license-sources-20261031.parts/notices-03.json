@@ -1,0 +1,103 @@
+{
+  "status": "source_evidence_only_not_a_distributed_notice_bundle",
+  "items": [
+    {
+      "label": "CPython 3.1 historical license",
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.1/LICENSE",
+      "sha256": "1524dab343bfa65c65f0450cebaf6472d98f668ecf615df1eadb149f88912fff",
+      "bytes": 13985,
+      "local_file": "9fe30ab34305f00348bdf808.body"
+    },
+    {
+      "label": "PrefectHQ/fastmcp .github/workflows/publish-fastmcp-slim.yml",
+      "url": "https://raw.githubusercontent.com/PrefectHQ/fastmcp/9dc7191c1b44291be05c7d7bcf4cb3c18d86c434/.github/workflows/publish-fastmcp-slim.yml",
+      "sha256": "577e5a539f1717bb9c2181be53e6cb4193f29a4e10edaaa5099293d121e5e2fd",
+      "bytes": 603,
+      "local_file": "52f2ae3bbb91304b4746f54a.body"
+    },
+    {
+      "label": "scoder/lupa .gitmodules",
+      "url": "https://raw.githubusercontent.com/scoder/lupa/120106c49b690dde2c5020dafe9754e598d0b516/.gitmodules",
+      "sha256": "271187f7ba4f51ef4be8abeb0bcf09b03835287c6e11f3f5adfc02fc9085be17",
+      "bytes": 594,
+      "local_file": "3391fe73f333bbded2477eec.body"
+    },
+    {
+      "label": "scoder/lupa setup.py",
+      "url": "https://raw.githubusercontent.com/scoder/lupa/120106c49b690dde2c5020dafe9754e598d0b516/setup.py",
+      "sha256": "276891988f395b6fc610cf0f1661bb096c76df5e8d3e9592f47f1f60040fda76",
+      "bytes": 18083,
+      "local_file": "51fe2ee31b77c2b8b8543ba7.body"
+    },
+    {
+      "label": "Lupa bundled Lua51 lua.h",
+      "url": "https://raw.githubusercontent.com/scoder/lupa/120106c49b690dde2c5020dafe9754e598d0b516/third-party/lua51/src/lua.h",
+      "sha256": "470551c185f058360f8d0f9e5c54a29a3950f78af6a93f3fe9e4039a380c7b87",
+      "bytes": 11688,
+      "local_file": "aa6c1967a785dd413c4ec29a.body"
+    },
+    {
+      "label": "Lupa submodule third-party/lua53 lua.h",
+      "url": "https://raw.githubusercontent.com/lua/lua/75ea9ccbea7c4886f30da147fb67b693b2624c26/lua.h",
+      "sha256": "d05e8e3b199aa51fec7c3d40f058a1e4f9aa76bb0587a9fe211f00c800f71a9d",
+      "bytes": 14777,
+      "local_file": "5dedde8d670728547f7f6e06.body"
+    },
+    {
+      "label": "Lupa submodule third-party/lua52 lua.h",
+      "url": "https://raw.githubusercontent.com/lua/lua/4324904b60db5243ede68d0922c1bf3c0dd05986/lua.h",
+      "sha256": "fae129f7098a4476c1457f2851c93d337092d1138f48e8ee06a342b8290ac0aa",
+      "bytes": 13610,
+      "local_file": "674032867d79119bcbc16082.body"
+    },
+    {
+      "label": "Lupa submodule third-party/luajit21 COPYRIGHT",
+      "url": "https://raw.githubusercontent.com/LuaJIT/LuaJIT/18b087cd2cd4ddc4a79782bf155383a689d5093d/COPYRIGHT",
+      "sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47",
+      "bytes": 2935,
+      "local_file": "ec1e18304add2c564197d7cf.body"
+    },
+    {
+      "label": "Lupa submodule third-party/luajit20 COPYRIGHT",
+      "url": "https://raw.githubusercontent.com/LuaJIT/LuaJIT/e4c7d8b38040518d42599eef8ddb5e67aa967a9c/COPYRIGHT",
+      "sha256": "6cda3076a8c09b31bb1f90da614ea89e7ee194589626eeac613e522849604e47",
+      "bytes": 2935,
+      "local_file": "831a50984c2cb7dd682e7a77.body"
+    },
+    {
+      "label": "Lupa submodule third-party/lua54 lua.h",
+      "url": "https://raw.githubusercontent.com/lua/lua/6e22fedb74cf0c9b6656e9fce8b7331db847c605/lua.h",
+      "sha256": "3b77329f9deed929a5cbe7a7d5fc81ebbb63fd869a49e0a9302fe9240caf1930",
+      "bytes": 15949,
+      "local_file": "13bb9f0347adde30638182ce.body"
+    },
+    {
+      "label": "Lupa submodule third-party/lua55 lua.h",
+      "url": "https://raw.githubusercontent.com/lua/lua/51269bd783c9371252947b26cc865239dbb0153d/lua.h",
+      "sha256": "5e00319e803893f4310b1206394c80b82f03f42609b40ceb306d92a6740d828e",
+      "bytes": 16674,
+      "local_file": "18cc5ea303914af1764b4097.body"
+    },
+    {
+      "label": "CPython release .asc",
+      "url": "https://www.python.org/ftp/python/3.12.16/Python-3.12.16.tar.xz.asc",
+      "sha256": "abf484364233972765d25d5981ecffc76287317a065761fbe10fca21bcc0a197",
+      "bytes": 833,
+      "local_file": "ed4eeb9f8d9aa32dd1795179.body"
+    },
+    {
+      "label": "CPython release .sigstore",
+      "url": "https://www.python.org/ftp/python/3.12.16/Python-3.12.16.tar.xz.sigstore",
+      "sha256": "2534bf045332e5018e7ba6dc5504295f896db5550c4d0bc252b7cc954025bbaf",
+      "bytes": 7436,
+      "local_file": "28d2dee91fe7fd0b837f587a.body"
+    },
+    {
+      "label": "CPython release .spdx.json",
+      "url": "https://www.python.org/ftp/python/3.12.16/Python-3.12.16.tar.xz.spdx.json",
+      "sha256": "6c268edc3c8b9b12a875b3d3ed2495983b8a4a94c070927863b942722a9a216c",
+      "bytes": 2780613,
+      "local_file": "fac858a54dc6c7655d7300a7.body"
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -6,6 +8,17 @@ from services.runtime import inference_support
 
 
 class ProviderInventoryTest(unittest.TestCase):
+    def test_workbench_disables_implicit_env_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            env_file = Path(directory) / ".env"
+            env_file.write_text("RADISHMIND_MODEL_PROFILE=implicit\n", encoding="utf-8")
+            with patch.dict(os.environ, {"RADISHMIND_DISABLE_ENV_FILE": "1"}, clear=True):
+                inference_support.load_env_file(env_file)
+                self.assertNotIn("RADISHMIND_MODEL_PROFILE", os.environ)
+            with patch.dict(os.environ, {}, clear=True):
+                inference_support.load_env_file(env_file)
+                self.assertEqual(os.environ["RADISHMIND_MODEL_PROFILE"], "implicit")
+
     def test_inventory_distinguishes_active_from_enabled(self) -> None:
         env = {
             "RADISHMIND_MODEL_PROVIDER": "openai-compatible",

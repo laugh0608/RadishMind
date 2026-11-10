@@ -1,0 +1,205 @@
+{
+  "items": [
+    {
+      "id": "ld-linux-aarch64.so.1-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "follow_link": false,
+      "tar_file": "ld-linux-aarch64.so.1-entry.tar",
+      "bytes": 203264,
+      "sha256": "aabd090f77009259a92174b56ae38768e6986258ffca59d329911bef2aa5056a"
+    },
+    {
+      "id": "ld-linux-aarch64.so.1-target",
+      "path": "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "follow_link": true,
+      "tar_file": "ld-linux-aarch64.so.1-target.tar",
+      "bytes": 203264,
+      "sha256": "aabd090f77009259a92174b56ae38768e6986258ffca59d329911bef2aa5056a"
+    },
+    {
+      "id": "libc.so.6-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "follow_link": false,
+      "tar_file": "libc.so.6-entry.tar",
+      "bytes": 1718272,
+      "sha256": "5c936b9ad92b2992d65937770f6c0fc223878184d173a0eef93da45efb32f817"
+    },
+    {
+      "id": "libc.so.6-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "follow_link": true,
+      "tar_file": "libc.so.6-target.tar",
+      "bytes": 1718272,
+      "sha256": "5c936b9ad92b2992d65937770f6c0fc223878184d173a0eef93da45efb32f817"
+    },
+    {
+      "id": "libdl.so.2-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "follow_link": false,
+      "tar_file": "libdl.so.2-entry.tar",
+      "bytes": 69632,
+      "sha256": "6637c8c0838e662856436d6fa03c1efdb4f1a1f5c6efe8f95893bbdd8104fa6b"
+    },
+    {
+      "id": "libdl.so.2-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "follow_link": true,
+      "tar_file": "libdl.so.2-target.tar",
+      "bytes": 69632,
+      "sha256": "6637c8c0838e662856436d6fa03c1efdb4f1a1f5c6efe8f95893bbdd8104fa6b"
+    },
+    {
+      "id": "libgcc_s.so.1-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "follow_link": false,
+      "tar_file": "libgcc_s.so.1-entry.tar",
+      "bytes": 135680,
+      "sha256": "3d6c996f28a8b6755e47e57b94012941ed41d786afc55cf7e4b37b2e93568552"
+    },
+    {
+      "id": "libgcc_s.so.1-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "follow_link": true,
+      "tar_file": "libgcc_s.so.1-target.tar",
+      "bytes": 135680,
+      "sha256": "3d6c996f28a8b6755e47e57b94012941ed41d786afc55cf7e4b37b2e93568552"
+    },
+    {
+      "id": "libm.so.6-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "follow_link": false,
+      "tar_file": "libm.so.6-entry.tar",
+      "bytes": 593920,
+      "sha256": "a8ca8ad6b168e06b28b9e7d686682b620a3f0c890aa575e15264b0f1eb2e0008"
+    },
+    {
+      "id": "libm.so.6-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "follow_link": true,
+      "tar_file": "libm.so.6-target.tar",
+      "bytes": 593920,
+      "sha256": "a8ca8ad6b168e06b28b9e7d686682b620a3f0c890aa575e15264b0f1eb2e0008"
+    },
+    {
+      "id": "libpthread.so.0-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "follow_link": false,
+      "tar_file": "libpthread.so.0-entry.tar",
+      "bytes": 69632,
+      "sha256": "5e403148d14bf677de7e91995738706d25da4e2e247fa0a4045587ed9a16db7c"
+    },
+    {
+      "id": "libpthread.so.0-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "follow_link": true,
+      "tar_file": "libpthread.so.0-target.tar",
+      "bytes": 69632,
+      "sha256": "5e403148d14bf677de7e91995738706d25da4e2e247fa0a4045587ed9a16db7c"
+    },
+    {
+      "id": "libstdc++.so.6-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libstdc++.so.6",
+      "follow_link": false,
+      "tar_file": "libstdc++.so.6-entry.tar",
+      "bytes": 1536,
+      "sha256": "36372373121b25119d3ac6be2dd83c3d4da93cab43b10371c41619c5f7aca10d"
+    },
+    {
+      "id": "libstdc++.so.6-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libstdc++.so.6",
+      "follow_link": true,
+      "tar_file": "libstdc++.so.6-target.tar",
+      "bytes": 2503680,
+      "sha256": "b2b5b282b9da7caab6deec1e90729b386dc7515e5fa1a85d276222e948652593"
+    },
+    {
+      "id": "libz.so.1-entry",
+      "path": "/usr/lib/aarch64-linux-gnu/libz.so.1",
+      "follow_link": false,
+      "tar_file": "libz.so.1-entry.tar",
+      "bytes": 1536,
+      "sha256": "cff57d0544e65dbe61872404b3d237d80fdd458e24ad1d5a27738ae537ac93da"
+    },
+    {
+      "id": "libz.so.1-target",
+      "path": "/usr/lib/aarch64-linux-gnu/libz.so.1",
+      "follow_link": true,
+      "tar_file": "libz.so.1-target.tar",
+      "bytes": 135168,
+      "sha256": "c9a803b03b327a50a34de657aeed04091d68efd340260e480dcc93c9758627d0"
+    },
+    {
+      "id": "libc6-list",
+      "path": "/var/lib/dpkg/info/libc6:arm64.list",
+      "follow_link": false,
+      "tar_file": "libc6-list.tar",
+      "bytes": 14848,
+      "sha256": "747d0e13f79416f9478cd71a0289afa057a167da2a6cf49e2ebff83a49a69979"
+    },
+    {
+      "id": "libc6-md5sums",
+      "path": "/var/lib/dpkg/info/libc6:arm64.md5sums",
+      "follow_link": false,
+      "tar_file": "libc6-md5sums.tar",
+      "bytes": 23552,
+      "sha256": "ea7060e9b1cd7e3efd0f26231ebf695fcdd4c34325b176a9f7d4edf09af086e2"
+    },
+    {
+      "id": "libgcc-s1-list",
+      "path": "/var/lib/dpkg/info/libgcc-s1:arm64.list",
+      "follow_link": false,
+      "tar_file": "libgcc-s1-list.tar",
+      "bytes": 2048,
+      "sha256": "a5185c2d0a0cbfc1cf1e3aa834097b690f1c1ed63dff8a2a02d65413e181d881"
+    },
+    {
+      "id": "libgcc-s1-md5sums",
+      "path": "/var/lib/dpkg/info/libgcc-s1:arm64.md5sums",
+      "follow_link": false,
+      "tar_file": "libgcc-s1-md5sums.tar",
+      "bytes": 2048,
+      "sha256": "28bf36b35a307cc0bfd8ce2a2ecd0ac85dc0a05d750ae27439f800d1a42648a7"
+    },
+    {
+      "id": "libstdc++6-list",
+      "path": "/var/lib/dpkg/info/libstdc++6:arm64.list",
+      "follow_link": false,
+      "tar_file": "libstdc++6-list.tar",
+      "bytes": 2560,
+      "sha256": "3de490f751181997b4d480a8e278f0d6faf2cb7c4a21fa756ece6bfa79b40aac"
+    },
+    {
+      "id": "libstdc++6-md5sums",
+      "path": "/var/lib/dpkg/info/libstdc++6:arm64.md5sums",
+      "follow_link": false,
+      "tar_file": "libstdc++6-md5sums.tar",
+      "bytes": 2048,
+      "sha256": "e502a70c299aa8508a1fb2555e03627bb9d47bd9c2323f45023fa662f166e848"
+    },
+    {
+      "id": "zlib1g-list",
+      "path": "/var/lib/dpkg/info/zlib1g:arm64.list",
+      "follow_link": false,
+      "tar_file": "zlib1g-list.tar",
+      "bytes": 2048,
+      "sha256": "b6b0be55112c39364708b428c3c9e8a61a5e6a0ae352c79d7df4cb8fd029c065"
+    },
+    {
+      "id": "zlib1g-md5sums",
+      "path": "/var/lib/dpkg/info/zlib1g:arm64.md5sums",
+      "follow_link": false,
+      "tar_file": "zlib1g-md5sums.tar",
+      "bytes": 2048,
+      "sha256": "cc4f3a8afd1dba1e0341eecc02e45c1e2ef8695634d98c3a3aeee54232a68126"
+    },
+    {
+      "id": "dpkg-status",
+      "path": "/var/lib/dpkg/status",
+      "follow_link": false,
+      "tar_file": "dpkg-status.tar",
+      "bytes": 79360,
+      "sha256": "176a646a17bac1ac222738e028ea4b8597d0d060af7ec88bee3f57302446fc29"
+    }
+  ],
+  "total_tar_bytes": 8353280
+}

@@ -1,4 +1,8 @@
 export const evaluationCampaign = {
+  "discardContinue": "放弃并继续",
+  "keepEditing": "继续编辑",
+  "discardBoundary": "继续后将替换当前本地编辑；这些内容尚未保存。",
+  "discardTitle": "放弃未保存修改？",
   "eyebrow": "S10 · 定时回归评测",
   "title": "定时回归批次",
   "intro": "按受控 UTC 节奏运行精确 Prompt 计划，检查每次发生记录，并交接既有精确批次。",

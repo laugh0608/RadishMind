@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/workbench-backup-manifest.schema.json",
+  "title": "Workbench cold backup manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format_version",
+    "created_at",
+    "build_version",
+    "tenant_ref",
+    "workspace_id",
+    "migrations",
+    "files"
+  ],
+  "properties": {
+    "format_version": {
+      "const": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "build_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenant_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+    },
+    "migrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "component",
+          "id",
+          "version",
+          "checksum"
+        ],
+        "properties": {
+          "component": {
+            "type": "string",
+            "minLength": 1
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "radishmind.db",
+        "platform.json"
+      ],
+      "properties": {
+        "radishmind.db": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "platform.json": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

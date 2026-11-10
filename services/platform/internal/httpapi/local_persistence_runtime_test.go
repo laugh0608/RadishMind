@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"radishmind.local/services/platform/internal/config"
+	localmigrations "radishmind.local/services/platform/migrations/sqlite"
 )
 
 func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) {
@@ -26,14 +27,14 @@ func TestSQLiteDevAggregateServerRestartRestoresAllRepositoryData(t *testing.T) 
 		t.Fatal("aggregate SQLite server did not retain the shared runtime")
 	}
 	assertAggregateSQLiteRepositorySelection(t, firstServer)
-	if err := firstServer.localPersistenceRuntime.VerifyMigrations(context.Background(), localPersistenceSQLiteMigrations()); err != nil {
+	if err := firstServer.localPersistenceRuntime.VerifyMigrations(context.Background(), localmigrations.Migrations()); err != nil {
 		t.Fatalf("verify aggregate SQLite migrations: %v", err)
 	}
 	var migrationCount int
 	if err := firstServer.localPersistenceRuntime.DB().QueryRowContext(
 		context.Background(),
 		"SELECT count(*) FROM radishmind_schema_migrations",
-	).Scan(&migrationCount); err != nil || migrationCount != len(localPersistenceSQLiteMigrations()) {
+	).Scan(&migrationCount); err != nil || migrationCount != len(localmigrations.Migrations()) {
 		t.Fatalf("aggregate SQLite migration count drifted: count=%d err=%v", migrationCount, err)
 	}
 
@@ -489,8 +490,8 @@ func TestSQLiteDevAggregateRejectsMigrationMarkerMismatch(t *testing.T) {
 	if _, err := runtime.DB().ExecContext(context.Background(), `UPDATE radishmind_schema_migrations
 		SET migration_checksum='sha256:incompatible'
 		WHERE component=? AND migration_id=?`,
-		localPersistenceSQLiteMigrations()[0].Component,
-		localPersistenceSQLiteMigrations()[0].ID,
+		localmigrations.Migrations()[0].Component,
+		localmigrations.Migrations()[0].ID,
 	); err != nil {
 		t.Fatalf("inject aggregate SQLite marker mismatch: %v", err)
 	}

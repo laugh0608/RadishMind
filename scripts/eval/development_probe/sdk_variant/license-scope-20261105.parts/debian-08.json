@@ -1,0 +1,137 @@
+{
+  "items": [
+    {
+      "source": "tzdata",
+      "version": "2026e-0+deb13u1",
+      "binary_packages": [
+        "tzdata"
+      ],
+      "dsc_sha256": "d30d2263399c388a0903ee15114a80ee4583464faaa8fc08f753739ca5841cd6",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/e4209fc3c7444733263df39c.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/tzdata/2026e-0+deb13u1",
+      "source_files": [
+        {
+          "filename": "tzdata_2026e.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "b26882805f26aac59d5b222978e6580484b834ccdc98be89df2f05a6dc53a652"
+        },
+        {
+          "filename": "tzdata_2026e.orig.tar.gz.asc",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "91b37052145786c4a238115bc69f5edb947d9cdd19164910c40c249be27a7eda"
+        },
+        {
+          "filename": "tzdata_2026e-0+deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "5d14cd956e43a40b887413c6fe2de79036179648ef7f35aa7498b3bb1008e4bb"
+        }
+      ]
+    },
+    {
+      "source": "util-linux",
+      "version": "2.41.5-0+deb13u1",
+      "binary_packages": [
+        "bsdutils",
+        "libblkid1",
+        "liblastlog2-2",
+        "libmount1",
+        "libsmartcols1",
+        "libuuid1",
+        "login",
+        "mount",
+        "util-linux"
+      ],
+      "dsc_sha256": "43e9b2cbebd10fdc598c4ad10217c8202c28de53af6eafc892c8e9b5cbf3a3a5",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/6dd5502f47d9f3f97fd59766.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/util-linux/2.41.5-0+deb13u1",
+      "source_files": [
+        {
+          "filename": "util-linux_2.41.5.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "f586e35d320ff537aab3ffeca37e9ecd482ccbe013590db4429a414d8aa6a728"
+        },
+        {
+          "filename": "util-linux_2.41.5-0+deb13u1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "5b327ccd22f0f4ed28a389870aa51d04ecedb8693e52a1d122850f2b3188cbf6"
+        }
+      ]
+    },
+    {
+      "source": "xxhash",
+      "version": "0.8.3-2",
+      "binary_packages": [
+        "libxxhash0"
+      ],
+      "dsc_sha256": "9d1f7aaace7871fbdb8775d756c6eaca84e6ad5d8e9c6ac465b7e0adc06ff90c",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/626e69b6ab32d5a49747abc1.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/xxhash/0.8.3-2",
+      "source_files": [
+        {
+          "filename": "xxhash_0.8.3.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "aae608dfe8213dfd05d909a57718ef82f30722c392344583d3f39050c7f29a80"
+        },
+        {
+          "filename": "xxhash_0.8.3-2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "13824bfb2b2367225dfe3090d0ae050614f1c470a47db7232a2e9d4b2b14ad31"
+        }
+      ]
+    },
+    {
+      "source": "xz-utils",
+      "version": "5.8.1-1+deb13u2",
+      "binary_packages": [
+        "liblzma5"
+      ],
+      "dsc_sha256": "f02574465dcb7da3d5b7bdfc20ea350248c3371b0df36bb005152af80d61cdfc",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/ed841ef9f90a546364c162fd.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/xz-utils/5.8.1-1+deb13u2",
+      "source_files": [
+        {
+          "filename": "xz-utils_5.8.1.orig.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "0b54f79df85912504de0b14aec7971e3f964491af1812d83447005807513cd9e"
+        },
+        {
+          "filename": "xz-utils_5.8.1.orig.tar.xz.asc",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "4138f4ceca1aa7fd2085fb15a23f6d495d27bca6d3c49c429a8520ea622c27ae"
+        },
+        {
+          "filename": "xz-utils_5.8.1-1+deb13u2.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "7dfcff43a8035561c4860a4893f7cf9de5e977e79a90aee4d101053e21912cb0"
+        }
+      ]
+    },
+    {
+      "source": "zlib",
+      "version": "1:1.3.dfsg+really1.3.1-1",
+      "binary_packages": [
+        "zlib1g"
+      ],
+      "dsc_sha256": "ede2791e29c1d3b422f9208bdd7edf040c20445ea1e7453a72037576e64fa197",
+      "dsc_local_input": "tmp/development-license-audit-20261031/downloads-stage1/7d4ddfe8cc84082aef6699fd.body",
+      "archive_set_matches_dsc": true,
+      "candidate_directory": "sources/<SDK-image-sha256>/debian/zlib/1%3A1.3.dfsg+really1.3.1-1",
+      "source_files": [
+        {
+          "filename": "zlib_1.3.dfsg+really1.3.1.orig.tar.gz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "60dd315c07f616887caa029408308a018ace66e3d142726a97db164b3b8f69fb"
+        },
+        {
+          "filename": "zlib_1.3.dfsg+really1.3.1-1.debian.tar.xz",
+          "evidence": "license-archives-20261031.parts/sources-06.json",
+          "sha256": "9ed525955ce9fb0c1b39be8ff98f73450dbfc6305a9a27e6149c8972d38a0a9e"
+        }
+      ]
+    }
+  ]
+}

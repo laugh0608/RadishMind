@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 import { CONTROL_PLANE_READ_ROUTES } from "../../../../../contracts/typescript/control-plane-read-api.ts";
 import type { WorkflowDraftDesignerDraft } from "./workflowDraftDesigner.ts";
 import {
@@ -24,6 +25,7 @@ const FORBIDDEN_RESPONSE_KEYS = new Set([
 
 export type WorkflowDefinitionPromotionConfig = {
   mode: "offline" | "dev_workflow_definition_promotion_http";
+  authMode?: "dev_headers" | "local_session_dev_test";
   baseUrl: string;
   tenantRef: string;
   workspaceId: string;
@@ -34,7 +36,7 @@ export type WorkflowDefinitionCandidateCompatibility = {
   compatible: boolean;
   unsupportedNodeTypes: Array<"rag_retrieval" | "http_tool">;
   handoffAnchor: "workflow-rag-promotion-review" | null;
-  executionProfile: "workflow_definition_executor_v1" | "workflow_definition_http_tool_v1";
+  executionProfile: "workflow_definition_executor_v1" | "workflow_definition_executor_v2" | "workflow_definition_http_tool_v1";
   summary: string;
 };
 
@@ -44,6 +46,7 @@ export function evaluateWorkflowDefinitionCandidateCompatibility(
       Partial<Pick<WorkflowDraftDesignerDraft["nodes"][number], "nodeId" | "toolRef" | "requiresConfirmation" | "riskLevel">>>;
     edges?: Array<Pick<WorkflowDraftDesignerDraft["edges"][number], "fromNodeId" | "toNodeId">>;
     executionProfile?: WorkflowDraftDesignerDraft["executionProfile"];
+    schemaVersion?: WorkflowDraftDesignerDraft["schemaVersion"];
   },
 ): WorkflowDefinitionCandidateCompatibility {
   const unsupportedNodeTypes = [...new Set(
@@ -53,7 +56,7 @@ export function evaluateWorkflowDefinitionCandidateCompatibility(
   )];
   const hasHTTPTool = unsupportedNodeTypes.includes("http_tool");
   const hasRAG = unsupportedNodeTypes.includes("rag_retrieval") || draft.executionProfile === "rag_retrieval_v1";
-  if (hasHTTPTool && !hasRAG) {
+  if (hasHTTPTool && !hasRAG && draft.schemaVersion !== "saved_workflow_draft.v2") {
     const compatible = isHTTPToolCandidateGraph(draft);
     return {
       compatible,
@@ -70,8 +73,8 @@ export function evaluateWorkflowDefinitionCandidateCompatibility(
       compatible: true,
       unsupportedNodeTypes,
       handoffAnchor: null,
-      executionProfile: "workflow_definition_executor_v1",
-      summary: "Saved Draft 与 Workflow Definition candidate v1 契约兼容。",
+      executionProfile: draft.schemaVersion === "saved_workflow_draft.v2" ? "workflow_definition_executor_v2" : "workflow_definition_executor_v1",
+      summary: "Saved Draft 与 Workflow Definition candidate 契约兼容。",
     };
   }
   return {
@@ -188,6 +191,12 @@ export type WorkflowDefinitionActivation = {
   updatedByActorRef: string;
   requestId: string;
   auditRef: string;
+};
+
+export type WorkflowDefinitionPromotionAuthority = {
+  definitionId: string;
+  versions: WorkflowDefinitionVersion[];
+  activation: WorkflowDefinitionActivation | null;
 };
 
 export class WorkflowDefinitionPromotionFailure extends Error {
@@ -329,8 +338,9 @@ type ReleaseEnvelope = {
 };
 
 export function readWorkflowDefinitionPromotionConfig(): WorkflowDefinitionPromotionConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   return {
+    authMode: env.VITE_RADISHMIND_READ_AUTH_MODE?.trim() === "local_session_dev_test" ? "local_session_dev_test" : "dev_headers",
     mode: env.VITE_RADISHMIND_WORKFLOW_DEFINITION_PROMOTION_SOURCE?.trim() === DEV_SOURCE
       ? "dev_workflow_definition_promotion_http"
       : "offline",
@@ -348,7 +358,7 @@ export async function listWorkflowDefinitionCandidates(config: WorkflowDefinitio
   return body.candidates.map(mapCandidate);
 }
 
-export async function createWorkflowDefinitionCandidate(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { candidateId: string; definitionId: string; draftId: string; expectedDraftVersion: number; expectedLifecycleVersion: number; executionProfile?: "workflow_definition_executor_v1" | "workflow_definition_http_tool_v1" }): Promise<WorkflowDefinitionCandidate> {
+export async function createWorkflowDefinitionCandidate(config: WorkflowDefinitionPromotionConfig, applicationId: string, input: { candidateId: string; definitionId: string; draftId: string; expectedDraftVersion: number; expectedLifecycleVersion: number; executionProfile?: "workflow_definition_executor_v1" | "workflow_definition_executor_v2" | "workflow_definition_http_tool_v1" }): Promise<WorkflowDefinitionCandidate> {
   assertLive(config);
   return requireCandidate(await writeRelease(config, applicationId, "/v1/user-workspace/workflow-definition-candidates", "workflow_definitions:write", {
     candidate_id: input.candidateId,
@@ -382,7 +392,21 @@ export async function readWorkflowDefinitionActivation(config: WorkflowDefinitio
   const body = await readRelease(config, applicationId, `${WORKFLOW_DEFINITIONS_ROUTE}/${encodeURIComponent(definitionId)}/activation`, "workflow_definitions:read");
   if (body.failure_code === "workflow_definition_not_found") return null;
   if (body.failure_code) throw responseError(body, "activation read");
+  if (body.activation && body.activation.definition_id !== definitionId) throw responseError(body, "activation identity");
   return body.activation ? mapActivation(body.activation) : null;
+}
+
+export async function readWorkflowDefinitionPromotionAuthority(config: WorkflowDefinitionPromotionConfig, applicationId: string, definitionId: string): Promise<WorkflowDefinitionPromotionAuthority> {
+  const [versions, activation] = await Promise.all([
+    listWorkflowDefinitionVersions(config, applicationId, definitionId),
+    readWorkflowDefinitionActivation(config, applicationId, definitionId),
+  ]);
+  if ((config.mode !== "offline" && !activation) || new Set(versions.map((version) => version.version)).size !== versions.length ||
+    (activation?.state === "active" && !versions.some((version) =>
+      version.version === activation.activeVersion && version.definitionDigest === activation.activeDefinitionDigest))) {
+    throw new WorkflowDefinitionPromotionFailure("workflow_definition_authority_mismatch", "The versions and activation do not identify one exact authority.");
+  }
+  return { definitionId, versions, activation };
 }
 
 export async function decideWorkflowDefinitionActivation(config: WorkflowDefinitionPromotionConfig, applicationId: string, definitionId: string, input: { expectedPointerVersion: number; decision: "activate" | "replace" | "deactivate"; version: number; reason: string }): Promise<WorkflowDefinitionActivation> {
@@ -393,7 +417,7 @@ export async function decideWorkflowDefinitionActivation(config: WorkflowDefinit
     version: input.version,
     reason: input.reason,
   });
-  if (!body.activation) throw responseError(body, "activation decision");
+  if (!body.activation || body.activation.definition_id !== definitionId) throw responseError(body, "activation decision");
   return mapActivation(body.activation);
 }
 
@@ -415,6 +439,8 @@ export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromo
     ? { inputs: input.inputs }
     : { input_text: input.inputText };
   const response = await fetch(`${config.baseUrl}/v1/user-workspace/workflow-definition-runs`, {
+      credentials: config.authMode === "local_session_dev_test" ? "include" : "omit",
+      cache: "no-store",
     method: "POST",
     headers: { ...headers(config, applicationId, "workflow_runs:execute,workflow_definitions:read"), "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -442,13 +468,15 @@ export async function startWorkflowDefinitionRun(config: WorkflowDefinitionPromo
 }
 
 export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefinitionVersion, applicationId: string, draftNumber: number): WorkflowDraftDesignerDraft {
-  if (version.snapshot.schemaVersion !== "saved_workflow_draft.v1") {
-    throw new Error("Workflow Definition v2 must be edited through the structured input contract designer.");
-  }
+  const structured = version.snapshot.schemaVersion === "saved_workflow_draft.v2";
+  if (structured && !("fields" in version.snapshot.inputContract)) throw new Error("workflow_input_contract_invalid");
   const number = String(Math.max(1, draftNumber)).padStart(2, "0");
   const draftId = `draft_${safeIdPart(version.definitionId)}_v${version.version}_${number}`;
   const orderedNodes = workflowDefinitionNodesInGraphOrder(version.snapshot);
   return {
+    ...(structured && "fields" in version.snapshot.inputContract
+      ? { schemaVersion: "saved_workflow_draft.v2" as const, inputContract: { ...version.snapshot.inputContract, fields: version.snapshot.inputContract.fields.map((field) => ({ ...field })) } }
+      : { schemaVersion: "saved_workflow_draft.v1" as const }),
     draftId,
     templateRef: `${version.definitionId}:v${version.version}`,
     label: `${version.snapshot.name} derived ${number}`,
@@ -471,7 +499,7 @@ export function deriveWorkflowDraftFromDefinitionVersion(version: WorkflowDefini
     blockedCapabilities: [],
     routeMetadata: { sourceRouteId: "workflow-definition-summary-list-route", draftRouteId: "workflow-draft-designer-offline-draft", routePath: WORKFLOW_DEFINITIONS_ROUTE, requestId: version.requestId, auditRef: version.auditRef },
     localOnlyInteraction: "local_edit",
-    executionProfile: "executor_v0",
+    executionProfile: structured ? "executor_v2" : "executor_v0",
   };
 }
 
@@ -507,7 +535,7 @@ async function readRelease(config: WorkflowDefinitionPromotionConfig, applicatio
 }
 
 async function writeRelease(config: WorkflowDefinitionPromotionConfig, applicationId: string, path: string, scope: string, payload: unknown): Promise<ReleaseEnvelope> {
-  const response = await fetch(`${config.baseUrl}${path}`, { method: "POST", headers: { ...headers(config, applicationId, scope), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const response = await fetch(`${config.baseUrl}${path}`, { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", method: "POST", headers: { ...headers(config, applicationId, scope), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const body: unknown = await response.json();
   if (!isReleaseEnvelope(body, config, applicationId)) throw new Error("workflow definition release returned an invalid or sensitive envelope");
   if (!response.ok || body.failure_code) {
@@ -518,7 +546,7 @@ async function writeRelease(config: WorkflowDefinitionPromotionConfig, applicati
 }
 
 async function readJSON(url: string, config: WorkflowDefinitionPromotionConfig, applicationId: string, scope: string): Promise<unknown> {
-  const response = await fetch(url, { headers: headers(config, applicationId, scope) });
+  const response = await fetch(url, { credentials: config.authMode === "local_session_dev_test" ? "include" : "omit", cache: "no-store", headers: headers(config, applicationId, scope) });
   const body: unknown = await response.json();
   if (!response.ok) throw responseError(body, `HTTP ${response.status}`);
   return body;
@@ -532,6 +560,16 @@ function headers(config: WorkflowDefinitionPromotionConfig, applicationId: strin
     "workflow_definitions:activate",
     "workflow_runs:execute,workflow_definitions:read",
   ].includes(scopes) ? scopes : "";
+  if (config.authMode === "local_session_dev_test") {
+    return {
+      Accept: "application/json",
+      "X-Request-Id": requestId,
+      "X-RadishMind-Active-Tenant": config.tenantRef,
+      ...(mutationPermission ? { "X-RadishMind-Active-Workspace": config.workspaceId } : {}),
+      "X-RadishMind-Dev-Workflow-Workspace": config.workspaceId,
+      "X-RadishMind-Dev-Workflow-Application": applicationId,
+    };
+  }
   return {
     Accept: "application/json", "X-Request-Id": requestId,
     "X-RadishMind-Dev-Read-Identity": "workflow-definition-promotion-web",
@@ -575,7 +613,7 @@ function isCandidateListEnvelope(value: unknown, config: WorkflowDefinitionPromo
 function isVersionListEnvelope(value: unknown, config: WorkflowDefinitionPromotionConfig, applicationId: string, definitionId: string): value is { request_id: string; workspace_id: string; application_id: string; definition_id: string; versions: VersionDocument[]; failure_code: string | null; audit_ref: string } {
   if (!strictObject(value, ["request_id", "workspace_id", "application_id", "definition_id", "versions", "failure_code", "audit_ref"]) || containsForbiddenResponseKey(value)) return false;
   const item = value as Record<string, unknown>;
-  return item.workspace_id === config.workspaceId && item.application_id === applicationId && item.definition_id === definitionId && typeof item.request_id === "string" && typeof item.audit_ref === "string" && (item.failure_code === null || typeof item.failure_code === "string") && Array.isArray(item.versions) && item.versions.every(isVersionDocument);
+  return item.workspace_id === config.workspaceId && item.application_id === applicationId && item.definition_id === definitionId && typeof item.request_id === "string" && typeof item.audit_ref === "string" && (item.failure_code === null || typeof item.failure_code === "string") && Array.isArray(item.versions) && item.versions.every((version) => isVersionDocument(version) && version.definition_id === definitionId);
 }
 
 function isRunEnvelope(value: unknown, config: WorkflowDefinitionPromotionConfig, applicationId: string): value is { request_id: string; workspace_id: string; application_id: string; run: unknown | null; advisory_output?: string; failure_code: string | null; failure_summary: string; audit_ref: string } {
@@ -617,7 +655,10 @@ function isActivationDocument(value: unknown): value is ActivationDocument {
   const keys = ["schema_version", "definition_id", "pointer_version", "state", "active_version", "active_definition_digest", "events", "updated_at", "updated_by_actor_ref", "request_id", "audit_ref"];
   if (!strictObject(value, keys)) return false;
   const item = value as Record<string, unknown>;
-  return item.schema_version === "workflow_definition_activation.v1" && id(item.definition_id) && nonnegative(item.pointer_version) && ["active", "inactive"].includes(String(item.state)) && nonnegative(item.active_version) && (item.active_definition_digest === "" || digest(item.active_definition_digest)) && Array.isArray(item.events) && item.events.every(isActivationEventDocument) && typeof item.updated_at === "string" && typeof item.updated_by_actor_ref === "string" && typeof item.request_id === "string" && typeof item.audit_ref === "string";
+  const consistentState = item.state === "active"
+    ? positive(item.pointer_version) && positive(item.active_version) && digest(item.active_definition_digest)
+    : item.state === "inactive" && item.active_version === 0 && item.active_definition_digest === "";
+  return item.schema_version === "workflow_definition_activation.v1" && id(item.definition_id) && nonnegative(item.pointer_version) && consistentState && Array.isArray(item.events) && item.events.every((event) => isActivationEventDocument(event) && event.definition_id === item.definition_id) && typeof item.updated_at === "string" && typeof item.updated_by_actor_ref === "string" && typeof item.request_id === "string" && typeof item.audit_ref === "string";
 }
 
 function isReviewDocument(value: unknown): value is ReviewDocument {

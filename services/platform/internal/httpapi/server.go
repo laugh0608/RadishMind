@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -13,7 +15,9 @@ import (
 
 	"radishmind.local/services/platform/internal/bridge"
 	"radishmind.local/services/platform/internal/config"
+	"radishmind.local/services/platform/internal/developmentcontrol"
 	"radishmind.local/services/platform/internal/sqlitedev"
+	"radishmind.local/services/platform/internal/workbench"
 )
 
 const serviceName = "radishmind-platform"
@@ -32,6 +36,12 @@ type bridgeClient interface {
 }
 
 type Server struct {
+	developmentMu                 sync.Mutex
+	developmentClosed             bool
+	developmentRuntime            *developmentcontrol.Runtime
+	developmentHTTP               *http.Server
+	workbenchLock                 *workbench.Lock
+	closeWorkbenchAssets          func() error
 	httpServer                    *http.Server
 	options                       Options
 	bridge                        bridgeClient
@@ -122,11 +132,46 @@ func NewServer(cfg config.Config, options Options) *Server {
 }
 
 func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
+	var dataLock *workbench.Lock
+	lockTransferred := false
+	defer func() {
+		if !lockTransferred {
+			_ = dataLock.Close()
+		}
+	}()
 	if err := config.ValidateServerStart(cfg); err != nil {
 		return nil, err
 	}
 	if cfg.WorkflowHTTPToolTestLoopbackEnabled && !options.TestOnly {
 		return nil, fmt.Errorf("workflow HTTP tool test loopback is restricted to explicit test servers")
+	}
+	if cfg.RuntimeProfile == config.LocalWorkbenchProfile {
+		if options.ApplicationResultArtifactLibraryDevFixture {
+			return nil, fmt.Errorf("workbench cannot seed development fixtures")
+		}
+		if err := workbench.CheckAssets(cfg.Workbench.WebAssetsPath); err != nil {
+			return nil, err
+		}
+		var err error
+		dataLock, err = workbench.Acquire(filepath.Dir(cfg.SQLiteDevDatabasePath))
+		if err != nil {
+			return nil, err
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		_, err = workbench.Inspect(ctx, cfg.SQLiteDevDatabasePath, false)
+		cancel()
+		if err != nil {
+			return nil, err
+		}
+		if err := config.ResolveWorkbenchCredential(&cfg); err != nil {
+			return nil, err
+		}
+	} else if config.EffectiveLocalPersistenceMode(cfg) == "sqlite_dev" {
+		if _, err := os.Lstat(filepath.Join(filepath.Dir(cfg.SQLiteDevDatabasePath), ".workbench.lock")); err == nil {
+			return nil, fmt.Errorf("legacy development mode cannot open a workbench data directory")
+		} else if !os.IsNotExist(err) {
+			return nil, err
+		}
 	}
 	runtimeConfig := config.EffectiveLocalPersistenceConfig(cfg)
 	if options.ApplicationResultArtifactLibraryDevFixture &&
@@ -609,10 +654,22 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 	mux.HandleFunc(gatewayRequestListRoute, server.handleListGatewayRequests)
 	mux.HandleFunc(gatewayRequestReadRoute, server.handleReadGatewayRequest)
 
+	var handler http.Handler = mux
+	if runtimeConfig.RuntimeProfile == config.LocalWorkbenchProfile {
+		var closeAssets func() error
+		handler, closeAssets, err = workbench.WebHandler(runtimeConfig, mux)
+		if err != nil {
+			server.Close()
+			return nil, err
+		}
+		server.closeWorkbenchAssets = closeAssets
+		server.workbenchLock = dataLock
+		lockTransferred = true
+	}
 	server.httpServer = &http.Server{
 		Addr: runtimeConfig.ListenAddr,
 		Handler: withLocalConsoleCORS(
-			withLocalIdentitySessionAuthentication(withControlPlaneReadAuthenticator(mux, authenticator), server.localIdentityHTTPService),
+			withLocalIdentitySessionAuthentication(withControlPlaneReadAuthenticator(handler, authenticator), server.localIdentityHTTPService),
 			runtimeConfig,
 		),
 		ReadHeaderTimeout: runtimeConfig.ReadHeaderTimeout,
@@ -642,10 +699,11 @@ func newPlatformBridgeClient(cfg config.Config) (*bridge.Client, error) {
 		return nil, err
 	}
 	client, err := bridge.NewClientWithOptions(cfg.PythonBinary, cfg.BridgeScript, bridge.ClientOptions{
-		Mode:             mode,
-		WorkerCount:      cfg.BridgeWorkerCount,
-		QueueCapacity:    cfg.BridgeQueueCapacity,
-		HandshakeTimeout: cfg.BridgeHandshakeTimeout,
+		Mode:                    mode,
+		WorkerCount:             cfg.BridgeWorkerCount,
+		QueueCapacity:           cfg.BridgeQueueCapacity,
+		HandshakeTimeout:        cfg.BridgeHandshakeTimeout,
+		IsolateModelEnvironment: cfg.RuntimeProfile == config.LocalWorkbenchProfile,
 	})
 	if err != nil {
 		return nil, err
@@ -679,6 +737,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		return nil
 	}
 	err := s.httpServer.Shutdown(ctx)
+	if err != nil && s.workbenchLock != nil {
+		err = errors.Join(err, s.httpServer.Close())
+	}
 	s.Close()
 	return err
 }
@@ -688,6 +749,11 @@ func (s *Server) Close() {
 		return
 	}
 	s.closeOnce.Do(func() {
+		developmentCloseContext, cancelDevelopmentClose := context.WithTimeout(context.Background(), 10*time.Second)
+		if err := s.CloseDevelopmentControl(developmentCloseContext); err != nil {
+			fmt.Fprintln(os.Stderr, "development control cleanup incomplete")
+		}
+		cancelDevelopmentClose()
 		if s.applicationEvaluationScheduleRunner != nil {
 			s.applicationEvaluationScheduleRunner.Stop()
 		}
@@ -739,6 +805,10 @@ func (s *Server) Close() {
 		if s.closeControlPlaneReadRepository != nil {
 			s.closeControlPlaneReadRepository()
 		}
+		if s.closeWorkbenchAssets != nil {
+			_ = s.closeWorkbenchAssets()
+		}
+		_ = s.workbenchLock.Close()
 	})
 }
 
@@ -790,6 +860,9 @@ func isAllowedLocalConsoleOrigin(origin string, cfg config.Config) bool {
 }
 
 func localConsoleAllowedOrigins(configs ...config.Config) []string {
+	if len(configs) == 1 && configs[0].RuntimeProfile == config.LocalWorkbenchProfile {
+		return []string{configs[0].Workbench.PublicOrigin}
+	}
 	origins := []string{"http://127.0.0.1:4000", "http://localhost:4000", "http://127.0.0.1:4100", "http://localhost:4100"}
 	if len(configs) == 1 && configs[0].LocalIdentityDevHTTPEnabled {
 		origin := strings.TrimSpace(configs[0].LocalIdentityAllowedOrigin)

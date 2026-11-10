@@ -1,3 +1,5 @@
+import { WorkflowDraftInputContractEditor } from "./WorkflowDraftInputContractEditor.tsx";
+import { validateWorkflowDraftInputContract } from "./workflowDraftInputContract.ts";
 import { formatDisplayDate } from "../../i18n/formatters.ts";
 import { workflowDraftStatusLabel, workflowDraftConsumerMessage, workflowDraftNodeTypeLabel, workflowDraftNodeTypeSummary } from "./workflowDraftMessages.ts";
 import { useTranslation } from "react-i18next";
@@ -100,6 +102,7 @@ export function WorkflowDraftDesignerPanel({
   const onAddNode: (nodeType: WorkflowDraftDesignerNode["nodeType"]) => void = (nodeType) => editDraft({ type: "add_node", nodeType });
   const onMoveNode: (nodeId: string, direction: WorkflowDraftNodeMoveDirection) => void = (nodeId, direction) => editDraft({ type: "move_node", nodeId, direction });
   const onRemoveNode: (nodeId: string) => void = (nodeId) => editDraft({ type: "remove_node", nodeId });
+  const invalidInputContract = selectedDraft.schemaVersion === "saved_workflow_draft.v2" && validateWorkflowDraftInputContract(selectedDraft.inputContract).length > 0;
   const canCallDevConsumer = savedDraftConsumerState.mode === "dev_saved_draft_http";
   const operationPending = ["saving", "validating", "reading"].includes(savedDraftConsumerState.status);
   const conflictRequiresResolution = workflowSavedDraftConflictRequiresResolution(savedDraftConsumerState);
@@ -166,13 +169,13 @@ export function WorkflowDraftDesignerPanel({
         <div className="workflow-designer-actions" aria-label={t($ => $.draft.draftActions)}>
           <button
             type="button"
-            disabled={!canCallDevConsumer || interactionDisabled}
+            disabled={!canCallDevConsumer || interactionDisabled || invalidInputContract}
             onClick={onValidateDraft}
           >{t($ => $.draft.validate)}</button>
           <button
             type="button"
             className="primary"
-            disabled={!canCallDevConsumer || interactionDisabled}
+            disabled={!canCallDevConsumer || interactionDisabled || invalidInputContract}
             onClick={onSaveDraft}
           >{t($ => $.draft.saveDraft)}</button>
           <button
@@ -385,6 +388,8 @@ export function WorkflowDraftDesignerPanel({
           <button type="button" disabled={!draftEditDirty || interactionDisabled} onClick={onResetDraftEdits}>{t($ => $.draft.resetEdits)}</button>
         </div>
       </details>
+
+      {selectedDraft.schemaVersion === "saved_workflow_draft.v2" ? <WorkflowDraftInputContractEditor contract={selectedDraft.inputContract} disabled={interactionDisabled} onChange={(inputContract) => onEditDraft((draft) => draft.schemaVersion === "saved_workflow_draft.v2" ? { ...draft, inputContract } : draft)} /> : null}
 
       <details className="workflow-designer-disclosure">
         <summary>

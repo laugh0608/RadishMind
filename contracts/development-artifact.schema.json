@@ -1,0 +1,427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-artifact.schema.json",
+  "description": "固定 Go 探针的显式开发产物、不可变保存记录、即时导出及临时保留合同；不是公开执行 API。Go 补充 UTF-8 字节上限、摘要、权限、时间、候选与测试关联验证。",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/bundle"
+    },
+    {
+      "$ref": "#/$defs/record"
+    },
+    {
+      "$ref": "#/$defs/export"
+    },
+    {
+      "$ref": "#/$defs/retention"
+    }
+  ],
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant_ref",
+        "workspace_id",
+        "account_id",
+        "application_id"
+      ],
+      "properties": {
+        "tenant_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "account_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "application_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "base",
+        "base_digest",
+        "candidate",
+        "candidate_digest"
+      ],
+      "properties": {
+        "path": {
+          "enum": [
+            "go.mod",
+            "list.go",
+            "list_test.go"
+          ]
+        },
+        "base": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "base_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "candidate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "candidate_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        }
+      }
+    },
+    "test": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "candidate_digest",
+        "profile",
+        "argv",
+        "image_digest",
+        "runner_digest",
+        "started_at",
+        "finished_at",
+        "exit_known",
+        "exit_code",
+        "oom_killed",
+        "output_truncated",
+        "log",
+        "log_digest",
+        "log_redacted",
+        "status"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "candidate_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "profile": {
+          "const": "go_test_v1"
+        },
+        "argv": {
+          "const": [
+            "/usr/local/go/bin/go",
+            "test",
+            "-json",
+            "-count=1",
+            "./..."
+          ]
+        },
+        "image_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "runner_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "exit_known": {
+          "type": "boolean"
+        },
+        "exit_code": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "oom_killed": {
+          "type": "boolean"
+        },
+        "output_truncated": {
+          "type": "boolean"
+        },
+        "log": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "log_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "log_redacted": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "stale",
+            "unknown",
+            "command_passed",
+            "command_failed",
+            "output_truncated",
+            "oom_killed",
+            "timeout"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "exit_known": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "exit_code": {
+                "const": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_created_at",
+        "schema_version",
+        "scope",
+        "origin",
+        "plan",
+        "probe",
+        "source_kind",
+        "attempt_state",
+        "snapshot_at",
+        "expires_at",
+        "files",
+        "candidate_digest",
+        "patch",
+        "patch_digest",
+        "tests",
+        "verification_state",
+        "review_state",
+        "acceptance_state",
+        "sensitive_policy",
+        "digest"
+      ],
+      "properties": {
+        "source_created_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "schema_version": {
+          "const": "development_artifact.v1"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "origin": {
+          "$ref": "https://radishmind.local/contracts/development-attempt-delegation.schema.json#/properties/scope"
+        },
+        "plan": {
+          "$ref": "https://radishmind.local/contracts/development-attempt-plan.schema.json"
+        },
+        "probe": {
+          "$ref": "https://radishmind.local/contracts/development-task-probe-plan.schema.json"
+        },
+        "source_kind": {
+          "const": "frozen_probe_tree"
+        },
+        "attempt_state": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled",
+            "outcome_unknown"
+          ]
+        },
+        "snapshot_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "files": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/file"
+          }
+        },
+        "candidate_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "patch": {
+          "type": "string",
+          "maxLength": 262144
+        },
+        "patch_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "tests": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/test"
+          }
+        },
+        "verification_state": {
+          "enum": [
+            "missing",
+            "stale",
+            "unknown",
+            "command_passed",
+            "command_failed",
+            "output_truncated",
+            "oom_killed",
+            "timeout"
+          ]
+        },
+        "review_state": {
+          "const": "not_reviewed"
+        },
+        "acceptance_state": {
+          "const": "not_accepted"
+        },
+        "sensitive_policy": {
+          "const": "text_allowlist_v1"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "artifact_id",
+        "request_id",
+        "saved_at",
+        "bundle"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "development_artifact_record.v1"
+        },
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "saved_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "bundle": {
+          "$ref": "#/$defs/bundle"
+        }
+      }
+    },
+    "export": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "record",
+        "exported_at",
+        "request_id",
+        "digest"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "development_artifact_export.v1"
+        },
+        "record": {
+          "$ref": "#/$defs/record"
+        },
+        "exported_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        }
+      }
+    },
+    "retention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "session_id",
+        "created_at",
+        "expires_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "development_artifact_retention.v1"
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^sandbox_[0-9a-f]{32}(?![\\s\\S])"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "minLength": 20,
+          "maxLength": 40
+        }
+      }
+    }
+  }
+}

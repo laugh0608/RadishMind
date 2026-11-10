@@ -1,6 +1,6 @@
 # RadishMind 跨项目集成契约
 
-更新时间：2026-08-30
+更新时间：2026-10-31
 
 ## 文档目的
 
@@ -138,6 +138,15 @@
 - `workflow-execution-plan-preview-offline-v1` 已固定为 `workflow_execution_plan_preview_offline_defined`，仍属于离线产品面，不新增跨项目私有协议，也不要求 `RadishFlow` 或 `Radish` 先提供真实挂载点。它只展示 selected draft 派生的 execution plan preview、stage order、node-to-stage mapping、provider/profile requirements、confirmation/audit gates 和 blocked runtime / publish / writeback / replay reasons；不实现 execution plan persistence、runtime API、executor、confirmation decision、business writeback、replay、真实数据库、Radish OIDC 或 production API consumer。
 - `workflow-runtime-readiness-inspector-offline-v1` 已固定为 `workflow_runtime_readiness_inspector_offline_defined`，仍属于离线产品面，不新增跨项目私有协议，也不要求 `RadishFlow` 或 `Radish` 先提供真实挂载点。它只展示 selected draft 和 execution plan preview 派生的 runtime readiness inspector、runtime prerequisites、readiness blockers、implementation gates、auth / database / repository gate 和 route / request / audit metadata；不实现 runtime readiness persistence、runtime API、executor、confirmation decision store、durable run/result store、business writeback、replay、真实数据库、Radish OIDC、repository adapter 或 production API consumer。
 - `workflow-function-surface-readiness-close-v1` 已固定为 `workflow_function_surface_readiness_closed`，仍属于离线产品面聚合门禁，不新增跨项目私有协议，也不要求 `RadishFlow` 或 `Radish` 先提供真实挂载点。它只证明当前 workflow surface matrix、依赖 fixture、前端 render binding 和停止线可复验；普通 overview、context selection、scenario inspector 和 review workspace 只属于该聚合 gate 之后的只读组织层；不实现 runtime API、workflow builder mutation、draft / validation / execution plan / runtime readiness / scenario / review persistence、publish、executor、confirmation decision store、business writeback、replay、真实数据库、Radish OIDC、repository adapter 或 production API consumer。
+
+## 受控开发团队的拟新增合同
+
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已纳入开发，阶段 0 已有探针及单尝试计划 / 委托 / 预算 / 回执 / 事件 / 工具绑定 canonical schema，并实现 SQLite 状态 / 提议 / 事件事务、现有负责模块资格读取与独立内部通道，语义见[集中任务卡](task-cards/development-task-probe-v1-plan.md)；它们不属于正式团队授权或公开 API。可信 Go 签发和通道默认关闭，只验固定响应；工具入队不等于执行。受限 SDK Agent 已按私有 IPC schema 验证完整允许事件、工具固定响应往返与等待取消 / 父管道失联退出；SDK 事件不授予状态或执行权，Go 事务、用量与 OS 退出证据为权威。固定 Go 探针的隔离工具与归属终止已真实验收；新增私有 `development-code-sandbox.schema.json` 定义工具观察与资源账册，关联见[沙箱合同](contracts/development-code-sandbox-v1.md)。新增 `development-artifact.schema.json` 已固定开发包、保存记录、导出与保留合同，由独立 Go / SQLite 模块实现；来源、权限、额度和失败边界见[产物合同](contracts/development-artifact-v1.md)，没有公开保存 / 下载 API。固定响应联合任务已贯通真实 SDK、代码容器、可信来源与保存 / 导出；真实提供方原生往返仍需实施，见[尝试控制合同](contracts/development-attempt-control-v1.md)；旧 Agent / Copilot、通用 Tooling、Session 和 Action Safety 合同保持原语义。
+
+框架只拥有一次执行尝试，Go 平台负责启动、取消与继续资格；历史读取不自动重放代码或命令。交付包显式保存需要独立决定产物类型、体积、导出权限及保留规则，不能直接复用旧文本结果的保存入口。详细设计从[框架接入](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)与[运行状态 / 证据](features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)读取，本轮不修改本文件列出的既有 schema。
+
+
+专属通道选择独立内部监听器，短期任务委托不复用 Session / 长期 API key；SDK 元数据、可信工具提议、未知用量和取消证据按[尝试控制合同](contracts/development-attempt-control-v1.md)执行。当前内部监听器、签发与持久事务已实现但默认关闭；SDK 私有 IPC 不是公开 API，不放宽旧公开路由。固定 Go 探针执行器只经可信 Go 显式接线，公开代码执行服务和正式团队权限仍未启用。
 
 ## 专题索引
 

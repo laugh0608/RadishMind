@@ -1,0 +1,499 @@
+{
+  "status": "exact_PyPI_metadata_collected_no_sdist_download",
+  "note": "pip modifies vendored code; upstream sdists do not replace pip exact source. Native build closure remains open.",
+  "items": [
+    {
+      "name": "litellm",
+      "version": "1.105.7",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/litellm/1.105.7/json",
+        "sha256": "d778fb5f5bb6c8fa6d03da354748e3a9b5324194d5c484e16c1210e09c3058eb",
+        "bytes": 51621,
+        "local_file": "c9fa55d8bed7304b47da9eb1.body"
+      },
+      "installed_wheel_sha256": "40310aaaee2385df1afc9c91d0a0bd61884a8d2940b91e3d5d7739a4dac6b2dd",
+      "published_wheel_match": [
+        "litellm-1.105.7-cp310-abi3-manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Documentation": "https://docs.litellm.ai",
+        "Homepage": "https://litellm.ai",
+        "Repository": "https://github.com/BerriAI/litellm"
+      },
+      "source_archives": [
+        {
+          "filename": "litellm-1.105.7.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/95/55/5a4513ef7ff6e9f3514eb66eda1bcb980bc510876f06edc4b82d82be27e1/litellm-1.105.7.tar.gz",
+          "sha256": "b8f4f61e71ceb8156632f277aa750bd55c979b2ce5ea27ebe14b1c7dd37018ad",
+          "bytes": 20198172,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "lupa",
+      "version": "2.8",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/lupa/2.8/json",
+        "sha256": "f7878ee06fd3096de4a0d559dbba595dd85d7723d762d55e293bb609a8599526",
+        "bytes": 124672,
+        "local_file": "cca1bcb67c339372bc2ab094.body"
+      },
+      "installed_wheel_sha256": "27044f3363047f946b3d3aab9157cbd172b3538ada9ec1baef43432bf7d03a78",
+      "published_wheel_match": [
+        "lupa-2.8-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/scoder/lupa"
+      },
+      "source_archives": [
+        {
+          "filename": "lupa-2.8.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/c3/a6/0f869fbb07c393f15473b1eefefb7b5bec162fb7481803d040ed4dc46002/lupa-2.8.tar.gz",
+          "sha256": "d8022641b9ec8ecf2c5ecbe9f47e5a70e0b87c4b5ae921b92cb02a638e0acd08",
+          "bytes": 6156370,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.4",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/markupsafe/3.0.4/json",
+        "sha256": "85cd5bce3f85e67ab0b921be9c9ba144a7cc01a2d02b85ad65b1f8dabeac4c57",
+        "bytes": 135847,
+        "local_file": "de9a4db11e4a64b33ce435b5.body"
+      },
+      "installed_wheel_sha256": "6a45c3d514f2436064db00d7fc8778d888f0236ebfed649b53d13a59e69ad51b",
+      "published_wheel_match": [
+        "markupsafe-3.0.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Changes": "https://markupsafe.palletsprojects.com/page/changes/",
+        "Chat": "https://discord.gg/pallets",
+        "Documentation": "https://markupsafe.palletsprojects.com/",
+        "Donate": "https://palletsprojects.com/donate",
+        "Source": "https://github.com/pallets/markupsafe/"
+      },
+      "source_archives": [
+        {
+          "filename": "markupsafe-3.0.4.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/38/9b/e422a865e1d5d57d0e509b4e0bf1c1a70a7f6382c29a5aa428df994c8bc8/markupsafe-3.0.4.tar.gz",
+          "sha256": "2e9ad7dd851bf45fab9f75cbff4cb493fee9979e8d8c7c9c3ee119022518edd6",
+          "bytes": 153777,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "msgpack",
+      "version": "1.1.0",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/msgpack/1.1.0/json",
+        "sha256": "f0a44b2bd4e64d95658d81ca508f62e4342756243046402fdd785d100912121a",
+        "bytes": 69144,
+        "local_file": "5f614c9df981f7046fbda2f6.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://github.com/msgpack/msgpack-python/blob/main/ChangeLog.rst",
+        "Documentation": "https://msgpack-python.readthedocs.io/",
+        "Homepage": "https://msgpack.org/",
+        "Repository": "https://github.com/msgpack/msgpack-python/",
+        "Tracker": "https://github.com/msgpack/msgpack-python/issues"
+      },
+      "source_archives": [
+        {
+          "filename": "msgpack-1.1.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/cb/d0/7555686ae7ff5731205df1012ede15dd9d927f6227ea151e901c7406af4f/msgpack-1.1.0.tar.gz",
+          "sha256": "dd432ccc2c72b914e4cb77afce64aab761c1137cc698be3984eee260bcb2896e",
+          "bytes": 167260,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "multidict",
+      "version": "7.2.1",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/multidict/7.2.1/json",
+        "sha256": "49fb04bf7bdb872b9fffc930a3e5e5f1a34c2fc35f7304815fadf3f167467a4d",
+        "bytes": 139712,
+        "local_file": "3d132edbd836545e32aa64ea.body"
+      },
+      "installed_wheel_sha256": "fa0ecd064b0ae18d235283abb5adbc4e07304dba8f2aa7c0d61f28bebcc70d4c",
+      "published_wheel_match": [
+        "multidict-7.2.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "CI: GitHub": "https://github.com/aio-libs/multidict/actions",
+        "Chat: Matrix": "https://matrix.to/#/#aio-libs:matrix.org",
+        "Chat: Matrix Space": "https://matrix.to/#/#aio-libs-space:matrix.org",
+        "Code of Conduct": "https://github.com/aio-libs/.github/blob/master/CODE_OF_CONDUCT.md",
+        "Coverage: codecov": "https://codecov.io/github/aio-libs/multidict",
+        "Docs: Changelog": "https://multidict.aio-libs.org/en/latest/changes/",
+        "Docs: RTD": "https://multidict.aio-libs.org",
+        "GitHub: issues": "https://github.com/aio-libs/multidict/issues",
+        "GitHub: repo": "https://github.com/aio-libs/multidict",
+        "Homepage": "https://github.com/aio-libs/multidict"
+      },
+      "source_archives": [
+        {
+          "filename": "multidict-7.2.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/7b/6b/29ef8e752f5854dcc267ded0652c475bec99b86f255957a0d4fcad657b18/multidict-7.2.1.tar.gz",
+          "sha256": "e8af3e6f1bdbc31fd762b094133b478b89988eaebc63cbe82b1d9e3bbd15cede",
+          "bytes": 369994,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "packaging",
+      "version": "24.2",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/packaging/24.2/json",
+        "sha256": "abe767200651dd31d5239c3bfa6cb61d44aaf01647cdf513ac39e51566b1d3c7",
+        "bytes": 5459,
+        "local_file": "32f96615f03cd8408e8cf318.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Documentation": "https://packaging.pypa.io/",
+        "Source": "https://github.com/pypa/packaging"
+      },
+      "source_archives": [
+        {
+          "filename": "packaging-24.2.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/d0/63/68dbb6eb2de9cb10ee4c9c14a0148804425e13c4fb20d61cce69f53106da/packaging-24.2.tar.gz",
+          "sha256": "c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f",
+          "bytes": 163950,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "pillow",
+      "version": "13.0.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/pillow/13.0.0/json",
+        "sha256": "183d4151cbc909acf39d4d5d48469d6bc66d5516e7f506854241839d0611b69e",
+        "bytes": 80892,
+        "local_file": "93e782c1b2641b3aa8ca86cf.body"
+      },
+      "installed_wheel_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "published_wheel_match": [
+        "pillow-13.0.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Changelog": "https://github.com/python-pillow/Pillow/releases",
+        "Documentation": "https://pillow.readthedocs.io",
+        "Funding": "https://tidelift.com/lifter/search/pypi/pillow",
+        "Homepage": "https://python-pillow.org",
+        "Mastodon": "https://fosstodon.org/@pillow",
+        "Release notes": "https://pillow.readthedocs.io/en/stable/releasenotes/index.html",
+        "Security": "https://pillow.readthedocs.io/en/stable/handbook/security.html",
+        "Source": "https://github.com/python-pillow/Pillow"
+      },
+      "source_archives": [
+        {
+          "filename": "pillow-13.0.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/ce/a4/9cc30690a394a8305e8be4c9036aa16d0dfddadd09079860b582f562496d/pillow-13.0.0.tar.gz",
+          "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+          "bytes": 47058631,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "pip",
+      "version": "25.0.1",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/pip/25.0.1/json",
+        "sha256": "14f6c8434d14a8211078597cded44c3e4a1539fd8cb48e1095b294ed3daa34a8",
+        "bytes": 14384,
+        "local_file": "de87fea26a251b9bb1fdebb7.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://pip.pypa.io/en/stable/news/",
+        "Documentation": "https://pip.pypa.io",
+        "Homepage": "https://pip.pypa.io/",
+        "Source": "https://github.com/pypa/pip"
+      },
+      "source_archives": [
+        {
+          "filename": "pip-25.0.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/70/53/b309b4a497b09655cb7e07088966881a57d082f48ac3cb54ea729fd2c6cf/pip-25.0.1.tar.gz",
+          "sha256": "88f96547ea48b940a3a385494e181e29fb8637898f88d88737c5049780f196ea",
+          "bytes": 1950850,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.3.6",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/platformdirs/4.3.6/json",
+        "sha256": "e3d096fc803a8c70ff3744b894051b1ebce0a16886ca6c95f7688ef1a62809c2",
+        "bytes": 14225,
+        "local_file": "883f164442003a45efb5a6e5.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://github.com/tox-dev/platformdirs/releases",
+        "Documentation": "https://platformdirs.readthedocs.io",
+        "Homepage": "https://github.com/tox-dev/platformdirs",
+        "Source": "https://github.com/tox-dev/platformdirs",
+        "Tracker": "https://github.com/tox-dev/platformdirs/issues"
+      },
+      "source_archives": [
+        {
+          "filename": "platformdirs-4.3.6.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/13/fc/128cc9cb8f03208bdbf93d3aa862e16d376844a14f9a0ce5cf4507372de4/platformdirs-4.3.6.tar.gz",
+          "sha256": "357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907",
+          "bytes": 21302,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "propcache",
+      "version": "0.5.4",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/propcache/0.5.4/json",
+        "sha256": "253a90067f5c44ffec37f3f1081934c91fb60edda0dc1e9bdf805edc8cecf693",
+        "bytes": 147325,
+        "local_file": "dfae13f6ce1201014b204ea5.body"
+      },
+      "installed_wheel_sha256": "60a64cbccaa11b7760ce705a14ada17ba459e7ca9f23ba587eb013821032d7ef",
+      "published_wheel_match": [
+        "propcache-0.5.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "CI: GitHub Workflows": "https://github.com/aio-libs/propcache/actions?query=branch:master",
+        "Chat: Matrix": "https://matrix.to/#/#aio-libs:matrix.org",
+        "Chat: Matrix Space": "https://matrix.to/#/#aio-libs-space:matrix.org",
+        "Code of Conduct": "https://github.com/aio-libs/.github/blob/master/CODE_OF_CONDUCT.md",
+        "Coverage: codecov": "https://codecov.io/github/aio-libs/propcache",
+        "Docs: Changelog": "https://propcache.readthedocs.io/en/latest/changes/",
+        "Docs: RTD": "https://propcache.readthedocs.io",
+        "GitHub: issues": "https://github.com/aio-libs/propcache/issues",
+        "GitHub: repo": "https://github.com/aio-libs/propcache",
+        "Homepage": "https://github.com/aio-libs/propcache"
+      },
+      "source_archives": [
+        {
+          "filename": "propcache-0.5.4.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/b3/9a/9fbf4e4ec0c2d7f1c32519fff782ef467859b8faa9fbc5331a96f6395d43/propcache-0.5.4.tar.gz",
+          "sha256": "ff6b113f50bc066a698db5d944d2c6dc7507168dd3341e255a8892fd0715a558",
+          "bytes": 61545,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.50.2",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/pydantic-core/2.50.2/json",
+        "sha256": "47d8d66946499711fad9e5610aa1ee7651a630185f395659483cc03ba7624a5b",
+        "bytes": 131770,
+        "local_file": "bd83f44882709ee63b7f79e9.body"
+      },
+      "installed_wheel_sha256": "43a8fd56f3c681f3cda2d5c842ad28e88241df742dfcbe8fd1dd437a3056e1f6",
+      "published_wheel_match": [
+        "pydantic_core-2.50.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl"
+      ],
+      "project_urls": {
+        "Funding": "https://github.com/sponsors/samuelcolvin",
+        "Homepage": "https://github.com/pydantic",
+        "Source": "https://github.com/pydantic/pydantic/tree/main/pydantic-core"
+      },
+      "source_archives": [
+        {
+          "filename": "pydantic_core-2.50.2.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/af/8e/23ec1021834e35041fbb2f10946141e6acdfd39379c45cc4d65a4e8a1d98/pydantic_core-2.50.2.tar.gz",
+          "sha256": "1b0e8dc3932cf4e9ed5727570325cacc716b9409ffc794a221c0ccc72e8eb775",
+          "bytes": 518711,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "Pygments",
+      "version": "2.18.0",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/pygments/2.18.0/json",
+        "sha256": "9b3bfb18c1bc18767fdcd53a5df20d9b4d4d8f8c41c49555e79b7fc9db15d089",
+        "bytes": 5711,
+        "local_file": "829c352b3d419783b861d7fb.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Bug Tracker": "https://github.com/pygments/pygments/issues",
+        "Changelog": "https://github.com/pygments/pygments/blob/master/CHANGES",
+        "Documentation": "https://pygments.org/docs",
+        "Homepage": "https://pygments.org",
+        "Source": "https://github.com/pygments/pygments"
+      },
+      "source_archives": [
+        {
+          "filename": "pygments-2.18.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/8e/62/8336eff65bcbc8e4cb5d05b55faf041285951b6e80f33e2bff2024788f31/pygments-2.18.0.tar.gz",
+          "sha256": "786ff802f32e91311bff3889f6e9a86e81505fe99f2735bb6d60ae0c5004f199",
+          "bytes": 4891905,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "pyproject-hooks",
+      "version": "1.2.0",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/pyproject-hooks/1.2.0/json",
+        "sha256": "d4ae02523e9b0d3dd852270dacf69160e8c6a5e4e52e370ceecf3cfc9e9f7cdd",
+        "bytes": 3574,
+        "local_file": "764d0fd1efffe2151f08878f.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://pyproject-hooks.readthedocs.io/en/latest/changelog.html",
+        "Documentation": "https://pyproject-hooks.readthedocs.io/",
+        "Source": "https://github.com/pypa/pyproject-hooks"
+      },
+      "source_archives": [
+        {
+          "filename": "pyproject_hooks-1.2.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/e7/82/28175b2414effca1cdac8dc99f76d660e7a4fb0ceefa4b4ab8f5f6742925/pyproject_hooks-1.2.0.tar.gz",
+          "sha256": "1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8",
+          "bytes": 19228,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/pyyaml/6.0.3/json",
+        "sha256": "c3f35597bc2f08cc990c2a5fe57bef6687b3a3d7c61d8b0ba4cc067777eb1def",
+        "bytes": 66402,
+        "local_file": "42cee2f46cbeb46aecb5088b.body"
+      },
+      "installed_wheel_sha256": "9149cad251584d5fb4981be1ecde53a1ca46c891a79788c0df828d2f166bda28",
+      "published_wheel_match": [
+        "pyyaml-6.0.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Bug Tracker": "https://github.com/yaml/pyyaml/issues",
+        "CI": "https://github.com/yaml/pyyaml/actions",
+        "Documentation": "https://pyyaml.org/wiki/PyYAMLDocumentation",
+        "Download": "https://pypi.org/project/PyYAML/",
+        "Homepage": "https://pyyaml.org/",
+        "Mailing lists": "http://lists.sourceforge.net/lists/listinfo/yaml-core",
+        "Source Code": "https://github.com/yaml/pyyaml"
+      },
+      "source_archives": [
+        {
+          "filename": "pyyaml-6.0.3.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz",
+          "sha256": "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f",
+          "bytes": 130960,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/regex/2026.9.29/json",
+        "sha256": "08fc1fa7daa8db0404cbbaea4eed71acc7798421386d3de50f92302068fe58c5",
+        "bytes": 156896,
+        "local_file": "9e77286e97375effa1a88d20.body"
+      },
+      "installed_wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+      "published_wheel_match": [
+        "regex-2026.9.29-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/mrabarnett/mrab-regex"
+      },
+      "source_archives": [
+        {
+          "filename": "regex-2026.9.29.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/fc/f2/af1da9d3ceed77bfcdce40427d49ba0be94e4fe84245e3bfef68c10e75b6/regex-2026.9.29.tar.gz",
+          "sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+          "bytes": 419199,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.3",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/requests/2.32.3/json",
+        "sha256": "f5190fe51e5a5d086db03fb57ce8c0f778fa53437808e164662a41f4da2f0c2f",
+        "bytes": 10145,
+        "local_file": "fdd5de6f835df1beb784d90c.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Documentation": "https://requests.readthedocs.io",
+        "Homepage": "https://requests.readthedocs.io",
+        "Source": "https://github.com/psf/requests"
+      },
+      "source_archives": [
+        {
+          "filename": "requests-2.32.3.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/63/70/2bf7780ad2d390a8d301ad0b550f1581eadbd9a20f896afe06353c2a2913/requests-2.32.3.tar.gz",
+          "sha256": "55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760",
+          "bytes": 131218,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    }
+  ]
+}

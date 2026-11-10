@@ -1,3 +1,4 @@
+import { readWebConfigurationEnvironment } from "../../runtime/workbenchConfiguration.ts";
 const DEV_SOURCE = "dev-workflow-rag-http";
 const DEFAULT_BASE_URL = "http://127.0.0.1:7000";
 const COLLECTION_PATH = "/v1/user-workspace/workflow-retrieval-snapshots";
@@ -167,7 +168,7 @@ type ListEnvelope = {
 };
 
 export function readWorkflowRAGSnapshotConfig(): WorkflowRAGSnapshotConfig {
-  const env = import.meta.env as Record<string, string | undefined>;
+  const env = readWebConfigurationEnvironment();
   const requestedScopes = new Set((env.VITE_RADISHMIND_WORKFLOW_RAG_SCOPES ?? "").split(",").map((value) => value.trim()).filter(isWorkflowRAGScope));
   return {
     mode: env.VITE_RADISHMIND_WORKFLOW_RAG_SOURCE?.trim() === DEV_SOURCE ? "dev_workflow_rag_http" : "offline",

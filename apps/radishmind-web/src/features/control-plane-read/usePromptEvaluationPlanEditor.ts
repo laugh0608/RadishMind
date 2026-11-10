@@ -6,10 +6,10 @@ import {
 import { readPromptApplicationRuntimeConfig } from "./promptApplicationRuntimeConsumer.ts";
 import { readPromptTemplateConfig } from "./promptApplicationTemplateConsumer.ts";
 import { loadPromptPlanEditor, newPromptPlanEditor, promptPlanIsDirty, switchPromptPlanMode, validatePromptPlanEditor, type PromptPlanEditor, type PromptPlanIssue } from "./promptEvaluationPlanDraft.ts";
-import { readPromptPlanReference, type PromptPlanReference } from "./promptEvaluationPlanReference.ts";
+import { readPromptTemplateReference, type PromptTemplateReference } from "./promptTemplateReference.ts";
 import { acceptPromptPlanSave, promptPlanReviewIsCurrent, reviewPromptPlan, type PromptPlanReview } from "./promptEvaluationPlanReview.ts";
 
-type ReferenceState = { status: "idle" | "loading" | "ready" | "changed" | "unavailable"; current: PromptPlanReference | null; candidate: PromptPlanReference | null; code: string };
+type ReferenceState = { status: "idle" | "loading" | "ready" | "changed" | "unavailable"; current: PromptTemplateReference | null; candidate: PromptTemplateReference | null; code: string };
 type Confirmation = { kind: "save"; review: PromptPlanReview } | { kind: "archive"; plan: ApplicationEvaluationPlan };
 type Notice = { kind: "saved" | "loaded" | "archived"; id: string; version?: number } | { kind: "failed"; code: string };
 type Discard = { kind: "new" } | { kind: "load"; plan: ApplicationEvaluationPlan; version: ApplicationEvaluationPlanVersion };
@@ -100,7 +100,7 @@ export function usePromptEvaluationPlanEditor({ config, applicationActive, onSav
     setNotice(null);
     setReference(current => ({ ...current, status: "loading", candidate: null, code: "" }));
     try {
-      const result = await readPromptPlanReference(configs.runtime, configs.template, config.applicationId, () => request === generation.current);
+      const result = await readPromptTemplateReference(configs.runtime, configs.template, config.applicationId, () => request === generation.current);
       if (request !== generation.current || result.status === "cancelled") return;
       if (result.status === "unavailable") {
         setReference({ status: "unavailable", current: reference.current, candidate: null, code: result.code });
@@ -127,7 +127,7 @@ export function usePromptEvaluationPlanEditor({ config, applicationActive, onSav
     setShowIssues(true);
   }
 
-  function showReview(source: PromptPlanReference | null) {
+  function showReview(source: PromptTemplateReference | null) {
     setShowIssues(true);
     const review = reviewPromptPlan(editor, source);
     setConfirmation(review ? { kind: "save", review } : null);

@@ -23,10 +23,12 @@ const (
 )
 
 type ClientOptions struct {
-	Mode             Mode
-	WorkerCount      int
-	QueueCapacity    int
-	HandshakeTimeout time.Duration
+	// IsolateModelEnvironment prevents ambient model configuration and .env loading.
+	IsolateModelEnvironment bool
+	Mode                    Mode
+	WorkerCount             int
+	QueueCapacity           int
+	HandshakeTimeout        time.Duration
 }
 
 func ParseMode(value string) (Mode, error) {

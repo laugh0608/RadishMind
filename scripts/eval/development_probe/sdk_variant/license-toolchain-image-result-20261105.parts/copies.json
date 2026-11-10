@@ -1,0 +1,76 @@
+{
+  "items": [
+    {
+      "role": "sdk",
+      "id": "python-build-config",
+      "path": "/usr/local/lib/python3.12/config-3.12-aarch64-linux-gnu",
+      "follow_link": false,
+      "tar_file": "python-build-config.tar",
+      "bytes": 252928,
+      "sha256": "bcb70d217c5c24e6bbd41de94e2975a4dfee4dcaa67d040f740f3ff786536e33"
+    },
+    {
+      "role": "sdk",
+      "id": "python-extensions",
+      "path": "/usr/local/lib/python3.12/lib-dynload",
+      "follow_link": false,
+      "tar_file": "python-extensions.tar",
+      "bytes": 8785920,
+      "sha256": "e342bee30ee01b58e0d3c5208e24404c8f6874e952ffcfcc5deadd667b545f21"
+    },
+    {
+      "role": "sdk",
+      "id": "python-sysconfig",
+      "path": "/usr/local/lib/python3.12/_sysconfigdata__linux_aarch64-linux-gnu.py",
+      "follow_link": false,
+      "tar_file": "python-sysconfig.tar",
+      "bytes": 49152,
+      "sha256": "8e7c4d7d49ce67c303b0017c3231c27971d0fbccd1775a5d656c395c9fcbade5"
+    },
+    {
+      "role": "sdk",
+      "id": "python-config-header",
+      "path": "/usr/local/include/python3.12/pyconfig.h",
+      "follow_link": false,
+      "tar_file": "python-config-header.tar",
+      "bytes": 57856,
+      "sha256": "e59aeef83133dccefd67f0dd68350b818da283401b20aa7842a25f6662c28587"
+    },
+    {
+      "role": "sdk",
+      "id": "libpython",
+      "path": "/usr/local/lib/libpython3.12.so.1.0",
+      "follow_link": false,
+      "tar_file": "libpython.tar",
+      "bytes": 6613504,
+      "sha256": "4fe92c7f6445b71be9abfb966a7c45db8d935364915176606adbb6ce12d48919"
+    },
+    {
+      "role": "sdk",
+      "id": "python-executable",
+      "path": "/usr/local/bin/python3.12",
+      "follow_link": false,
+      "tar_file": "python-executable.tar",
+      "bytes": 69632,
+      "sha256": "91c00d6879bbd9f37cd5c0dd3f8231743a8fdcf038fd5454ed3b37824f6bf947"
+    },
+    {
+      "role": "go",
+      "id": "go-cmd-vendor",
+      "path": "/usr/local/go/src/cmd/vendor",
+      "follow_link": false,
+      "tar_file": "go-cmd-vendor.tar",
+      "bytes": 18592256,
+      "sha256": "f6b2a8e41ad422098e5b7f8c7b3f363d6d68597165ddc7b9c8ecdd4ba207a018"
+    },
+    {
+      "role": "go",
+      "id": "go-build-defaults",
+      "path": "/usr/local/go/go.env",
+      "follow_link": false,
+      "tar_file": "go-build-defaults.tar",
+      "bytes": 2048,
+      "sha256": "112e2423d4ac4fc087bac71ab2c47e086c039b7de4fc4a0337fabb356581dd17"
+    }
+  ]
+}

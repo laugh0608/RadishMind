@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-attempt-plan.schema.json",
+  "description": "可信宿主确认的单尝试计划；Go 另核对 UTF-8 字节长度、写路径属于读路径、模型输入上界与预算关系。无 SDK 提供方 URL、命令或凭据。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "application_id",
+    "execution_profile",
+    "definition_id",
+    "model_ref",
+    "baseline_digest",
+    "initial_messages_digest",
+    "tools",
+    "limits",
+    "lifetime_ms",
+    "max_output_tokens"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "development_attempt_plan.v1"
+    },
+    "application_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "execution_profile": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+    },
+    "definition_id": {
+      "anyOf": [
+        {
+          "const": ""
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}(?![\\s\\S])"
+        }
+      ]
+    },
+    "model_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}(?![\\s\\S])"
+    },
+    "baseline_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}(?![\\s\\S])"
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "read_paths",
+        "write_paths",
+        "verification_profile"
+      ],
+      "properties": {
+        "read_paths": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "development-tool-action.schema.json#/allOf/0/then/properties/path"
+          }
+        },
+        "write_paths": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "development-tool-action.schema.json#/allOf/0/then/properties/path"
+          }
+        },
+        "verification_profile": {
+          "const": "go_test_v1"
+        }
+      }
+    },
+    "limits": {
+      "$ref": "development-attempt-delegation.schema.json#/properties/limits"
+    },
+    "lifetime_ms": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 600000
+    },
+    "max_output_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 262144
+    },
+    "initial_messages_digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}(?![\\s\\S])"
+    }
+  }
+}

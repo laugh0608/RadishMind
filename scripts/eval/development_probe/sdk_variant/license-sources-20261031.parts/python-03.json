@@ -1,0 +1,486 @@
+{
+  "status": "exact_PyPI_metadata_collected_no_sdist_download",
+  "note": "pip modifies vendored code; upstream sdists do not replace pip exact source. Native build closure remains open.",
+  "items": [
+    {
+      "name": "resolvelib",
+      "version": "1.0.1",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/resolvelib/1.0.1/json",
+        "sha256": "8b87e44da8d62211019baa404bd6934366ece1f1e51e2a0baf4509d658f83dc1",
+        "bytes": 6161,
+        "local_file": "026ff08f7abfc530840fb0f1.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Homepage": "https://github.com/sarugaku/resolvelib"
+      },
+      "source_archives": [
+        {
+          "filename": "resolvelib-1.0.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/ce/10/f699366ce577423cbc3df3280063099054c23df70856465080798c6ebad6/resolvelib-1.0.1.tar.gz",
+          "sha256": "04ce76cbd63fded2078ce224785da6ecd42b9564b1390793f64ddecbe997b309",
+          "bytes": 21065,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "rich",
+      "version": "13.9.4",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/rich/13.9.4/json",
+        "sha256": "cd453fdf803d9549a2d1fa973fa397dfc1d1918fdc07a7218762a7a00c469d92",
+        "bytes": 20830,
+        "local_file": "b04f7502e6e24ed19ada7742.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Documentation": "https://rich.readthedocs.io/en/latest/",
+        "Homepage": "https://github.com/Textualize/rich"
+      },
+      "source_archives": [
+        {
+          "filename": "rich-13.9.4.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/ab/3a/0316b28d0761c6734d6bc14e770d85506c986c85ffb239e688eeaab2c2bc/rich-13.9.4.tar.gz",
+          "sha256": "439594978a49a09530cff7ebc4b5c7103ef57baf48d5ea3184f21d9a2befa098",
+          "bytes": 223149,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "rpds-py",
+      "version": "2026.9.1",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/rpds-py/2026.9.1/json",
+        "sha256": "93808b9ff27aabe26d9a4f03b28422d1d05c3fb8716d88f3826e7ddf4b0b258b",
+        "bytes": 116828,
+        "local_file": "238ee534b6e179562133499f.body"
+      },
+      "installed_wheel_sha256": "2693b2728bbcc48d09a981a356954b0c47c53ff25b545856f28a889ea619f69a",
+      "published_wheel_match": [
+        "rpds_py-2026.9.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+      ],
+      "project_urls": {
+        "Documentation": "https://rpds.readthedocs.io/",
+        "Funding": "https://github.com/sponsors/Julian",
+        "Homepage": "https://github.com/crate-py/rpds",
+        "Issues": "https://github.com/crate-py/rpds/issues/",
+        "Source": "https://github.com/crate-py/rpds",
+        "Tidelift": "https://tidelift.com/subscription/pkg/pypi-rpds-py?utm_source=pypi-rpds-py&utm_medium=referral&utm_campaign=pypi-link",
+        "Upstream": "https://github.com/orium/rpds"
+      },
+      "source_archives": [
+        {
+          "filename": "rpds_py-2026.9.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/42/68/3bd46b8a5e01d3c2ebdf9c5e9497912e3fe0cde02bac21a7130ca866e403/rpds_py-2026.9.1.tar.gz",
+          "sha256": "4793ef7f78268b124b73fa933440f01d258bbae01de9fa53e9080c9ab0425a12",
+          "bytes": 63948,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "setuptools",
+      "version": "70.3.0",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/setuptools/70.3.0/json",
+        "sha256": "61819125771b8c972edf61e4183105567eac00dffcc43d55eb7e757cb0e3b2a1",
+        "bytes": 17463,
+        "local_file": "2f1baa769b83dad2ec9d7193.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://setuptools.pypa.io/en/stable/history.html",
+        "Documentation": "https://setuptools.pypa.io/",
+        "Source": "https://github.com/pypa/setuptools"
+      },
+      "source_archives": [
+        {
+          "filename": "setuptools-70.3.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/65/d8/10a70e86f6c28ae59f101a9de6d77bf70f147180fbf40c3af0f64080adc3/setuptools-70.3.0.tar.gz",
+          "sha256": "f171bab1dfbc86b132997f26a119f6056a57950d058587841a0082e8830f9dc5",
+          "bytes": 2333112,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "tiktoken",
+      "version": "0.14.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/tiktoken/0.14.0/json",
+        "sha256": "05ff3946dc41fffc7ba7a35826e6385e29baa736fbe4fcc8ac9a37088049d58a",
+        "bytes": 62016,
+        "local_file": "b508e5ca9ea777ae9a85b665.body"
+      },
+      "installed_wheel_sha256": "7db45b98e94adf4173a5cd7422b150999a7ee11ff847783a14f6e1b80cc38cb6",
+      "published_wheel_match": [
+        "tiktoken-0.14.0-cp312-cp312-manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "changelog": "https://github.com/openai/tiktoken/blob/main/CHANGELOG.md",
+        "homepage": "https://github.com/openai/tiktoken",
+        "repository": "https://github.com/openai/tiktoken"
+      },
+      "source_archives": [
+        {
+          "filename": "tiktoken-0.14.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/66/62/167a842aa0429d45f5e797354fd4343a96f6043d67d0513c675c7b8d36e6/tiktoken-0.14.0.tar.gz",
+          "sha256": "231dec90efcdccf1b565a1416107736f1e09b1a08fe736ef9d6363e626d03874",
+          "bytes": 38898,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "tokenizers",
+      "version": "0.23.3",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/tokenizers/0.23.3/json",
+        "sha256": "c08480d45857e1c4d1174f000a98e74f542a875d07130d19b9c500090214487e",
+        "bytes": 31436,
+        "local_file": "ab3e24279a7c9bce414d5720.body"
+      },
+      "installed_wheel_sha256": "ec82e80e65a862275b97c3d90b7a523df8d9519ee48aeb4e9625b2cc909274e0",
+      "published_wheel_match": [
+        "tokenizers-0.23.3-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/huggingface/tokenizers",
+        "Source": "https://github.com/huggingface/tokenizers"
+      },
+      "source_archives": [
+        {
+          "filename": "tokenizers-0.23.3.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/e0/7c/2cabb2174e772636683008f2c5621949b645da7d303c596589e84516a184/tokenizers-0.23.3.tar.gz",
+          "sha256": "cded33237c77caeef62944d32aa9a7ef42bdce2b3497e18d137e072a8c4be438",
+          "bytes": 385286,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "tomli",
+      "version": "2.2.1",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/tomli/2.2.1/json",
+        "sha256": "92bd1dec31ee5ecbaf3be63be43bb823759aa9af623d1278512953e3c42ec759",
+        "bytes": 39883,
+        "local_file": "26bc5244a1fb60be63649e17.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Changelog": "https://github.com/hukkin/tomli/blob/master/CHANGELOG.md",
+        "Homepage": "https://github.com/hukkin/tomli"
+      },
+      "source_archives": [
+        {
+          "filename": "tomli-2.2.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/18/87/302344fed471e44a87289cf4967697d07e532f2421fdaf868a303cbae4ff/tomli-2.2.1.tar.gz",
+          "sha256": "cd45e1dc79c835ce60f7404ec8119f2eb06d38b1deba146f07ced3bbc44505ff",
+          "bytes": 17175,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/tqdm/4.70.1/json",
+        "sha256": "0589819a1bc3437c8f215d95f3f64ff24d602dc6a62598eb8d2e420c8e6a0b25",
+        "bytes": 60697,
+        "local_file": "5853940ef4a00c49bb015d7d.body"
+      },
+      "installed_wheel_sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73",
+      "published_wheel_match": [
+        "tqdm-4.70.1-py3-none-any.whl"
+      ],
+      "project_urls": {
+        "changelog": "https://tqdm.github.io/releases",
+        "homepage": "https://tqdm.github.io",
+        "repository": "https://github.com/tqdm/tqdm",
+        "wiki": "https://github.com/tqdm/tqdm/wiki"
+      },
+      "source_archives": [
+        {
+          "filename": "tqdm-4.70.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/0d/ea/b2a5bd54b28a324dae8211928b2d730b6547500342c7e6c6dea08bd0a485/tqdm-4.70.1.tar.gz",
+          "sha256": "cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4",
+          "bytes": 171846,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "tree-sitter",
+      "version": "0.26.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/tree-sitter/0.26.0/json",
+        "sha256": "9092685a2f892a458da47b612f842f80aff303f6fadb82261414dc644af2e699",
+        "bytes": 47129,
+        "local_file": "504d374e2a477327ddb722d0.body"
+      },
+      "installed_wheel_sha256": "30a88be89ff1f2755297f81e8080d88b795dd98720c3f9fa2acf93873182cc95",
+      "published_wheel_match": [
+        "tree_sitter-0.26.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Discord": "https://discord.gg/w7nTvsVJhm",
+        "Documentation": "https://tree-sitter.github.io/py-tree-sitter/",
+        "Homepage": "https://tree-sitter.github.io/tree-sitter/",
+        "Matrix": "https://matrix.to/#/#tree-sitter-chat:matrix.org",
+        "Source": "https://github.com/tree-sitter/py-tree-sitter"
+      },
+      "source_archives": [
+        {
+          "filename": "tree_sitter-0.26.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/f7/03/5600b84aff2e6c4fe80cfebb4063fe2f50299521befe5f6092ab8c082f4a/tree_sitter-0.26.0.tar.gz",
+          "sha256": "b40c219edccc4564530c96f8f1556f6202b37cda964d1cbd7bd2b7e68b40a245",
+          "bytes": 191423,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/tree-sitter-bash/0.25.1/json",
+        "sha256": "cf21d2ae724a0d7e12c0f611231d646c4a578abbe70059974c8a429ea7954506",
+        "bytes": 10708,
+        "local_file": "3d898419faa30fa415638877.body"
+      },
+      "installed_wheel_sha256": "e76c4cfb20b076552406782b7f8c2a3946835993df0a44df006de54b7030c7dc",
+      "published_wheel_match": [
+        "tree_sitter_bash-0.25.1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/tree-sitter/tree-sitter-bash"
+      },
+      "source_archives": [
+        {
+          "filename": "tree_sitter_bash-0.25.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/8e/0e/f0108be910f1eef6499eabce517e79fe3b12057280ed398da67ce2426cba/tree_sitter_bash-0.25.1.tar.gz",
+          "sha256": "bfc0bdaa77bc1e86e3c6652e5a6e140c40c0a16b84185c2b63ad7cd809b88f14",
+          "bytes": 419703,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "truststore",
+      "version": "0.10.0",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/truststore/0.10.0/json",
+        "sha256": "a162b416ed72ed52e4603d5e6effbb8e483eae7534511a3b06e60be08f2dbb67",
+        "bytes": 6681,
+        "local_file": "28f4951bf5b5a8b23727e59a.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Documentation": "https://truststore.readthedocs.io",
+        "Source": "https://github.com/sethmlarson/truststore"
+      },
+      "source_archives": [
+        {
+          "filename": "truststore-0.10.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/01/a8/cdcf418e067b8ae539012a3f1a51f90b30b26f5e1952a8f60304396babbc/truststore-0.10.0.tar.gz",
+          "sha256": "5da347c665714fdfbd46f738c823fe9f0d8775e41ac5fb94f325749091187896",
+          "bytes": 24810,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "typing-extensions",
+      "version": "4.12.2",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/typing_extensions/4.12.2/json",
+        "sha256": "c5900b4532b93c4c4df1f92ebda717dfa953dbbe3cc900d8fb303ce66c8a82ee",
+        "bytes": 5368,
+        "local_file": "e153d3c73542d214de25a5f3.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Bug Tracker": "https://github.com/python/typing_extensions/issues",
+        "Changes": "https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
+        "Documentation": "https://typing-extensions.readthedocs.io/",
+        "Home": "https://github.com/python/typing_extensions",
+        "Q & A": "https://github.com/python/typing/discussions",
+        "Repository": "https://github.com/python/typing_extensions"
+      },
+      "source_archives": [
+        {
+          "filename": "typing_extensions-4.12.2.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/df/db/f35a00659bc03fec321ba8bce9420de607a1d37f8342eee1863174c69557/typing_extensions-4.12.2.tar.gz",
+          "sha256": "1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8",
+          "bytes": 85321,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "urllib3",
+      "version": "1.26.20",
+      "scope": "pip_or_vendored_upstream",
+      "metadata": {
+        "url": "https://pypi.org/pypi/urllib3/1.26.20/json",
+        "sha256": "7f3d20596739dd3fd4eddf76df52c0a1cf9f5476e9ff1591e4242fe99432a315",
+        "bytes": 86025,
+        "local_file": "d3e9dd063c61551f68061710.body"
+      },
+      "installed_wheel_sha256": null,
+      "published_wheel_match": [],
+      "project_urls": {
+        "Code": "https://github.com/urllib3/urllib3",
+        "Documentation": "https://urllib3.readthedocs.io/",
+        "Homepage": "https://urllib3.readthedocs.io/",
+        "Issue tracker": "https://github.com/urllib3/urllib3/issues"
+      },
+      "source_archives": [
+        {
+          "filename": "urllib3-1.26.20.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/e4/e8/6ff5e6bc22095cfc59b6ea711b687e2b7ed4bdb373f7eeec370a97d7392f/urllib3-1.26.20.tar.gz",
+          "sha256": "40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32",
+          "bytes": 307380,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.3.0",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/watchfiles/1.3.0/json",
+        "sha256": "ba585baa9af3fdcdb897e9e6f5711a7551aa994c617318e898b3ec749383f73a",
+        "bytes": 34147,
+        "local_file": "0613f0c974948d961b10942b.body"
+      },
+      "installed_wheel_sha256": "4af9c464d410e8c44b58ddf1cbec7c3a02c1cb2c6c80df9c74659ba2fbda0ab5",
+      "published_wheel_match": [
+        "watchfiles-1.3.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+      ],
+      "project_urls": {
+        "Changelog": "https://github.com/samuelcolvin/watchfiles/releases",
+        "Documentation": "https://watchfiles.helpmanual.io",
+        "Funding": "https://github.com/sponsors/samuelcolvin",
+        "Homepage": "https://github.com/samuelcolvin/watchfiles",
+        "Source": "https://github.com/samuelcolvin/watchfiles"
+      },
+      "source_archives": [
+        {
+          "filename": "watchfiles-1.3.0.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/b3/68/e6aa0b77d217b31f8f486ec0cdfe5e00e6e38dc0be657e7d85819b9faf0a/watchfiles-1.3.0.tar.gz",
+          "sha256": "99aee4a07847c06820765fd7b1b49ceac4f3f711ccb7d104655a33231de1c207",
+          "bytes": 108119,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "websockets",
+      "version": "17.4",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/websockets/17.4/json",
+        "sha256": "44c13cba2bf7f1b8adec49e89259c2cb2bd5e1a17d2eb89c01261282a0c3f846",
+        "bytes": 142959,
+        "local_file": "67ace9d51e465ff41706789e.body"
+      },
+      "installed_wheel_sha256": "51adfc30f467077293a6695d8149bcef501c0728386f3a491054f835dadb60b2",
+      "published_wheel_match": [
+        "websockets-17.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "Changelog": "https://websockets.readthedocs.io/en/stable/project/changelog.html",
+        "Documentation": "https://websockets.readthedocs.io/",
+        "Funding": "https://tidelift.com/subscription/pkg/pypi-websockets?utm_source=pypi-websockets&utm_medium=referral&utm_campaign=readme",
+        "Homepage": "https://github.com/python-websockets/websockets",
+        "Tracker": "https://github.com/python-websockets/websockets/issues"
+      },
+      "source_archives": [
+        {
+          "filename": "websockets-17.4.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/75/79/590c5f0cc7d1661195aeefccb0e342b79f4c77d368d526d028821a390332/websockets-17.4.tar.gz",
+          "sha256": "09d3939b70df0c8ad2da145ebd50978bccaee1d565e838b0e7921a34d38571eb",
+          "bytes": 191391,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    },
+    {
+      "name": "yarl",
+      "version": "1.25.1",
+      "scope": "installed_wheel_evidence_root",
+      "metadata": {
+        "url": "https://pypi.org/pypi/yarl/1.25.1/json",
+        "sha256": "a07cf3b564a15e3be66faacf0c81a23497ebfbf1ec849a3a77b494ba4b60cf0f",
+        "bytes": 236256,
+        "local_file": "806b79e0498ef0f64e75543f.body"
+      },
+      "installed_wheel_sha256": "4d781294bb815ecb5ea57ff6bbf8038e0a31a95fdf3e1788f66e0dc100d64b58",
+      "published_wheel_match": [
+        "yarl-1.25.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+      ],
+      "project_urls": {
+        "CI: GitHub Workflows": "https://github.com/aio-libs/yarl/actions?query=branch:master",
+        "Chat: Matrix": "https://matrix.to/#/#aio-libs:matrix.org",
+        "Chat: Matrix Space": "https://matrix.to/#/#aio-libs-space:matrix.org",
+        "Code of Conduct": "https://github.com/aio-libs/.github/blob/master/CODE_OF_CONDUCT.md",
+        "Coverage: codecov": "https://codecov.io/github/aio-libs/yarl",
+        "Docs: Changelog": "https://yarl.aio-libs.org/en/latest/changes/",
+        "Docs: RTD": "https://yarl.aio-libs.org",
+        "GitHub: issues": "https://github.com/aio-libs/yarl/issues",
+        "GitHub: repo": "https://github.com/aio-libs/yarl",
+        "Homepage": "https://github.com/aio-libs/yarl"
+      },
+      "source_archives": [
+        {
+          "filename": "yarl-1.25.1.tar.gz",
+          "url": "https://files.pythonhosted.org/packages/75/16/e8be8e2fb175bbf41a0680381a319f1199fae256588241a2ac8677eafb49/yarl-1.25.1.tar.gz",
+          "sha256": "03dd38de09bc213e9a8b29761eec33ee1d5318dac0e49d8af36e4d27830e23a7",
+          "bytes": 246245,
+          "yanked": false
+        }
+      ],
+      "status": "source_candidate_not_downloaded_wheel_build_mapping_open"
+    }
+  ]
+}
