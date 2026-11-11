@@ -2,7 +2,7 @@
 
 状态：`1.59.0+radishmind.1` 已于 2026-10-31 在单独授权窗口完成构建、119 项依赖冻结安装及真实 SDK / 固定响应联合复验，登记为技术候选。原始 `1.59.0` 的 138 项锁和镜像保持历史试验基线；本变体有独立证据，正式采用与整镜像分发许可仍未闭合。
 
-11 月 5 日当前准备器和 Dockerfile 已接入六包 14 份 wheel 补充告知，以及 pip 25.0.1 的 21 份内嵌告知。wheel 校验绑定安装报告中的版本 / 归档摘要；pip 独立校验同一安装的元数据与全部 280 个内嵌文件。旧构建上下文不会自动更新，后续获准构建须重新准备新目录，保留旧材料及摘要。下文 10 月 31 日的镜像与复验记录不包含本次新增告知的实际安装验收；最终镜像 / 伴随源码仍未交付。
+当前准备器与构建校验覆盖六包 14 份 wheel 补充告知、pip 25.0.1 的 21 份内嵌告知和 CPython 3.12.16 的 Expat / libmpdec 两份告知。wheel 校验绑定安装报告中的版本与归档摘要。pip 独立校验同一安装的元数据及 280 个内嵌文件。CPython 校验绑定保留镜像的 `pyexpat` 和 `_decimal` 扩展字节。后续获准构建须重新准备新目录，保留旧材料及摘要。下文 10 月 31 日的历史镜像早于补充告知的接入，实际安装、非 root 读取与伴随源码交付仍待验收。
 
 ## 来源与改动
 
@@ -13,6 +13,8 @@
 - 显式启用 Laminar / OTel 观测但缺少依赖时，初始化和直接创建根 span 均明确报错；默认关闭时沿用上游延迟导入和直接执行路径。
 
 `prepare_sdk_variant.py` 只消费本地归档，不联网、不安装、不构建、不导入 SDK。它只创建仓库 `tmp/` 内的新目录，拒绝错误摘要、路径逃逸、重复路径、链接与特殊文件；先检查补丁再应用，核对结果摘要，移除副本中的旧发行元数据并记录完整构建输入摘要。准备器还通过 `sdk_notice_delivery.py` 校验并复制清单中的补充告知：精确 wheel 必须匹配已验冻结锁，正文与目标路径必须一致；缺失、篡改、路径越界、重复或未登记正文均拒绝。失败保留不完整目录，不覆盖已有证据。
+
+CPython 告知放在镜像的 `/usr/local/share/radishmind/third-party/cpython/`。Expat 保留 `Modules/expat/COPYING` 原文。libmpdec 从 `Modules/_decimal/libmpdec/mpdecimal.c` 复制完整首段许可注释，仅追加一个末尾 LF。源码证据见[工具链清单](license-toolchain-image-result-20261105.parts/python.json)。Dockerfile 现有校验入口会同时检查两份正文和对应扩展的精确字节。
 
 `build-requirements.lock` 仅锁定构建工具；原 138 项锁派生的 `constraints.txt` 仅约束既有版本，不强制安装未被使用的包。正常 pip 解析决定新的依赖闭包；只有明确构建的本地 SDK wheel 可使用本地 URL，其余发行物必须为有 SHA-256 的 PyPI wheel，出现 `lmnr` 或代理包即拒绝生成候选锁。实际生成的独立锁为 [requirements-linux-arm64-py312.lock](requirements-linux-arm64-py312.lock)，运行解析、全部 wheel 与安装报告的版本 / 摘要已逐项核对。
 

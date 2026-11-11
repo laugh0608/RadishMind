@@ -9,24 +9,53 @@ import re
 
 
 DESTINATION = "/usr/local/share/radishmind/third-party"
+CPYTHON_EXTENSION_DIRECTORY = Path("/usr/local/lib/python3.12/lib-dynload")
+# CPython 3.12.16 notices and extension fingerprints from the retained SDK image evidence.
+CPYTHON_NOTICES = {
+    "Expat-COPYING.txt": (1144, "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87"),
+    "libmpdec-LICENSE.txt": (1359, "b07528d8b1dbf1e2d2741052996f0876e23342ce2d30d0effa39c5457716c25a"),
+}
+CPYTHON_EXTENSIONS = {
+    "pyexpat.cpython-312-aarch64-linux-gnu.so": (
+        271152, "074bf13e0f10b9203ee1191dff15eecec584fff8a2df7ec1c55083a1b00ed0cf"),
+    "_decimal.cpython-312-aarch64-linux-gnu.so": (
+        339552, "60a6a97503e9ea31efb35bf2aabfffd7fb2b0bfc1c8fb9a08757206622bae008"),
+}
 
 
 def normalized_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
+def checked_bytes(root: Path, name: str, size: int, digest: str) -> bytes:
+    path = root / name
+    if root.is_symlink() or path.is_symlink() or not path.is_file():
+        raise ValueError(f"{name} must be a regular file")
+    if not 0 < size <= 1024 * 1024 or path.stat().st_size != size:
+        raise ValueError(f"{name} size mismatch")
+    body = path.read_bytes()
+    if hashlib.sha256(body).hexdigest() != digest:
+        raise ValueError(f"{name} digest mismatch")
+    return body
+
+
 def notice_bytes(root: Path, name: str, size: int, digest: str) -> bytes:
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*\.txt", name):
         raise ValueError("invalid notice filename")
-    path = root / name
-    if root.is_symlink() or path.is_symlink() or not path.is_file():
-        raise ValueError("notice must be a regular file")
-    if not 0 < size <= 1024 * 1024 or path.stat().st_size != size:
-        raise ValueError("notice size mismatch")
-    body = path.read_bytes()
-    if hashlib.sha256(body).hexdigest() != digest:
-        raise ValueError("notice digest mismatch")
-    return body
+    return checked_bytes(root, name, size, digest)
+
+
+def cpython_notices(directory: Path) -> dict[str, bytes]:
+    bodies = {name: notice_bytes(directory, name, *expected) for name, expected in CPYTHON_NOTICES.items()}
+    if bodies.keys() != {path.name for path in directory.iterdir()}:
+        raise ValueError("CPython notice inventory mismatch")
+    return bodies
+
+
+def verify_cpython(directory: Path, extension_directory: Path) -> None:
+    cpython_notices(directory / "cpython")
+    for name, expected in CPYTHON_EXTENSIONS.items():
+        checked_bytes(extension_directory, name, *expected)
 
 
 def prepare(variant: Path, directory: Path) -> None:
@@ -59,10 +88,16 @@ def prepare(variant: Path, directory: Path) -> None:
         packages.append(package)
     if not packages or set(files) != {p.name for p in (variant / "notice-supplements").glob("*.txt")}:
         raise ValueError("notice inventory is empty or incomplete")
+    cpython = cpython_notices(variant / "cpython-notice-supplements")
     directory.mkdir(mode=0o700, exist_ok=False)
-    for name, body in files.items():
-        (directory / name).write_bytes(body)
-        (directory / name).chmod(0o644)
+    cpython_directory = directory / "cpython"
+    cpython_directory.mkdir(mode=0o700)
+    for destination, bodies in ((directory, files), (cpython_directory, cpython)):
+        for name, body in bodies.items():
+            target = destination / name
+            target.write_bytes(body)
+            target.chmod(0o644)
+    cpython_directory.chmod(0o755)
     manifest = {"schema_version": "development_sdk_notice_delivery.v1", "scope": "partial_supplements_only",
                 "license_gate_closed": False, "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
                 "packages": packages}
@@ -113,6 +148,7 @@ def main() -> None:
         prepare(args.variant, args.directory)
     else:
         verify(args.directory, args.installation_report)
+        verify_cpython(args.directory, CPYTHON_EXTENSION_DIRECTORY)
 
 
 if __name__ == "__main__":
