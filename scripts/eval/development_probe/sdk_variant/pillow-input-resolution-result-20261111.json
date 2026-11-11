@@ -1,0 +1,104 @@
+{
+  "schema_version": "pillow_input_resolution_result.v1",
+  "date": "2026-11-11",
+  "status": "source_references_resolved_builder_declared_not_verified",
+  "evidence_directory": "tmp/pillow-input-resolution-20261111.eq_oigxy",
+  "requests": [
+    {
+      "name": "cibuildwheel.json",
+      "url": "https://pypi.org/pypi/cibuildwheel/4.3.1/json",
+      "limit_bytes": 1048576,
+      "limit_seconds": 20,
+      "exit_code": 0,
+      "receipt": "200 34041 1.634024",
+      "bytes": 34041,
+      "sha256": "d5d55e9767875cc5a2f349045db0f069ee281b7866619465a556cd8f115b330c"
+    },
+    {
+      "name": "aom.json",
+      "url": "https://aomedia.googlesource.com/aom/+/refs/tags/v3.14.1?format=JSON",
+      "limit_bytes": 262144,
+      "limit_seconds": 20,
+      "exit_code": 0,
+      "receipt": "200 857 0.944435",
+      "bytes": 857,
+      "sha256": "89f92337adcbe98fc6a4ed8cbe9e0345b4fdaccfe774aba416056b481b8815e4"
+    },
+    {
+      "name": "dav1d.json",
+      "url": "https://code.videolan.org/api/v4/projects/videolan%2Fdav1d/repository/commits/1.5.3",
+      "limit_bytes": 262144,
+      "limit_seconds": 20,
+      "exit_code": 0,
+      "receipt": "200 1003 2.673341",
+      "bytes": 1003,
+      "sha256": "aef9133b965227262ba241aeccd8c9bf11b5affb2fb49283d0f6fbeee65e74d8"
+    },
+    {
+      "name": "cibuildwheel-4.3.1.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/e4/b8/05c1eefb6433adccf536af308c62ec691ed2e0a41a43c7efb4124f6f60b2/cibuildwheel-4.3.1.tar.gz",
+      "limit_bytes": 3145728,
+      "limit_seconds": 60,
+      "exit_code": 0,
+      "receipt": "200 462211 2.042820",
+      "bytes": 462211,
+      "sha256": "69ee4cc0b9dd04ff3e32b3675fe429383ad3d5d98b20ac4ff217d83d2cf350af"
+    }
+  ],
+  "request_count": 4,
+  "download_bytes": 498112,
+  "transfer_seconds": 7.29462,
+  "resolved": {
+    "cibuildwheel_sdist": {
+      "filename": "cibuildwheel-4.3.1.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/e4/b8/05c1eefb6433adccf536af308c62ec691ed2e0a41a43c7efb4124f6f60b2/cibuildwheel-4.3.1.tar.gz",
+      "size": 462211,
+      "digests": {
+        "blake2b_256": "e4b805c1eefb6433adccf536af308c62ec691ed2e0a41a43c7efb4124f6f60b2",
+        "md5": "33a4ae9afe649d2049480c846f4dc86e",
+        "sha256": "69ee4cc0b9dd04ff3e32b3675fe429383ad3d5d98b20ac4ff217d83d2cf350af"
+      }
+    },
+    "aom_commit": "03087864cf4bea6abb0d28f95cf7843511413d8f",
+    "dav1d_commit": "b546257f770768b2c88258c533da38b91a06f737"
+  },
+  "builder": {
+    "platform": "linux/arm64",
+    "python_abi": "cp312-cp312",
+    "image": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+    "source_member": "cibuildwheel-4.3.1/cibuildwheel/resources/pinned_docker_images.cfg",
+    "source_member_sha256": "bdf71fa0f6a1b5eaac2fa4f86d713c2abfbe1369796502292d21dd5ca998fb8c",
+    "defaults_member_sha256": "cd7e281da07aa7dcbbd37d6345cfbbc1c3970b570301284031bf16e083295e20",
+    "selection_basis": "Pillow 对应 aarch64 Linux 工作流与 cibuildwheel 4.3.1 默认 manylinux_2_28 配置一致，采用该发行包所载不可变镜像引用作为唯一构建器候选。",
+    "verification": "仅取得发布源码配置中的镜像摘要；尚未查询镜像仓库、拉取或静态核验实际内容，不证明历史 Pillow wheel 的构建镜像。"
+  },
+  "python312_tool_constraints": {
+    "source_member": "cibuildwheel-4.3.1/cibuildwheel/resources/constraints-python312.txt",
+    "source_member_sha256": "b02a4ba58a2b4168c3c4e2c286c652f4659ff794ee86a58497a3e01f84aa132b",
+    "relevant_declared_pins": [
+      "auditwheel==6.8.2",
+      "build==1.6.1",
+      "packaging==26.3",
+      "patchelf==0.19.1.0",
+      "pip==26.2.1; implementation_name != \"graalpy\"",
+      "pip==26.1.2; implementation_name == \"graalpy\" and platform_system != \"Windows\"",
+      "pip==26.0.1; implementation_name == \"graalpy\" and platform_system == \"Windows\"",
+      "pkgconf==3.0.7.post0",
+      "pyelftools==0.33",
+      "pyproject-hooks==1.3.3",
+      "virtualenv==21.14.6"
+    ],
+    "boundary": "这是上游工具版本约束，未下载 wheel 或构成带摘要的构建闭包；条件分支按实际构建解释器选择，不全量引入其他平台工具。"
+  },
+  "missing_inputs": [
+    "16 个直接原生归档及 AOM / dav1d / libyuv 的完整源码归档；libsharpyuv 拟复用 libwebp 输入。",
+    "候选构建镜像的实际平台、内容及所带解释器 / 编译工具 / 系统库核验。",
+    "Pillow 后端 pybind11、setuptools，以及 Meson / Ninja 等工具的精确版本、发行物与摘要；所读 constraints-python312.txt 未锁定这四项。",
+    "候选配方的离线接线、补丁与实际功能复验。"
+  ],
+  "decision": "保留单 wheel 候选，来源引用与构建器配置解析窗口完成并关闭；后续转向精确归档与实际构建输入核验，不再重复同类标签 / 元数据查询。",
+  "boundaries": [
+    "四次 HTTPS GET，无重试、跳转、额外请求、安装、源码执行、解包落盘、镜像拉取或容器运行。",
+    "结果只固定新候选输入选择，不补证历史 wheel 实际构建过程；阶段 0 与其余许可交付仍未关闭。"
+  ]
+}

@@ -12,6 +12,8 @@
 
 11 月 11 日完成 Pillow 单 wheel 候选首轮六次输入取证：五份 blob 精确匹配，multibuild 快照按 Git 类型 / 可执行位、路径、长度和内容摘要完整核对，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-fixed-inputs-result-20261111.json)与[周志](../devlogs/2026-W46.md#2026-11-11-pillow-首轮取证与交付阻塞复核)。本窗口已结束；构建镜像 / 工具、嵌套源码和最终交付未完成，保留单一候选，阶段 0 不退出。
 
+同日获准执行四次输入解析，取得 AOM / dav1d 完整提交和 cibuildwheel 精确源码包内的构建器镜像摘要 / 工具约束，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-input-resolution-result-20261111.json)。窗口已结束；尚未拉取或验证构建镜像实物，源码归档和工具闭包仍缺，未构建或修改运行锁。
+
 ## 本轮范围
 
 规划归属：Workflow / Agent Runtime → 受控软件开发团队 → [实施顺序与效果验证](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)。本卡是阶段 0 任务结果源；框架、运行状态、隔离与界面职责子专题提供关联合同。下表完成项只证明对应技术范围，阶段退出仍须满足实施专题的四项条件。
