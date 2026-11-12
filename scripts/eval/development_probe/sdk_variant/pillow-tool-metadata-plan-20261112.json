@@ -1,0 +1,281 @@
+{
+  "schema_version": "pillow_tool_metadata_plan.v1",
+  "date": "2026-11-12",
+  "status": "prepared_not_authorized",
+  "purpose": "只获取剩余四项工具的 PyPI JSON，逐项离线核对并记录候选；本轮仅修正 / 预检和准备方案，暂不联网。",
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-result-20261112.json",
+    "bytes": 32642,
+    "sha256": "d66a4c1d831998fdb7876ad8a329e8210d498e2201f7bf418ee87d7581677962"
+  },
+  "parent_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-plan-20261112.json",
+    "bytes": 18492,
+    "sha256": "c6b35301726cc013d4cfe3690311075e4de5a4be6ede66ae9a89708d3cc7468f"
+  },
+  "offline_preflight": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-preflight-20261112.json",
+    "bytes": 10175,
+    "sha256": "43fcb2f7c54ae8a9461804f2363d7ac1d8fc412c78f1942d12d345ae24dbdc7b"
+  },
+  "validator": {
+    "path": "scripts/eval/development_probe/pillow_tool_metadata.py",
+    "bytes": 8799,
+    "sha256": "7468c8ffd6a7f733b9a7c6d749f43a6964a5ca4d55cd5f71df3154bf32d2beb2"
+  },
+  "tests": {
+    "path": "scripts/eval/development_probe/test_pillow_tool_metadata.py",
+    "bytes": 8397,
+    "sha256": "66479b67726849d701a9c549ee7d96bd5b6e74ccef6c154777221ebe4bf14356"
+  },
+  "reuse_verified_locally": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    },
+    {
+      "id": "xcb-proto",
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+    },
+    {
+      "id": "libxcb",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb-1.17.0.tar.xz",
+      "sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0"
+    },
+    {
+      "id": "libjpeg-turbo",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.body"
+    },
+    {
+      "id": "zstd",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.body"
+    },
+    {
+      "id": "tiff",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.body"
+    },
+    {
+      "id": "libavif",
+      "bytes": 14665927,
+      "sha256": "2b645287340ba5a631d268b551dc2d72bd73ac33335962dd36dcdb6d8366921d",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libavif-1.body"
+    },
+    {
+      "id": "libpng",
+      "bytes": 1582074,
+      "sha256": "8c9b05b675ca7301a458df2c2e46f26e1d41ff36b8863f8c33530bc58c2e6225",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libpng-2.body"
+    },
+    {
+      "id": "lcms2",
+      "bytes": 5728743,
+      "sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/lcms2-1.body"
+    },
+    {
+      "id": "openjpeg",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/openjpeg-1.body",
+      "bytes": 2157028,
+      "sha256": "a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a"
+    },
+    {
+      "id": "libwebp",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/libwebp-0.body",
+      "bytes": 4296070,
+      "sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
+    },
+    {
+      "id": "brotli",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/brotli-1.body",
+      "bytes": 646315,
+      "sha256": "816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec"
+    },
+    {
+      "id": "freetype",
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-1.body",
+      "bytes": 4134916,
+      "sha256": "e61b31ab26358b946e767ed7eb7f4bb2e507da1cfefeb7a8861ace7fd5c899a1"
+    },
+    {
+      "id": "harfbuzz",
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-1.body",
+      "bytes": 20262956,
+      "sha256": "b7132e148358a45185c9feafd049dbaf243649d3c44414b3534d9c95d18592b9"
+    },
+    {
+      "id": "bzip2",
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/bzip2-0.body",
+      "bytes": 810029,
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269"
+    },
+    {
+      "id": "aom",
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/aom-0.body",
+      "bytes": 6438829,
+      "sha256": "efd37e4a93fdd20ca616567a835e4d470979a77f71aa88115c80048095b5fefc"
+    },
+    {
+      "id": "dav1d",
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d-0.body",
+      "bytes": 1716568,
+      "sha256": "c5b7428c3f5b28db0aee0c62f6ffb2b42f4b08e7be5ce49d7ad046aaf0dc151d"
+    },
+    {
+      "id": "libyuv",
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/libyuv-0.body",
+      "bytes": 598454,
+      "sha256": "ca063bd5d39034bf25b388347e09fb05493c11d7947fe73dd0a5072bb08cbe2c"
+    }
+  ],
+  "accepted_lcms2_review": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json",
+    "sha256": "98c4ccf07f225093332196e131b0f7365cd56b757b36f0e939463be5af46337f"
+  },
+  "tool_metadata": [
+    {
+      "name": "setuptools",
+      "url": "https://pypi.org/pypi/setuptools/83.0.0/json",
+      "selection": "沿已有 SDK 构建锁 83.0.0；匹配 wheel SHA-256 29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3 的发行物来源。"
+    },
+    {
+      "name": "pybind11",
+      "url": "https://pypi.org/pypi/pybind11/json",
+      "selection": "仅记录当前公开版本候选、Requires-Python / Requires-Dist、wheel 平台及摘要，与取得的源码要求核对；不采用或下载发行物。"
+    },
+    {
+      "name": "meson",
+      "url": "https://pypi.org/pypi/meson/json",
+      "selection": "同上；版本必须满足新取得原生源码的明确最低要求。"
+    },
+    {
+      "name": "ninja",
+      "url": "https://pypi.org/pypi/ninja/json",
+      "selection": "同上；区分 Python 包版本和内含 Ninja 二进制版本，aarch64 与 CPython 3.12 兼容性单独核对。"
+    }
+  ],
+  "target": {
+    "python": "3.12.16",
+    "implementation": "CPython",
+    "platform": "linux/arm64",
+    "builder_declaration": "manylinux_2_28_aarch64",
+    "builder_evidence": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-input-resolution-result-20261111.json",
+      "bytes": 5210,
+      "sha256": "e4ed8a92bb31da7bb449a8de58f0bfc94c0002953ac2edfe9a56f907064638fa"
+    },
+    "verification": "只按已留存声明筛选标签；构建器层实物未验，不读取宿主平台标签。"
+  },
+  "transport": {
+    "proxy": "http://127.0.0.1:10808",
+    "proxy_bypass_disabled": true,
+    "tls_verification": true,
+    "tls_protocol_override": null,
+    "http_protocol_override": null,
+    "max_header_bytes_per_request": 65536,
+    "rule": "仅按所列四个 pypi.org 精确 HTTPS URL 顺序 GET；同一 HTTP 代理、空 noproxy 和证书校验。零跳转、零重试、无续传、无 HEAD / 探测、无自动换源 / 版本 / 代理 / TLS 或 HTTP 协议。"
+  },
+  "limits": {
+    "max_http_requests": 4,
+    "concurrency": 1,
+    "connect_seconds": 8,
+    "seconds_per_request": 20,
+    "max_network_seconds": 80,
+    "max_body_bytes_per_request": 4194304,
+    "max_total_body_bytes": 16777216,
+    "max_header_bytes_per_request": 65536,
+    "max_stderr_bytes_per_request": 65536,
+    "max_receipt_bytes_per_request": 4096,
+    "max_validation_seconds_per_response": 10,
+    "max_window_seconds_including_preflight_and_validation": 600,
+    "max_new_retained_bytes": 33554432,
+    "redirects": 0,
+    "retries": 0,
+    "resume": false,
+    "accounting": "全新窗口，不沿用前窗额度；失败、部分正文和任何 3xx 响应均计请求 / 正文 / 时间。网络时间按单调时钟计；正文 / 日志 / 回执 / 新留存和总时限由请求监控器实时检查，触限终止当前子进程并停全窗。"
+  },
+  "acceptance": {
+    "http": "curl 成功退出、HTTP 200、无 Location，客户端完整完成，正文与有效 Content-Length（若存在）一致；缺少长度如实记录，不将 HTTP 200 单独当作完整响应。",
+    "metadata": "严格 UTF-8 JSON，无重复键 / NaN；核对项目与稳定版本、Requires-Python / Requires-Dist（允许真实 null 并保留未知），解析依赖语法并保留 marker，不自动解析或获取依赖。",
+    "wheel": "PyPI wheel 的文件名项目 / 版本必须一致；正整数字节、合法 SHA-256、HTTPS files.pythonhosted.org /packages/ 精确文件名，无凭据 / 查询 / 片段；拒绝撤回候选，按目标标签及 Python 声明筛选，必须至少一个可接受候选。",
+    "versions": "setuptools 精确 83.0.0 且匹配原构建锁 SHA-256；Meson >=0.60.0。pybind11 / Meson / Ninja 的非版本化端点只记录该次响应声明的候选及摘要，不采用当前最新、不换版本追取、不把 Python Ninja 包版本当作二进制实测版本。",
+    "known_limits": "元数据匹配不证明最终工具闭包、实际安装 / 链接或构建可用；其它候选依赖只登记，不增请求。"
+  },
+  "execution": {
+    "directory": "授权后新建权限 0700 的 tmp/pillow-tool-metadata-acquisition-20261112.<随机后缀>/；拒绝覆盖旧证据。",
+    "pre_network": [
+      "复算本计划、预检记录、核对器 / 测试和二十一份复用输入及 lcms2 接受记录。",
+      "用仓库 .venv 运行 --preflight，比较解析器版本和全部源码指纹，并重跑九项离线测试；任何失败在联网前停止。",
+      "新建空计数 / 预算与计划快照；收紧请求监控器为四请求 / 80 秒 / 16 MiB 正文 / 32 MiB 留存，确认零跳转 / 重试。"
+    ],
+    "curl_argv_template": [
+      "/usr/bin/curl",
+      "-q",
+      "--silent",
+      "--show-error",
+      "--proxy",
+      "http://127.0.0.1:10808",
+      "--noproxy",
+      "",
+      "--proto",
+      "=https",
+      "--retry",
+      "0",
+      "--max-redirs",
+      "0",
+      "--connect-timeout",
+      "8",
+      "--max-time",
+      "20",
+      "--max-filesize",
+      "4194304",
+      "--dump-header",
+      "<新目录>/<工具>.headers",
+      "--output",
+      "<新目录>/<工具>.body",
+      "--write-out",
+      "%{http_code} %{size_download} %{time_total}\n",
+      "<本计划精确 URL>"
+    ],
+    "curl_template_boundary": "仅请求参数模板；执行时必须置于限额监控器内，stdout / stderr 分别保存为 receipt / stderr；不单独运行模板来替代日志、总时限和累计额度监控。",
+    "validate_command_template": ".venv/bin/python -B scripts/eval/development_probe/pillow_tool_metadata.py --tool <工具名> --input <新目录>/<工具>.body",
+    "sequence": "setuptools → pybind11 → meson → ninja；上一项完整请求与核对通过、保存原文 / 头 / 计时 / 指纹后才请求下一项。成功输出候选记录，未将验证器 stdout 当作网络回执。",
+    "stop": "任何本地预检 / 网络 / 内容 / 引用 / 核对失败或超限即结束整个窗口；不安装依赖、修复后续跑、重试、换源、换版本或跳过。保留失败和已验材料，回到路线 / 剩余成本裁决。",
+    "cleanup": "每次请求及校验子进程必须退出或终止并 wait；无后台服务。保留获准目录用于审计，不删除既有十九份归档。"
+  },
+  "exclusions": [
+    "源码归档 / manifest / config 重取、wheel / sdist 工具发行物及额外依赖下载。",
+    "镜像层、Docker 守护进程访问、容器创建 / 运行、依赖安装、构建、配方 / 运行锁改动、发布 / 上传。"
+  ],
+  "exit": "四项元数据逐项验收后，关闭本窗口并复核唯一构建器 / 工具实物和资源预算；不足时登记阻塞，不自动追取闭包。阶段 0 不因此退出。"
+}

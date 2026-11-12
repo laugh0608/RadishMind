@@ -1,0 +1,494 @@
+{
+  "schema_version": "pillow_libxcb_alternative_result.v1",
+  "date": "2026-11-11",
+  "evidence_directory": "tmp/pillow-libxcb-alternative-20261111.x4w7s115",
+  "alternative_plan_sha256": "39646cee06d327a0f4026d2e94c561fe6b43332b5224cd0335a2eeb095671c66",
+  "authorization": "所有者确认从 GWDG 获取 libxcb 1.17.0 xz，核对大小、双摘要及静态结构后接续剩余清单；任一失败或超限停窗。",
+  "proxy": "http://127.0.0.1:10808",
+  "requests": [
+    {
+      "phase": "source_archives",
+      "name": "libxcb",
+      "url_without_query": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/c1/libxcb-1.17.0.tar.xz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 455208 7.073854",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55"
+    },
+    {
+      "phase": "source_archives",
+      "name": "libjpeg-turbo-0",
+      "url_without_query": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "302 0 4.160998",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "source_archives",
+      "name": "libjpeg-turbo-1",
+      "url_without_query": "https://release-assets.githubusercontent.com/github-production-release-asset/39760454/95af7e28-3a3a-4649-a140-a2af154d0f44",
+      "query_redacted": true,
+      "exit_code": 0,
+      "receipt": "200 2537858 4.926263",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e"
+    },
+    {
+      "phase": "source_archives",
+      "name": "zstd-0",
+      "url_without_query": "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "301 0 1.898415",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "source_archives",
+      "name": "zstd-1",
+      "url_without_query": "https://github.com/meta/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "302 0 1.204241",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "source_archives",
+      "name": "zstd-2",
+      "url_without_query": "https://release-assets.githubusercontent.com/github-production-release-asset/29759715/99c899ba-527a-4d01-94e1-4b246cc9b551",
+      "query_redacted": true,
+      "exit_code": 0,
+      "receipt": "200 2434947 3.721058",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3"
+    },
+    {
+      "phase": "source_archives",
+      "name": "tiff-0",
+      "url_without_query": "https://download.osgeo.org/libtiff/tiff-4.7.2.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 4083368 12.468349",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a"
+    },
+    {
+      "phase": "source_archives",
+      "name": "libavif-0",
+      "url_without_query": "https://github.com/AOMediaCodec/libavif/archive/refs/tags/v1.4.2.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "302 0 1.687627",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "source_archives",
+      "name": "libavif-1",
+      "url_without_query": "https://codeload.github.com/AOMediaCodec/libavif/tar.gz/refs/tags/v1.4.2",
+      "query_redacted": false,
+      "exit_code": 28,
+      "receipt": "200 7836809 58.304956",
+      "bytes": 7836809,
+      "sha256": "123ccbd826012f83db649e1e96afb7233297a8ea44e15e33411f6e219aaa10f9"
+    }
+  ],
+  "archives": [
+    {
+      "id": "libxcb",
+      "filename": "libxcb-1.17.0.tar.xz",
+      "evidence_file": "libxcb-1.17.0.tar.xz",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+      "sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0",
+      "published_digests_matched": true,
+      "inspection": {
+        "members": 100,
+        "declared_bytes": 2793295,
+        "safe_internal_links": 0,
+        "expected_root": "libxcb-1.17.0",
+        "roots": [
+          "libxcb-1.17.0"
+        ],
+        "selected_text_count": 2,
+        "selected_text_bytes": 12339,
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "version": "1.17.0",
+        "configuration_member": "libxcb-1.17.0/configure.ac",
+        "configuration_sha256": "07609ff521526cd5cdb867a4149c47cd01d85f3afb0d661fcef10bd34f1a33e5",
+        "license_member": "libxcb-1.17.0/COPYING",
+        "license_sha256": "c5ffbfeaa501071ceeb97b7de2c0d703fdaa35de01c0fb6cbac1c28453a3e9fd",
+        "declared_build_requirements": {
+          "autoconf_minimum": "2.60",
+          "python_minimum": "3.0",
+          "libtool_minimum": "2.2",
+          "xorg_macros_minimum": "1.18",
+          "xcb_proto_minimum": "1.17.0",
+          "xau_minimum": "0.99.2",
+          "optional": "xdmcp；check>=0.9.6 用于测试。"
+        },
+        "boundary": "源码静态声明及许可全文留存，不证明实际工具链、依赖闭包或构建通过；没有扩充下载清单。"
+      }
+    },
+    {
+      "id": "libjpeg-turbo",
+      "declared_input": "libjpeg-turbo-3.2.0.tar.gz",
+      "evidence_file": "libjpeg-turbo-1.body",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "inspection": {
+        "members": 644,
+        "declared_bytes": 9246273,
+        "safe_internal_links": 0,
+        "expected_root": "libjpeg-turbo-3.2.0",
+        "roots": [
+          "libjpeg-turbo-3.2.0"
+        ],
+        "selected_text_count": 14,
+        "selected_text_bytes": 146832,
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "version": "3.2.0",
+        "configuration_member": "libjpeg-turbo-3.2.0/CMakeLists.txt",
+        "configuration_sha256": "2dbbf2b215dce634c3c5dd383311937733b69e6699e4868e3a6e257700aa3ff6",
+        "license_members": [
+          "libjpeg-turbo-3.2.0/LICENSE.md",
+          "libjpeg-turbo-3.2.0/README.ijg"
+        ],
+        "declared_build_requirements": {
+          "cmake_minimum": "3.15",
+          "compiler": "C；SIMD 与工具选项仍须结合实际构建配置核对。"
+        },
+        "boundary": "许可原文与静态声明已留存；归档 SHA-256 为本次取得的候选指纹，没有先验发布摘要绑定，不证明历史 wheel 来源。"
+      }
+    },
+    {
+      "id": "zstd",
+      "declared_input": "zstd-1.5.7.tar.gz",
+      "evidence_file": "zstd-2.body",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "inspection": {
+        "members": 743,
+        "declared_bytes": 8354806,
+        "safe_internal_links": 2,
+        "expected_root": "zstd-1.5.7",
+        "roots": [
+          "zstd-1.5.7"
+        ],
+        "selected_text_count": 14,
+        "selected_text_bytes": 258947,
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "version": "1.5.7",
+        "version_member": "zstd-1.5.7/lib/zstd.h",
+        "version_sha256": "9b4bc8245565c98ccfc61c07749928b57e7c0f6fddb0530c4f6aa1971893d88b",
+        "license_members": [
+          "zstd-1.5.7/LICENSE",
+          "zstd-1.5.7/COPYING"
+        ],
+        "declared_build_requirements": {
+          "cmake_minimum": "3.10",
+          "meson_minimum": "0.50.0",
+          "languages": "C / ASM；部分工具或测试用 C++。"
+        },
+        "boundary": "仅静态声明；下载经过两次允许的 HTTPS 跳转，SHA-256 为新候选指纹，不证明历史 wheel 来源。"
+      }
+    },
+    {
+      "id": "tiff",
+      "declared_input": "tiff-4.7.2.tar.gz",
+      "evidence_file": "tiff-0.body",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "inspection": {
+        "members": 1106,
+        "declared_bytes": 15130541,
+        "safe_internal_links": 0,
+        "expected_root": "tiff-4.7.2",
+        "roots": [
+          "tiff-4.7.2"
+        ],
+        "selected_text_count": 16,
+        "selected_text_bytes": 125375,
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "version": "4.7.2",
+        "version_member": "tiff-4.7.2/VERSION",
+        "configuration_members": [
+          "tiff-4.7.2/CMakeLists.txt",
+          "tiff-4.7.2/configure.ac"
+        ],
+        "license_members": [
+          "tiff-4.7.2/LICENSE.md"
+        ],
+        "declared_build_requirements": {
+          "cmake_minimum": "3.10",
+          "autoconf_minimum": "2.71",
+          "c_standard": "99"
+        },
+        "license_observation": "顶层许可同时包含 LibTIFF 和 tif_lzw.c 的 Berkeley 原文；后者有署名告知条款，最终交付尚未接入。",
+        "boundary": "静态声明与新候选指纹；未验证构建或历史 wheel 来源。"
+      }
+    }
+  ],
+  "reused_artifacts": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    },
+    {
+      "id": "xcb-proto",
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+    }
+  ],
+  "completed_phases": [
+    "local_reuse_verified",
+    "libxcb_verified",
+    "libjpeg_turbo_verified",
+    "zstd_verified",
+    "tiff_verified"
+  ],
+  "archive_declared_bytes": 55936429,
+  "selected_text_bytes": 963861,
+  "request_count": 9,
+  "download_bytes": 17348190,
+  "stop_reason": "request_failed_or_limit_exceeded: libavif-1",
+  "status": "four_archives_verified_stopped_on_libavif_transfer_timeout",
+  "plan_reference": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-libxcb-alternative-plan-20261111.json",
+    "sha256": "39646cee06d327a0f4026d2e94c561fe6b43332b5224cd0335a2eeb095671c66"
+  },
+  "transfer_seconds": 95.445761,
+  "window_elapsed_seconds": 315.780486,
+  "retained_directory_bytes_at_audit": 17994182,
+  "stop": {
+    "id": "libavif",
+    "curl_exit_code": 28,
+    "http_status": 200,
+    "reason": "transfer_timeout_with_partial_body",
+    "received_bytes": 7836809,
+    "declared_content_length": 14665927,
+    "partial_body_sha256": "123ccbd826012f83db649e1e96afb7233297a8ea44e15e33411f6e219aaa10f9",
+    "logical_acquisition_network_seconds": 59.992583,
+    "diagnostic": "curl: (28) Operation timed out after 58304 milliseconds with 7836809 out of 14665927 bytes received",
+    "action": "立即停止整个窗口；保留不完整正文，不重试、不续传、不换源、不跳过继续，不将 HTTP 200 或部分正文摘要计为归档验收。"
+  },
+  "remaining": {
+    "source_archives": 12,
+    "source_ids_in_order": [
+      "libavif",
+      "libpng",
+      "lcms2",
+      "openjpeg",
+      "libwebp",
+      "brotli",
+      "freetype",
+      "harfbuzz",
+      "bzip2",
+      "aom",
+      "dav1d",
+      "libyuv"
+    ],
+    "tool_metadata_requests": 4,
+    "image_layers_downloaded": 0
+  },
+  "verified_archive_count_including_reuse": 7,
+  "boundaries": [
+    "libxcb 大小、官方发布双摘要、100 项成员结构及版本 / 许可 / 构建声明通过，保留原 xz 文件名；配方尚未适配。",
+    "libjpeg-turbo / zstd / TIFF 取得原清单 HTTPS 归档，静态结构、版本及所选许可 / 构建声明通过；其 SHA-256 为新候选指纹，没有独立发布摘要或签名验证。",
+    "所有静态检查均未展开归档到文件系统、执行源码或导入外部包；许可原文留存不等于完整最终告知交付完成。",
+    "manifest / config 与 XZ / zlib-ng / xcb-proto 五份材料复算复用，没有重新下载。",
+    "libavif 只取得部分正文，未进行完整归档静态验收；后续 11 份归档及全部工具元数据未请求。",
+    "没有镜像层、Docker 守护进程访问、容器运行、安装、构建、运行锁修改或发布；不证明历史 wheel 使用这些来源，阶段 0 仍不退出。"
+  ],
+  "raw_receipts": [
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb.headers",
+      "bytes": 425,
+      "sha256": "77ac71695270da8eb80034035ac795ebeba64a99c87963bf5e5080062128b88a"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb.receipt",
+      "bytes": 20,
+      "sha256": "ae9b0b951f4f11cf2cdd3479c317662b347ae36588f494bf3c19c3b49c696e20"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-0.headers",
+      "bytes": 5755,
+      "sha256": "13fba3b9423ee7d4e28e53fc1c26d4abf8a083d9cd49baac090a83c84c70fa1d"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-0.receipt",
+      "bytes": 15,
+      "sha256": "193df953d23fbbb773761b30347f313073696f362d6dcd3041e7e99374b4408c"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.headers",
+      "bytes": 914,
+      "sha256": "8f89f71b4d4bb8df9f93bf8708083cbf0739389976feac616dcc6dfdad5c9500"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.receipt",
+      "bytes": 21,
+      "sha256": "e7411c52a78924471c1687be674c1df2c5c503d134ae562f8650f843482bddaa"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-0.headers",
+      "bytes": 4911,
+      "sha256": "94a096ac22ffe0930e34943aad03dd401591c0a195718a1db57b763ac2ffec84"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-0.receipt",
+      "bytes": 15,
+      "sha256": "b7276980dc110d24fb61be861a99011a230cc0550bb858d4ccb868552de45089"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-1.headers",
+      "bytes": 5738,
+      "sha256": "3578650d2861b023d68e35b823c0d4c6601704e2203bbf641540f3979ee57feb"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-1.receipt",
+      "bytes": 15,
+      "sha256": "cd69034158413b0235e5f3700dd8073b44a00aaf0157b3db30ea53074ecffbec"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.headers",
+      "bytes": 851,
+      "sha256": "2aa0cfc43e4df1b9b7916fe01df8fc7aff81f6ba46791b8d475ee347c291e384"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.receipt",
+      "bytes": 21,
+      "sha256": "77d08371d3b571a1c409f0c8dbd3f979e5da3795108b6afdece8181e17e25d40"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.headers",
+      "bytes": 326,
+      "sha256": "334c09d058f7e7c056b8d4e58296604ff44f0e3863c161a221e94e33a8fc1e46"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.receipt",
+      "bytes": 22,
+      "sha256": "791eac743ff457aa3ee30e9aabbf8a245bc49a17781fbb9f6bee290a165072cb"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libavif-0.headers",
+      "bytes": 4907,
+      "sha256": "e2deeff8641920800115a2ff9a889c4083bb45dd7743a39d684ee7208d8b36ed"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libavif-0.receipt",
+      "bytes": 15,
+      "sha256": "d9cdf5b9a803388cdccc02bb24c20461f7b1fabe9b41f9ce76c69bca47ec6162"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libavif-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libavif-1.headers",
+      "bytes": 739,
+      "sha256": "5f2b89d93c4d8abe1f46bc296effc2000e79e4c084e8dbdecde6d3498ee7c4c6"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libavif-1.receipt",
+      "bytes": 22,
+      "sha256": "2a49b995811f95b540593d89a03e1734086a642dc011aa25cd0fbfee0752b486"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libavif-1.stderr",
+      "bytes": 100,
+      "sha256": "6037fa45c53502bc8d3ba471b254b8aae5de6bbfd8dba8438bb6bb150caf6d99"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb.source-texts.json",
+      "bytes": 13171,
+      "sha256": "b7c8affec504c31c2827b7f3ab42eac24a4cb881b8bfed1ae44c6c605c452cb2"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo.source-texts.json",
+      "bytes": 153770,
+      "sha256": "c8178d394714b8b9a64276cfef595e28ff776ad4386c948454fe2f8252a1881d"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd.source-texts.json",
+      "bytes": 266925,
+      "sha256": "a7472138316b2104fa2c019fde31784e5062b8bd4ac4818c6950f7cf6d261e0b"
+    },
+    {
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff.source-texts.json",
+      "bytes": 133369,
+      "sha256": "a5571632faff4332658cd7374b4588ccfd2aa04f340b996ba486d203f876a420"
+    }
+  ]
+}

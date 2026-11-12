@@ -1,6 +1,6 @@
 # 受控开发阶段 0：代表任务、SDK 与执行合同
 
-更新时间：2026-11-11
+更新时间：2026-11-12
 
 状态：离线准备、人工任务复验、SDK LLM 子合同及单尝试持久事务 / 当前资格 / 内部通道固定响应验证已完成；受限 SDK Agent / 完整允许事件、工具往返及等待取消已通过固定响应验收；固定 Go 沙箱 / 受限工具 / 归属终止已真实验收；开发产物合同与 SQLite 显式保存 / 导出已实现并定向验证；真实 SDK 联合技术任务已通过；采用复评已完成但正式采用暂不通过：原生 HTTP 已通过固定上游技术验证，阶段 1 合同范围与 A 级画板已确认，许可交付仍待闭合。
 
@@ -13,6 +13,44 @@
 11 月 11 日完成 Pillow 单 wheel 候选首轮六次输入取证：五份 blob 精确匹配，multibuild 快照按 Git 类型 / 可执行位、路径、长度和内容摘要完整核对，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-fixed-inputs-result-20261111.json)与[周志](../devlogs/2026-W46.md#2026-11-11-pillow-首轮取证与交付阻塞复核)。本窗口已结束；构建镜像 / 工具、嵌套源码和最终交付未完成，保留单一候选，阶段 0 不退出。
 
 同日获准执行四次输入解析，取得 AOM / dav1d 完整提交和 cibuildwheel 精确源码包内的构建器镜像摘要 / 工具约束，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-input-resolution-result-20261111.json)。窗口已结束；尚未拉取或验证构建镜像实物，源码归档和工具闭包仍缺，未构建或修改运行锁。
+
+随后获准的源码 / 镜像描述符 / 工具元数据下载窗口，在第二次请求返回 config HTTP 302 时按零重定向规则立即停止，见[停窗结果](../../scripts/eval/development_probe/sdk_variant/pillow-material-acquisition-result-20261111.json)。manifest 摘要已匹配，列出 23 层 / 572782550 字节压缩体积；config、平台与层实物未验，19 份源码与四项工具元数据均未请求。具名 CDN 接续范围须另行确认，阶段 0 仍不退出。
+
+同日获准一次具名 CDN 跳转后，config 摘要、`linux/arm64` 声明与 23 层 rootfs 对应通过；取得 XZ / zlib-ng 两份源码并完成静态路径、版本头与指纹核对。第七次请求在 xcb-proto TLS 连接超时后按约定停窗，未重试或换源，见[接续结果](../../scripts/eval/development_probe/sdk_variant/pillow-material-continuation-result-20261111.json)。剩余 17 份归档与四项工具元数据待恢复窗口；镜像层、工具实物及最终交付仍未验收。
+
+随后获准的 xcb-proto 一次有界重试已执行：四份已验材料本地复算匹配；原 URL 首请求在 10.100353 秒返回 curl `56` 与 TLS 协议版本告警，HTTP `000`、正文 0 字节，见[重试结果](../../scripts/eval/development_probe/sdk_variant/pillow-xcb-retry-result-20261111.json)。已全窗停止，没有后续请求、换源或 TLS 参数调整；剩余清单不变，不将本次告警归因为上次连接超时，也不推断归档不存在。网络处置需结合现有证据另定，镜像层和容器运行仍另行确认。
+
+显式 SOCKS5 代理尝试及所有者手动访问也未取得归档后，按要求核查官方来源。已直接取得 2024-04-15 发布公告中的 gz / xz 摘要；已验四份材料复算匹配。[替代计划](../../scripts/eval/development_probe/sdk_variant/pillow-xcb-alternative-plan-20261111.json)选择目录可访问且列出目标的 GWDG Gentoo 镜像，以原版 `1.17.0.tar.xz` 和公告双摘要替代旧 gz 获取项，尚未下载或授权执行。该路径不是 X.Org 原始发布路径，后续配方须显式适配 xz；其它归档、镜像层和阶段退出结论保持。
+
+随后所有者确认执行替代计划，xcb-proto 实际取得 151748 字节，SHA-256 / SHA-512 与公告一致；64 项成员、`1.17.0` 版本声明、许可及构建要求已核对。原 libxcb URL 随后返回指向 HTTP 的 301，按 HTTPS 限制未跟随并停窗，见[替代执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-xcb-alternative-result-20261111.json)。本轮两次请求、151843 字节；已验源码累计三份，剩余 16 份及四项工具元数据。没有自行改写跳转、换源或下载镜像层。
+
+后续只读核查已取得 libxcb `1.17.0` 官方公告双摘要，并与 Gentoo / FreeBSD 的 xz 大小及摘要记录交叉匹配；GWDG 目录与精确文件 HEAD 响应头列出 455208 字节。[新替代计划](../../scripts/eval/development_probe/sdk_variant/pillow-libxcb-alternative-plan-20261111.json)固定同版本 `.tar.xz` 镜像 URL，五份已验材料复算后直接复用，首项验过再接续 15 份归档及四项元数据。当前仅方案准备，未取得 libxcb 正文、未变更配方或运行锁；镜像层及容器运行仍另行确认。
+
+同日获准执行后，libxcb 的 455208 字节与公告双摘要一致，静态核验通过；随后原清单中的 libjpeg-turbo / zstd / TIFF 也完成归档结构、版本及许可 / 构建声明核对。libavif 在一次允许的 HTTPS 跳转后返回 HTTP 200，但只收到 7836809 / 14665927 字节即达到该项总时限、curl 退出 28，立即全窗停止，见[执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-libxcb-alternative-result-20261111.json)。九次请求合计 17348190 字节；已验源码累计七份，剩余 12 份完整归档和四项元数据。部分 libavif 正文保留但不计验收，未重试、续传或继续后项；镜像层、构建和阶段出口状态不变。
+
+11 月 12 日按要求完成[离线复核](../../scripts/eval/development_probe/sdk_variant/pillow-material-recheck-20261112.json)：manifest / config 与七份归档摘要匹配，所选文本与归档原文一致；历史文本累计比留存文本多 96719 字节，原因尚未完整确定，新窗口仍按较大历史占用扣预算。[libavif 新方案](../../scripts/eval/development_probe/sdk_variant/pillow-libavif-retry-plan-20261112.json)保持原 URL / 版本与代理，拟将本项含跳转时限改为 240 秒，完整核验后接续 11 份归档及四项元数据。方案待授权；本轮零网络请求，无镜像层、容器或构建操作，阶段 0 状态不变。
+
+随后所有者确认执行新获取方案。九份复用材料及计划 / 回执绑定复算匹配；libavif 完整 14665927 字节与旧部分正文前缀一致，libpng 完整取得并静态验过。lcms2 归档标称 2.19.1，但 configure.ac / CMake / Meson 均声明 2.19，按约定全窗停止，未计源码验收；七次请求合计 21978198 字节，见[执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-libavif-retry-result-20261112.json)。已验源码累计九份，尚有含 lcms2 在内的十份未验收及四项工具元数据；没有继续后项、换源、重试或镜像层 / 容器操作，阶段 0 不退出。
+
+随后按要求复用 lcms2 归档并查阅官方来源：[版本复核](../../scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json)确认 ChangeLog 含 2.19.1 修补节，且三个版本声明文件及 ChangeLog 的 Git blob 全部匹配发布页所指提交 `21c582a594fe5279f90c0b93437c398f93bf62b0`。建议分别登记发布版本 2.19.1、源码声明 2.19，接受此精确摘要归档的具名差异；仅提出裁决建议，尚未确认采纳，验过源码仍计九份。未证明整个归档与 Git 树一致、未验证发布签名或恢复后续下载。
+
+所有者随后确认接受该精确 lcms2 归档的具名差异，[复核记录](../../scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json)已追加接受决定，分别保留发布版本 2.19.1、源码声明 2.19、头文件值 2190 和归档摘要；不改写旧停窗回执。十二份材料复算匹配，已验源码累计十份。[剩余获取方案](../../scripts/eval/development_probe/sdk_variant/pillow-remaining-acquisition-plan-20261112.json)限定九份归档和四项工具元数据，31 次请求 / 272 MiB 正文 / 620 秒网络时间 / 45 分钟总窗口，任一失败或超限停窗。版本复核额外文本已纳入静态预算；本轮零网络请求，下载、镜像层和容器运行均待另行确认。
+
+随后按所有者授权执行剩余获取：十二份复用材料与引用复算匹配；OpenJPEG 2.5.4、libwebp 1.6.0、brotli 1.2.0 完整取得并核对结构、版本、许可和构建声明。freetype 原 URL 返回 302 至允许域名外的 ftp.cc.uoc.gr，未跟随并立即停窗，见[执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-remaining-acquisition-result-20261112.json)。六次请求共 7099413 字节，已验源码累计十三份；剩余六份归档和四项元数据。未换源、重试、跳过继续或进行镜像层 / 容器操作，阶段 0 不退出。
+
+随后按要求复核 freetype 来源：十五份复用材料与本地 302 回执摘要匹配；FreeType 官网指向 Savannah，Savannah 文档确认该入口分配镜像，GNU 官方清单列有 ftp.cc.uoc.gr 的 GNU 镜像路径。结合本地精确 Location，已准备[新方案](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-plan-20261112.json)：直接请求该精确 HTTPS 地址一次、零跳转，核验后接续五份归档与四项元数据。网页工具未能读取目标目录，未取得目标正文或独立摘要；当前仅计划准备，下载 / 镜像层 / 容器待另行确认。
+
+随后所有者确认执行精确镜像方案。十五份复用材料与引用复算匹配；freetype 唯一请求在 8.005493 秒返回 curl `28`、`SSL connection timeout`，HTTP `000`、正文 0 字节，见[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-result-20261112.json)。立即停止全窗，后续五份归档及四项工具元数据未请求；没有重试、换源、调整协议或跳过。验过源码仍为十三份，剩余六份归档与四项元数据；镜像层及容器未操作，阶段 0 状态不变。来源候选依据保持，本次超时不证明目标归档不存在或具体网络根因。
+
+随后按要求仅复核本地超时材料：十五份复用文件、回执与执行脚本绑定匹配；CONNECT 200 后 curl 自身 8 秒连接时限失败，执行器未主动终止，未达到总时限。缺少分阶段时间与代理上游证据，无法在链路、代理转发、镜像响应或 TLS 交互之间确定根因。[有界获取方案](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-bounded-retry-plan-20261112.json)保持同 URL / 代理和零跳转，首项拟调整为连接 20 秒、总计 90 秒，增加有限 verbose 与阶段计时；验过后才接续原清单，全窗仍 20 次请求 / 208 MiB 正文，网络上限改为 470 秒。方案待授权；本轮未探测镜像或恢复下载，镜像层及容器仍另行确认。
+
+随后所有者确认执行该有界方案。十五份复用材料与引用匹配；同一 freetype URL / 代理的唯一请求在 20.005775 秒返回 curl `28`、`SSL connection timeout`，源站 HTTP `000`、正文 0 字节，见[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-bounded-retry-result-20261112.json)。诊断记录连到本地代理 TCP 为 0.000379 秒、CONNECT 200、发出 ClientHello；未记录 ServerHello / TLS 完成，不能据此区分代理上游、链路或镜像根因，也不将 `ssl_verify_result=1` 单独判作证书错误。立即全窗停止，未请求后续五份归档和四项元数据；未重试、换源、调整协议或继续加时。十三份已验源码及阶段 0 状态保持，镜像层和容器未操作。
+
+随后按要求只读核查官方备用来源与成本。FreeType 官网列出 SourceForge 稳定发布渠道，2.14.3 目录 README 给出原 tar.gz 的 SHA-256，并列有 833 字节签名文件；未获取签名 / 公钥或验签。[新获取方案](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-plan-20261112.json)固定原格式与发布摘要，拟从 SourceForge FRS 入口获取，最多两次具名主机 / 精确路径内跳转；首项 8 MiB / 20 秒连接 / 90 秒全过程，验过后接续原清单，全窗 22 次 HTTP / 184 MiB / 470 秒网络时间。十五份既有材料及 Pillow sdist 复算匹配；[路线成本复核](../../scripts/eval/development_probe/sdk_variant/pillow-route-cost-review-20261112.json)建议仅调整获取渠道、有条件继续单 wheel 路线，构建暂缓。23 层压缩总量 572782550 字节可确认，展开体积 / 工具闭包 / 编译成本仍未知。方案及建议待确认，本轮没有归档、签名、镜像下载或容器运行，阶段 0 不退出。
+
+所有者随后确认执行 SourceForge 方案。freetype 取得 4134916 字节并匹配发布 SHA-256；harfbuzz、bzip2、AOM、dav1d、libyuv 五份也完成结构、版本 / 提交 URL 绑定及许可 / 构建声明核对，见[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-result-20261112.json)。八次 HTTP 共 33962305 字节，源码累计十九份。工具元数据核对脚本在联网前导入 packaging 失败，立即停窗，四项元数据均未请求；未安装依赖、修复后重跑或继续后项。已验成果保留，构建器实物、工具闭包、最终交付与阶段 0 状态不由源码齐备推定通过。
+
+随后按要求修正元数据核对器：改为独立的本地 JSON 输入 / 标准输出入口，显式使用仓库 pip 内嵌 packaging 并留存源码指纹，无安装或导入回退；目标标签固定为 CPython 3.12 / manylinux_2_28_aarch64。九项离线正反例通过，十九份源码及 manifest / config 共二十一份输入复算匹配，见[预检记录](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-preflight-20261112.json)。[新计划](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)只含原四项 PyPI JSON，四次请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 新留存，任一失败停窗。当前零联网、方案待确认；镜像层、容器、构建和阶段 0 出口保持原边界。
 
 ## 本轮范围
 

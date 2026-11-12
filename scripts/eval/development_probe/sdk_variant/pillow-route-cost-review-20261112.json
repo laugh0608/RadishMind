@@ -1,0 +1,104 @@
+{
+  "schema_version": "pillow_route_cost_review.v1",
+  "date": "2026-11-12",
+  "status": "recommendation_only_no_candidate_or_policy_change",
+  "plan_reference": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-plan-20261112.json",
+    "bytes": 18492,
+    "sha256": "c6b35301726cc013d4cfe3690311075e4de5a4be6ede66ae9a89708d3cc7468f"
+  },
+  "latest_failure": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-bounded-retry-result-20261112.json",
+    "bytes": 9796,
+    "sha256": "e3eec4426a82d1c6743dc941dbc1426579622a5228c16f8b780d67156019ca7a"
+  },
+  "scope": "继续已确认的 Pillow 13.0.0+radishmind.1 单 wheel 候选，目标 linux/arm64 / CPython 3.12；其余 118 项运行 wheel 沿既定锁保持。调整的建议仅限 freetype 获取渠道，不改版本或功能范围。",
+  "reused_evidence": {
+    "source_archive_count": 13,
+    "source_archive_bytes": 43986480,
+    "manifest_and_config_count": 2,
+    "pillow_sdist": {
+      "path": "tmp/development-license-audit-20261031/downloads-stage2/81a456d521ad51af908614e5.1.0.body",
+      "bytes": 47058631,
+      "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510"
+    },
+    "builder_layer_count": 23,
+    "builder_compressed_layer_bytes": 572782550,
+    "verification_scope": "本轮复算十三份原生归档、manifest / config、Pillow sdist 及最新结果绑定；118 个运行 wheel 的逐字节复用沿已接受方案，本轮没有重新审计全部运行 wheel。"
+  },
+  "costs": [
+    {
+      "stage": "完成原生输入与工具候选元数据",
+      "remaining": "六份归档：freetype / harfbuzz / bzip2 / aom / dav1d / libyuv；四项工具元数据。",
+      "bounded_cost": "建议一窗：22 次 HTTP、184 MiB 总正文、470 秒网络、45 分钟含静态核验、256 MiB 新留存。实际成功体积未取得，额度不是预估下载量。",
+      "exit": "每项验收并记录实际体积 / 来源 / 构建约束；失败立即停窗，不能跳过。"
+    },
+    {
+      "stage": "构建器实物与工具闭包",
+      "remaining": "23 层实物未获取；已知压缩层总量 572782550 字节（约 546.25 MiB）。需核对实际解释器 / 编译器 / 修复工具、系统头文件与库，以及 setuptools / pybind11 / Meson / Ninja 等所需发行物及摘要。",
+      "bounded_cost": "镜像层读取与容器窗口另行明确；层展开体积、工具下载量、磁盘峰值和耗时目前未知，不将压缩体积当作磁盘上限。四项元数据不足以等同完整工具闭包。",
+      "exit": "唯一构建器和必需工具有实物 / 摘要依据，补足构建准入前可执行的资源预算；若必须递归重建通用工具链，先裁决路线。"
+    },
+    {
+      "stage": "离线配方与单 wheel 构建",
+      "remaining": "接入固定原生归档、multibuild / 补丁、版本标识；替换 curl / yum / pip 动态入口，保留现有 JPEG / TIFF / WebP / OpenJPEG / AVIF / 字体 / 色彩 / XCB 功能。",
+      "bounded_cost": "沿已接受目标只做一个候选 wheel；本轮没有依据承诺编译 CPU / 内存 / 工时或磁盘上限，须在上一环节结束后给出。",
+      "exit": "不临时联网补依赖，记录实际构建材料、ELF / 静态组件、产物摘要；必要特性改变或输入无法固定时停回评审。"
+    },
+    {
+      "stage": "候选安装、告知与技术复验",
+      "remaining": "单包替换生成候选锁、离线安装报告 / pip check、Pillow 原生功能；一次 SDK 镜像构建、SDK / LLM / 工作进程及联合正常保存 / 旧证据失效 / 取消回归；实际告知和伴随源码可获取。",
+      "bounded_cost": "其余 118 个 wheel 复用，原锁与镜像保留；历史联合三个用例约 20 秒仅为子集运行量级，不推算完整构建与验收工时。",
+      "exit": "一条候选完成实际安装 / 非 root 可读 / 源码交付与受影响回归；额外构建轮次须说明原因与范围，不自动维护多条候选。"
+    }
+  ],
+  "other_stage_zero_blockers": [
+    "CPython 新增动态库实际归属与最终告知安装。",
+    "cryptography、两个 certifi、regex 的具名来源 / 交付剩余项仍独立保留。",
+    "Pillow 路线成功不自动关闭整体许可交付或正式采用复评；阶段 1 与真实模型窗口不提前开放。"
+  ],
+  "options": [
+    {
+      "choice": "继续",
+      "recommendation": "有条件推荐：完成这一次有明确发布 SHA-256 的官方备用渠道获取，再以全部源码与工具约束决定能否进入构建准备。",
+      "reason": "已有十三份原生源码、精确 Pillow sdist 与 manifest / config 可复用，单 wheel 影响范围清晰；本轮获得了有效新来源，而非重复失败路径。"
+    },
+    {
+      "choice": "调整",
+      "recommendation": "推荐只调整 freetype 获取渠道为 SourceForge；保持 2.14.3 tar.gz、同一 Pillow 候选和其余运行闭包。",
+      "reason": "公开摘要能约束字节；目前没有证据支持删减编解码特性、改版本、换 SDK 或扩大整个运行闭包。"
+    },
+    {
+      "choice": "等待",
+      "recommendation": "构建 / 镜像 / 容器当前继续等待授权与资源预算。若本次唯一备用渠道仍失败，或后续工具闭包无法在明确预算内固定，则暂停该路线，要求新的材料 / 网络处置或项目所有者明确重选。",
+      "reason": "避免无限镜像轮询、连续加时或递归工具链取证；不把已经投入的成本当作必须继续的理由。"
+    }
+  ],
+  "decision": "建议调整获取渠道并有条件继续现有单 wheel 路线的输入收口；暂不授权或执行构建。下一实质复核点是六份归档和四项工具元数据完整验收后，核定唯一构建器 / 工具闭包与资源预算。",
+  "references": [
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-input-resolution-result-20261111.json",
+      "bytes": 5210,
+      "sha256": "e4ed8a92bb31da7bb449a8de58f0bfc94c0002953ac2edfe9a56f907064638fa"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-material-continuation-result-20261111.json",
+      "bytes": 7893,
+      "sha256": "9b17c89e867e550db9d576e998efdcb72a9a3e1c3f4a106aecb7cc48170d6da1"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/build-requirements.lock",
+      "bytes": 351,
+      "sha256": "11a7bfe96e884d64ee6fb5080a0cf35193f7a9ebf9fface902fb79a0a204c120"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/requirements-linux-arm64-py312.lock",
+      "bytes": 11667,
+      "sha256": "3e2f6bc2ca091acd36cb201ae5f66ed69b50d080af4b55c32314e0b1283983a3"
+    }
+  ],
+  "boundaries": [
+    "本轮仅本地读取和网页发布信息查询，无归档 / 签名 / 公钥 / 工具 / 镜像下载，无 Docker / 容器 / 安装 / 构建 / 运行锁变更。",
+    "不更改既定来源政策或许可接受口径，建议等待所有者确认获取窗口。"
+  ]
+}

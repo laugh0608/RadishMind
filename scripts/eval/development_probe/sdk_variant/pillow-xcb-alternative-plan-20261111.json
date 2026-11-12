@@ -1,0 +1,348 @@
+{
+  "schema_version": "pillow_xcb_alternative_plan.v1",
+  "date": "2026-11-11",
+  "status": "prepared_not_authorized",
+  "research": {
+    "scope": "只读取发布公告、官方入口及镜像目录；没有取得源码归档、签名、密钥或镜像层。",
+    "evidence_directory": "tmp/pillow-xcb-source-research-20261111.ykmrpcx8",
+    "local_metadata_requests": [
+      {
+        "name": "announcement",
+        "url": "https://lists.x.org/archives/xorg-announce/2024-April/003506.html",
+        "exit_code": 0,
+        "receipt": "200 4235 1.641938",
+        "bytes": 4235,
+        "sha256": "c8b15f14f9f75d55119bd3cb8f82cc4f80ca55e022864f012a966dd80c086a39"
+      },
+      {
+        "name": "official-dist",
+        "url": "https://xcb.freedesktop.org/dist/",
+        "exit_code": 56,
+        "receipt": "000 0 5.510211",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "xorg-downloads",
+        "url": "https://www.x.org/Releases/Download/",
+        "exit_code": 0,
+        "receipt": "200 8759 2.993777",
+        "bytes": 8759,
+        "sha256": "0c3fd9c64c3b45cd7980fd546de4b0db27828e0e079d655fd737f28daf5a427e"
+      },
+      {
+        "name": "gwdg-proto",
+        "url": "https://ftp.gwdg.de/pub/x11/x.org/pub/individual/proto/",
+        "exit_code": 0,
+        "receipt": "200 35357 4.567880",
+        "bytes": 35357,
+        "sha256": "fc7c6c190692a52c988daddac7b80238d8206925f3dec7d24b1eedd847484bbe"
+      },
+      {
+        "name": "waterloo-proto",
+        "url": "https://mirror.csclub.uwaterloo.ca/x.org/individual/proto/",
+        "exit_code": 0,
+        "receipt": "200 64652 2.825665",
+        "bytes": 64652,
+        "sha256": "735ad7ee5863d0e5575c7d27e311c2f09ba9687eaf22289f365f238675e81747",
+        "has_target": false
+      },
+      {
+        "name": "yehkri-proto",
+        "url": "https://yehkri.com/mirror/xorg/individual/proto/",
+        "exit_code": 0,
+        "receipt": "301 306 4.542514",
+        "bytes": 306,
+        "sha256": "2b99162f8ac04789af04b01f371393cef1c33ff0e5ffcc952a813625a339915d",
+        "has_target": false
+      },
+      {
+        "name": "mirrorservice-proto",
+        "url": "https://www.mirrorservice.org/sites/ftp.x.org/pub/individual/proto/",
+        "exit_code": 0,
+        "receipt": "200 82552 3.644258",
+        "bytes": 82552,
+        "sha256": "5c1a93d9a2b8109b0d9ee04cbe532e0da5d9e5f732e56a092f24626b3f66bec4",
+        "has_target": false
+      },
+      {
+        "name": "yehkri-target",
+        "url": "https://florian-kirchner.com/mirror/xorg/individual/proto/",
+        "exit_code": 0,
+        "receipt": "404 355 2.755765",
+        "bytes": 355,
+        "sha256": "cc0b4e42510d49c6decd464123ecf3b14ae9b47f9b4ed2ee64893e2d6520a264",
+        "has_target": false
+      },
+      {
+        "name": "leaseweb-proto",
+        "url": "https://mirror.nl.leaseweb.net/xorg/individual/proto/",
+        "exit_code": 0,
+        "receipt": "404 16629 3.250666",
+        "bytes": 16629,
+        "sha256": "9ce09ced1e77949bae6a3ab6d5b21b161e913914243018c7f75e439fc2f1139e",
+        "has_target": false
+      },
+      {
+        "name": "kaist-proto",
+        "url": "https://ftp.kaist.ac.kr/x.org/individual/proto/",
+        "exit_code": 0,
+        "receipt": "404 4196 1.047822",
+        "bytes": 4196,
+        "sha256": "77f11fea79755228e0ad86806f9032fc0d1a2582cdb0706de3242c7e62f69352",
+        "has_target": false
+      },
+      {
+        "name": "ircam-proto",
+        "url": "https://mirrors.ircam.fr/pub/x.org/individual/proto/",
+        "exit_code": 0,
+        "receipt": "200 128855 3.467190",
+        "bytes": 128855,
+        "sha256": "3ad80cc89ddd941fefd76151e53a1d95a18de68a28469e7cbd28dfc14ad1ad68",
+        "has_target": false
+      },
+      {
+        "name": "mirrorservice-xcb",
+        "url": "https://www.mirrorservice.org/sites/ftp.x.org/pub/individual/xcb/",
+        "exit_code": 0,
+        "receipt": "403 1390 2.377776",
+        "bytes": 1390,
+        "sha256": "d2391e7111a9a132128c14f0f24b418ec83d5e2a704e78c1ee56e7f7e494a06a",
+        "has_target_gz": false,
+        "has_target_xz": false
+      },
+      {
+        "name": "yehkri-root",
+        "url": "https://florian-kirchner.com/mirror/xorg/",
+        "exit_code": 0,
+        "receipt": "404 355 2.702263",
+        "bytes": 355,
+        "sha256": "cc0b4e42510d49c6decd464123ecf3b14ae9b47f9b4ed2ee64893e2d6520a264",
+        "has_target_gz": false,
+        "has_target_xz": false
+      },
+      {
+        "name": "gwdg-gentoo",
+        "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/fa/",
+        "exit_code": 0,
+        "receipt": "200 39201 3.295798",
+        "bytes": 39201,
+        "sha256": "0d9f3bbf0d452fe4b622cb2c59670b4911e76730ac43bf2bf363f6094d2a80be",
+        "has_target_gz": false,
+        "has_target_xz": true
+      },
+      {
+        "name": "ftp-xorg-proto",
+        "url": "https://ftp.x.org/pub/individual/proto/",
+        "exit_code": 0,
+        "receipt": "308 74 3.762355",
+        "bytes": 74,
+        "sha256": "b8c88773278ce83d32f1f69733310e1a9e2aafd057f28ec370f3cf504e0e4da4",
+        "has_target": false
+      },
+      {
+        "name": "gentoo-mirrors",
+        "url": "https://www.gentoo.org/downloads/mirrors/",
+        "exit_code": 28,
+        "receipt": "000 0 8.004437",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "local_request_count": 16,
+    "local_metadata_body_bytes": 386916,
+    "web_tool_boundary": "另使用网页检索读取官方目录与下载页，网页工具读取量未并入本机 curl 回执统计。"
+  },
+  "source_evidence": {
+    "announcement": {
+      "url": "https://lists.x.org/archives/xorg-announce/2024-April/003506.html",
+      "author": "Matt Turner",
+      "published_utc": "2024-04-15T14:39:58Z",
+      "path": "tmp/pillow-xcb-source-research-20261111.ykmrpcx8/announcement.html",
+      "sha256": "c8b15f14f9f75d55119bd3cb8f82cc4f80ca55e022864f012a966dd80c086a39"
+    },
+    "release_archives": {
+      "gz": {
+        "filename": "xcb-proto-1.17.0.tar.gz",
+        "sha256": "392d3c9690f8c8202a68fdb89c16fd55159ab8d65000a6da213f4a1576e97a16",
+        "sha512": "04b565b23e539c3a3e3108005630cae4a05eee7802c7013d205731e5b4f6ec09ad8560da14b94bc8e22eae0215386150d65abfc24c2f12e6e73743c8772b9172"
+      },
+      "xz": {
+        "filename": "xcb-proto-1.17.0.tar.xz",
+        "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+        "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+      }
+    },
+    "upstream_alternative": {
+      "url": "https://xcb.freedesktop.org/dist/",
+      "finding": "网页工具目录列出同版本 gz、xz 及 sig；本机经 HTTP 代理读取目录仍返回 TLS 协议告警，不列作本次下载目标。"
+    },
+    "official_mirror_directory": {
+      "url": "https://www.x.org/Releases/Download/",
+      "finding": "列出 GWDG 的 /pub/x11/x.org/ 镜像；已读该旧镜像 proto 目录未见 1.17.0，不把它与 Gentoo distfiles 路径混同。"
+    },
+    "selected_directory": {
+      "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/fa/",
+      "path": "tmp/pillow-xcb-source-research-20261111.ykmrpcx8/gwdg-gentoo.html",
+      "sha256": "0d9f3bbf0d452fe4b622cb2c59670b4911e76730ac43bf2bf363f6094d2a80be",
+      "listed_filename": "xcb-proto-1.17.0.tar.xz",
+      "listed_bytes": 151748,
+      "finding": "GWDG 维护的 Gentoo 源码镜像目录，经本机 HTTPS 取得 HTTP 200 并列出目标；不是 X.Org 原始发布路径。Gentoo 官方镜像名单本次读取未成功，不额外声称该路径的官方名单关系已核验。"
+    },
+    "rejected_candidates": [
+      "www.x.org/archive/ 通过网页工具读取时回到 xorg.freedesktop.org，不能作为独立失败域。",
+      "ftp.x.org 的 HTTPS 目录请求返回到 HTTP 的 308，未跟随降级。",
+      "已读 GWDG X.Org、Waterloo 和 Mirrorservice proto 目录未列出目标；IRCAM 该目录同样未列出目标。",
+      "Yehkri 指向的新域名目录为 404；所试 Leaseweb、KAIST 路径为 404。上述只说明具体受检路径，不概括整个站点。"
+    ],
+    "verification_boundary": "发布公告摘要通过 HTTPS 原文固定；尚未下载归档复算，也没有验证 OpenPGP 签名，不证明历史 Pillow wheel 使用这些字节。"
+  },
+  "parent_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-material-acquisition-plan-20261111.json",
+    "sha256": "e10dbe741f6236b58d9dd022738504dfbf3d42e5a6517b0d7bc56c0b72bb8ca5"
+  },
+  "previous_retry_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-xcb-retry-plan-20261111.json",
+    "sha256": "496a737fc2762a06bfab23d615a5c7189f95086db558b64ce938422666b4dc24"
+  },
+  "reuse_verified_locally": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    }
+  ],
+  "reuse_rule": "执行前只复算本地文件指纹，匹配即直接复用；不再请求 manifest、config、XZ 或 zlib-ng。缺失或不匹配即停，不自动重新下载。",
+  "source_override": {
+    "id": "xcb-proto",
+    "old_declared_input": "xcb-proto-1.17.0.tar.gz",
+    "old_url": "https://xorg.freedesktop.org/archive/individual/proto/xcb-proto-1.17.0.tar.gz",
+    "filename": "xcb-proto-1.17.0.tar.xz",
+    "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/fa/xcb-proto-1.17.0.tar.xz",
+    "expected_bytes": 151748,
+    "expected_sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+    "expected_sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf",
+    "expected_root": "xcb-proto-1.17.0",
+    "change": "仅此项改为同版本的上游 xz 发布归档，从 GWDG Gentoo 镜像获取；必须保留 .tar.xz 文件名。不是重新压缩或 Git tag 快照，不把两个发布归档的字节视为相同。",
+    "recipe_boundary": "本轮只收集候选材料，不修改下载配方或运行锁；后续配方须显式适配 .tar.xz 文件名与解压方式，不能把 xz 内容冒充旧 .tar.gz 输入。"
+  },
+  "first_acquisition": {
+    "proxy": "http://127.0.0.1:10808",
+    "proxy_bypass_disabled": true,
+    "tls_verification": true,
+    "http_requests": 1,
+    "redirects": 0,
+    "retries": 0,
+    "connect_seconds": 20,
+    "total_seconds": 90,
+    "max_body_bytes": 2097152,
+    "max_header_bytes": 65536,
+    "acceptance": "先 HTTP 200、精确大小、SHA-256 与 SHA-512；再按原边界静态核对版本目录、版本声明、许可、构建约束、路径与链接。全部通过后才接续原清单。",
+    "failure": "失败、跳转、摘要或大小不匹配、结构异常、超时或超限立即全窗停止；不回退原站、不切其它镜像或 .gz、不调整 TLS。"
+  },
+  "then_remaining_archives": {
+    "ids_in_order": [
+      "libxcb",
+      "libjpeg-turbo",
+      "zstd",
+      "tiff",
+      "libavif",
+      "libpng",
+      "lcms2",
+      "openjpeg",
+      "libwebp",
+      "brotli",
+      "freetype",
+      "harfbuzz",
+      "bzip2",
+      "aom",
+      "dav1d",
+      "libyuv"
+    ],
+    "count": 16,
+    "source_rule": "逐项原样消费 parent_plan 中对应 id 的 URL、允许域名、max_bytes；不改变版本或来源。",
+    "connect_seconds": 8,
+    "seconds_per_archive_including_redirects": 60,
+    "max_bytes_per_archive": 33554432,
+    "max_redirects_per_archive": 2,
+    "max_http_requests": 48,
+    "retries": 0
+  },
+  "then_tool_metadata": {
+    "names_in_order": [
+      "setuptools",
+      "pybind11",
+      "meson",
+      "ninja"
+    ],
+    "source_rule": "逐项原样消费 parent_plan 的四个工具元数据 URL 与选择规则，不下载 wheel 或自动采用版本。",
+    "max_http_requests": 4,
+    "connect_seconds": 8,
+    "seconds_per_request": 20,
+    "max_bytes_per_request": 4194304,
+    "max_total_bytes": 16777216,
+    "redirects": 0,
+    "retries": 0
+  },
+  "aggregate_limits": {
+    "max_http_requests": 53,
+    "max_archive_body_bytes_including_xcb_proto": 268435456,
+    "max_total_body_bytes": 285212672,
+    "max_network_seconds": 1130,
+    "max_window_seconds_including_static_inspection": 2700,
+    "max_retained_bytes": 335544320,
+    "concurrency": 1
+  },
+  "inspection": "沿原静态归档边界；每档最多 100000 项 / 512 MiB 展开声明体积 / 60 秒，合计 2 GiB；文本单文件最多 1 MiB、合计 16 MiB。合计核算纳入已复用 XZ / zlib-ng，不展开、不执行。",
+  "output_directory_rule": "仓库 tmp/pillow-xcb-alternative-20261111. 随机后缀新目录，权限 0700；只保存新证据并引用已验材料，留存最多 320 MiB；失败记录保留，不启动后台服务。",
+  "single_request_argv": [
+    "/usr/bin/curl",
+    "-q",
+    "--silent",
+    "--show-error",
+    "--proxy",
+    "http://127.0.0.1:10808",
+    "--noproxy",
+    "",
+    "--proto",
+    "=https",
+    "--connect-timeout",
+    "20",
+    "--max-time",
+    "90",
+    "--max-filesize",
+    "2097152",
+    "--dump-header",
+    "<新目录>/xcb-proto.headers",
+    "--output",
+    "<新目录>/xcb-proto-1.17.0.tar.xz",
+    "--write-out",
+    "%{http_code} %{size_download} %{time_total}\\n",
+    "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/fa/xcb-proto-1.17.0.tar.xz"
+  ],
+  "boundaries": [
+    "这是新的来源及归档格式方案，确认后才执行；本轮没有下载源码包。",
+    "其它 16 份归档与四项元数据的 URL、版本、域名和单项限额沿原清单；不自动修改下一项 libxcb 的原站 URL。",
+    "全部请求串行；沿用本次已验证可读取公告与镜像目录的 HTTP 代理模式，不变更系统配置。",
+    "镜像层、Docker 守护进程、容器运行、依赖安装、构建、签名密钥下载、运行锁修改及发布推送不在范围内。"
+  ]
+}

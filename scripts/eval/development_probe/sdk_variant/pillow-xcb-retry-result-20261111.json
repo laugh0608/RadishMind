@@ -1,0 +1,100 @@
+{
+  "schema_version": "pillow_xcb_retry_result.v1",
+  "date": "2026-11-11",
+  "authorization": "项目所有者确认按既定超时与下载限额执行一次有界重试；核验成功才接续，任一失败全窗停止。",
+  "evidence_directory": "tmp/pillow-xcb-retry-20261111._usmn56h",
+  "retry_plan_sha256": "496a737fc2762a06bfab23d615a5c7189f95086db558b64ce938422666b4dc24",
+  "requests": [
+    {
+      "phase": "source_archives",
+      "name": "xcb-proto-0",
+      "url_without_query": "https://xorg.freedesktop.org/archive/individual/proto/xcb-proto-1.17.0.tar.gz",
+      "query_redacted": false,
+      "exit_code": 56,
+      "receipt": "000 0 10.100353",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "request_count": 1,
+  "download_bytes": 0,
+  "completed_phases": [
+    "local_reuse_verified"
+  ],
+  "reused_artifacts": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    }
+  ],
+  "status": "stopped_on_xcb_proto_tls_protocol_version_alert",
+  "parent_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-material-acquisition-plan-20261111.json",
+    "sha256": "e10dbe741f6236b58d9dd022738504dfbf3d42e5a6517b0d7bc56c0b72bb8ca5"
+  },
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-material-continuation-result-20261111.json",
+    "sha256": "9b17c89e867e550db9d576e998efdcb72a9a3e1c3f4a106aecb7cc48170d6da1"
+  },
+  "transfer_seconds": 10.100353,
+  "stop": {
+    "phase": "source_archives",
+    "archive_id": "xcb-proto",
+    "curl_exit_code": 56,
+    "http_status": "000",
+    "body_bytes": 0,
+    "diagnostic": "curl: (56) LibreSSL SSL_read: LibreSSL/3.3.6: error:1404C42E:SSL routines:ST_OK:tlsv1 alert protocol version, errno 0",
+    "response_header_observation": "只有 HTTP/1.1 200 Connection established 隧道建立响应；不是源站归档 HTTP 200。",
+    "action": "一次逻辑获取的首请求失败后全窗停止；没有后续请求、换源、TLS 参数调整或第二次重试。"
+  },
+  "remaining": {
+    "source_archives": 17,
+    "tool_metadata_requests": 4,
+    "new_archives_verified": 0,
+    "image_layers_downloaded": 0
+  },
+  "boundaries": [
+    "四份复用材料大小与摘要重新核对一致，未重复下载；此前源码静态核验结论沿前次结果引用。",
+    "本次为 TLS 协议版本告警，不是上次的 SSL connection timeout；现有证据不足以判断由源站、中间网络路径还是本机 TLS 栈导致。",
+    "没有取得源站 HTTP 响应或归档字节，不能判断归档缺失、内容错误或永久不可达。",
+    "镜像层、Docker 守护进程访问、容器运行、安装、构建及运行锁变更均未执行；阶段 0 不退出。",
+    "本次已授权重试窗口关闭；不得凭剩余额度再次发起请求。"
+  ],
+  "raw_receipts": [
+    {
+      "path": "tmp/pillow-xcb-retry-20261111._usmn56h/xcb-proto-0.headers",
+      "bytes": 39,
+      "sha256": "f55260227c507b4e203ec14ceb78ce8e64d11734111bed9bd18936a3bd4d48f3"
+    },
+    {
+      "path": "tmp/pillow-xcb-retry-20261111._usmn56h/xcb-proto-0.receipt",
+      "bytes": 16,
+      "sha256": "5ddf0cadacd596b9657cfbe8f12857eeada5054c0302498796aacff8e7c032e5"
+    },
+    {
+      "path": "tmp/pillow-xcb-retry-20261111._usmn56h/xcb-proto-0.stderr",
+      "bytes": 118,
+      "sha256": "77db75b0248707b610e907affaf416fea240f06a7b6d4a694d6923d7eca90745"
+    }
+  ]
+}

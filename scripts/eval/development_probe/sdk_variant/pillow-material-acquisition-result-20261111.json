@@ -1,0 +1,184 @@
+{
+  "schema_version": "pillow_material_acquisition_result.v1",
+  "date": "2026-11-11",
+  "status": "stopped_on_disallowed_registry_redirect",
+  "authorization": "所有者确认按已列范围与限额执行，失败、超限或来源不符即停止；镜像层和容器运行另行确认。",
+  "plan_sha256": "e10dbe741f6236b58d9dd022738504dfbf3d42e5a6517b0d7bc56c0b72bb8ca5",
+  "evidence_directory": "tmp/pillow-material-acquisition-20261111.61nl9h3k",
+  "requests": [
+    {
+      "phase": "registry_metadata",
+      "name": "registry-manifest",
+      "url": "https://quay.io/v2/pypa/manylinux_2_28_aarch64/manifests/sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+      "exit_code": 0,
+      "receipt": "200 5125 2.590330",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "phase": "registry_metadata",
+      "name": "registry-config",
+      "url": "https://quay.io/v2/pypa/manylinux_2_28_aarch64/blobs/sha256:33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14",
+      "exit_code": 0,
+      "receipt": "302 1359 1.894115",
+      "bytes": 1359,
+      "sha256": "36b75974fdc682b39e105c0a21fd1aab777f7ec0b5561b519afd6802b32218f4"
+    }
+  ],
+  "request_count": 2,
+  "download_bytes": 6484,
+  "transfer_seconds": 4.484445,
+  "registry": {
+    "manifest_digest": "sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+    "manifest_verified": true,
+    "config": {
+      "mediaType": "application/vnd.docker.container.image.v1+json",
+      "size": 13544,
+      "digest": "sha256:33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    "layers": [
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 71996907,
+        "digest": "sha256:3f7637ada877c9f78220f3e8d50d33e50c99f467bc2d51e769ec3455bac469a0"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 720,
+        "digest": "sha256:8de72cf234436e796b05947f9bc5981245f21a25a240107b6c00a6c4dadbd1c3"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 3024,
+        "digest": "sha256:98deaa0830e466dcc2aef120c8229bbf4b7b91059a1d832dca3af40066b19298"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 32,
+        "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 368,
+        "digest": "sha256:f88c413e2f588feeed4dd1707f42dd45fba2d3111d7cc915fdb17eebdb8ae1df"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 3106,
+        "digest": "sha256:cdd8310e80dd0ccdb95ab223884c2838fc1ee81230c4b797015105797f796158"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 207346824,
+        "digest": "sha256:fc83fd2dc24843a04106fc0707f455316e1b4751f435a7ebb9bb9a2861932b37"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 978,
+        "digest": "sha256:c60d21311bbf789da894c83188f1613059a96c6fdec2c987a7d1d33ec6c9df70"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 1009099,
+        "digest": "sha256:72557bf57b954185d5397b23147e59681de4ccc8e6592760d7e41dcc583d7ddb"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 1095,
+        "digest": "sha256:e85f491dae263eeca55e93ff89fbcee260cb20267f1353492c8116574792aa96"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 719467,
+        "digest": "sha256:91a449722867f3f181735227b9238ffafde8a505c872bcf3f43d5493209c100e"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 643,
+        "digest": "sha256:3a0b7354039d49ee3f7beba8bc53798145a14107bdd415f9d23177c5bf006510"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 705683,
+        "digest": "sha256:143c71c674791eefa5db60248eda0466b1007c72c70fa55d7b71b07ef217658e"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 1112,
+        "digest": "sha256:1bb7f757fe46a2fe488dd7dc11066c588f3a77f88eafe9197e14c49b551b60f6"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 32,
+        "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 32,
+        "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 88697,
+        "digest": "sha256:57f40f79ecceacee44c46736873741b7ca3238e185f213e7d0a84984bdc2957b"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 288508,
+        "digest": "sha256:1af535a2b02cda38a26ee61cdff4eaa0fc4c4531c9e98a5453a77d7daf1e3170"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 2325908,
+        "digest": "sha256:81d84ce1506f2c7e0213ce6e006ef7da24f3eb3c1947ec46cf192af0a756f05a"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 13386360,
+        "digest": "sha256:ef64416b013202b038039ae4d518aa2868802bcce3c821d9020763ccd74659c6"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 104595,
+        "digest": "sha256:0177f60d47982bdbd0961524681b9d55782e1f6a17e840257a807328834a701c"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 274790712,
+        "digest": "sha256:716f8e2a211f1658bf8a8e94398e22de200852ea9fcf5837e5be4c57c8095a2d"
+      },
+      {
+        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+        "size": 8648,
+        "digest": "sha256:8fa1dd37f61504229792589d7e1e42c630eb6732292bf7864864112bdee4ea3b"
+      }
+    ],
+    "layer_count": 23,
+    "compressed_layer_bytes": 572782550,
+    "config_verified": false,
+    "platform_verified": false,
+    "layers_downloaded": 0
+  },
+  "stop": {
+    "phase": "registry_metadata",
+    "http_status": 302,
+    "reason": "授权清单的 registry.limits.redirects 为 0；config blob 返回重定向，未跟随，按要求停止整个窗口。",
+    "redirect_scheme": "https",
+    "redirect_host": "cdn01.quay.io",
+    "redirect_path": "/quayio-production-s3/sha256/33/33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14",
+    "redirect_query_retained_only_in_private_evidence": true
+  },
+  "not_requested": [
+    "19 份源码归档",
+    "4 项工具元数据",
+    "所有镜像 layer blob"
+  ],
+  "not_performed": [
+    "匿名 token 请求",
+    "Docker 守护进程访问",
+    "容器创建或运行",
+    "安装、构建与 SDK / 联合复验"
+  ],
+  "next_decision": "若继续，需单独确认精确 config blob 的具名 CDN 重定向范围；未取得 config 前不登记 linux/arm64 实际平台或工具链验收。不得自动重启原窗口。",
+  "boundary": "manifest 描述 23 层及其压缩体积，不能替代 config、层实物、展开体积或构建工具核验。"
+}

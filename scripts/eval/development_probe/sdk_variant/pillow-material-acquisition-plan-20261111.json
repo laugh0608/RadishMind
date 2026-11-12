@@ -1,0 +1,334 @@
+{
+  "schema_version": "pillow_material_acquisition_plan.v1",
+  "status": "prepared_not_authorized",
+  "date": "2026-11-11",
+  "purpose": "为已选定的单 wheel 候选取得原生源码、构建镜像大小 / 平台证据和工具候选元数据；不拉取镜像层或构建。",
+  "output_directory_rule": "仓库 tmp/pillow-material-acquisition-20261111. 随机后缀新目录，权限 0700；失败材料保留，不覆盖已有证据。",
+  "phases": [
+    "registry_metadata",
+    "source_archives",
+    "tool_metadata"
+  ],
+  "source_archives": [
+    {
+      "id": "xz",
+      "declared_input": "xz-5.8.4.tar.gz",
+      "url": "https://github.com/tukaani-project/xz/releases/download/v5.8.4/xz-5.8.4.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "zlib-ng",
+      "declared_input": "zlib-ng 2.3.3.tar.gz",
+      "url": "https://github.com/zlib-ng/zlib-ng/archive/2.3.3.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "xcb-proto",
+      "declared_input": "xcb-proto-1.17.0.tar.gz",
+      "url": "https://xorg.freedesktop.org/archive/individual/proto/xcb-proto-1.17.0.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "xorg.freedesktop.org",
+        "www.x.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libxcb",
+      "declared_input": "libxcb-1.17.0.tar.gz",
+      "url": "https://www.x.org/releases/individual/lib/libxcb-1.17.0.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "www.x.org",
+        "xorg.freedesktop.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libjpeg-turbo",
+      "declared_input": "libjpeg-turbo-3.2.0.tar.gz",
+      "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.2.0/libjpeg-turbo-3.2.0.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "zstd",
+      "declared_input": "zstd-1.5.7.tar.gz",
+      "url": "https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "tiff",
+      "declared_input": "tiff-4.7.2.tar.gz",
+      "url": "https://download.osgeo.org/libtiff/tiff-4.7.2.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "download.osgeo.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libavif",
+      "declared_input": "libavif-1.4.2.tar.gz",
+      "url": "https://github.com/AOMediaCodec/libavif/archive/refs/tags/v1.4.2.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libpng",
+      "declared_input": "libpng-1.6.58.tar.gz",
+      "url": "https://download.sourceforge.net/libpng/libpng-1.6.58.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "download.sourceforge.net",
+        "downloads.sourceforge.net",
+        "*.dl.sourceforge.net"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "lcms2",
+      "declared_input": "lcms2-2.19.1.tar.gz",
+      "url": "https://downloads.sourceforge.net/project/lcms/lcms/2.19.1/lcms2-2.19.1.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "downloads.sourceforge.net",
+        "*.dl.sourceforge.net"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "openjpeg",
+      "declared_input": "OpenJPEG v2.5.4.tar.gz",
+      "url": "https://github.com/uclouvain/openjpeg/archive/v2.5.4.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libwebp",
+      "declared_input": "libwebp-1.6.0.tar.gz",
+      "url": "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "storage.googleapis.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "brotli",
+      "declared_input": "brotli-1.2.0.tar.gz",
+      "url": "https://github.com/google/brotli/archive/v1.2.0.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "freetype",
+      "declared_input": "freetype-2.14.3.tar.gz",
+      "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "download.savannah.gnu.org",
+        "download-mirror.savannah.gnu.org",
+        "ftpmirror.gnu.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "harfbuzz",
+      "declared_input": "harfbuzz-14.5.0.tar.xz",
+      "url": "https://github.com/harfbuzz/harfbuzz/releases/download/14.5.0/harfbuzz-14.5.0.tar.xz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "bzip2",
+      "declared_input": "bzip2-1.0.8.tar.gz",
+      "url": "https://mirrors.kernel.org/sourceware/bzip2/bzip2-1.0.8.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "mirrors.kernel.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "aom",
+      "declared_input": "03087864cf4bea6abb0d28f95cf7843511413d8f",
+      "url": "https://aomedia.googlesource.com/aom/+archive/03087864cf4bea6abb0d28f95cf7843511413d8f.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "aomedia.googlesource.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "dav1d",
+      "declared_input": "b546257f770768b2c88258c533da38b91a06f737",
+      "url": "https://code.videolan.org/videolan/dav1d/-/archive/b546257f770768b2c88258c533da38b91a06f737/dav1d-b546257f770768b2c88258c533da38b91a06f737.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "code.videolan.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libyuv",
+      "declared_input": "644251f252a84bf8ce91ff0aca86a9b16b069ab8",
+      "url": "https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "chromium.googlesource.com"
+      ],
+      "expected_sha256": null
+    }
+  ],
+  "source_limits": {
+    "initial_requests": 19,
+    "max_redirects_per_archive": 2,
+    "max_http_requests": 57,
+    "max_bytes_per_archive": 33554432,
+    "max_total_body_bytes": 268435456,
+    "max_seconds_per_archive_including_redirects": 60,
+    "max_total_seconds": 1140,
+    "connect_seconds": 8,
+    "concurrency": 1,
+    "retries": 0
+  },
+  "source_verification": [
+    "只允许原 URL 及该项允许域名内的 HTTPS 跳转；每次手动核对 Location，不用不受控的 curl --location。",
+    "逐项记录状态、实际大小、SHA-256 和脱敏跳转链；没有先验摘要的条目仅建立新候选输入指纹，不声称历史匹配或独立签名验证。",
+    "静态查看归档成员、版本、构建约束和许可材料，不展开或执行；拒绝路径逃逸、重复成员、特殊设备、越界链接和超限归档。普通安全内部链接保留为元数据，不跟随。",
+    "静态检查每档最多 100000 项，展开声明体积单档 512 MiB、合计 2 GiB；读取选定文本单文件最多 1 MiB、合计 16 MiB，单档检查最多 60 秒。",
+    "版本 / 提交声明冲突、非归档、跨域跳转、超时、HTTP 错误或额度耗尽即停止整个窗口，不替换来源、不降版。"
+  ],
+  "registry": {
+    "image": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+    "manifest_url": "https://quay.io/v2/pypa/manylinux_2_28_aarch64/manifests/sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+    "accept": [
+      "application/vnd.oci.image.index.v1+json",
+      "application/vnd.docker.distribution.manifest.list.v2+json",
+      "application/vnd.oci.image.manifest.v1+json",
+      "application/vnd.docker.distribution.manifest.v2+json"
+    ],
+    "selection": "若为 index，只选择一个 linux/arm64（variant 缺省或 v8）的镜像 manifest；歧义或额外递归即停止。每份 manifest 均按引用摘要复算。",
+    "config": "只取得所选 manifest 的 config blob，核对摘要、声明大小、linux/arm64 以及 rootfs 层数；记录层 digest / size / mediaType 并求总量，不下载 layer blob。",
+    "authentication": "若返回 401，仅接受 quay.io 自有 HTTPS realm 的匿名 pull token；service 必须为 quay.io，scope 必须仅为 repository:pypa/manylinux_2_28_aarch64:pull。token 只在内存，不读取 Docker 登录信息，不落盘、不写日志。匿名取 token 及携 token 重发最多各一次，计入总请求数。",
+    "limits": {
+      "max_http_requests": 6,
+      "max_body_bytes_per_request": 1048576,
+      "max_total_body_bytes": 6291456,
+      "seconds_per_request": 20,
+      "connect_seconds": 8,
+      "max_total_seconds": 120,
+      "redirects": 0,
+      "retries": 0
+    },
+    "not_established": "manifest / config 能固定描述符与体积，不能证明编译器、解释器、系统库或镜像内工具的实际字节；实物核验在明确层大小后另行申请。"
+  },
+  "tool_metadata": [
+    {
+      "name": "setuptools",
+      "url": "https://pypi.org/pypi/setuptools/83.0.0/json",
+      "selection": "沿已有 SDK 构建锁 83.0.0；匹配 wheel SHA-256 29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3 的发行物来源。"
+    },
+    {
+      "name": "pybind11",
+      "url": "https://pypi.org/pypi/pybind11/json",
+      "selection": "仅记录当前公开版本候选、Requires-Python / Requires-Dist、wheel 平台及摘要，与取得的源码要求核对；不采用或下载发行物。"
+    },
+    {
+      "name": "meson",
+      "url": "https://pypi.org/pypi/meson/json",
+      "selection": "同上；版本必须满足新取得原生源码的明确最低要求。"
+    },
+    {
+      "name": "ninja",
+      "url": "https://pypi.org/pypi/ninja/json",
+      "selection": "同上；区分 Python 包版本和内含 Ninja 二进制版本，aarch64 与 CPython 3.12 兼容性单独核对。"
+    }
+  ],
+  "tool_limits": {
+    "max_http_requests": 4,
+    "max_body_bytes_per_request": 4194304,
+    "max_total_body_bytes": 16777216,
+    "seconds_per_request": 20,
+    "connect_seconds": 8,
+    "max_total_seconds": 80,
+    "redirects": 0,
+    "retries": 0
+  },
+  "offline_findings": {
+    "packaging": {
+      "version": "26.3",
+      "local_wheel": "tmp/development-sdk-variant-20261031/context/resolution/wheels/packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "bytes": 129956
+    },
+    "setuptools": "已有 83.0.0 哈希锁，本地 tmp 未发现留存 wheel；满足 Pillow setuptools>=77 声明不等于构建验证。",
+    "pillow_build_backend": "精确 sdist 的 build-system 要求 pybind11 与 setuptools>=77，自定义 backend 直接使用 setuptools.build_meta。",
+    "other_build_tools": "现有 SDK wheel 目录未发现 pybind11、meson、ninja、auditwheel、build、patchelf、pkgconf、pyelftools、pyproject_hooks、virtualenv；不能以运行 wheel 集合代替构建闭包。"
+  },
+  "total_limits": {
+    "max_http_requests": 67,
+    "max_body_bytes": 291504128,
+    "max_network_seconds": 1340,
+    "max_window_seconds_including_static_inspection": 2700,
+    "max_retained_bytes": 335544320
+  },
+  "commands": {
+    "single_http_request": "/usr/bin/curl -q --silent --show-error --proto =https --connect-timeout 8 --max-time <该项剩余秒数> --max-filesize <剩余字节限额> --output <新目录/响应> --dump-header <新目录/响应头> <该项允许 URL>",
+    "control": "逐请求串行执行；响应头限 64 KiB；状态 / 域名 / 累计限额核对由本次执行脚本完成，任何失败立即停窗。Quay 匿名授权头通过私有管道送入 curl 配置，不放在命令参数或回执中。"
+  },
+  "exclusions": [
+    "不启动或查询 Docker 守护进程，不创建容器，不拉取镜像层。",
+    "不安装 Python / 系统包，不执行源码、配置脚本、编译器或测试。",
+    "不改变 119 项运行锁，不构建 wheel，不发布、上传或推送。"
+  ],
+  "deliverables": [
+    "19 份归档的指纹、版本 / 许可 / 构建约束及静态检查结果。",
+    "精确镜像的 manifest / config 绑定、平台、层大小和下一实物核验的资源估算。",
+    "可复用本地工具及缺失构建工具的版本候选 / 依赖 / wheel 平台表；不宣称完整闭包已验收。"
+  ]
+}

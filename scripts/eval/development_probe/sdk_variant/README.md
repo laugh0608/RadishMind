@@ -129,3 +129,16 @@ python3 scripts/eval/development_probe/run_joint.py \
 ### 工具链与历史来源补证
 
 [工具链结果](license-toolchain-image-result-20261105.json)记录已授权的八次镜像复制、80 个 ELF 静态对象及 Go `cmd/vendor` 853 个文件的源码对应，两个容器始终未启动且已清理。[历史来源结果](license-historical-provenance-result-20261105.json)记录 27 次 HTTP 200、11 份源码文本和发布声明摘要核对；发布证明不含构建材料，本轮未验证签名信任。所有窗口已关闭，原计划的准备状态不作为当前执行结论。新增外部库、内嵌告知、历史输入及最终交付仍有缺口；完整判断见[框架采用评审](../../../../docs/features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)。
+
+### Pillow 工具元数据离线核对
+
+`../pillow_tool_metadata.py` 只读取本地 PyPI JSON，向标准输出写候选记录，错误返回非零；没有网络、安装或构建入口。显式使用仓库 `.venv` 中已有的 `pip._vendor.packaging`，不自动回退或安装依赖。该内嵌 API 仅用于当前批次，先保存解析器版本 / 源码指纹并完成预检；环境变化时重新核对，不视为新的长期依赖约定。
+
+从仓库根目录执行离线预检：
+
+```sh
+.venv/bin/python -B scripts/eval/development_probe/pillow_tool_metadata.py --preflight
+.venv/bin/python -B -m unittest discover -s scripts/eval/development_probe -p test_pillow_tool_metadata.py -v
+```
+
+取得明确授权并留存真实响应后，才以 `--tool setuptools|pybind11|meson|ninja --input <本地响应路径>` 核对。目标为 CPython 3.12.16 / manylinux_2_28_aarch64，保留原始依赖 marker；声明为空则如实记录，不解析完整依赖闭包。标签匹配不等于构建器实物、工具安装或 Ninja 二进制版本已验。[预检记录](pillow-tool-metadata-preflight-20261112.json)与[四项获取计划](pillow-tool-metadata-plan-20261112.json)分别记录离线证据和待确认窗口，旧失败回执不改写。

@@ -1,0 +1,454 @@
+{
+  "schema_version": "pillow_freetype_bounded_retry_plan.v1",
+  "date": "2026-11-12",
+  "status": "prepared_not_authorized",
+  "parent_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-plan-20261112.json",
+    "sha256": "408646e41a51e25c2bf0ca5fea0784c024812c22efb74be516c872ddc53fa3a3"
+  },
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-result-20261112.json",
+    "bytes": 8039,
+    "sha256": "ba76c2e1739b7b216682a7350978a63974863fd7475841cf24dd4039ac530eb1"
+  },
+  "accepted_lcms2_review": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json",
+    "sha256": "98c4ccf07f225093332196e131b0f7365cd56b757b36f0e939463be5af46337f"
+  },
+  "purpose": "依据本地 SSL 连接超时回执，拟对同一精确镜像进行一次有界重新获取并增加连接阶段观测；首项核验通过后接续原五份归档及四项工具元数据。",
+  "reuse_verified_locally": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    },
+    {
+      "id": "xcb-proto",
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+    },
+    {
+      "id": "libxcb",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb-1.17.0.tar.xz",
+      "sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0"
+    },
+    {
+      "id": "libjpeg-turbo",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.body"
+    },
+    {
+      "id": "zstd",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.body"
+    },
+    {
+      "id": "tiff",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.body"
+    },
+    {
+      "id": "libavif",
+      "bytes": 14665927,
+      "sha256": "2b645287340ba5a631d268b551dc2d72bd73ac33335962dd36dcdb6d8366921d",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libavif-1.body"
+    },
+    {
+      "id": "libpng",
+      "bytes": 1582074,
+      "sha256": "8c9b05b675ca7301a458df2c2e46f26e1d41ff36b8863f8c33530bc58c2e6225",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libpng-2.body"
+    },
+    {
+      "id": "lcms2",
+      "bytes": 5728743,
+      "sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/lcms2-1.body"
+    },
+    {
+      "id": "openjpeg",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/openjpeg-1.body",
+      "bytes": 2157028,
+      "sha256": "a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a"
+    },
+    {
+      "id": "libwebp",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/libwebp-0.body",
+      "bytes": 4296070,
+      "sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
+    },
+    {
+      "id": "brotli",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/brotli-1.body",
+      "bytes": 646315,
+      "sha256": "816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec"
+    }
+  ],
+  "reuse_rule": "执行前复算十五份材料、计划与回执绑定，一致直接复用；缺失或不符停窗，不重新下载。lcms2 仅沿其精确接受记录。",
+  "offline_recheck": {
+    "network_requests": 0,
+    "verified_material_count": 15,
+    "accepted_source_count": 13,
+    "receipt_bindings_verified": 24,
+    "reused_declared_bytes": 117919827,
+    "reused_text_budget_bytes": 2306503,
+    "rule": "本项只统计离线材料复核；当前轮只另读 curl 官方说明网页，未向镜像、代理或后续清单发探测 / 获取请求。全部复用材料与历史回执匹配，保留较大历史静态预算。"
+  },
+  "source_archives": [
+    {
+      "id": "freetype",
+      "declared_input": "freetype-2.14.3.tar.gz",
+      "url": "https://ftp.cc.uoc.gr/mirrors/nongnu.org/freetype/freetype-2.14.3.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "ftp.cc.uoc.gr"
+      ],
+      "expected_sha256": null,
+      "original_url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.gz",
+      "expected_root": "freetype-2.14.3",
+      "max_redirects": 0,
+      "max_http_requests": 1,
+      "connect_seconds": 20,
+      "seconds_including_redirects": 90
+    },
+    {
+      "id": "harfbuzz",
+      "declared_input": "harfbuzz-14.5.0.tar.xz",
+      "url": "https://github.com/harfbuzz/harfbuzz/releases/download/14.5.0/harfbuzz-14.5.0.tar.xz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "github.com",
+        "codeload.github.com",
+        "release-assets.githubusercontent.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "bzip2",
+      "declared_input": "bzip2-1.0.8.tar.gz",
+      "url": "https://mirrors.kernel.org/sourceware/bzip2/bzip2-1.0.8.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "mirrors.kernel.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "aom",
+      "declared_input": "03087864cf4bea6abb0d28f95cf7843511413d8f",
+      "url": "https://aomedia.googlesource.com/aom/+archive/03087864cf4bea6abb0d28f95cf7843511413d8f.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "aomedia.googlesource.com"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "dav1d",
+      "declared_input": "b546257f770768b2c88258c533da38b91a06f737",
+      "url": "https://code.videolan.org/videolan/dav1d/-/archive/b546257f770768b2c88258c533da38b91a06f737/dav1d-b546257f770768b2c88258c533da38b91a06f737.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "code.videolan.org"
+      ],
+      "expected_sha256": null
+    },
+    {
+      "id": "libyuv",
+      "declared_input": "644251f252a84bf8ce91ff0aca86a9b16b069ab8",
+      "url": "https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz",
+      "max_bytes": 33554432,
+      "allowed_hosts": [
+        "chromium.googlesource.com"
+      ],
+      "expected_sha256": null
+    }
+  ],
+  "source_limits": {
+    "count": 6,
+    "max_http_requests": 16,
+    "max_redirects_per_archive": 2,
+    "max_bytes_per_archive_including_redirects": 33554432,
+    "connect_seconds": 8,
+    "seconds_per_archive_including_redirects": 60,
+    "retries": 0,
+    "resume": false,
+    "first_item_override": "freetype 同一精确 URL 一次 GET，连接 20 秒、全过程 90 秒、32 MiB、零跳转。其余五项保持连接 8 秒、全过程 60 秒、32 MiB、最多两次允许域名内 HTTPS 跳转。"
+  },
+  "source_acceptance": "curl 成功退出、最终 HTTP 200、接收大小与可用 Content-Length 一致（无长度声明时记录缺失并核对客户端完成及完整归档），记录 SHA-256；逐项结构、版本 / 提交、许可 / 构建声明核对通过才接续。没有先验摘要的项目仅建立候选指纹，不声明发布签名或历史 wheel 来源已核实。Git 提交归档的精确 URL 绑定不等于归档含可验证 Git 历史，不伪造提交验证。 freetype 增强诊断若缺字段、格式错误或超出日志限额同样停窗；连接阶段成功仍须按完整归档、版本 2.14.3、许可与构建声明验收。",
+  "tool_metadata": [
+    {
+      "name": "setuptools",
+      "url": "https://pypi.org/pypi/setuptools/83.0.0/json",
+      "selection": "沿已有 SDK 构建锁 83.0.0；匹配 wheel SHA-256 29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3 的发行物来源。"
+    },
+    {
+      "name": "pybind11",
+      "url": "https://pypi.org/pypi/pybind11/json",
+      "selection": "仅记录当前公开版本候选、Requires-Python / Requires-Dist、wheel 平台及摘要，与取得的源码要求核对；不采用或下载发行物。"
+    },
+    {
+      "name": "meson",
+      "url": "https://pypi.org/pypi/meson/json",
+      "selection": "同上；版本必须满足新取得原生源码的明确最低要求。"
+    },
+    {
+      "name": "ninja",
+      "url": "https://pypi.org/pypi/ninja/json",
+      "selection": "同上；区分 Python 包版本和内含 Ninja 二进制版本，aarch64 与 CPython 3.12 兼容性单独核对。"
+    }
+  ],
+  "tool_limits": {
+    "max_http_requests": 4,
+    "max_body_bytes_per_request": 4194304,
+    "max_total_body_bytes": 16777216,
+    "seconds_per_request": 20,
+    "connect_seconds": 8,
+    "max_total_seconds": 80,
+    "redirects": 0,
+    "retries": 0
+  },
+  "tool_acceptance": "只读 PyPI JSON，核对项目名、版本、Requires-Python / Requires-Dist 与发行物平台、来源及摘要；setuptools 核对既有 83.0.0 wheel 哈希，其余只记录候选与适配条件，不下载发行物或自动安装 / 采用。缺字段、无法核对或无满足已知约束的候选时停止并记录，不自动换版本或追取新来源。",
+  "transport": {
+    "proxy": "http://127.0.0.1:10808",
+    "proxy_bypass_disabled": true,
+    "tls_verification": true,
+    "tls_protocol_override": null,
+    "http_protocol_override": null,
+    "max_header_bytes_per_request": 65536,
+    "rule": "沿同一 HTTP 代理、空 noproxy、证书校验与默认协议；只增加首项有限 verbose / 阶段时间记录。无 HEAD、DNS / TCP / openssl 探测、自动重试、续传、代理切换、直连或协议调整。"
+  },
+  "aggregate_limits": {
+    "max_http_requests": 20,
+    "max_archive_body_bytes": 201326592,
+    "max_total_body_bytes": 218103808,
+    "max_network_seconds": 470,
+    "max_window_seconds_including_static_inspection": 2700,
+    "max_retained_bytes": 268435456,
+    "concurrency": 1,
+    "accounting": "1+5×3+4=20 次 HTTP；90+5×60+4×20=470 秒网络时间；源码 192 MiB，元数据 16 MiB，总正文 208 MiB，新留存 256 MiB，含静态核验总窗口 45 分钟。失败 / 部分正文和跳转均计额度。"
+  },
+  "inspection": {
+    "max_members_per_archive": 100000,
+    "max_declared_bytes_per_archive": 536870912,
+    "max_total_declared_bytes": 2147483648,
+    "max_seconds_per_archive": 60,
+    "max_text_bytes_per_file": 1048576,
+    "max_total_text_bytes": 16777216,
+    "reused_declared_bytes": 117919827,
+    "reused_text_budget_bytes": 2306503,
+    "rule": "只静态读取，不展开 / 执行源码或跟随链接。拒绝路径逃逸、重复成员、特殊设备与越界链接。安全内部链接只保留元数据；完整源码成员结构和所选文本均留指纹。"
+  },
+  "stop_conditions": [
+    "freetype 精确镜像 URL 返回任何跳转，或文件版本 / 根目录与 2.14.3 不符，立即全窗停止。",
+    "首项在连接 20 秒或全过程 90 秒内失败、返回任何跳转、诊断缺失 / 不可解析或日志超限即停止全窗；不因额度尚余而再试。",
+    "复用材料、计划引用、回执或已接受 lcms2 精确归档绑定缺失 / 不符。",
+    "任何 curl 错误、HTTP 非预期状态、超时、协议 / 域名越界、跳转超限、正文 / 长度或已知摘要不符。",
+    "归档结构、版本 / 提交声明、许可 / 构建约束核对失败或存在未解释差异；lcms2 具名例外仅限已绑定归档，不能扩至其它项目。",
+    "任一请求数、正文、响应头、网络时间、总窗口、留存或静态检查预算达到 / 超出。发下一请求前先扣减本项和全窗额度。",
+    "任一失败立即停止全窗，保留回执和部分正文；不重试、续传、换源、降版、改协议或跳过继续。"
+  ],
+  "output_directory_rule": "获准后新建仓库 tmp/pillow-freetype-bounded-retry-20261112. 随机后缀目录，权限 0700；旧材料只读引用，新增正文 / 诊断 / 失败材料保留，无后台服务，结束前确认子进程退出。",
+  "single_request_argv": [
+    "/usr/bin/curl",
+    "-q",
+    "--silent",
+    "--show-error",
+    "--verbose",
+    "--trace-time",
+    "--proxy",
+    "http://127.0.0.1:10808",
+    "--noproxy",
+    "",
+    "--proto",
+    "=https",
+    "--retry",
+    "0",
+    "--max-redirs",
+    "0",
+    "--connect-timeout",
+    "20",
+    "--max-time",
+    "90",
+    "--max-filesize",
+    "33554432",
+    "--dump-header",
+    "<新目录>/freetype-0.headers",
+    "--output",
+    "<新目录>/freetype-0.body",
+    "--write-out",
+    "%{http_code} %{http_connect} %{size_download} %{time_namelookup} %{time_connect} %{time_appconnect} %{time_pretransfer} %{time_starttransfer} %{time_total} %{ssl_verify_result} %{num_connects}\n",
+    "https://ftp.cc.uoc.gr/mirrors/nongnu.org/freetype/freetype-2.14.3.tar.gz"
+  ],
+  "execution_boundary": "当前仅本地回执核查和方案准备，尚未授权执行。获准后按首项 20 / 90 秒、有限诊断、470 秒全窗网络上限以及原静态基数校准执行器；旧回执及旧计划不改写，不沿用旧窗口额度。",
+  "exclusions": [
+    "已验归档、manifest / config 重取或新依赖获取。",
+    "工具发行物下载 / 安装、源码执行、构建、配方或运行锁修改。",
+    "镜像层、Docker 守护进程访问、容器创建 / 运行、发布、上传、推送。"
+  ],
+  "stage_decision": "成功也仅补齐源码与工具元数据；构建器实物、工具闭包、最终告知与伴随源码交付、正式采用仍需后续验收，阶段 0 不因此退出。",
+  "source_evidence": {
+    "local_redirect_receipts": [
+      {
+        "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/freetype-0.headers",
+        "bytes": 345,
+        "sha256": "3a8c8b17957d8699199ec6e72678ed95d5aaedc6d29187857ffb7d3ef77c33c0"
+      },
+      {
+        "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/freetype-0.receipt",
+        "bytes": 15,
+        "sha256": "cb46f67f90650f9807a80f4d1f7f2960049f466610eb0453af9073daea933942"
+      },
+      {
+        "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/freetype-0.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "original_url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.gz",
+    "observed_location": "https://ftp.cc.uoc.gr/mirrors/nongnu.org/freetype/freetype-2.14.3.tar.gz",
+    "web_sources": [
+      {
+        "url": "https://freetype.org/download.html",
+        "finding": "官网稳定版下载指向 Savannah，说明存在全球镜像。"
+      },
+      {
+        "url": "https://savannah.gnu.org/maintenance/Mirroring/",
+        "finding": "download.savannah.gnu.org 是 Savannah 下载区的镜像重定向服务，按来源地区选镜像。"
+      },
+      {
+        "url": "https://www.gnu.org/prep/ftp.en.html",
+        "finding": "GNU 官方镜像清单列出 https://ftp.cc.uoc.gr/mirrors/gnu/；此项仅佐证主机镜像身份，不直接证明 nongnu.org/freetype 路径。"
+      }
+    ],
+    "conclusion": "FreeType 官方渠道、Savannah 重定向机制与本地精确 Location 共同支持该地址作为具名候选；不扩为任意希腊镜像或整个站点授权。",
+    "limitations": "网页工具未能读取 Savannah 镜像清单 / 状态页以及 ftp.cc.uoc.gr 根页 / freetype 目录。未请求归档或 HEAD，未获独立发布摘要 / 签名，不证明该文件当前可下载或内容已验收。"
+  },
+  "diagnostic_review": {
+    "status": "local_evidence_reviewed_root_cause_unconfirmed",
+    "receipt_references": [
+      {
+        "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/freetype-0.headers",
+        "bytes": 39,
+        "sha256": "f55260227c507b4e203ec14ceb78ce8e64d11734111bed9bd18936a3bd4d48f3"
+      },
+      {
+        "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/freetype-0.receipt",
+        "bytes": 15,
+        "sha256": "2374898abd6c036f536d467eed42dee54f53b4720311f0d5acd648b7a8e720b3"
+      },
+      {
+        "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/freetype-0.stderr",
+        "bytes": 34,
+        "sha256": "2d4a033283d9a669f5a9d073665c1a087a87bb61341e1811a0e068f1efa0425f"
+      }
+    ],
+    "executor_reference": {
+      "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/acquire.py",
+      "bytes": 11010,
+      "sha256": "477d3f278558b8e1fcd176b1cb66b6721fb80b4632a7ad03e7a84579ffe7c6fc"
+    },
+    "current_client_observation": {
+      "path": "tmp/pillow-freetype-timeout-review-20261112/curl-version.txt",
+      "bytes": 413,
+      "sha256": "70631102a19b01fd5d0e0fa35a74d1c6616a2c7f5068e09e2209e921be454fe1"
+    },
+    "local_manual_reference": {
+      "path": "tmp/pillow-freetype-timeout-review-20261112/curl-manual.txt",
+      "bytes": 272827,
+      "sha256": "97285ab9becbdd2b28072c8accb07523c79dd96893db0593c2b2842630efe862"
+    },
+    "client_version_note": "本轮离线观察 /usr/bin/curl 为 8.7.1，输出含 SecureTransport 与 LibreSSL/3.3.6；旧窗口没有记录二进制摘要或实际 TLS 后端，不能据此确认旧次所用后端或判定兼容性故障。",
+    "facts": [
+      "唯一请求使用精确 HTTPS 镜像 URL、显式 http://127.0.0.1:10808、空 noproxy、证书校验开启；无 TLS / HTTP 版本覆盖。",
+      "原始响应头只含代理 CONNECT 200；curl 返回 28、SSL connection timeout、HTTP 000、正文 0 字节，耗时 8.005493 秒。",
+      "执行参数连接时限 8 秒、全过程约 60 秒，monitor_stop=null；此次为 curl 自身连接时限失败，未达到全过程或窗口上限。",
+      "此前同一显式代理方案取得 OpenJPEG / libwebp / brotli，并取得 Savannah 302；仅证明此前这些目标可用，不能证明本次目标、代理出口或路由相同 / 正常。"
+    ],
+    "possible_causes": [
+      {
+        "cause": "连接阶段的可用时间不足",
+        "assessment": "与耗时贴近 8 秒、连接超时一致；缺少分阶段计时，不能断言握手只需稍久或提高时限一定解决。"
+      },
+      {
+        "cause": "代理转发或中间链路延迟、丢包、停滞",
+        "assessment": "CONNECT 200 只证明代理接受隧道；没有代理上游观测，不能确认端到端转发正常，也不能判定具体节点故障。"
+      },
+      {
+        "cause": "目标镜像 TLS 响应延迟、负载或握手停滞",
+        "assessment": "目标相关问题仍可能，但没有服务端日志、ServerHello / alert 记录，无法与链路问题区分。"
+      },
+      {
+        "cause": "客户端与目标 TLS 交互不兼容",
+        "assessment": "作为未排除的可能性保留；本次没有协议版本告警或证书校验错误。另一主机的历史 TLS alert 不能移用于此目标，不能据此降级 TLS 或关闭证书校验。"
+      }
+    ],
+    "not_supported": [
+      "不能把 CONNECT 200 当作源站归档 HTTP 200。",
+      "不能把 HTTP 000 当作 404，也不能判定文件不存在、版本不符或来源不可信。",
+      "没有代理路由 / 上游 DNS、TLS 过程或证书证据，不能给出确定根因或以概率排序。"
+    ],
+    "reference": {
+      "url": "https://curl.se/docs/manpage.html",
+      "sections": [
+        "--connect-timeout",
+        "--write-out: http_connect / time_connect / time_appconnect",
+        "--verbose / --trace-time"
+      ],
+      "finding": "连接阶段包含 DNS、TCP 与 TLS；time_connect 在使用代理时可能仅表示连到代理。新字段也不能直接揭示代理内部上游 DNS / 路由。"
+    },
+    "decision": "只改变首项连接 / 总时间上限并增加有限观测，作为一次获取尝试；不派生探测矩阵。失败后本窗口关闭，先依据新增回执裁决网络处置，不能自动继续提高时限或重复此方案。"
+  },
+  "diagnostics": {
+    "applies_to": "freetype_only",
+    "verbose": true,
+    "trace_time": true,
+    "payload_trace": false,
+    "max_stderr_bytes": 65536,
+    "max_receipt_bytes": 4096,
+    "max_header_bytes": 65536,
+    "write_out_fields": [
+      "http_code",
+      "http_connect",
+      "size_download",
+      "time_namelookup",
+      "time_connect",
+      "time_appconnect",
+      "time_pretransfer",
+      "time_starttransfer",
+      "time_total",
+      "ssl_verify_result",
+      "num_connects"
+    ],
+    "format": "%{http_code} %{http_connect} %{size_download} %{time_namelookup} %{time_connect} %{time_appconnect} %{time_pretransfer} %{time_starttransfer} %{time_total} %{ssl_verify_result} %{num_connects}\n",
+    "privacy": "带时间戳的 verbose、头和错误仅进入新权限 0700 目录；提交结果只保留必要错误、阶段时间及脱敏目标，不提交完整原始诊断。不得启用正文 trace 或读取代理配置 / 凭据。",
+    "interpretation": "CONNECT 与各阶段时间用于确认失败阶段；time_connect 可能仅反映连到本地代理，不能当作源站 TCP 时间；time_appconnect 未完成时不能把零值当作零耗时成功，ssl_verify_result=0 也不能在握手失败时证明证书通过。"
+  },
+  "single_request_argv_note": "只适用于新窗口首项，必须由监控执行器捕获退出码和 stderr，限制头 / 错误 / 回执 / 总留存与总时间；不能脱离监控直接执行后跳过静态核验。其余项目沿原单请求参数，不加 verbose。"
+}
