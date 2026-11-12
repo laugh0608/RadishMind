@@ -132,7 +132,7 @@ Go 平台拥有任务权威状态，OpenHands SDK 为编码执行首选候选；
 - 系统边界：[架构](radishmind-architecture.md)
 - 协议边界：[集成契约](radishmind-integration-contracts.md)
 - 能力状态：[能力矩阵](radishmind-capability-matrix.md)
-- 当前开发记录：[2026-W44 周志](devlogs/2026-W44.md)
+- 当前开发记录：[周志入口](devlogs/README.md)
 
 ## 停止线
 

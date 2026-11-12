@@ -141,4 +141,4 @@ python3 scripts/eval/development_probe/run_joint.py \
 .venv/bin/python -B -m unittest discover -s scripts/eval/development_probe -p test_pillow_tool_metadata.py -v
 ```
 
-取得明确授权并留存真实响应后，才以 `--tool setuptools|pybind11|meson|ninja --input <本地响应路径>` 核对。目标为 CPython 3.12.16 / manylinux_2_28_aarch64，保留原始依赖 marker；声明为空则如实记录，不解析完整依赖闭包。标签匹配不等于构建器实物、工具安装或 Ninja 二进制版本已验。[预检记录](pillow-tool-metadata-preflight-20261112.json)与[四项获取计划](pillow-tool-metadata-plan-20261112.json)分别记录离线证据和待确认窗口，旧失败回执不改写。
+取得明确授权并留存真实响应后，才以 `--tool setuptools|pybind11|meson|ninja --input <本地响应路径>` 核对。目标为 CPython 3.12.16 / manylinux_2_28_aarch64，保留原始依赖 marker；声明为空则如实记录，不解析完整依赖闭包。标签匹配不等于构建器实物、工具安装或 Ninja 二进制版本已验。[预检记录](pillow-tool-metadata-preflight-20261112.json)与[四项获取计划](pillow-tool-metadata-plan-20261112.json)分别记录离线证据和编制时的窗口快照。所有者已于 11 月 12 日确认该方案，按收尾安排留到下次执行，见[任务卡](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-12-收尾与下次接续)；旧失败回执不改写。

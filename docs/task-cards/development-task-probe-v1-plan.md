@@ -6,9 +6,15 @@
 
 所属功能：[受控软件开发团队](../features/workflow/controlled-software-development-team-v1.md)。本卡集中记录阶段 0 探针、单尝试控制合同与工具边界，不为各层再建任务卡或检查器。
 
+## 2026-11-12 收尾与下次接续
+
+所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
+
+十九份源码继续复用；四项元数据仍未请求。成功后先复核构建器 / 工具实物、依赖闭包与资源预算，不自动追取。任何失败按原约定结束全窗；镜像层、容器、工具安装、构建、发布仍另行确认，许可交付与正式采用复评尚未完成。
+
 ## 2026-11-10 规划收口接续
 
-本卡继续记录原有技术结果。单 Agent [公开合同](../contracts/development-task-delivery-v1.md)及六幅代表面的修订要求已确认。原画板修订出图已获项目所有者最终视觉确认。许可按具名来源缺口裁决并完成一个最终候选的交付验收。具体退出条件和阶段 1 后的真实单 Agent 价值复核见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)。
+本卡继续记录原有技术结果。单 Agent [公开合同](../contracts/development-task-delivery-v1.md)及六幅代表面的修订要求已确认。原画板修订出图已获项目所有者最终视觉确认。许可仍需按具名来源缺口裁决，并完成一个最终候选的交付验收。具体退出条件和阶段 1 后的真实单 Agent 价值复核见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)。
 
 11 月 11 日完成 Pillow 单 wheel 候选首轮六次输入取证：五份 blob 精确匹配，multibuild 快照按 Git 类型 / 可执行位、路径、长度和内容摘要完整核对，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-fixed-inputs-result-20261111.json)与[周志](../devlogs/2026-W46.md#2026-11-11-pillow-首轮取证与交付阻塞复核)。本窗口已结束；构建镜像 / 工具、嵌套源码和最终交付未完成，保留单一候选，阶段 0 不退出。
 
