@@ -1,5 +1,7 @@
 # RadishMind UI 差异附录
 
+新 UI 任务按[代表设计协作模型](features/user-workspace/radishmind-family-ui-productization-v1.md#代表设计协作模型)完成分级和评审。2026-11-14 起停用 Pencil，旧画板与已确认的评审证据按原批次留存。
+
 更新时间：2026-11-05
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`

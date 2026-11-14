@@ -53,7 +53,7 @@ AFFINE 与 CodexApp 的截图是当前最重要的风格参考。它们共同的
 
 RadishMind 的 UI 不是通用文档工具、服务器面板、社区论坛或代码托管平台。它的核心界面应围绕平台运行、模型/profile inventory、session/tooling metadata、blocked action、local readiness、错误诊断和未来确认动作组织。
 
-以下是早期识别的候选页面族和状态，不代表每项都必须建立完整 Pencil 画板。当前应先按 [Family UI 产品化专题](features/user-workspace/radishmind-family-ui-productization-v1.md#pencil-协作模型)完成设计基准面分级，再决定完整设计、局部设计或直接实现：
+以下是早期识别的候选页面族和状态，不代表每项都需要建立完整代表稿。当前应先按 [Family UI 产品化专题](features/user-workspace/radishmind-family-ui-productization-v1.md#代表设计协作模型)完成设计基准面分级，再决定完整设计、局部设计或直接实现：
 
 1. `Local Overview`：服务状态、当前 provider/profile、可用 route、停止线摘要。
 2. `Local Readiness`：healthz、overview、local-smoke、CORS、端口、no-side-effects 和诊断提示。

@@ -192,7 +192,7 @@ RadishMind UI 分成两个当前实现面：
 
 ## 页面范围
 
-以下是早期 Pencil 与 React 的历史覆盖清单，用于识别已有领域面和停止线，不表示每项都必须建立独立 Pencil 画板。当前批次先按页面族归并，再依照 [Family UI 产品化专题的设计基准面分级](features/user-workspace/radishmind-family-ui-productization-v1.md#pencil-协作模型)决定完整 Pencil、局部 Pencil 或直接实现：
+以下是早期 Pencil 与 React 的历史覆盖清单，用于识别已有领域面和停止线，不表示每项都必须建立独立 Pencil 画板。当前批次先按页面族归并，再依照 [Family UI 产品化专题的设计基准面分级](features/user-workspace/radishmind-family-ui-productization-v1.md#代表设计协作模型)决定完整代表设计、局部设计或直接实现：
 
 1. `Local Overview`
    - service status
@@ -309,29 +309,13 @@ Control Plane read-side 页面必须继续使用紧凑工作台布局，不做�
 
 实现仍只消费 `GET /v1/platform/overview` 与 `GET /v1/platform/local-smoke`。任何新增页面或控件如果会暗示 executor、confirmation、writeback、replay、provider health、credential readiness 或 production readiness，必须先更新设计稿和对应契约说明。
 
-## Pencil 设计稿治理
+<a id="pencil-设计稿治理"></a>
 
-`.pen` 是信息层级、布局、组件关系、交互语义和响应式顺序的设计源文件，必须进入 `docs/designs/`；它不是功能、文案、按钮、数据来源或权限条件的真相源，也不承载完整页面清单。
+## 代表设计与实现映射
 
-设计稿要求：
+现行 A / B / C 分级、Penpot 或代码原型、评审证据及实现复核统一见[产品化专题](features/user-workspace/radishmind-family-ui-productization-v1.md#代表设计协作模型)。早期 `1920x1080` / `1080x1920` 稿及 `docs/designs/` 中的 `.pen` 随既有预览和评审归档。
 
-- 文件名表达端点和职责。
-- 画板尺寸遵循当前产品化专题；历史 `1920x1080` / `1080x1920` 稿只作为迁移证据。
-- “主要页面”统一按设计基准面理解：它是为页面族冻结新结构、交互、风险表达或响应式策略的最小代表面，不等于重要路由或完整功能页。
-- 打开 Pencil 前必须核对当前功能文档和代码，并在产品化专题记录页面族、覆盖级别、代码锚点、基线 commit、真实状态与停止线。
-- 完整 Pencil 只覆盖 `A` 级页面族；`B` 级只补无法推导的局部决策，`C` 级沿已评审模式直接实现。
-- 一个设计基准面默认只保留一个桌面代表状态；窄屏重排、关键失败、blocked、confirmation 或凭据状态只有在无法安全推导时才增加画板。
-- 设计稿中的控件必须区分当前可用、只读展示、未来确认流和明确 blocked。
-- 不为字段、普通文案、按钮条件或相似页面复制完整画板，也不把代表性设计文案当作实现契约。
-
-实现映射要求：
-
-- 设计基准面评审后，先实现该代表面，再让同族页面直接复用已落地组件与模式。
-- 每个实现任务说明对应的 `surface_id`、Pencil 覆盖级别、涉及组件、可复用 token、验证入口和不做范围。
-- 当前 Family UI 产品化设计源为 `docs/designs/radishmind-web-family-ui-v1.pen`；首个覆盖记录 `radishmind_web_s1_product_shell_v1` 已完成桌面 partial 代表面、`390x844` 单列重排、真实 React 实现和浏览器验收，具体代码基线、参考图映射和停止线以产品化专题为准。
-- 实现中的文案、动作条件、数据与权限以当前功能文档、API 和代码为准；不为保持静态稿表面一致而恢复已过期内容。
-- 最终验收以运行中的 React 页面、真实浏览器桌面 / 窄屏截图、键盘路径、测试和 consumer smoke 为准。
-- 只有信息架构、交互模型、风险表达、共享组件结构或响应式顺序变化时回写 Pencil；功能事实变化更新其真实 owner，并在必要时记录偏离原因。
+设计稿区分当前可用、只读、未来确认和 blocked。每个实现任务记录 `surface_id`、设计覆盖级别、组件、语义 token、验证入口和范围。原 `radishmind_web_s1_product_shell_v1` 的桌面 partial、`390x844` 单列重排、真实 React 和浏览器验收见产品化专题。
 
 ## 验收标准
 
@@ -342,7 +326,7 @@ Control Plane read-side 页面必须继续使用紧凑工作台布局，不做�
 - 颜色、圆角、间距和状态表达能映射到语义 token。
 - 未实现能力没有被画成可点击执行路径。
 - 窄屏布局不是桌面缩放，而是重新排序后的单列信息结构。
-- Pencil 结构检查无 layout problems；必要时导出 PNG 进行视觉复核。
+- 代表稿按目标视口检查裁切、遮挡和溢出，必要时导出 PNG。
 - React 实现阶段至少跑对应 console behavior / visual smoke / fast baseline。
 
 ## 与 Radish 的关系
