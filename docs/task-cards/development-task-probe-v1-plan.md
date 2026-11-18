@@ -12,7 +12,18 @@
 
 首窗结束时因缺少完整 Ninja 响应而暂停。随后获准单独向同一 PyPI 地址重新 GET 一次。新窗内 HTTP 200、curl 正常退出，正文与 Content-Length 同为 380593 字节。离线核验确认 Ninja Python 分发包 1.13.2 有一个匹配目标标签的 aarch64 wheel，声明大小 177180 字节。内含二进制版本待实物核验。[Ninja 单项回执及 wheel 摘要](../../scripts/eval/development_probe/sdk_variant/pillow-ninja-metadata-result-20261118.json)
 
-**决定继续核定 Pillow 单 wheel 候选的构建输入。** 四个候选工具 wheel 的发布地址和摘要均已确定，声明合计 2613340 字节。在本仓库 `tmp/` 按大小与摘要核查，未找到可直接复用的普通文件。下一笔可限定为这四个发行物的实物、包内许可和依赖声明核验，获取须另定预算。固定构建器的 23 层压缩大小为 572782550 字节，层展开占用、完整工具依赖与构建预算仍待核定。CPython 动态库归属、cryptography、两份 certifi、regex 及最终许可交付继续影响阶段 0 正式采用复评。
+**四个构建工具 wheel 已逐项核验。** 每个精确地址各 GET 一次，四次均为 HTTP 200。四包共 2613340 字节，大小和 SHA-256 均与预选记录匹配，786 条 `RECORD` 记录核对通过。下表为包内顶层许可正文及与 PyPI 声明一致的依赖条数。[逐包许可文件、依赖声明和摘要](../../scripts/eval/development_probe/sdk_variant/pillow-tool-wheel-result-20261118.json)
+
+| 工具 | 实收字节 | 顶层许可正文 | `Requires-Dist` 条数 |
+| --- | ---: | --- | ---: |
+| setuptools 83.0.0 | 1008090 | MIT | 50 |
+| pybind11 3.1.0 | 319402 | BSD-3-Clause | 1 |
+| Meson 1.12.1 | 1108668 | Apache-2.0 | 4 |
+| Ninja 1.13.2 | 177180 | Apache-2.0 | 0 |
+
+55 条依赖声明均带可选功能（extra）条件。Ninja 的 `METADATA` 没有 `Requires-Dist` 字段，PyPI 对应值为 `null`。setuptools 另含 12 个内嵌分发包，其中 autocommand 附 LGPLv3 正文，配置目录的两份 NOTICE 涉及 MPL-2.0 和 BSD-3-Clause。Meson 的顶层许可与 COPYING 一致，`mesonbuild/dependencies/python.py` 首行 SPDX 标识写为 `Apache-2.`，已按包内原文留痕。
+
+下一步核定固定构建器的层取证预算及需要在目标环境核验的解释器、系统工具和库。23 层压缩数据合计 572782550 字节，展开占用与构建峰值仍待核定。CPython 动态库归属、cryptography、两份 certifi、regex 及最终许可交付继续影响阶段 0 正式采用复评。
 
 ## 2026-11-12 收尾与下次接续
 
