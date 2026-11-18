@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- 四项工具元数据窗口已结束，前三项通过，Ninja 正文在单项时限内未收全。当前保留 Pillow 单 wheel 候选，暂停后续获取与构建，等待可核验的完整 Ninja 元数据。[选型决定](task-cards/development-task-probe-v1-plan.md#2026-11-18-候选选型)
+- Ninja 单项补取和离线核验完成，Pillow 候选的四项工具元数据现已齐备。下一步核对四个工具发行物与固定构建器所需的投入。[选型决定](task-cards/development-task-probe-v1-plan.md#2026-11-18-候选选型)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -29,11 +29,11 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 取得完整 Ninja 元数据后复核候选 | 复用 19 份原生源码、manifest / config 及三项已验工具元数据。Ninja 的目标 wheel 核验通过后，再核定构建器、工具实物与预算。CPython 动态库归属、其它具名来源与最终许可交付仍待闭合 |
+| 1 | 核定 Pillow 候选的构建输入与预算 | 四个目标工具 wheel 的 URL、大小及摘要已确定，合计 2613340 字节。固定构建器的 23 层合计 572782550 字节压缩数据。工具实物、层展开占用和构建所需依赖仍待核验 |
 | 2 | 验收一条选定候选的最终交付 | 来源与告知齐备后，另行授权精确镜像 / 伴随源码交付、实际获取与受影响 SDK / 联合复验；[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用 |
 | 3 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 
-下次只补 Ninja 的完整元数据。若需联网，按该单项另定获取窗口。只有下一笔投入能关闭具名交付义务、所需输入可得且投入有上限时，才继续当前候选。镜像层、容器和构建另行确认。
+下次可单独核验已选四个 wheel 的实际字节、包内许可和依赖声明。若需获取发行物，按四个已记录的精确地址和大小另定窗口。构建器层、容器或构建另行确认。CPython 动态库归属、其它具名来源及最终许可交付继续沿集中任务卡处理。
 
 已有原生 HTTP 固定上游技术条件、SDK 工具往返与联合任务证据保持，只有候选 / 配置变化或相关失败触发复验。真实厂商资格、完整输入计量和费用窗口仍未验收，真实模型暂停、通道默认关闭。
 

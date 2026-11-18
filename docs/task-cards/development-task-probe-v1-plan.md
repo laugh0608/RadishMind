@@ -10,7 +10,9 @@
 
 19 份原生源码、构建器 manifest / config、计划和引用摘要均匹配，解析器版本及 20 份源码指纹一致，9 项离线测试通过。依序请求四项 PyPI JSON 后，setuptools 83.0.0 的 wheel 摘要与构建锁匹配，pybind11 3.1.0 和 Meson 1.12.1 各有一个符合目标声明的 wheel。Ninja 返回 HTTP 200，但在单项 20 秒到期时仅留存 290816 / 380593 字节，监控器终止 curl，当即停窗。四次请求共留存正文 629844 字节，含部分 Ninja 响应，没有重试或续传。[逐项回执、候选版本与摘要](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-result-20261118.json)
 
-**选型决定为暂停，保留现有 Pillow 单 wheel 候选。** 当前缺少来源可核、传输完整的 Ninja PyPI JSON；部分正文不能确定目标 wheel。下一次只需补这一项，已有三项可离线复用。本窗网络额度已用完四次请求；如需重新联网，应针对 Ninja 单项确认新的时限与预算。取得完整材料后先核验目标 wheel，再核定唯一构建器的 23 层、工具实物与依赖闭包。镜像解压占用和构建预算仍待核定。CPython 动态库归属、cryptography、两份 certifi 与 regex 的来源缺口及最终许可告知、伴随源码交付仍待闭合，阶段 0 正式采用继续等待复评。
+首窗结束时因缺少完整 Ninja 响应而暂停。随后获准单独向同一 PyPI 地址重新 GET 一次。新窗内 HTTP 200、curl 正常退出，正文与 Content-Length 同为 380593 字节。离线核验确认 Ninja Python 分发包 1.13.2 有一个匹配目标标签的 aarch64 wheel，声明大小 177180 字节。内含二进制版本待实物核验。[Ninja 单项回执及 wheel 摘要](../../scripts/eval/development_probe/sdk_variant/pillow-ninja-metadata-result-20261118.json)
+
+**决定继续核定 Pillow 单 wheel 候选的构建输入。** 四个候选工具 wheel 的发布地址和摘要均已确定，声明合计 2613340 字节。在本仓库 `tmp/` 按大小与摘要核查，未找到可直接复用的普通文件。下一笔可限定为这四个发行物的实物、包内许可和依赖声明核验，获取须另定预算。固定构建器的 23 层压缩大小为 572782550 字节，层展开占用、完整工具依赖与构建预算仍待核定。CPython 动态库归属、cryptography、两份 certifi、regex 及最终许可交付继续影响阶段 0 正式采用复评。
 
 ## 2026-11-12 收尾与下次接续
 
