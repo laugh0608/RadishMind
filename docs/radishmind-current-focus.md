@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- Pillow 候选的四个构建工具 wheel 已取得，实物摘要、包级许可和依赖声明已核验。下一步核定固定构建器的取证范围和资源预算。[选型决定](task-cards/development-task-probe-v1-plan.md#2026-11-18-候选选型)
+- Pillow 候选的四个工具 wheel 已核验。固定构建器的静态取证方案已用留存的 manifest 和 config 核对，下一步待确认层获取窗口。[任务卡与预算](task-cards/development-task-probe-v1-plan.md#固定构建器的-23-层取证方案)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -29,11 +29,11 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 核定 Pillow 候选的构建输入与预算 | 复用四个已验工具 wheel。固定构建器的 23 层合计 572782550 字节压缩数据，需核定层展开与留存预算，列明待验解释器、系统工具和库 |
+| 1 | 固定构建器静态取证 | 待授权按 21 个唯一对象核验全部 23 个层位置，冷缓存层正文 572782486 字节，新增磁盘预算 1 GiB。交付最终文件视图中解释器、工具与库的证据及缺口 |
 | 2 | 验收一条选定候选的最终交付 | 来源与告知齐备后，另行授权精确镜像 / 伴随源码交付、实际获取与受影响 SDK / 联合复验；[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用 |
 | 3 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 
-下次依据已验 manifest / config 核定构建器实物取证的输入、投入上限与结束条件。镜像层获取、容器运行和构建另行确认。CPython 动态库归属、其它具名来源及最终许可交付继续沿集中任务卡处理。
+层获取待单独确认。静态证据按路径、摘要、版本与包归属验收；容器运行和构建另行确认。CPython 动态库归属、其它具名来源及最终许可交付继续沿集中任务卡处理。
 
 已有原生 HTTP 固定上游技术条件、SDK 工具往返与联合任务证据保持，只有候选 / 配置变化或相关失败触发复验。真实厂商资格、完整输入计量和费用窗口仍未验收，真实模型暂停、通道默认关闭。
 

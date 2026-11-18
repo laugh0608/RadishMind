@@ -1,0 +1,386 @@
+{
+  "schema_version": "pillow_builder_layer_evidence_plan.v1",
+  "date": "2026-11-18",
+  "status": "offline_plan_verified_layers_pending",
+  "image": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+  "platform": "linux/arm64",
+  "target_policy": "manylinux_2_28_aarch64",
+  "manifest": {
+    "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+    "bytes": 5125,
+    "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+  },
+  "config": {
+    "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+    "bytes": 13544,
+    "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+  },
+  "manifest_media_type": "application/vnd.docker.distribution.manifest.v2+json",
+  "config_media_type": "application/vnd.docker.container.image.v1+json",
+  "layer_media_type": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+  "evidence_sources": [
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-input-resolution-result-20261111.json",
+      "bytes": 5210,
+      "sha256": "e4ed8a92bb31da7bb449a8de58f0bfc94c0002953ac2edfe9a56f907064638fa"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-material-continuation-result-20261111.json",
+      "bytes": 7893,
+      "sha256": "9b17c89e867e550db9d576e998efdcb72a9a3e1c3f4a106aecb7cc48170d6da1"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json",
+      "bytes": 13352,
+      "sha256": "6fcab5de6b61f8cd69f92b5ec368ba52b0de1c59a8560f7b391c2c56a2c26fa2"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-tool-wheel-result-20261118.json",
+      "bytes": 15320,
+      "sha256": "973452a5bb04bbde1c11a310c75c3f77345962e3578bc7c195477d3973cc7d08"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/license-build-inputs-20261105.parts/pillow-build.json",
+      "bytes": 2604,
+      "sha256": "d192cbe980499faf8cf24d098b208efa04b2fa2511c8b8b2fcff1649c6d8aa04"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-libavif-retry-result-20261112.json",
+      "bytes": 16679,
+      "sha256": "e427e55cda1ffc907f065415e8b67937de98952d49bac969d6dfd685794da278"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-result-20261112.json",
+      "bytes": 32642,
+      "sha256": "d66a4c1d831998fdb7876ad8a329e8210d498e2201f7bf418ee87d7581677962"
+    }
+  ],
+  "release_recipe": [
+    {
+      "member": ".github/workflows/wheels-dependencies.sh",
+      "sha256": "6408b160bacc969023a6d7e45cb7db8d248948ec59750e2c0ce41a359342877a",
+      "tree": "293218ad059d994baf1777d882911bed6a49704a"
+    },
+    {
+      "member": ".github/workflows/wheels.yml",
+      "sha256": "3556b2d4f11e16bf72d6d3af95ef2493b6a5221917416c595ce5a67eebc96060",
+      "tree": "293218ad059d994baf1777d882911bed6a49704a"
+    },
+    {
+      "member": "pyproject.toml",
+      "sha256": "31d2050093c5a24f8239adcac1ebbc2ce72bd893622a0ed247c8ba8b09bb25f3",
+      "tree": "293218ad059d994baf1777d882911bed6a49704a"
+    }
+  ],
+  "history_interpretation": "两个位置字段均从 1 起计。42 条 history 中有 19 条 empty_layer，跳过后与 manifest 及 rootfs.diff_ids 依次对齐。history_hint 只用于定位；文件是否存在以叠加后的字节为准。",
+  "config_hints": {
+    "AUDITWHEEL_POLICY": "manylinux_2_28",
+    "AUDITWHEEL_ARCH": "aarch64",
+    "PATH": "/opt/clang/bin:/opt/rh/gcc-toolset-14/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "LD_LIBRARY_PATH": "/opt/rh/gcc-toolset-14/root/usr/lib64:/opt/rh/gcc-toolset-14/root/usr/lib:/opt/rh/gcc-toolset-14/root/usr/lib64/dyninst:/opt/rh/gcc-toolset-14/root/usr/lib/dyninst",
+    "DEVTOOLSET_ROOTPATH": "/opt/rh/gcc-toolset-14/root",
+    "PKG_CONFIG_PATH": "/usr/local/lib/pkgconfig"
+  },
+  "layers": [
+    {
+      "position": 1,
+      "history_position": 1,
+      "history_hint": "COPY 基础根文件系统",
+      "compressed_bytes": 71996907,
+      "digest": "sha256:3f7637ada877c9f78220f3e8d50d33e50c99f467bc2d51e769ec3455bac469a0",
+      "diff_id": "sha256:4792d3e37654227fe41f30e5520cc2d66a3d858ef988e5a20447bcee7c482f02"
+    },
+    {
+      "position": 2,
+      "history_position": 16,
+      "history_hint": "COPY 软件源调整脚本",
+      "compressed_bytes": 720,
+      "digest": "sha256:8de72cf234436e796b05947f9bc5981245f21a25a240107b6c00a6c4dadbd1c3",
+      "diff_id": "sha256:29a4a930ce6f467b22d8120acc68679d79d7d137d03a184a9a2f4aaa8cf39666"
+    },
+    {
+      "position": 3,
+      "history_position": 17,
+      "history_hint": "COPY 入口与系统更新脚本",
+      "compressed_bytes": 3024,
+      "digest": "sha256:98deaa0830e466dcc2aef120c8229bbf4b7b91059a1d832dca3af40066b19298",
+      "diff_id": "sha256:ef9e57f9cd09724d0035f97deaf5764fdff3de4dc2a252219bc4063896264757"
+    },
+    {
+      "position": 4,
+      "history_position": 18,
+      "history_hint": "RUN 入口安装脚本",
+      "compressed_bytes": 32,
+      "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+    },
+    {
+      "position": 5,
+      "history_position": 19,
+      "history_hint": "COPY manylinux-entrypoint",
+      "compressed_bytes": 368,
+      "digest": "sha256:f88c413e2f588feeed4dd1707f42dd45fba2d3111d7cc915fdb17eebdb8ae1df",
+      "diff_id": "sha256:5bb9b19c9683da50ef9484360f280188ab4f3270310e823edda4d13d2812e303"
+    },
+    {
+      "position": 6,
+      "history_position": 21,
+      "history_hint": "COPY 系统运行包安装脚本",
+      "compressed_bytes": 3106,
+      "digest": "sha256:cdd8310e80dd0ccdb95ab223884c2838fc1ee81230c4b797015105797f796158",
+      "diff_id": "sha256:b334ab908ba17bcec9c1775674f64568bf315afcdddd92f08f0e508a67eddd84"
+    },
+    {
+      "position": 7,
+      "history_position": 22,
+      "history_hint": "RUN 系统运行包安装脚本",
+      "compressed_bytes": 207346824,
+      "digest": "sha256:fc83fd2dc24843a04106fc0707f455316e1b4751f435a7ebb9bb9a2861932b37",
+      "diff_id": "sha256:101818c0a0458a8434ddf3cf99df43f3fc8c7bacabc8383dafb8a764fa123639"
+    },
+    {
+      "position": 8,
+      "history_position": 23,
+      "history_hint": "COPY Autoconf 安装脚本",
+      "compressed_bytes": 978,
+      "digest": "sha256:c60d21311bbf789da894c83188f1613059a96c6fdec2c987a7d1d33ec6c9df70",
+      "diff_id": "sha256:c2a4d6131abb778921d6a7590981f61a9a038957acad9015dbb717d0456ef2e8"
+    },
+    {
+      "position": 9,
+      "history_position": 24,
+      "history_hint": "RUN Autoconf 2.73 安装脚本",
+      "compressed_bytes": 1009099,
+      "digest": "sha256:72557bf57b954185d5397b23147e59681de4ccc8e6592760d7e41dcc583d7ddb",
+      "diff_id": "sha256:bad1100ccc3c60146d0332fa4898256403bac5636881a0c220dd10ec0159f673"
+    },
+    {
+      "position": 10,
+      "history_position": 25,
+      "history_hint": "COPY Automake 安装脚本",
+      "compressed_bytes": 1095,
+      "digest": "sha256:e85f491dae263eeca55e93ff89fbcee260cb20267f1353492c8116574792aa96",
+      "diff_id": "sha256:511c0709f7a327a437caae476cff47feec63bf17d1dc989dbaa537d6c3508870"
+    },
+    {
+      "position": 11,
+      "history_position": 26,
+      "history_hint": "RUN Automake 1.19 安装脚本",
+      "compressed_bytes": 719467,
+      "digest": "sha256:91a449722867f3f181735227b9238ffafde8a505c872bcf3f43d5493209c100e",
+      "diff_id": "sha256:07762c09138064c1d2e58169d27636da207d127fa8c7bb486ff50c607549f4b6"
+    },
+    {
+      "position": 12,
+      "history_position": 27,
+      "history_hint": "COPY Libtool 安装脚本",
+      "compressed_bytes": 643,
+      "digest": "sha256:3a0b7354039d49ee3f7beba8bc53798145a14107bdd415f9d23177c5bf006510",
+      "diff_id": "sha256:268563666b0257fe6b718bb44abbc02aa5ded3e5d8e9385a2127ec8e25b64d1f"
+    },
+    {
+      "position": 13,
+      "history_position": 28,
+      "history_hint": "RUN Libtool 2.6.2 安装脚本",
+      "compressed_bytes": 705683,
+      "digest": "sha256:143c71c674791eefa5db60248eda0466b1007c72c70fa55d7b71b07ef217658e",
+      "diff_id": "sha256:f755cf357a83f89ee5d67f614330935fc5a82e2a71094d0360e12790164370a1"
+    },
+    {
+      "position": 14,
+      "history_position": 29,
+      "history_hint": "COPY libxcrypt 安装脚本",
+      "compressed_bytes": 1112,
+      "digest": "sha256:1bb7f757fe46a2fe488dd7dc11066c588f3a77f88eafe9197e14c49b551b60f6",
+      "diff_id": "sha256:83e1924da652182df6fef6e72c8ffe5e55b93343b1a387aa0d5e9b809a8c49dd"
+    },
+    {
+      "position": 15,
+      "history_position": 30,
+      "history_hint": "RUN libxcrypt 4.5.2 安装脚本",
+      "compressed_bytes": 32,
+      "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "reuse_blob_from_position": 4
+    },
+    {
+      "position": 16,
+      "history_position": 31,
+      "history_hint": "COPY /manylinux-rootfs /",
+      "compressed_bytes": 32,
+      "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "reuse_blob_from_position": 4
+    },
+    {
+      "position": 17,
+      "history_position": 32,
+      "history_hint": "COPY /manylinux-rootfs /",
+      "compressed_bytes": 88697,
+      "digest": "sha256:57f40f79ecceacee44c46736873741b7ca3238e185f213e7d0a84984bdc2957b",
+      "diff_id": "sha256:71ac8d3feeed7bbb2eef3248a56953eb0e310255e6b713b03c3198bdbcde6d85"
+    },
+    {
+      "position": 18,
+      "history_position": 33,
+      "history_hint": "COPY /manylinux-rootfs /",
+      "compressed_bytes": 288508,
+      "digest": "sha256:1af535a2b02cda38a26ee61cdff4eaa0fc4c4531c9e98a5453a77d7daf1e3170",
+      "diff_id": "sha256:51b428db55dd7efc58b75f59a7c22f729c6bd1d655f34757087347341145ae32"
+    },
+    {
+      "position": 19,
+      "history_position": 34,
+      "history_hint": "COPY /manylinux-rootfs /",
+      "compressed_bytes": 2325908,
+      "digest": "sha256:81d84ce1506f2c7e0213ce6e006ef7da24f3eb3c1947ec46cf192af0a756f05a",
+      "diff_id": "sha256:a2b6a5d019230f8a6af108eda057c09a7acacaf2b2059f72a5715fdb0971fb0d"
+    },
+    {
+      "position": 20,
+      "history_position": 35,
+      "history_hint": "COPY /manylinux-rootfs /",
+      "compressed_bytes": 13386360,
+      "digest": "sha256:ef64416b013202b038039ae4d518aa2868802bcce3c821d9020763ccd74659c6",
+      "diff_id": "sha256:291363dec0031c0dcf7f4db019fdba6cee259fe38e96cade90c99b6d122474f2"
+    },
+    {
+      "position": 21,
+      "history_position": 36,
+      "history_hint": "COPY 镜像构建脚本目录",
+      "compressed_bytes": 104595,
+      "digest": "sha256:0177f60d47982bdbd0961524681b9d55782e1f6a17e840257a807328834a701c",
+      "diff_id": "sha256:3824150e188b509616b9e5f3c0b075762f4f2c1e472f7dcde28fbccd4a429a68"
+    },
+    {
+      "position": 22,
+      "history_position": 37,
+      "history_hint": "RUN 汇集 CPython 并执行 finalize.sh",
+      "compressed_bytes": 274790712,
+      "digest": "sha256:716f8e2a211f1658bf8a8e94398e22de200852ea9fcf5837e5be4c57c8095a2d",
+      "diff_id": "sha256:a3bcfe617325bbb554d6fe0ce5e51e23cdf997c1f7f5ef0bbc74107461af8928"
+    },
+    {
+      "position": 23,
+      "history_position": 38,
+      "history_hint": "COPY 镜像测试目录",
+      "compressed_bytes": 8648,
+      "digest": "sha256:8fa1dd37f61504229792589d7e1e42c630eb6732292bf7864864112bdee4ea3b",
+      "diff_id": "sha256:02c2a9ae82392b4c15e9b372e3037f3e82a8ce775c11c962cd0495c20f0ca823"
+    }
+  ],
+  "download": {
+    "blob_url_template": "https://quay.io/v2/pypa/manylinux_2_28_aarch64/blobs/{digest}",
+    "logical_positions": 23,
+    "logical_compressed_bytes": 572782550,
+    "distinct_blobs": 21,
+    "cold_blob_body_bytes": 572782486,
+    "reused_positions": [
+      15,
+      16
+    ],
+    "largest_position": 22,
+    "largest_compressed_bytes": 274790712,
+    "scope": "冷缓存仅计算获得各唯一对象完整正文一次。第 4、15、16 项共享同一 32 字节对象及 DiffID，解包索引仍按三个位置应用。manifest、config、原生源码和四个工具 wheel 复用。HTTP 头、鉴权与跳转不计入镜像内容体积。",
+    "proposed_window": "后续若获准，固定上述仓库与摘要，串行获取、每对象最多一个成功正文。沿原代理、HTTPS 证书校验，最多一次到 cdn01.quay.io 的具名 HTTPS 跳转并核对摘要路径。如遇 401，仅一次受限本仓库 pull 的 quay.io 匿名鉴权，凭据及短期签名不留存。最多 44 次 HTTP（21 个原站、至多 21 个 CDN，加一次鉴权挑战及一次 token 请求），无探测、重试或续传。",
+    "other_response_body_cap_bytes": 1048576,
+    "all_response_body_cap_bytes": 573831062,
+    "timing": "建议单对象含跳转最多 45 分钟，全窗网络累计最多 90 分钟，连接最多 8 秒。这是拟投入上限，传输速率未经验证。部分正文同样计入下载预算；失败立即停窗并保留回执。"
+  },
+  "disk_budget": {
+    "peak_new_disk_cap_bytes": 1073741824,
+    "compressed_blob_bytes": 572782486,
+    "path_index_including_journal_cap_bytes": 201326592,
+    "selected_evidence_including_temporaries_cap_bytes": 134217728,
+    "logs_and_receipts_cap_bytes": 8388608,
+    "allocation_margin_bytes": 157026410,
+    "minimum_free_at_start_bytes": 2147483648,
+    "minimum_free_reserve_bytes": 1073741824,
+    "uncompressed_tar_disk_bytes": 0,
+    "full_rootfs_disk_bytes": 0,
+    "raw_tar_bytes_per_pass_cap": 8589934592,
+    "max_scan_passes": 2,
+    "raw_tar_bytes_both_passes_cap": 17179869184
+  },
+  "budget_basis": [
+    "新增配额只覆盖静态取证。已验对象和不完整对象用同一目录按摘要存放，先写 .part，长度与 SHA-256 匹配后同卷原子改名。并发为一，部分文件占用从对应对象额度扣除。旧输入就地只读复用。",
+    "逐个 gzip 流式解压并计数；只写路径索引、选定证据与回执。目录索引预算含覆盖、白化记录、数据库临时文件及日志；证据预算含版本头、ELF 摘要、包归属材料及其临时副本。层数据以外的响应正文（含鉴权、跳转、错误）合计最多 1 MiB，归入 8 MiB 回执预算；token 不留存。按实际占用监测总目录和剩余空间，预留分配块、目录和元数据余量。",
+    "解压流量是处理上限而非磁盘用量或实际展开大小。第一遍建立有效路径与硬链接对象索引，第二遍仅在需回读有效文件时使用。每遍完整 tar 流上限 8 GiB，含填充与被上层覆盖的内容；不保存完整 tar 或根文件系统。全量展开、Docker 存储副本和实际构建峰值须从层实测另算。",
+    "执行前在同一目标卷复核至少 2 GiB 可用；过程中保留至少 1 GiB。任何字节、时间、空间或解析上限将被突破即停止，回执列出已完成位置与待核项。清理限本窗临时文件，失败证据和已验对象留在配额内。"
+  ],
+  "static_review": [
+    "逐个复核 descriptor 大小和压缩 SHA-256；完整读取解压字节至 EOF，核验 gzip 完整性及 tar 流 SHA-256 对应 DiffID。每个重复位置引用同一核验结果；23 个位置均登记。",
+    "按 manifest 从基础层到顶层合并路径索引，先处理对下层的 .wh.<name> 删除和 .wh..wh..opq 不透明目录，再应用同层成员。跟踪路径类型替换、符号链接、硬链接与最终来源层，解析限定在虚拟镜像根内。链接悬空、越界、解析循环或无法解释的成员保留为缺证。",
+    "按最终可见路径定位候选及遮蔽的版本，保存路径、链接终点、来源层、文件大小、SHA-256、静态版本依据、RPM 包名/版本/架构或 Python dist-info。读取 /etc/os-release 标识发行版，再用 /var/lib/rpm 或 /usr/lib/sysimage/rpm 的实际包清单核对系统文件归属。保留 ELF 架构、解释器、SONAME、DT_NEEDED 与 RPATH/RUNPATH；无法关联包归属时记录未知。运行镜像脚本、导入工具和 --version 实测留待另行授权。",
+    "输出 23 个位置的核验状态及下列目标的逐项结果（可定位、缺失、有文件但版本或归属待核）。遇到摘要或 DiffID 不符立即停窗。完整静态报告与构建准入分别判断，真实解释器调用、编译链接及修复 wheel 仍待后续验收。"
+  ],
+  "inventory": [
+    {
+      "group": "构建解释器与 ABI",
+      "targets": [
+        "/opt/python/cp312-cp312/bin/python 与 python3 的实际链接终点",
+        "/opt/_internal/cpython*、Python.h、patchlevel.h、pyconfig.h、SOABI / EXT_SUFFIX 对应的 sysconfig 数据",
+        "配方直接调用的 PATH 中 python3 / pip、目标 CPython 对应的 pip"
+      ],
+      "evidence": "目标 CPython 3.12、cp312-cp312、ELF AArch64。逐项比较补丁版本与既有目标 3.12.16，发现差异列入兼容性复评；宿主/引导解释器与打包目标分列。"
+    },
+    {
+      "group": "编译与链接",
+      "targets": [
+        "cc/gcc、c++/g++、as、ld、ar、ranlib、nm、strip、objcopy、readelf",
+        "gcc-toolset-14 的搜索前缀、/opt/clang/bin 下可能优先的编译器与链接器",
+        "glibc 开发头文件、crt*.o、libc.so.6、ld-linux-aarch64.so.1、libgcc_s.so.1、libstdc++.so.6、libm、pthread 与 dl 的链接入口"
+      ],
+      "evidence": "结合 PATH、编译器驱动/符号链接、工具集 RPM 与 ELF 核对所选编译链、C/C++ 开发文件和 manylinux_2_28 ABI 基线。glibc 的版本和符号需求分别登记。"
+    },
+    {
+      "group": "原生配置与构建工具",
+      "targets": [
+        "make、CMake（libavif 声明最低 3.22）、pkg-config/pkgconf 及 .pc 搜索路径",
+        "Autoconf、autoreconf、Automake/aclocal、Libtool/libtoolize、m4",
+        "Meson、Ninja、bash/sh、patch、sed、tar、gzip、xz、bzip2、unzip；按已选配方核对用到的 Perl / Python 辅助脚本"
+      ],
+      "evidence": "config 历史中的 Autoconf 2.73、Automake 1.19、Libtool 2.6.2、libxcrypt 4.5.2 只作查找线索。比较镜像已有版本与已验 Meson / Ninja wheel；Ninja 包版本与内含二进制版本分别登记。普通 aarch64 路线不套用 x86 专属汇编器要求。"
+    },
+    {
+      "group": "构建后端与 wheel 修复",
+      "targets": [
+        "cibuildwheel 4.3.1 宿主驱动及其目标 CPython 约束",
+        "setuptools、pybind11、Meson、Ninja 四个已验外部 wheel",
+        "pip、build、packaging、pyproject-hooks、virtualenv、auditwheel、patchelf、pkgconf、pyelftools"
+      ],
+      "evidence": "区分宿主驱动、镜像内已装入口和拟离线提供的 wheel。比较实际 METADATA、入口 shebang、目标 Python 约束及修复所用 ELF 工具。已有外部 wheel 可满足来源核对，安装与运行仍待验。",
+      "constraint_reference": [
+        "auditwheel==6.8.2",
+        "build==1.6.1",
+        "packaging==26.3",
+        "patchelf==0.19.1.0",
+        "pip==26.2.1; implementation_name != \"graalpy\"",
+        "pip==26.1.2; implementation_name == \"graalpy\" and platform_system != \"Windows\"",
+        "pip==26.0.1; implementation_name == \"graalpy\" and platform_system == \"Windows\"",
+        "pkgconf==3.0.7.post0",
+        "pyelftools==0.33",
+        "pyproject-hooks==1.3.3",
+        "virtualenv==21.14.6"
+      ]
+    },
+    {
+      "group": "构建器提供的库与头文件",
+      "targets": [
+        "LibXau 的 X11/Xauth.h、xau.pc、libXau.so* 与 XCB 配置",
+        "FriBidi shim 可能动态加载的 libfribidi.so*；Tcl/Tk 头文件、库及 _tkinter 路径",
+        "系统 zlib-devel、zlib.h、libz.so*；libcrypt/libxcrypt；目标 Python 的 libpython、OpenSSL、libffi 等实际 ELF 依赖"
+      ],
+      "evidence": "系统提供、运行时探测和 SDK 运行镜像各自登记。Linux 配方会移除 zlib-devel 并构建 zlib-ng 兼容模式，需标出冲突及实际搜索顺序；不可用构建器字节关闭 Debian SDK 的动态库归属。"
+    },
+    {
+      "group": "已有原生源码与镜像同名库",
+      "targets": [
+        "XZ/liblzma、zlib-ng、xcb-proto、libxcb、libjpeg-turbo、zstd、TIFF、libpng、Little CMS、OpenJPEG、libwebp（含 libsharpyuv）、Brotli、FreeType、HarfBuzz、bzip2",
+        "libavif、AOM、dav1d、libyuv"
+      ],
+      "evidence": "对应 19 份已验源码及其补丁/约束，只盘点镜像中可能抢先被选中的头、.pc、静态库和共享库。Linux 配方中的 raqm 与 FriBidi shim 按 vendor 配置分别记录，libimagequant 已禁用。FreeType/HarfBuzz 的构建次序、实际选用源码和最终链接由后续构建证明。"
+    }
+  ],
+  "exit": "本次核定完成后，下一笔投入只针对固定对象的静态核验。若层读取获准，以预算内的有效文件视图和具名缺口决定能否继续；容器、构建和阶段 0 正式采用仍待各自验收。"
+}

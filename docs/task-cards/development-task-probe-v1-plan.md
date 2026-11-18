@@ -23,7 +23,23 @@
 
 55 条依赖声明均带可选功能（extra）条件。Ninja 的 `METADATA` 没有 `Requires-Dist` 字段，PyPI 对应值为 `null`。setuptools 另含 12 个内嵌分发包，其中 autocommand 附 LGPLv3 正文，配置目录的两份 NOTICE 涉及 MPL-2.0 和 BSD-3-Clause。Meson 的顶层许可与 COPYING 一致，`mesonbuild/dependencies/python.py` 首行 SPDX 标识写为 `Apache-2.`，已按包内原文留痕。
 
-下一步核定固定构建器的层取证预算及需要在目标环境核验的解释器、系统工具和库。23 层压缩数据合计 572782550 字节，展开占用与构建峰值仍待核定。CPython 动态库归属、cryptography、两份 certifi、regex 及最终许可交付继续影响阶段 0 正式采用复评。
+### 固定构建器的 23 层取证方案
+
+已用留存的 manifest 和 config 复算固定 `manylinux_2_28_aarch64` 镜像摘要，逐项对齐 23 个压缩层描述符、23 个 `rootfs.diff_ids` 和 42 条 history 中的 23 条文件系统记录。第 4、15、16 个位置引用相同的 32 字节对象，压缩摘要和 DiffID 均相同。取证覆盖全部 23 个位置，按摘要只取 21 个对象；最大对象为第 22 层，274790712 字节。[逐层摘要、取证目标和预算明细](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-plan-20261118.json)
+
+| 预算项 | 核定值及计量方式 |
+| --- | --- |
+| 下载 | 23 个位置按序相加为 572782550 字节。冷缓存逐个获取唯一对象的正文为 **572782486 字节（546.25 MiB）**。另给鉴权、跳转和错误响应正文合计 1 MiB。 |
+| 新增磁盘 | 建议静态取证峰值上限 **1 GiB**。压缩对象占 572782486 字节，路径索引含日志和临时文件最多 192 MiB，定向证据最多 128 MiB，请求回执与运行日志最多 8 MiB，余下 157026410 字节留给文件系统分配开销。串行写入的部分对象计入对应对象额度，同卷改名。 |
+| 解压与空间 | 在镜像外流式读取 gzip/tar，最多两遍，每遍累计解压流量上限 8 GiB。只落盘索引及定向证据。执行前目标卷至少可用 2 GiB，运行中保留 1 GiB；达到限额即停止。实际展开大小和未来构建峰值均待实测。 |
+
+| 待核对象 | 静态验收依据 |
+| --- | --- |
+| 解释器与 ABI | 解析 `/opt/python/cp312-cp312` 的链接终点，把构建目标和 PATH 中的 `python3`、`pip` 分开。以 ELF 架构、`patchlevel.h`、`pyconfig.h` 与 sysconfig 核对 AArch64、3.12 补丁版本及扩展 ABI。 |
+| 系统与打包工具 | 核对 GCC/G++ 与 Clang 的实际搜索顺序、binutils、Make、CMake（libavif 至少 3.22）、Autotools、pkg-config、Meson、Ninja，以及补丁和解档工具。另对照 cibuildwheel 的 CPython 约束核查 build、auditwheel、patchelf 等入口与包归属，四个已验 wheel 单独标为外部输入。 |
+| 系统库和原生依赖 | 核对 glibc 与动态加载器、C/C++ 运行库及启动对象、LibXau/XCB、系统 zlib、FriBidi 加载项、Tcl/Tk 及 CPython 实际引用的库。对照 19 份原生源码区分系统提供与候选自建的同名头文件、`.pc` 和库，尤其是 zlib-ng 的兼容构建与 SDK 侧的 `libz.so.1`。 |
+
+**下一步是获准后执行静态层取证。** 按大小、压缩 SHA-256、完整 tar 流 DiffID 验证对象，再处理上层覆盖、白化删除和链接，形成最终可见路径与来源层清单。逐项记录版本、摘要、包归属及仍缺的依据。本轮只完成方案核对，镜像层获取、容器运行和构建均未执行。CPython 在 SDK 中的动态库归属、cryptography、两份 certifi、regex 和最终许可交付继续影响阶段 0 正式采用复评。
 
 ## 2026-11-12 收尾与下次接续
 
