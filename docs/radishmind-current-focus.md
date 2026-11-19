@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- Pillow 单 wheel 的禁网构建预检已通过。离线主控只选中一个目标，固定镜像已按摘要导入 OrbStack。下一步待授权执行一次构建、修复与测试。[任务卡与预检记录](task-cards/development-task-probe-v1-plan.md#禁网构建窗口预检)
+- Pillow 首次禁网构建在主控的宿主缓存初始化处停窗，Docker 未创建容器，输出目录为空。已验证工作区内的缓存路径可用，待授权再次运行。[任务卡与执行回执](task-cards/development-task-probe-v1-plan.md#首次禁网构建停窗)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -31,7 +31,7 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 执行已核定的单 wheel 禁网构建窗口 | 授权后用已验主控、镜像与输入构建，确认修复、Pillow 测试及唯一候选 wheel，记录 SHA-256、动态链接和许可告知。 [预检结果](task-cards/development-task-probe-v1-plan.md#禁网构建窗口预检) |
+| 1 | 绑定工作区缓存后执行单 wheel 禁网构建 | 获准后复用已验主控、镜像与输入，完成修复和 Pillow 测试，记录唯一候选 wheel 的 SHA-256、动态链接和许可告知。 [停窗结果](task-cards/development-task-probe-v1-plan.md#首次禁网构建停窗) |
 | 2 | 验收一条选定候选的最终交付 | 来源与告知齐备后，另行授权精确镜像 / 伴随源码交付、实际获取与受影响 SDK / 联合复验；[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用 |
 | 3 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 

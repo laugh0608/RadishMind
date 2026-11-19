@@ -127,6 +127,14 @@
 
 窗口验收要求原生配方、Pillow 编译、`auditwheel repair` 与三条上游测试全部通过。成功时只接收一个 CPython 3.12 / manylinux_2_28 AArch64 候选 wheel，并记录 SHA-256、动态链接和许可告知。随后在目标 SDK CPython 3.12.16 验证实际加载和受影响流程，再完成阶段 0 的许可交付复评。[主控、导入与运行参数回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-preflight-20261119.json)
 
+#### 首次禁网构建停窗
+
+所有者批准一次构建。运行前逐项复核暂存项目、离线输入、宿主工具和固定镜像，通过后启动 cibuildwheel 4.3.1。主控在宿主执行 `CIBW_CACHE_PATH.mkdir` 时试图创建 `~/Library/Caches/cibuildwheel`，被沙盒拒绝，2.075 秒后以状态码 1 退出。此前 `--print-build-identifiers` 在缓存初始化前返回，预检漏掉了这一步。
+
+按失败即停结束本次窗口。Docker 标签查询和事件记录均为空，容器创建和残留各为零。输出目录为空，原生编译、`auditwheel repair`、三条上游测试与产物核对均待实际运行。完整日志及其 SHA-256 已留存。[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-result-20261119.json)
+
+后续构建应在启动前将 `CIBW_CACHE_PATH` 指向本次工作区内的独立可写目录。已用同一 cibuildwheel 版本离线验证目录和 `CACHEDIR.TAG` 可创建，验证未调用构建入口。再次提交构建命令须获准开启新窗口。
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
