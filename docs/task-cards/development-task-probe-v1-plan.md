@@ -115,6 +115,18 @@
 
 **容器内构建输入与静态配方已备齐，实际构建窗口仍未开启。** 已组装 `13.0.0+radishmind.1` 的本地暂存项目和供只读挂载的输入目录。运行前须确认 `cibuildwheel 4.3.1` 主控和依赖的离线供给，确认选定引擎已具备精确 `linux/arm64` 镜像，并核定禁网资源与清理范围。仓库 `.venv` 当前无可导入的 cibuildwheel。真实编译、修复和 wheel 测试留待该窗口验收。[实物与预检回执](../../scripts/eval/development_probe/sdk_variant/pillow-offline-build-inputs-result-20261119.json) · [AlmaLinux 签名密钥](https://almalinux.org/security/#gpg-keys) · [签名子钥指纹](https://wiki.almalinux.org/release-notes/8.8)
 
+#### 禁网构建窗口预检
+
+| 项目 | 实测结果 |
+| --- | --- |
+| 宿主主控 | 获准串行获取 7 个 wheel，共 438341 字节。与 4 个已锁 wheel 合并后，11 个工件的大小、SHA-256、许可文件、312 条 `RECORD` 和 Darwin arm64 / CPython 3.14.5 依赖闭包均已核验。pip 隔离、禁网、强制哈希的试解析成功。宿主工具及其依赖只供本地构建使用。 |
+| 固定镜像 | OrbStack 起始无该镜像。获准从 21 个本地已验压缩层流式导入，耗时 9.088 秒。导入后的 `linux/arm64` 镜像 ID 与 Quay manifest 原摘要一致，23 个有序 DiffID 与原 config 逐项匹配，可按完整摘要查询。保留本批唯一标签供构建使用。 |
+| 构建命令 | 已验 sdist 中 71 个包内文件与 cibuildwheel 4.3.1 wheel 对应文件一致。直接从这些源码及依赖 wheel 运行 `--print-build-identifiers`，只得到 `cp312-manylinux_aarch64`。实际主控对本机摘要解析出 `--platform=linux/arm64 --pull=never`。配置解析确认显式 `--pull=never`、`--network=none`、关闭 `/host` 挂载，并仅只读挂载已验输入。 |
+
+**预检通过，可申请一次禁网构建窗口。** 本次授权完成了依赖获取和镜像导入。宿主 wheel 安装、容器启动和编译计数为零。运行前复核镜像摘要、输入哈希、磁盘与标签归属。拟运行上限为一个容器、4 核 CPU 配额、8 GiB 内存、512 个 PID、90 分钟，测试并行度为 4。启动时至少保留 12 GiB 可用盘，降至 8 GiB 以下、超过时限或发生错误时结束本次运行。结束时核对并清理本次标签对应的容器，保留镜像和工作区内的日志及输出。
+
+窗口验收要求原生配方、Pillow 编译、`auditwheel repair` 与三条上游测试全部通过。成功时只接收一个 CPython 3.12 / manylinux_2_28 AArch64 候选 wheel，并记录 SHA-256、动态链接和许可告知。随后在目标 SDK CPython 3.12.16 验证实际加载和受影响流程，再完成阶段 0 的许可交付复评。[主控、导入与运行参数回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-preflight-20261119.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
