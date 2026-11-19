@@ -104,6 +104,17 @@
 
 **当前仍不具备进入构建窗口的条件。** `before-all` 已有可审查入口，仍需准备 `/project/.radishmind/pillow/native-build.sh`，接入已验原生归档及补丁，并替换原配方的联网入口。FriBidi RPM、测试图片归档及 Pillow `tests` extra 与 NumPy 的离线材料仍待取得或核验。完成这些输入的准备后再核定单 wheel 构建、修复和测试窗口。本次检查覆盖 Bash 语法、环境输出、工具哈希及镜像路径。[测试来源锁定记录](../../scripts/eval/development_probe/sdk_variant/pillow-offline-test-sources-20261119.json) · [离线入口说明](../../scripts/eval/development_probe/sdk_variant/README.md#pillow-离线-before-all-绑定)
 
+#### 原生配方与离线实物预检
+
+| 项目 | 复核结果 |
+| --- | --- |
+| FriBidi | 89632 字节的 RPM 匹配锁定 SHA-256。校验了 OpenPGP RSA/SHA-256 主头签名，并核对签名主头中的压缩 payload 摘要。签名子钥指纹为 `E53CF5EF91CEB0AD1812ECB851D6647EC21AD6EA`。测试目录已准备 AArch64 `libfribidi.so.0`、链接终点和原包许可文件。 |
+| 测试图片 | 57430295 字节的提交归档已留存，78 个 blob 逐项核对相对路径、字节数、可执行位与 Git 摘要。测试目录只用于 Pillow 验收。 |
+| Python 测试 | Pillow `tests` extra 和 NumPy 2.5.5 共 17 个精确 wheel。按 CPython 3.12.15 / Linux AArch64 解析，最终目录用 `--no-index --require-hashes --dry-run` 全部解析成功。合并构建工具及 virtualenv 后，离线 wheelhouse 共 25 个不同工件。 |
+| 原生配方 | `native-build.sh` 直接消费 19 份锁定归档，按 Pillow 原配方的 `-p0` 应用 sdist 内的 OpenJPEG 补丁。AOM、dav1d、libyuv 和 libwebp 显式使用本地源码。保留 FreeType → HarfBuzz → FreeType 次序，并从对应归档收集原生告知。`--prepare-only` 已验归档、解包、补丁和告知生成。`pillow-test.sh` 使用本地 FriBidi 和图片，保留上游三个测试命令。 |
+
+**容器内构建输入与静态配方已备齐，实际构建窗口仍未开启。** 已组装 `13.0.0+radishmind.1` 的本地暂存项目和供只读挂载的输入目录。运行前须确认 `cibuildwheel 4.3.1` 主控和依赖的离线供给，确认选定引擎已具备精确 `linux/arm64` 镜像，并核定禁网资源与清理范围。仓库 `.venv` 当前无可导入的 cibuildwheel。真实编译、修复和 wheel 测试留待该窗口验收。[实物与预检回执](../../scripts/eval/development_probe/sdk_variant/pillow-offline-build-inputs-result-20261119.json) · [AlmaLinux 签名密钥](https://almalinux.org/security/#gpg-keys) · [签名子钥指纹](https://wiki.almalinux.org/release-notes/8.8)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

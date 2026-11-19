@@ -1,0 +1,409 @@
+{
+  "date": "2026-11-19",
+  "prior_source_lock": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-offline-test-sources-20261119.json",
+    "bytes": 16246,
+    "sha256": "32a5c281f74dbb41b5c436a2be7b063b357c6834b86e517c0dcf757e7c03eb85"
+  },
+  "fribidi": {
+    "rpm_path": "/Users/luobo/Code/RadishMind/tmp/pillow-build-inputs-20261119/fribidi-1.0.4-9.el8.aarch64.rpm",
+    "bytes": 89632,
+    "sha256": "97b7ed7a5cce078e84c9515c7350080104d5934bc2fd191e023030b34ac8baf7",
+    "payload_sha256": "6d72c6a994fdde893e5a8fae59dbf60c844a45e35f5b9dfc851213bd06885519",
+    "header_sha256": "e95c31e7a98acc99f4164b1e8f0d365928a11c4f735a7e221cf1ca9665c59271",
+    "signature": "OpenPGP v4 RSA/SHA-256 over main header, verified with OpenSSL",
+    "signing_key_fingerprint": "e53cf5ef91ceb0ad1812ecb851d6647ec21ad6ea",
+    "primary_key_fingerprint": "5e9b8f5617b5066ce92057c3488fcf7c3abb34f8",
+    "key_file_sha256": "2cbe597b108cefbf571d8d430d238d0a7a6575eebf6c80649be5e10c323e7023",
+    "key_source": "https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-8",
+    "fingerprint_sources": [
+      "https://almalinux.org/security/#gpg-keys",
+      "https://wiki.almalinux.org/release-notes/8.8.html"
+    ],
+    "test_payload_dir": "tmp/pillow-build-inputs-20261119/staged-inputs/fribidi",
+    "library_sha256": "9a9ae05f18a08307ebc9ca7fe7558ce5a2b671e01cc250f6b700c1509b6a19de",
+    "elf": {
+      "elf_class": 2,
+      "endianness": 1,
+      "machine": 183,
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "soname": [
+        "libfribidi.so.0"
+      ]
+    },
+    "license_sha256": "32434afcc8666ba060e111d715bfdb6c2d5dd8a35fa4d3ab8ad67d8f850d2f2b"
+  },
+  "test_images": {
+    "archive": "tmp/pillow-build-inputs-20261119/test-images.tar.gz",
+    "archive_bytes": 57430295,
+    "archive_sha256": "2377ec3a523f70da7f305ccbd32ddbf063e6046c56487e7ca08b6ace04bf906f",
+    "commit": "073ab5ff1895abf8cf5c8d797c1066ed394ce207",
+    "tree": "c62a7f86bd84166a002332db858b020361dfeea0",
+    "verified_blob_count": 78,
+    "blob_bytes": 68635563,
+    "images_dir": "tmp/pillow-build-inputs-20261119/staged-inputs/test-images"
+  },
+  "test_wheelhouse": {
+    "test_wheels": [
+      {
+        "name": "coverage",
+        "version": "7.17.3",
+        "bytes": 265022,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/coverage-7.17.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+        "sha256": "84b5a474040b33f3d805c0b19fadf5a2e78fdd46e0bcb8b813631e5cac64195e",
+        "requires_dist": [],
+        "license_expression": null
+      },
+      {
+        "name": "defusedxml",
+        "version": "0.7.1",
+        "bytes": 25604,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/defusedxml-0.7.1-py2.py3-none-any.whl",
+        "sha256": "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61",
+        "requires_dist": [],
+        "license_expression": null
+      },
+      {
+        "name": "execnet",
+        "version": "2.1.2",
+        "bytes": 40708,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/execnet-2.1.2-py3-none-any.whl",
+        "sha256": "67fba928dd5a544b783f6056f449e5e3931a5c378b128bc18501f7ea79e296ec",
+        "requires_dist": [
+          "hatch; extra == 'testing'",
+          "pre-commit; extra == 'testing'",
+          "pytest; extra == 'testing'",
+          "tox; extra == 'testing'"
+        ],
+        "license_expression": "MIT"
+      },
+      {
+        "name": "iniconfig",
+        "version": "2.3.1",
+        "bytes": 7552,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/iniconfig-2.3.1-py3-none-any.whl",
+        "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7",
+        "requires_dist": [],
+        "license_expression": "MIT"
+      },
+      {
+        "name": "markdown2",
+        "version": "2.5.5",
+        "bytes": 56250,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/markdown2-2.5.5-py3-none-any.whl",
+        "sha256": "be798587e09d1f52d2e4d96a649c4b82a778c75f9929aad52a2c95747fa26941",
+        "requires_dist": [
+          "pygments>=2.7.3; extra == \"all\"",
+          "wavedrom; extra == \"all\"",
+          "latex2mathml; python_version >= \"3.8.1\" and extra == \"all\"",
+          "pygments>=2.7.3; extra == \"code-syntax-highlighting\"",
+          "latex2mathml; python_version >= \"3.8.1\" and extra == \"latex\"",
+          "wavedrom; extra == \"wavedrom\""
+        ],
+        "license_expression": null
+      },
+      {
+        "name": "numpy",
+        "version": "2.5.5",
+        "bytes": 15284117,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/numpy-2.5.5-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+        "sha256": "a0750f2156d53446caca85663d0b65d67214e1664b9050454a731ea1418d176a",
+        "requires_dist": [],
+        "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
+      },
+      {
+        "name": "olefile",
+        "version": "0.47",
+        "bytes": 114565,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/olefile-0.47-py2.py3-none-any.whl",
+        "sha256": "543c7da2a7adadf21214938bb79c83ea12b473a4b6ee4ad4bf854e7715e13d1f",
+        "requires_dist": [
+          "pytest ; extra == 'tests'",
+          "pytest-cov ; extra == 'tests'"
+        ],
+        "license_expression": null
+      },
+      {
+        "name": "packaging",
+        "version": "26.3",
+        "bytes": 129956,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/packaging-26.3-py3-none-any.whl",
+        "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+        "requires_dist": [],
+        "license_expression": "Apache-2.0 OR BSD-2-Clause"
+      },
+      {
+        "name": "pluggy",
+        "version": "1.7.0",
+        "bytes": 27082,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/pluggy-1.7.0-py3-none-any.whl",
+        "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec",
+        "requires_dist": [],
+        "license_expression": null
+      },
+      {
+        "name": "psutil",
+        "version": "7.2.2",
+        "bytes": 156997,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/psutil-7.2.2-cp36-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+        "sha256": "b0726cecd84f9474419d67252add4ac0cd9811b04d61123054b9fb6f57df6e9e",
+        "requires_dist": [
+          "psleak ; extra == 'dev'",
+          "pytest ; extra == 'dev'",
+          "pytest-instafail ; extra == 'dev'",
+          "pytest-xdist ; extra == 'dev'",
+          "setuptools ; extra == 'dev'",
+          "abi3audit ; extra == 'dev'",
+          "black ; extra == 'dev'",
+          "check-manifest ; extra == 'dev'",
+          "coverage ; extra == 'dev'",
+          "packaging ; extra == 'dev'",
+          "pylint ; extra == 'dev'",
+          "pyperf ; extra == 'dev'",
+          "pypinfo ; extra == 'dev'",
+          "pytest-cov ; extra == 'dev'",
+          "requests ; extra == 'dev'",
+          "rstcheck ; extra == 'dev'",
+          "ruff ; extra == 'dev'",
+          "sphinx ; extra == 'dev'",
+          "sphinx-rtd-theme ; extra == 'dev'",
+          "toml-sort ; extra == 'dev'",
+          "twine ; extra == 'dev'",
+          "validate-pyproject[all] ; extra == 'dev'",
+          "virtualenv ; extra == 'dev'",
+          "vulture ; extra == 'dev'",
+          "wheel ; extra == 'dev'",
+          "colorama ; (os_name == \"nt\") and extra == 'dev'",
+          "pyreadline3 ; (os_name == \"nt\") and extra == 'dev'",
+          "pywin32 ; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == 'dev'",
+          "wheel ; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == 'dev'",
+          "wmi ; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == 'dev'",
+          "psleak ; extra == 'test'",
+          "pytest ; extra == 'test'",
+          "pytest-instafail ; extra == 'test'",
+          "pytest-xdist ; extra == 'test'",
+          "setuptools ; extra == 'test'",
+          "pywin32 ; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == 'test'",
+          "wheel ; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == 'test'",
+          "wmi ; (os_name == \"nt\" and implementation_name != \"pypy\") and extra == 'test'"
+        ],
+        "license_expression": null
+      },
+      {
+        "name": "pygments",
+        "version": "2.21.0",
+        "bytes": 1250147,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/pygments-2.21.0-py3-none-any.whl",
+        "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+        "requires_dist": [
+          "colorama>=0.4.6; extra == 'windows-terminal'"
+        ],
+        "license_expression": "BSD-2-Clause"
+      },
+      {
+        "name": "pytest",
+        "version": "9.2.0",
+        "bytes": 411776,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/pytest-9.2.0-py3-none-any.whl",
+        "sha256": "07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588",
+        "requires_dist": [
+          "colorama>=0.4; sys_platform == \"win32\"",
+          "exceptiongroup>=1; python_version < \"3.11\"",
+          "iniconfig>=2",
+          "packaging>=24",
+          "pluggy<2,>=1.6",
+          "pygments>=2.15",
+          "tomli>=2; python_version < \"3.11\"",
+          "argcomplete; extra == \"dev\"",
+          "asynctest; python_version < \"3.11\" and extra == \"dev\"",
+          "attrs>=23.1; extra == \"dev\"",
+          "coverage>=7.5; extra == \"dev\"",
+          "hypothesis>=6.75; extra == \"dev\"",
+          "mock; extra == \"dev\"",
+          "numpy>=1.26; extra == \"dev\"",
+          "pexpect>=4.9; extra == \"dev\"",
+          "pytest-xdist>=3.5; extra == \"dev\"",
+          "pyyaml; extra == \"dev\"",
+          "requests; extra == \"dev\"",
+          "setuptools; extra == \"dev\"",
+          "xmlschema; extra == \"dev\""
+        ],
+        "license_expression": "MIT"
+      },
+      {
+        "name": "pytest-cov",
+        "version": "7.1.0",
+        "bytes": 22876,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/pytest_cov-7.1.0-py3-none-any.whl",
+        "sha256": "a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678",
+        "requires_dist": [
+          "coverage[toml]>=7.10.6",
+          "pluggy>=1.2",
+          "pytest>=7",
+          "process-tests; extra == 'testing'",
+          "pytest-xdist; extra == 'testing'",
+          "virtualenv; extra == 'testing'"
+        ],
+        "license_expression": "MIT"
+      },
+      {
+        "name": "pytest-timeout",
+        "version": "2.4.0",
+        "bytes": 14382,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/pytest_timeout-2.4.0-py3-none-any.whl",
+        "sha256": "c42667e5cdadb151aeb5b26d114aff6bdf5a907f176a007a30b940d3d865b5c2",
+        "requires_dist": [
+          "pytest>=7.0.0"
+        ],
+        "license_expression": null
+      },
+      {
+        "name": "pytest-xdist",
+        "version": "3.8.0",
+        "bytes": 46396,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/pytest_xdist-3.8.0-py3-none-any.whl",
+        "sha256": "202ca578cfeb7370784a8c33d6d05bc6e13b4f25b5053c30a152269fd10f0b88",
+        "requires_dist": [
+          "execnet>=2.1",
+          "pytest>=7.0.0",
+          "filelock; extra == \"testing\"",
+          "psutil>=3.0; extra == \"psutil\"",
+          "setproctitle; extra == \"setproctitle\""
+        ],
+        "license_expression": "MIT"
+      },
+      {
+        "name": "setuptools",
+        "version": "83.0.0",
+        "bytes": 1008090,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/setuptools-83.0.0-py3-none-any.whl",
+        "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+        "requires_dist": [
+          "pytest!=8.1.*,>=6; extra == \"test\"",
+          "virtualenv>=13.0.0; extra == \"test\"",
+          "wheel>=0.44.0; extra == \"test\"",
+          "pip>=19.1; extra == \"test\"",
+          "packaging>=24.2; extra == \"test\"",
+          "jaraco.envs>=2.2; extra == \"test\"",
+          "pytest-xdist>=3; extra == \"test\"",
+          "jaraco.path>=3.7.2; extra == \"test\"",
+          "build[virtualenv]>=1.0.3; extra == \"test\"",
+          "filelock>=3.4.0; extra == \"test\"",
+          "ini2toml[lite]>=0.14; extra == \"test\"",
+          "tomli-w>=1.0.0; extra == \"test\"",
+          "pytest-timeout; extra == \"test\"",
+          "pytest-perf; sys_platform != \"cygwin\" and extra == \"test\"",
+          "jaraco.develop>=7.21; (python_version >= \"3.9\" and sys_platform != \"cygwin\") and extra == \"test\"",
+          "pytest-home>=0.5; extra == \"test\"",
+          "pytest-subprocess; extra == \"test\"",
+          "pyproject-hooks!=1.1; extra == \"test\"",
+          "jaraco.test>=5.5; extra == \"test\"",
+          "sphinx>=3.5; extra == \"doc\"",
+          "jaraco.packaging>=9.3; extra == \"doc\"",
+          "rst.linker>=1.9; extra == \"doc\"",
+          "furo; extra == \"doc\"",
+          "sphinx-lint; extra == \"doc\"",
+          "jaraco.tidelift>=1.4; extra == \"doc\"",
+          "pygments-github-lexers==0.0.5; extra == \"doc\"",
+          "sphinx-favicon; extra == \"doc\"",
+          "sphinx-inline-tabs; extra == \"doc\"",
+          "sphinx-reredirects; extra == \"doc\"",
+          "sphinxcontrib-towncrier; extra == \"doc\"",
+          "sphinx-notfound-page<2,>=1; extra == \"doc\"",
+          "pyproject-hooks!=1.1; extra == \"doc\"",
+          "towncrier<24.7; extra == \"doc\"",
+          "packaging>=24.2; extra == \"core\"",
+          "more_itertools>=8.8; extra == \"core\"",
+          "jaraco.text>=3.7; extra == \"core\"",
+          "importlib_metadata>=6; python_version < \"3.10\" and extra == \"core\"",
+          "tomli>=2.0.1; python_version < \"3.11\" and extra == \"core\"",
+          "wheel>=0.43.0; extra == \"core\"",
+          "jaraco.functools>=4; extra == \"core\"",
+          "more_itertools; extra == \"core\"",
+          "pytest-checkdocs>=2.14; extra == \"check\"",
+          "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+          "ruff>=0.13.0; sys_platform != \"cygwin\" and extra == \"check\"",
+          "pytest-cov; extra == \"cover\"",
+          "pytest-enabler>=3.4; extra == \"enabler\"",
+          "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\"",
+          "mypy==1.18.*; extra == \"type\"",
+          "importlib_metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
+          "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\""
+        ],
+        "license_expression": "MIT"
+      },
+      {
+        "name": "trove-classifiers",
+        "version": "2026.9.21.13",
+        "bytes": 14232,
+        "path": "tmp/pillow-build-inputs-20261119/staged-inputs/wheels/trove_classifiers-2026.9.21.13-py3-none-any.whl",
+        "sha256": "8b1ff4f9c191b1040b71c37f1e445ab99732911e3cd91de52838453a854d7a17",
+        "requires_dist": [],
+        "license_expression": null
+      }
+    ],
+    "supplied_wheel_count": 25
+  },
+  "test_lock": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-test-requirements.lock",
+    "bytes": 1640,
+    "sha256": "03e32edd35a791c131f32ec81c5e888ad5246b6641230c2e77657f51f0252dae"
+  },
+  "test_lock_offline_dry_run": "passed",
+  "native_sources": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-native-sources.sha256",
+    "bytes": 1549,
+    "sha256": "dad8b178a2895f2b3e08be724670ddf057b0c62095113af29abd9ff6d1b5945a"
+  },
+  "native_source_count": 19,
+  "openjpeg_patch_sha256": "6b0a9250ec038826a811a7eb6ea1aa59abf42d6d562042cdfddb29c7ad98ef4e",
+  "native_prepare_only": "passed",
+  "native_notices": {
+    "path": "tmp/pillow-build-inputs-20261119/prepared-native-final/native-notices.txt",
+    "bytes": 167361,
+    "sha256": "86428e9103e9435e2fb87725870084375972b5d81da851e613fd68bd1781301e"
+  },
+  "project": {
+    "project": "tmp/pillow-build-inputs-20261119/staged-projects/pillow-13.0.0",
+    "variant_version": "13.0.0+radishmind.1",
+    "pillow_source_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+    "modified_version_file_sha256": "da1fcc512cf8c18fd05a48d1e714221f4d50dcf316183329c9ac9254f5fa34c2",
+    "offline_files": {
+      "pillow-before-all.sh": "df0bbe5db6268e71c42795b1611d35479f38d70a52881edb634eb6cd2a135115",
+      "native-build.sh": "2569797803cd85695ffd49fc28a327d1991d1af29e7dede0de2498426d25d324",
+      "pillow-test.sh": "51531224daf9f77ac828c0971307b0887630a8e5399adbdd0b9985eb94ce7229",
+      "pillow-native-tools.lock": "f66defb0a38e9890de8ed8a0e64b1edbfd3c568b455ecae9ede1d1e6bd181142",
+      "pillow-native-sources.sha256": "dad8b178a2895f2b3e08be724670ddf057b0c62095113af29abd9ff6d1b5945a",
+      "pillow-test-requirements.lock": "03e32edd35a791c131f32ec81c5e888ad5246b6641230c2e77657f51f0252dae"
+    }
+  },
+  "staged_input_dir": "tmp/pillow-build-inputs-20261119/staged-inputs",
+  "cibuildwheel_environment": {
+    "CIBW_PLATFORM": "linux",
+    "CIBW_ARCHS_LINUX": "aarch64",
+    "CIBW_BUILD": "cp312-manylinux_aarch64",
+    "CIBW_ENVIRONMENT_LINUX": "BUILD_PREFIX=/opt/radishmind/pillow-native PKG_CONFIG=/usr/bin/pkg-config PKG_CONFIG_PATH=/opt/radishmind/pillow-native/lib/pkgconfig:/opt/radishmind/pillow-native/share/pkgconfig PKG_CONFIG_LIBDIR=/opt/radishmind/pillow-native/system-pc PKG_CONFIG_SYSROOT_DIR= CPPFLAGS=-I/opt/radishmind/pillow-native/include LDFLAGS=-L/opt/radishmind/pillow-native/lib LIBRARY_PATH=/opt/radishmind/pillow-native/lib CMAKE_PREFIX_PATH=/opt/radishmind/pillow-native LD_LIBRARY_PATH=/opt/radishmind/pillow-native/lib:/opt/rh/gcc-toolset-14/root/usr/lib64:/opt/rh/gcc-toolset-14/root/usr/lib:/opt/rh/gcc-toolset-14/root/usr/lib64/dyninst:/opt/rh/gcc-toolset-14/root/usr/lib/dyninst PIP_CONFIG_FILE=/dev/null PIP_NO_INDEX=1 PIP_FIND_LINKS=/opt/radishmind/pillow-inputs/wheels",
+    "CIBW_TEST_ENVIRONMENT_LINUX": "LD_LIBRARY_PATH=/opt/radishmind/pillow-inputs/fribidi/usr/lib64",
+    "CIBW_BEFORE_ALL_LINUX": "cd /project && bash .radishmind/pillow/pillow-before-all.sh",
+    "CIBW_TEST_COMMAND_LINUX": "cd {project} && bash .radishmind/pillow/pillow-test.sh",
+    "CIBW_MANYLINUX_AARCH64_IMAGE": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+  },
+  "build_window": {
+    "inputs_and_static_recipe_validated": true,
+    "host_cibuildwheel_importable_in_repo_venv": false,
+    "fixed_builder_lookup_in_engine": "pending",
+    "window_ready_to_execute": false,
+    "remaining": [
+      "确认 cibuildwheel 4.3.1 主控及其依赖的离线供给",
+      "核对固定 linux/arm64 镜像已在选定引擎可用",
+      "核定本次隔离运行资源并取得授权"
+    ],
+    "containers_started": 0,
+    "native_builds": 0,
+    "wheel_builds": 0,
+    "python_wheel_installs": 0
+  }
+}
