@@ -79,6 +79,19 @@
 
 固定对象获取与静态视图已验收。选型继续保留这一固定候选，先裁决 CPython 补丁差异，核定实际工具与原生构建输入，再决定是否进入构建窗口。容器、工具执行、候选构建和最终许可交付仍待各自验收。
 
+#### CPython 兼容性与离线配方复评
+
+**保留固定构建器作为单 wheel 候选，当前暂缓进入构建窗口。** 复算了 Pillow 13.0.0 源码包、发布工作流和 cibuildwheel 4.3.1 精确源码。按 `cp312-manylinux_aarch64` 的默认 `build` 前端、`pinned` 约束和启用的 Pillow 测试复核实际调用。[复评回执与精确 wheel 元数据](../../scripts/eval/development_probe/sdk_variant/pillow-builder-compatibility-review-20261119.json)
+
+| 核验项 | 裁决与依据 |
+| --- | --- |
+| CPython 3.12.15 → 3.12.16 | 两端为 AArch64，SOABI 均为 `cpython-312-aarch64-linux-gnu`。固定构建器的已装头文件和 3.12.16 精确源码中有 213 个同路径头文件，212 个逐字节相同，唯一差异为 `patchlevel.h`。历史 Pillow wheel 的 8 个扩展共引用 108 个 CPython 动态符号，包括 `_PyBytes_Resize` 等私有符号，全部可在留存的 3.12.16 SDK `libpython` 找到。静态结果支持沿用 3.12.15 编译。新产物修复后须验证 `cp312-cp312-manylinux_2_28_aarch64` 标签、ELF 依赖，以及在固定 3.12.16 SDK 中的安装、导入和 Pillow 功能。 |
+| pkgconf | Pillow 的 `setup.py` 读取 `PKG_CONFIG`，默认调用 `pkg-config`。镜像 `/usr/bin/pkg-config` 解析到 RPM 提供的 `/usr/bin/pkgconf` 1.4.2，满足 libxcb 生成脚本的 0.9.0 版本比较，`xcb-proto >= 1.17.0` 是独立的 `.pc` 模块要求。cibuildwheel 4.3.1 的 Android 分支显式安装 `pkgconf==3.0.7.post0`，本 Linux 路径直接复用镜像工具。配方应绑定该入口，并确定自建 XCB、zlib-ng 与允许复用的系统库对应的 `.pc` 搜索范围。 |
+| virtualenv | Linux 默认 `build` 前端先执行隔离构建，测试阶段才由目标解释器的 pip 通过 `-c /constraints.txt` 安装 `virtualenv==21.14.6`，随后使用内嵌 pip 和 `--no-periodic-update` 创建测试环境。精确版本闭包含 virtualenv 本身和 `distlib 0.4.3`、`filelock 4.1.0`、`packaging 26.3`、`platformdirs 4.12.4`、`python-discovery 1.6.2`。本地仅有可按原摘要复用的 packaging wheel，另外五个 wheel 的发布元数据已核对，声明合计 6162608 字节，实物待取得。 |
+| 原生构建工具 | Linux `before-all` 把 `/opt/python/cp39-cp39/bin` 放在 PATH 首位，镜像实物是 3.9.25。原依赖脚本通过该 `python3` 安装 Meson 和 Ninja，已验 Meson 1.12.1 要求 Python ≥3.10。离线配方须把这两个工具的安装及调用显式绑定到兼容的固定入口，本路线采用构建器的 CPython 3.12.15 作为该配方设计的入口。 |
+
+测试 pip 应保留 `constraints-python312.txt` 的版本约束，通过 `PIP_NO_INDEX=1` 和 `PIP_FIND_LINKS` 使用已验摘要的本地 wheelhouse。现有测试约定还包含 Pillow 的 `tests` extra、NumPy、FriBidi 和测试图片。原脚本仍有 `yum` 和可变归档下载，原生配方也仍需接入固定归档和工具 wheel。进入构建窗口前，先取得缺少的 virtualenv wheel，固定测试输入和离线供给，并让配方明确解释器、`.pc` 搜索与链接目标。实际构建和 SDK 运行验收留待有边界的运行窗口。[CPython ABI 稳定性](https://docs.python.org/3.12/c-api/stable.html) · [3.12.16 变更记录](https://docs.python.org/3.12/whatsnew/changelog.html#python-3-12-16-final)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

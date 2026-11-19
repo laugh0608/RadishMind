@@ -1,0 +1,242 @@
+{
+  "date": "2026-11-19",
+  "scope": "Pillow 13.0.0 Linux aarch64，固定 manylinux_2_28 构建器，cibuildwheel 4.3.1",
+  "evidence": {
+    "builder": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-builder-layer-direct-result-20261119.json",
+      "bytes": 21242,
+      "sha256": "8102553ea0f2e322ce6d81eb0991aa8cb1ec3f2ab4a70d1da670c1eef19892a7"
+    },
+    "sdk_python": {
+      "path": "scripts/eval/development_probe/sdk_variant/license-toolchain-image-result-20261105.parts/python.json",
+      "bytes": 3201,
+      "sha256": "8e1dbbcaccda8f74f06f40ae7722cb98877a20d611a45fa165450427cbe01f28"
+    },
+    "pillow_sdist": {
+      "path": "tmp/development-license-audit-20261031/downloads-stage2/81a456d521ad51af908614e5.1.0.body",
+      "bytes": 47058631,
+      "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510"
+    },
+    "pillow_recipe_sha256": {
+      ".github/workflows/wheels-dependencies.sh": "6408b160bacc969023a6d7e45cb7db8d248948ec59750e2c0ce41a359342877a",
+      ".github/workflows/wheels.yml": "3556b2d4f11e16bf72d6d3af95ef2493b6a5221917416c595ce5a67eebc96060",
+      "pyproject.toml": "31d2050093c5a24f8239adcac1ebbc2ce72bd893622a0ed247c8ba8b09bb25f3",
+      ".github/workflows/wheels-test.sh": "7383ea89cfd1b215fd575a72ced9bf0daff274a605553d27305d41739125a5bf"
+    },
+    "pillow_setup_sha256": "79e31d829959941b06b0b22ead40431f337a666408c32b09b2df35c431ad93f4",
+    "cibuildwheel_sdist": {
+      "path": "tmp/pillow-input-resolution-20261111.eq_oigxy/cibuildwheel-4.3.1.tar.gz",
+      "bytes": 462211,
+      "sha256": "69ee4cc0b9dd04ff3e32b3675fe429383ad3d5d98b20ac4ff217d83d2cf350af"
+    },
+    "cibuildwheel_member_sha256": {
+      "platforms/linux.py": "ac19fe8bcb5805f6c90c512f7e2e085b756ba636dcbfc750e13f1a0fd681e133",
+      "platforms/android.py": "39cf96b556b3444718c542406193cbe35f176ab152752af250647804aa76c2b0",
+      "options.py": "d661f461ba1e873b4566bee2aaef33d8ad4e070bece477ed1c003d5ef49973b8",
+      "resources/constraints-python312.txt": "b02a4ba58a2b4168c3c4e2c286c652f4659ff794ee86a58497a3e01f84aa132b",
+      "util/packaging.py": "25c40c905352d365b13d3624c9d1748d9c452ff7109767dbfa288f8add7a845b"
+    },
+    "upstream_abi": "https://docs.python.org/3.12/c-api/stable.html",
+    "upstream_patch_notes": "https://docs.python.org/3.12/whatsnew/changelog.html#python-3-12-16-final",
+    "build_venv_backend": "https://raw.githubusercontent.com/pypa/build/1.6.1/src/build/env.py"
+  },
+  "cpython_compatibility": {
+    "builder": "3.12.15",
+    "sdk_target": "3.12.16",
+    "soabi": "cpython-312-aarch64-linux-gnu",
+    "headers": {
+      "python31216_source_sha256": "b5796915dc45ff745cfb4e990a7e7c93d6f546328a102ce31448d69ebc37575c",
+      "common_headers": 213,
+      "byte_identical_headers": 212,
+      "differences": [
+        {
+          "header": "patchlevel.h",
+          "builder_sha256": "fa9d85bb7f6a2348e66556092dedb4e0ad072278eb79a99fc88dbfb601fc98ff",
+          "target_source_sha256": "9c8423c7da7b7205bbccce70f4899f93e7383ac1d0c8d35e5709acfa726fc880"
+        }
+      ],
+      "source_only": [],
+      "builder_only": [
+        "pyconfig.h"
+      ]
+    },
+    "historical_wheel_symbol_reference": {
+      "historical_wheel_sha256": "8bf295fe459343bc6093c8e5e0df60bfa189e0fcb775a22e2c2488fdeccc6c0d",
+      "sdk_libpython_tar_sha256": "4fe92c7f6445b71be9abfb966a7c45db8d935364915176606adbb6ce12d48919",
+      "sdk_libpython_sha256": "f4f1070a5d40133e1baa396c53db518c96171f16f93aeda425b5c6e36d49b15a",
+      "modules": [
+        [
+          "PIL/_avif.cpython-312-aarch64-linux-gnu.so",
+          24
+        ],
+        [
+          "PIL/_imaging.cpython-312-aarch64-linux-gnu.so",
+          85
+        ],
+        [
+          "PIL/_imagingcms.cpython-312-aarch64-linux-gnu.so",
+          35
+        ],
+        [
+          "PIL/_imagingft.cpython-312-aarch64-linux-gnu.so",
+          46
+        ],
+        [
+          "PIL/_imagingmath.cpython-312-aarch64-linux-gnu.so",
+          11
+        ],
+        [
+          "PIL/_imagingmorph.cpython-312-aarch64-linux-gnu.so",
+          12
+        ],
+        [
+          "PIL/_imagingtk.cpython-312-aarch64-linux-gnu.so",
+          17
+        ],
+        [
+          "PIL/_webp.cpython-312-aarch64-linux-gnu.so",
+          25
+        ]
+      ],
+      "unique_referenced_python_symbols": 108,
+      "private_symbols": [
+        "_PyArg_ParseTupleAndKeywords_SizeT",
+        "_PyArg_ParseTuple_SizeT",
+        "_PyBytes_Resize",
+        "_PyErr_BadInternalCall",
+        "_PyObject_CallFunction_SizeT",
+        "_PyObject_CallMethod_SizeT",
+        "_PyObject_New",
+        "_Py_BuildValue_SizeT",
+        "_Py_Dealloc",
+        "_Py_FalseStruct",
+        "_Py_NoneStruct",
+        "_Py_TrueStruct"
+      ],
+      "unavailable_symbols": []
+    },
+    "status": "固定构建器可继续作为构建候选，重建产物须在 SDK 3.12.16 上验收导入和功能。"
+  },
+  "pkg_config": {
+    "linux_command": "/usr/bin/pkg-config",
+    "resolved": "/usr/bin/pkgconf",
+    "rpm": "pkgconf-1.4.2-1.el8.aarch64",
+    "lowest_libxcb_probe": "0.9.0",
+    "required_xcb_proto": ">=1.17.0",
+    "cibuildwheel_android_python_pin": "3.0.7.post0",
+    "status": "Linux 复用固定镜像中的 RPM 工具，配方须绑定候选原生前缀与实际 .pc 文件。"
+  },
+  "virtualenv": {
+    "needed_at": "默认 build 前端的 Linux wheel 测试",
+    "constraints": "constraints-python312.txt",
+    "version": "21.14.6",
+    "wheel_metadata": [
+      {
+        "name": "virtualenv",
+        "version": "21.14.6",
+        "source": "https://pypi.org/pypi/virtualenv/21.14.6/json",
+        "metadata_sha256": "b322e180618eea2d7f0fc309d51a36cc85a34271aa59a2ce7e637cf8af92c107",
+        "requires_python": ">=3.9",
+        "active_requirements_cp312_linux": [
+          "distlib<1,>=0.4.3",
+          "filelock<5,>=3.24.2; python_version >= \"3.10\"",
+          "packaging>=26.3",
+          "platformdirs<5,>=4.4",
+          "python-discovery>=1.6.1"
+        ],
+        "filename": "virtualenv-21.14.6-py3-none-any.whl",
+        "bytes": 5487469,
+        "sha256": "eb1a20c5878569b69667f6a1af03458a8512b3afa7be771a2dafe92fdca05bb9",
+        "wheel_url": "https://files.pythonhosted.org/packages/c9/1f/e5182163bcee149dda4eec823d88b0f51f2c0c531b12da896f666f0b80c1/virtualenv-21.14.6-py3-none-any.whl",
+        "retained_wheel": null
+      },
+      {
+        "name": "distlib",
+        "version": "0.4.3",
+        "source": "https://pypi.org/pypi/distlib/0.4.3/json",
+        "metadata_sha256": "e3871f969deaee5ebb4e1468fa700abcebbafd6f2df94fa3651fd1d8b50daf7f",
+        "requires_python": null,
+        "active_requirements_cp312_linux": [],
+        "filename": "distlib-0.4.3-py2.py3-none-any.whl",
+        "bytes": 470628,
+        "sha256": "4b0ce306c966eb73bc3a7b6abad017c556dadd92c44701562cd528ac7fde4d5b",
+        "wheel_url": "https://files.pythonhosted.org/packages/02/08/9c41fb51ab5b43eb21674aff13df270e8ba6c4b29c8624e328dc7a9482af/distlib-0.4.3-py2.py3-none-any.whl",
+        "retained_wheel": null
+      },
+      {
+        "name": "filelock",
+        "version": "4.1.0",
+        "source": "https://pypi.org/pypi/filelock/4.1.0/json",
+        "metadata_sha256": "8579db16f02dbf1e87cb07de85111790eab469d709987169b9725d69a31328d4",
+        "requires_python": ">=3.10",
+        "active_requirements_cp312_linux": [],
+        "filename": "filelock-4.1.0-py3-none-any.whl",
+        "bytes": 133003,
+        "sha256": "2ce9818e3e2d8f284c1a964414447ef148d42a5fd5e2a477a7118e574b293ec1",
+        "wheel_url": "https://files.pythonhosted.org/packages/ee/86/032133892a5de43b5a98200b01aadcad68cc255e274a762f08b8a76d2912/filelock-4.1.0-py3-none-any.whl",
+        "retained_wheel": null
+      },
+      {
+        "name": "packaging",
+        "version": "26.3",
+        "source": "https://pypi.org/pypi/packaging/26.3/json",
+        "metadata_sha256": "4f190d2f0b312b3086058cee64ab4333bf3ce67fb78b4c2bdb43899049b29f4d",
+        "requires_python": ">=3.9",
+        "active_requirements_cp312_linux": [],
+        "filename": "packaging-26.3-py3-none-any.whl",
+        "bytes": 129956,
+        "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+        "wheel_url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+        "retained_wheel": "tmp/development-sdk-variant-20261031/context/resolution/wheels/packaging-26.3-py3-none-any.whl"
+      },
+      {
+        "name": "platformdirs",
+        "version": "4.12.4",
+        "source": "https://pypi.org/pypi/platformdirs/4.12.4/json",
+        "metadata_sha256": "dffe96c44b4cf5ea4a706b7a17a430bda372b95f5781ea90d2ff56889a89a124",
+        "requires_python": ">=3.10",
+        "active_requirements_cp312_linux": [],
+        "filename": "platformdirs-4.12.4-py3-none-any.whl",
+        "bytes": 32596,
+        "sha256": "78bfb9db2a8471ed7eebe3c3c932da413911042994e699b384fbb4493fa872d7",
+        "wheel_url": "https://files.pythonhosted.org/packages/f4/ba/223e00b885e960edd5d4b4d178c88acce019bd5b83786093681b8c393492/platformdirs-4.12.4-py3-none-any.whl",
+        "retained_wheel": null
+      },
+      {
+        "name": "python-discovery",
+        "version": "1.6.2",
+        "source": "https://pypi.org/pypi/python-discovery/1.6.2/json",
+        "metadata_sha256": "d474d539e400f87272947cb0eaaddc948aeef171613649f673ef1a6398400e0e",
+        "requires_python": ">=3.9",
+        "active_requirements_cp312_linux": [
+          "filelock>=3.16.1"
+        ],
+        "filename": "python_discovery-1.6.2-py3-none-any.whl",
+        "bytes": 38912,
+        "sha256": "f0c697f95a3aaec4174a6e5e58f5885e25768684bafc76f1afde384709ebdcf2",
+        "wheel_url": "https://files.pythonhosted.org/packages/61/3b/50ed32583bfffa737df67d33b9c15d7b25df232c55ab606d059f610ef6ca/python_discovery-1.6.2-py3-none-any.whl",
+        "retained_wheel": null
+      }
+    ],
+    "missing_wheel_bytes_declared": 6162608,
+    "linux_test_requirements": [
+      "Pillow[tests]",
+      "numpy",
+      "已冻结的测试图片输入",
+      "可离线取得的 FriBidi"
+    ]
+  },
+  "before_all": {
+    "inherited_python": "3.9.25",
+    "meson_version": "1.12.1",
+    "meson_requires_python": ">=3.10",
+    "status": "配方须将原生构建工具的 Python 与 PATH 显式绑定到可兼容的固定入口。"
+  },
+  "build_window_ready": false,
+  "executed": {
+    "containers": 0,
+    "builds": 0,
+    "wheel_installs": 0,
+    "new_wheel_downloads": 0
+  }
+}
