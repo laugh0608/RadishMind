@@ -142,3 +142,11 @@ python3 scripts/eval/development_probe/run_joint.py \
 ```
 
 取得明确授权并留存真实响应后，才以 `--tool setuptools|pybind11|meson|ninja --input <本地响应路径>` 核对。目标为 CPython 3.12.16 / manylinux_2_28_aarch64，保留原始依赖 marker；声明为空则如实记录，不解析完整依赖闭包。标签匹配不等于构建器实物、工具安装或 Ninja 二进制版本已验。[预检记录](pillow-tool-metadata-preflight-20261112.json)与[四项获取计划](pillow-tool-metadata-plan-20261112.json)分别记录离线证据和编制时的窗口快照。所有者已于 11 月 12 日确认该方案，按收尾安排留到下次执行，见[任务卡](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-12-收尾与下次接续)；旧失败回执不改写。
+
+### Pillow 离线 before-all 绑定
+
+`pillow-before-all.sh` 与同目录的 `pillow-native-tools.lock` 供固定 `cp312-manylinux_aarch64` 构建使用。准备阶段把两份文件放入 cibuildwheel 会复制的项目目录，将完整原生离线配方准备为容器内 `/project/.radishmind/pillow/native-build.sh`，并将已验 wheelhouse 提供在 `/opt/radishmind/pillow-inputs/wheels`。将 `CIBW_BEFORE_ALL_LINUX` 指向脚本在容器内的 `bash` 调用。将脚本的 `--cibw-environment` 输出设为 `CIBW_ENVIRONMENT_LINUX`，使后续的构建和修复得到与 `before-all` 相同的前缀和搜索路径。脚本正常调用时要求固定的 CPython 3.12.15，在新虚拟环境按哈希安装 Meson 和 Ninja，再调用准备好的原生配方。
+
+原生配方须把已核验的原生输入安装到 `/opt/radishmind/pillow-native`，库目录为 `lib`。`pkg-config` 使用 `/usr/bin/pkg-config`，先查前缀下的 `lib/pkgconfig`、`share/pkgconfig`，再查 `system-pc` 中显式放行的镜像 `xau.pc` 及其 `Requires: xproto` 对应的 `xproto.pc`。检查要求 `xcb-proto` 和 `xcb` 的 `.pc` 版本为 1.17.0，`libxcb.so`、zlib-ng 兼容模式的 `libz.so` 均解析到前缀内且 SONAME 对应 `libxcb.so.1`、`libz.so.1`。LibXau 使用构建器 `/usr/lib64/libXau.so.6.0.0`。实际 wheel 的 ELF 依赖在修复后核对。
+
+测试准备将按签名和摘要验过的 FriBidi 运行库展开到 `/opt/radishmind/pillow-inputs/fribidi/usr/lib64` 所在的测试输入目录。将 `--cibw-test-environment` 输出设为 `CIBW_TEST_ENVIRONMENT_LINUX`，使测试阶段加载该库，并在测试搜索路径中排除构建前缀。测试图片使用指定提交和 Git 树逐成员核验，按上游路径布置。完整原生配方、测试数据及测试依赖的实物状态以任务卡为准。[测试来源锁定记录](pillow-offline-test-sources-20261119.json) · [virtualenv wheel 回执](pillow-virtualenv-wheel-result-20261119.json)

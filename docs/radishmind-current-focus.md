@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-11-19（阶段 0 固定构建器兼容性与离线配方复评）
+更新时间：2026-11-19（阶段 0 Pillow 离线工具和测试来源）
 
 ## 文档职责
 
@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- Pillow 固定构建器的 23 个层位置及四个工具 wheel 已核验。复评支持沿用 CPython 3.12.15 编译并在 SDK 3.12.16 验收产物。Linux 复用镜像内 pkgconf，构建窗口待补 virtualenv 精确离线闭包和实际配方。[任务卡与复评](task-cards/development-task-probe-v1-plan.md#cpython-兼容性与离线配方复评)
+- Pillow 固定构建器、四个构建工具 wheel 和 virtualenv 测试闭包均已核验。`before-all` 已绑定 CPython 3.12.15，测试图片和 FriBidi 来源已锁定。构建窗口仍待准备完整原生离线配方和测试实物。[任务卡与锁定记录](task-cards/development-task-probe-v1-plan.md#离线工具与测试来源锁定)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -31,7 +31,7 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 补齐单 wheel 的离线配方与输入 | 核对五个待取得的 virtualenv wheel，固定测试材料并绑定 `before-all` 的解释器和原生链接输入。据此核定单次构建窗口。 [复评结果](task-cards/development-task-probe-v1-plan.md#cpython-兼容性与离线配方复评) |
+| 1 | 补齐单 wheel 的离线配方与输入 | 准备完整原生离线配方，核验已锁定的 FriBidi 和测试图片实物，闭合 Pillow `tests` extra 和 NumPy 的离线供给。据此核定单次构建窗口。 [锁定结果](task-cards/development-task-probe-v1-plan.md#离线工具与测试来源锁定) |
 | 2 | 验收一条选定候选的最终交付 | 来源与告知齐备后，另行授权精确镜像 / 伴随源码交付、实际获取与受影响 SDK / 联合复验；[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用 |
 | 3 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 

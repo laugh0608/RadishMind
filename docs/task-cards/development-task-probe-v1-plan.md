@@ -92,6 +92,18 @@
 
 测试 pip 应保留 `constraints-python312.txt` 的版本约束，通过 `PIP_NO_INDEX=1` 和 `PIP_FIND_LINKS` 使用已验摘要的本地 wheelhouse。现有测试约定还包含 Pillow 的 `tests` extra、NumPy、FriBidi 和测试图片。原脚本仍有 `yum` 和可变归档下载，原生配方也仍需接入固定归档和工具 wheel。进入构建窗口前，先取得缺少的 virtualenv wheel，固定测试输入和离线供给，并让配方明确解释器、`.pc` 搜索与链接目标。实际构建和 SDK 运行验收留待有边界的运行窗口。[CPython ABI 稳定性](https://docs.python.org/3.12/c-api/stable.html) · [3.12.16 变更记录](https://docs.python.org/3.12/whatsnew/changelog.html#python-3-12-16-final)
 
+#### 离线工具与测试来源锁定
+
+按复评记录逐个取得五个 wheel，共 **6162608 字节**，与留存的 packaging 26.3 一起核对。六个 wheel 的大小、SHA-256、231 条 `RECORD` 记录、许可文件和 CPython 3.12.15 Linux 上生效的依赖均通过。distlib 为 PSF-2.0，virtualenv、filelock、platformdirs 和 python-discovery 为 MIT。virtualenv 的第三方告知和四个内嵌 pip / setuptools wheel 也单独登记。[逐包回执](../../scripts/eval/development_probe/sdk_variant/pillow-virtualenv-wheel-result-20261119.json)
+
+| 项目 | 已固定的输入和边界 |
+| --- | --- |
+| FriBidi | AlmaLinux 8.10 AppStream 的 `fribidi-1.0.4-9.el8.aarch64.rpm`，89632 字节，SHA-256 已由官方 `repomd.xml` 指向的 primary 元数据核对。仅用于 Pillow 测试加载 `libfribidi.so.0`，RPM 实物、签名和库路径待取得后核验。 |
+| 测试图片 | `python-pillow/test-images` 提交 `073ab5ff1895abf8cf5c8d797c1066ed394ce207`，Git 树 `c62a7f86bd84166a002332db858b020361dfeea0`。已重算 Git 树，锁定 78 个 blob 的路径、模式、字节数和 Git 摘要，共 68635563 字节。按提交获取归档后逐项核验，限定为离线测试输入。 |
+| `before-all` 与链接 | 新入口校验 `/opt/python/cp312-cp312/bin/python` 为 3.12.15，用它建立独立工具环境并按哈希安装 Meson 1.12.1 和 Ninja 1.13.2。原生前缀为 `/opt/radishmind/pillow-native`，`.pc` 先查前缀 `lib/pkgconfig`、`share/pkgconfig`，再查 `system-pc` 中镜像的 `xau.pc` 和它声明的 `xproto.pc`。配置锁定 XCB 1.17.0 和 zlib-ng 兼容库的链接目标，LibXau 复用镜像实物。独立测试环境从测试输入目录加载 FriBidi。 |
+
+**当前仍不具备进入构建窗口的条件。** `before-all` 已有可审查入口，仍需准备 `/project/.radishmind/pillow/native-build.sh`，接入已验原生归档及补丁，并替换原配方的联网入口。FriBidi RPM、测试图片归档及 Pillow `tests` extra 与 NumPy 的离线材料仍待取得或核验。完成这些输入的准备后再核定单 wheel 构建、修复和测试窗口。本次检查覆盖 Bash 语法、环境输出、工具哈希及镜像路径。[测试来源锁定记录](../../scripts/eval/development_probe/sdk_variant/pillow-offline-test-sources-20261119.json) · [离线入口说明](../../scripts/eval/development_probe/sdk_variant/README.md#pillow-离线-before-all-绑定)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
