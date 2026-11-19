@@ -66,6 +66,19 @@
 
 拟延用单对象 45 分钟、累计网络 90 分钟、目标卷至少 2 GiB 可用、新增占用上限 1 GiB；最多 42 次 HTTPS，请求对象正文共 572782486 字节，其他响应正文上限 1 MiB。每对象最多一次具名 `cdn01.quay.io` HTTPS 跳转并核对摘要路径。无鉴权、重试、续传或代理回退。旧残片留存原处，本次只使用独立临时目录，不安装工具、启动容器或构建。待项目所有者授权实际正文获取。
 
+#### 直连执行与最终文件视图
+
+所有者随后批准本次直连窗口。首层在 4.295 秒收齐 2 MiB，沿同一响应继续；21 次原站 GET 均返回 302，21 次具名 CDN GET 均返回 200。实收层正文 **572782486 字节**，累计网络 191.913 秒，新增占用观测峰值 652251136 字节（约 622.0 MiB）。21 个唯一对象的大小、压缩 SHA-256 与全部 23 个层位置的 DiffID 均匹配。按层序合并后可见 77554 条路径，定向读取 265 条路径，RPM 数据库解析 338 个包记录。原残片独立留存，本窗已结束。[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-direct-result-20261119.json) · [定向文件证据](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-direct-result-20261119.parts/static-findings.json)
+
+| 核验项 | 实物与剩余差异 |
+| --- | --- |
+| 系统与解释器 | AlmaLinux 8.10。`/opt/python/cp312-cp312/bin/python` 指向 `/opt/_internal/cpython-3.12.15/bin/python3.12`，ELF 为 AArch64，版本头为 3.12.15，SOABI 为 `cpython-312-aarch64-linux-gnu`。系统 `/usr/bin/python3.12` 是另一个 RPM 文件。按既有目标 3.12.16 复评补丁版本差异。 |
+| 编译与配置 | PATH 优先使用 GCC/G++ 14.2.1、binutils 2.41；Make 4.2.1 由 RPM 归属核对。CMake 入口指向 pipx，4.4.4 有 `dist-info` 路径及原生 ELF 摘要，运行版本待核。已定位 `/usr/local/bin` 的 Autoconf、Automake 和 Libtool，版本依据目前为镜像历史及文件路径。`/opt/clang` 未定位到工具文件。 |
+| Python 工具 | 目标解释器内的 pip 26.2.1、build 1.6.1、packaging 26.3、pyproject-hooks 1.3.3，以及独立 pipx 环境中的 auditwheel 6.8.2、patchelf 分发包 0.19.1.0 和 pyelftools 0.33 已核对。PATH 的 pkgconf 1.4.2 与约束 `3.0.7.post0` 有差异，未定位到约束中的 virtualenv 21.14.6。Meson、Ninja 与 pybind11 的已验 wheel 为外部构建输入，配方仍须明确各工具的实际入口及离线供给。 |
+| 系统库与原生输入 | 核对了 glibc 2.28、启动对象与主要 C/C++ 库。镜像已有 LibXau 1.0.9、XCB 1.13.1、zlib 1.2.11 和 Tcl/Tk 8.6.8；已绑定可见路径及对应 RPM。配方还须绑定自建 XCB 1.17.0、zlib-ng 等输入的实际头文件、`.pc` 与链接目标。目标 CPython 扩展声明 `libssl.so.1.1`、`libffi.so.6` 和 Tcl/Tk 8.6 的 ELF 依赖，已定位同名文件及归属 RPM。定向路径未定位 FriBidi/raqm，`libgcc_s.so.1` 和 `libcrypt.so.1` 的实际文件尚缺 RPM 归属。 |
+
+固定对象获取与静态视图已验收。选型继续保留这一固定候选，先裁决 CPython 补丁差异，核定实际工具与原生构建输入，再决定是否进入构建窗口。容器、工具执行、候选构建和最终许可交付仍待各自验收。
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

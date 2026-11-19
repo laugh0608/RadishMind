@@ -1,0 +1,1040 @@
+{
+  "image": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+  "distribution_id": "almalinux",
+  "distribution_version": "8.10",
+  "release_file": {
+    "path": "/etc/os-release",
+    "resolved": "/usr/lib/os-release",
+    "content_position": 1,
+    "sha256": "2385a0d6307122b8e697bd35b2edc19d4430e73a84d7362be7d01130697f5cc0",
+    "rpm_owners": [
+      {
+        "nevra_without_epoch": "almalinux-release-8.10-1.el8.aarch64",
+        "equals_sha256": true
+      }
+    ]
+  },
+  "target_interpreter": {
+    "executable": {
+      "path": "/opt/python/cp312-cp312/bin/python",
+      "resolved": "/opt/_internal/cpython-3.12.15/bin/python3.12",
+      "content_position": 22,
+      "sha256": "ff06d6ddb0bb8d5a752b59c95d47abbf818acf4f8383631bde876b165f130203",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libutil.so.1",
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ]
+    },
+    "version_header": {
+      "path": "/opt/_internal/cpython-3.12.15/include/python3.12/patchlevel.h",
+      "resolved": "/opt/_internal/cpython-3.12.15/include/python3.12/patchlevel.h",
+      "content_position": 22,
+      "sha256": "fa9d85bb7f6a2348e66556092dedb4e0ad072278eb79a99fc88dbfb601fc98ff",
+      "version_lines": [
+        "#define PY_MAJOR_VERSION        3",
+        "#define PY_MINOR_VERSION        12",
+        "#define PY_MICRO_VERSION        15",
+        "#define PY_VERSION              \"3.12.15\""
+      ]
+    },
+    "abi_config": {
+      "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/_sysconfigdata__linux_aarch64-linux-gnu.py",
+      "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/_sysconfigdata__linux_aarch64-linux-gnu.py",
+      "content_position": 22,
+      "sha256": "44a8d6ba98cd8e03bf973a19b59d14d5a438b4cb89aa655cb9556951eb258efe",
+      "sysconfig": {
+        "SOABI": "cpython-312-aarch64-linux-gnu",
+        "EXT_SUFFIX": ".cpython-312-aarch64-linux-gnu.so",
+        "CC": "gcc -pthread",
+        "CXX": "g++ -pthread",
+        "MULTIARCH": "aarch64-linux-gnu",
+        "LDLIBRARY": "libpython3.12.a",
+        "VERSION": "3.12"
+      }
+    },
+    "target_pip_entry": {
+      "path": "/opt/python/cp312-cp312/bin/pip",
+      "resolved": "/opt/_internal/cpython-3.12.15/bin/pip",
+      "content_position": 22,
+      "sha256": "50f3cf7ff371f740ddcc8c71dc231d6fa32bb9db43b810befd818d5643062049",
+      "shebang": "#!/opt/_internal/cpython-3.12.15/bin/python"
+    },
+    "extensions": [
+      {
+        "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/lib-dynload/_ssl.cpython-312-aarch64-linux-gnu.so",
+        "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/lib-dynload/_ssl.cpython-312-aarch64-linux-gnu.so",
+        "content_position": 22,
+        "sha256": "2353a7d9dffc90c09ef28929699d7441de2e644ac4b2251c23ad1daf86d32055",
+        "machine": 183,
+        "needed": [
+          "libssl.so.1.1",
+          "libcrypto.so.1.1",
+          "libpthread.so.0",
+          "libc.so.6",
+          "ld-linux-aarch64.so.1"
+        ]
+      },
+      {
+        "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/lib-dynload/_ctypes.cpython-312-aarch64-linux-gnu.so",
+        "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/lib-dynload/_ctypes.cpython-312-aarch64-linux-gnu.so",
+        "content_position": 22,
+        "sha256": "691b59c8a19cc12afeb3ec96259551d502fbc5102bc9f4b382a9878894507ec8",
+        "machine": 183,
+        "needed": [
+          "libffi.so.6",
+          "libdl.so.2",
+          "libpthread.so.0",
+          "libc.so.6",
+          "ld-linux-aarch64.so.1"
+        ]
+      },
+      {
+        "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/lib-dynload/_tkinter.cpython-312-aarch64-linux-gnu.so",
+        "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/lib-dynload/_tkinter.cpython-312-aarch64-linux-gnu.so",
+        "content_position": 22,
+        "sha256": "843bc7b1c6d2dfc17b18f48fe8a35ae1bde45d636fb6d01789b35b42dd3b661e",
+        "machine": 183,
+        "needed": [
+          "libtk8.6.so",
+          "libtcl8.6.so",
+          "libpthread.so.0",
+          "libc.so.6",
+          "ld-linux-aarch64.so.1"
+        ]
+      }
+    ],
+    "separate_system_libpython": {
+      "path": "/usr/lib64/libpython3.12.so.1.0",
+      "resolved": "/usr/lib64/libpython3.12.so.1.0",
+      "content_position": 22,
+      "sha256": "9e00b37f8474d4fd2fd80c756486e96bdbb36a285b616ead9b45062ebfbe47a9"
+    },
+    "expected_sdk_python_patch_version": "3.12.16",
+    "patch_version_compatibility_status": "pending"
+  },
+  "path_order": [
+    "opt/clang/bin",
+    "opt/rh/gcc-toolset-14/root/usr/bin",
+    "usr/local/sbin",
+    "usr/local/bin",
+    "usr/sbin",
+    "usr/bin",
+    "sbin",
+    "bin"
+  ],
+  "commands": [
+    {
+      "command": "python3",
+      "path": "/usr/bin/python3",
+      "resolved": "/usr/bin/python3.12",
+      "content_position": 22,
+      "sha256": "ce04b8819cd6e1e318f074515690a9a03591229c66e9e967280a1b89107b14f3",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libpython3.12.so.1.0",
+        "libpthread.so.0",
+        "libdl.so.2",
+        "libutil.so.1",
+        "libm.so.6",
+        "libc.so.6"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "python3.12-3.12.15-2.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "gcc",
+      "path": "/opt/rh/gcc-toolset-14/root/usr/bin/gcc",
+      "resolved": "/opt/rh/gcc-toolset-14/root/usr/bin/gcc",
+      "content_position": 7,
+      "sha256": "23c0292fa55f6cb4b79203c61c0b8c043dba6ef7385cad2a5d2cf4d619acc987",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "gcc-toolset-14-gcc-14.2.1-11.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "g++",
+      "path": "/opt/rh/gcc-toolset-14/root/usr/bin/g++",
+      "resolved": "/opt/rh/gcc-toolset-14/root/usr/bin/g++",
+      "content_position": 7,
+      "sha256": "61ed48c8a8159c800ac59492fca00e4cd055d6a1276f8aa78daf4ace5f5a8f1e",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "gcc-toolset-14-gcc-c++-14.2.1-11.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "as",
+      "path": "/opt/rh/gcc-toolset-14/root/usr/bin/as",
+      "resolved": "/opt/rh/gcc-toolset-14/root/usr/bin/as",
+      "content_position": 7,
+      "sha256": "1cc142c8ea8d1c7e8efca87c79869cb835572c678b0f51d47ff0a10a93355f36",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libopcodes-2.41-4.el8_10.1.so",
+        "libbfd-2.41-4.el8_10.1.so",
+        "libsframe.so.1",
+        "libz.so.1",
+        "libdl.so.2",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "gcc-toolset-14-binutils-2.41-4.el8_10.1.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "ld",
+      "path": "/opt/rh/gcc-toolset-14/root/usr/bin/ld",
+      "resolved": "/opt/rh/gcc-toolset-14/root/usr/bin/ld.bfd",
+      "content_position": 7,
+      "sha256": "89f001eb61c8d09ee9cf55245048f6c8f1523a7028763c29a964a17df291b0b4",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libbfd-2.41-4.el8_10.1.so",
+        "libctf.so.0",
+        "libsframe.so.1",
+        "libz.so.1",
+        "libjansson.so.4",
+        "libdl.so.2",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "gcc-toolset-14-binutils-2.41-4.el8_10.1.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "make",
+      "path": "/usr/bin/make",
+      "resolved": "/usr/bin/make",
+      "content_position": 7,
+      "sha256": "3dd4006e618ba18315c20b639db44506d8b56a7c21051b44815b32d28a1af6bf",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libdl.so.2",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "make-4.2.1-11.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "cmake",
+      "path": "/usr/local/bin/cmake",
+      "resolved": "/opt/_internal/pipx/venvs/cmake/bin/cmake",
+      "content_position": 22,
+      "sha256": "c74bb6f2b21c9588304876a491b0c87f9671525f8b571953fe7baa5b845f98a1",
+      "shebang": "#!/opt/_internal/pipx/venvs/cmake/bin/python -E"
+    },
+    {
+      "command": "pkg-config",
+      "path": "/usr/bin/pkg-config",
+      "resolved": "/usr/bin/pkgconf",
+      "content_position": 7,
+      "sha256": "4b5b597506c7070d010960069309e45657e1bca64228919f25ec0e37d63d49c8",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libpkgconf.so.3",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "pkgconf-1.4.2-1.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "autoconf",
+      "path": "/usr/local/bin/autoconf",
+      "resolved": "/usr/local/bin/autoconf",
+      "content_position": 9,
+      "sha256": "0d2081a91b94818f39e256b369ee685a35fa7955bccba2c3daeae9f016c8dda0",
+      "shebang": "#! /usr/bin/perl"
+    },
+    {
+      "command": "automake",
+      "path": "/usr/local/bin/automake",
+      "resolved": "/usr/local/bin/automake",
+      "content_position": 11,
+      "sha256": "54a9c12a617f25e7db52c80588fb802e853a935e476ad6761e687249b9c4a53a",
+      "shebang": "#!/usr/bin/perl"
+    },
+    {
+      "command": "libtool",
+      "path": "/usr/local/bin/libtool",
+      "resolved": "/usr/local/bin/libtool",
+      "content_position": 13,
+      "sha256": "0c4bd1b427a54c4347973a45a0e929d925ff22dbf9e103aae093e3d6e99ecd58",
+      "shebang": "#! /bin/sh"
+    },
+    {
+      "command": "m4",
+      "path": "/usr/bin/m4",
+      "resolved": "/usr/bin/m4",
+      "content_position": 7,
+      "sha256": "aa0ce55e6c7720dbb8f0751c24f19bf1e336952f8554a4911a5049287d52679c",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "m4-1.4.18-7.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "patch",
+      "path": "/usr/bin/patch",
+      "resolved": "/usr/bin/patch",
+      "content_position": 7,
+      "sha256": "20c932ef5a9c924f43a3cc718bc92e4b2ee9e7b884670da93b832ff7e622df46",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libattr.so.1",
+        "libselinux.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "patch-2.7.6-11.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "tar",
+      "path": "/usr/bin/tar",
+      "resolved": "/usr/bin/tar",
+      "content_position": 1,
+      "sha256": "f55eb0f46c58bba673943243c171510583c54162eb1d7f5716cf6a8c4aa8766d",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libacl.so.1",
+        "libselinux.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "tar-1.30-13.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "gzip",
+      "path": "/usr/bin/gzip",
+      "resolved": "/usr/bin/gzip",
+      "content_position": 1,
+      "sha256": "6e54009da8faa94cc0464df1a3808038f1a94f5051bfd1f44fbba197df842eac",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "gzip-1.9-15.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "xz",
+      "path": "/usr/bin/xz",
+      "resolved": "/usr/bin/xz",
+      "content_position": 1,
+      "sha256": "88dcf8e2a757fd5105a0a7a03e375ea83ac4d5468f15a4165792ab6850487454",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "liblzma.so.5",
+        "libpthread.so.0",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "xz-5.2.4-4.el8_6.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "bzip2",
+      "path": "/usr/bin/bzip2",
+      "resolved": "/usr/bin/bzip2",
+      "content_position": 7,
+      "sha256": "dfb9becf9f3dfbdfcfefa27d9fa2b51e4c19bc45457953fa742509c9b95fd2d1",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libbz2.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "bzip2-1.0.6-28.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "unzip",
+      "path": "/usr/bin/unzip",
+      "resolved": "/usr/bin/unzip",
+      "content_position": 7,
+      "sha256": "2eb6e127160a45391cdbf6b7879c84a2e8011e18b470a42bde602136315d38a1",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libbz2.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "unzip-6.0-48.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "perl",
+      "path": "/usr/bin/perl",
+      "resolved": "/usr/bin/perl",
+      "content_position": 7,
+      "sha256": "2b5f22e871e0e8805dfab3e4a19bdac00cc85429a258ed7b3b7fe11d71877691",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "needed": [
+        "libperl.so.5.26",
+        "libpthread.so.0",
+        "libresolv.so.2",
+        "libdl.so.2",
+        "libm.so.6",
+        "libcrypt.so.1",
+        "libutil.so.1",
+        "libc.so.6"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "perl-interpreter-5.26.3-423.el8_10.1.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "command": "auditwheel",
+      "path": "/usr/local/bin/auditwheel",
+      "resolved": "/opt/_internal/pipx/venvs/auditwheel/bin/auditwheel",
+      "content_position": 22,
+      "sha256": "109f3950518151e5a076dbd7c484ef59ece02636d6dbe8fa00c6bfaa24b436f7",
+      "shebang": "#!/opt/_internal/pipx/venvs/auditwheel/bin/python -E"
+    },
+    {
+      "command": "patchelf",
+      "path": "/usr/local/bin/patchelf",
+      "resolved": "/opt/_internal/pipx/venvs/patchelf/bin/patchelf",
+      "content_position": 22,
+      "sha256": "cb09670c877645cd40f9c67c5f777c9deada46f7a7a1d4f2c5a24a8ded401fab",
+      "machine": 183
+    }
+  ],
+  "python_distributions": [
+    {
+      "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/pip-26.2.1.dist-info/METADATA",
+      "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/pip-26.2.1.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "3a561005822841f2c45f442f6c7a7505172c8c376c9fe274d876c8ac912968cb",
+      "version": "26.2.1",
+      "distribution": "pip"
+    },
+    {
+      "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/build-1.6.1.dist-info/METADATA",
+      "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/build-1.6.1.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "f3623590844a25dcf308a71a988c73e293b7ef779a1f43acb83ad1be218d61a0",
+      "version": "1.6.1",
+      "distribution": "build"
+    },
+    {
+      "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/packaging-26.3.dist-info/METADATA",
+      "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/packaging-26.3.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "70fdb89fc4d4a9a043bf7372b8972bcc883fddff34ab55e9cf80d73875384763",
+      "version": "26.3",
+      "distribution": "packaging"
+    },
+    {
+      "path": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/pyproject_hooks-1.3.3.dist-info/METADATA",
+      "resolved": "/opt/_internal/cpython-3.12.15/lib/python3.12/site-packages/pyproject_hooks-1.3.3.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "844e375bb28dcbe42a0502fbd9428d9ba4669db25028ee7a7afaa8dd7ada2e00",
+      "version": "1.3.3",
+      "distribution": "pyproject_hooks"
+    },
+    {
+      "path": "/opt/_internal/pipx/venvs/auditwheel/lib/python3.14/site-packages/auditwheel-6.8.2.dist-info/METADATA",
+      "resolved": "/opt/_internal/pipx/venvs/auditwheel/lib/python3.14/site-packages/auditwheel-6.8.2.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "bdb1572a709287189708f90dcd310ca7e7c88d832ef164223c4b820a17917f2e",
+      "version": "6.8.2",
+      "distribution": "auditwheel"
+    },
+    {
+      "path": "/opt/_internal/pipx/venvs/patchelf/lib/python3.14/site-packages/patchelf-0.19.1.0.dist-info/METADATA",
+      "resolved": "/opt/_internal/pipx/venvs/patchelf/lib/python3.14/site-packages/patchelf-0.19.1.0.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "949ba59b7e0841494c13f94010c3c517f7d88daa0f96edb0f9a07a433f9d1a7b",
+      "version": "0.19.1.0",
+      "distribution": "patchelf"
+    },
+    {
+      "path": "/opt/_internal/pipx/venvs/auditwheel/lib/python3.14/site-packages/pyelftools-0.33.dist-info/METADATA",
+      "resolved": "/opt/_internal/pipx/venvs/auditwheel/lib/python3.14/site-packages/pyelftools-0.33.dist-info/METADATA",
+      "content_position": 22,
+      "sha256": "dbbb739509c795b8b7e700057880a88365218bb1c7216b198a22c97c8aedce62",
+      "version": "0.33",
+      "distribution": "pyelftools"
+    }
+  ],
+  "cmake_versioned_metadata_path": {
+    "path": "/opt/_internal/pipx/venvs/cmake/lib/python3.14/site-packages/cmake-4.4.4.dist-info/METADATA",
+    "resolved": "/opt/_internal/pipx/venvs/cmake/lib/python3.14/site-packages/cmake-4.4.4.dist-info/METADATA",
+    "content_position": 22,
+    "sha256": "f8c88fffa2575df110630597a94297db3cbbf1b2f2c195d4fb7b063e1d98d20f"
+  },
+  "cmake_native_executable": {
+    "path": "/opt/_internal/pipx/venvs/cmake/lib/python3.14/site-packages/cmake/data/bin/cmake",
+    "resolved": "/opt/_internal/pipx/venvs/cmake/lib/python3.14/site-packages/cmake/data/bin/cmake",
+    "content_position": 22,
+    "sha256": "7cdd347255e8ca723a1adae40d9dafa101ebf3181dc1d8fe6d03d1ca47c21597",
+    "machine": 183,
+    "interpreter": "/lib/ld-linux-aarch64.so.1",
+    "needed": [
+      "libdl.so.2",
+      "librt.so.1",
+      "libpthread.so.0",
+      "libstdc++.so.6",
+      "libm.so.6",
+      "libgcc_s.so.1",
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ]
+  },
+  "libraries": [
+    {
+      "path": "/usr/lib64/ld-linux-aarch64.so.1",
+      "resolved": "/usr/lib64/ld-2.28.so",
+      "content_position": 22,
+      "sha256": "3039434de9f3b37613688e1a16b5c31b7f113ef12238df825be58da76b03f7fb",
+      "machine": 183,
+      "soname": [
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "glibc-2.28-251.el8_10.43.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libc.so.6",
+      "resolved": "/usr/lib64/libc-2.28.so",
+      "content_position": 22,
+      "sha256": "2bddb7fb83425ef5827224ad68d25ee9f22cc503941b204618dbb088ed8efa92",
+      "machine": 183,
+      "interpreter": "/lib/ld-linux-aarch64.so.1",
+      "soname": [
+        "libc.so.6"
+      ],
+      "needed": [
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "glibc-2.28-251.el8_10.43.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/crt1.o",
+      "resolved": "/usr/lib64/crt1.o",
+      "content_position": 22,
+      "sha256": "7af29d4b011e3da2246c4d34b1f68a3b7605b7d6884acc523b00f14ce683bbae",
+      "machine": 183,
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "glibc-devel-2.28-251.el8_10.43.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libgcc_s.so.1",
+      "resolved": "/usr/lib64/libgcc_s-8-20210514.so.1",
+      "content_position": 1,
+      "sha256": "28837aaa26b41cf62a3afc3ff102a0769ff59d0765ba08f7170c5db2a177afae",
+      "machine": 183,
+      "soname": [
+        "libgcc_s.so.1"
+      ],
+      "needed": [
+        "libc.so.6"
+      ]
+    },
+    {
+      "path": "/usr/lib64/libstdc++.so.6",
+      "resolved": "/usr/lib64/libstdc++.so.6.0.25",
+      "content_position": 1,
+      "sha256": "3ec0ba6c1dbcc0292be212414e73c2c4551031142b816f212a2913121b9bc1c8",
+      "machine": 183,
+      "soname": [
+        "libstdc++.so.6"
+      ],
+      "needed": [
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1",
+        "libgcc_s.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libstdc++-8.5.0-29.el8_10.alma.1.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libcrypt.so.1",
+      "resolved": "/usr/lib64/libcrypt.so.1.1.0",
+      "content_position": 1,
+      "sha256": "258f54d5a25341bc920f901c2b1301ced84374bb7944cd29aca5d7f8029fe43d",
+      "machine": 183,
+      "soname": [
+        "libcrypt.so.1"
+      ],
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ]
+    },
+    {
+      "path": "/usr/lib64/libXau.so.6",
+      "resolved": "/usr/lib64/libXau.so.6.0.0",
+      "content_position": 7,
+      "sha256": "7926f62ab43be3e2844309da9bcabbcf47e90fe50e74380fd8455f5abe87f6a4",
+      "machine": 183,
+      "soname": [
+        "libXau.so.6"
+      ],
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libXau-1.0.9-3.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libxcb.so.1",
+      "resolved": "/usr/lib64/libxcb.so.1.1.0",
+      "content_position": 7,
+      "sha256": "8fcfc57e4d6f4bb8d78fe51c4fd7ef524934d7c64ac37d24bfeeef4c618626ce",
+      "machine": 183,
+      "soname": [
+        "libxcb.so.1"
+      ],
+      "needed": [
+        "libXau.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libxcb-1.13.1-1.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/pkgconfig/xcb.pc",
+      "resolved": "/usr/lib64/pkgconfig/xcb.pc",
+      "content_position": 7,
+      "sha256": "f4ca0848ada919c42db2effdacfc91ba92f05574338ff335840c6b917d286474",
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libxcb-devel-1.13.1-1.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libz.so.1",
+      "resolved": "/usr/lib64/libz.so.1.2.11",
+      "content_position": 1,
+      "sha256": "35bcbec5210c51131a59da10943777d1644a7d10348a74db226e9d582715f720",
+      "machine": 183,
+      "soname": [
+        "libz.so.1"
+      ],
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "zlib-1.2.11-25.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/pkgconfig/zlib.pc",
+      "resolved": "/usr/lib64/pkgconfig/zlib.pc",
+      "content_position": 7,
+      "sha256": "ea89a82d0006c028dde9325480d6d84b236852e519bd7252735493c7ba4040bd",
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "zlib-devel-1.2.11-25.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libssl.so.1.1",
+      "resolved": "/usr/lib64/libssl.so.1.1.1k",
+      "content_position": 1,
+      "sha256": "3f64e418b6ab54e5e70c107954595a8794039fd6b7883e094b1e7461578d0e92",
+      "machine": 183,
+      "soname": [
+        "libssl.so.1.1"
+      ],
+      "needed": [
+        "libcrypto.so.1.1",
+        "libz.so.1",
+        "libdl.so.2",
+        "libpthread.so.0",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "openssl-libs-1.1.1k-17.el8_6.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libffi.so.6",
+      "resolved": "/usr/lib64/libffi.so.6.0.2",
+      "content_position": 1,
+      "sha256": "b23fa0bb90fde83847db546560425a183c10116e6bb9945a2bb8261fe43926de",
+      "machine": 183,
+      "soname": [
+        "libffi.so.6"
+      ],
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libffi-3.1-24.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libtcl8.6.so",
+      "resolved": "/usr/lib64/libtcl8.6.so",
+      "content_position": 7,
+      "sha256": "7eb272b9777b09d44b95fe69ee68a454462b6f01972d9d2310e75f62cd72e1f9",
+      "machine": 183,
+      "soname": [
+        "libtcl8.6.so"
+      ],
+      "needed": [
+        "libdl.so.2",
+        "libz.so.1",
+        "libpthread.so.0",
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "tcl-8.6.8-2.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libtk8.6.so",
+      "resolved": "/usr/lib64/libtk8.6.so",
+      "content_position": 7,
+      "sha256": "d675c5c41ee5446409f092a864151aaf60bc15ac1e3ee2f189b3077c18740f3d",
+      "machine": 183,
+      "soname": [
+        "libtk8.6.so"
+      ],
+      "needed": [
+        "libpthread.so.0",
+        "libXft.so.2",
+        "libfreetype.so.6",
+        "libfontconfig.so.1",
+        "libX11.so.6",
+        "libdl.so.2",
+        "libz.so.1",
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "tk-8.6.8-1.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/liblzma.so.5",
+      "resolved": "/usr/lib64/liblzma.so.5.2.4",
+      "content_position": 1,
+      "sha256": "6f9d2abe98f8cba039901cbd19d48a64008811848d91c68091630e6ca4af856e",
+      "machine": 183,
+      "soname": [
+        "liblzma.so.5"
+      ],
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "xz-libs-5.2.4-4.el8_6.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libzstd.so.1",
+      "resolved": "/usr/lib64/libzstd.so.1.4.4",
+      "content_position": 1,
+      "sha256": "288667173b3dda50491bf1c79fe913c444735f9d1ec4baabea2f0c0323f9508a",
+      "machine": 183,
+      "soname": [
+        "libzstd.so.1"
+      ],
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libzstd-1.4.4-1.el8.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libpng16.so.16",
+      "resolved": "/usr/lib64/libpng16.so.16.34.0",
+      "content_position": 7,
+      "sha256": "7d02d0a045138741bf3283fd3532c8cefe055bc61029e04e498c0a30d68b87c2",
+      "machine": 183,
+      "soname": [
+        "libpng16.so.16"
+      ],
+      "needed": [
+        "libz.so.1",
+        "libm.so.6",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "libpng-1.6.34-11.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libbrotlidec.so.1",
+      "resolved": "/usr/lib64/libbrotlidec.so.1.0.6",
+      "content_position": 7,
+      "sha256": "46c775b7895372f9bfc204bfd4d3ca6a65083f207b827a6cdc2779bb6472b2e7",
+      "machine": 183,
+      "soname": [
+        "libbrotlidec.so.1"
+      ],
+      "needed": [
+        "libm.so.6",
+        "libbrotlicommon.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "brotli-1.0.6-4.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libfreetype.so.6",
+      "resolved": "/usr/lib64/libfreetype.so.6.16.1",
+      "content_position": 7,
+      "sha256": "3d5bd15207d6aa9c23cd85b493261a09b77482bfb62f136b5515f369112db1f0",
+      "machine": 183,
+      "soname": [
+        "libfreetype.so.6"
+      ],
+      "needed": [
+        "libbz2.so.1",
+        "libpng16.so.16",
+        "libz.so.1",
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "freetype-2.9.1-10.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    },
+    {
+      "path": "/usr/lib64/libbz2.so.1",
+      "resolved": "/usr/lib64/libbz2.so.1.0.6",
+      "content_position": 1,
+      "sha256": "549b318a96006692f13bc1fb6fc87719e0f9623857bb6c26a075b710ca9cfc3b",
+      "machine": 183,
+      "soname": [
+        "libbz2.so.1"
+      ],
+      "needed": [
+        "libc.so.6",
+        "ld-linux-aarch64.so.1"
+      ],
+      "rpm_owners": [
+        {
+          "nevra_without_epoch": "bzip2-libs-1.0.6-28.el8_10.aarch64",
+          "equals_sha256": true
+        }
+      ]
+    }
+  ],
+  "not_located_in_recorded_search": {
+    "target_cpython_files": [
+      "libpython3.12*.so*"
+    ],
+    "path_lookup": [
+      "pip",
+      "pip3",
+      "clang",
+      "clang++",
+      "meson",
+      "ninja"
+    ],
+    "headers_and_libraries": [
+      "FriBidi / raqm",
+      "JPEG",
+      "TIFF",
+      "Little CMS",
+      "OpenJPEG",
+      "WebP / sharpyuv",
+      "HarfBuzz",
+      "AVIF",
+      "AOM",
+      "dav1d",
+      "libyuv"
+    ],
+    "python_distributions": [
+      "virtualenv",
+      "pkgconf",
+      "pybind11",
+      "meson",
+      "ninja",
+      "cibuildwheel"
+    ]
+  },
+  "tool_review": {
+    "pkgconf": {
+      "actual_rpm_version": "1.4.2",
+      "cibuildwheel_pin": "3.0.7.post0"
+    },
+    "virtualenv": {
+      "recorded_search": "not_located",
+      "cibuildwheel_pin": "21.14.6"
+    },
+    "non_rpm_autotools_version_evidence": "entrypoints and image history observed; exact version text not independently read",
+    "patchelf_internal_binary_version": "not_executed"
+  },
+  "unresolved_resolved_file_package_ownership": [
+    "/usr/lib64/libgcc_s-8-20210514.so.1",
+    "/usr/lib64/libcrypt.so.1.1.0"
+  ]
+}
