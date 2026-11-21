@@ -1,6 +1,6 @@
 # RadishMind 部署目录说明
 
-更新时间：2026-10-26
+更新时间：2026-11-21
 
 ## 当前交付范围
 
@@ -18,6 +18,7 @@
 - `docker-compose.saved-draft-dev-test.yaml`：Saved Draft PostgreSQL 17 开发 / 测试编排，只绑定 loopback `55432`，拆分 migration 与 runtime role。
 - `postgres/saved-draft-dev-test-init.sql`：本地测试库 runtime role 初始化和默认表权限，不包含 secret。
 - `docker-compose.yaml`：测试 / 生产共用的部署态 compose，只引用预构建镜像，不执行本地 build。
+- `Dockerfile.development-sdk-delivery` 用于受控开发阶段 0 的独立 ARM64 SDK 验收，消费本地离线上下文、冻结 wheel 和第三方告知。构建与交付记录见[SDK 变体说明](../scripts/eval/development_probe/sdk_variant/README.md#最终-sdk-本地交付)。
 - `.env.example`：部署态 compose 的非密钥配置样例；真实 `.env` 不提交。
 
 ## Docker 模式

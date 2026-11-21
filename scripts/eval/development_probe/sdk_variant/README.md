@@ -1,6 +1,6 @@
 # SDK 遥测可选依赖候选
 
-状态：`1.59.0+radishmind.1` 已于 2026-10-31 在单独授权窗口完成构建、119 项依赖冻结安装及真实 SDK / 固定响应联合复验，登记为技术候选。原始 `1.59.0` 的 138 项锁和镜像保持历史试验基线；本变体有独立证据，正式采用与整镜像分发许可仍未闭合。
+`1.59.0+radishmind.1` 于 2026-10-31 完成变体构建、119 项冻结安装和固定响应联合复验。原始 `1.59.0` 的 138 项锁和镜像保留为历史试验基线。2026-11-21 最终 ARM64 SDK 采用修复后的 Pillow wheel，已通过禁网构建、告知读取和 SDK / 联合回归。本地伴随源码和告知已组装并逐项复核，待接收方确认后复评正式采用。[最终交付记录](#最终-sdk-本地交付)
 
 原变体准备器与构建校验覆盖六包 14 份 wheel 补充告知、pip 25.0.1 的 21 份内嵌告知和 CPython 3.12.16 的 Expat / libmpdec 两份告知。wheel 校验绑定安装报告中的版本与归档摘要。pip 独立校验同一安装的元数据及 280 个内嵌文件。CPython 校验绑定保留镜像的 `pyexpat` 和 `_decimal` 扩展字节。下文 10 月 31 日的历史镜像早于补充告知的接入。最终配方使用[独立离线上下文](#最终-sdk-交付离线准备)。
 
@@ -18,7 +18,7 @@ CPython 告知放在镜像的 `/usr/local/share/radishmind/third-party/cpython/`
 
 `build-requirements.lock` 仅锁定构建工具；原 138 项锁派生的 `constraints.txt` 仅约束既有版本，不强制安装未被使用的包。正常 pip 解析决定新的依赖闭包；只有明确构建的本地 SDK wheel 可使用本地 URL，其余发行物必须为有 SHA-256 的 PyPI wheel，出现 `lmnr` 或代理包即拒绝生成候选锁。实际生成的独立锁为 [requirements-linux-arm64-py312.lock](requirements-linux-arm64-py312.lock)，运行解析、全部 wheel 与安装报告的版本 / 摘要已逐项核对。
 
-`--no-deps` 仅用于单独构建 SDK wheel。依赖解析、下载和最终安装均保留依赖检查，最终执行 `pip check`；没有安装后删包。最终镜像的冻结安装阶段禁用网络，只读取导出的 wheel 集合与锁。构建配方会将补充告知与其部分范围清单复制到 `/usr/local/share/radishmind/third-party/`，再使用 pip 安装报告检查六包版本 / wheel 摘要及告知字节；不一致时构建失败。目录 / 文件按 `0755` / `0644` 准备，供镜像内非 root 用户读取。此配方更新尚未构建验收，旧构建目录必须重新准备，不能声称历史镜像已安装补充告知。
+`--no-deps` 仅用于单独构建 SDK wheel。依赖解析、下载和最终安装均保留依赖检查，最终执行 `pip check`；没有安装后删包。最终镜像的冻结安装阶段禁用网络，只读取导出的 wheel 集合与锁。构建配方会将补充告知与其部分范围清单复制到 `/usr/local/share/radishmind/third-party/`，再使用 pip 安装报告检查版本、wheel 摘要及告知字节；不一致时构建失败。目录 / 文件按 `0755` / `0644` 准备，供镜像内非 root 用户读取。告知的实际安装与可读性以 2026-11-21 的最终镜像验收为准。
 
 ## 已验候选与证据
 
@@ -167,3 +167,9 @@ python3 scripts/eval/development_probe/prepare_sdk_delivery.py \
 ```
 
 获准构建后，以本地已验的固定基础镜像及 `linux/arm64` 运行新 Dockerfile。构建器的 registry 访问须在构建窗口内关闭，步骤使用 `--network=none`。wheelhouse 作为只读构建挂载使用。pip 安装报告与完整冻结锁及告知由 `65532:65532` 校验。完成后按实际镜像摘要在禁网、只读根容器内再次核对告知和源码获取说明，并执行目标 SDK 与联合验收。伴随源码按实际交付镜像摘要及接收方获取路径复验。[源码清单](sdk-delivery-sources-20261121.json) · [预检回执](sdk-delivery-preflight-20261121.json) · [验收条件](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-21-最终-sdk-交付离线预检)
+
+### 最终 SDK 本地交付
+
+`deploy/Dockerfile.development-sdk-delivery` 使用独立离线上下文和固定基础镜像。最终镜像已核对 119 项冻结安装、`pip check`、`65532:65532` 读取 42 份补充告知、CPython 动态库归属及三个 SDK 联合用例。[构建与运行回执](sdk-delivery-build-runtime-20261121.json) · [联合验收回执](sdk-delivery-runtime-closeout-20261121.json)
+
+已按最终镜像清单摘要将本地配套源码与告知放在 `dist/sdk-delivery/sources/<SDK-image-sha256>/`。目录内的 `manifest.json` 绑定镜像、冻结锁与全部材料，可用随附的 `verify_manifest.py` 离线逐项核对。交付记录保留 OpenSSL 补丁清单未证实的边界，历史构建取证已结束。所有者确认能取得该目录后，再复评正式采用。[组装与回读回执](sdk-delivery-local-source-result-20261121.json)

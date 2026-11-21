@@ -1,14 +1,16 @@
 # SDK 候选依赖与固定响应检查
 
-当前实现另含 Go 单一非流式原生 HTTP 适配及显式平台接线，固定上游的工具往返、配置 / 凭据、未知用量与取消已验证，详见[尝试控制合同](../../../docs/contracts/development-attempt-control-v1.md#原生-http-档案)。它未成为默认工作台入口，也未取得真实厂商资格。单 Agent 的[公开交付合同](../../../docs/contracts/development-task-delivery-v1.md)及 Pencil 代表面已设计待确认；本目录的 SDK / 联合探针命令不提供正式任务 API 或 Web。
+当前实现另含 Go 单一非流式原生 HTTP 适配及显式平台接线，固定上游的工具往返、配置 / 凭据、未知用量与取消已验证，详见[尝试控制合同](../../../docs/contracts/development-attempt-control-v1.md#原生-http-档案)。真实厂商资格另行验收。所有者已确认单 Agent 的[公开交付合同](../../../docs/contracts/development-task-delivery-v1.md)及六个视觉代表面，正式任务 API 与 Web 列入阶段 1。
 
 本目录只服务于[受控开发团队阶段 0](../../../docs/features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md)，不属于工作台或既有 Python runtime 的依赖。
 
 ## 遥测可选依赖候选
 
-项目所有者已确认同版 SDK 的遥测可选化路线。`1.59.0+radishmind.1` 的来源 / MIT 告知、补丁、正常依赖解析与冻结安装配方、实际验收命令见[变体说明](sdk_variant/README.md)。新候选已取得独立 119 项锁、wheel、镜像及真实 SDK / 联合复验通过证据；默认集合不含 Laminar / 专有代理，整镜像许可与正式采用仍待收口。本次窗口已结束，原始锁与下文历史验收保持；`run_joint.py --sdk-image` 只接受明确的本地 digest，不接受 tag，不自动拉取镜像。
+项目所有者已确认同版 SDK 的遥测可选化路线。`1.59.0+radishmind.1` 的来源、MIT 告知、补丁、冻结安装配方及验收命令见[变体说明](sdk_variant/README.md)。2026-11-21 的最终 ARM64 镜像已完成 119 项冻结安装、告知读取及 SDK / 联合复验，本地配套源码和告知已组装，待所有者确认能取得后复评正式采用。原始锁与下文验收命令保留为历史基线。`run_joint.py --sdk-image` 要求明确的本地 digest，镜像由获准窗口提前准备。[最终交付状态](sdk_variant/README.md#最终-sdk-本地交付)
 
 ## 固定输入与运行入口
+
+本节起的工作进程和联合验收命令对应 2026-10-31 的历史试验。最终 SDK 的离线准备和实际验收证据见[最终交付说明](sdk_variant/README.md#最终-sdk-本地交付)。
 
 候选为 `sdk-candidate.txt` 中的 `openhands-sdk==1.59.0`，完整 138 个依赖的版本 / wheel SHA-256 已冻结在 `requirements-linux-arm64-py312.lock`。`deploy/Dockerfile.development-probe-sdk` 使用带摘要的 Python 3.12 基础镜像，直接以 `--require-hashes --no-deps --only-binary=:all:` 安装此锁并执行 `pip check`，不在构建时重新解析依赖。当前只验证 `linux/arm64` / Python 3.12.16；其他架构明确拒绝，不自动选择另一份依赖。
 
@@ -65,7 +67,7 @@ docker rm -f radishmind-sdk-worker-20261031-check
 
 最终全部通过：真实 `Agent / LocalConversation` 经 Go 完成两次模型请求与合成工具观察值往返，核对系统提示、用户 / 助手消息、动作与观察事件；原生失败仅一次请求，工具失败保留未知状态，缺失 usage 不采用 SDK 零值；模型等待中取消后进程组为空，单独关闭父存活管道也能终止 SDK。合成观察值不访问文件、不执行代码。普通 Go 测试未配置 SDK 路径时会明确 skip，不能将其算作镜像验收。
 
-Go 对每条 SDK 报告先提交事件再确认，最终完成须核对真实退出和最新资格。Python 仅使用内存会话、唯一自定义工具与受限模型转换，关闭默认工具 / MCP / 动态上下文等旁路；模块边界见[SDK 工作进程说明](../../../services/runtime/development_sdk/README.md)。实际代码沙箱、真实提供方原生适配、完整 SDK 正式采用及阶段 0 退出仍待完成。
+Go 对每条 SDK 报告先提交事件再确认，最终完成须核对真实退出和最新资格。Python 仅使用内存会话、唯一自定义工具与受限模型转换，关闭默认工具 / MCP / 动态上下文等旁路。模块边界见[SDK 工作进程说明](../../../services/runtime/development_sdk/README.md)。固定 Go 代码沙箱已在下一节完成联合验收，真实厂商资格和 SDK 正式采用仍待验收。
 
 ## SDK、代码沙箱与产物联合验收（2026-10-31）
 
