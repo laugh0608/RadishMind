@@ -1,0 +1,399 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "arm64_crate_source_subset_verified_build_changes_open",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "wheel_sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+  "cargo_lock_sha256": "98778208027ce05bfff0db88c290f28355eb20e685f0c728775359fb91a1a4c4",
+  "window": {
+    "limits": {
+      "requests": 18,
+      "crate_requests": 13,
+      "response_bytes": 20971520,
+      "crate_response_bytes": 8388608,
+      "crate_bytes": 2097152,
+      "decompressed_bytes": 33554432,
+      "staging_bytes": 67108864,
+      "wall_seconds": 300,
+      "connect_timeout_seconds": 8,
+      "request_timeout_seconds": 20
+    },
+    "https_requests": 12,
+    "redirects": 0,
+    "failed_requests": 0,
+    "response_body_bytes": 1950911,
+    "decompressed_tar_bytes": 7937024,
+    "peak_staging_upper_bound_bytes": 2952716,
+    "wall_seconds": 63.44,
+    "request_seconds": 18.504
+  },
+  "archives": [
+    {
+      "name": "asn1",
+      "version": "0.24.1",
+      "source_url": "https://static.crates.io/crates/asn1/asn1-0.24.1.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/asn1-0.24.1.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/asn1-0.24.1.crate",
+      "bytes": 50502,
+      "sha256": "c9795210620c0cb3f9a7ce4f882808c38e1ef7b347c90591dceae0886e031fb1",
+      "license_expression": "BSD-3-Clause",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "bytes": 1540,
+          "sha256": "c6deb2d156619439e147f8b62e1b3928598c8e3652ec8b56cc039490696b3985"
+        }
+      ]
+    },
+    {
+      "name": "base64",
+      "version": "0.23.0",
+      "source_url": "https://static.crates.io/crates/base64/base64-0.23.0.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/base64-0.23.0.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/base64-0.23.0.crate",
+      "bytes": 93578,
+      "sha256": "b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9",
+      "license_expression": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 10847,
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1093,
+          "sha256": "ab499c75a0f0da8e0fe83bf9ba3a27e5c39705310f07107c6c66b69958d2401c"
+        }
+      ]
+    },
+    {
+      "name": "openssl",
+      "version": "0.10.81",
+      "source_url": "https://static.crates.io/crates/openssl/openssl-0.10.81.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/openssl-0.10.81.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/openssl-0.10.81.crate",
+      "bytes": 311187,
+      "sha256": "77823a27f0babb03091cb9ed9ef80af3b39dbc82f97e8fa530374b7dafd87a45",
+      "license_expression": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "bytes": 618,
+          "sha256": "f3d4287b4a21c5176fea2f9bd4ae800696004e2fb8e05cbc818be513f188a941"
+        },
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 11358,
+          "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+        }
+      ]
+    },
+    {
+      "name": "pem",
+      "version": "4.0.0",
+      "source_url": "https://static.crates.io/crates/pem/pem-4.0.0.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/pem-4.0.0.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/pem-4.0.0.crate",
+      "bytes": 18770,
+      "sha256": "d354a98a3d1251555de99e8fdd8afda05573c31b82f59063a7b0a29b5527f120",
+      "license_expression": "MIT",
+      "notices": [
+        {
+          "path": "LICENSE.md",
+          "bytes": 1085,
+          "sha256": "b7c76ff4466a3aeb6a7d903e81b651335e97d64ecb857e2ee9812a36c6fd1acf"
+        }
+      ]
+    },
+    {
+      "name": "pyo3",
+      "version": "0.29.2",
+      "source_url": "https://static.crates.io/crates/pyo3/pyo3-0.29.2.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/pyo3-0.29.2.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/pyo3-0.29.2.crate",
+      "bytes": 1255741,
+      "sha256": "4688ddedf473e32662b9b067670129a8afb8c18e351482c70d62ba4a88171e8b",
+      "license_expression": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 9807,
+          "sha256": "32c76dbe0e73d79100d5ece77c158399f2e2541bc5c78548a4ba45c1cb53c5c9"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1107,
+          "sha256": "afcbe3b2e6b37172b5a9ca869ee4c0b8cdc09316e5d4384864154482c33e5af6"
+        },
+        {
+          "path": "pyo3-runtime/LICENSE-APACHE",
+          "bytes": 9807,
+          "sha256": "32c76dbe0e73d79100d5ece77c158399f2e2541bc5c78548a4ba45c1cb53c5c9"
+        },
+        {
+          "path": "pyo3-runtime/LICENSE-MIT",
+          "bytes": 1107,
+          "sha256": "afcbe3b2e6b37172b5a9ca869ee4c0b8cdc09316e5d4384864154482c33e5af6"
+        }
+      ]
+    },
+    {
+      "name": "pyo3-ffi",
+      "version": "0.29.2",
+      "source_url": "https://static.crates.io/crates/pyo3-ffi/pyo3-ffi-0.29.2.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/pyo3-ffi-0.29.2.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/pyo3-ffi-0.29.2.crate",
+      "bytes": 90029,
+      "sha256": "e591a95526fead067432c3b3a33fc74770b87b1e04e73671090d9c2055a2b327",
+      "license_expression": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 9807,
+          "sha256": "32c76dbe0e73d79100d5ece77c158399f2e2541bc5c78548a4ba45c1cb53c5c9"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1107,
+          "sha256": "afcbe3b2e6b37172b5a9ca869ee4c0b8cdc09316e5d4384864154482c33e5af6"
+        }
+      ]
+    },
+    {
+      "name": "asn1_derive",
+      "version": "0.24.1",
+      "source_url": "https://static.crates.io/crates/asn1_derive/asn1_derive-0.24.1.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/asn1_derive-0.24.1.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/asn1_derive-0.24.1.crate",
+      "bytes": 9534,
+      "sha256": "909e307f1cc32bb8bccbd98f446e6d1bf03fa30f7b53a4337da7181ad30fa11a",
+      "license_expression": "BSD-3-Clause",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "bytes": 1540,
+          "sha256": "c6deb2d156619439e147f8b62e1b3928598c8e3652ec8b56cc039490696b3985"
+        }
+      ]
+    },
+    {
+      "name": "foreign-types",
+      "version": "0.3.2",
+      "source_url": "https://static.crates.io/crates/foreign-types/foreign-types-0.3.2.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/foreign-types-0.3.2.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/foreign-types-0.3.2.crate",
+      "bytes": 7504,
+      "sha256": "f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1",
+      "license_expression": "MIT/Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 11358,
+          "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1072,
+          "sha256": "333ea3aaa3cadb819f4acd9f9153f9feee060a995ca8710f32bc5bd9a4b91734"
+        }
+      ]
+    },
+    {
+      "name": "foreign-types-shared",
+      "version": "0.1.1",
+      "source_url": "https://static.crates.io/crates/foreign-types-shared/foreign-types-shared-0.1.1.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/foreign-types-shared-0.1.1.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/foreign-types-shared-0.1.1.crate",
+      "bytes": 5672,
+      "sha256": "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b",
+      "license_expression": "MIT/Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 11358,
+          "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1072,
+          "sha256": "333ea3aaa3cadb819f4acd9f9153f9feee060a995ca8710f32bc5bd9a4b91734"
+        }
+      ]
+    },
+    {
+      "name": "openssl-macros",
+      "version": "0.1.1",
+      "source_url": "https://static.crates.io/crates/openssl-macros/openssl-macros-0.1.1.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/openssl-macros-0.1.1.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/openssl-macros-0.1.1.crate",
+      "bytes": 5601,
+      "sha256": "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c",
+      "license_expression": "MIT/Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 11358,
+          "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1058,
+          "sha256": "ea5ab440900ab271811d5c2dc02a9de6e03a6956ac5727e85c11d76df5883d30"
+        }
+      ]
+    },
+    {
+      "name": "pyo3-macros",
+      "version": "0.29.2",
+      "source_url": "https://static.crates.io/crates/pyo3-macros/pyo3-macros-0.29.2.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/pyo3-macros-0.29.2.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/pyo3-macros-0.29.2.crate",
+      "bytes": 9044,
+      "sha256": "73225868fc1cd84eef2c3c230ddb91273bf1de46aeb8a4248da76d32a0924a1c",
+      "license_expression": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 9807,
+          "sha256": "32c76dbe0e73d79100d5ece77c158399f2e2541bc5c78548a4ba45c1cb53c5c9"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1107,
+          "sha256": "afcbe3b2e6b37172b5a9ca869ee4c0b8cdc09316e5d4384864154482c33e5af6"
+        }
+      ]
+    },
+    {
+      "name": "pyo3-macros-backend",
+      "version": "0.29.2",
+      "source_url": "https://static.crates.io/crates/pyo3-macros-backend/pyo3-macros-backend-0.29.2.crate",
+      "http_status": 200,
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/pyo3-macros-backend-0.29.2.crate",
+      "candidate_delivery_path": "python/cryptography/50.0.2/rust/crates/pyo3-macros-backend-0.29.2.crate",
+      "bytes": 93749,
+      "sha256": "571575aa3749fa6216757dd47d2a3e7ef360f329a40f0666a9fbd14889024952",
+      "license_expression": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 9807,
+          "sha256": "32c76dbe0e73d79100d5ece77c158399f2e2541bc5c78548a4ba45c1cb53c5c9"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1107,
+          "sha256": "afcbe3b2e6b37172b5a9ca869ee4c0b8cdc09316e5d4384864154482c33e5af6"
+        }
+      ]
+    }
+  ],
+  "arm64_scope": {
+    "target": "aarch64-unknown-linux-gnu",
+    "features": "pyo3/abi3-py311",
+    "pyo3_target_condition": "cfg(not(target_has_atomic = \"64\"))",
+    "compiler_target_cfg": {
+      "path": "tmp/cryptography-source-window-20261121.iZGwBS/arm64-target-cfg.txt",
+      "sha256": "bd4aec52921ce4d47d2f31784f231cb39f27e8dfdc5e0b0925a433a7e38b3ff7"
+    },
+    "previously_verified_required_cache": [
+      "bitflags@2.13.1",
+      "cfg-if@1.0.4",
+      "heck@0.5.0",
+      "itoa@1.0.18",
+      "libc@0.2.189",
+      "once_cell@1.21.4",
+      "openssl-sys@0.9.117",
+      "proc-macro2@1.0.107",
+      "quote@1.0.47",
+      "self_cell@1.3.0",
+      "syn@2.0.119",
+      "unicode-ident@1.0.24"
+    ],
+    "newly_verified_required": 12,
+    "excluded_for_target": [
+      "portable-atomic@1.14.0"
+    ],
+    "review": {
+      "asn1_derive": {
+        "fetch": true,
+        "evidence": "Exact asn1 0.24.1 manifest declares a non-optional dependency and src/lib.rs re-exports its proc macros. Preserve the build input."
+      },
+      "foreign-types": {
+        "fetch": true,
+        "evidence": "Exact openssl 0.10.81 manifest declares a normal unconditional dependency; src/asn1.rs and other modules use its types."
+      },
+      "foreign-types-shared": {
+        "fetch": true,
+        "evidence": "Exact cryptography sdist src/rust/Cargo.toml declares a normal direct dependency; frozen graph also has foreign-types -> foreign-types-shared."
+      },
+      "openssl-macros": {
+        "fetch": true,
+        "evidence": "Exact openssl 0.10.81 manifest declares a normal unconditional dependency; src/asn1.rs and other modules import its proc macro."
+      },
+      "portable-atomic": {
+        "fetch": false,
+        "evidence": "pyo3 0.29.2 is its only Cargo.lock parent. Its normalized manifest has the dependency only under cfg(not(target_has_atomic = \"64\")); src/impl_/pymodule.rs also uses portable_atomic::AtomicI64 only under that gate, selecting core::sync::atomic::AtomicI64 otherwise. Local rustc --print cfg for aarch64-unknown-linux-gnu reports target_has_atomic=\"64\". Scope exclusion is specific to this wheel target."
+      },
+      "pyo3-macros": {
+        "fetch": true,
+        "evidence": "Exact cryptography sdist Cargo.toml enables PyO3 default features; PyO3 default includes macros and wheel SBOM includes the dependency."
+      },
+      "pyo3-macros-backend": {
+        "fetch": true,
+        "evidence": "Frozen lock and wheel SBOM record pyo3-macros -> pyo3-macros-backend. Preserve the enabled proc macro build input."
+      }
+    }
+  },
+  "build_changes": {
+    "new_requests": 0,
+    "run_id": 36713008517,
+    "run_attempt": 2,
+    "job_ids": [
+      109937603244,
+      109937607325
+    ],
+    "frozen_wheel_binding_verified": false,
+    "arm64_builder_materials_and_actual_patch_set_verified": false,
+    "reason": "本窗口的 registry 归档绑定发行源码锁及组件告知。留存作业元数据和前次跳转失败回执没有指向可校验冻结 wheel 摘要的新日志、同作业工件或溯源，实际构建改动继续等待。",
+    "frozen_wheel_elf": {
+      "member": "cryptography/hazmat/bindings/_rust.abi3.so",
+      "sha256": "b52e6ae53c343ce97478ee10d93a0263576d778de65333c234577298d1e9ef07",
+      "openssl_strings": {
+        "version": "OpenSSL 4.0.3 29 Sep 2026",
+        "built_on": "built on: Tue Sep 29 23:03:52 2026 UTC",
+        "platform": "platform: linux-aarch64",
+        "openssl_dir": "OPENSSLDIR: \"/opt/pyca/cryptography/openssl\"",
+        "compiler": "compiler: gcc -fPIC -pthread -Wa,--noexecstack -Wall -O3 -DOPENSSL_PIC -DNDEBUG"
+      }
+    }
+  },
+  "raw_receipt": {
+    "path": "tmp/cryptography-source-window-20261121.iZGwBS/receipt.json",
+    "bytes": 32268,
+    "sha256": "148d171b70313f02af977c14926d0ed67855ae242066aeae8c6ca671a83b25f0"
+  },
+  "arm64_review_input": {
+    "path": "tmp/cryptography-source-window-20261121.iZGwBS/arm64-review.json",
+    "bytes": 1635,
+    "sha256": "636e73aa584ef48ea4bc338766f01ffbbed381ce97f2cc013caa96cba97b4d25"
+  },
+  "boundary": {
+    "unicode_ucd_requests": 0,
+    "certifi_requests": 0,
+    "delivery_assembled": false,
+    "stage_0_exited": false
+  }
+}

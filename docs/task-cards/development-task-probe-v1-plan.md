@@ -242,6 +242,12 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 拟申请一次单线程窗口，合计至多 **18 次 HTTPS 请求**（crate 至多 13 次，构建证据至多 5 次，跳转和失败计入各自额度）、**20 MiB 正文、32 MiB 累计解压、64 MiB 峰值暂存、5 分钟总时限**。crate 正文合计至多 8 MiB、单项 2 MiB；单份日志至多 2 MiB，唯一可选工件至多 12 MiB，同时受总额限制。仅暂存于仓库 `tmp/` 中独立目录，按连接 8 秒、单请求 20 秒和总时限逐次计量，无自动重试。遇到归属错误、摘要不符、请求失败或任一上限即停并记录已验与缺项。原始 UCD、其他组件、容器层、构建与打包均在该窗口之外。本轮只完成离线核对和记录。
 
+#### 2026-11-21 cryptography ARM64 crate 补证回执
+
+所有者授权后先依序取得 ELF 源码路径命中的 6 项，再取 ARM64 下保留的 6 项，全部 HTTP 200。逐项匹配精确 `Cargo.lock` SHA-256、归档成员路径、`Cargo.toml` 的名称与版本，离线复算 23 份许可文件。配合先前本机缓存核验，wheel SBOM 的 25 个 registry `required` 项中，24 个已有精确归档，余下 `portable-atomic 1.14.0` 按本目标排除。冻结锁中它的唯一父项是 `pyo3`。精确 `pyo3` 的依赖声明和对应 `AtomicI64` 导入均受 `cfg(not(target_has_atomic = "64"))` 约束，本地 `rustc --print cfg --target aarch64-unknown-linux-gnu` 验出 `target_has_atomic="64"`。该裁决只用于最终 ARM64 wheel 的候选交付范围。
+
+单线程窗口共 12 次 HTTPS 请求、1950911 字节正文、7937024 字节解压，暂存峰值保守上界 2952716 字节，累计请求用时 18.504 秒、总窗口 63.440 秒，零跳转和失败。冻结 wheel 的 ELF 直接保留了 OpenSSL 4.0.3 的平台、构建时间、`OPENSSLDIR` 及 GCC 编译参数，可供后续与来源材料交叉核对。当前留存中仍没有可绑定冻结 wheel 的新作业日志、同作业工件或溯源，因此构建改动方向零请求。实际 ARM64 构建器所用 OpenSSL 材料、`SHLIB_VERSION` 及其他补丁仍待对应证据。Unicode UCD 零请求，源码待实际交付与接收方验收，阶段 0 继续等待。[逐归档摘要、告知和窗口回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-source-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
