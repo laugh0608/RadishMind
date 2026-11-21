@@ -248,6 +248,14 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 单线程窗口共 12 次 HTTPS 请求、1950911 字节正文、7937024 字节解压，暂存峰值保守上界 2952716 字节，累计请求用时 18.504 秒、总窗口 63.440 秒，零跳转和失败。冻结 wheel 的 ELF 直接保留了 OpenSSL 4.0.3 的平台、构建时间、`OPENSSLDIR` 及 GCC 编译参数，可供后续与来源材料交叉核对。当前留存中仍没有可绑定冻结 wheel 的新作业日志、同作业工件或溯源，因此构建改动方向零请求。实际 ARM64 构建器所用 OpenSSL 材料、`SHLIB_VERSION` 及其他补丁仍待对应证据。Unicode UCD 零请求，源码待实际交付与接收方验收，阶段 0 继续等待。[逐归档摘要、告知和窗口回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-source-result-20261121.json)
 
+#### 2026-11-21 regex Unicode 18.0.0 UCD 最小补证方案
+
+已复算精确 `regex 2026.9.29` sdist、原生成器和两份生成文件，确认生成器使用标准库，从同目录的 `UCD.zip` 读取 28 个固定成员，并在脚本目录生成 C、头文件及诊断摘要。缺少 UCD 时，已离线验证退出 1 且无生成文件。固定候选获取地址为 `https://www.unicode.org/Public/18.0.0/ucd/UCD.zip`，本地尚无该 ZIP 的发布摘要或实收指纹。[28 项输入、基准摘要与执行参数](../../scripts/eval/development_probe/sdk_variant/regex-ucd-source-plan-20261121.json)
+
+获准后仅 GET 一次。保存响应来源、长度和原始 ZIP 的 SHA-256，流读核对成员路径、展开量和 CRC-32，登记 28 个输入的 SHA-256。核对 `ReadMe.txt` 的正式 Unicode 18.0.0 版本、成员版权和适用条款，与留存的 Unicode License V3 正文对照。原生成器在单独 `run/` 目录、固定环境和拒绝网络与子进程操作的审计钩子下执行。两份新输出分别按长度、SHA-256 和 `cmp -s` 与 sdist 的 `src/_regex_unicode.c`、`src/_regex_unicode.h` 原始字节核对。两项全等才认定该 UCD 足以复现发布表；原发布者是否曾使用同一 ZIP 压缩字节仍缺历史材料。
+
+窗口拟定上限为 **1 次 HTTPS 请求、16 MiB 正文、96 MiB 累计解压、48 MiB 峰值暂存、5 分钟总时限**。连接 8 秒、单请求 90 秒、单生成进程 CPU 120 秒及墙钟 150 秒，零跳转和自动重试。任何获取、版本、许可、完整性、字节复核或预算失败即停并登记。当前零联网与零组装。`cryptography` 实际构建改动继续等待能绑定冻结 wheel 的新证据。
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
