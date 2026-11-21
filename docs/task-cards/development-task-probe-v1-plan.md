@@ -268,6 +268,21 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 在固定环境用校验过摘要的原生成器离线重生成，退出码为 0。`_regex_unicode.c` 的 1983129 字节和 `_regex_unicode.h` 的 10827 字节分别与精确 sdist 中对应文件的长度和 SHA-256 一致，两个 `cmp -s` 均退出 0。该输入已证实能复现发行源码中的生成表。全程零 HTTPS 请求，累计解压上界 48593336 字节、暂存峰值上界 40390656 字节，续跑用时 0.816 秒。`regex` 的 UCD 补证已收口，伴随源码实际组装与接收验收仍待授权。`cryptography` 实际构建改动继续等待能绑定冻结 wheel 的新证据，阶段 0 继续等待交付复评。[离线续跑回执](../../scripts/eval/development_probe/sdk_variant/regex-ucd-offline-replay-result-20261121.json)
 
+#### 2026-11-21 cryptography 工件入口离线复核
+
+在留存的 GitHub `Wheel Builder` 运行 `36713008517` 第 2 次尝试记录中确认了此前未请求的 `artifacts_url`。其事件是 `50.0.2` 标签的 `push`，构建提交为 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a`。留存 `wheel-builder.yml` 的 Git blob `7510c096ae38737238dad0ccf10f4fb727f75d72` 与该提交的树一致。由上传模板和矩阵推导候选工件名 `cryptography--manylinux_2_34_aarch64-cp311-cp311-abi3-py311`，中间的空版本字段来自标签事件。两个同名候选作业 `109937603244` 与 `109937607325` 均有成功上传步骤，现有记录未给出工件 ID 或它与作业的关联。待授权的首查是 [按名称筛选的工件目录](https://api.github.com/repos/pyca/cryptography/actions/runs/36713008517/artifacts?name=cryptography--manylinux_2_34_aarch64-cp311-cp311-abi3-py311&per_page=10)，可用性与留存状态尚未核实。
+
+两份本地 PyPI 发布证明字节一致，声明 subject 为冻结 ARM64 wheel 的 SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04`。离线复核通过随附证书公钥的 DSSE 签名和留存透明日志的 payload 摘要。证书中的发布工作流为 `pypi-publish.yml`，调用位置指向运行 `36731020563` 第 1 次尝试，保留为独立发布线索。本轮未验证 Sigstore 信任链或透明日志包含证明；声明类型为 `publish/v1`，`predicate` 为空，实际 OpenSSL 构建材料尚无发布声明证据。[既有发布证明记录](../../scripts/eval/development_probe/sdk_variant/license-historical-provenance-result-20261105.parts/publication.json)
+
+最小证据链包含两段，可由一份可信构建溯源提供，也可用彼此绑定的同作业记录闭合。
+
+1. **冻结 wheel 到实际作业**。目录返回唯一未过期的目标工件时，保存 ID、运行及提交标识、长度和可用的 ZIP 摘要。按 ID 取至多一份归档，校验归档摘要及成员完整性，并对其中精确 wheel 复算冻结 SHA-256。用同作业上传记录的工件 ID 或可信溯源关联到对应尝试与 ABI 作业。工件名和时间用于筛选。若采用签发的构建溯源，验证发布者身份、证书链与透明日志证明，以及精确 wheel 的 subject digest。
+2. **实际作业到 OpenSSL 输入和补丁**。取得该作业固定的 `linux/arm64` 构建器或静态 OpenSSL 材料摘要，以及它确实执行的源清单、配置和有序补丁。核对已留存 OpenSSL 4.0.3 源归档 SHA-256 `325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9`、wheel 内 SBOM 的 `no-shared` 等实际配置及 ELF 的 ABI 和安装路径。逐项校验配方及补丁摘要，确认 `VERSION.dat` 中的 `SHLIB_VERSION` 和其他补丁的实际处置。若配方无补丁，留存与该材料绑定的明确记录。目标 wheel 的上传归档路径是 `wheelhouse/`，仍需同作业日志或不可变材料证明来闭合第二段。
+
+后续仅在授权后执行单线程窗口。至多 **5 次 HTTPS 请求、20 MiB 正文、32 MiB 累计解压、64 MiB 峰值暂存、5 分钟总时限**。先查一份按名筛选的目录（至多 256 KiB），在未过期且唯一匹配时取一份 ZIP（至多 12 MiB），API 请求及至多一次验证来源的官方 HTTPS 跳转均计量。剩余额度只用于与该工件或同作业直接绑定的日志、溯源或固定配方（单项至多 2 MiB）。连接至多 8 秒，普通请求至多 20 秒，ZIP 请求至多 60 秒，零自动重试。缺失、过期、归属不明、摘要不符或任一触限即停，保留前次已验证的 wheel 与 OpenSSL 归档。容器层、重建和打包另行授权，本轮零联网。
+
+阶段 0 当前阻塞为 `cryptography` 的冻结 wheel 与实际 OpenSSL 构建输入和补丁尚未闭合。`regex` 已收口。随后仍须按最终镜像摘要完成伴随源码及告知交付、接收方实取复核，再复评正式采用。[阶段 0 退出条件](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
