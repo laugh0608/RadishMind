@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "wheel": {
+    "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/output/pillow-13.0.0+radishmind.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+    "bytes": 22597945,
+    "sha256": "ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460"
+  },
+  "raqm": {
+    "version": "0.11.0",
+    "pillow_sdist": {
+      "path": "tmp/development-license-audit-20261031/downloads-stage2/81a456d521ad51af908614e5.1.0.body",
+      "bytes": 47058631,
+      "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510"
+    },
+    "source_member_sha256": {
+      "COPYING": "f6baa5c872ed0c35cde377735f930d97a23e08065d87cf34d766b3aad5beed1e",
+      "raqm.c": "d3cb7309f91c5804fd19adc04efdcaf167d26e156f3459844b205b25dedca001",
+      "raqm.h": "4f0d3fe6c98175f350072270ef1d33c1715067a30ca28ecd410f58eee3b767d4",
+      "raqm-version.h": "3099dd9bc1bf372914704717844737d16ffb89666f98d1ecb327c3072d360903",
+      "grapheme-data.h": "82827234d713fd0787434649a92a28c7418944e4eeca07d456a9f99407853f70"
+    },
+    "unicode_data_version": "17.0.0",
+    "component_usage": "compiled into PIL/_imagingft"
+  },
+  "libxau": {
+    "rpm": {
+      "binary": {
+        "rpm_path": "tmp/pillow-sdk-recheck-20261121/libXau-1.0.9-3.el8.aarch64.rpm",
+        "bytes": 37208,
+        "sha256": "dcfacfd8dd2efd427498e2142b07176002ea73675308346fcecdc5a9d3f5bb5a",
+        "payload_sha256": "b25f87350ef4c9bd92afb2a4d754274de70536b153994b18a1d242a87ce1cf29",
+        "header_sha256": "4789ea29ea119bc0d76245c2548734853f0cba16b6cd5e96e0552d08463f4647",
+        "signature": "OpenPGP v4 RSA/SHA-256 over main header, verified with OpenSSL",
+        "signing_key_fingerprint": "e53cf5ef91ceb0ad1812ecb851d6647ec21ad6ea",
+        "primary_key_fingerprint": "5e9b8f5617b5066ce92057c3488fcf7c3abb34f8",
+        "key_file_sha256": "2cbe597b108cefbf571d8d430d238d0a7a6575eebf6c80649be5e10c323e7023",
+        "key_source": "https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-8",
+        "fingerprint_sources": [
+          "https://almalinux.org/security/#gpg-keys",
+          "https://wiki.almalinux.org/release-notes/8.8.html"
+        ],
+        "url": "https://repo.almalinux.org/almalinux/8/AppStream/aarch64/os/Packages/libXau-1.0.9-3.el8.aarch64.rpm"
+      },
+      "source": {
+        "rpm_path": "tmp/pillow-sdk-recheck-20261121/libXau-1.0.9-3.el8.src.rpm",
+        "bytes": 340502,
+        "sha256": "f9e5775417473caa6b5699171eec64253ef90473f36f0efe81d020b52a5de49a",
+        "payload_sha256": "95c0c8cd17214c5bb4c22ab9bb88986fbf87fed93a704b9b492461b2e3a3bff4",
+        "header_sha256": "227ff7a6759020d9928f3d1fbfe87047337ca38bb4c988bab4faf5adab7ccf50",
+        "signature": "OpenPGP v4 RSA/SHA-256 over main header, verified with OpenSSL",
+        "signing_key_fingerprint": "e53cf5ef91ceb0ad1812ecb851d6647ec21ad6ea",
+        "primary_key_fingerprint": "5e9b8f5617b5066ce92057c3488fcf7c3abb34f8",
+        "key_file_sha256": "2cbe597b108cefbf571d8d430d238d0a7a6575eebf6c80649be5e10c323e7023",
+        "key_source": "https://repo.almalinux.org/almalinux/RPM-GPG-KEY-AlmaLinux-8",
+        "fingerprint_sources": [
+          "https://almalinux.org/security/#gpg-keys",
+          "https://wiki.almalinux.org/release-notes/8.8.html"
+        ],
+        "url": "https://vault.almalinux.org/8.10/AppStream/Source/Packages/libXau-1.0.9-3.el8.src.rpm"
+      }
+    },
+    "binary_member": "usr/lib64/libXau.so.6.0.0",
+    "binary_elf_sha256": "7926f62ab43be3e2844309da9bcabbcf47e90fe50e74380fd8455f5abe87f6a4",
+    "source_spec_sha256": "a93c25410749f0c9eea78971e8753ac57ed9c48deaad1d9b0528c03125e34e03",
+    "inner_archive": "libXau-1.0.9.tar.bz2",
+    "inner_archive_sha256": "ccf8cbf0dbf676faa2ea0a6d64bcc3b6746064722b606c8c52917ed00dcb73ec",
+    "notice_member": "libXau-1.0.9/COPYING",
+    "notice_sha256": "56abe29bb1d9806a9e04fa9f80fed2c0f18027594df3f098148d814aef6bddfa",
+    "notice_bytes": 1148,
+    "binary_rpm_notice_paths": {
+      "usr/share/doc/libXau/COPYING": "56abe29bb1d9806a9e04fa9f80fed2c0f18027594df3f098148d814aef6bddfa"
+    },
+    "source_rpm_payload_members": [
+      "libXau-1.0.9.tar.bz2",
+      "libXau.spec"
+    ],
+    "wheel_member": "pillow.libs/libXau-7926f62a.so.6.0.0",
+    "wheel_member_sha256": "53d2e589ef6bc08f5ad0d68ffe6cbd6195c6aff861a7a71a4866ca419271d318",
+    "signed_binary_and_wheel_text_section_sha256": "63d624778993400ba25b89e99b25241fb6d4b29f514368f6437917204c9a2f5b"
+  },
+  "files": [
+    {
+      "file": "pillow-13.0.0-radishmind.1-Raqm-COPYING.txt",
+      "bytes": 1180,
+      "sha256": "f6baa5c872ed0c35cde377735f930d97a23e08065d87cf34d766b3aad5beed1e",
+      "source": {
+        "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+        "member": "pillow-13.0.0/src/thirdparty/raqm/COPYING",
+        "member_sha256": "f6baa5c872ed0c35cde377735f930d97a23e08065d87cf34d766b3aad5beed1e"
+      }
+    },
+    {
+      "file": "pillow-13.0.0-radishmind.1-Raqm-version-header-LICENSE.txt",
+      "bytes": 1108,
+      "sha256": "9ab73303a11c52541626fbafc16011d3a2e1bb7c4a619f0507929d12e63ae056",
+      "source": {
+        "archive_sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+        "member": "pillow-13.0.0/src/thirdparty/raqm/raqm-version.h",
+        "member_sha256": "3099dd9bc1bf372914704717844737d16ffb89666f98d1ecb327c3072d360903",
+        "byte_offset": 0,
+        "byte_length": 1108
+      }
+    },
+    {
+      "file": "pillow-13.0.0-radishmind.1-Raqm-Unicode-17.0.0-ReadMe.txt",
+      "bytes": 740,
+      "sha256": "9fe1a90bd32659d7953616283dc2bffaa165518aae9ace026040c42c559ba606",
+      "source": {
+        "url": "https://www.unicode.org/Public/17.0.0/ucd/ReadMe.txt",
+        "bytes": 740,
+        "sha256": "9fe1a90bd32659d7953616283dc2bffaa165518aae9ace026040c42c559ba606"
+      }
+    },
+    {
+      "file": "pillow-13.0.0-radishmind.1-Raqm-Unicode-LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "source": {
+        "url": "https://www.unicode.org/license.txt",
+        "bytes": 1995,
+        "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+      }
+    },
+    {
+      "file": "pillow-13.0.0-radishmind.1-LibXau-COPYING.txt",
+      "bytes": 1148,
+      "sha256": "56abe29bb1d9806a9e04fa9f80fed2c0f18027594df3f098148d814aef6bddfa",
+      "source": {
+        "source_rpm_sha256": "f9e5775417473caa6b5699171eec64253ef90473f36f0efe81d020b52a5de49a",
+        "archive_sha256": "ccf8cbf0dbf676faa2ea0a6d64bcc3b6746064722b606c8c52917ed00dcb73ec",
+        "member": "libXau-1.0.9/COPYING",
+        "member_sha256": "56abe29bb1d9806a9e04fa9f80fed2c0f18027594df3f098148d814aef6bddfa",
+        "binary_rpm_member": "usr/share/doc/libXau/COPYING"
+      }
+    }
+  ]
+}

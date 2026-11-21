@@ -153,6 +153,14 @@ Codex Desktop 更新重启打断宿主构建进程。宿主日志停在 HarfBuzz
 
 wheel 内的 `LICENSE` 逐字节匹配 Pillow 正文与 28 段已准备的告知。验收发现 Raqm 已编入扩展，其源码专属版权声明未出现在 wheel 告知中。LibXau 由 `auditwheel` 随 Libxcb 带入，构建器 RPM 声明为 MIT，wheel 中尚未对照到它的专属许可正文。FriBidi 共享库仅供容器测试，成品保留动态加载 shim。后续先闭合具名告知，再完成目标 SDK 运行复验和阶段 0 许可交付复评。[构建、测试、摘要与许可回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-launchd-result-20261121.json)
 
+#### 2026-11-21 候选告知与目标 SDK 复验
+
+以构建用 Pillow 13.0.0 源码归档为准，确认 Raqm 0.11.0 的 `COPYING`、版本头内的 Google 许可正文及生成表所用的 Unicode 17.0.0 数据与告知。LibXau 1.0.9-3.el8 的 AlmaLinux AArch64 二进制 RPM 和对应源码 RPM 均通过签名与 payload 摘要验证。两包的 `COPYING` 逐字节一致。二进制 RPM 的 ELF 匹配固定构建器，且 `.text` 与修复后 wheel 中的 LibXau 一致。五份正文与候选 wheel SHA-256 `ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460` 绑定，并通过实际 pip 安装报告核验。[许可来源](../../scripts/eval/development_probe/sdk_variant/pillow-notice-sources-20261121.json) · [伴随告知清单](../../scripts/eval/development_probe/sdk_variant/pillow-notice-supplements/manifest.json)
+
+在固定 SDK 镜像的 CPython 3.12.16 / AArch64 中，以 UID 65532 在禁网、只读根容器的 `/tmp` 安装该精确 wheel，`pip check` 通过。实际映射 26 个候选 ELF 和 8 个系统库。7 个扩展完成导入，Tk 扩展因基础镜像缺少 `libtk8.6.so` 维持原有行为。六种图像编解码与 ICC 色彩转换通过。默认环境缺少 FriBidi，与旧 wheel 一致，基础文本渲染通过。单独使用已验 FriBidi 实物后，Raqm 0.11.0 的从右到左文字渲染通过。
+
+SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩至 8000 像素长边、21 张图缩至 2000 像素长边。4 项遥测可选依赖检查、7 项 LLM 子合同及 3 项 SDK 工作进程用例通过。前两次探针分别修正了告知文件名和 Tk 可选行为的断言。最终复验退出码为 0，三次探针的所属容器均已清理。最终 SDK 镜像、告知的镜像内交付、伴随源码交付和联合运行仍待单独验收。[SDK 离线执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-sdk-recheck-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

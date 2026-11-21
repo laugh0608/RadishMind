@@ -150,3 +150,7 @@ python3 scripts/eval/development_probe/run_joint.py \
 原生配方须把已核验的原生输入安装到 `/opt/radishmind/pillow-native`，库目录为 `lib`。`pkg-config` 使用 `/usr/bin/pkg-config`，先查前缀下的 `lib/pkgconfig`、`share/pkgconfig`，再查 `system-pc` 中显式放行的镜像 `xau.pc` 及其 `Requires: xproto` 对应的 `xproto.pc`。检查要求 `xcb-proto` 和 `xcb` 的 `.pc` 版本为 1.17.0，`libxcb.so`、zlib-ng 兼容模式的 `libz.so` 均解析到前缀内且 SONAME 对应 `libxcb.so.1`、`libz.so.1`。LibXau 使用构建器 `/usr/lib64/libXau.so.6.0.0`。实际 wheel 的 ELF 依赖在修复后核对。
 
 测试阶段将 `--cibw-test-environment` 输出设为 `CIBW_TEST_ENVIRONMENT_LINUX`，从已验 RPM 展开的 `/opt/radishmind/pillow-inputs/fribidi/usr/lib64` 加载 FriBidi。将 `CIBW_TEST_COMMAND_LINUX` 设为 `cd {project} && bash .radishmind/pillow/pillow-test.sh`，由脚本把已验图片放入 `Tests/images/` 并运行上游测试命令。`pillow-test-requirements.lock` 记录 Pillow `tests` extra 与 NumPy 的完整哈希闭包。`native-build.sh --prepare-only ARCHIVES NEW_DIRECTORY` 只校验哈希、解包、应用补丁并提取告知。本地暂存目录、文件指纹和主控限制均已记录。[实物预检回执](pillow-offline-build-inputs-result-20261119.json) · [测试来源锁定记录](pillow-offline-test-sources-20261119.json)
+
+### Pillow 候选的伴随告知与 SDK 复验
+
+`pillow-notice-supplements/` 内的五份补充告知与 `13.0.0+radishmind.1` wheel 摘要绑定。使用 `sdk_notice_delivery.verify` 对照目标 SDK 中真实离线安装的 pip 报告和告知正文。已有冻结锁仍用于识别目标镜像的原始安装，复验将候选安装到容器的临时目录。正式交付时须将伴随告知纳入最终镜像的交付清单并复核实际可读性。[告知清单](pillow-notice-supplements/manifest.json) · [许可来源](pillow-notice-sources-20261121.json) · [SDK 复验](pillow-sdk-recheck-result-20261121.json)
