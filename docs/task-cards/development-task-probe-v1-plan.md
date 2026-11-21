@@ -188,7 +188,15 @@ SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩�
 
 同一摘要的禁网、只读根容器以默认 `65532:65532` 通过 119 项安装报告与冻结锁的全量核对、`pip check`、镜像内 42 份告知及源码获取说明读取。Pillow 实际加载、六种编解码、ICC 转换、Raqm 夹具和 SDK 同步 / 异步图像处理通过。4 项遥测可选依赖、7 项 LLM 子合同及 3 项 SDK 工作进程用例通过。
 
-随后，CPython 动态库归属探针将 `dpkg-query --search` 的 diversion 提示误作包名，容器退出码为 1。按约定停窗并清理所属容器，联合用例尚未开始。解析器修正在宿主机用归属和 diversion 样例核对，待授权在同一镜像中复核，并运行正常、旧测试失效、命令中取消三个联合用例。伴随源码仍须处理具名缺口，再由接收方按最终镜像摘要从实际渠道取得并核验。阶段 0 待许可交付和正式采用复评。[构建与运行回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json)
+随后，CPython 动态库归属探针将 `dpkg-query --search` 的 diversion 提示误作包名，容器退出码为 1。按约定停窗并清理所属容器，该窗口未启动联合用例。解析器修正在宿主机用归属和 diversion 样例核对。[构建与运行回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json)
+
+#### 2026-11-21 最终 SDK 联合回归通过
+
+获准复用最终镜像后，在禁网、只读根、默认 `65532:65532` 容器中，对解释器、`libpython` 和 78 个标准库扩展执行动态库解析。20 个解析到的库文件均核对路径、SHA-256 和归属。Debian 库对应 14 组精确源包，`.dsc` 的 `Checksums-Sha256` 与 33 个留存源码文件逐项一致，`libpython` 对应 CPython 3.12.16 源码。`_tkinter` 引用的 Tcl / Tk 库在镜像中缺失，保留为可选功能边界。
+
+同一摘要通过正常修改、测试、保存与导出，旧测试证据失效，以及命令中取消三个联合用例。取消在 121 毫秒内确认终止并保留未知结果。三例均确认 SDK 身份为 `65532:65532`、capability 为空、Docker 管理 socket 与控制数据访问被拒。控制与代码容器已清理，宿主无须补救。本运行窗口耗时 22.634 秒。[联合运行与源码归属回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-runtime-closeout-20261121.json)
+
+已按最终镜像和冻结锁重核 301 份留存材料的大小与摘要，形成拟交付路径清单。继续裁决 `cryptography 50.0.2` 的历史构建容器和来源集合、`certifi 2026.10.23` 与 pip 内嵌 `certifi 2024.8.30` 的历史生成输入、`regex 2026.9.29` 的继承依据，以及其余覆盖范围。实际交付目录和接收方渠道待确认。接收方按摘要取得全套对应文件并复算后，再复评正式采用与阶段 0 出口。[来源裁决](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#closeout-decision)
 
 ## 2026-11-12 收尾与下次接续
 
