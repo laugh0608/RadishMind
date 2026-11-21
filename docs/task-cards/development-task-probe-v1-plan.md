@@ -143,6 +143,16 @@ Codex Desktop 更新重启打断宿主构建进程。宿主日志停在 HarfBuzz
 
 本次输出目录为空。Pillow wheel 编译、`auditwheel repair`、三条上游测试与产物 SHA-256、动态链接和许可告知核对仍待完成。本次授权的一次重试已结束。下次获准运行时，构建监督与退出记录应可在桌面重启后接续。
 
+#### 2026-11-21 独立监督构建与 wheel 验收
+
+所有者批准一次重试。宿主使用用户域的一次性 `launchd` 任务。探针在启动命令返回后写入记录，实测父进程为 PID 1，`launchd` 保留探针退出码 23。正式任务以同样方式保存监督日志、退出状态与 Docker 生命周期，运行期间未人为重启 Codex Desktop。构建复用固定镜像、只读离线输入及本次专用缓存。唯一容器实测禁网、4 核 CPU 配额和 8 GiB 内存，运行窗口共 211.215 秒，主控退出码为 0。构建容器与一次性监督任务均已清理。
+
+`auditwheel repair` 通过，产出一个 CPython 3.12 AArch64 wheel，包含 `manylinux_2_27_aarch64` 和 `manylinux_2_28_aarch64` 两个标签。上游 `selftest.py` 通过 59 项，`checks/check_wheel.py` 通过 3 项，全量 pytest 通过 5697 项、跳过 119 项，3 项预期失败。wheel 为 22597945 字节，宿主复算与构建日志的 SHA-256 一致，138 条 `RECORD` 核对通过。
+
+核对了 26 个 AArch64 ELF 中的动态链接，包括 8 个扩展、18 个随包共享库和 23 条通过 `$ORIGIN` 解析的包内依赖。另登记 8 个外部 SONAME。候选引用的 108 个 CPython 符号均在 SDK CPython 3.12.16 的已验 `libpython` 中找到，目标 SDK 的实际加载和受影响流程仍待运行。
+
+wheel 内的 `LICENSE` 逐字节匹配 Pillow 正文与 28 段已准备的告知。验收发现 Raqm 已编入扩展，其源码专属版权声明未出现在 wheel 告知中。LibXau 由 `auditwheel` 随 Libxcb 带入，构建器 RPM 声明为 MIT，wheel 中尚未对照到它的专属许可正文。FriBidi 共享库仅供容器测试，成品保留动态加载 shim。后续先闭合具名告知，再完成目标 SDK 运行复验和阶段 0 许可交付复评。[构建、测试、摘要与许可回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-launchd-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

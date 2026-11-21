@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-11-21（阶段 0 Pillow 禁网重试）
+更新时间：2026-11-21（阶段 0 Pillow 候选 wheel 构建）
 
 ## 文档职责
 
@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- Pillow 禁网重试通过工作区缓存初始化并完成原生 `before_all`。桌面更新打断宿主构建，输出目录为空，唯一容器已清理。[任务卡与执行回执](task-cards/development-task-probe-v1-plan.md#2026-11-21-禁网重试与停窗)
+- Pillow 单 wheel 已完成禁网构建、`auditwheel repair` 与三条上游测试。候选摘要和动态链接已核对，Raqm 和 LibXau 具名告知及目标 SDK 运行复验待闭合。[任务卡与执行回执](task-cards/development-task-probe-v1-plan.md#2026-11-21-独立监督构建与-wheel-验收)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -31,7 +31,7 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 完成单 wheel 禁网构建 | 获准后复用已验主控、镜像与输入，完成编译、修复和 Pillow 测试，记录唯一候选 wheel 的 SHA-256、动态链接和许可告知。 [重试结果](task-cards/development-task-probe-v1-plan.md#2026-11-21-禁网重试与停窗) |
+| 1 | 闭合 Pillow 候选告知并复验目标 SDK | 补齐 Raqm 和 LibXau 的精确许可正文与成品对应，在 SDK CPython 3.12.16 验证实际加载和受影响流程。 [构建与核对结果](task-cards/development-task-probe-v1-plan.md#2026-11-21-独立监督构建与-wheel-验收) |
 | 2 | 验收一条选定候选的最终交付 | 来源与告知齐备后，另行授权精确镜像 / 伴随源码交付、实际获取与受影响 SDK / 联合复验；[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用 |
 | 3 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 
