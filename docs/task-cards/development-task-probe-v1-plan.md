@@ -210,6 +210,38 @@ SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩�
 
 CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文件的 Git blob ID、大小与 SHA-256。`regex` 的 `src/_regex.c` 与 `regex/_main.py` 可定位到两版上游的 Secret Labs 与 CNRI 告知。与 CPython 3.1 `_sre.c` 的三类对象初始化还存在相同实现区间。共同区间仍无法确定唯一继承提交，解析器和编译器主体及完整告知范围待裁决。继续保留 CNRI 1.6 正文与 1.6.1 差异记录。联网窗口已结束，本地交付组装待授权。[执行与比对回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-result-20261121.json)
 
+#### 2026-11-21 本地告知裁决与 cryptography 最小补证方案
+
+所有者确认 standalone `certifi 2026.10.23` 与 pip `25.0.1` 内嵌的 `certifi 2024.8.30` 以各自已验发行源码、PEM、生成配方及告知交付。内嵌版本保留实际 pip vendored 树和版本记录。原始生成响应、生成器版本及 Mozilla 输入提交归历史复现。
+
+`regex 2026.9.29` 已复算精确 wheel 与 sdist 摘要、wheel 九项带摘要的 `RECORD` 条目、两份 Python 实现和 `LICENSE.txt` 的归档对应、八个 CPython 文件的 Git blob ID 与 SHA-256，以及五处共同区间。两版 `sre_parse.py` 和 `sre_compile.py` 与当前核心只有短顺序匹配，唯一继承提交和完整演进链归历史复现。最终镜像原验收已在默认 `65532:65532` 下按锁校验 CNRI Python 1.6 全文。轮内保留 Apache 2.0、Secret Labs 及可读的 Python 前端改动记录。两份历史 CPython `LICENSE`、完整继承告知与改动摘要按镜像摘要随源码同交付。**本地同交付路线无需为这项告知重建镜像。** 授权组装后按清单复验接收方实际取得的告知字节。[伴随源码告知](../../scripts/eval/development_probe/sdk_variant/regex-source-notice-20261121.md) · [原镜像验收回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json)
+
+同时确认 `_regex_unicode.c` 已编入该 AArch64 扩展，保留其源文件名和字符属性符号。精确发行源码带生成脚本与生成表，二者声明 Unicode 18.0.0。复用已核验的通用 Unicode License V3 全文，以明确关联 `regex` 表的伴随文档满足该正文的关联文档告知选项。离线留存尚未找到对应 `UCD.zip` 或逐文件对应输入。按现行生成输入交付口径，该项仍阻塞完整源码交付。接续应以原生成器离线重生成并逐字节比较两份生成文件来验证候选输入，另核其原始版权与许可。该项单独裁决，未计入下述窗口。
+
+`cryptography 50.0.2` 精确发行源码的 `Cargo.lock` SHA-256 为 `98778208027ce05bfff0db88c290f28355eb20e685f0c728775359fb91a1a4c4`。32 个 registry 项中，12 个 wheel SBOM `required` 项和 4 个 `excluded` 项已在本机 Cargo 缓存按锁逐项复算通过。下表列出其余 13 个 `required` 项。ELF 路径是目标构件的源码范围下限，`all_targets=true` 的标签仍需和目标图及过程宏输入交叉核对。
+
+| crate | 固定版本 | `Cargo.lock` 的 SHA-256 | 补证依据 |
+| --- | --- | --- | --- |
+| `asn1` | `0.24.1` | `c9795210620c0cb3f9a7ce4f882808c38e1ef7b347c90591dceae0886e031fb1` | ELF 路径 |
+| `base64` | `0.23.0` | `b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9` | ELF 路径 |
+| `openssl` | `0.10.81` | `77823a27f0babb03091cb9ed9ef80af3b39dbc82f97e8fa530374b7dafd87a45` | ELF 路径，Rust crate |
+| `pem` | `4.0.0` | `d354a98a3d1251555de99e8fdd8afda05573c31b82f59063a7b0a29b5527f120` | ELF 路径 |
+| `pyo3` | `0.29.2` | `4688ddedf473e32662b9b067670129a8afb8c18e351482c70d62ba4a88171e8b` | ELF 路径 |
+| `pyo3-ffi` | `0.29.2` | `e591a95526fead067432c3b3a33fc74770b87b1e04e73671090d9c2055a2b327` | ELF 路径 |
+| `asn1_derive` | `0.24.1` | `909e307f1cc32bb8bccbd98f446e6d1bf03fa30f7b53a4337da7181ad30fa11a` | `asn1` 的过程宏 |
+| `foreign-types` | `0.3.2` | `f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1` | `openssl` 的依赖 |
+| `foreign-types-shared` | `0.1.1` | `00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b` | `foreign-types` 的依赖 |
+| `openssl-macros` | `0.1.1` | `a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c` | `openssl` 的过程宏 |
+| `portable-atomic` | `1.14.0` | `3d20d5497ef88037a52ff98267d066e7f11fcc5e99bbfbd58a42336193aacec3` | `pyo3` 的依赖，核对目标和特性 |
+| `pyo3-macros` | `0.29.2` | `73225868fc1cd84eef2c3c230ddb91273bf1de46aeb8a4248da76d32a0924a1c` | `pyo3` 的过程宏 |
+| `pyo3-macros-backend` | `0.29.2` | `571575aa3749fa6216757dd47d2a3e7ef360f329a40f0666a9fbd14889024952` | `pyo3-macros` 的依赖 |
+
+1. 先复用本机已验归档和 OpenSSL 4.0.3 精确归档。下载仅使用 `https://static.crates.io/crates/<name>/<name>-<version>.crate`，按表每项最多一次，先取 ELF 已定位的六项。对其余七项，已有同一目标和特性下的编译材料、依赖图或宏调用证据足以排除时可省去相应归档。对其余仍有范围疑问的项保守取精确归档。逐项在解压前核对锁内 SHA-256，再流式读取 `Cargo.toml` 的名称、版本、许可表达式及 `LICENSE` / `COPYING` / `NOTICE` 等原文。拒绝越界、链接和重复成员。区分运行组件、构建输入及宏生成代码的归属。
+2. 实际构建改动优先接收可离线验证的上游同作业工件、材料清单或可验签的溯源。线上仅在有可用的新证据入口时，核对 `pyca/cryptography` 提交 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a`、运行 `36713008517` 第 2 次尝试、作业 `109937603244` / `109937607325`。来源限 `https://api.github.com/repos/pyca/cryptography/actions/jobs/<id>/logs`、日志指向的至多一个同作业 `https://api.github.com/repos/pyca/cryptography/actions/artifacts/<id>/zip`，或已证实与该作业绑定的不可变配方与补丁对象。Rust SBOM 时间落在两个作业的构建区间内，发行矩阵的 `abi3-py39` 与 `abi3-py311` 都使用 `cp311-cp311` 构建解释器。由工件中的 wheel SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04` 或可信证明中的 subject digest 确认归属，并查实际 ARM64 构建器和内置 `/opt/pyca/cryptography/openssl` 材料的不可变引用。
+3. 精确 wheel 已提供 OpenSSL `4.0.3` 源码摘要、`linux/aarch64` 和配置 flags。留存发行工作流提供 `OPENSSL_STATIC=1`、`pyo3/abi3-py311` 路径与 `auditwheel repair` 流程。将新证据与这些记录、源归档、`Cargo.lock` 及精确提交的 `.github/requirements/build-requirements.txt` 对齐，核对实际执行的 `VERSION.dat` / `SHLIB_VERSION` 改动、其他补丁、生成步骤和构建后随 wheel 带入的材料。通过固定配方与材料、补丁摘要或可核对的变更清单记录改动。通用 macOS / 外部产物脚本以及当前多架构容器 tag 都没有建立该绑定。两次日志跳转已失败，原路径无新依据时继续等待。实际来源和告知范围闭合后再裁决只用于重放的工具链记录。
+
+拟申请一次单线程窗口，合计至多 **18 次 HTTPS 请求**（crate 至多 13 次，构建证据至多 5 次，跳转和失败计入各自额度）、**20 MiB 正文、32 MiB 累计解压、64 MiB 峰值暂存、5 分钟总时限**。crate 正文合计至多 8 MiB、单项 2 MiB；单份日志至多 2 MiB，唯一可选工件至多 12 MiB，同时受总额限制。仅暂存于仓库 `tmp/` 中独立目录，按连接 8 秒、单请求 20 秒和总时限逐次计量，无自动重试。遇到归属错误、摘要不符、请求失败或任一上限即停并记录已验与缺项。原始 UCD、其他组件、容器层、构建与打包均在该窗口之外。本轮只完成离线核对和记录。
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
