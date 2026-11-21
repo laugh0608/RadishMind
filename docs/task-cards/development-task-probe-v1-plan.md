@@ -196,7 +196,13 @@ SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩�
 
 同一摘要通过正常修改、测试、保存与导出，旧测试证据失效，以及命令中取消三个联合用例。取消在 121 毫秒内确认终止并保留未知结果。三例均确认 SDK 身份为 `65532:65532`、capability 为空、Docker 管理 socket 与控制数据访问被拒。控制与代码容器已清理，宿主无须补救。本运行窗口耗时 22.634 秒。[联合运行与源码归属回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-runtime-closeout-20261121.json)
 
-已按最终镜像和冻结锁重核 301 份留存材料的大小与摘要，形成拟交付路径清单。继续裁决 `cryptography 50.0.2` 的历史构建容器和来源集合、`certifi 2026.10.23` 与 pip 内嵌 `certifi 2024.8.30` 的历史生成输入、`regex 2026.9.29` 的继承依据，以及其余覆盖范围。实际交付目录和接收方渠道待确认。接收方按摘要取得全套对应文件并复算后，再复评正式采用与阶段 0 出口。[来源裁决](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#closeout-decision)
+已按最终镜像和冻结锁重核 301 份留存材料的大小与摘要，形成拟交付路径清单。项目所有者确认由本人接收，走本地离线交付，目录按最终镜像清单摘要封定。接收方取得全套对应文件并复算后，再复评正式采用与阶段 0 出口。[来源裁决](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#closeout-decision)
+
+#### 2026-11-21 具名源码缺口复核
+
+本地复算确认 `cryptography 50.0.2` 的内嵌 OpenSSL 4.0.3 归档匹配精确 wheel 的 SBOM，原拟交付清单漏列此归档，已登记到候选清单补项。历史构建容器和 Rust 来源范围仍待用精确 ABI 的作业证据核对。两个 `certifi` 发行 PEM 均匹配已留存源码，历史原始响应、生成器和 Mozilla 输入仍缺。`regex` 的声明、精确发行源码和已装告知均有留存，仍待逐文件比对继承依据。
+
+拟只查询两个同名 ARM64 构建作业的日志、必要的同作业工件及 CPython 两个发行提交的指定文件。`certifi` 等待与对应发行关联的历史材料。本轮仅复核本地材料，联网补证和本地交付组装分别待授权。[补证范围、校验与上限](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-plan-20261121.json)
 
 ## 2026-11-12 收尾与下次接续
 

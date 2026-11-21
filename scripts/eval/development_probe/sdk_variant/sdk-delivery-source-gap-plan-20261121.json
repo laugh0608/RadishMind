@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "reviewed_locally_awaiting_acquisition_authorization",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "wheel_lock_sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab",
+  "cryptography": {
+    "wheel": {
+      "file": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+      "sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04"
+    },
+    "source_archive": "python/cryptography/50.0.2/cryptography-50.0.2.tar.gz",
+    "openssl_verified_local_addition": {
+      "path": "tmp/development-delivery-20261105/source-followup/openssl-4-0-3-source.1.body",
+      "bytes": 55235667,
+      "sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+      "relative_path": "python/cryptography/50.0.2/embedded/openssl-4.0.3.tar.gz"
+    },
+    "rust_elf_referenced_crates_minimum": [
+      {
+        "crate": "asn1",
+        "version": "0.24.1",
+        "cargo_lock_sha256": "c9795210620c0cb3f9a7ce4f882808c38e1ef7b347c90591dceae0886e031fb1"
+      },
+      {
+        "crate": "base64",
+        "version": "0.23.0",
+        "cargo_lock_sha256": "b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9"
+      },
+      {
+        "crate": "bitflags",
+        "version": "2.13.1",
+        "cargo_lock_sha256": "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
+      },
+      {
+        "crate": "itoa",
+        "version": "1.0.18",
+        "cargo_lock_sha256": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
+      },
+      {
+        "crate": "once_cell",
+        "version": "1.21.4",
+        "cargo_lock_sha256": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+      },
+      {
+        "crate": "openssl",
+        "version": "0.10.81",
+        "cargo_lock_sha256": "77823a27f0babb03091cb9ed9ef80af3b39dbc82f97e8fa530374b7dafd87a45"
+      },
+      {
+        "crate": "openssl-sys",
+        "version": "0.9.117",
+        "cargo_lock_sha256": "b47e7e6bb2c38cd930d25a23b40fa52e068c10e85f3e03a7f5ba5aaca5713695"
+      },
+      {
+        "crate": "pem",
+        "version": "4.0.0",
+        "cargo_lock_sha256": "d354a98a3d1251555de99e8fdd8afda05573c31b82f59063a7b0a29b5527f120"
+      },
+      {
+        "crate": "pyo3",
+        "version": "0.29.2",
+        "cargo_lock_sha256": "4688ddedf473e32662b9b067670129a8afb8c18e351482c70d62ba4a88171e8b"
+      },
+      {
+        "crate": "pyo3-ffi",
+        "version": "0.29.2",
+        "cargo_lock_sha256": "e591a95526fead067432c3b3a33fc74770b87b1e04e73671090d9c2055a2b327"
+      }
+    ],
+    "rust_sbom_all_targets_component_count": 39,
+    "historical_run": 36713008517,
+    "job_logs": [
+      "https://api.github.com/repos/pyca/cryptography/actions/jobs/109937603244/logs",
+      "https://api.github.com/repos/pyca/cryptography/actions/jobs/109937607325/logs"
+    ],
+    "exact_variant": "manylinux_2_34_aarch64 / cp311-cp311 / abi3-py311, run attempt 2",
+    "conditional_artifact": "Only the upload ID named by the selected job; GET /repos/pyca/cryptography/actions/artifacts/<id>/zip if the log lacks the wheel SHA-256.",
+    "acceptance": "将精确 ABI、运行批次、发布 wheel SHA-256、构建容器不可变摘要和可得到的输入清单绑定。保留 ELF 证据作为 Rust 组件下限。",
+    "response_limits_bytes": {
+      "per_job_log": 2097152,
+      "one_optional_artifact": 12582912
+    },
+    "next_scope": "本窗口只取具名作业日志和必要的同作业工件。已记录的 Rust 源码路径作为组件下限。若得到构建容器摘要，再按确切来源复评后续对象。"
+  },
+  "certifi": {
+    "instances": [
+      {
+        "version": "2026.10.23",
+        "release_commit": "b60466c9f2882d9cf088943c650b0faac06c080c",
+        "release_pr": 445,
+        "pem_bytes": 235863,
+        "pem_sha256": "2ef52ad56b4803e264045c915e55c236cbfa045b84b81efefc218a19eb44bd2b",
+        "certificate_count": 118,
+        "source_archive": "python/certifi/2026.10.23/certifi-2026.10.23.tar.gz",
+        "historical_raw_response_generator_and_mozilla_input": "unavailable_in_local_evidence"
+      },
+      {
+        "version": "2024.8.30",
+        "release_commit": "325c2fde4f8eec10d682b09f3b0414dc05e69a81",
+        "release_pr": 304,
+        "pem_bytes": 299427,
+        "pem_sha256": "94edeb66e91774fcae93a05650914e29096259a5c7e871a1f65d461ab5201b47",
+        "certificate_count": 151,
+        "source_archive": "python/certifi/2024.8.30/certifi-2024.8.30.tar.gz",
+        "historical_raw_response_generator_and_mozilla_input": "unavailable_in_local_evidence"
+      }
+    ],
+    "known_later_bump_job": 120775696567,
+    "history_observation": "新版已留存的 bump 作业晚于发行提交。旧版发行提交的已留存运行查询无结果。两版生成配方只消费动态端点，未绑定历史响应及生成输入。",
+    "next_input": "仅当存在与对应发行提交关联的原始响应、生成器不可变版本及 Mozilla 输入提交才取证。离线执行已验过滤规则后逐字节比较各自发布 PEM。",
+    "requests_in_proposed_window": 0,
+    "future_local_intake_limit_per_version_bytes": 5767168
+  },
+  "regex": {
+    "wheel": {
+      "file": "regex-2026.9.29-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl",
+      "sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca"
+    },
+    "source_archive": "python/regex/2026.9.29/regex-2026.9.29.tar.gz",
+    "installed_notice": {
+      "path": "scripts/eval/development_probe/sdk_variant/notice-supplements/regex-2026.9.29-CNRI-Python-1.6-LICENSE.txt",
+      "bytes": 3511,
+      "sha256": "d4c9c432696dec0f8af87cf38160a671648c3591459d9edc785796938bba7c00"
+    },
+    "candidate_ref_api": [
+      "https://api.github.com/repos/python/cpython/git/ref/tags/v2.6",
+      "https://api.github.com/repos/python/cpython/git/ref/tags/v3.1"
+    ],
+    "allow_one_annotated_tag_peel_each": true,
+    "paths_at_selected_commits": [
+      "Modules/_sre.c",
+      "Lib/re.py",
+      "Lib/sre_parse.py",
+      "Lib/sre_compile.py"
+    ],
+    "contents_template": "https://api.github.com/repos/python/cpython/contents/<path>?ref=<commit-sha>",
+    "verification": "复算 Git blob ID 与 SHA-256；以源文件和行号比对已留存 regex sdist 的 C 实现、Python 入口、解析器和版权告知；无可定位的继承证据则保留缺口。",
+    "maximum_http_requests": 12,
+    "maximum_response_body_bytes": 4194304
+  },
+  "proposed_network_limit": {
+    "requests_including_redirects": 18,
+    "response_body_bytes": 20971520,
+    "peak_staging_bytes": 67108864,
+    "elapsed_seconds": 300,
+    "concurrency": 1
+  },
+  "offline_delivery": {
+    "recipient": "项目所有者",
+    "method": "local_directory",
+    "proposed_path": "dist/sdk-delivery/sources/5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+    "locked_source_file_plan": {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/remaining-20261121/retained-source-file-plan.json",
+      "bytes": 98168,
+      "sha256": "934d30f00f4e837d3b05e74db6d3f87babb6a118d8d19018ea1874819e9fad2a"
+    },
+    "verified_candidate_files": 302,
+    "verified_candidate_bytes": 569315670,
+    "scope_complete": false,
+    "separate_authorization_required": true,
+    "proposed_pack_limits": {
+      "source_payload_bytes": 805306368,
+      "additional_disk_bytes": 1073741824,
+      "elapsed_seconds": 600
+    },
+    "recipient_checks": [
+      "通过实际本地交付目录打开 manifest.json，分别核对最终镜像清单摘要与冻结 wheel 锁摘要。",
+      "拒绝绝对路径、路径越界、符号链接和重复清单项，从交付目录逐文件复算大小和 SHA-256。",
+      "登记实际取到的清单摘要、文件计数和复核结果。"
+    ]
+  },
+  "boundary": [
+    "source_coverage_open",
+    "no_network_requests",
+    "no_package_assembled"
+  ]
+}
