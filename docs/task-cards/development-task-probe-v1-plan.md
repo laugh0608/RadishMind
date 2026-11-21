@@ -182,7 +182,13 @@ SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩�
 
 `docker image load --platform linux/arm64` 成功。脚本误将指定平台查询返回的清单 `Id` 与配置摘要比较。独立复核通过 OrbStack 本地 Docker Unix socket 确认原索引摘要、ARM64 清单摘要、`linux/arm64/v8`、CPython 3.12.16 及 4 个有序 DiffID，ARM64 清单及对应证明均可用。[导入与离线解析回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-base-image-20261121.json)
 
-下一窗口待授权。先落实构建器对外部 registry 的访问隔离，按上表验收最终镜像的禁网构建、119 项冻结安装、非 root 告知及 SDK 和联合运行，记录最终摘要。继续处理具名源码缺口，并让接收方按该摘要从实际交付渠道取得并逐项核验伴随源码。阶段 0 仍待许可交付闭合与正式采用复评。
+#### 2026-11-21 最终 SDK 禁网构建与运行停窗
+
+获准后，从 OrbStack 本地镜像导出并重新核对原 OCI 索引和 11 个对象。用 BuildKit 源策略拒绝 registry 和远程来源，回环 registry 反例明确被策略拒绝。正式构建只消费本地 OCI 上下文与已验 wheel，不使用构建缓存，所有 `RUN` 禁网。一次正式构建成功，最终 `linux/arm64` 清单为 `sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf`。Buildx 活动记录在求解前改用工作区临时目录，配置摘要由本地镜像描述符与构建导出日志交叉核对。
+
+同一摘要的禁网、只读根容器以默认 `65532:65532` 通过 119 项安装报告与冻结锁的全量核对、`pip check`、镜像内 42 份告知及源码获取说明读取。Pillow 实际加载、六种编解码、ICC 转换、Raqm 夹具和 SDK 同步 / 异步图像处理通过。4 项遥测可选依赖、7 项 LLM 子合同及 3 项 SDK 工作进程用例通过。
+
+随后，CPython 动态库归属探针将 `dpkg-query --search` 的 diversion 提示误作包名，容器退出码为 1。按约定停窗并清理所属容器，联合用例尚未开始。解析器修正在宿主机用归属和 diversion 样例核对，待授权在同一镜像中复核，并运行正常、旧测试失效、命令中取消三个联合用例。伴随源码仍须处理具名缺口，再由接收方按最终镜像摘要从实际渠道取得并核验。阶段 0 待许可交付和正式采用复评。[构建与运行回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json)
 
 ## 2026-11-12 收尾与下次接续
 
