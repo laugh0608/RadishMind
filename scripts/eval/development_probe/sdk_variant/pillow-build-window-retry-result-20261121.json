@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "source_profile": "pillow-build-window-preflight-20261119.json",
+  "prior_attempt": "pillow-build-window-result-20261119.json",
+  "status": "interrupted_by_desktop_update",
+  "build_identifier": "cp312-manylinux_aarch64",
+  "image": "sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+  "launch_utc": "2026-11-21T05:39:27.955397+00:00",
+  "host_build_result": "missing_after_desktop_restart",
+  "cibw_cache": {
+    "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-02/cibuildwheel-cache",
+    "sentinel_sha256": "a243883e5d294055c1a026c7dfea1a5384d3a84d864de11154c7b167a513c9d8",
+    "actual_cli_passed_initialization": true
+  },
+  "container": {
+    "id": "cb007e4fa5169df642709a97766266305262343b65ab54cf51c45804e77f42f4",
+    "label": "org.radishmind.pillow-build=20261121-run-02-abd1230aa9e4",
+    "network_mode": "none",
+    "cpu_quota_cores": 4.0,
+    "memory_bytes": 8589934592,
+    "pid_limit": 512,
+    "input_mount_destination": "/opt/radishmind/pillow-inputs",
+    "input_mount_read_only": true,
+    "started_utc": "2026-11-21T05:39:28.477877271Z",
+    "finished_utc": "2026-11-21T05:42:55.763766054Z",
+    "shell_exit_code": 0,
+    "oom_killed": false,
+    "removed_utc": "2026-11-21T05:43:25.792257+00:00",
+    "events": [
+      {
+        "action": "create",
+        "time_nano": 1795239568435551585
+      },
+      {
+        "action": "start",
+        "time_nano": 1795239568570395167
+      },
+      {
+        "action": "kill",
+        "time_nano": 1795239755169945830,
+        "signal": "15"
+      },
+      {
+        "action": "die",
+        "time_nano": 1795239775813365722,
+        "exitCode": "0"
+      },
+      {
+        "action": "destroy",
+        "time_nano": 1795239805761274391
+      }
+    ],
+    "remaining": 0
+  },
+  "outcome": {
+    "authorized_attempts": 1,
+    "launch_attempts": 1,
+    "containers_created": 1,
+    "wall_time_limit_minutes": 90,
+    "host_log_last_phase": "harfbuzz",
+    "container_log_last_phase": "before_all_freetype_with_harfbuzz",
+    "before_all_command_exit_from_container_protocol": 0,
+    "wheel_compile_observed": false,
+    "auditwheel_repair": "not_run",
+    "upstream_tests_run": 0,
+    "candidates": [],
+    "artifact_sha256_elf_and_license_verification": "no_artifact"
+  },
+  "retained_evidence": [
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-02/build.log",
+      "bytes": 1158400,
+      "sha256": "5ee59f32a58ba48f0f0b8ec5625b0c5c977f0d9ff1e8e7d906991ee5964c1364"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-02/docker-log-tail.log",
+      "bytes": 23887,
+      "sha256": "b9ed0b7789605077eca2d17e26f5a2bafabe0469d34fc7327e7591e6ae6e2883"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-02/container.json",
+      "bytes": 548,
+      "sha256": "43477368ba1d7d7c7f8adbac39e16b89887e30151dbe9dd7bc7e11de3cf5e388"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-02/engine-events-recovered.jsonl",
+      "bytes": 4337,
+      "sha256": "de1e80f6c2496d9a464fe918876c76cf48949a89534c73ccd9c92b254046389f"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-02/interruption-cleanup.json",
+      "bytes": 518,
+      "sha256": "ba5b2a405e0cf1708bc1d71f478c134ef484f72c90a67fab1f9869de38fb6915"
+    }
+  ]
+}

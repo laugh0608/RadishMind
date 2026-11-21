@@ -135,6 +135,14 @@
 
 后续构建应在启动前将 `CIBW_CACHE_PATH` 指向本次工作区内的独立可写目录。已用同一 cibuildwheel 版本离线验证目录和 `CACHEDIR.TAG` 可创建，验证未调用构建入口。再次提交构建命令须获准开启新窗口。
 
+#### 2026-11-21 禁网重试与停窗
+
+所有者批准一次重试。cibuildwheel 4.3.1 使用工作区本次专用的 `CIBW_CACHE_PATH`，通过缓存初始化后启动唯一容器。容器使用同一固定镜像，实测为 `--network=none`、4 核 CPU 配额、8 GiB 内存和只读的离线输入挂载。Meson 和 Ninja 从本地 wheelhouse 安装，原生构建进入 HarfBuzz 与第二轮 FreeType。
+
+Codex Desktop 更新重启打断宿主构建进程。宿主日志停在 HarfBuzz，恢复取得的容器日志末尾显示第二轮 FreeType 安装和 `before_all` 命令返回 0。Docker 事件记录一次创建、启动、SIGTERM、退出和删除，容器运行约 3 分 27 秒。已按本次标签及完整 ID 清理，复核残留为零。宿主日志、容器日志末尾及事件摘要均已留存。[重试执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-retry-result-20261121.json)
+
+本次输出目录为空。Pillow wheel 编译、`auditwheel repair`、三条上游测试与产物 SHA-256、动态链接和许可告知核对仍待完成。本次授权的一次重试已结束。下次获准运行时，构建监督与退出记录应可在桌面重启后接续。
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
