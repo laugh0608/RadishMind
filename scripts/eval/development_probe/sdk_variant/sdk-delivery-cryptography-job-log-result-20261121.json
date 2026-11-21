@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "verified_upload_job_and_pulled_builder_openssl_patch_provenance_open",
+  "previous_artifact_receipt": "scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-connector-result-20261121.json",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "repository": "pyca/cryptography",
+  "workflow": {
+    "run_id": 36713008517,
+    "run_attempt": 2,
+    "job_id": 109937607325,
+    "head_sha": "4dda5c7fe4ae71b8925f2551910a0ef959df9c7a",
+    "build_features": "pyo3/abi3-py311"
+  },
+  "log": {
+    "connector_calls": 1,
+    "decoded_bytes": 89161,
+    "maximum_decoded_bytes": 2097152,
+    "path": "tmp/cryptography-job-109937607325-20261121.ASOAGC/job.log",
+    "sha256": "c1667857c2d4a77fdbc76e9df531a4162a46fa0168f0899b118c6fd9b540b50e",
+    "internal_redirect_count_observable": false
+  },
+  "artifact": {
+    "id": 11095506118,
+    "archive": {
+      "path": "tmp/cryptography-artifact-11095506118.zip",
+      "bytes": 4689642,
+      "sha256": "f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f",
+      "members": 1
+    },
+    "frozen_wheel": {
+      "name": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+      "bytes": 4737859,
+      "sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04",
+      "crc32": "d6a79121"
+    },
+    "log_lines": {
+      "head_sha": 338,
+      "run_id": 372,
+      "abi_features": 400,
+      "repaired_wheel": 581,
+      "zip_sha256": 928,
+      "successful_upload_with_id_and_size": 931
+    }
+  },
+  "builder": {
+    "pulled_name": "ghcr.io/pyca/cryptography-manylinux_2_34:aarch64",
+    "pull_digest": "sha256:977bf9d088ba2d1b24b20981ac58fd81b4631122edbba51e232746ef6d8efb85",
+    "pull_log_lines": [
+      52,
+      195,
+      196
+    ],
+    "manifest_media_type_and_arm64_child_verified": false
+  },
+  "openssl": {
+    "linked_version_observed": "OpenSSL 4.0.3 29 Sep 2026",
+    "loaded_and_linked_log_lines": [
+      823,
+      824
+    ],
+    "openssl_dir": "/opt/pyca/cryptography/openssl",
+    "openssl_static": true,
+    "build_command_lines": [
+      406,
+      407,
+      408
+    ],
+    "wheel_sbom_member": "cryptography-50.0.2.dist-info/sboms/sbom.json",
+    "wheel_sbom_sha256": "b0bf7d97f711a6abea7658c0e84ad5954226663559cba3ae14321e70adb72184",
+    "declared_source_archive_sha256": "325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9",
+    "declared_configuration_flags": "no-zlib no-shared no-module no-comp no-apps no-docs no-sm2-precomp no-atexit enable-ec_nistp_64_gcc_128",
+    "retained_source_archive_sha256_matches_sbom": true,
+    "builder_source_and_patch_set_bound": false,
+    "shlib_version_edit_verified": false,
+    "missing": "将实际拉取的容器摘要追溯到该 ARM64 构建器静态 OpenSSL 的实际源归档、执行配方与补丁清单。"
+  },
+  "boundary": {
+    "other_online_requests": 0,
+    "rebuild_started": false,
+    "delivery_assembled": false,
+    "stage_0_exited": false
+  }
+}
