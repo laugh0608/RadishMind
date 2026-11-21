@@ -202,7 +202,13 @@ SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩�
 
 本地复算确认 `cryptography 50.0.2` 的内嵌 OpenSSL 4.0.3 归档匹配精确 wheel 的 SBOM，原拟交付清单漏列此归档，已登记到候选清单补项。历史构建容器和 Rust 来源范围仍待用精确 ABI 的作业证据核对。两个 `certifi` 发行 PEM 均匹配已留存源码，历史原始响应、生成器和 Mozilla 输入仍缺。`regex` 的声明、精确发行源码和已装告知均有留存，仍待逐文件比对继承依据。
 
-拟只查询两个同名 ARM64 构建作业的日志、必要的同作业工件及 CPython 两个发行提交的指定文件。`certifi` 等待与对应发行关联的历史材料。本轮仅复核本地材料，联网补证和本地交付组装分别待授权。[补证范围、校验与上限](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-plan-20261121.json)
+方案限定两个同名 ARM64 构建作业的日志、必要的同作业工件及 CPython 两个发行提交的指定文件。`certifi` 等待与对应发行关联的历史材料。[补证范围、校验与上限](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-plan-20261121.json)
+
+#### 2026-11-21 具名源码补证结果
+
+一次授权窗口完成 14 次 HTTPS 请求尝试，共取得 483682 字节正文，耗时 55.651 秒。`certifi` 零请求。两个 `cryptography` 作业的日志端点均返回 GitHub 存储跳转，下载连接失败，日志正文和同作业工件均未取得。精确 wheel 与作业、历史构建镜像摘要、构建材料集合的绑定仍缺。
+
+CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文件的 Git blob ID、大小与 SHA-256。`regex` 的 `src/_regex.c` 与 `regex/_main.py` 可定位到两版上游的 Secret Labs 与 CNRI 告知。与 CPython 3.1 `_sre.c` 的三类对象初始化还存在相同实现区间。共同区间仍无法确定唯一继承提交，解析器和编译器主体及完整告知范围待裁决。继续保留 CNRI 1.6 正文与 1.6.1 差异记录。联网窗口已结束，本地交付组装待授权。[执行与比对回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-result-20261121.json)
 
 ## 2026-11-12 收尾与下次接续
 
