@@ -205,6 +205,45 @@ class SDKNoticeDeliveryTests(unittest.TestCase):
             self.assertEqual(len(manifest["packages"]), 6)
             self.assertEqual(sum(len(p["files"]) for p in manifest["packages"]), 14)
 
+    def test_delivery_binds_pillow_notices_and_all_frozen_wheels(self):
+        variant = ROOT / "scripts/eval/development_probe/sdk_variant"
+        original = (variant / "requirements-linux-arm64-py312.lock").read_text()
+        pillow_manifest = json.loads((variant / "pillow-notice-supplements/manifest.json").read_text())
+        pillow, = pillow_manifest["packages"]
+        old_version, old_hash = notices.frozen_packages(original)["pillow"]
+        lock = original.replace(f"pillow=={old_version} --hash=sha256:{old_hash}",
+                                f"pillow=={pillow['version']} --hash=sha256:{pillow['wheel_sha256']}")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            delivery = root / "delivery"
+            with self.assertRaisesRegex(ValueError, "Pillow notices do not match"):
+                notices.prepare(variant, delivery, original)
+            self.assertFalse(delivery.exists())
+            notices.prepare(variant, delivery, lock)
+            manifest = json.loads((delivery / "manifest.json").read_text())
+            self.assertEqual(manifest["packages"][-1], pillow)
+            self.assertEqual(len(list(delivery.glob("*.txt"))), 19)
+            lock_path = root / "requirements.lock"
+            lock_path.write_text(lock)
+            report_path = root / "installation.json"
+            report = {"version": "1", "install": [
+                {"metadata": {"name": name, "version": version},
+                 "download_info": {"url": f"file:///wheelhouse/{name}.whl", "archive_info": {"hashes": {"sha256": sha256}}}}
+                for name, (version, sha256) in notices.frozen_packages(lock).items()]}
+            report_path.write_text(json.dumps(report))
+            notices.verify(delivery, report_path, lock_path)
+
+            first = report["install"][0]["download_info"]
+            first["url"] = "https://example.invalid/wheel.whl"
+            report_path.write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "local wheels"):
+                notices.verify(delivery, report_path, lock_path)
+            first["url"] = "file:///wheelhouse/wheel.whl"
+            first["archive_info"]["hashes"]["sha256"] = "f" * 64
+            report_path.write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError, "full frozen wheel lock"):
+                notices.verify(delivery, report_path, lock_path)
+
     def test_cpython_delivery_rejects_changed_notice_and_extension(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-11-21（阶段 0 Pillow 告知与 SDK 离线复验）
+更新时间：2026-11-21（阶段 0 最终 SDK 交付离线预检）
 
 ## 文档职责
 
@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- Pillow 候选的 Raqm 和 LibXau 告知已按摘要绑定，目标 SDK CPython 3.12.16 的禁网安装、图像流程和受影响 SDK 回归已通过。下一步验收最终镜像、镜像内告知与伴随源码交付。[任务卡与执行回执](task-cards/development-task-probe-v1-plan.md#2026-11-21-候选告知与目标-sdk-复验)
+- 最终 SDK 交付上下文已通过离线试解析。仅替换 Pillow，逐字节复用其余 118 个 wheel，五份伴随告知已接入。实际构建前须确认固定基础镜像可在本地解析，完整伴随源码及接收方获取仍待验收。[任务卡与预检回执](task-cards/development-task-probe-v1-plan.md#2026-11-21-最终-sdk-交付离线预检)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -31,7 +31,7 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 验收一条选定候选的最终交付 | 来源与告知齐备后，另行授权精确镜像 / 伴随源码交付、实际获取与受影响 SDK / 联合复验。[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用。 |
+| 1 | 验收一条选定候选的最终交付 | 确认固定基础镜像本地供给后，获准执行禁网构建、非 root 告知核验及受影响 SDK / 联合复验。完成伴随源码覆盖与接收方获取。[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合才正式采用。 |
 | 2 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 
 固定构建器静态证据按路径、摘要、版本与包归属维护；容器运行和构建另行确认。SDK 交付镜像中的 CPython 动态库归属、其它具名来源及最终许可交付继续沿集中任务卡处理。

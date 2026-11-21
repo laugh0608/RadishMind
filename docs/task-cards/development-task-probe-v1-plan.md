@@ -161,6 +161,21 @@ wheel 内的 `LICENSE` 逐字节匹配 Pillow 正文与 28 段已准备的告知
 
 SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩至 8000 像素长边、21 张图缩至 2000 像素长边。4 项遥测可选依赖检查、7 项 LLM 子合同及 3 项 SDK 工作进程用例通过。前两次探针分别修正了告知文件名和 Tk 可选行为的断言。最终复验退出码为 0，三次探针的所属容器均已清理。最终 SDK 镜像、告知的镜像内交付、伴随源码交付和联合运行仍待单独验收。[SDK 离线执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-sdk-recheck-result-20261121.json)
 
+#### 2026-11-21 最终 SDK 交付离线预检
+
+固定目标为 `linux/arm64`、CPython 3.12.16 和历史验收的 `python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159`。从已验 119 项锁仅替换 Pillow 一行，其他 118 个 wheel 逐字节复用。新锁 SHA-256 为 `c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab`。以目标平台和 Python marker 执行禁网、强制哈希的 pip 试解析，119 项均命中本地 wheel。五份 Pillow 告知已并入交付清单，连同已有 wheel、pip 和 CPython 补充告知共 42 份。[离线预检回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-preflight-20261121.json)
+
+伴随源码按新锁绑定。复算了 181 个 SDK 相关留存归档、61 份 Debian `.dsc` 和各自 `Checksums-Sha256` 文件集，另核对 15 个首批覆盖源码映射条目、Pillow 的 31 个源码及配方输入和 SDK 变体的 3 个构建输入。历史归档和取证文件的字节齐备记录沿用已验分片。精确来源与完整覆盖范围仍有具名待办，接收方获取尚待验收。[伴随源码清单](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-sources-20261121.json)
+
+| 验收环节 | 通过条件 |
+| --- | --- |
+| 禁网构建 | 选定构建器能在本地按完整摘要解析固定 AArch64 基础镜像，禁止访问外部 registry，构建步骤使用 `--network=none`。pip 安装报告须与 119 项锁的名称、版本和本地 wheel SHA-256 全量一致，`pip check` 通过，并记录实际镜像身份。OrbStack 当前查不到该基础镜像引用，构建前须先明确本地供给。 |
+| 非 root 告知读取 | 以最终镜像默认身份 `65532:65532`，在禁网、只读根文件系统的容器内执行告知校验。直接读取镜像自带的 19 份 wheel 告知、21 份 pip 告知、2 份 CPython 告知和源码获取说明，核对安装报告与文件摘要。 |
+| 伴随源码交付 | 以交付镜像的实际摘要封定 `sources/<SDK-image-sha256>/` 和 `manifest.json`。清单绑定镜像、新锁、组件和相对路径。接收方通过实际交付渠道取得全套对应文件，并复算每项大小及 SHA-256。 |
+| SDK 与联合复验 | 用最终镜像摘要复验 Pillow 实际加载、SDK 图像处理、遥测可选依赖、LLM 子合同及 SDK 工作进程。联合用例覆盖正常修改、测试、保存和导出，旧测试证据失效及命令中取消。沿用现有隔离和权限断言，记录容器清理结果。 |
+
+本轮只生成并验证本地构建上下文。实际镜像构建、镜像内告知读取、联合运行和源码交付待后续验收。[交付配方与准备命令](../../scripts/eval/development_probe/sdk_variant/README.md#最终-sdk-交付离线准备)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

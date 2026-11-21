@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "retained_sources_rehashed_delivery_scope_open",
+  "base_image": "python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+  "reference_sdk_image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "delivery_root": "sources/<SDK-image-sha256>/",
+  "final_sdk_image_sha256": null,
+  "wheel_lock_sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab",
+  "pillow_wheel_sha256": "ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460",
+  "existing_inventory": {
+    "archive_records_verified": 181,
+    "debian_archives_verified": 132,
+    "debian_dsc_groups_verified": 61,
+    "debian_checksums_sha256_sections_match": true,
+    "retained_python_archives_verified": 48,
+    "cpython_archive_verified": {
+      "path": "tmp/development-license-audit-20261031/downloads-stage2/970f172025591ae092c3c371.1.0.body",
+      "bytes": 20839652,
+      "sha256": "b5796915dc45ff745cfb4e990a7e7c93d6f546328a102ce31448d69ebc37575c",
+      "delivery_path": "cpython/cpython/3.12.16/Python-3.12.16.tar.xz"
+    },
+    "exact_covered_source_map_files_verified": 15,
+    "historical_build_input_files_verified": 22,
+    "shards": [
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-01.json",
+        "bytes": 16823,
+        "sha256": "de202e9de58d2e9647ae0baa4be194754242025d152d9da268b7d6ea7ccb2eb2"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-02.json",
+        "bytes": 16912,
+        "sha256": "75e16cd0074c4cf635281787c4269bf865056fae7a3872d99e274cb89d8431d3"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-03.json",
+        "bytes": 17056,
+        "sha256": "96cb2520300215e8f7de53c606226c1c73876a5479f677e700b1ba824df0c12f"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-04.json",
+        "bytes": 17159,
+        "sha256": "cdd633004f72aae94a3af599ffeb53b0a9b5a472700a22d4ba6c99b681882157"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-05.json",
+        "bytes": 17072,
+        "sha256": "b2e0ece25084066da873b43c1253cd103385b752e1c57d42ca68ddd5db2d9112"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-06.json",
+        "bytes": 17676,
+        "sha256": "16ffbc647975aac4e2c2748837790a556ed3935ac013b7104c51dd2ce9143aa3"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-07.json",
+        "bytes": 17890,
+        "sha256": "939b03c0d047e77266fc1c8ec368eca55fc84d14b210de3e34510bd247ff916b"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.parts/sources-08.json",
+        "bytes": 17065,
+        "sha256": "4e22608f1416ffadd941653ecb27373018ae802b9713dc5f55057219abab8ac3"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-01.json",
+        "bytes": 7134,
+        "sha256": "1597420646cd221c653f8fa180eff53f0b503efac663021b2138f0e668a169bf"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-02.json",
+        "bytes": 6986,
+        "sha256": "b5e807bcda2bf2d422c93542938ed57b50f775ba1c6e82ef8abc8621c111b8cf"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-03.json",
+        "bytes": 7911,
+        "sha256": "75dc9ec25bf4a4164f44acf4e819207087e1ce066f3584479002feea25dc0b53"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-04.json",
+        "bytes": 7877,
+        "sha256": "a679c9b267b33d36075e593d89efc73a239c68ebd091c91ca16622fe190108b5"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-05.json",
+        "bytes": 8871,
+        "sha256": "9d26f7ee78d48234c6d66c3ecbd178e7891d72a3f4988be39bfc2977b69c0869"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-06.json",
+        "bytes": 8855,
+        "sha256": "d50feed6b72d15d88ad12bb68230f937b37a6881c16e037c80afd63121e5ef65"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-07.json",
+        "bytes": 8225,
+        "sha256": "3a7a3416e026a4e2b346d8214f7dfeadd35f2b17d0c4747c099bcf229987fff1"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/debian-08.json",
+        "bytes": 5521,
+        "sha256": "5c09594aec5f3f9eb9c805bfee73731cbc2a9f08f1263751a1f6d3d095d3fbcf"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-static-20261105.parts/covered-source-map.json",
+        "bytes": 12262,
+        "sha256": "c360aa71e364a62cf85657a6a7644aeb6bd7c7065b520a5b47ae201ba07b51e1"
+      },
+      {
+        "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.parts/build-input-delivery.json",
+        "bytes": 10593,
+        "sha256": "a64f823e567d0a41fc8dc042a4631117693dcd9dad27044b0e96a1a883042362"
+      }
+    ]
+  },
+  "pillow_source_inputs": [
+    {
+      "path": "tmp/development-license-audit-20261031/downloads-stage2/81a456d521ad51af908614e5.1.0.body",
+      "bytes": 47058631,
+      "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/pillow-13.0.0.tar.gz"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/xz.tar",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/xz.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/zlib-ng.tar",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/zlib-ng.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/xcb-proto.tar",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/xcb-proto.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/libxcb.tar",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libxcb.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/libjpeg-turbo.tar",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libjpeg-turbo.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/zstd.tar",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/zstd.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/tiff.tar",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/tiff.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/libavif.tar",
+      "bytes": 14665927,
+      "sha256": "2b645287340ba5a631d268b551dc2d72bd73ac33335962dd36dcdb6d8366921d",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libavif.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/libpng.tar",
+      "bytes": 1582074,
+      "sha256": "8c9b05b675ca7301a458df2c2e46f26e1d41ff36b8863f8c33530bc58c2e6225",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libpng.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/lcms2.tar",
+      "bytes": 5728743,
+      "sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/lcms2.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/openjpeg.tar",
+      "bytes": 2157028,
+      "sha256": "a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/openjpeg.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/libwebp.tar",
+      "bytes": 4296070,
+      "sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libwebp.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/brotli.tar",
+      "bytes": 646315,
+      "sha256": "816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/brotli.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/freetype.tar",
+      "bytes": 4134916,
+      "sha256": "e61b31ab26358b946e767ed7eb7f4bb2e507da1cfefeb7a8861ace7fd5c899a1",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/freetype.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/harfbuzz.tar",
+      "bytes": 20262956,
+      "sha256": "b7132e148358a45185c9feafd049dbaf243649d3c44414b3534d9c95d18592b9",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/harfbuzz.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/bzip2.tar",
+      "bytes": 810029,
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/bzip2.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/aom.tar",
+      "bytes": 6438829,
+      "sha256": "efd37e4a93fdd20ca616567a835e4d470979a77f71aa88115c80048095b5fefc",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/aom.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/dav1d.tar",
+      "bytes": 1716568,
+      "sha256": "c5b7428c3f5b28db0aee0c62f6ffb2b42f4b08e7be5ce49d7ad046aaf0dc151d",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/dav1d.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/libyuv.tar",
+      "bytes": 598454,
+      "sha256": "ca063bd5d39034bf25b388347e09fb05493c11d7947fe73dd0a5072bb08cbe2c",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libyuv.tar"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-inputs/native/openjpeg.patch",
+      "bytes": 1552,
+      "sha256": "6b0a9250ec038826a811a7eb6ea1aa59abf42d6d562042cdfddb29c7ad98ef4e",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/openjpeg.patch"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-before-all.sh",
+      "bytes": 3810,
+      "sha256": "df0bbe5db6268e71c42795b1611d35479f38d70a52881edb634eb6cd2a135115",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/.radishmind/pillow/pillow-before-all.sh"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/native-build.sh",
+      "bytes": 5684,
+      "sha256": "2569797803cd85695ffd49fc28a327d1991d1af29e7dede0de2498426d25d324",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/.radishmind/pillow/native-build.sh"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-test.sh",
+      "bytes": 381,
+      "sha256": "51531224daf9f77ac828c0971307b0887630a8e5399adbdd0b9985eb94ce7229",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/.radishmind/pillow/pillow-test.sh"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-native-tools.lock",
+      "bytes": 186,
+      "sha256": "f66defb0a38e9890de8ed8a0e64b1edbfd3c568b455ecae9ede1d1e6bd181142",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/.radishmind/pillow/pillow-native-tools.lock"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-native-sources.sha256",
+      "bytes": 1549,
+      "sha256": "dad8b178a2895f2b3e08be724670ddf057b0c62095113af29abd9ff6d1b5945a",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/.radishmind/pillow/pillow-native-sources.sha256"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-test-requirements.lock",
+      "bytes": 1640,
+      "sha256": "03e32edd35a791c131f32ec81c5e888ad5246b6641230c2e77657f51f0252dae",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/.radishmind/pillow/pillow-test-requirements.lock"
+    },
+    {
+      "path": "tmp/pillow-build-inputs-20261119/staged-projects/pillow-13.0.0/src/PIL/_version.py",
+      "bytes": 100,
+      "sha256": "da1fcc512cf8c18fd05a48d1e714221f4d50dcf316183329c9ac9254f5fa34c2",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/src/PIL/_version.py"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/libXau-1.0.9-3.el8.src.rpm",
+      "bytes": 340502,
+      "sha256": "f9e5775417473caa6b5699171eec64253ef90473f36f0efe81d020b52a5de49a",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/native/libXau-1.0.9-3.el8.src.rpm"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/unicode-17.0.0-ucd-ReadMe.txt",
+      "bytes": 740,
+      "sha256": "9fe1a90bd32659d7953616283dc2bffaa165518aae9ace026040c42c559ba606",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/notices/unicode-17.0.0-ucd-ReadMe.txt"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/unicode-license.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "delivery_path": "python/pillow/13.0.0+radishmind.1/notices/unicode-license.txt"
+    }
+  ],
+  "sdk_variant_source_inputs": [
+    {
+      "path": "tmp/development-sdk-variant-20261031/openhands_sdk-1.59.0.tar.gz",
+      "bytes": 813527,
+      "sha256": "6999f4608630be8e3fb90f6797cd4f0849a0d39e68c03d07aed8f40e5b828512",
+      "delivery_path": "python/openhands-sdk/1.59.0+radishmind.1/openhands_sdk-1.59.0.tar.gz"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/optional-laminar.patch",
+      "bytes": 2555,
+      "sha256": "863a2c0a28dc3490ad879c793ae68fd99f8cf03909429d358ca44b454e7c3d9f",
+      "delivery_path": "python/openhands-sdk/1.59.0+radishmind.1/optional-laminar.patch"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/build-requirements.lock",
+      "bytes": 351,
+      "sha256": "11a7bfe96e884d64ee6fb5080a0cf35193f7a9ebf9fface902fb79a0a204c120",
+      "delivery_path": "python/openhands-sdk/1.59.0+radishmind.1/build-requirements.lock"
+    }
+  ],
+  "evidence": {
+    "scope": {
+      "path": "scripts/eval/development_probe/sdk_variant/license-scope-20261105.json",
+      "bytes": 4227,
+      "sha256": "eea66ac3282967bd77be9dc0144cb10109e52d77e85d0a40c5dd6d57a977fad6"
+    },
+    "archive_acquisition": {
+      "path": "scripts/eval/development_probe/sdk_variant/license-archives-20261031.json",
+      "bytes": 6040,
+      "sha256": "faa8bc6c6f010de19433fe43fcd69b94788e8fb23eb37e31544dac7f97b39f35"
+    },
+    "pillow_build_input_receipt": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-offline-build-inputs-result-20261119.json",
+      "bytes": 19116,
+      "sha256": "0161083f347ee1333592c079b2bad8711b82fd97ffd191e314fd07e708b29c77"
+    },
+    "pillow_notice_provenance": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-notice-sources-20261121.json",
+      "bytes": 6846,
+      "sha256": "af1f3d4667401382ee8b916f88625d593a1fc88867a9f4ee7d54675a306f8060"
+    },
+    "verified_inventory": {
+      "path": "tmp/sdk-delivery-preflight-20261121/local-source-verification.json",
+      "bytes": 92178,
+      "sha256": "4680beeee69bcb8f9bc1dcbfb4f6cce5ec1f3b3f8497833f12e806e842cabd9e"
+    }
+  },
+  "open_items": [
+    "对其余运行 wheel、基础镜像内嵌组件和构建输入作精确对应，保留已有 certifi 生成输入、cryptography 历史材料与 regex 继承依据缺口。",
+    "复核目标 SDK 的 CPython 外部动态库实际文件及归属。Pillow 源码包内留存了 Raqm 编译所用的 Unicode 生成表。",
+    "以生成的最终镜像摘要封定交付目录，核验伴随源码完整性及接收方从实际交付渠道获取的字节。"
+  ],
+  "archive_assembled": false,
+  "final_recipient_retrieval_verified": false
+}

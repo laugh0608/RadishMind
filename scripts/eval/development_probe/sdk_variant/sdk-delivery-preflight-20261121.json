@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "offline_preflight_passed_build_prerequisites_open",
+  "target": {
+    "platform": "linux/arm64",
+    "python": "3.12.16",
+    "glibc_resolver_platform_ceiling": "2.41",
+    "base_pip": "25.0.1",
+    "host_pip": "26.1.1"
+  },
+  "base_image": {
+    "reference": "python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+    "docker_image_store_exact_reference_found": false,
+    "image_inspect_output": "Error response from daemon: No such image: python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+    "builder_cache_exact_reference_listed": false,
+    "builder_cache_query_exit_code": 0,
+    "offline_full_image_materialization_verified": false
+  },
+  "wheel_delivery": {
+    "frozen_lock_sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab",
+    "historical_lock_sha256": "3e2f6bc2ca091acd36cb201ae5f66ed69b50d080af4b55c32314e0b1283983a3",
+    "wheel_count": 119,
+    "unchanged_count": 118,
+    "only_replaced": "pillow",
+    "dry_run_installations": 0,
+    "target_marker_environment_explicit": true,
+    "offline_hash_required_dry_run_passed": true
+  },
+  "notice_delivery": {
+    "wheel_notice_packages": 7,
+    "wheel_notice_files": 19,
+    "pillow_companion_notices": 5,
+    "base_pip_notices": 21,
+    "cpython_notices": 2,
+    "checked_against_pip_dry_run_report": true,
+    "prepared_directory_modes": "0755 directories and 0644 files",
+    "in_image_nonroot_read_tested": false
+  },
+  "source_inventory": {
+    "path": "scripts/eval/development_probe/sdk_variant/sdk-delivery-sources-20261121.json",
+    "bytes": 17072,
+    "sha256": "5a7198cad343cbba86bff91feab2921a0313fa3268b2e90a2dbb4f52228cc03c"
+  },
+  "build_recipe": {
+    "path": "deploy/Dockerfile.development-sdk-delivery",
+    "bytes": 1954,
+    "sha256": "ddc2c801a8da491af95df2d04c69c47083954c098016b11da0587a0e861defd0"
+  },
+  "evidence": [
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/context-final/delivery-inputs.json",
+      "bytes": 27638,
+      "sha256": "7340e38c1f3d2408b4f56dedf0e02bf373401a5c5edd73d67253d5412805bb2f"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/context-final/requirements.lock",
+      "bytes": 11680,
+      "sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/context-final/third-party/manifest.json",
+      "bytes": 5315,
+      "sha256": "4cd41de80e7ce764045e21e433296e07213b9a2078383a5a02e24613e176781e"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/context-final/third-party/source-delivery/README.txt",
+      "bytes": 279,
+      "sha256": "5e7601c63f8a8195c05d9997cfe8fa5575d3bc1fe59b477d4f256a30910c0e73"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/pip-dry-run-final.json",
+      "bytes": 1524213,
+      "sha256": "95dd015f39bd0a5c1e698f568be80a9e5672318b51cb3d7f0cf2fba921ece372"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/pip-dry-run-final.log",
+      "bytes": 29924,
+      "sha256": "877c7348e859f3010a2358f6be3baab2f40fb19c1769c56de95bcf754cebd799"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/verify-resolver.py",
+      "bytes": 1497,
+      "sha256": "6faff2b76f5fabe480944ec5f4fb93fd2d37a0fc07f7a4895dd172f8a2c5f1c5"
+    },
+    {
+      "path": "tmp/sdk-delivery-preflight-20261121/review-sources.py",
+      "bytes": 10545,
+      "sha256": "4db1b8ac1f0af651761b5fb0e316fe531cda9b5d738e18ad5ac29c921e60baa1"
+    }
+  ],
+  "boundary": {
+    "image_builds": 0,
+    "containers_created": 0,
+    "publications": 0,
+    "recipient_source_retrieval_tested": false,
+    "joint_recheck_run": false
+  }
+}

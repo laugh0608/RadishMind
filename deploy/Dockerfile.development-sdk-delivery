@@ -1,0 +1,27 @@
+# Offline delivery context prepared by scripts/eval/development_probe/prepare_sdk_delivery.py.
+FROM docker.io/library/python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
+    HOME=/tmp/probe-home XDG_CACHE_HOME=/tmp/probe-cache \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 OPENHANDS_SUPPRESS_BANNER=1 \
+    LITELLM_LOCAL_MODEL_COST_MAP=True HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+    OTEL_SDK_DISABLED=true
+WORKDIR /opt/probe
+COPY --chmod=0644 requirements.lock source.json delivery-inputs.json ./
+RUN --network=none --mount=type=bind,source=wheels,target=/wheelhouse,readonly \
+    python -c 'import platform,sys; assert platform.machine() == "aarch64" and sys.version_info[:3] == (3,12,16)' \
+    && PIP_CONFIG_FILE=/dev/null python -m pip --isolated install --no-cache-dir --no-index --only-binary=:all: \
+        --find-links=/wheelhouse --require-hashes --report /opt/probe/installation.json -r requirements.lock \
+    && python -m pip check \
+    && chmod 0644 /opt/probe/installation.json
+COPY --chown=0:0 third-party/ /usr/local/share/radishmind/third-party/
+COPY --chmod=0644 sdk_notice_delivery.py pip_notice_delivery.py inspect_sdk.py fixed_endpoint.py \
+    test_sdk_contract.py test_sdk_optional_laminar.py tool-request.schema.json ./
+USER 65532:65532
+RUN --network=none python sdk_notice_delivery.py \
+    --directory /usr/local/share/radishmind/third-party --installation-report /opt/probe/installation.json \
+    --frozen-wheel-lock /opt/probe/requirements.lock \
+    && python pip_notice_delivery.py --directory /usr/local/share/radishmind/third-party/pip \
+        --pip-root /usr/local/lib/python3.12/site-packages/pip \
+        --metadata /usr/local/lib/python3.12/site-packages/pip-25.0.1.dist-info/METADATA \
+    && test -s /usr/local/share/radishmind/third-party/source-delivery/README.txt
+CMD ["python", "/opt/probe/test_sdk_optional_laminar.py"]

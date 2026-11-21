@@ -2,7 +2,7 @@
 
 状态：`1.59.0+radishmind.1` 已于 2026-10-31 在单独授权窗口完成构建、119 项依赖冻结安装及真实 SDK / 固定响应联合复验，登记为技术候选。原始 `1.59.0` 的 138 项锁和镜像保持历史试验基线；本变体有独立证据，正式采用与整镜像分发许可仍未闭合。
 
-当前准备器与构建校验覆盖六包 14 份 wheel 补充告知、pip 25.0.1 的 21 份内嵌告知和 CPython 3.12.16 的 Expat / libmpdec 两份告知。wheel 校验绑定安装报告中的版本与归档摘要。pip 独立校验同一安装的元数据及 280 个内嵌文件。CPython 校验绑定保留镜像的 `pyexpat` 和 `_decimal` 扩展字节。后续获准构建须重新准备新目录，保留旧材料及摘要。下文 10 月 31 日的历史镜像早于补充告知的接入，实际安装、非 root 读取与伴随源码交付仍待验收。
+原变体准备器与构建校验覆盖六包 14 份 wheel 补充告知、pip 25.0.1 的 21 份内嵌告知和 CPython 3.12.16 的 Expat / libmpdec 两份告知。wheel 校验绑定安装报告中的版本与归档摘要。pip 独立校验同一安装的元数据及 280 个内嵌文件。CPython 校验绑定保留镜像的 `pyexpat` 和 `_decimal` 扩展字节。下文 10 月 31 日的历史镜像早于补充告知的接入。最终配方使用[独立离线上下文](#最终-sdk-交付离线准备)。
 
 ## 来源与改动
 
@@ -154,3 +154,16 @@ python3 scripts/eval/development_probe/run_joint.py \
 ### Pillow 候选的伴随告知与 SDK 复验
 
 `pillow-notice-supplements/` 内的五份补充告知与 `13.0.0+radishmind.1` wheel 摘要绑定。使用 `sdk_notice_delivery.verify` 对照目标 SDK 中真实离线安装的 pip 报告和告知正文。已有冻结锁仍用于识别目标镜像的原始安装，复验将候选安装到容器的临时目录。正式交付时须将伴随告知纳入最终镜像的交付清单并复核实际可读性。[告知清单](pillow-notice-supplements/manifest.json) · [许可来源](pillow-notice-sources-20261121.json) · [SDK 复验](pillow-sdk-recheck-result-20261121.json)
+
+### 最终 SDK 交付离线准备
+
+从仓库根目录准备一个新的 `tmp/` 上下文。准备器核对历史锁、119 个原始 wheel 和替换 wheel 的摘要，只把最终 119 个 wheel、配方及告知写入新上下文。生成的 `delivery-inputs.json` 记录冻结锁、配方、源码索引和逐个 wheel 的摘要。
+
+```sh
+python3 scripts/eval/development_probe/prepare_sdk_delivery.py \
+  --wheelhouse tmp/development-sdk-variant-20261031/context/resolution/wheels \
+  --pillow-wheel "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/output/pillow-13.0.0+radishmind.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl" \
+  --directory tmp/sdk-delivery-context-new
+```
+
+获准构建后，以本地已验的固定基础镜像及 `linux/arm64` 运行新 Dockerfile。构建器的 registry 访问须在构建窗口内关闭，步骤使用 `--network=none`。wheelhouse 作为只读构建挂载使用。pip 安装报告与完整冻结锁及告知由 `65532:65532` 校验。完成后按实际镜像摘要在禁网、只读根容器内再次核对告知和源码获取说明，并执行目标 SDK 与联合验收。伴随源码按实际交付镜像摘要及接收方获取路径复验。[源码清单](sdk-delivery-sources-20261121.json) · [预检回执](sdk-delivery-preflight-20261121.json) · [验收条件](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-21-最终-sdk-交付离线预检)
