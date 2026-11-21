@@ -283,6 +283,12 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 阶段 0 当前阻塞为 `cryptography` 的冻结 wheel 与实际 OpenSSL 构建输入和补丁尚未闭合。`regex` 已收口。随后仍须按最终镜像摘要完成伴随源码及告知交付、接收方实取复核，再复评正式采用。[阶段 0 退出条件](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)
 
+#### 2026-11-21 cryptography 定向工件目录通过与下载停窗
+
+获准后按名查询 `36713008517` 的工件目录，HTTP 200，唯一命中未过期的 `abi3-py311` 工件 `11095506118`。目录声明 ZIP 为 4689642 字节，SHA-256 为 `f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f`，过期时间 `2026-12-29T12:09:40Z`。目录绑定了构建运行与提交 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a`，作业 ID 与运行尝试字段仍缺。
+
+随后只请求 [该工件的 ZIP 端点](https://api.github.com/repos/pyca/cryptography/actions/artifacts/11095506118/zip)，收到 HTTP 401 `Requires authentication`，按约停窗。共 2 次 HTTPS 请求、1048 字节正文、零解压，暂存峰值保守上界 12677120 字节，总用时 2.013 秒，零跳转和重试。ZIP 尚未取得，工件内 wheel、同作业绑定和实际 OpenSSL 构建材料仍待核验，OpenSSL 方向零请求。接续可在另行授权后使用具备仓库工件读取权限的 GitHub 身份，或接收同一工件的原始 ZIP 后按目录摘要离线核验。阶段 0 仍待该证据链、最终交付与采用复评；本轮未重建、未打包。[目录和停窗回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
