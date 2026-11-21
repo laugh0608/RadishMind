@@ -289,6 +289,12 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 随后只请求 [该工件的 ZIP 端点](https://api.github.com/repos/pyca/cryptography/actions/artifacts/11095506118/zip)，收到 HTTP 401 `Requires authentication`，按约停窗。共 2 次 HTTPS 请求、1048 字节正文、零解压，暂存峰值保守上界 12677120 字节，总用时 2.013 秒，零跳转和重试。ZIP 尚未取得，工件内 wheel、同作业绑定和实际 OpenSSL 构建材料仍待核验，OpenSSL 方向零请求。接续可在另行授权后使用具备仓库工件读取权限的 GitHub 身份，或接收同一工件的原始 ZIP 后按目录摘要离线核验。阶段 0 仍待该证据链、最终交付与采用复评；本轮未重建、未打包。[目录和停窗回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-result-20261121.json)
 
+#### 2026-11-21 cryptography 工件认证续取超时停窗
+
+获准后复用本机 GitHub CLI 登录，仅向 `11095506118` 的 ZIP 端点发出一次认证请求，HTTP 302。随后按约口径跟随一次官方存储跳转，GitHub 认证头仅用于 GitHub API。`productionresultssa6.blob.core.windows.net` 在 8 秒连接窗口内未返回 HTTP 响应，curl 退出码为 28，未收到 ZIP 数据，立即停窗。共 2 次 HTTPS 请求、零正文和解压、1 次跳转、零重试，暂存峰值保守上界 12673024 字节，总用时 8.932 秒。回执保留存储主机及失败状态。
+
+已通过 GitHub API 认证门槛，当前阻塞为同一工件的存储传输。工件 ZIP 及其中冻结 ARM64 wheel 仍待校验，与实际作业、OpenSSL 输入及补丁的链仍待闭合。OpenSSL 方向零请求，未重建或组装。接续可先接收原始工件 ZIP，按目录声明的大小和摘要离线验收。[认证续取停窗回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-auth-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
