@@ -319,6 +319,14 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 阶段 0 的剩余来源阻塞已收窄到从固定构建器摘要核验 ARM64 材料，取得其内置 OpenSSL 的实际源输入和补丁记录。关闭后再按最终镜像摘要交付伴随源码与告知、验收接收方实取，最后复评正式采用。本轮只查上述作业日志，未请求构建器或其他网络材料，未重建、未打包。[同作业日志与拉取摘要回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-job-log-result-20261121.json)
 
+#### 2026-11-21 本地伴随源码和告知交付目录验收
+
+所有者确认按本人接收的本地交付范围收口。保留已验 OpenSSL 4.0.3 原始归档、冻结 wheel 的绑定及告知，交付记录明确写入实际构建器的 OpenSSL 补丁清单未证实，包括 `SHLIB_VERSION` 是否被改动。停止追查历史构建。本机 OrbStack 只读检查了最终镜像 `sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf`，仍为 `linux/arm64`，默认 UID/GID `65532:65532`。
+
+获准后以该镜像摘要封定 `dist/sdk-delivery/sources/5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf/`。以 301 份已验源码及配方底稿为基础，补入 `cryptography` 的 24 份 ARM64 范围 crate 归档和 OpenSSL 源归档、`regex` 原始 Unicode 18.0.0 UCD、两版 `certifi` 告知及镜像内验过的 42 份补充告知。完整 pip sdist 保留实际内嵌 `certifi 2024.8.30` 的源树与版本记录。
+
+`manifest.json` 绑定最终镜像清单与 119 项冻结锁，列出 390 项材料、578794065 字节，清单自身 SHA-256 为 `ea3e0cd100971f4e47cb765b83e932579a35ab558cb8db2229df93a446633192`。已在最终路径独立运行随附的 `verify_manifest.py`，逐项核对路径、大小与 SHA-256 并核对文件集合。新增磁盘占用 579756032 字节，组装与首次回读用时 1.357 秒，符合 768 MiB 源码、1 GiB 新增占用及 10 分钟上限。本轮零外网、零重建。接收方实际取得仍待所有者确认，正式采用复评尚未开始。[本地组装与回读回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-local-source-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-11-21（阶段 0 最终 SDK 联合回归通过）
+更新时间：2026-11-21（阶段 0 本地伴随源码已组装，待接收确认）
 
 ## 文档职责
 
@@ -15,7 +15,7 @@
 - **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- 最终 ARM64 SDK 镜像的禁网构建、119 项冻结安装、非 root 读取 42 份告知、SDK 和三个联合用例均通过。CPython 动态库归属及已留存对应源码已复核。当前收口项是具名来源缺口、伴随源码交付和接收方获取。[任务卡与联合运行回执](task-cards/development-task-probe-v1-plan.md#2026-11-21-最终-sdk-联合回归通过)
+- 最终 ARM64 SDK 镜像的禁网构建、119 项冻结安装、非 root 读取 42 份告知、SDK 和三个联合用例均通过。已按所有者确认的范围组装并核对本地伴随源码和告知，交付记录保留 OpenSSL 补丁清单未证实的边界。待所有者确认能实际取得材料，再做正式采用复评。[本地交付验收](task-cards/development-task-probe-v1-plan.md#2026-11-21-本地伴随源码和告知交付目录验收)
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -31,10 +31,10 @@
 
 | 顺位 | 剩余任务与必要阻塞 | 结束条件 |
 | --- | --- | --- |
-| 1 | 验收选定候选的最终交付 | 禁网构建、冻结安装、非 root 告知、SDK 与联合复验及 CPython 动态库归属均已完成。按最终摘要完成伴随源码覆盖和接收方获取，再复评正式采用。[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合后进入阶段 1。 |
+| 1 | 验收选定候选的最终交付 | 已完成技术验收及本地伴随源码和告知的组装与逐项回读。待接收方确认能按最终镜像摘要取得配套材料，再复评正式采用。[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)全部闭合后进入阶段 1。 |
 | 2 | 同一工作包连续实现单 Agent | canonical schema / 权限 → SQLite 事务与协调 → 严格 API → Web → 隔离执行与双端浏览器验收；正常、取消、失败、结果未知及重启不重放闭合，不按每个路由再建准备链 |
 
-固定构建器静态证据按路径、摘要、版本与包归属维护。最终 SDK 运行窗口已结束，具名来源及最终许可交付继续沿集中任务卡处理。
+固定构建器静态证据按路径、摘要、版本与包归属维护。最终 SDK 运行窗口已结束，本地交付记录、接收方确认及正式采用复评继续沿集中任务卡处理。
 
 已有原生 HTTP 固定上游技术条件、SDK 工具往返与联合任务证据保持，只有候选 / 配置变化或相关失败触发复验。真实厂商资格、完整输入计量和费用窗口仍未验收，真实模型暂停、通道默认关闭。
 

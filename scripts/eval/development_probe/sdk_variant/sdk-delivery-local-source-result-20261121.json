@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "assembled_and_verified_at_local_delivery_path_awaiting_recipient",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "local_image_reference": "radishmind-development-sdk-delivery:20261121-mecv5skg",
+  "local_image_inspected": {
+    "platform": "linux/arm64",
+    "default_user": "65532:65532",
+    "manifest_digest": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf"
+  },
+  "wheel_lock_sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab",
+  "frozen_wheel_count": 119,
+  "delivery": {
+    "method": "local_directory",
+    "recipient": "项目所有者本人",
+    "path": "dist/sdk-delivery/sources/5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+    "manifest_file": "manifest.json",
+    "manifest_sha256": "ea3e0cd100971f4e47cb765b83e932579a35ab558cb8db2229df93a446633192",
+    "manifest_bytes": 76972,
+    "files_listed": 390,
+    "bytes_listed": 578794065,
+    "notice_supplements": 42,
+    "arm64_cryptography_crate_archives": 24,
+    "top_level_counts": {
+      "README.md": 1,
+      "build-inputs": 22,
+      "cargo": 4,
+      "cpython": 1,
+      "debian": 193,
+      "delivery-record.json": 1,
+      "identity": 3,
+      "notices": 1,
+      "python": 118,
+      "third-party": 45,
+      "verify_manifest.py": 1
+    },
+    "verification_script": "verify_manifest.py",
+    "delivery_record": "delivery-record.json",
+    "delivery_record_sha256": "b13ecff6aaaf55ffb0c0a8e41b9806bf5e4ae4461ab53475e0b6dba16fa48545"
+  },
+  "scope_decision": {
+    "openssl_patch_list_verified": false,
+    "historical_build_provenance_pursuit_stopped": true,
+    "openssl_scope_note": "OpenSSL 4.0.3 原始归档与冻结 wheel 的 SBOM 源码摘要一致。实际构建器中应用的 OpenSSL 补丁清单未证实，包括 SHLIB_VERSION 是否被改动。所有者确认按本人接收的本地交付范围收口，并停止追查历史构建。",
+    "certifi_scope_note": "交付精确发行源码、PEM、告知、生成配方和过滤器。历史生成响应、生成器版本与 Mozilla 输入提交按已确认边界留作历史复现。",
+    "regex_ucd_reproduced": true
+  },
+  "verification": {
+    "producer_reopened_final_path": true,
+    "manifest_digest_verified": true,
+    "wheel_lock_digest_verified": true,
+    "every_listed_file_size_and_sha256_verified": true,
+    "unlisted_files_and_symlinks_rejected": true,
+    "recipient_retrieval_verified": false,
+    "formal_adoption_review_started": false
+  },
+  "window": {
+    "source_payload_bytes": 578794065,
+    "additional_allocated_bytes": 579756032,
+    "elapsed_seconds": 1.357,
+    "limits": {
+      "source_payload_bytes": 805306368,
+      "additional_disk_bytes": 1073741824,
+      "elapsed_seconds": 600
+    },
+    "external_network_requests": 0,
+    "image_rebuilt": false
+  },
+  "raw_assembly_receipt": {
+    "path": "tmp/sdk-source-local-pack-20261121.AvdvVG/receipt.json",
+    "bytes": 616,
+    "sha256": "0b791858141eca5a80453fe06ccb7b0b2e3ae8f887461b2c91dcb87d19e2a6cf"
+  }
+}
