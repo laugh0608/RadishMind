@@ -256,6 +256,12 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 窗口拟定上限为 **1 次 HTTPS 请求、16 MiB 正文、96 MiB 累计解压、48 MiB 峰值暂存、5 分钟总时限**。连接 8 秒、单请求 90 秒、单生成进程 CPU 120 秒及墙钟 150 秒，零跳转和自动重试。任何获取、版本、许可、完整性、字节复核或预算失败即停并登记。当前零联网与零组装。`cryptography` 实际构建改动继续等待能绑定冻结 wheel 的新证据。
 
+#### 2026-11-21 regex Unicode UCD 获取与校验停窗
+
+获准后向固定地址发出一次 HTTPS GET，HTTP 200、TLS 校验通过，实收 5657953 字节与 `Content-Length` 一致，SHA-256 为 `7b3e555514060b92290d154f53655c5eb0fa62b16eb04c03434ff72d1a66a0d8`。零跳转、零重试。请求用时 32.689 秒，至停窗 32.845 秒。停窗前累计解压 36538931 字节，暂存峰值上界 16867328 字节，均在授权额度内。
+
+流程在 `ReadMe.txt` 版本门禁停止。对停窗证据只读复核确认，原文明确声明这是 Unicode Character Database 18.0.0 的正式数据，且指向 Unicode 的官方许可条款。执行器把历史 `ReadMe` 中的 `of the Unicode Standard` 字面当成必要条件，误判了新版的 `of the Unicode Character Database` 表述。接续版本验证以正式发行、精确版本及 Unicode 归属为准。完整归档和许可核验尚未完成，生成器未运行。原始 ZIP 已完整留存，后续获准可使用同一字节从离线核验接续。`cryptography` 本轮零请求，源码未组装。[停窗回执与版次证据](../../scripts/eval/development_probe/sdk_variant/regex-ucd-source-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

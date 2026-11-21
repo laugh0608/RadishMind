@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "stopped_on_readme_validator_false_negative",
+  "plan": "scripts/eval/development_probe/sdk_variant/regex-ucd-source-plan-20261121.json",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "source": {
+    "url": "https://www.unicode.org/Public/18.0.0/ucd/UCD.zip",
+    "status": 200,
+    "tls_verify_code": 0,
+    "content_length": 5657953,
+    "retained_file": "tmp/regex-ucd-source-window-20261121.CBw70p/UCD.zip.part",
+    "bytes": 5657953,
+    "sha256": "7b3e555514060b92290d154f53655c5eb0fa62b16eb04c03434ff72d1a66a0d8"
+  },
+  "window": {
+    "https_requests": 1,
+    "redirects": 0,
+    "retries": 0,
+    "response_body_bytes": 5657953,
+    "archive_streamed_bytes_before_stop": 32832051,
+    "reference_sdist_decompressed_bytes": 3706880,
+    "combined_decompressed_bytes_before_stop": 36538931,
+    "post_stop_readme_diagnostic_bytes": 729,
+    "peak_staging_upper_bound_bytes": 16867328,
+    "request_seconds": 32.689,
+    "wall_seconds_until_stop": 32.845
+  },
+  "stop": {
+    "stage": "archive_and_license",
+    "verifier_message": "ReadMe.txt does not identify final Unicode 18.0.0 data",
+    "cause": "版本门禁限定了旧 ReadMe 的 “of the Unicode Standard” 措辞。新版本改用 “of the Unicode Character Database”，现有校验误判。",
+    "readme": {
+      "member": "ReadMe.txt",
+      "bytes": 729,
+      "sha256": "b0ea442f29dee90584aacd3665a6e1ce87ffc917a4d31f34e1916d2d6f7f9205",
+      "excerpt": "This directory contains final data files for version 18.0.0 of the\nUnicode Character Database.",
+      "official_terms_link": "https://www.unicode.org/terms_of_use.html"
+    },
+    "remaining": "按 ReadMe 的正式发行、精确版本与 Unicode 归属判定，继续核对已留存 ZIP 的全部成员和许可，再离线重生成并比对两个文件。按停窗约定等待另行授权，全程可使用已收 ZIP。"
+  },
+  "verification": {
+    "archive_and_license_complete": false,
+    "generator_started": false,
+    "outputs_compared": false,
+    "delivery_assembled": false,
+    "cryptography_requests": 0
+  },
+  "raw_receipt": {
+    "path": "tmp/regex-ucd-source-window-20261121.CBw70p/receipt.json",
+    "bytes": 958,
+    "sha256": "9f541c069f15ccf6a5a76fb6f92a77e152d88178ac55e13a1805b6cabd3816b8"
+  }
+}
