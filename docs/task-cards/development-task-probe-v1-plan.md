@@ -295,6 +295,12 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 已通过 GitHub API 认证门槛，当前阻塞为同一工件的存储传输。工件 ZIP 及其中冻结 ARM64 wheel 仍待校验，与实际作业、OpenSSL 输入及补丁的链仍待闭合。OpenSSL 方向零请求，未重建或组装。接续可先接收原始工件 ZIP，按目录声明的大小和摘要离线验收。[认证续取停窗回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-auth-result-20261121.json)
 
+#### 2026-11-21 cryptography 工件 ZIP 与冻结 ARM64 wheel 核验通过
+
+本机浏览器同样在官方工件存储地址超时，下载目录与仓库暂存区均未找到原始 ZIP。获准后仅调用一次 GitHub 连接器获取工件 `11095506118`，用返回的文件引用取回原始字节。ZIP 的 4689642 字节及 SHA-256 `f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f` 与工件目录一致，已留存于 `tmp/cryptography-artifact-11095506118.zip`。工件中唯一成员 `cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl` 的 4737859 字节和 SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04` 均匹配最终镜像的冻结 wheel。
+
+冻结 wheel 已与运行 `36713008517` 目录中的工件建立字节级对应。实际上传作业及尝试、OpenSSL 构建输入和补丁仍需同作业记录绑定。该方向本轮零请求，未重建、未打包，阶段 0 继续等待证据链和交付复评。[连接器取件与双层摘要回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-connector-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
