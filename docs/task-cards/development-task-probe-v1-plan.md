@@ -262,6 +262,12 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 流程在 `ReadMe.txt` 版本门禁停止。对停窗证据只读复核确认，原文明确声明这是 Unicode Character Database 18.0.0 的正式数据，且指向 Unicode 的官方许可条款。执行器把历史 `ReadMe` 中的 `of the Unicode Standard` 字面当成必要条件，误判了新版的 `of the Unicode Character Database` 表述。接续版本验证以正式发行、精确版本及 Unicode 归属为准。完整归档和许可核验尚未完成，生成器未运行。原始 ZIP 已完整留存，后续获准可使用同一字节从离线核验接续。`cryptography` 本轮零请求，源码未组装。[停窗回执与版次证据](../../scripts/eval/development_probe/sdk_variant/regex-ucd-source-result-20261121.json)
 
+#### 2026-11-21 regex Unicode UCD 离线重生成通过
+
+获准后修正 `ReadMe.txt` 版本判定，以同一段落的正式发行声明、精确版本与 Unicode 归属为依据。离线预检兼容新旧官方措辞，并拒绝 beta 与其他版本。留存 ZIP 的大小和 SHA-256 与首次回执一致。流读完整归档，核验 71 个普通文件及 3 个目录条目；登记 28 个生成器输入成员的字节数、CRC-32 和 SHA-256。核对 ZIP 内版权、许可指引和留存的 Unicode License V3 全文，原始 ZIP 与对应告知登记为精确镜像的伴随源码候选材料。
+
+在固定环境用校验过摘要的原生成器离线重生成，退出码为 0。`_regex_unicode.c` 的 1983129 字节和 `_regex_unicode.h` 的 10827 字节分别与精确 sdist 中对应文件的长度和 SHA-256 一致，两个 `cmp -s` 均退出 0。该输入已证实能复现发行源码中的生成表。全程零 HTTPS 请求，累计解压上界 48593336 字节、暂存峰值上界 40390656 字节，续跑用时 0.816 秒。`regex` 的 UCD 补证已收口，伴随源码实际组装与接收验收仍待授权。`cryptography` 实际构建改动继续等待能绑定冻结 wheel 的新证据，阶段 0 继续等待交付复评。[离线续跑回执](../../scripts/eval/development_probe/sdk_variant/regex-ucd-offline-replay-result-20261121.json)
+
 ## 2026-11-12 收尾与下次接续
 
 所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。

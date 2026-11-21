@@ -12,6 +12,8 @@
 
 `src/_regex_unicode.h` 与 `tools/build_regex_unicode.py` 声明 Unicode 18.0.0。生成工具以 Unicode Character Database 的 `UCD.zip` 为输入。`setup.py` 将生成的 `src/_regex_unicode.c` 编入 `regex._regex`。对应的 Unicode, Inc. 版权及许可全文由随附的 `Unicode-LICENSE.txt` 提供，适用于该组件的 Unicode 数据生成表。
 
+生成输入拟登记至 `ucd/UCD.zip`，相对于 `python/regex/2026.9.29/`。归档为官方 Unicode 18.0.0 发行数据，5657953 字节，SHA-256 为 `7b3e555514060b92290d154f53655c5eb0fa62b16eb04c03434ff72d1a66a0d8`，保留原归档内的版权和条款指引。使用该原始归档和精确发行源码的生成器，离线产生的 `_regex_unicode.c` 与 `_regex_unicode.h` 分别与发行源码中的对应文件逐字节一致。[输入清单与复核回执](regex-ucd-offline-replay-result-20261121.json)
+
 ## 同交付告知文件
 
 这些文件与本告知及精确发行源码登记在同一镜像摘要目录的 `manifest.json`。路径相对于 `python/regex/2026.9.29/`。
