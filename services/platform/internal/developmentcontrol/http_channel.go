@@ -49,7 +49,11 @@ func (r *Runtime) requestRecord(req *http.Request) (*Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	deadline, live := r.attemptDeadline(record.Control.delegation.Scope.AttemptID)
+	scope := record.Control.delegation.Scope
+	if scope.TaskID != scope.AttemptID && !hasControlEvent(record, "worker_claimed") {
+		return nil, ErrCredential
+	}
+	deadline, live := r.attemptDeadline(scope.AttemptID)
 	if !live || !r.now().Before(deadline) || record.Revoked || r.now().UnixMilli() >= record.Control.delegation.ExpiresAtMS {
 		return nil, ErrCredential
 	}

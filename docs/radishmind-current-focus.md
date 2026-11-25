@@ -32,7 +32,9 @@
 
 已落地公开 canonical schema 和角色目录 v3。管理员可通过现有角色分配流程显式授予 `workspace_developer`，已有 v1 / v2 角色分配保留原授权。[公开交付合同](contracts/development-task-delivery-v1.md)
 
-**下一步实现 SQLite 任务 / 请求事务与运行协调。** 把版本化计划、幂等请求回执、一次尝试和执行槽纳入同一持久事务，再接续严格 HTTP、Web、隔离执行与双端浏览器验收。覆盖固定三文件 Go 任务的发起、取消、审阅、显式保存和重启后精确重读，以及失败和结果未知。[阶段 1 实施与验收](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-1单-agent-隔离开发交付)
+共享 SQLite 已落地任务、不可变计划修订、确认、六类请求回执及工作台唯一执行槽。隔离库已验证并发启动只签发一次，取消与保存失败可回滚，重启后旧尝试保留原身份和未决资源。
+
+**下一步接入正式 Web 会话与严格 HTTP。** 先把当前会话、精确工作区权限和固定响应档案接到任务协调器，按公开合同提供元数据写入、回执恢复和精确读取。随后接入提交后的工作进程交接、逐项资源观测和旧资源实际核对，再验收 Web 与隔离执行。[阶段 1 实施与验收](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-1单-agent-隔离开发交付)
 
 已有原生 HTTP 固定上游技术条件、SDK 工具往返与联合任务证据保持，只有候选 / 配置变化或相关失败触发复验。真实厂商资格、完整输入计量和费用窗口仍未验收，真实模型暂停、通道默认关闭。
 

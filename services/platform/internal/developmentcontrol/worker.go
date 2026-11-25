@@ -35,6 +35,9 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 	if len(launch.InitialMessages) != 2 || launch.InitialMessages[0].Role != "system" || launch.InitialMessages[1].Role != "user" || checkContext(record, launch.InitialMessages) != nil {
 		return result, ErrContext
 	}
+	if issued.Delegation.Scope.TaskID != issued.Delegation.Scope.AttemptID && launch.Sandbox == nil {
+		return result, ErrWorker
+	}
 	if launch.Sandbox != nil {
 		if handler != nil || launch.Sandbox.Binding() != SandboxBindingFor(issued.Delegation) {
 			return result, ErrWorker

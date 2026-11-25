@@ -212,32 +212,31 @@ func readEvents(ctx context.Context, q queryer, identity Identity, attemptID str
 	return events, nil
 }
 
-func (s *SQLiteStore) create(ctx context.Context, confirmationID, ownerID, credentialSHA string, binding Binding, c *AttemptControl) error {
+func insertAttempt(ctx context.Context, conn *sql.Conn, confirmationID, ownerID, credentialSHA string, binding Binding, c *AttemptControl) error {
 	if !idPattern.MatchString(confirmationID) || binding.Validate() != nil || !digestPattern.MatchString(credentialSHA) {
 		return ErrIneligible
 	}
-	return s.transaction(ctx, func(conn *sql.Conn) error {
-		state, err := encodeState(c)
-		if err != nil {
-			return ErrUnavailable
-		}
-		body, err := json.Marshal(binding)
-		if err != nil {
-			return ErrUnavailable
-		}
-		result, err := conn.ExecContext(ctx, `INSERT INTO development_attempts(tenant_ref,workspace_id,attempt_id,account_id,confirmation_id,owner_instance_id,record_version,credential_digest,credential_revoked,state_record,state_digest,binding_record,binding_digest,context_digest,context_count,pending_tool_request_id) VALUES(?,?,?,?,?,?,1,?,0,?,?,?,?,?,0,'') ON CONFLICT DO NOTHING`, binding.Identity.TenantRef, binding.Identity.WorkspaceID, c.delegation.Scope.AttemptID, binding.Identity.AccountID, confirmationID, ownerID, credentialSHA, string(state), PayloadDigest(state), string(body), PayloadDigest(body), "")
-		if err != nil {
-			return ErrUnavailable
-		}
-		n, err := result.RowsAffected()
-		if err != nil {
-			return ErrUnavailable
-		}
-		if n != 1 {
-			return ErrConflict
-		}
-		return persistChildren(ctx, conn, binding.Identity, c.delegation.Scope.AttemptID, c, 0, nil)
-	})
+
+	state, err := encodeState(c)
+	if err != nil {
+		return ErrUnavailable
+	}
+	body, err := json.Marshal(binding)
+	if err != nil {
+		return ErrUnavailable
+	}
+	result, err := conn.ExecContext(ctx, `INSERT INTO development_attempts(tenant_ref,workspace_id,attempt_id,account_id,confirmation_id,owner_instance_id,record_version,credential_digest,credential_revoked,state_record,state_digest,binding_record,binding_digest,context_digest,context_count,pending_tool_request_id) VALUES(?,?,?,?,?,?,1,?,0,?,?,?,?,?,0,'') ON CONFLICT DO NOTHING`, binding.Identity.TenantRef, binding.Identity.WorkspaceID, c.delegation.Scope.AttemptID, binding.Identity.AccountID, confirmationID, ownerID, credentialSHA, string(state), PayloadDigest(state), string(body), PayloadDigest(body), "")
+	if err != nil {
+		return ErrUnavailable
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return ErrUnavailable
+	}
+	if n != 1 {
+		return ErrConflict
+	}
+	return persistChildren(ctx, conn, binding.Identity, c.delegation.Scope.AttemptID, c, 0, nil)
 }
 
 // change always loads a fresh private snapshot inside the write transaction.
@@ -246,56 +245,63 @@ func (s *SQLiteStore) create(ctx context.Context, confirmationID, ownerID, crede
 func (s *SQLiteStore) change(ctx context.Context, identity Identity, attemptID string, expected int64, ownerID string, apply func(*Record) error) (*Record, error) {
 	var result *Record
 	err := s.transaction(ctx, func(conn *sql.Conn) error {
-		r, err := readRecord(ctx, conn, identity, attemptID)
-		if err != nil {
-			return err
-		}
-		if expected > 0 && expected != r.Version {
-			return ErrConflict
-		}
-		if ownerID != "" && r.OwnerInstanceID != ownerID {
-			return ErrCredential
-		}
-		beforeState, err := encodeState(r.Control)
-		if err != nil {
-			return ErrUnavailable
-		}
-		beforeRevoked, beforeContext, beforeCount, beforePending := r.Revoked, r.ContextDigest, r.ContextCount, r.PendingToolRequestID
-		beforeOffers := maps.Clone(r.Offers)
-		count := len(r.Control.events)
-		if err := apply(r); err != nil {
-			return err
-		}
-		if len(r.Control.events) > 200 {
-			return ErrConflict
-		}
-		state, err := encodeState(r.Control)
-		if err != nil {
-			return ErrUnavailable
-		}
-		if len(r.Control.events) == count && bytes.Equal(beforeState, state) && r.Revoked == beforeRevoked && r.ContextDigest == beforeContext && r.ContextCount == beforeCount && r.PendingToolRequestID == beforePending && maps.Equal(beforeOffers, r.Offers) {
-			result = r
-			return nil
-		}
-		changed, err := conn.ExecContext(ctx, `UPDATE development_attempts SET record_version=record_version+1,credential_revoked=?,state_record=?,state_digest=?,context_digest=?,context_count=?,pending_tool_request_id=? WHERE tenant_ref=? AND workspace_id=? AND attempt_id=? AND record_version=?`, r.Revoked, string(state), PayloadDigest(state), r.ContextDigest, r.ContextCount, r.PendingToolRequestID, identity.TenantRef, identity.WorkspaceID, attemptID, r.Version)
-		if err != nil {
-			return ErrUnavailable
-		}
-		n, err := changed.RowsAffected()
-		if err != nil {
-			return ErrUnavailable
-		}
-		if n != 1 {
-			return ErrConflict
-		}
-		if err := persistChildren(ctx, conn, identity, attemptID, r.Control, count, r.Offers); err != nil {
-			return err
-		}
-		r.Version++
-		result = r
-		return nil
+		var err error
+		result, err = changeRecord(ctx, conn, identity, attemptID, expected, ownerID, apply)
+		return err
 	})
-	return result, err
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func changeRecord(ctx context.Context, conn *sql.Conn, identity Identity, attemptID string, expected int64, ownerID string, apply func(*Record) error) (*Record, error) {
+	r, err := readRecord(ctx, conn, identity, attemptID)
+	if err != nil {
+		return nil, err
+	}
+	if expected > 0 && expected != r.Version {
+		return nil, ErrConflict
+	}
+	if ownerID != "" && r.OwnerInstanceID != ownerID {
+		return nil, ErrCredential
+	}
+	beforeState, err := encodeState(r.Control)
+	if err != nil {
+		return nil, ErrUnavailable
+	}
+	beforeRevoked, beforeContext, beforeCount, beforePending := r.Revoked, r.ContextDigest, r.ContextCount, r.PendingToolRequestID
+	beforeOffers := maps.Clone(r.Offers)
+	count := len(r.Control.events)
+	if err := apply(r); err != nil {
+		return nil, err
+	}
+	if len(r.Control.events) > 200 {
+		return nil, ErrConflict
+	}
+	state, err := encodeState(r.Control)
+	if err != nil {
+		return nil, ErrUnavailable
+	}
+	if len(r.Control.events) == count && bytes.Equal(beforeState, state) && r.Revoked == beforeRevoked && r.ContextDigest == beforeContext && r.ContextCount == beforeCount && r.PendingToolRequestID == beforePending && maps.Equal(beforeOffers, r.Offers) {
+		return r, nil
+	}
+	changed, err := conn.ExecContext(ctx, `UPDATE development_attempts SET record_version=record_version+1,credential_revoked=?,state_record=?,state_digest=?,context_digest=?,context_count=?,pending_tool_request_id=? WHERE tenant_ref=? AND workspace_id=? AND attempt_id=? AND record_version=?`, r.Revoked, string(state), PayloadDigest(state), r.ContextDigest, r.ContextCount, r.PendingToolRequestID, identity.TenantRef, identity.WorkspaceID, attemptID, r.Version)
+	if err != nil {
+		return nil, ErrUnavailable
+	}
+	n, err := changed.RowsAffected()
+	if err != nil {
+		return nil, ErrUnavailable
+	}
+	if n != 1 {
+		return nil, ErrConflict
+	}
+	if err := persistChildren(ctx, conn, identity, attemptID, r.Control, count, r.Offers); err != nil {
+		return nil, err
+	}
+	r.Version++
+	return r, nil
 }
 
 func persistChildren(ctx context.Context, conn *sql.Conn, identity Identity, attemptID string, c *AttemptControl, oldCount int, offers map[string]Offer) error {

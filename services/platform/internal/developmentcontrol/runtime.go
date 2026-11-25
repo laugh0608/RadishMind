@@ -3,6 +3,7 @@ package developmentcontrol
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -19,6 +20,7 @@ type Issued struct {
 	Delegation    Delegation `json:"delegation"`
 	Credential    string     `json:"-"`
 	RecordVersion int64      `json:"record_version"`
+	deadline      time.Time  // Original monotonic deadline, including time spent committing.
 }
 
 type Runtime struct {
@@ -53,49 +55,91 @@ func randomID(prefix string) (string, error) {
 	}
 	return prefix + hex.EncodeToString(data[:]), nil
 }
-func (r *Runtime) Prepare(ctx context.Context, identity Identity, plan Plan) (Prepared, error) {
+func (r *Runtime) currentBinding(ctx context.Context, identity Identity, plan Plan) (Binding, error) {
 	if plan.Validate() != nil || r.backend == nil {
-		return Prepared{}, ErrTransport
+		return Binding{}, ErrTransport
 	}
 	selected, err := r.reader.Resolve(ctx, identity, plan)
-	if err != nil || selected.Validate() != nil {
-		return Prepared{}, ErrIneligible
+	if err != nil {
+		return Binding{}, err
 	}
 	policy, err := r.backend.Policy(ctx, plan.ModelRef)
-	if err != nil || policy.InputTokenCeiling < 1 || policy.InputTokenCeiling+plan.MaxOutputTokens > plan.Limits.MaxTokens || plan.MaxOutputTokens > policy.MaxOutputTokens || policy.Timeout <= 0 || policy.Timeout > 2*time.Minute {
-		return Prepared{}, ErrTransport
+	if err != nil || policy.InputTokenCeiling < 1 || policy.InputTokenCeiling > plan.Limits.MaxTokens-plan.MaxOutputTokens || plan.MaxOutputTokens > policy.MaxOutputTokens || policy.Timeout <= 0 || policy.Timeout > 2*time.Minute {
+		return Binding{}, ErrTransport
 	}
-	sha, err := plan.Digest()
+	b := Binding{"development_attempt_binding.v1", identity, plan, selected, policy.InputTokenCeiling}
+	if err := b.Validate(); err != nil {
+		return Binding{}, err
+	}
+	return b, nil
+}
+
+func (r *Runtime) Prepare(ctx context.Context, identity Identity, plan Plan) (Prepared, error) {
+	binding, err := r.currentBinding(ctx, identity, plan)
 	if err != nil {
 		return Prepared{}, err
 	}
-	return Prepared{sha, selected}, nil
+	digest, err := plan.Digest()
+	return Prepared{digest, binding.Selection}, err
 }
+
 func (r *Runtime) Issue(ctx context.Context, identity Identity, plan Plan, confirmationID, confirmedDigest string, confirmedSelection Selection) (Issued, error) {
+	if err := r.beginIssue(); err != nil {
+		return Issued{}, err
+	}
+	defer r.work.Done()
+	binding, err := r.currentBinding(ctx, identity, plan)
+	if err != nil {
+		return Issued{}, err
+	}
+	digest, err := plan.Digest()
+	if err != nil || digest != confirmedDigest || binding.Selection != confirmedSelection || !idPattern.MatchString(confirmationID) {
+		return Issued{}, ErrConflict
+	}
+	var issued Issued
+	err = r.store.transaction(ctx, func(conn *sql.Conn) error {
+		var err error
+		issued, err = r.issueInTransaction(ctx, conn, binding, "", confirmationID)
+		return err
+	})
+	if err != nil {
+		return Issued{}, err
+	}
+	r.registerIssue(issued)
+	return issued, nil
+}
+
+// Close fences new issuances and can time out while an earlier one finishes.
+func (r *Runtime) beginIssue() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.closed {
+		return ErrUnavailable
+	}
+	r.work.Add(1)
+	return nil
+}
+
+// The caller publishes the credential and registers the deadline only after commit.
+func (r *Runtime) issueInTransaction(ctx context.Context, conn *sql.Conn, binding Binding, taskID, confirmationID string) (Issued, error) {
 	r.mu.Lock()
 	closed := r.closed
 	r.mu.Unlock()
 	if closed {
 		return Issued{}, ErrUnavailable
 	}
-	prepared, err := r.Prepare(ctx, identity, plan)
+	plan := binding.Plan
+	planDigest, err := plan.Digest()
 	if err != nil {
 		return Issued{}, err
-	}
-	if prepared.PlanDigest != confirmedDigest || prepared.Selection != confirmedSelection || !idPattern.MatchString(confirmationID) {
-		return Issued{}, ErrConflict
-	}
-	policy, err := r.backend.Policy(ctx, plan.ModelRef)
-	if err != nil {
-		return Issued{}, ErrTransport
-	}
-	binding := Binding{"development_attempt_binding.v1", identity, plan, prepared.Selection, policy.InputTokenCeiling}
-	if binding.Validate() != nil {
-		return Issued{}, ErrIneligible
 	}
 	attemptID, err := randomID("attempt_")
 	if err != nil {
 		return Issued{}, err
+	}
+	// Historical probe delegations use the attempt identity for all three keys.
+	if taskID == "" {
+		taskID = attemptID
 	}
 	delegationID, err := randomID("delegate_")
 	if err != nil {
@@ -116,7 +160,7 @@ func (r *Runtime) Issue(ctx context.Context, identity Identity, plan Plan, confi
 	issuedAt := r.now()
 	now := issuedAt.UnixMilli()
 	d := Delegation{SchemaVersion: "development_attempt_delegation.v1", DelegationID: delegationID, Revision: 1, Audience: Audience, ExecutorInstanceID: executorID, IssuedAtMS: now, ExpiresAtMS: now + plan.LifetimeMS, Limits: plan.Limits,
-		Scope: Scope{AccountID: identity.AccountID, WorkspaceID: identity.WorkspaceID, ApplicationID: plan.ApplicationID, ApplicationAuthorityDigest: prepared.Selection.ApplicationAuthorityDigest, BindingID: bindingID, BindingRevision: 1, AuthorizationRevision: 1, RunID: attemptID, TaskID: attemptID, AttemptID: attemptID, PlanDigest: prepared.PlanDigest, BaselineDigest: plan.BaselineDigest, ModelRef: plan.ModelRef, PricingDigest: prepared.Selection.PricingDigest, ToolPolicyDigest: PayloadDigest(tools)}}
+		Scope: Scope{AccountID: binding.Identity.AccountID, WorkspaceID: binding.Identity.WorkspaceID, ApplicationID: plan.ApplicationID, ApplicationAuthorityDigest: binding.Selection.ApplicationAuthorityDigest, BindingID: bindingID, BindingRevision: 1, AuthorizationRevision: 1, RunID: taskID, TaskID: taskID, AttemptID: attemptID, PlanDigest: planDigest, BaselineDigest: plan.BaselineDigest, ModelRef: plan.ModelRef, PricingDigest: binding.Selection.PricingDigest, ToolPolicyDigest: PayloadDigest(tools)}}
 	c, err := NewAttemptControl(d, Authority{Scope: d.Scope, DelegationRevision: d.Revision, ExecutorInstanceID: d.ExecutorInstanceID}, now)
 	if err != nil {
 		return Issued{}, err
@@ -126,16 +170,16 @@ func (r *Runtime) Issue(ctx context.Context, identity Identity, plan Plan, confi
 		return Issued{}, ErrUnavailable
 	}
 	credential := "devtask_" + base64.RawURLEncoding.EncodeToString(secret[:])
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.closed {
-		return Issued{}, ErrUnavailable
-	}
-	if err := r.store.create(ctx, confirmationID, r.instanceID, PayloadDigest([]byte(credential)), binding, c); err != nil {
+	if err := insertAttempt(ctx, conn, confirmationID, r.instanceID, PayloadDigest([]byte(credential)), binding, c); err != nil {
 		return Issued{}, err
 	}
-	r.deadlines[attemptID] = issuedAt.Add(time.Duration(plan.LifetimeMS) * time.Millisecond)
-	return Issued{d, credential, 1}, nil
+	return Issued{Delegation: d, Credential: credential, RecordVersion: 1, deadline: issuedAt.Add(time.Duration(plan.LifetimeMS) * time.Millisecond)}, nil
+}
+
+func (r *Runtime) registerIssue(issued Issued) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.deadlines[issued.Delegation.Scope.AttemptID] = issued.deadline
 }
 
 func authorityFor(record *Record) Authority {
@@ -261,7 +305,7 @@ func (r *Runtime) Close(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
-	rows, err := r.store.db.QueryContext(ctx, `SELECT tenant_ref,workspace_id,account_id,attempt_id FROM development_attempts WHERE owner_instance_id=? AND credential_revoked=0`, r.instanceID)
+	rows, err := r.store.db.QueryContext(ctx, `SELECT tenant_ref,workspace_id,account_id,attempt_id FROM development_attempts WHERE owner_instance_id=? AND (credential_revoked=0 OR json_extract(state_record,'$.phase') IN ('active','cancel_requested'))`, r.instanceID)
 	if err != nil {
 		return ErrUnavailable
 	}

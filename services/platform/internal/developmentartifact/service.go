@@ -3,8 +3,11 @@ package developmentartifact
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
+
 	"encoding/hex"
 	"encoding/json"
+	control "radishmind.local/services/platform/internal/developmentcontrol"
 	"time"
 
 	probe "radishmind.local/services/platform/internal/developmentprobe"
@@ -77,6 +80,14 @@ func (s *Service) Save(ctx context.Context, scope Scope, attempt, request, confi
 	if err != ErrNotFound {
 		return Record{}, err
 	}
+	record, err := s.newSaveRecord(ctx, scope, attempt, request, confirmedDigest)
+	if err != nil {
+		return Record{}, err
+	}
+	return s.store.save(ctx, record)
+}
+
+func (s *Service) newSaveRecord(ctx context.Context, scope Scope, attempt, request, confirmedDigest string) (Record, error) {
 	b, err := s.preview(ctx, scope, attempt)
 	if err != nil {
 		return Record{}, err
@@ -92,8 +103,33 @@ func (s *Service) Save(ctx context.Context, scope Scope, attempt, request, confi
 		return Record{}, ErrUnavailable
 	}
 	r := Record{SchemaVersion: "development_artifact_record.v1", ArtifactID: "devart_" + hex.EncodeToString(nonce[:]), RequestID: request, SavedAt: s.now().UTC().Format(time.RFC3339Nano), Bundle: b}
-	return s.store.save(ctx, r)
+	return r, nil
 }
+
+// SaveTaskArtifact participates in a trusted task transaction. The caller has
+// already authorized this operation and checked the durable request receipt.
+func (s *Service) SaveTaskArtifact(ctx context.Context, conn *sql.Conn, task control.TaskScope, origin control.Scope, phase, request, digest string) (string, error) {
+	scope := Scope{TenantRef: task.TenantRef, WorkspaceID: task.WorkspaceID, AccountID: task.AccountID, ApplicationID: task.ApplicationID}
+	if err := s.authorize(ctx, scope, PermissionRead); err != nil {
+		return "", err
+	}
+	if err := s.authorize(ctx, scope, PermissionSave); err != nil {
+		return "", err
+	}
+	record, err := s.newSaveRecord(ctx, scope, origin.AttemptID, request, digest)
+	if err != nil {
+		return "", err
+	}
+	if record.Bundle.Origin != origin || record.Bundle.AttemptState != phase {
+		return "", ErrConflict
+	}
+	saved, err := insertSavedRecord(ctx, conn, record)
+	if err != nil {
+		return "", err
+	}
+	return saved.ArtifactID, nil
+}
+
 func (s *Service) Read(ctx context.Context, scope Scope, id string) (Record, error) {
 	if err := s.authorize(ctx, scope, PermissionRead); err != nil {
 		return Record{}, err

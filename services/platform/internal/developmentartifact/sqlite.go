@@ -58,15 +58,6 @@ func (s *SQLiteStore) readRequest(ctx context.Context, scope Scope, id string) (
 	return readRecord(ctx, s.db, scope, "request_id", id)
 }
 func (s *SQLiteStore) save(ctx context.Context, r Record) (Record, error) {
-	body, err := json.Marshal(r)
-	if err != nil {
-		return Record{}, ErrInvalid
-	}
-	if _, err = parseRecord(body); err != nil {
-		return Record{}, ErrInvalid
-	}
-	bundle, _ := json.Marshal(r.Bundle)
-	scope := r.Bundle.Scope
 	conn, err := s.db.Conn(ctx)
 	if err != nil {
 		return Record{}, ErrUnavailable
@@ -83,9 +74,30 @@ func (s *SQLiteStore) save(ctx context.Context, r Record) (Record, error) {
 			_, _ = conn.ExecContext(cleanup, "ROLLBACK")
 		}
 	}()
+	saved, err := insertSavedRecord(ctx, conn, r)
+	if err != nil {
+		return Record{}, err
+	}
+	if _, err = conn.ExecContext(ctx, "COMMIT"); err != nil {
+		return Record{}, ErrUnavailable
+	}
+	committed = true
+	return saved, nil
+}
+
+func insertSavedRecord(ctx context.Context, conn *sql.Conn, r Record) (Record, error) {
+	body, err := json.Marshal(r)
+	if err != nil {
+		return Record{}, ErrInvalid
+	}
+	if _, err = parseRecord(body); err != nil {
+		return Record{}, ErrInvalid
+	}
+	bundle, _ := json.Marshal(r.Bundle)
+	scope := r.Bundle.Scope
 	old, err := readRecord(ctx, conn, scope, "request_id", r.RequestID)
 	if err == nil {
-		if old.Bundle.Digest != r.Bundle.Digest {
+		if old.Bundle.Digest != r.Bundle.Digest || old.Bundle.Origin != r.Bundle.Origin {
 			return Record{}, ErrConflict
 		}
 		return old, nil
@@ -104,9 +116,5 @@ func (s *SQLiteStore) save(ctx context.Context, r Record) (Record, error) {
 	if err != nil {
 		return Record{}, ErrUnavailable
 	}
-	if _, err = conn.ExecContext(ctx, "COMMIT"); err != nil {
-		return Record{}, ErrUnavailable
-	}
-	committed = true
 	return r, nil
 }
