@@ -14,10 +14,11 @@ type TaskWorkerEnvironment interface {
 }
 
 type taskWorkerTracker struct {
-	runtime *Runtime
-	owner   TaskResourceOwner
-	host    TaskHost
-	cancel  context.CancelFunc
+	runtime   *Runtime
+	owner     TaskResourceOwner
+	host      TaskHost
+	cancel    context.CancelFunc
+	candidate string // Updated only by the serial worker from trusted tool observations.
 }
 
 // StartWorker is the host entry for asynchronous task execution. The caller
@@ -68,7 +69,7 @@ func (c *TaskCoordinator) handoff(s TaskScope, receipt TaskReceipt, issued Issue
 		return ErrTaskCorrupt
 	}
 	owner := TaskResourceOwner{s, receipt.TaskID, r.instanceID, SandboxBindingFor(issued.Delegation), plan.SDKImageDigest, plan.GoImageDigest, plan.ExecutorDigest}
-	tracker := &taskWorkerTracker{r, owner, c.host, cancel}
+	tracker := &taskWorkerTracker{runtime: r, owner: owner, host: c.host, cancel: cancel, candidate: owner.Sandbox.BaselineDigest}
 	r.mu.Lock()
 	if r.closed {
 		r.mu.Unlock()

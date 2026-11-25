@@ -38,6 +38,30 @@ type taskOwnerFile struct {
 
 var daemonIDPattern = regexp.MustCompile(`^[a-zA-Z0-9:-]{12,128}$`)
 
+// A checked executable cannot be replaced between hashing and execution by the
+// unprivileged SDK. This formal profile runs under a root-owned Linux controller.
+func CheckControllerExecutable(path string) error {
+	if !filepath.IsAbs(path) || filepath.Clean(path) != path {
+		return ErrSandbox
+	}
+	for current := path; ; current = filepath.Dir(current) {
+		info, err := os.Lstat(current)
+		if err != nil || !ownedFile(info) || info.Mode().Perm()&0022 != 0 {
+			return ErrSandbox
+		}
+		if current == path {
+			if !info.Mode().IsRegular() || info.Mode().Perm()&0100 == 0 || !singleLink(info) {
+				return ErrSandbox
+			}
+		} else if !info.IsDir() {
+			return ErrSandbox
+		}
+		if filepath.Dir(current) == current {
+			return nil
+		}
+	}
+}
+
 func (h TaskWorkers) taskDirectory(o control.TaskResourceOwner) (string, error) {
 	if !filepath.IsAbs(h.Directory) || !filepath.IsAbs(h.DockerPath) || !idPattern.MatchString(o.OwnerInstanceID) || !idPattern.MatchString(o.Sandbox.AttemptID) {
 		return "", ErrSandbox
@@ -57,6 +81,15 @@ func (h TaskWorkers) daemon(ctx context.Context) (string, error) {
 		return "", ErrUnknown
 	}
 	return id, nil
+}
+
+// CheckDaemon binds the launcher's read-only preflight to the code executor's daemon.
+func (h TaskWorkers) CheckDaemon(ctx context.Context, expected []byte) error {
+	id, err := h.daemon(ctx)
+	if err != nil || id != string(expected) {
+		return ErrUnknown
+	}
+	return nil
 }
 
 func (h TaskWorkers) Prepare(ctx context.Context, o control.TaskResourceOwner, p control.TaskPlan, d control.Delegation) (control.WorkerLaunch, func() error, error) {

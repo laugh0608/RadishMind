@@ -99,12 +99,18 @@ func (s *Server) StartDevelopmentChannel(ctx context.Context) (string, <-chan er
 	if s.developmentHTTP != nil {
 		return "", nil, developmentcontrol.ErrConflict
 	}
+	server, address, done, err := serveDevelopmentChannel(ctx, s.developmentRuntime)
+	if err == nil {
+		s.developmentHTTP = server
+	}
+	return address, done, err
+}
+func serveDevelopmentChannel(ctx context.Context, runtime *developmentcontrol.Runtime) (*http.Server, string, <-chan error, error) {
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
-		return "", nil, developmentcontrol.ErrUnavailable
+		return nil, "", nil, developmentcontrol.ErrUnavailable
 	}
-	server := &http.Server{Handler: s.developmentRuntime.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 135 * time.Second, IdleTimeout: 15 * time.Second, MaxHeaderBytes: 16384, BaseContext: func(net.Listener) context.Context { return ctx }}
-	s.developmentHTTP = server
+	server := &http.Server{Handler: runtime.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 135 * time.Second, IdleTimeout: 15 * time.Second, MaxHeaderBytes: 16384, BaseContext: func(net.Listener) context.Context { return ctx }}
 	done := make(chan error, 1)
 	go func() {
 		err := server.Serve(listener)
@@ -114,22 +120,38 @@ func (s *Server) StartDevelopmentChannel(ctx context.Context) (string, <-chan er
 		done <- err
 		close(done)
 	}()
-	return "http://" + listener.Addr().String(), done, nil
+	return server, "http://" + listener.Addr().String(), done, nil
 }
 
 func (s *Server) CloseDevelopmentControl(ctx context.Context) error {
 	s.developmentMu.Lock()
 	s.developmentClosed = true
 	server, runtime := s.developmentHTTP, s.developmentRuntime
+	taskServer, taskRuntime := s.developmentTaskHTTP, s.developmentTaskRuntime
+	watched := s.developmentTaskWatchDone
+	s.taskEnvironment = nil
 	s.developmentMu.Unlock()
 	var err error
 	// Fence/cancel model calls before waiting for HTTP handlers to drain.
 	if runtime != nil {
 		err = runtime.Close(ctx)
 	}
-	if server != nil {
+	if taskRuntime != nil {
+		err = errors.Join(err, taskRuntime.Close(ctx))
+	}
+	for _, server := range []*http.Server{server, taskServer} {
+		if server == nil {
+			continue
+		}
 		if shutdownErr := server.Shutdown(ctx); shutdownErr != nil {
 			err = errors.Join(err, shutdownErr, server.Close())
+		}
+	}
+	if watched != nil {
+		select {
+		case <-watched:
+		case <-ctx.Done():
+			err = errors.Join(err, ctx.Err())
 		}
 	}
 	if err != nil {

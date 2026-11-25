@@ -44,6 +44,10 @@ type Server struct {
 	developmentRuntime            *developmentcontrol.Runtime
 	developmentStore              *developmentcontrol.SQLiteStore
 	developmentHTTP               *http.Server
+	developmentTaskHTTP           *http.Server
+	developmentTaskWatchDone      <-chan struct{}
+	developmentTaskRuntime        *developmentcontrol.Runtime
+	taskEnvironment               taskExecutionEnvironment
 	workbenchLock                 *workbench.Lock
 	closeWorkbenchAssets          func() error
 	httpServer                    *http.Server
@@ -670,9 +674,22 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		server.closeWorkbenchAssets = closeAssets
 		server.workbenchLock = dataLock
 		lockTransferred = true
+		var taskEnv *workbenchTaskEnvironment
+		if settings := runtimeConfig.Workbench.DevelopmentTasks; settings != nil {
+			taskEnv = newWorkbenchTaskEnvironment(runtimeConfig, *settings)
+			if taskEnv.controllerDockerAvailable() {
+				server.options.DevelopmentTaskDockerPath = settings.DockerPath
+			}
+		}
 		if err = server.recoverWorkbenchTaskWorkers(); err != nil {
 			server.Close()
 			return nil, err
+		}
+		if taskEnv != nil {
+			if err = server.enableWorkbenchTaskChannel(taskEnv); err != nil {
+				server.Close()
+				return nil, err
+			}
 		}
 	}
 	server.httpServer = &http.Server{

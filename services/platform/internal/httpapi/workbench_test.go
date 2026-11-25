@@ -87,11 +87,15 @@ func TestWorkbenchEmptyRegistrationExplicitBootstrapAndRestart(t *testing.T) {
 	if _, err := BootstrapLocalIdentityWorkspaceAdministratorDevTest(context.Background(), options); err == nil {
 		t.Fatal("bootstrap repeated")
 	}
+	cfg.Workbench.DevelopmentTasks = &config.WorkbenchTaskExecution{DockerPath: "/missing/docker", InputsDirectory: "/missing/input", LauncherPath: "/missing/launcher"}
 	server, err = NewServerWithError(cfg, Options{TestOnly: true})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.Close()
+	if server.taskEnvironment == nil || server.developmentTaskHTTP == nil || server.taskEnvironment.Check(t.Context()) == nil {
+		t.Fatal("missing frozen environment became eligible")
+	}
 	request := httptest.NewRequest(http.MethodGet, cfg.Workbench.PublicOrigin+"/v1/user-workspace/applications", nil)
 	for _, cookie := range cookies {
 		request.AddCookie(cookie)

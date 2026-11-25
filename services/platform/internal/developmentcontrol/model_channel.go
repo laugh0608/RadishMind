@@ -287,18 +287,39 @@ func (r *Runtime) QueueTool(ctx context.Context, record *Record, call ToolCall) 
 // DispatchTool and CompleteTool are trusted Go executor hooks, not SDK routes.
 // The actual filesystem / command executor is intentionally not implemented here.
 func (r *Runtime) DispatchTool(ctx context.Context, identity Identity, attemptID, requestID string) (*Record, error) {
+	return r.dispatchTool(ctx, identity, attemptID, requestID, nil)
+}
+func (r *Runtime) dispatchTool(ctx context.Context, identity Identity, attemptID, requestID string, call *ToolCall) (*Record, error) {
 	var refused error
-	record, err := r.store.change(ctx, identity, attemptID, 0, r.instanceID, func(current *Record) error {
-		refused = r.revalidate(ctx, current)
-		if refused != nil {
-			return nil
+	var record *Record
+	tracker := r.taskWorker(attemptID)
+	err := r.store.transaction(ctx, func(conn *sql.Conn) error {
+		var err error
+		record, err = changeRecord(ctx, conn, identity, attemptID, 0, r.instanceID, func(current *Record) error {
+			refused = r.revalidate(ctx, current)
+			if refused != nil {
+				return nil
+			}
+			offer, ok := current.Offers[requestID]
+			if !ok || offer.State != "queued" {
+				return ErrContext
+			}
+			_, err := current.Control.RecordDispatch(requestID, authorityFor(current), r.now().UnixMilli())
+			return err
+		})
+		if err != nil || refused != nil || tracker == nil {
+			return err
 		}
-		offer, ok := current.Offers[requestID]
-		if !ok || offer.State != "queued" {
+		if call == nil {
 			return ErrContext
 		}
-		_, err := current.Control.RecordDispatch(requestID, authorityFor(current), r.now().UnixMilli())
-		return err
+		_, err = conn.ExecContext(ctx, `INSERT INTO development_task_tool_activity(attempt_id,request_id,sequence,tool_name,candidate_digest,started_at_ms)
+ VALUES(?,?,?,?,?,?) ON CONFLICT(attempt_id) DO UPDATE SET request_id=excluded.request_id,sequence=excluded.sequence,tool_name=excluded.tool_name,candidate_digest=excluded.candidate_digest,started_at_ms=excluded.started_at_ms`,
+			attemptID, requestID, record.Control.budget.ToolReservations, call.Arguments.Action, tracker.candidate, record.Control.lastTimeMS)
+		if err != nil {
+			return ErrUnavailable
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err

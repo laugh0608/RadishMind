@@ -1,6 +1,6 @@
 # 本机持久工作台运行指南 v1
 
-更新时间：2026-10-31
+更新时间：2026-11-25
 
 状态：命令、配置、Web 接线和运维实现已完成；2026-10-31 宿主机 Chrome 的首次使用、Prompt / Workflow、显式保存、冷重启与新目录恢复已完成固定响应验收，证据见 [W44 周志](../devlogs/2026-W44.md#2026-10-31-宿主机工作台验收与修复)。另行授权的 `linux/arm64` Docker 构建 / 运行、挂载限制、重启及容器与宿主机备份迁移也已通过技术验收，见 [Docker 验收记录](../devlogs/2026-W44.md#2026-10-31-docker-工作台交付验收)。`linux/amd64`、Windows PowerShell 和独立用户试用尚未验收；真实模型窗口继续暂停。
 
@@ -68,6 +68,24 @@ cp deploy/workbench-native.example.json var/workbench/platform.json
 默认 `mock` 不联网，只提供有限固定响应，用于技术链验证。五字段诊断等严格结构化正向场景需要明确选择隔离固定响应提供方；产品不会隐式启动它。真实任务效果必须在恢复模型窗口后单独验证。
 
 显式远端接入将 `provider` 设为 `openai-compatible`，填写 `model`、`base_url` 和 `api_key_file`。JSON 不允许 `api_key`，Web 公开配置也不包含凭据、文件路径或提供方 URL。凭据文件由用户单独准备，限制读取权限；容器使用 `/run/secrets/radishmind/provider-key`。启动才读取值，轮换后重启生效。工作台 Python 不读取仓库 `.env`，并隔离继承的模型环境配置；不会自动探测、换模型、下载权重或回退到 mock。
+
+## 单 Agent 固定响应执行配置
+
+普通工作台可创建计划和读取历史。只有预先准备好的冻结 `linux/arm64` 控制器才启用执行。在原有 `workbench` 对象内加入下列字段。示例假定 SQLite 位于 `/private-data/radishmind.db`。
+
+```json
+"development_tasks": {
+  "launcher_path": "/private-data/bin/workbench_launcher.py",
+  "docker_path": "/opt/docker",
+  "inputs_directory": "/private-data/fixed-inputs"
+}
+```
+
+- 控制器使用档案中冻结的 SDK 镜像、只读根文件系统、独立 PID 命名空间、`network=none` 和 `no-new-privileges`。采用已验收的控制器限额（至多 1 GiB 内存、2 CPU、128 个进程），为 `/tmp` 和 `/control` 单独挂载 tmpfs。其 HTTP 地址只在控制器回环命名空间内可达。工作台与 SDK 私有通道分开监听。
+- 将仓库的 [workbench_launcher.py](../../services/runtime/development_sdk/workbench_launcher.py) 作为可执行文件提供，将冻结的 [worker.py](../../services/runtime/development_sdk/worker.py) 只读提供在 `/opt/sdk-worker/worker.py`。启动器和 Docker CLI 所在路径由控制器 root 持有。SDK 以 UID/GID 65532 运行。
+- 私有数据目录归 root 所有，权限为 `0700`，宿主和控制器使用同一绝对路径绑定。配置和凭据只允许控制器读取。输入目录包含冻结的 `code-runner`、`list-filter-plan.json` 与三文件 `list-filter/`。控制器的 Docker CLI 使用 `DOCKER_HOST=unix:///control/docker.sock`；代码镜像须已在该实例内。启动器逐项检查身份、挂载及 SDK 对私有目录和套接字的访问限制。
+- 准备确认和首次启动会重新检查环境。配置缺失或校验失败时，任务详情返回 `execution_disabled`。恢复备份的工作台须重新指定本机执行配置。已有数据库按下节流程显式升级。
+- 本批使用隔离 HTTP、私有通道和受控工具替身验收。真实控制器的执行与浏览器验收另行安排。权限、接口与返回字段见[公开交付合同](../contracts/development-task-delivery-v1.md)。
 
 ## 冷备份、升级和恢复
 

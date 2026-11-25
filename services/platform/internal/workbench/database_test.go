@@ -83,6 +83,7 @@ func TestColdBackupRestorePreservesDataAndRejectsTampering(t *testing.T) {
 	}
 	db.Close()
 	cfg := config.Config{SQLiteDevDatabasePath: path, Provider: "mock", Model: "mock", APIKey: "must-not-be-backed-up", Workbench: config.WorkbenchConfig{TenantRef: "tenant_local", WorkspaceID: "workspace_local"}}
+	cfg.Workbench.DevelopmentTasks = &config.WorkbenchTaskExecution{LauncherPath: "/controller/launcher"}
 	backup := filepath.Join(t.TempDir(), "backup")
 	lock, err := Acquire(filepath.Dir(path))
 	if err != nil {
@@ -97,8 +98,8 @@ func TestColdBackupRestorePreservesDataAndRejectsTampering(t *testing.T) {
 	}
 	for _, name := range []string{"platform.json", "manifest.json"} {
 		data, err := os.ReadFile(filepath.Join(backup, name))
-		if err != nil || strings.Contains(string(data), cfg.APIKey) {
-			t.Fatal("secret copied or file missing")
+		if err != nil || strings.Contains(string(data), cfg.APIKey) || strings.Contains(string(data), cfg.Workbench.DevelopmentTasks.LauncherPath) || (name == "platform.json" && strings.Contains(string(data), `"development_tasks"`)) {
+			t.Fatal("missing backup file or machine-specific configuration copied", name)
 		}
 	}
 	restored := filepath.Join(t.TempDir(), "restored")

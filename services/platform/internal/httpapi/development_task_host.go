@@ -12,6 +12,9 @@ import (
 )
 
 const (
+	fixedTaskExecutor = "sha256:f009798f17e15fb1a9155282ac899e6dab0cb55d8382caa172883606d9b53597"
+	fixedTaskGoImage  = "sha256:b17af760035fc2f338eed92d448a6c67f2d45438844fc6c60678fa5f99e44b57"
+	fixedTaskSDKImage = "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf"
 	fixedTaskModel    = "fixed_response:probe_list_filter_v1"
 	fixedTaskSource   = "probe_list_filter"
 	fixedTaskVersion  = "task_list_filter_v1"
@@ -155,9 +158,9 @@ func (h developmentTaskHost) FixedProfile(ctx context.Context, s control.TaskSco
 	}
 	return control.TaskProfile{
 		AttemptPlan: plan, SourceProfileID: fixedTaskSource, SourceVersion: fixedTaskVersion, ExecutionMode: "fixed_response_only",
-		SDKImageDigest:         "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
-		GoImageDigest:          "sha256:b17af760035fc2f338eed92d448a6c67f2d45438844fc6c60678fa5f99e44b57",
-		ExecutorDigest:         "sha256:f009798f17e15fb1a9155282ac899e6dab0cb55d8382caa172883606d9b53597",
+		SDKImageDigest:         fixedTaskSDKImage,
+		GoImageDigest:          fixedTaskGoImage,
+		ExecutorDigest:         fixedTaskExecutor,
 		RetentionPolicyVersion: "development_artifact_retention_v1",
 	}, a.expiresAt, nil
 }

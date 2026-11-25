@@ -94,6 +94,9 @@ func backupLocked(ctx context.Context, cfg config.Config, destination, buildVers
 		RuntimeProfile: config.LocalWorkbenchProfile, ListenAddr: cfg.ListenAddr, LocalPersistenceMode: "sqlite_dev",
 		DatabasePath: "data/radishmind.db", Provider: cfg.Provider, Model: cfg.Model, BaseURL: cfg.BaseURL, Workbench: cfg.Workbench,
 	}
+	// Machine-local execution approval and read/write mounts must be selected
+	// afresh on a restored workbench.
+	snapshot.Workbench.DevelopmentTasks = nil
 	if cfg.Provider != "mock" {
 		snapshot.APIKeyFile = "secrets/provider-key"
 	}

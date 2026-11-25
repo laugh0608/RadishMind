@@ -72,6 +72,11 @@ func registerDevelopmentTaskRoutes(mux *http.ServeMux, s *Server) {
 	register("GET", "development-tasks", 200, metadataLimit, developmentTaskRequest.tasks, "cursor", "limit")
 	register("GET", "development-tasks/{task_id}", 200, metadataLimit, developmentTaskRequest.detail)
 	register("POST", "development-tasks/{task_id}/plan-revisions", 201, metadataLimit, developmentTaskRequest.revise)
+	const taskPath = "development-tasks/{task_id}"
+	register("POST", taskPath+"/preparations", 200, metadataLimit, developmentTaskRequest.prepare)
+	register("POST", taskPath+"/attempts", 202, metadataLimit, developmentTaskRequest.start)
+	register("GET", taskPath+"/attempts/{attempt_id}", 200, metadataLimit, developmentTaskRequest.attempt)
+	register("POST", taskPath+"/attempts/{attempt_id}/cancel", 202, metadataLimit, developmentTaskRequest.cancel)
 	register("GET", "development-requests/{request_id}", 200, metadataLimit, developmentTaskRequest.receipt)
 	register("GET", "development-artifacts", 200, metadataLimit, developmentTaskRequest.artifacts, "cursor", "limit")
 	register("GET", "development-artifacts/{artifact_id}", 200, 2<<20, developmentTaskRequest.artifact)
@@ -188,6 +193,9 @@ func decodeDevelopmentPlanRequest(r *http.Request, target any, fields ...string)
 	if err != nil {
 		return control.ErrTaskInvalid
 	}
+	if _, ok := values["limits"]; !ok {
+		return nil
+	}
 	if _, err = strictjson.ObjectFields(values["limits"], "max_model_calls", "max_tool_calls", "max_tokens", "max_cost_microusd"); err != nil {
 		return control.ErrTaskInvalid
 	}
@@ -206,7 +214,9 @@ func writeDevelopmentTaskFailure(w http.ResponseWriter, trace requestTrace, err 
 		status, code = 403, "development_task_denied"
 	case control.ErrNotFound:
 		status, code = 404, "development_task_not_found"
-	case control.ErrConflict:
+	case control.ErrTaskExpired:
+		status, code = 410, "development_task_preparation_expired"
+	case control.ErrConflict, control.ErrSlotBusy:
 		status, code = 409, "development_task_conflict"
 	case errTaskPayloadLarge:
 		status, code = 413, "development_task_invalid"

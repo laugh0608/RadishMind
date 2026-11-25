@@ -103,10 +103,12 @@ func (m *TaskMetadata) List(ctx context.Context, s TaskScope, cursor string, lim
 }
 
 type TaskSnapshot struct {
-	Task             Task     `json:"task"`
-	Plan             TaskPlan `json:"plan"`
-	SavedArtifactIDs []string `json:"saved_artifact_ids"`
-	ReceiptCount     int      `json:"-"`
+	Task                    Task     `json:"task"`
+	Plan                    TaskPlan `json:"plan"`
+	SavedArtifactIDs        []string `json:"saved_artifact_ids"`
+	ReceiptCount            int      `json:"-"`
+	SlotOccupied            bool     `json:"-"`
+	LatestPreparationExpiry int64    `json:"-"`
 }
 
 // Snapshot reads the current task, revision and saved references at one SQLite
@@ -132,6 +134,13 @@ func (m *TaskMetadata) Snapshot(ctx context.Context, s TaskScope, id string) (Ta
 		return TaskSnapshot{}, err
 	}
 	result := TaskSnapshot{Task: t, Plan: p, SavedArtifactIDs: []string{}}
+	if t.AttemptID == "" {
+		err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM development_tasks WHERE execution_slot=1),
+ coalesce((SELECT max(expires_at_ms) FROM development_task_preparations WHERE task_id=? AND task_version=? AND consumed=0),0)`, t.TaskID, t.Version).Scan(&result.SlotOccupied, &result.LatestPreparationExpiry)
+		if err != nil {
+			return TaskSnapshot{}, ErrUnavailable
+		}
+	}
 	rows, err := tx.QueryContext(ctx, `SELECT coalesce(artifact_id,'') FROM development_task_receipts WHERE task_id=? ORDER BY request_id LIMIT 65`, id)
 	if err != nil {
 		return TaskSnapshot{}, ErrUnavailable

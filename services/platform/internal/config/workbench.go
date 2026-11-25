@@ -18,11 +18,19 @@ import (
 const LocalWorkbenchProfile = "local-workbench"
 
 type WorkbenchConfig struct {
-	PublicOrigin  string `json:"public_origin"`
-	TenantRef     string `json:"tenant_ref"`
-	WorkspaceID   string `json:"workspace_id"`
-	Environment   string `json:"environment"`
-	WebAssetsPath string `json:"web_assets_path"`
+	PublicOrigin     string                  `json:"public_origin"`
+	TenantRef        string                  `json:"tenant_ref"`
+	WorkspaceID      string                  `json:"workspace_id"`
+	Environment      string                  `json:"environment"`
+	WebAssetsPath    string                  `json:"web_assets_path"`
+	DevelopmentTasks *WorkbenchTaskExecution `json:"development_tasks,omitempty"`
+}
+
+// Provisioned by the operator, never selected by a public task request.
+type WorkbenchTaskExecution struct {
+	LauncherPath    string `json:"launcher_path"`
+	DockerPath      string `json:"docker_path"`
+	InputsDirectory string `json:"inputs_directory"`
 }
 
 func applyRuntimeProfile(cfg *Config, fileProfile *string) error {
@@ -84,7 +92,7 @@ func workbenchRequiredGates(cfg *Config) map[string]*bool {
 
 func finalizeWorkbenchConfig(cfg *Config) error {
 	if cfg.RuntimeProfile != LocalWorkbenchProfile {
-		if cfg.APIKeyFile != "" || cfg.Workbench.PublicOrigin != "" {
+		if cfg.APIKeyFile != "" || cfg.Workbench.PublicOrigin != "" || cfg.Workbench.DevelopmentTasks != nil {
 			return errors.New("workbench fields require local-workbench runtime_profile")
 		}
 		return nil
@@ -151,6 +159,11 @@ var workbenchScopePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,127}
 func ValidateWorkbench(cfg Config) error {
 	if cfg.RuntimeProfile != LocalWorkbenchProfile {
 		return nil
+	}
+	if t := cfg.Workbench.DevelopmentTasks; t != nil {
+		if !filepath.IsAbs(t.LauncherPath) || !filepath.IsAbs(t.DockerPath) || !filepath.IsAbs(t.InputsDirectory) {
+			return errors.New("workbench development_tasks requires absolute launcher, Docker, input paths")
+		}
 	}
 	if cfg.LocalIdentityCookieSecure {
 		return errors.New("loopback HTTP workbench requires the existing non-secure development cookie setting")

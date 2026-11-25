@@ -366,7 +366,7 @@ func (r *Runtime) workerTool(ctx context.Context, identity Identity, call ToolCa
 	if handler == nil {
 		return ErrUnavailable
 	}
-	if _, err = r.DispatchTool(ctx, identity, call.AttemptID, call.RequestID); err != nil {
+	if _, err = r.dispatchTool(ctx, identity, call.AttemptID, call.RequestID, &call); err != nil {
 		return err
 	}
 	observation, err := handler(ctx, call)
@@ -375,6 +375,15 @@ func (r *Runtime) workerTool(ctx context.Context, identity Identity, call ToolCa
 	}
 	finish, stop := context.WithTimeout(context.Background(), 5*time.Second)
 	defer stop()
+	if tracker := r.taskWorker(call.AttemptID); tracker != nil {
+		var observed struct {
+			Candidate string `json:"candidate_digest"`
+		}
+		if json.Unmarshal([]byte(observation), &observed) != nil || !digestPattern.MatchString(observed.Candidate) {
+			return errors.Join(ErrWorker, r.unknownWorkerTool(identity, call))
+		}
+		tracker.candidate = observed.Candidate
+	}
 	if _, err = r.CompleteTool(finish, identity, call.AttemptID, call.RequestID, observation); err != nil {
 		return errors.Join(err, r.unknownWorkerTool(identity, call))
 	}

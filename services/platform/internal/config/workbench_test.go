@@ -119,3 +119,18 @@ func TestWorkbenchRejectsNonCanonicalBrowserOriginPorts(t *testing.T) {
 		})
 	}
 }
+
+func TestWorkbenchTaskExecutionConfiguration(t *testing.T) {
+	const doc = `{"runtime_profile":"local-workbench","workbench":{"public_origin":"http://127.0.0.1:4100","tenant_ref":"tenant_local","workspace_id":"workspace_local","environment":"test","web_assets_path":"/assets","development_tasks":{"launcher_path":"/private/launcher","docker_path":"/opt/docker","inputs_directory":"/private/input"}}}`
+	workbenchFile(t, doc)
+	cfg, err := LoadFromEnv()
+	if err != nil || cfg.Workbench.DevelopmentTasks == nil || cfg.Workbench.DevelopmentTasks.DockerPath != "/opt/docker" {
+		t.Fatal(err)
+	}
+	for _, bad := range []string{strings.Replace(doc, "/private/launcher", "relative", 1), strings.Replace(doc, "inputs_directory", "unknown", 1), strings.Replace(doc, `"runtime_profile":"local-workbench",`, "", 1)} {
+		workbenchFile(t, bad)
+		if _, err := LoadFromEnv(); err == nil {
+			t.Fatal("accepted incomplete or out-of-profile execution configuration")
+		}
+	}
+}

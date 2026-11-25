@@ -97,6 +97,11 @@ func (c *TaskCoordinator) qualification(ctx context.Context, s TaskScope, p Task
 	if err != nil || !current.valid(s, choice) || digest != p.Digest {
 		return Binding{}, "", 0, ErrConflict
 	}
+	if host, ok := c.host.(interface{ CheckTaskEnvironment(context.Context) error }); ok {
+		if err := host.CheckTaskEnvironment(ctx); err != nil {
+			return Binding{}, "", 0, err
+		}
+	}
 	binding, err := c.runtime.currentBinding(ctx, s.Identity, p.AttemptPlan)
 	if err != nil {
 		return Binding{}, "", 0, err

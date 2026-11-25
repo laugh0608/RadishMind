@@ -1,8 +1,8 @@
 # 单 Agent 开发任务：公开交付合同 v1
 
-更新时间：2026-11-25（接入工作进程交接与旧执行槽核对）
+更新时间：2026-11-25（正式会话接入固定响应任务执行）
 
-状态：阶段 1 已落地公开交付 schema 和本地身份目录 v3 的 `workspace_developer` 角色。Go 任务协调器已在隔离 SQLite 验证计划修订、确认、一次尝试、取消和显式保存。本地 Web 会话可调用任务元数据、请求回执与已保存开发包接口。可信 Go 宿主可将已提交的任务交接给工作进程；正式执行配置、执行类 HTTP 和 Web 页面待接续。
+状态：阶段 1 已落地公开交付 schema 和本地身份目录 v3 的 `workspace_developer` 角色。Go 任务协调器已在隔离 SQLite 验证计划修订、确认、一次尝试、取消和显式保存。本地 Web 会话可调用任务元数据、请求回执与已保存开发包接口。具备冻结执行环境的工作台可从正式会话准备确认、启动和取消任务，并读取尝试详情。事件、临时交付审阅和 Web 页面待接续。
 
 所属功能：[实施与评测](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)、[协作界面](../features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md)。本页维护新增公开任务合同；底层委托、工具、事件与产物字段继续由[尝试控制](development-attempt-control-v1.md)和[开发产物](development-artifact-v1.md)负责。
 
@@ -55,7 +55,7 @@
 
 ## 公开 HTTP 面
 
-基路径记为 `A = /v1/user-workspace/applications/{application_id}`，工作区选择沿既有 `workspace_id` 参数；每个对象仍重查完整作用域。下表列出完整合同。能力、任务创建 / 列表 / 详情 / 修订、回执和已保存包列表 / 详情 / 导出这九个路由已接入。准备确认和尝试下的七个路由随执行宿主接线交付。
+基路径记为 `A = /v1/user-workspace/applications/{application_id}`，工作区选择沿既有 `workspace_id` 参数；每个对象仍重查完整作用域。下表列出完整合同。已接入十三个路由，包括准备确认、启动、尝试详情和取消。事件分页、临时产物预览和显式保存仍待接入。
 
 | 方法与相对路径 | 输入及返回 | 行为 |
 | --- | --- | --- |
@@ -157,7 +157,9 @@
 
 可信宿主可通过 `Options.DevelopmentTaskDockerPath` 提供绝对 Docker CLI 路径，代码账册位于数据目录下的 `development-tasks/<attempt_id>/`。恢复先比对原任务、执行实例、冻结镜像、执行器和 Docker 实例身份，再核对容器名、精确 ID、镜像和标签；匹配后才按 ID 回收并复查。缺少执行环境时保留执行槽，历史仍可读。旧版尝试缺少逐项账册时保留未知。
 
-当前公开详情仍对获授执行权限的未启动任务返回 `execution_disabled`。正式配置还需将固定响应后端、已核验的隔离启动器、原会话及确认、启动和取消接口接成同一条执行路径。
+正式会话的准备接口返回 200 和已持久化的确认预览。启动接口返回 202，正文仅含 `task_id` 和 `attempt_id`。取消按尝试版本提交，返回 202、取消记录与当前投影。尝试详情和取消结果均在同一 SQLite 读事务内取得原控制状态、逐项资源及活动工具。`0003_development_task_tool_activity` 随派发事务记录工具序号、名称、派发前候选摘要和起始时间。
+
+工作台显式配置 `workbench.development_tasks` 后建立专用回环通道。首次准备、首次启动和交接分别复核冻结输入、启动器、SDK 隔离及 Docker 实例。固定响应根据受信工具观测依次读取、修改、验证并结束，使用固定测试用量和价格。原会话、工作区权限、应用所有权和活动状态贯穿执行。缺少合格环境时详情显示 `execution_disabled`；读取和取消仍按各自权限处理，同内容重提仍可找回原回执。详见[工作台执行配置](../platform/local-persistent-workbench-operations-v1.md#单-agent-固定响应执行配置)。
 
 ## 实现拆分与验收
 

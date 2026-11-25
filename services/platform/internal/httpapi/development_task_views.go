@@ -75,8 +75,38 @@ func (d developmentTaskRequest) taskDetail(m *control.TaskMetadata, taskID strin
 	if snapshot.Task.Revision >= 16 || snapshot.ReceiptCount >= 64 {
 		disable(&revision, "capacity_exceeded")
 	}
-	for _, e := range []*taskEligibility{&prepare, &start, &cancel} {
-		disable(e, "execution_disabled")
+	if prepare.Allowed || start.Allowed {
+		server := d.host.server
+		server.developmentMu.Lock()
+		env := server.taskEnvironment
+		server.developmentMu.Unlock()
+		if env == nil || env.Check(ctx) != nil {
+			disable(&prepare, "execution_disabled")
+			disable(&start, "execution_disabled")
+		}
+		if snapshot.ReceiptCount >= 64 {
+			disable(&prepare, "capacity_exceeded")
+		}
+		if snapshot.ReceiptCount >= 63 {
+			disable(&start, "capacity_exceeded")
+		}
+		if snapshot.SlotOccupied {
+			disable(&start, "execution_slot_busy")
+		}
+		if snapshot.LatestPreparationExpiry == 0 {
+			disable(&start, "preparation_required")
+		} else if snapshot.LatestPreparationExpiry <= server.localIdentityHTTPService.nowUTC().UnixMilli() {
+			disable(&start, "preparation_expired")
+		}
+	}
+	if cancel.Allowed && snapshot.Task.AttemptID != "" {
+		v, err := m.AttemptView(ctx, d.host.scope, taskID, snapshot.Task.AttemptID)
+		if err != nil {
+			return developmentTaskDetail{}, err
+		}
+		if v.Phase != "active" {
+			disable(&cancel, "attempt_not_active")
+		}
 	}
 	disable(&preview, "artifact_unavailable")
 	disable(&save, "artifact_unavailable")

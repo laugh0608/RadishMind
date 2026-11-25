@@ -38,15 +38,7 @@ func (reader developmentQualificationReader) Resolve(ctx context.Context, identi
 	// Only authorization facts enter the fingerprint, never login identifiers,
 	// display names, credentials, sessions or provider secrets.
 	roles := slices.Clone(auth.RoleAssignments)
-	slices.SortFunc(roles, func(a, b LocalRoleAssignment) int {
-		if a.AssignmentID < b.AssignmentID {
-			return -1
-		}
-		if a.AssignmentID > b.AssignmentID {
-			return 1
-		}
-		return 0
-	})
+	slices.SortFunc(roles, compareDevelopmentRoles)
 	for i := range roles {
 		roles[i].PermissionGrants = slices.Sorted(slices.Values(roles[i].PermissionGrants))
 	}
@@ -105,4 +97,14 @@ func (reader developmentQualificationReader) Resolve(ctx context.Context, identi
 		return developmentcontrol.Selection{}, developmentcontrol.ErrIneligible
 	}
 	return selected, nil
+}
+
+func compareDevelopmentRoles(a, b LocalRoleAssignment) int {
+	if a.AssignmentID < b.AssignmentID {
+		return -1
+	}
+	if a.AssignmentID > b.AssignmentID {
+		return 1
+	}
+	return 0
 }

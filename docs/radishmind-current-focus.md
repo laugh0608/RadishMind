@@ -14,7 +14,7 @@
 
 - **当前开发主线为阶段 1 的正式 Web 单 Agent 技术交付。** 阶段 0 四项退出条件已通过，正式采用冻结的 OpenHands SDK `1.59.0+radishmind.1` 作为固定 Go 单 Agent 的受限编码执行层。公开合同、范围与 A 级画板已获项目所有者确认。[阶段 0 结论](task-cards/development-task-probe-v1-plan.md#2026-11-25-sdk-接收确认与阶段-0-采用复评)
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
-- 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
+- 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，固定响应执行需显式配置。
 
 <a id="next-actions"></a>
 <a id="接下来事项2026-11-05"></a>
@@ -38,7 +38,9 @@
 
 启动事务已接到可信宿主的一次性工作进程交接。隔离 SQLite 与短时测试子进程已验证重提、请求断开、取消及重启核对。工作台在取得数据锁后核对旧执行槽，证据不足时继续提供历史读取。真实 Docker 回收与冻结 SDK 的本轮联合验收另排。
 
-**下一步接通工作台固定响应执行档案与正式会话的确认、启动和取消接口。** 在具备冻结 SDK 身份、隔离启动器和代码环境的显式配置时接入工作进程，沿用任务权限和应用所有权。未配置时保留 `execution_disabled`。随后验证运行详情、事件和交付审阅。[阶段 1 实施与验收](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-1单-agent-隔离开发交付)
+正式会话已接入固定响应任务的准备确认、启动、尝试详情和取消。隔离 HTTP 测试覆盖四次固定响应、三次工具调用、运行中取消及重启重提。真实容器与冻结 SDK 的本次联调另排。
+
+**下一步接入尝试事件分页、临时候选预览与显式保存。** 按任务权限、可信快照、资源结束证据和保存回执验收交付审阅，再接正式 Web。[阶段 1 实施与验收](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-1单-agent-隔离开发交付)
 
 已有原生 HTTP 固定上游技术条件、SDK 工具往返与联合任务证据保持，只有候选 / 配置变化或相关失败触发复验。真实厂商资格、完整输入计量和费用窗口仍未验收，真实模型暂停、通道默认关闭。
 
