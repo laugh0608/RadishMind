@@ -24,18 +24,19 @@ type Issued struct {
 }
 
 type Runtime struct {
-	store      *SQLiteStore
-	reader     QualificationReader
-	backend    NativeBackend
-	instanceID string
-	now        func() time.Time
-	mu         sync.Mutex
-	closed     bool
-	active     map[string]context.CancelFunc
-	workers    map[string]context.CancelFunc
-	fenced     map[string]bool
-	deadlines  map[string]time.Time
-	work       sync.WaitGroup
+	store       *SQLiteStore
+	reader      QualificationReader
+	backend     NativeBackend
+	instanceID  string
+	now         func() time.Time
+	mu          sync.Mutex
+	closed      bool
+	active      map[string]context.CancelFunc
+	taskWorkers map[string]*taskWorkerTracker
+	workers     map[string]context.CancelFunc
+	fenced      map[string]bool
+	deadlines   map[string]time.Time
+	work        sync.WaitGroup
 }
 
 func NewRuntime(store *SQLiteStore, reader QualificationReader, backend NativeBackend) (*Runtime, error) {
@@ -190,7 +191,7 @@ func authorityFor(record *Record) Authority {
 // revalidate returns a refusal after recording the fence. Callers commit that
 // refusal state, then return the error outside the SQL transaction.
 func (r *Runtime) revalidate(ctx context.Context, record *Record) error {
-	selected, err := r.reader.Resolve(ctx, record.Binding.Identity, record.Binding.Plan)
+	selected, err := r.workerSelection(ctx, record)
 	now := r.now().UnixMilli()
 	d := record.Control.delegation
 	deadline, live := r.attemptDeadline(d.Scope.AttemptID)
@@ -260,9 +261,13 @@ func (r *Runtime) cancelActive(attemptID string) {
 	r.mu.Lock()
 	cancel := r.active[attemptID]
 	workerCancel := r.workers[attemptID]
+	tracker := r.taskWorkers[attemptID]
 	r.mu.Unlock()
 	if cancel != nil {
 		cancel()
+	}
+	if tracker != nil {
+		tracker.cancel()
 	}
 	if workerCancel != nil {
 		workerCancel()
@@ -291,6 +296,9 @@ func (r *Runtime) endCall(attemptID string) {
 func (r *Runtime) Close(ctx context.Context) error {
 	r.mu.Lock()
 	r.closed = true
+	for _, tracker := range r.taskWorkers {
+		tracker.cancel()
+	}
 	for _, cancel := range r.workers {
 		cancel()
 	}

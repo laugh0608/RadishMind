@@ -4,11 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os"
 )
 
 // Start returns a credential exclusively to the trusted host on first commit.
 // Replaying an authorized request returns the same receipt and a nil issuance.
 func (c *TaskCoordinator) Start(ctx context.Context, s TaskScope, task, request string, version int64, preparation, confirmation string) (TaskReceipt, *Issued, error) {
+	return c.start(ctx, s, task, request, version, preparation, confirmation, false)
+}
+
+func (c *TaskCoordinator) start(ctx context.Context, s TaskScope, task, request string, version int64, preparation, confirmation string, managed bool) (TaskReceipt, *Issued, error) {
 	if !validTaskVersion(version) || !idPattern.MatchString(preparation) || !digestPattern.MatchString(confirmation) {
 		return TaskReceipt{}, nil, ErrTaskInvalid
 	}
@@ -73,6 +78,11 @@ func (c *TaskCoordinator) Start(ctx context.Context, s TaskScope, task, request 
 		if err != nil {
 			return ErrUnavailable
 		}
+		if managed {
+			if _, err := conn.ExecContext(ctx, `INSERT INTO development_task_resources(attempt_id,owner_instance_id,host_pid,process_namespace) VALUES(?,?,?,?)`, r.AttemptID, c.runtime.instanceID, os.Getpid(), processNamespace()); err != nil {
+				return ErrUnavailable
+			}
+		}
 		credential = &issued
 		return nil
 	})
@@ -115,6 +125,16 @@ func (c *TaskCoordinator) Cancel(ctx context.Context, s TaskScope, task, attempt
 		if err != nil {
 			return err
 		}
+		if cancelled {
+			_, err = conn.ExecContext(ctx, `UPDATE development_task_resources SET
+ sdk_worker=CASE WHEN sdk_worker IN ('pending','active') THEN 'stopping' ELSE sdk_worker END,
+ code_environment=CASE WHEN code_environment IN ('pending','active') THEN 'stopping' ELSE code_environment END,
+ model_connection=CASE WHEN model_connection='active' THEN 'stopping' ELSE model_connection END
+ WHERE attempt_id=?`, attempt)
+			if err != nil {
+				return ErrUnavailable
+			}
+		}
 		r.AttemptID = attempt
 		return nil
 	})
@@ -133,7 +153,10 @@ func belongsToTask(record *Record, s TaskScope, task, attempt string) bool {
 // It fences an old active owner without starting any work. Only the original
 // control evidence can free the slot; missing cleanup evidence keeps it held.
 func (c *TaskCoordinator) ReconcileSlot(ctx context.Context) error {
-	return c.runtime.store.transaction(ctx, func(conn *sql.Conn) error {
+	return c.slotRecovery().reconcileSlot(ctx)
+}
+func (c taskSlotRecovery) reconcileSlot(ctx context.Context) error {
+	return c.store.transaction(ctx, func(conn *sql.Conn) error {
 		s, task, attempt, err := occupiedTask(ctx, conn)
 		if errors.Is(err, ErrNotFound) {
 			return nil
@@ -145,12 +168,12 @@ func (c *TaskCoordinator) ReconcileSlot(ctx context.Context) error {
 			if !belongsToTask(r, s, task, attempt) {
 				return ErrTaskCorrupt
 			}
-			if r.OwnerInstanceID == c.runtime.instanceID {
+			if r.OwnerInstanceID == c.instanceID {
 				return nil
 			}
 			r.Revoked = true
 			if r.Control.phase == "active" || r.Control.phase == "cancel_requested" {
-				_, err := r.Control.Interrupt(c.runtime.now().UnixMilli())
+				_, err := r.Control.Interrupt(c.now().UnixMilli())
 				return err
 			}
 			return nil

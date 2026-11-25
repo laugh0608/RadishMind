@@ -92,7 +92,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 固定 Go 探针已采用可信执行控制层与独立代码容器分离：SDK 经受限 Gateway 通道访问模型，经授权工具入口操作隔离副本；代码进程不继承平台 / 提供方密钥，不挂载平台数据库、用户原工作树或 Docker socket。工作台容器验收不替代这一新增边界，具体方案见[隔离执行子专题](features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。
 
-拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包已由独立 `developmentartifact` 负责，使用共享 SQLite 的独立 `development_artifacts` 组件；显式保存、不可变包、配额与精确导出遵守[产物合同](contracts/development-artifact-v1.md)，不写入旧 Session 或文本结果字段。团队事件正文仍须按后续合同处理。阶段 1 单 Agent 的 Go 任务协调器使用同库独立迁移，在单个事务中持久化确认消费、唯一尝试、执行槽和回执。正式会话通过任务元数据接口按当前授权和应用所有者读写计划、回执与历史。已保存包的分页、读取及导出复用产物模块。工作进程交接和实际资源核对仍待实现。[公开交付合同](contracts/development-task-delivery-v1.md) 重启默认只读回记录，不自动重放代码 / 工具命令。
+拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包已由独立 `developmentartifact` 负责，使用共享 SQLite 的独立 `development_artifacts` 组件；显式保存、不可变包、配额与精确导出遵守[产物合同](contracts/development-artifact-v1.md)，不写入旧 Session 或文本结果字段。团队事件正文仍须按后续合同处理。阶段 1 单 Agent 的 Go 任务协调器使用同库独立迁移，在单个事务中持久化确认消费、唯一尝试、执行槽和回执。正式会话通过任务元数据接口按当前授权和应用所有者读写计划、回执与历史。已保存包的分页、读取及导出复用产物模块。可信 Go 宿主在启动提交后一次性交付工作进程凭据；工作台持锁启动时按原实例和资源账册核对旧执行槽。冻结环境的实际容器验收另排。[公开交付合同](contracts/development-task-delivery-v1.md) 重启默认只读回记录，不自动重放代码 / 工具命令。
 
 现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托和单尝试状态 / 事件已取得固定响应证据；正式公开任务接口与运行协调留待阶段 1，通用仓库和团队并发不由探针结果推定通过。现有 API 语义、工作进程与默认运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。
 

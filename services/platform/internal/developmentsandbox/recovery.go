@@ -5,13 +5,19 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 
+	control "radishmind.local/services/platform/internal/developmentcontrol"
 	"radishmind.local/services/platform/internal/strictjson"
 )
 
 // CleanupRecovered explicitly reconciles resources only. It never starts a
 // container, SDK, model request or command, or resumes the old attempt.
 func CleanupRecovered(ctx context.Context, dockerPath, directory string) (bool, error) {
+	return cleanupRecovered(ctx, dockerPath, directory, nil)
+}
+
+func cleanupRecovered(ctx context.Context, dockerPath, directory string, owner *control.TaskResourceOwner) (bool, error) {
 	if !filepath.IsAbs(dockerPath) || !filepath.IsAbs(directory) {
 		return false, ErrSandbox
 	}
@@ -31,6 +37,9 @@ func CleanupRecovered(ctx context.Context, dockerPath, directory string) (bool, 
 	var record ledger
 	if strictjson.Decode(raw, &record) != nil || record.SchemaVersion != "development_sandbox_resources.v1" || !sessionPattern.MatchString(record.SessionID) || !idPattern.MatchString(record.Binding.AttemptID) || !idPattern.MatchString(record.Binding.ExecutorInstanceID) || !imagePattern.MatchString(record.Binding.PlanDigest) || !imagePattern.MatchString(record.Binding.BaselineDigest) || !imagePattern.MatchString(record.Image) || !imagePattern.MatchString(record.RunnerDigest) || record.Resources == nil || len(record.Resources) > 32 {
 		return false, ErrSandbox
+	}
+	if owner != nil && (record.Binding != owner.Sandbox || record.Image != owner.GoImageDigest || record.RunnerDigest != owner.ExecutorDigest) {
+		return false, ErrUnknown
 	}
 	fields, err := strictjson.ObjectFields(raw, "schema_version", "session_id", "binding", "image", "runner_digest", "resources", "closed")
 	if err != nil {
@@ -59,8 +68,14 @@ func CleanupRecovered(ctx context.Context, dockerPath, directory string) (bool, 
 		seen[r.RequestID] = true
 	}
 	s := &Session{config: Config{DockerPath: dockerPath, Directory: directory, Image: record.Image}, ledger: record}
+	if owner != nil && s.checkRecordedContainers(ctx, false) != nil {
+		return false, ErrUnknown
+	}
 	empty, err := s.cleanup(ctx)
 	if err != nil || !empty {
+		return false, ErrUnknown
+	}
+	if owner != nil && s.checkRecordedContainers(ctx, true) != nil {
 		return false, ErrUnknown
 	}
 	s.ledger.Closed = true
@@ -68,4 +83,31 @@ func CleanupRecovered(ctx context.Context, dockerPath, directory string) (bool, 
 		return false, err
 	}
 	return true, nil
+}
+
+// Check the ledger independently of the label query used for cleanup. Before
+// removal each match must belong to this session; afterwards all must be gone.
+func (s *Session) checkRecordedContainers(ctx context.Context, requireEmpty bool) error {
+	for _, r := range s.ledger.Resources {
+		filter := "name=^/" + r.Name + "$"
+		if r.ContainerID != "" {
+			filter = "id=" + r.ContainerID
+		}
+		raw, err := s.docker(ctx, "container", "ls", "--all", "--no-trunc", "--filter", filter, "--format", "{{.ID}}")
+		if err != nil {
+			return ErrUnknown
+		}
+		ids := strings.Fields(string(raw))
+		if len(ids) == 0 {
+			continue
+		}
+		if requireEmpty || len(ids) != 1 || !containerPattern.MatchString(ids[0]) || r.ContainerID != "" && ids[0] != r.ContainerID {
+			return ErrUnknown
+		}
+		item, err := s.inspectContainer(ctx, ids[0])
+		if err != nil || item.Name != "/"+r.Name {
+			return ErrUnknown
+		}
+	}
+	return nil
 }

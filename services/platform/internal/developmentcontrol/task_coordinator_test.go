@@ -46,14 +46,14 @@ func (f *taskFixture) FixedProfile(_ context.Context, s TaskScope, choice TaskCh
 	return p, f.validUntil, nil
 }
 
-func newTaskFixture(t *testing.T) *taskFixture {
+func newTaskFixture(t *testing.T, taskMigrations ...sqlitedev.Migration) *taskFixture {
 	t.Helper()
 	sha := PayloadDigest([]byte("test fixed response"))
 	choice := TaskChoice{"profile:fixture", Limits{4, 3, 1000, 1000}}
 	plan := Plan{"development_attempt_plan.v1", "application_fixture", "prompt_invoke_v2", "", choice.ModelRef, sha, sha, ToolPolicy{[]string{"go.mod", "list.go", "list_test.go"}, []string{"list.go"}, "go_test_v1"}, choice.Limits, 60000, 50}
 	f := &taskFixture{scope: TaskScope{Identity{"tenant_fixture", "account_fixture", "workspace_fixture"}, plan.ApplicationID}, choice: choice, profile: TaskProfile{plan, taskSource, "source_v1", "fixed_response_only", sha, sha, sha, "retention_v1"}, now: time.Now(), path: filepath.Join(t.TempDir(), "tasks.db"), reader: &currentQualification{selection: Selection{sha, sha, sha, "fixture-model", sha, 1000000, 100, 100}}}
 	f.validUntil = f.now.Add(time.Hour)
-	f.open(t)
+	f.open(t, taskMigrations...)
 	t.Cleanup(func() {
 		if err := f.db.Close(); err != nil {
 			t.Error(err)
@@ -62,10 +62,13 @@ func newTaskFixture(t *testing.T) *taskFixture {
 	return f
 }
 
-func (f *taskFixture) open(t *testing.T) {
+func (f *taskFixture) open(t *testing.T, taskMigrations ...sqlitedev.Migration) {
 	t.Helper()
+	if len(taskMigrations) == 0 {
+		taskMigrations = tasks.Migrations()
+	}
 	ms := append(attempts.Migrations(), artifacts.Migrations()...)
-	db, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: f.path, Migrations: append(ms, tasks.Migrations()...)})
+	db, err := sqlitedev.Open(context.Background(), sqlitedev.Options{DatabasePath: f.path, Migrations: append(ms, taskMigrations...)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -286,7 +289,7 @@ func TestTaskStartAtomicCommitConcurrencyAndCancellation(t *testing.T) {
 }
 
 func TestTaskCrashRecoveryDoesNotReissueOrFreeUnknownResources(t *testing.T) {
-	f := newTaskFixture(t)
+	f := newTaskFixture(t, tasks.Migrations()[:1]...)
 	ctx := t.Context()
 	p := f.preview(t, f.create(t, "create_one").TaskID, "prepare_one")
 	rec, issued, err := f.start(ctx, p, "start_one")
@@ -303,8 +306,16 @@ func TestTaskCrashRecoveryDoesNotReissueOrFreeUnknownResources(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.open(t)
-	if err := f.ReconcileSlot(ctx); err != nil {
-		t.Fatal(err)
+	err = RecoverWorkbenchTasks(ctx, f.store, func(context.Context, TaskResourceOwner) (bool, error) {
+		t.Fatal("pre-migration attempt has no ledger to inspect")
+		return false, ErrUnavailable
+	})
+	if !errors.Is(err, ErrTaskTerminationUnconfirmed) {
+		t.Fatal("upgrade released an unverified execution slot", err)
+	}
+	status, err := f.ReadTaskResources(ctx, f.scope, rec.TaskID, rec.AttemptID)
+	if err != nil || status != (TaskResourceStatus{"unconfirmed", "unconfirmed", "unconfirmed"}) {
+		t.Fatal(status, err)
 	}
 	record, err := f.runtime.Read(ctx, f.scope.Identity, rec.AttemptID)
 	if err != nil || record.Control.phase != "outcome_unknown" || !record.Revoked || record.OwnerInstanceID == f.runtime.instanceID {

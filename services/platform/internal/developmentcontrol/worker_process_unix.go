@@ -50,3 +50,7 @@ func validateWorkerDirectory(path string) error {
 	}
 	return nil
 }
+
+func processAbsent(pid int) bool {
+	return pid > 0 && errors.Is(syscall.Kill(pid, 0), syscall.ESRCH)
+}

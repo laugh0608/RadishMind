@@ -2,6 +2,7 @@ package developmentcontrol
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"time"
 	"unicode/utf8"
@@ -45,21 +46,30 @@ func (r *Runtime) model(ctx context.Context, record *Record, requestID string, r
 		return NativeResult{}, ErrIneligible
 	}
 	var refused error
-	prepared, err := r.store.change(callCtx, record.Binding.Identity, attemptID, 0, r.instanceID, func(current *Record) error {
-		refused = r.revalidate(callCtx, current)
-		if refused != nil {
-			return nil
-		}
-		if err := checkContext(current, request.Messages); err != nil {
+	tracker := r.taskWorker(attemptID)
+	var prepared *Record
+	err = r.store.transaction(callCtx, func(conn *sql.Conn) error {
+		var err error
+		prepared, err = changeRecord(callCtx, conn, record.Binding.Identity, attemptID, 0, r.instanceID, func(current *Record) error {
+			refused = r.revalidate(callCtx, current)
+			if refused != nil {
+				return nil
+			}
+			if err := checkContext(current, request.Messages); err != nil {
+				return err
+			}
+			d := current.Control.delegation
+			reservation := Reservation{"development_attempt_reservation.v1", d.DelegationID, d.Revision, attemptID, requestID, current.Control.requestSequence + 1, "model", PayloadDigest(data), policy.InputTokenCeiling + request.MaxCompletionTokens, cost}
+			if _, err := current.Control.Reserve(reservation, authorityFor(current), r.now().UnixMilli()); err != nil {
+				return err
+			}
+			_, err := current.Control.RecordDispatch(requestID, authorityFor(current), r.now().UnixMilli())
+			return err
+		})
+		if err != nil || refused != nil || tracker == nil {
 			return err
 		}
-		d := current.Control.delegation
-		reservation := Reservation{"development_attempt_reservation.v1", d.DelegationID, d.Revision, attemptID, requestID, current.Control.requestSequence + 1, "model", PayloadDigest(data), policy.InputTokenCeiling + request.MaxCompletionTokens, cost}
-		if _, err := current.Control.Reserve(reservation, authorityFor(current), r.now().UnixMilli()); err != nil {
-			return err
-		}
-		_, err := current.Control.RecordDispatch(requestID, authorityFor(current), r.now().UnixMilli())
-		return err
+		return tracker.writeObservation(callCtx, conn, "model_connection", "active", 0)
 	})
 	if err != nil {
 		return NativeResult{}, err
@@ -88,7 +98,7 @@ func (r *Runtime) model(ctx context.Context, record *Record, requestID string, r
 			}
 		}
 	}()
-	result, backendErr := r.backend.Complete(callCtx, record.Binding.Plan.ModelRef, request)
+	result, backendErr := r.completeTrackedModel(callCtx, record, request, tracker)
 	stopWatch()
 	<-watchDone
 	// Reconciliation is local accounting and may outlive client cancellation. It
@@ -319,4 +329,21 @@ func (r *Runtime) CompleteTool(ctx context.Context, identity Identity, attemptID
 		current.Offers[requestID] = offer
 		return nil
 	})
+}
+
+func (r *Runtime) completeTrackedModel(ctx context.Context, record *Record, request NativeRequest, t *taskWorkerTracker) (NativeResult, error) {
+	if t == nil {
+		return r.backend.Complete(ctx, record.Binding.Plan.ModelRef, request)
+	}
+	result, err := r.backend.Complete(ctx, record.Binding.Plan.ModelRef, request)
+	finish, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if observed := t.observe(finish, "model_connection", "confirmed", 0); observed != nil {
+		return NativeResult{}, observed
+	}
+	// A late backend return can settle an already unconfirmed attempt.
+	if settleErr := r.finishTaskResources(finish, t.owner.Scope, t.owner.Sandbox.AttemptID, true); settleErr != nil {
+		return NativeResult{}, settleErr
+	}
+	return result, err
 }

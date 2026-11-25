@@ -1,8 +1,8 @@
 # 单 Agent 开发任务：公开交付合同 v1
 
-更新时间：2026-11-25（接入正式会话的任务元数据与交付历史）
+更新时间：2026-11-25（接入工作进程交接与旧执行槽核对）
 
-状态：阶段 1 已落地公开交付 schema 和本地身份目录 v3 的 `workspace_developer` 角色。Go 任务协调器已在隔离 SQLite 验证计划修订、确认、一次尝试、取消和显式保存。本地 Web 会话可调用任务元数据、请求回执与已保存开发包接口。工作进程交接、执行类接口和 Web 页面待接续。
+状态：阶段 1 已落地公开交付 schema 和本地身份目录 v3 的 `workspace_developer` 角色。Go 任务协调器已在隔离 SQLite 验证计划修订、确认、一次尝试、取消和显式保存。本地 Web 会话可调用任务元数据、请求回执与已保存开发包接口。可信 Go 宿主可将已提交的任务交接给工作进程；正式执行配置、执行类 HTTP 和 Web 页面待接续。
 
 所属功能：[实施与评测](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)、[协作界面](../features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md)。本页维护新增公开任务合同；底层委托、工具、事件与产物字段继续由[尝试控制](development-attempt-control-v1.md)和[开发产物](development-artifact-v1.md)负责。
 
@@ -151,7 +151,13 @@
 
 正式 HTTP 的任务元数据使用 `TaskMetadata` 读写共享库，每次按本地会话、当前授权和应用所有者核验。任务和已保存包按 UTC 毫秒时间及身份降序分页，游标绑定账户、租户、工作区、应用及列表类型。创建和修订成功返回 201。创建回执重提仍返回修订 1，当前计划已变化时标记 `plan_changed`；通过任务详情取得最新计划。已保存开发包沿用原包摘要核验与独立导出权限。
 
-当前详情对具有执行权限的未启动任务返回 `execution_disabled`。后续宿主须接入启动时的实时资格、提交后一次性交接、资源账册核对和逐项资源投影，再交付执行类 HTTP 与 Web 验收。
+工作台新增显式迁移 `0002_development_task_resources`。可信宿主调用 `TaskCoordinator.StartWorker` 时，首次启动事务同时记录执行实例、宿主 PID 和进程命名空间标识。只有首次提交才在宿主生命周期内准备私有目录，先持久认领，再启动 SDK 并经 stdin 交付凭据。重提只取已提交回执；提交后的失败仍可按原请求查找。宿主关闭会取消准备中的交接并等待资源核对。已签发的任务继续复查原会话当前的执行权限。
+
+资源账册分别记录模型调用、SDK 进程组和代码环境。模型派发与连接占用同事务提交，后端返回后记录连接已关闭；SDK 收到凭据前记录真实进程组，退出依据来自进程等待及进程组核对。SDK 退出证据不足时，宿主保留私有工作目录。代码环境只在绑定的沙箱完成清理后记为已结束。工作台持有数据锁并开始服务前，先将旧活动尝试标为 `outcome_unknown`。进程编号仅在原启动命名空间内用来查证已消失的进程或进程组。缺失编号、命名空间变化或归属未决时保留相应未知状态。
+
+可信宿主可通过 `Options.DevelopmentTaskDockerPath` 提供绝对 Docker CLI 路径，代码账册位于数据目录下的 `development-tasks/<attempt_id>/`。恢复先比对原任务、执行实例、冻结镜像、执行器和 Docker 实例身份，再核对容器名、精确 ID、镜像和标签；匹配后才按 ID 回收并复查。缺少执行环境时保留执行槽，历史仍可读。旧版尝试缺少逐项账册时保留未知。
+
+当前公开详情仍对获授执行权限的未启动任务返回 `execution_disabled`。正式配置还需将固定响应后端、已核验的隔离启动器、原会话及确认、启动和取消接口接成同一条执行路径。
 
 ## 实现拆分与验收
 

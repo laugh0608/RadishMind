@@ -109,7 +109,7 @@ func (s *Session) inspectContainer(ctx context.Context, id string) (inspection, 
 		return inspection{}, ErrUnknown
 	}
 	item := result[0]
-	if !containerPattern.MatchString(item.ID) || item.Image != s.config.Image || item.Config.Labels[ownerLabel] != s.ledger.SessionID || item.Config.Labels[attemptLabel] != s.Binding().AttemptID {
+	if item.ID != id || !containerPattern.MatchString(item.ID) || item.Image != s.config.Image || item.Config.Labels[ownerLabel] != s.ledger.SessionID || item.Config.Labels[attemptLabel] != s.Binding().AttemptID {
 		return inspection{}, ErrUnknown
 	}
 	return item, nil

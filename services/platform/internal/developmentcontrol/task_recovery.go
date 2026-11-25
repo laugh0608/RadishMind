@@ -4,7 +4,27 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 )
+
+type taskSlotRecovery struct {
+	store      *SQLiteStore
+	instanceID string
+	now        func() time.Time
+}
+
+func (c *TaskCoordinator) slotRecovery() taskSlotRecovery {
+	return taskSlotRecovery{c.store, c.runtime.instanceID, c.runtime.now}
+}
+
+// RecoverWorkbenchTasks runs under the exclusive workbench lock before any
+// executor is connected. All occupied slots at this point are previous owners.
+func RecoverWorkbenchTasks(ctx context.Context, store *SQLiteStore, checkCode func(context.Context, TaskResourceOwner) (bool, error)) error {
+	if store == nil {
+		return ErrUnavailable
+	}
+	return (taskSlotRecovery{store: store, now: time.Now}).recoverTaskWorkers(ctx, checkCode)
+}
 
 // TaskResourceOwner is derived solely from the occupied slot, the original
 // delegation and its immutable plan. A host checker must match these identities
@@ -39,34 +59,37 @@ func occupiedTask(ctx context.Context, q queryer) (TaskScope, string, string, er
 // External cleanup is outside the writer transaction. Late or mismatched proof
 // cannot release a different slot, and recovery never issues a credential.
 func (c *TaskCoordinator) RecoverPreviousSlot(ctx context.Context, check func(context.Context, TaskResourceOwner) (TaskResourceReport, error)) error {
-	if err := c.ReconcileSlot(ctx); err != nil {
+	return c.slotRecovery().recoverPreviousSlot(ctx, check)
+}
+func (c taskSlotRecovery) recoverPreviousSlot(ctx context.Context, check func(context.Context, TaskResourceOwner) (TaskResourceReport, error)) error {
+	if err := c.reconcileSlot(ctx); err != nil {
 		return err
 	}
-	s, task, attempt, err := occupiedTask(ctx, c.runtime.store.db)
+	s, task, attempt, err := occupiedTask(ctx, c.store.db)
 	if errors.Is(err, ErrNotFound) {
 		return nil
 	}
 	if err != nil {
 		return err
 	}
-	r, err := c.runtime.Read(ctx, s.Identity, attempt)
+	r, err := c.store.Read(ctx, s.Identity, attempt)
 	if err != nil {
 		return err
 	}
 	if !belongsToTask(r, s, task, attempt) {
 		return ErrTaskCorrupt
 	}
-	if r.OwnerInstanceID == c.runtime.instanceID {
+	if r.OwnerInstanceID == c.instanceID {
 		return nil
 	}
 	if !r.Revoked || check == nil {
 		return ErrTaskTerminationUnconfirmed
 	}
-	t, err := readTask(ctx, c.runtime.store.db, s, task)
+	t, err := readTask(ctx, c.store.db, s, task)
 	if err != nil {
 		return err
 	}
-	p, err := readTaskPlan(ctx, c.runtime.store.db, s, task, t.Revision)
+	p, err := readTaskPlan(ctx, c.store.db, s, task, t.Revision)
 	if err != nil {
 		return err
 	}
@@ -84,7 +107,7 @@ func (c *TaskCoordinator) RecoverPreviousSlot(ctx context.Context, check func(co
 		return ErrTaskTerminationUnconfirmed
 	}
 	ended := report.SDKExited && report.CodeEnvironmentExited && report.ModelConnectionClosed
-	err = c.runtime.store.transaction(ctx, func(conn *sql.Conn) error {
+	err = c.store.transaction(ctx, func(conn *sql.Conn) error {
 		currentScope, currentTask, currentAttempt, err := occupiedTask(ctx, conn)
 		if err != nil {
 			return err
@@ -99,11 +122,20 @@ func (c *TaskCoordinator) RecoverPreviousSlot(ctx context.Context, check func(co
 			if taskResourcesEnded(record) || (!ended && record.Control.terminationStatus == "unconfirmed") {
 				return nil
 			}
-			_, err := record.Control.ConfirmTermination(TerminationEvidence{attempt, d.ExecutorInstanceID, report.SDKExited, report.CodeEnvironmentExited, report.ModelConnectionClosed}, c.runtime.now().UnixMilli())
+			_, err := record.Control.ConfirmTermination(TerminationEvidence{attempt, d.ExecutorInstanceID, report.SDKExited, report.CodeEnvironmentExited, report.ModelConnectionClosed}, c.now().UnixMilli())
 			return err
 		})
 		if err != nil {
 			return err
+		}
+		// Persist partial observations in the same transaction as the slot decision.
+		_, err = conn.ExecContext(ctx, `UPDATE development_task_resources SET
+ sdk_worker=CASE WHEN sdk_worker='not_requested' THEN sdk_worker WHEN ? THEN 'confirmed' ELSE 'unconfirmed' END,
+ code_environment=CASE WHEN code_environment='not_requested' THEN code_environment WHEN ? THEN 'confirmed' ELSE 'unconfirmed' END,
+ model_connection=CASE WHEN model_connection='not_requested' THEN model_connection WHEN ? THEN 'confirmed' ELSE 'unconfirmed' END
+ WHERE attempt_id=? AND owner_instance_id=?`, report.SDKExited, report.CodeEnvironmentExited, report.ModelConnectionClosed, attempt, owner.OwnerInstanceID)
+		if err != nil {
+			return ErrUnavailable
 		}
 		if taskResourcesEnded(current) {
 			return releaseTaskSlot(ctx, conn, task, attempt)

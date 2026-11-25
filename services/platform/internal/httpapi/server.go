@@ -23,6 +23,9 @@ import (
 const serviceName = "radishmind-platform"
 
 type Options struct {
+	// A trusted workbench launcher may supply an absolute Docker CLI for
+	// recovery of its previously recorded code containers.
+	DevelopmentTaskDockerPath                  string
 	BuildVersion                               string
 	TestOnly                                   bool
 	ApplicationResultArtifactLibraryDevFixture bool
@@ -667,6 +670,10 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		server.closeWorkbenchAssets = closeAssets
 		server.workbenchLock = dataLock
 		lockTransferred = true
+		if err = server.recoverWorkbenchTaskWorkers(); err != nil {
+			server.Close()
+			return nil, err
+		}
 	}
 	server.httpServer = &http.Server{
 		Addr: runtimeConfig.ListenAddr,

@@ -136,7 +136,16 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 	if workerCtx.Err() != nil {
 		return result, ErrWorker
 	}
+	tracker := r.taskWorker(attempt)
+	if tracker != nil {
+		if err = tracker.observe(workerCtx, "sdk_worker", "pending", 0); err != nil {
+			return result, err
+		}
+	}
 	if err = command.Start(); err != nil {
+		if tracker != nil {
+			return result, errors.Join(ErrWorker, tracker.recordSDKExit(true))
+		}
 		return result, ErrWorker
 	}
 	// Signal/kill and reap run independently of a blocked SDK or tool wait.
@@ -151,6 +160,7 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 		processDone <- proof
 	}()
 	finishedProcess := false
+	sdkExitRecorded := false
 	defer func() {
 		failed := workerCtx.Err() == nil
 		r.mu.Lock()
@@ -176,6 +186,9 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 			result.GroupEmpty = proof.GroupEmpty
 		}
 		r.cancelActive(attempt)
+		if tracker != nil && !sdkExitRecorded {
+			returned = errors.Join(returned, tracker.recordSDKExit(result.ProcessExited && result.GroupEmpty))
+		}
 		if launch.Sandbox != nil {
 			if !sandboxHandled {
 				cleanup, stop := context.WithTimeout(context.Background(), 10*time.Second)
@@ -188,7 +201,7 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 					returned = errors.Join(returned, ErrWorker)
 				}
 			}
-			if returned != nil {
+			if returned != nil && tracker == nil {
 				returned = errors.Join(returned, r.recordSandboxTermination(identity, attempt, result, sandboxEmpty))
 			}
 		}
@@ -205,6 +218,11 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 			returned = errors.Join(returned, ErrWorker, err)
 		}
 	}()
+	if tracker != nil {
+		if err = tracker.observe(workerCtx, "sdk_worker", "active", command.Process.Pid); err != nil {
+			return result, err
+		}
+	}
 	if _, err = r.workerEvent(workerCtx, identity, attempt, "worker_started", ""); err != nil {
 		return result, err
 	}
@@ -305,6 +323,12 @@ func (r *Runtime) RunWorker(ctx context.Context, identity Identity, issued Issue
 	}
 	if !result.ProcessExited || !result.GroupEmpty {
 		return result, ErrWorker
+	}
+	if tracker != nil {
+		if err := tracker.recordSDKExit(true); err != nil {
+			return result, err
+		}
+		sdkExitRecorded = true
 	}
 	if launch.Sandbox != nil {
 		cleanup, cancelCleanup := context.WithTimeout(context.Background(), 10*time.Second)

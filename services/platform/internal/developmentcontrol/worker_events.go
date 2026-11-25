@@ -22,6 +22,10 @@ func (r *Runtime) workerEvent(ctx context.Context, identity Identity, attemptID,
 }
 func (r *Runtime) stopWorkerRecord(ctx context.Context, identity Identity, attemptID string, failed bool) error {
 	_, err := r.store.change(ctx, identity, attemptID, 0, r.instanceID, func(record *Record) error {
+		if record.Control.phase == "cancel_requested" && record.Control.delegation.Scope.TaskID != attemptID {
+			record.Revoked = true
+			return nil // The managed host settles cancellation using actual resource evidence.
+		}
 		if record.Control.phase == "active" || record.Control.phase == "cancel_requested" {
 			if failed && record.Control.phase == "active" {
 				if _, err := record.Control.Fail("sdk_worker_failed", r.now().UnixMilli()); err != nil {
@@ -48,7 +52,7 @@ func hasControlEvent(record *Record, kind string) bool {
 	return false
 }
 func (r *Runtime) workerFinalEligibility(ctx context.Context, record *Record) error {
-	selected, err := r.reader.Resolve(ctx, record.Binding.Identity, record.Binding.Plan)
+	selected, err := r.workerSelection(ctx, record)
 	if err != nil {
 		return err
 	}
@@ -92,4 +96,13 @@ func (r *Runtime) unknownWorkerTool(identity Identity, call ToolCall) error {
 		return nil
 	})
 	return err
+}
+
+func (r *Runtime) workerSelection(ctx context.Context, record *Record) (Selection, error) {
+	if t := r.taskWorker(record.Control.delegation.Scope.AttemptID); t != nil {
+		if err := t.host.AuthorizeTask(ctx, t.owner.Scope, TaskStart); err != nil {
+			return Selection{}, err
+		}
+	}
+	return r.reader.Resolve(ctx, record.Binding.Identity, record.Binding.Plan)
 }
