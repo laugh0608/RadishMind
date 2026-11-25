@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "verified_offline_both_generated_files_byte_identical",
+  "plan": "scripts/eval/development_probe/sdk_variant/regex-ucd-source-plan-20261121.json",
+  "previous_stop": "scripts/eval/development_probe/sdk_variant/regex-ucd-source-result-20261121.json",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "regex_wheel_sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+  "regex_sdist_sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb",
+  "source": {
+    "original_url": "https://www.unicode.org/Public/18.0.0/ucd/UCD.zip",
+    "retained_file": "tmp/regex-ucd-source-window-20261121.CBw70p/UCD.zip.part",
+    "candidate_delivery_path": "python/regex/2026.9.29/ucd/UCD.zip",
+    "bytes": 5657953,
+    "sha256": "7b3e555514060b92290d154f53655c5eb0fa62b16eb04c03434ff72d1a66a0d8",
+    "rehash_matches_previous_window": true
+  },
+  "archive": {
+    "regular_files_verified": 71,
+    "directory_entries_verified": 3,
+    "uncompressed_bytes_streamed": 39580113,
+    "consumed_members": [
+      {
+        "path": "Blocks.txt",
+        "bytes": 11906,
+        "crc32": "d21f8d06",
+        "sha256": "a58f8d322f3c5e254f9f97b1cbf76a454a7e02de6ac35619a5e4f27aaabfd553"
+      },
+      {
+        "path": "CaseFolding.txt",
+        "bytes": 88776,
+        "crc32": "adc788b2",
+        "sha256": "a004797658a457bec4dc11683e39f69249ea3b595b752dbea6721c4c9f587b0d"
+      },
+      {
+        "path": "DerivedCoreProperties.txt",
+        "bytes": 1159889,
+        "crc32": "2854c26d",
+        "sha256": "09c928886a178fcafd93c29e4bd59073a058e5a100b716d425cb563ab50f68c9"
+      },
+      {
+        "path": "DerivedNormalizationProps.txt",
+        "bytes": 1396877,
+        "crc32": "6e4b5345",
+        "sha256": "98ac7f67d985fe781e317f6182e885e94cabb0c314769e6dd73e48b226931ccd"
+      },
+      {
+        "path": "HangulSyllableType.txt",
+        "bytes": 51360,
+        "crc32": "f22f348c",
+        "sha256": "0468ce5e735a6e3f0e9d12ec006410e86cedc515c34706704c756808a6cf740e"
+      },
+      {
+        "path": "IndicPositionalCategory.txt",
+        "bytes": 52327,
+        "crc32": "e1d53791",
+        "sha256": "c9ad44d267c317ee0e1ec66cbd4d15033c2964f905d11fc8905915f9a5a9ae52"
+      },
+      {
+        "path": "IndicSyllabicCategory.txt",
+        "bytes": 86842,
+        "crc32": "22c230a7",
+        "sha256": "a2b3aacf6b3e7bad4ca351ef985d9543825e20280ff280c25f646d9bc4ce304c"
+      },
+      {
+        "path": "LineBreak.txt",
+        "bytes": 266206,
+        "crc32": "e7e13b04",
+        "sha256": "ae8cf1970c73f3f1a12d77852df96c4b2b1723ca8b388e36bb5739250c6849de"
+      },
+      {
+        "path": "PropList.txt",
+        "bytes": 149040,
+        "crc32": "05129954",
+        "sha256": "f438f532e8737bb8a2702126cdf9c4af5e357c58c7acf9d9eb2fc7c1a1d955d6"
+      },
+      {
+        "path": "PropertyAliases.txt",
+        "bytes": 9900,
+        "crc32": "b1baf573",
+        "sha256": "83b8df695f9da543dba02b0be2b8bd72f0b52836ad264be113c6d285021ef025"
+      },
+      {
+        "path": "PropertyValueAliases.txt",
+        "bytes": 83536,
+        "crc32": "036f4ec9",
+        "sha256": "06c4c8eaf7b0bf34abe73b113da1215bd784ac254d4c223600b90267caa4bbbd"
+      },
+      {
+        "path": "ReadMe.txt",
+        "bytes": 729,
+        "crc32": "7297afba",
+        "sha256": "b0ea442f29dee90584aacd3665a6e1ce87ffc917a4d31f34e1916d2d6f7f9205"
+      },
+      {
+        "path": "ScriptExtensions.txt",
+        "bytes": 21145,
+        "crc32": "a3647a34",
+        "sha256": "5c9d34a922f687726f2a8bcf57d49f905987e51f1b21b58c95a00fbe255cec23"
+      },
+      {
+        "path": "Scripts.txt",
+        "bytes": 196089,
+        "crc32": "8d32de3b",
+        "sha256": "0071fd81b6aeae25f6e8bce8efec3066a6476a91b49bdb2f52dc76e817862a6a"
+      },
+      {
+        "path": "auxiliary/GraphemeBreakProperty.txt",
+        "bytes": 100009,
+        "crc32": "7118631d",
+        "sha256": "0839dcb79e4ac639ecd538b1abf7c9d22e3f9dd265b7e182d33627aa4d75b45a"
+      },
+      {
+        "path": "auxiliary/SentenceBreakProperty.txt",
+        "bytes": 225913,
+        "crc32": "11ff7367",
+        "sha256": "0ac10c9d6dca3b33ac695ff0968f26356465a51626950c463b3dce8fa07e61cc"
+      },
+      {
+        "path": "auxiliary/WordBreakProperty.txt",
+        "bytes": 116210,
+        "crc32": "84070f96",
+        "sha256": "8dbfa17063e11084201f33c3e76d485d3b9166930c71db8e39ed1c9234171aec"
+      },
+      {
+        "path": "emoji/emoji-data.txt",
+        "bytes": 108719,
+        "crc32": "c1913619",
+        "sha256": "80d00f8e616a0ef27fd6b8de3b758c06383b5d917e2977709578e68baf733bf1"
+      },
+      {
+        "path": "extracted/DerivedBidiClass.txt",
+        "bytes": 176412,
+        "crc32": "0a344c1e",
+        "sha256": "d9e23222522551348ea1ccfbb4f62efbf98982afb95840f8959c08ed992c5607"
+      },
+      {
+        "path": "extracted/DerivedBinaryProperties.txt",
+        "bytes": 18081,
+        "crc32": "8d198cb9",
+        "sha256": "f4336d325727d94c31f06b660488f5213a5b6f6cf8bb55b090f87bac704805a5"
+      },
+      {
+        "path": "extracted/DerivedCombiningClass.txt",
+        "bytes": 186280,
+        "crc32": "89e1218c",
+        "sha256": "ef6b2611cfb660dba3f6b458b9eb4b05f44ed2417302ee7749d7f0f348793121"
+      },
+      {
+        "path": "extracted/DerivedDecompositionType.txt",
+        "bytes": 75838,
+        "crc32": "84919f98",
+        "sha256": "0941d968cf73472500ab3eb807c02d85e6d7510832a2be7e5d21bd6c08e96e92"
+      },
+      {
+        "path": "extracted/DerivedEastAsianWidth.txt",
+        "bytes": 190225,
+        "crc32": "0f8b7177",
+        "sha256": "f4c7bc4537a71e12452f6347ecbbc71c31cba21b5190c92be1ae296b0ef32b09"
+      },
+      {
+        "path": "extracted/DerivedGeneralCategory.txt",
+        "bytes": 282143,
+        "crc32": "45bc83b4",
+        "sha256": "d6b151d2d40ee9b1876d26f417980f45ffae47b6055ccf7203cb31f07a030f94"
+      },
+      {
+        "path": "extracted/DerivedJoiningGroup.txt",
+        "bytes": 27012,
+        "crc32": "af0313ac",
+        "sha256": "325be8cd3a32a9cc2b80a1fe67e5c7ade3b58d8280fa9d49134edabed82832a1"
+      },
+      {
+        "path": "extracted/DerivedJoiningType.txt",
+        "bytes": 41024,
+        "crc32": "cf7bb17a",
+        "sha256": "e2408ff2c92b175b0f7bf62c989bbb54c7b077528fe31f8d69b96fa09e7d61ed"
+      },
+      {
+        "path": "extracted/DerivedNumericType.txt",
+        "bytes": 22001,
+        "crc32": "d6bc0d1e",
+        "sha256": "3dade4d96bd00d71b10022bf70b370090f3ca947f977ad4dc2854e06c4d074f6"
+      },
+      {
+        "path": "extracted/DerivedNumericValues.txt",
+        "bytes": 161854,
+        "crc32": "b9e5dae5",
+        "sha256": "c84f084f83ec6852e1db6e7ef15f340a3af2df8cf0c386ac0d076c2cebd189e6"
+      }
+    ]
+  },
+  "readme_validator": {
+    "accepted_final_unicode_version": "18.0.0",
+    "scope": "检查正式发行、精确版本及 Unicode 归属，新旧官方措辞均通过。离线测试拒绝 beta 和其他版本。",
+    "readme": {
+      "path": "ReadMe.txt",
+      "bytes": 729,
+      "crc32": "7297afba",
+      "sha256": "b0ea442f29dee90584aacd3665a6e1ce87ffc917a4d31f34e1916d2d6f7f9205",
+      "official_terms_links": [
+        "https://www.unicode.org/terms_of_use.html"
+      ],
+      "notice_headers": [
+        "# © 2026 Unicode®, Inc.",
+        "# For terms of use and license, see https://www.unicode.org/terms_of_use.html"
+      ]
+    }
+  },
+  "license": {
+    "archive_standalone_license_entries": [],
+    "official_terms_link": "https://www.unicode.org/terms_of_use.html",
+    "retained_unicode_license": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-notice-supplements/pillow-13.0.0-radishmind.1-Raqm-Unicode-LICENSE.txt",
+      "source_url": "https://www.unicode.org/license.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    "coverage": "保留原 ZIP 内版权与许可指引，Unicode License V3 正文随 regex 伴随告知登记。"
+  },
+  "generator": {
+    "python": "3.14.5",
+    "script_sha256": "80f9ac959211bfcb2bc1b96920d9dc2f38c9528b3c475d6a39546ce9768a259f",
+    "python_options": [
+      "-S",
+      "-B",
+      "-X",
+      "utf8"
+    ],
+    "environment": {
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "PYTHONHASHSEED": "0"
+    },
+    "exit_code": 0,
+    "seconds": 0.649,
+    "log_bytes": 3093,
+    "log_path": "tmp/regex-ucd-offline-replay-20261121.c48Wim/generator.log",
+    "log_sha256": "dce867a9123de307cad4776bc2c22200757a2a01b30c98037fbdb067b0f96046"
+  },
+  "outputs": [
+    {
+      "generated_name": "_regex_unicode.c",
+      "bytes": 1983129,
+      "sha256": "a0c26f0cc64e733f429cbe8251e8156c4d80508eec1920626b3b868d86bd1642",
+      "expected_bytes": 1983129,
+      "expected_sha256": "a0c26f0cc64e733f429cbe8251e8156c4d80508eec1920626b3b868d86bd1642",
+      "cmp_exit": 0,
+      "generated_path": "tmp/regex-ucd-offline-replay-20261121.c48Wim/run/_regex_unicode.c",
+      "reference_sdist_member": "src/_regex_unicode.c"
+    },
+    {
+      "generated_name": "_regex_unicode.h",
+      "bytes": 10827,
+      "sha256": "41c981143516f6cd244ae3aaaf9dfca2d7b38ff907a2d04190d56d898b466531",
+      "expected_bytes": 10827,
+      "expected_sha256": "41c981143516f6cd244ae3aaaf9dfca2d7b38ff907a2d04190d56d898b466531",
+      "cmp_exit": 0,
+      "generated_path": "tmp/regex-ucd-offline-replay-20261121.c48Wim/run/_regex_unicode.h",
+      "reference_sdist_member": "src/_regex_unicode.h"
+    }
+  ],
+  "window": {
+    "https_requests": 0,
+    "reference_sdist_decompressed_bytes": 3706880,
+    "zip_decompressed_for_full_crc_bytes": 39580113,
+    "generator_input_decompression_upper_bound_bytes": 5306343,
+    "combined_decompression_upper_bound_bytes": 48593336,
+    "peak_staging_upper_bound_bytes": 40390656,
+    "wall_seconds": 0.816,
+    "limits": {
+      "decompressed_bytes": 100663296,
+      "staging_bytes": 50331648,
+      "wall_seconds": 300
+    }
+  },
+  "raw_receipt": {
+    "path": "tmp/regex-ucd-offline-replay-20261121.c48Wim/receipt.json",
+    "bytes": 15894,
+    "sha256": "3ed48fec65f008e5d2c2d21e4e1640be25143a0646c441cf3ea75266ca4a1dfb"
+  },
+  "boundary": {
+    "generated_sources_reproduced": true,
+    "historical_upstream_zip_identity_verified": false,
+    "delivery_assembled": false,
+    "cryptography_requests": 0,
+    "stage_0_exited": false
+  }
+}

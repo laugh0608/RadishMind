@@ -1,6 +1,6 @@
 # RadishMind 当前推进焦点
 
-更新时间：2026-11-05
+更新时间：2026-11-21（阶段 0 本地伴随源码已组装，待接收确认）
 
 ## 文档职责
 
@@ -10,29 +10,44 @@
 
 ## 当前结论（默认读取到本节结束）
 
-- **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验；原生 HTTP 已通过固定上游技术验证；剩余许可、阶段 1 范围及 A 级视觉依据尚未闭合，正式采用暂不通过，阶段 0 不退出。
+- 2026-11-14 已停用 Pencil。单 Agent 已确认的六幅稿继续用于阶段 1，新 UI 任务按[代表设计协作模型](features/user-workspace/radishmind-family-ui-productization-v1.md#代表设计协作模型)评审。
+
+- **当前开发主线为受控软件开发团队阶段 0。** [集中任务卡](task-cards/development-task-probe-v1-plan.md)记录任务结果，[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)维护退出条件。联合固定响应技术链及遥测可选化候选已复验，原生 HTTP 已通过固定上游技术验证。单 Agent 公开合同、范围与 A 级画板已获项目所有者确认。阶段 0 剩余许可交付和正式采用复评。
 - [本机持久工作台](features/user-workspace/local-persistent-workbench-delivery-v1.md)继续作为交付基座；宿主机与 `linux/arm64` 容器已有技术证据，独立用户验收未完成且按要求暂不安排。Windows PowerShell、`linux/amd64` 和真实模型质量不由已有证据推定通过。
 - 成熟度保持**内部开发者预览**。本机交付、真实任务效果与按需共享 / 业务接入的顺序保持；跨版本回归审查仍为候选。真实模型试用继续暂停，通道默认关闭，未开放正式执行能力。
-- 既有授权窗口已结束，当前规划不延续下载、Docker 或服务运行授权；详细运行事实与清理记录沿任务卡和[W45 周志](devlogs/2026-W45.md)查证。
+- 最终 ARM64 SDK 镜像的禁网构建、119 项冻结安装、非 root 读取 42 份告知、SDK 和三个联合用例均通过。已按所有者确认的范围组装并核对本地伴随源码和告知，交付记录保留 OpenSSL 补丁清单未证实的边界。待所有者确认能实际取得材料，再做正式采用复评。[本地交付验收](task-cards/development-task-probe-v1-plan.md#2026-11-21-本地伴随源码和告知交付目录验收)
 
-## 接下来事项（2026-11-05）
+<a id="next-actions"></a>
+<a id="接下来事项2026-11-05"></a>
+<a id="接下来事项2026-10-31"></a>
 
-本次工作已收尾；下次按以下顺序推进，不延续今日运行窗口，也不重新开展已通过的原生 HTTP 固定上游切片：
+<a id="接下来事项2026-11-12"></a>
 
-1. **先补已有材料可完成的许可交付映射。** 核对 CPython 内嵌 Expat / libmpdec 的完整告知范围，纳入现有告知准备与离线校验；整理新增动态库的精确路径 / 归属缺口，需要镜像读取时再准备有界静态取证清单。[镜像范围](../scripts/eval/development_probe/sdk_variant/license-scope-20261105.json)及[本轮采用评审](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)是起点，不重复已完成的 Go 内嵌文件比对。
-2. **明确历史输入缺口的处理路线。** 对 Pillow、cryptography、两个 certifi 和 regex 分别列出缺失材料、可追溯的不可变来源及无法补证时的候选替换 / 构建方案。先比较受影响依赖闭包、源码 / 告知集合和 SDK / 联合复验成本，再由项目所有者确认路线；不无限追加同类元数据，不把发布声明等同构建输入证明。
-3. **准备最终交付验收窗口。** 路线确认、来源和告知材料齐备后，准备具体下载 / 打包 / 重建命令、镜像身份、资源上限和清理方式，取得授权再执行。验收实际镜像告知字节与非 root 可读性、伴随源码完整性和接收方可获取性，以及受影响的 SDK / 联合路径；已有配方和离线检查不能替代此步。
-4. **确认单 Agent 设计，再复评阶段 0。** [公开交付合同](contracts/development-task-delivery-v1.md)与[六个 Pencil 代表面](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)已经可评审，等待具体确认；设计确认可先于最终镜像验收，但不替代许可条件。四项退出条件齐备后，按同一工作包实现 canonical schema / 权限、任务事务 / 协调、公开 API 和 Web，再做隔离执行及浏览器验收。此前不提前实现正式入口或固定团队。
+<a id="接下来事项2026-11-18"></a>
 
-原生 HTTP 已通过固定上游工具往返、错误 / 超时 / 取消、未知用量及配置 / 凭据验证；真实厂商 / 模型资格、完整输入 token 上界和费用窗口仍待验。真实模型继续暂停，通道默认关闭。
+<a id="接下来事项2026-11-19"></a>
 
-上述事项是后续推进计划，不延续已结束的下载、Docker 或服务运行授权。四项退出条件见[实施专题](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)；正式采用暂不通过，阶段 0 不退出。SDK 暂停不是立即取消，缺失 usage 的零值不能用作平台账本；SDK / 代码沙箱分层窗口及本次联合窗口均已授权、验证并清理，所属容器与测试监听器全部关闭，镜像保留；未运行真实模型或用户试用。
+## 接下来事项（2026-11-21）
 
-**工作台剩余交付：独立用户按运行指南完成首次使用与持续使用；按项目所有者要求暂不安排。** 记录完成情况、求助点和恢复成本后修复，AI 技术验收不代替该项；它与新功能设计分别记录。Windows PowerShell 与 `linux/amd64` 容器仍未验收，不由已有平台结果推定通过。
+所有者确认按“阶段 0 有限收口 → 正式 Web 单 Agent 技术交付 → 小范围真实单 Agent 价值复核 → 决定是否进入固定团队”推进。**下次先等所有者确认能取得本地交付目录，然后复评阶段 0。** 通过后开始固定三文件 Go 任务在正式 Web 的发起、取消、审阅、保存与精确重读。本地交付回读通过，OpenSSL 补丁清单未证实已登记，历史构建追查已结束。[本机交付验收](task-cards/development-task-probe-v1-plan.md#2026-11-21-本地伴随源码和告知交付目录验收)
 
-技术证据、临时材料路径与清理记录见[工作台专题](features/user-workspace/local-persistent-workbench-delivery-v1.md)；入口整理前的日期化摘要保留在[规划整理记录](devlogs/2026-W44.parts/planning-structure-20261101.md)。
+| 顺位 | 剩余任务与必要阻塞 | 结束条件 |
+| --- | --- | --- |
+| 1 | 记录接收方确认 | 所有者确认可打开最终镜像摘要目录并取得配套源码、告知与 `manifest.json`，在集中任务卡登记确认。 |
+| 2 | 复评阶段 0 并登记决定 | 结合接收确认、冻结 SDK 技术验收和已确认的单 Agent 合同与视觉范围，逐项核对[四项阶段出口](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。复评通过后登记正式采用和阶段 0 退出。 |
+| 3 | 同一工作包连续实现正式 Web 单 Agent | 依次贯通 canonical schema 与权限、SQLite 事务与协调、严格 API、Web、隔离执行和双端浏览器验收。覆盖正常、取消、失败、结果未知及重启后精确重读。 |
 
-不自动并行开启多条实施主线。当前只按明确要求推进受控软件开发团队阶段 0；真实模型继续暂停，独立使用证据未齐前不关闭工作台整体交付。已有配置 / 身份 / 存储和高风险执行契约保持，通用仓库准入与正式长任务交付仍需独立设计和验收，固定 Go 探针证据不替代这些条件。
+固定构建器静态证据按路径、摘要、版本与包归属维护。最终 SDK 运行窗口已结束，本地交付记录、接收方确认及正式采用复评继续沿集中任务卡处理。
+
+已有原生 HTTP 固定上游技术条件、SDK 工具往返与联合任务证据保持，只有候选 / 配置变化或相关失败触发复验。真实厂商资格、完整输入计量和费用窗口仍未验收，真实模型暂停、通道默认关闭。
+
+[来源裁决](features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#closeout-decision)分别标清实际使用 / 交付依据、既定来源要求、额外复现研究；不是把全部未知自动叠成同一门槛，也不自动豁免已接受要求。下一批须明确投入上限、复核点和结束决定；路径不成立就改选或等待，不维护多个候选，不继续派生来源链或通用构建体系。
+
+阶段 1 只用固定三文件 Go、单模型串行工具、一次尝试、受保护测试和显式保存；通用 Git、任意命令 / 依赖、团队 / 群聊返修、额外数据库 / 平台、完整路由解释 / 回放与自动合入后置。运行详情仅交付合同必需且可追溯的信息；未知值和未确认终止不得伪装为成功。
+
+**阶段 1 技术出口后，先做小范围真实单 Agent 价值复核，再决定是否进入阶段 2。** 模型窗口仍暂停；恢复须明确提供方资格、有限任务、数据和费用授权，记录完成质量、人工干预、失败与成本，形成继续 / 修正 / 暂缓团队的决定。未取得这些依据时保留技术成果，不用新增团队系统填补等待期。完整团队对比仍在阶段 4，详见[价值复核点](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#single-agent-value-review)。
+
+本机工作台的独立用户首次 / 持续使用仍是交付待办，按所有者要求暂不安排；Windows PowerShell、linux/amd64 与真实模型质量不由已有证据推定。
 
 ## 阶段顺位与进入条件
 
@@ -40,14 +55,15 @@
 | --- | --- | --- |
 | 交付待办 | 本机持久工作台独立使用 | 宿主机与容器技术证据已完成；补独立用户按指南持续使用的证据 |
 | 当前开发 | 受控软件开发团队阶段 0 | [四项退出条件](features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)闭合并复评通过后进入阶段 1；任务结果只在集中任务卡维护 |
-| 下一实施目标 | 单 Agent 隔离开发交付 | 阶段 0 条件满足并确认实现范围；Web 可发起 / 取消 / 审阅 / 保存候选，再推进固定团队 |
-| 后续 | 真实任务效果验证 | 恢复模型窗口，明确任务集、提供方 / 模型、数据与费用；记录质量和使用成本 |
+| 下一实施目标 | 单 Agent 隔离开发交付 | 阶段 0 条件满足并确认实现范围；Web 可发起 / 取消 / 审阅 / 保存候选；技术出口后先作真实价值复核，再决定团队 |
+| 阶段 1 后的决定点 | 真实单 Agent 价值复核 | 技术交付后恢复获准模型窗口，记录有限任务的质量 / 人工成本 / 失败 / 费用；据此确认是否进入固定团队，窗口缺失则等待 |
+| 后续团队与完整比较 | 固定团队及阶段 4 效果比较 | 单 Agent 价值复核支持继续投入并确认团队范围后才推进；完整比较沿原可比基线 |
 | 按需求选择 | 团队共享或业务接入 | 实际用户 / 环境 / 负责人或上层挂载点明确；选一个目标交付，不同时铺开 |
 | 候选 | 跨版本回归审查等增强 | 有持续使用证据，能说明现有手工路径的具体阻塞与收益 |
 
 外部条件提前齐备时可以明确重排下一窗口；不自动并行开多条主线。真实故障与安全问题优先处理，具体条件见[路线图](radishmind-roadmap.md#后续开发方向2026-10-26)。
 
-已登记未来能力：[Gateway 路由决策解释与尝试轨迹](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)。随阶段 1 运行详情设计统筹，先只读解释与历史回放，策略优化后置；当前 SDK / 隔离执行顺位及应用观测 `no_entry` 保持，不自动开启第二条实施主线。
+已登记未来能力：[Gateway 路由决策解释与尝试轨迹](features/gateway/gateway-routing-decision-explanation-attempt-trace-v1.md)。随阶段 1 运行详情设计统筹，首版仅采用公开交付合同必需且有可信关联的运行信息；完整调用链解释、历史回放和策略优化后置，不阻塞单 Agent 出口；应用观测 `no_entry` 保持。
 
 ## 已完成范围与剩余边界
 

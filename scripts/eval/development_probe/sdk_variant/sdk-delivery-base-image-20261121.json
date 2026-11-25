@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "base_image_offline_reference_verified",
+  "baseline_commit": "ec6d3795df7eb906188bbfce54c31ad72f9fb944",
+  "source_registry_repository": "https://registry-1.docker.io/v2/library/python",
+  "reference": "docker.io/library/python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+  "platform": "linux/arm64/v8",
+  "python": "3.12.16",
+  "engine": {
+    "context": "orbstack",
+    "docker_engine": "29.8.2",
+    "containerd": "2.3.6"
+  },
+  "index": {
+    "digest": "sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+    "bytes": 10373
+  },
+  "arm64_manifest": {
+    "digest": "sha256:b224e2fe306f9d303251ada22961635e5b52a69c0414a0050611be31c59f5f5b",
+    "bytes": 1748
+  },
+  "image_config": {
+    "digest": "sha256:ff710677e697054c516f12c53c92166f1aef075f21b2a593f4c615e522112b4e",
+    "bytes": 5679
+  },
+  "layers": [
+    {
+      "digest": "sha256:2b70e040f7d132c8d366ee0223462552686510fb372ea5a83822973c30f19e36",
+      "diff_id": "sha256:685889762157cefb6370119253b3c709f70bb2622402052065c92243e3d9105f",
+      "compressed_bytes": 30213496,
+      "expanded_bytes": 103178240
+    },
+    {
+      "digest": "sha256:0922d1fc1a5f7baa280015c744bb0be989e6e146a9181c04d2971e1273416844",
+      "diff_id": "sha256:5c0bc5ee0491a1a68853ceaecd26669d4e40028743b5ae987ee7ca5f9537680f",
+      "compressed_bytes": 1270171,
+      "expanded_bytes": 4163584
+    },
+    {
+      "digest": "sha256:b41621e272b0b306c196fabab6f5e0132d1c13f3c929bfb63455191fa509e311",
+      "diff_id": "sha256:e3af5abbdc37fa9b5b795480004e631040ad0b537c2174d07352e25c43d1d0ed",
+      "compressed_bytes": 12060033,
+      "expanded_bytes": 41404416
+    },
+    {
+      "digest": "sha256:64074ecd150a3526f7ef1af3128b9186744abfb9dc3d1c3e87c11c1ea880cbd0",
+      "diff_id": "sha256:013d8fa6cec40683d59b02f867200c97732ee03b6ce0a5816df5702a353ffedc",
+      "compressed_bytes": 251,
+      "expanded_bytes": 5120
+    }
+  ],
+  "arm64_attestation": {
+    "manifest": {
+      "digest": "sha256:cac353ff9634ab7391db8e6b34143e21d039546b76c099fe14e14d81f515a2b1",
+      "bytes": 841
+    },
+    "subject_manifest_digest": "sha256:b224e2fe306f9d303251ada22961635e5b52a69c0414a0050611be31c59f5f5b",
+    "config": {
+      "digest": "sha256:d2c2f8674e6fb73ffe625e9265bd90e06ee9b12ae38fc6c4f85f5d3a63298e2b",
+      "bytes": 241
+    },
+    "statements": [
+      {
+        "predicate_type": "https://spdx.dev/Document",
+        "digest": "sha256:28ba97a34e3b914f864ae80f51a026c1e3f425a0392971acc0756d4284a7b818",
+        "bytes": 2151122
+      },
+      {
+        "predicate_type": "https://slsa.dev/provenance/v0.2",
+        "digest": "sha256:ea7b050b94c7b2e0827be396d2cbffec39db1ee2f7d997e836d065468ce78092",
+        "bytes": 25197
+      }
+    ],
+    "object_count": 4,
+    "total_bytes": 2177401
+  },
+  "first_attempt": {
+    "image_load_exit_code": 1,
+    "missing_digest": "sha256:cac353ff9634ab7391db8e6b34143e21d039546b76c099fe14e14d81f515a2b1",
+    "failure": "平台导入会遍历 ARM64 清单引用的构建证明，初次归档缺少该证明清单。"
+  },
+  "authorized_retry": {
+    "image_load_exit_code": 0,
+    "image_tag": "docker.io/library/python:radishmind-20261121-aa943ce41142",
+    "verified_object_count": 11,
+    "verified_object_bytes": 45739152,
+    "downloaded_body_bytes": 45744641,
+    "verified_expanded_bytes": 148751360,
+    "incremental_disk_budget_bytes": 465963010,
+    "elapsed_seconds": 153.029,
+    "limits": {
+      "download_bytes": 100663296,
+      "expanded_bytes": 402653184,
+      "additional_disk_bytes": 1073741824,
+      "elapsed_seconds": 300
+    },
+    "staging_cleaned": true
+  },
+  "offline_confirmation": {
+    "transport": "OrbStack local Docker Unix socket",
+    "repo_digests": [
+      "python@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159"
+    ],
+    "available_manifests": [
+      {
+        "digest": "sha256:b224e2fe306f9d303251ada22961635e5b52a69c0414a0050611be31c59f5f5b",
+        "kind": "image"
+      },
+      {
+        "digest": "sha256:cac353ff9634ab7391db8e6b34143e21d039546b76c099fe14e14d81f515a2b1",
+        "kind": "attestation"
+      }
+    ],
+    "ordered_diff_ids_match": true,
+    "verification_correction": "带平台的镜像查询以所选清单摘要为 Id。首次复核误与配置摘要比较，独立只读复核已分别核对索引摘要、ARM64 清单摘要和配置内容。"
+  },
+  "boundary": {
+    "final_sdk_image_built": false,
+    "containers_created": 0,
+    "registry_egress_during_build_verified": false,
+    "recipient_source_retrieval_verified": false
+  },
+  "local_evidence": [
+    {
+      "path": "tmp/sdk-base-import-20261121.PteZY5oT/result.json",
+      "bytes": 5012,
+      "sha256": "e6838fb426500de2a4b39a057a4497275d0eb7abc2471f57218c1197e5df67f9"
+    },
+    {
+      "path": "tmp/sdk-base-import-retry-20261121.oPH2ShDM/result.json",
+      "bytes": 8103,
+      "sha256": "4aa2a02cec5d27c14e1c032dba4047f4530765a3a0bfcf8e9482b9ed914997b9"
+    },
+    {
+      "path": "tmp/sdk-base-import-retry-20261121.oPH2ShDM/offline-resolution.json",
+      "bytes": 2917,
+      "sha256": "e091d941ee9a38ad86de877301e87544b8f2541c5a8ab910b3242b1f88fd1981"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # RadishMind UI 差异附录
 
+新 UI 任务按[代表设计协作模型](features/user-workspace/radishmind-family-ui-productization-v1.md#代表设计协作模型)完成分级和评审。2026-11-14 起停用 Pencil，旧画板与已确认的评审证据按原批次留存。
+
 更新时间：2026-11-05
 
 采用基线：RadishX `docs/design/family-ui/` `v26.7.3`
@@ -50,7 +52,7 @@ RadishMind 是 Radish 家族中的 AI 工具、工作流、模型网关和 Copil
 
 ## 规划中的开发团队工作区
 
-[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)拟在正式 User Workspace 内提供计划授权及候选交付审阅，复用项目语义 token、组件、作用域与双语规则。单 Agent 首版已按 A 级（8 分）完成六个 Pencil 代表面，覆盖桌面计划 / 执行 / 审阅、窄屏、取消未确认与保存风险，索引和合同对应见[交互子专题](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)。具体视觉待确认，无 React 或浏览器验收；团队配置与群聊后置，不将已有页面批准自动迁移到新工作区。
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)拟在正式 User Workspace 内提供计划授权及候选交付审阅，复用项目语义 token、组件、作用域与双语规则。单 Agent 首版已按 A 级（8 分）完成六个 Pencil 代表面，覆盖桌面计划 / 执行 / 审阅、窄屏、取消未确认与保存风险，索引和合同对应见[交互子专题](features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#单-agent-代表面与合同对应)。2026-11-10 项目所有者已确认六幅最终视觉。React 与浏览器验收属于阶段 1，团队配置与群聊后置。
 
 ## Token 与构建映射
 

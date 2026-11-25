@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "offline_build_and_sdk_checks_passed_window_stopped_before_joint",
+  "baseline_commit": "1c902dc4db16367c3977ff4008518b3ec0e5af2b",
+  "wheel_lock_sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab",
+  "base_image": "docker.io/library/python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+  "final_image": {
+    "reference_tag": "radishmind-development-sdk-delivery:20261121-mecv5skg",
+    "manifest_digest": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+    "config_digest": "sha256:45d15b588f80a2e44a70906ee917ddafb914667c74e4e398e99cd614a41b40a6",
+    "platform": "linux/arm64",
+    "default_user": "65532:65532"
+  },
+  "build": {
+    "orb_context": "orbstack",
+    "registry_source_denial_probe_passed": true,
+    "source_policy_sha256": "827139af67fa9c49611183f6cc2eb72769e4f9701b205c8be641571131b51c04",
+    "verified_local_oci_object_count": 11,
+    "network_mode": "none",
+    "used_cache": false,
+    "pip_check_passed": true,
+    "base_diff_ids_match": true,
+    "buildx_activity_directory_workaround": "构建求解前改用工作区内的 Buildx 活动记录目录。",
+    "configuration_digest_verified_by": [
+      "local_manifest_descriptor",
+      "buildkit_export_log"
+    ]
+  },
+  "non_root_sdk": {
+    "network_mode": "none",
+    "readonly_root": true,
+    "container_id": "8b708e4bbdfc9d27102c4f7a9fe7d193ea81e907e9fbac334e7635163f124214",
+    "container_exit_code": 1,
+    "oom_killed": false,
+    "container_removed": true,
+    "frozen_installation_and_notices": {
+      "identity": [
+        65532,
+        65532
+      ],
+      "frozen_wheels": 119,
+      "installed_distributions": 120,
+      "notices": {
+        "wheel": 19,
+        "pip": 21,
+        "cpython": 2
+      },
+      "pip_check": "passed",
+      "installation_report_sha256": "7f655cf3eaf9959b58ee6c26c5e56eaf4fcd2978212da981328a65ab4a9c3b0f"
+    },
+    "pillow": {
+      "extension_imports": [
+        "_avif",
+        "_imaging",
+        "_imagingcms",
+        "_imagingft",
+        "_imagingmath",
+        "_imagingmorph",
+        "_webp"
+      ],
+      "loaded_wheel_elf_count": 26,
+      "codec_roundtrips": [
+        "PNG",
+        "JPEG",
+        "TIFF",
+        "JPEG2000",
+        "WEBP",
+        "AVIF"
+      ],
+      "icc_srgb": true,
+      "raqm_fixture_rtl": true,
+      "sdk_vision": {
+        "input_messages_unmodified": true,
+        "mode": [
+          "completion",
+          "acompletion"
+        ],
+        "responses": 2,
+        "sdk_version": "1.59.0+radishmind.1",
+        "wire": [
+          {
+            "images": 1,
+            "resized_dimensions": [
+              [
+                8000,
+                16
+              ]
+            ]
+          },
+          {
+            "images": 21,
+            "resized_dimensions": [
+              [
+                2000,
+                14
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "optional_telemetry_tests_passed": 4,
+    "llm_contract_tests_passed": 7,
+    "sdk_worker_tests_passed": 3
+  },
+  "stopped_at": {
+    "step": "cpython_external_library_package_ownership",
+    "reason": "dpkg-query --search 的 diversion 提示被归属探针误识为包名，导致后续包查询退出码为 1。",
+    "parser_correction_verified_on_host_fixtures": true,
+    "corrected_parser_run_in_final_image": false
+  },
+  "remaining": {
+    "joint_normal_stale_cancel_run": false,
+    "recipient_source_retrieval_verified": false,
+    "stage_0_exited": false
+  },
+  "window": {
+    "elapsed_seconds": 707.05,
+    "total_seconds_limit": 1320,
+    "host_free_disk_net_decrease_bytes": 1228800000,
+    "additional_disk_budget_bytes": 4294967296,
+    "owned_containers_remaining": 0
+  },
+  "local_evidence": [
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/build-bootstrap-stop.log",
+      "bytes": 159,
+      "sha256": "78d4546eeff6d443291f961a98e34cfa6531c5befe81ff86175579ca5a2b5297"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/deny-probe.log",
+      "bytes": 699,
+      "sha256": "a3a6f5922ab1865878c741490a55a1db94ab8410bd67944975490a42a9bc8fb9"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/source-policy-effective.json",
+      "bytes": 178,
+      "sha256": "827139af67fa9c49611183f6cc2eb72769e4f9701b205c8be641571131b51c04"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/base-layout.log",
+      "bytes": 74,
+      "sha256": "e98670a84bb085d41b88812f004fedcb958ad11383f65094dd20eb5c16ce5d5e"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/build.log",
+      "bytes": 21678,
+      "sha256": "07562c048839fb6b0f727c40f0ea644d6a90a30a9d7542ac75fe6074cc6a2934"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/build-metadata.json",
+      "bytes": 2986,
+      "sha256": "cc6cf2d68e5dacb8813a17ca2b9c310fd850ea1b35f688b3b65890df633cbd47"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/final-inspect.log",
+      "bytes": 3340,
+      "sha256": "f8aec2784a6da408ec3a381243d3c4f65019ca89a5a5a05bb271d3544f5385e2"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/sdk-container.json",
+      "bytes": 7717,
+      "sha256": "697d4160c2a7cb22ba1d9dcba78daea2167de25bb9ab2178499f3c9756b91c71"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/sdk-acceptance.log",
+      "bytes": 12199,
+      "sha256": "7d5f1daf2d9896e64a910c843265a9879cac04fc9ea863dd4ed39716bf23ad10"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/sdk-state.json",
+      "bytes": 268,
+      "sha256": "c7c2fa06a6606b902085c0dc9c59d010e4e38993c3cfdab0570499808957166a"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/acceptance-result.json",
+      "bytes": 1182,
+      "sha256": "7d30de4bf0ec41442bcdf3d953d980485619859896d9ed7d8225c8472aea0367"
+    },
+    {
+      "path": "tmp/sdk-delivery-window-20261121.MEcV5sKG/candidate/cpython-runtime-libraries.py",
+      "bytes": 3857,
+      "sha256": "36b1c95259c4071038b4f0ea50207247f13f796ed54ea9352c273c80025c2209"
+    }
+  ]
+}

@@ -1,0 +1,844 @@
+{
+  "schema_version": "pillow_freetype_sourceforge_result.v1",
+  "date": "2026-11-12",
+  "status": "stopped",
+  "authorization": "所有者确认按 SourceForge 方案执行；首项匹配发布 SHA-256 且静态核验通过后才接续五份归档和四项工具元数据。严格限额与跳转范围，任一失败全窗停止，不重试、换源或跳过；镜像层、容器和构建另行确认。",
+  "plan_reference": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-plan-20261112.json",
+    "sha256": "c6b35301726cc013d4cfe3690311075e4de5a4be6ede66ae9a89708d3cc7468f"
+  },
+  "accepted_lcms2_review": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json",
+    "sha256": "98c4ccf07f225093332196e131b0f7365cd56b757b36f0e939463be5af46337f"
+  },
+  "reused_artifacts": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    },
+    {
+      "id": "xcb-proto",
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+    },
+    {
+      "id": "libxcb",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb-1.17.0.tar.xz",
+      "sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0"
+    },
+    {
+      "id": "libjpeg-turbo",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.body"
+    },
+    {
+      "id": "zstd",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.body"
+    },
+    {
+      "id": "tiff",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.body"
+    },
+    {
+      "id": "libavif",
+      "bytes": 14665927,
+      "sha256": "2b645287340ba5a631d268b551dc2d72bd73ac33335962dd36dcdb6d8366921d",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libavif-1.body"
+    },
+    {
+      "id": "libpng",
+      "bytes": 1582074,
+      "sha256": "8c9b05b675ca7301a458df2c2e46f26e1d41ff36b8863f8c33530bc58c2e6225",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libpng-2.body"
+    },
+    {
+      "id": "lcms2",
+      "bytes": 5728743,
+      "sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/lcms2-1.body"
+    },
+    {
+      "id": "openjpeg",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/openjpeg-1.body",
+      "bytes": 2157028,
+      "sha256": "a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a"
+    },
+    {
+      "id": "libwebp",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/libwebp-0.body",
+      "bytes": 4296070,
+      "sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
+    },
+    {
+      "id": "brotli",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/brotli-1.body",
+      "bytes": 646315,
+      "sha256": "816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec"
+    }
+  ],
+  "requests": [
+    {
+      "name": "freetype-0",
+      "phase": "source_archives",
+      "url_without_query": "https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "302 553 1.073768",
+      "bytes": 553,
+      "sha256": "55a44da8b5bfc69dc82539349a7092675a4f8b3d97ff7311c3b44271f49614f5",
+      "elapsed_seconds": 1.0842068339698017,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "302",
+        "size_download": "553",
+        "time_total": "1.073768"
+      }
+    },
+    {
+      "name": "freetype-1",
+      "phase": "source_archives",
+      "url_without_query": "https://sf-west-interserver-1.dl.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.gz",
+      "query_redacted": true,
+      "exit_code": 0,
+      "receipt": "200 4134916 11.140440",
+      "bytes": 4134916,
+      "sha256": "e61b31ab26358b946e767ed7eb7f4bb2e507da1cfefeb7a8861ace7fd5c899a1",
+      "elapsed_seconds": 11.159688000101596,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "200",
+        "size_download": "4134916",
+        "time_total": "11.140440"
+      },
+      "content_length": 4134916
+    },
+    {
+      "name": "harfbuzz-0",
+      "phase": "source_archives",
+      "url_without_query": "https://github.com/harfbuzz/harfbuzz/releases/download/14.5.0/harfbuzz-14.5.0.tar.xz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "302 0 1.837110",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_seconds": 1.871191417099908,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "302",
+        "size_download": "0",
+        "time_total": "1.837110"
+      }
+    },
+    {
+      "name": "harfbuzz-1",
+      "phase": "source_archives",
+      "url_without_query": "https://release-assets.githubusercontent.com/github-production-release-asset/5050525/611443a4-8e17-4f4a-acf2-30a55c71c360",
+      "query_redacted": true,
+      "exit_code": 0,
+      "receipt": "200 20262956 6.783585",
+      "bytes": 20262956,
+      "sha256": "b7132e148358a45185c9feafd049dbaf243649d3c44414b3534d9c95d18592b9",
+      "elapsed_seconds": 6.842706457944587,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "200",
+        "size_download": "20262956",
+        "time_total": "6.783585"
+      },
+      "content_length": 20262956
+    },
+    {
+      "name": "bzip2-0",
+      "phase": "source_archives",
+      "url_without_query": "https://mirrors.kernel.org/sourceware/bzip2/bzip2-1.0.8.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 810029 4.462916",
+      "bytes": 810029,
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+      "elapsed_seconds": 4.514990207972005,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "200",
+        "size_download": "810029",
+        "time_total": "4.462916"
+      },
+      "content_length": 810029
+    },
+    {
+      "name": "aom-0",
+      "phase": "source_archives",
+      "url_without_query": "https://aomedia.googlesource.com/aom/+archive/03087864cf4bea6abb0d28f95cf7843511413d8f.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 6438829 26.474119",
+      "bytes": 6438829,
+      "sha256": "efd37e4a93fdd20ca616567a835e4d470979a77f71aa88115c80048095b5fefc",
+      "elapsed_seconds": 26.489569624885917,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "200",
+        "size_download": "6438829",
+        "time_total": "26.474119"
+      },
+      "content_length": null
+    },
+    {
+      "name": "dav1d-0",
+      "phase": "source_archives",
+      "url_without_query": "https://code.videolan.org/videolan/dav1d/-/archive/b546257f770768b2c88258c533da38b91a06f737/dav1d-b546257f770768b2c88258c533da38b91a06f737.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 1716568 5.820929",
+      "bytes": 1716568,
+      "sha256": "c5b7428c3f5b28db0aee0c62f6ffb2b42f4b08e7be5ce49d7ad046aaf0dc151d",
+      "elapsed_seconds": 5.876178958918899,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "200",
+        "size_download": "1716568",
+        "time_total": "5.820929"
+      },
+      "content_length": null
+    },
+    {
+      "name": "libyuv-0",
+      "phase": "source_archives",
+      "url_without_query": "https://chromium.googlesource.com/libyuv/libyuv/+archive/644251f252a84bf8ce91ff0aca86a9b16b069ab8.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 598454 4.565826",
+      "bytes": 598454,
+      "sha256": "ca063bd5d39034bf25b388347e09fb05493c11d7947fe73dd0a5072bb08cbe2c",
+      "elapsed_seconds": 4.62199587514624,
+      "monitor_stop": null,
+      "diagnostic_format_valid": true,
+      "transfer_metrics": {
+        "http_code": "200",
+        "size_download": "598454",
+        "time_total": "4.565826"
+      },
+      "content_length": null
+    }
+  ],
+  "archives": [
+    {
+      "id": "freetype",
+      "declared_input": "freetype-2.14.3.tar.gz",
+      "evidence_file": "freetype-1.body",
+      "bytes": 4134916,
+      "sha256": "e61b31ab26358b946e767ed7eb7f4bb2e507da1cfefeb7a8861ace7fd5c899a1",
+      "inspection": {
+        "members": 937,
+        "declared_bytes": 19676826,
+        "safe_internal_links": 0,
+        "expected_root": "freetype-2.14.3",
+        "roots": [
+          "freetype-2.14.3"
+        ],
+        "selected_text_count": 17,
+        "selected_text_bytes": 428676,
+        "member_manifest_file": "freetype.members.json",
+        "member_manifest_sha256": "98bddffe84ec03d4411f89f24a81392666a4a008c19729f99f8b038891d44546",
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "status": "accepted",
+        "version": "2.14.3",
+        "version_members": [
+          "freetype-2.14.3/include/freetype/freetype.h",
+          "freetype-2.14.3/builds/unix/configure.ac",
+          "freetype-2.14.3/CMakeLists.txt"
+        ],
+        "license_members": [
+          "freetype-2.14.3/LICENSE.TXT",
+          "freetype-2.14.3/docs/FTL.TXT",
+          "freetype-2.14.3/docs/GPLv2.TXT",
+          "freetype-2.14.3/src/bdf/README",
+          "freetype-2.14.3/src/pcf/README",
+          "freetype-2.14.3/src/base/fthash.c",
+          "freetype-2.14.3/include/freetype/internal/fthash.h",
+          "freetype-2.14.3/src/gzip/zlib.h",
+          "freetype-2.14.3/src/autofit/ft-hb-ft.c",
+          "freetype-2.14.3/src/autofit/ft-hb-decls.h",
+          "freetype-2.14.3/src/autofit/ft-hb-types.h",
+          "freetype-2.14.3/src/autofit/hb-script-list.h"
+        ],
+        "license_observation": "根声明提供 FTL 或 GPL 路线，另列 BDF / PCF / hash / gzip / HarfBuzz 来源文件；对应正文 / 文件已静态留存，最终候选告知按实际采用范围收口。",
+        "declared_build_requirements": {
+          "cmake_minimum": "3.12",
+          "meson_minimum": "0.55.0",
+          "harfbuzz_if_enabled_minimum": "2.0.0"
+        },
+        "boundary": "发布 SHA-256 和版本 / 结构核对通过；没有取得或验证 .sig，没有构建或完成最终告知交付。",
+        "supplemental_inspection_seconds": 0.06587020889855921
+      }
+    },
+    {
+      "id": "harfbuzz",
+      "declared_input": "harfbuzz-14.5.0.tar.xz",
+      "evidence_file": "harfbuzz-1.body",
+      "bytes": 20262956,
+      "sha256": "b7132e148358a45185c9feafd049dbaf243649d3c44414b3534d9c95d18592b9",
+      "inspection": {
+        "members": 4024,
+        "declared_bytes": 103630449,
+        "safe_internal_links": 1,
+        "expected_root": "harfbuzz-14.5.0",
+        "roots": [
+          "harfbuzz-14.5.0"
+        ],
+        "selected_text_count": 24,
+        "selected_text_bytes": 159099,
+        "member_manifest_file": "harfbuzz.members.json",
+        "member_manifest_sha256": "e0facdda31f8d849e58308a3ea161d92edaa128197d07ebce92df8c9705362fe",
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "status": "accepted",
+        "version": "14.5.0",
+        "version_members": [
+          "harfbuzz-14.5.0/meson.build",
+          "harfbuzz-14.5.0/src/hb-version.h"
+        ],
+        "license_members": [
+          "harfbuzz-14.5.0/COPYING",
+          "harfbuzz-14.5.0/perf/texts/COPYING",
+          "harfbuzz-14.5.0/src/ms-use/COPYING",
+          "harfbuzz-14.5.0/test/COPYING"
+        ],
+        "license_observation": "根 COPYING 声明 Old MIT，并要求按子目录及各文件保留其他声明；所选子目录许可已留存，最终编译范围与告知另验。",
+        "declared_build_requirements": {
+          "meson_minimum": "0.60.0",
+          "cmake_minimum": "3.14",
+          "optional_freetype2_pkgconfig_minimum": "20.0.14"
+        },
+        "boundary": "freetype2 的 pkg-config / libtool 版本不等同 FreeType 发布版本；只是可选依赖声明，未执行配置或构建。归档摘要为新候选指纹，无独立发布摘要 / 签名声明。"
+      }
+    },
+    {
+      "id": "bzip2",
+      "declared_input": "bzip2-1.0.8.tar.gz",
+      "evidence_file": "bzip2-0.body",
+      "bytes": 810029,
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+      "inspection": {
+        "members": 56,
+        "declared_bytes": 3096392,
+        "safe_internal_links": 0,
+        "expected_root": "bzip2-1.0.8",
+        "roots": [
+          "bzip2-1.0.8"
+        ],
+        "selected_text_count": 6,
+        "selected_text_bytes": 36852,
+        "member_manifest_file": "bzip2.members.json",
+        "member_manifest_sha256": "1e7ede419abd443b93d601c54736c50e7e07d21f73541501a0eea5d02fd0d6a7",
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "status": "accepted",
+        "version": "1.0.8",
+        "version_members": [
+          "bzip2-1.0.8/bzlib_private.h",
+          "bzip2-1.0.8/bzlib.h",
+          "bzip2-1.0.8/README"
+        ],
+        "license_members": [
+          "bzip2-1.0.8/LICENSE",
+          "bzip2-1.0.8/README"
+        ],
+        "declared_build_requirements": {
+          "build_system": "Makefile / Makefile-libbz2_so",
+          "tools": [
+            "make",
+            "gcc (CC 可覆盖)",
+            "ar",
+            "ranlib"
+          ],
+          "minimum_tool_versions": "未发现统一最低版本声明；共享库 Makefile 中的旧 gcc 测试版本不当作最低版本。"
+        },
+        "boundary": "只静态读取，无编译；新归档指纹不作为独立发布签名或历史 wheel 来源证明。"
+      }
+    },
+    {
+      "id": "aom",
+      "declared_input": "03087864cf4bea6abb0d28f95cf7843511413d8f",
+      "evidence_file": "aom-0.body",
+      "bytes": 6438829,
+      "sha256": "efd37e4a93fdd20ca616567a835e4d470979a77f71aa88115c80048095b5fefc",
+      "inspection": {
+        "members": 1523,
+        "declared_bytes": 36209930,
+        "safe_internal_links": 0,
+        "expected_root": null,
+        "roots": [
+          ".clang-format",
+          ".cmake-format.py",
+          ".gitattributes",
+          ".gitignore",
+          ".mailmap",
+          "AUTHORS",
+          "CHANGELOG",
+          "CMakeLists.txt",
+          "LICENSE",
+          "PATENTS",
+          "README.md",
+          "Sample.cfg",
+          "aom",
+          "aom_dsp",
+          "aom_mem",
+          "aom_ports",
+          "aom_scale",
+          "aom_util",
+          "aomedia_logo_200.png",
+          "apps",
+          "av1",
+          "cmake",
+          "codereview.settings",
+          "common",
+          "doc",
+          "docs.cmake",
+          "examples",
+          "keywords.dox",
+          "libs.doxy_template",
+          "mainpage.dox",
+          "stats",
+          "test",
+          "third_party",
+          "tools",
+          "usage.dox",
+          "usage_cx.dox",
+          "usage_dx.dox"
+        ],
+        "selected_text_count": 16,
+        "selected_text_bytes": 136909,
+        "member_manifest_file": "aom.members.json",
+        "member_manifest_sha256": "21e88b53952966b472bbcc01a8e02311768f8e4f07071672143ce1e04dceaf7b",
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "status": "accepted",
+        "version": "3.14.1",
+        "requested_commit": "03087864cf4bea6abb0d28f95cf7843511413d8f",
+        "commit_binding": "沿已解析完整提交的官方归档 URL；版本声明与既有 v3.14.1 输入一致，归档未含 Git 历史，不宣称完整树 / 提交的独立密码学核验。",
+        "version_members": [
+          "CMakeLists.txt"
+        ],
+        "license_members": [
+          "LICENSE",
+          "PATENTS",
+          "third_party/fastfeat/LICENSE",
+          "third_party/googletest/src/LICENSE",
+          "third_party/highway/LICENSE-BSD3",
+          "third_party/libwebm/LICENSE.TXT",
+          "third_party/libyuv/LICENSE",
+          "third_party/vector/LICENSE",
+          "third_party/x86inc/LICENSE"
+        ],
+        "declared_build_requirements": {
+          "cmake_minimum": "3.16",
+          "languages": [
+            "C11",
+            "C++17"
+          ],
+          "required_tools": [
+            "Perl"
+          ],
+          "x86_only_assembler": "yasm 或 nasm >= 2.14；不推定为 aarch64 必需。"
+        },
+        "build_evidence_members": [
+          "cmake/aom_configure.cmake",
+          "cmake/aom_optimization.cmake",
+          "cmake/version.cmake",
+          "README.md"
+        ],
+        "boundary": "根 LICENSE、PATENTS 及所选 third_party 告知已留存；实际构建器工具与编译组件另验，无新增依赖下载。"
+      }
+    },
+    {
+      "id": "dav1d",
+      "declared_input": "b546257f770768b2c88258c533da38b91a06f737",
+      "evidence_file": "dav1d-0.body",
+      "bytes": 1716568,
+      "sha256": "c5b7428c3f5b28db0aee0c62f6ffb2b42f4b08e7be5ce49d7ad046aaf0dc151d",
+      "inspection": {
+        "members": 394,
+        "declared_bytes": 11781219,
+        "safe_internal_links": 0,
+        "expected_root": "dav1d-b546257f770768b2c88258c533da38b91a06f737",
+        "roots": [
+          "dav1d-b546257f770768b2c88258c533da38b91a06f737"
+        ],
+        "selected_text_count": 11,
+        "selected_text_bytes": 65327,
+        "member_manifest_file": "dav1d.members.json",
+        "member_manifest_sha256": "3281c9574734e9b34cbefba54868d17e59e1ab9991f678762ef8ad2eba180920",
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "status": "accepted",
+        "version": "1.5.3",
+        "requested_commit": "b546257f770768b2c88258c533da38b91a06f737",
+        "commit_binding": "完整提交的官方归档 URL 与根目录一致，meson 版本与既有 1.5.3 输入一致；不宣称独立验证完整 Git 树或发布签名。",
+        "version_members": [
+          "dav1d-b546257f770768b2c88258c533da38b91a06f737/meson.build"
+        ],
+        "license_members": [
+          "dav1d-b546257f770768b2c88258c533da38b91a06f737/COPYING",
+          "dav1d-b546257f770768b2c88258c533da38b91a06f737/doc/PATENTS"
+        ],
+        "declared_build_requirements": {
+          "meson_minimum": "0.49.0",
+          "c_standard": "c99",
+          "assembly": "平台分支分别检查编译器 / 汇编支持；所选 meson 文本已留存，不将其他架构 NASM 等条件自动纳入 aarch64。"
+        },
+        "boundary": "只静态核对，未执行配置或构建；实际编译器能力及最终告知另验。"
+      }
+    },
+    {
+      "id": "libyuv",
+      "declared_input": "644251f252a84bf8ce91ff0aca86a9b16b069ab8",
+      "evidence_file": "libyuv-0.body",
+      "bytes": 598454,
+      "sha256": "ca063bd5d39034bf25b388347e09fb05493c11d7947fe73dd0a5072bb08cbe2c",
+      "inspection": {
+        "members": 204,
+        "declared_bytes": 5390848,
+        "safe_internal_links": 0,
+        "expected_root": null,
+        "roots": [
+          ".clang-format",
+          ".gitignore",
+          ".gn",
+          ".vpython3",
+          "AUTHORS",
+          "Android.bp",
+          "Android.mk",
+          "BUILD.gn",
+          "CM_linux_packages.cmake",
+          "CMakeLists.txt",
+          "DEPS",
+          "DIR_METADATA",
+          "LICENSE",
+          "OWNERS",
+          "PATENTS",
+          "PRESUBMIT.py",
+          "README.chromium",
+          "README.md",
+          "build_overrides",
+          "codereview.settings",
+          "docs",
+          "download_vs_toolchain.py",
+          "include",
+          "infra",
+          "libyuv.gni",
+          "libyuv.gyp",
+          "libyuv.gypi",
+          "linux.mk",
+          "public.mk",
+          "pylintrc",
+          "riscv_script",
+          "source",
+          "tools_libyuv",
+          "unit_test",
+          "util",
+          "winarm.mk"
+        ],
+        "selected_text_count": 5,
+        "selected_text_bytes": 12543,
+        "member_manifest_file": "libyuv.members.json",
+        "member_manifest_sha256": "34db295a676a624426c590584dab79b87310fcb21822f95e7a59d188c07333ad",
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "status": "accepted",
+        "requested_commit": "644251f252a84bf8ce91ff0aca86a9b16b069ab8",
+        "commit_binding": "官方精确完整提交 URL 绑定；所选版本头已留存，不以版本宏证明 Git 提交或历史 wheel 来源。",
+        "version_members": [
+          "include/libyuv/version.h"
+        ],
+        "license_members": [
+          "LICENSE",
+          "PATENTS",
+          "AUTHORS"
+        ],
+        "declared_build_requirements": {
+          "cmake_minimum": "3.16",
+          "optional_jpeg": "CMake 查找 JPEG，按实际功能配置另验。"
+        },
+        "boundary": "源码结构与许可 / 构建声明已静态核对；无编译、独立签名或完整 Git 树验证。"
+      }
+    }
+  ],
+  "tool_metadata": [],
+  "request_count": 8,
+  "download_bytes": 33962305,
+  "network_seconds": 62.460527376038954,
+  "archive_declared_bytes": 297705491,
+  "selected_text_bytes": 3145909,
+  "started_unix": 1794489677.588856,
+  "finished_step_unix": 1794489949.076715,
+  "finished_review_unix": 1794490005.0960052,
+  "stop_reason": "local_metadata_validator_missing_packaging_before_network",
+  "window_closed_unix": 1794490062.3029451,
+  "window_elapsed_seconds": 384.71408915519714,
+  "stop": {
+    "phase": "tool_metadata_preflight",
+    "id": "setuptools",
+    "exception": "ModuleNotFoundError: No module named packaging",
+    "network_request_started": false,
+    "interpretation": "metadata.py 顶层导入 packaging.version 失败，尚未导入 acquire 或发起 PyPI 请求；不属于远端失败。未安装、修复后重跑或继续后项。"
+  },
+  "evidence_directory": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6",
+  "raw_receipts": [
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-0.headers",
+      "bytes": 1071,
+      "sha256": "8f2ceaeb34fe57998961552693bd92e6dd5258216299c0bab0e94325b89bf178"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-0.receipt",
+      "bytes": 17,
+      "sha256": "de22c8862f060a01e66aa1480db9029c5b7df41ade34120f80fb97782b31afcd"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-1.headers",
+      "bytes": 303,
+      "sha256": "31beed5e1ed01bc3b26edda629d3188aa538e73cd8682e8dfdc757445db1cb29"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-1.receipt",
+      "bytes": 22,
+      "sha256": "6c024389d8ca42eda59931d8ce5377f966e8cf6f5b562f8a051b746b34823b28"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-0.headers",
+      "bytes": 5749,
+      "sha256": "e918a3e0f7ca38b7d6bb63db42d393b4f6e8dcc845c766dca531b20c242811d5"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-0.receipt",
+      "bytes": 15,
+      "sha256": "922186b1f3d9b07f319f991fd7d25e04d3ce05c3bfd2c7f899c5edc47d755a77"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-1.headers",
+      "bytes": 861,
+      "sha256": "920cfe4007a3729376678d8f8df50032dd95009fc498c660c4bbed5ac0922516"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-1.receipt",
+      "bytes": 22,
+      "sha256": "e187547b90f14d119e737c7f5cfbf1113a5fbb28ffe1fc133e03831e7b07e716"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz-1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/bzip2-0.headers",
+      "bytes": 366,
+      "sha256": "13e732e1c74f9c943f7d9feac8c8eb106869dcdf16d61491560f55a91d3d626b"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/bzip2-0.receipt",
+      "bytes": 20,
+      "sha256": "e707f6f3d3556b166e432db90c69b914e86dabe8ff9e99a7ce9e07b060f35e25"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/bzip2-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/aom-0.headers",
+      "bytes": 725,
+      "sha256": "d934fc3fd8c0eccf9475b2cfe4a02608a3dfb47ec1d5dbfae2dd8ac2b436a7af"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/aom-0.receipt",
+      "bytes": 22,
+      "sha256": "155f736854ddee452415aa0caeeead70f52f2e34663c63251e436dbeb17710cd"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/aom-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d-0.headers",
+      "bytes": 884,
+      "sha256": "ae22d104b254ce0be83e5c49cad301b07b84b076d718df9f558c3512cb3c45f1"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d-0.receipt",
+      "bytes": 21,
+      "sha256": "a248a36cf085eb24727a1c81a67127b3c6dceb356aae5198f0af0f455e62fa4e"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/libyuv-0.headers",
+      "bytes": 728,
+      "sha256": "7eae4d2b90cbb495edf092b43ef7cc1d79eb18b17f976a58d61086f5b2a3a118"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/libyuv-0.receipt",
+      "bytes": 20,
+      "sha256": "90682fd2a3088dadff1fbba7fb5a065cfb877b044096892430d8fc24f2ace618"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/libyuv-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype.source-texts.json",
+      "bytes": 445328,
+      "sha256": "4bb431e537c8b8c7dd947ae7fd978cddd28b6d430edc7041a8a972881799fa54"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype.members.json",
+      "bytes": 108721,
+      "sha256": "98bddffe84ec03d4411f89f24a81392666a4a008c19729f99f8b038891d44546"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz.source-texts.json",
+      "bytes": 168660,
+      "sha256": "043bd791af295577b19e271a8843df390edad068d4546a938708e43d3cde6b95"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz.members.json",
+      "bytes": 607659,
+      "sha256": "e0facdda31f8d849e58308a3ea161d92edaa128197d07ebce92df8c9705362fe"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/bzip2.source-texts.json",
+      "bytes": 39384,
+      "sha256": "e475e2b2eb5b759286aabd55d12c18bf7868d16cc5149558e3d8e6d9d0e72ec5"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/bzip2.members.json",
+      "bytes": 5507,
+      "sha256": "1e7ede419abd443b93d601c54736c50e7e07d21f73541501a0eea5d02fd0d6a7"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/aom.source-texts.json",
+      "bytes": 144328,
+      "sha256": "93da79db2c0c0e2c82eb7e2fcaa650411c072f1fe572bbb6841d2c0a442884e4"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/aom.members.json",
+      "bytes": 163808,
+      "sha256": "21e88b53952966b472bbcc01a8e02311768f8e4f07071672143ce1e04dceaf7b"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d.source-texts.json",
+      "bytes": 69275,
+      "sha256": "d8663b6cbe33e0976feb305e2ae38fc583acb1062980b70e1317c7fae5be29dc"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d.members.json",
+      "bytes": 56170,
+      "sha256": "3281c9574734e9b34cbefba54868d17e59e1ab9991f678762ef8ad2eba180920"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/libyuv.source-texts.json",
+      "bytes": 13667,
+      "sha256": "a469a326d97f2d471424a333ba85b242e60aa21f9dfe0c133275a67273c88105"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/libyuv.members.json",
+      "bytes": 20355,
+      "sha256": "34db295a676a624426c590584dab79b87310fcb21822f95e7a59d188c07333ad"
+    }
+  ],
+  "execution_scripts": [
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/acquire.py",
+      "bytes": 13015,
+      "sha256": "201fd93d4289e4b0ea7171cd059645c53b908df4fa1e96a0f0354a960e8f8163"
+    },
+    {
+      "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/metadata.py",
+      "bytes": 3235,
+      "sha256": "f09bed8314fa31aeb327b1279432fed42a72fea7e2147ec477d671cff75ecb86"
+    }
+  ],
+  "plan_snapshot": {
+    "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/plan.json",
+    "bytes": 18492,
+    "sha256": "c6b35301726cc013d4cfe3690311075e4de5a4be6ede66ae9a89708d3cc7468f"
+  },
+  "curl_transfer_seconds": 62.158693,
+  "retained_directory_bytes_at_audit": 35892279,
+  "verified_archive_count_including_reuse": 19,
+  "remaining": {
+    "source_archives": 0,
+    "tool_metadata_requests": 4,
+    "image_layers_downloaded": 0
+  },
+  "boundaries": [
+    "六份新归档均通过完整获取、结构、版本 / 提交 URL 绑定与许可 / 构建声明核对；freetype 的发布 SHA-256 匹配，但未验证 OpenPGP 签名。",
+    "四项工具元数据均未请求；本地核对脚本在联网前导入 packaging 失败，立即关闭全窗，无依赖安装或重新执行。",
+    "新归档与所选文本直接留存；AOM / dav1d / libyuv 的精确 URL 绑定不冒充独立 Git 树或历史 wheel 来源验证。",
+    "没有镜像层、Docker、容器、工具发行物下载、安装、构建、运行锁变更或发布；下载子进程已退出，阶段 0 不退出。"
+  ],
+  "offline_audit": "十五份复用材料、引用链、八次请求正文及回执、六份归档的所选文本和成员清单摘要、累计预算独立复核通过。"
+}

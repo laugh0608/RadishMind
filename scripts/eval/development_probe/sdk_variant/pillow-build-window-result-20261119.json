@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-19",
+  "source_profile": "pillow-build-window-preflight-20261119.json",
+  "status": "stopped_before_container_creation",
+  "image": "sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+  "build_identifier": "cp312-manylinux_aarch64",
+  "start_utc": "2026-11-19T13:58:16.354122+00:00",
+  "end_utc": "2026-11-19T13:58:18.429321+00:00",
+  "elapsed_seconds": 2.075,
+  "host_returncode": 1,
+  "runtime_limits": {
+    "approved_attempts": 1,
+    "container_count_max": 1,
+    "cpu_quota_cores": 4,
+    "memory_bytes": 8589934592,
+    "wall_time_minutes": 90,
+    "docker_network_mode_intended": "none",
+    "registry_pull_intended": "never",
+    "host_disk_free_start_bytes": 289177600000
+  },
+  "failure": {
+    "phase": "cibuildwheel_host_cache_initialization",
+    "version": "4.3.1",
+    "source_location": "cibuildwheel/__main__.py:379",
+    "operation": "CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)",
+    "exception": "PermissionError",
+    "errno": 1,
+    "default_path": "~/Library/Caches/cibuildwheel",
+    "preflight_gap": "--print-build-identifiers exits before host cache initialization."
+  },
+  "outcome": {
+    "launch_attempts": 1,
+    "labels": [
+      "org.radishmind.pillow-build=20261119-abd1230aa9e4"
+    ],
+    "containers_created": 0,
+    "container_events": 0,
+    "containers_remaining": 0,
+    "native_compile": "not_run",
+    "auditwheel_repair": "not_run",
+    "upstream_tests_run": 0,
+    "candidates": [],
+    "artifact_sha256_elf_and_license_verification": "no_artifact"
+  },
+  "retained_evidence": [
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-01/build.log",
+      "bytes": 1445,
+      "sha256": "10b6126af9ca52038e03b1da34f7803b3358833deacd312b09022cb4a0a861d8"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-01/execution.json",
+      "bytes": 575,
+      "sha256": "97e24a8ff723381db57ae102386a6fb6d13a0f7f80f35e8ba2517fcad0f82083"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-01/engine-events.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "local_cache_probe": {
+    "environment": {
+      "CIBW_CACHE_PATH": "${RUN_DIR}/cibuildwheel-cache"
+    },
+    "workspace_mkdir_and_cachedir_tag_verified": true,
+    "build_entrypoint_invoked_by_probe": false,
+    "next_attempt_authorization_pending": true
+  }
+}

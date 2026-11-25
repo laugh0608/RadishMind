@@ -40,7 +40,7 @@
 | 系统职责、分层和请求边界 | [系统架构](docs/radishmind-architecture.md) |
 | 跨项目协议与外部接入 | [跨项目集成契约](docs/radishmind-integration-contracts.md)和 `docs/integrations/` |
 | 代码、文件、路径和脚本组织 | [代码规范](docs/radishmind-code-standards.md)和 [脚本目录说明](scripts/README.md) |
-| UI、Family UI、token 和 Pencil | [UI 差异附录](docs/ui-addendum.md)及对应 UI 功能专题 |
+| UI、Family UI、token 和设计评审 | [UI 差异附录](docs/ui-addendum.md)及对应 UI 功能专题 |
 | 分支、PR 和回同步 | [分支与 PR 治理 ADR](docs/adr/0001-branch-and-pr-governance.md) |
 | 本地运行、部署与故障处理 | [项目总览与使用指南](docs/radishmind-project-guide.md)、[平台运行手册](docs/platform/platform-service-operations-runbook-v1.md)和 [部署说明](deploy/README.md) |
 

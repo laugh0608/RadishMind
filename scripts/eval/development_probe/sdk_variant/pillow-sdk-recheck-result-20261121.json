@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "candidate_notices_verified_and_sdk_offline_recheck_passed",
+  "build_receipt": "pillow-build-window-launchd-result-20261121.json",
+  "target_sdk_acceptance": "acceptance-20261031.json",
+  "sdk_image": "sha256:912f0a65e355629b9578c4c80d2da0b3b0881e467874b476dfdc3e3f816e4acf",
+  "wheel": {
+    "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/output/pillow-13.0.0+radishmind.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+    "bytes": 22597945,
+    "sha256": "ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460",
+    "tags": [
+      "cp312-cp312-manylinux_2_27_aarch64",
+      "cp312-cp312-manylinux_2_28_aarch64"
+    ],
+    "verified_record_rows": 138
+  },
+  "notice_source": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-notice-sources-20261121.json",
+    "bytes": 6846,
+    "sha256": "af1f3d4667401382ee8b916f88625d593a1fc88867a9f4ee7d54675a306f8060"
+  },
+  "notice_manifest": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-notice-supplements/manifest.json",
+    "bytes": 1460,
+    "sha256": "6dc3320222dc6dbd56ddf191c7e67343c184b70b616fc0bb586efc543d513b30"
+  },
+  "runtime": {
+    "container_id": "9d0dd5689c577d400c8200862fb93ff28b26f7217525e9b81fe193d3d00f2e85",
+    "started_utc": "2026-11-21T06:15:36.475091+00:00",
+    "finished_utc": "2026-11-21T06:16:06.890895+00:00",
+    "elapsed_seconds": 30.416,
+    "exit_code": 0,
+    "oom_killed": false,
+    "remaining_containers": 0,
+    "offline": true,
+    "readonly_root": true,
+    "memory_bytes": 1073741824,
+    "cpu_quota_cores": 2,
+    "non_root_uid": 65532,
+    "pip_check_passed": true,
+    "mount_destinations": [
+      "/candidate",
+      "/sdk-worker"
+    ],
+    "installation": {
+      "arch": "aarch64",
+      "baseline_distribution_count": 120,
+      "baseline_fribidi": false,
+      "baseline_pillow": "13.0.0",
+      "euid": 65532,
+      "notice_files_verified": 5,
+      "overlay_only": true,
+      "python": "3.12.16",
+      "version": "13.0.0+radishmind.1",
+      "wheel_sha256": "ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460"
+    },
+    "elf_mapped_count": 26,
+    "extension_imports": [
+      "_avif",
+      "_imaging",
+      "_imagingcms",
+      "_imagingft",
+      "_imagingmath",
+      "_imagingmorph",
+      "_webp"
+    ],
+    "external_lib_mappings": [
+      "/usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1",
+      "/usr/lib/aarch64-linux-gnu/libc.so.6",
+      "/usr/lib/aarch64-linux-gnu/libdl.so.2",
+      "/usr/lib/aarch64-linux-gnu/libgcc_s.so.1",
+      "/usr/lib/aarch64-linux-gnu/libm.so.6",
+      "/usr/lib/aarch64-linux-gnu/libpthread.so.0",
+      "/usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.33",
+      "/usr/lib/aarch64-linux-gnu/libz.so.1.3.1"
+    ],
+    "optional_tk_error_matches_base": "libtk8.6.so: cannot open shared object file: No such file or directory",
+    "libxcb_feature": true,
+    "codec_roundtrips": [
+      "PNG",
+      "JPEG",
+      "TIFF",
+      "JPEG2000",
+      "WEBP",
+      "AVIF"
+    ],
+    "icc_srgb": true,
+    "raqm_default": {
+      "font_layout": "BASIC",
+      "fribidi_mappings": [],
+      "fribidi_present": false,
+      "rendered_text": true,
+      "rtl_exercised": false,
+      "version": null
+    },
+    "raqm_fixture": {
+      "font_layout": "RAQM",
+      "fribidi_mappings": [
+        "/candidate/fribidi/libfribidi.so.0"
+      ],
+      "fribidi_present": true,
+      "rendered_text": true,
+      "rtl_exercised": true,
+      "version": "0.11.0"
+    },
+    "sdk_vision": {
+      "input_messages_unmodified": true,
+      "mode": [
+        "completion",
+        "acompletion"
+      ],
+      "responses": 2,
+      "sdk_version": "1.59.0+radishmind.1",
+      "wire": [
+        {
+          "images": 1,
+          "resized_dimensions": [
+            [
+              8000,
+              16
+            ]
+          ]
+        },
+        {
+          "images": 21,
+          "resized_dimensions": [
+            [
+              2000,
+              14
+            ]
+          ]
+        }
+      ]
+    },
+    "sdk_optional_telemetry_tests_passed": 4,
+    "sdk_llm_contract_tests_passed": 7,
+    "sdk_worker_cases_passed": [
+      "TestSDKWorkerAgentFixedResponseRoundTrip",
+      "TestSDKWorkerFailureDoesNotRetry",
+      "TestSDKWorkerModelWaitCancellation"
+    ]
+  },
+  "diagnostic_attempts": [
+    {
+      "id": "ce22219165d57acc09a17f4f141ee0b7f07441c3022e533578aa98b64a3f50cc",
+      "baseline_or_probe_issue": "notice filenames included a character rejected by the existing checker",
+      "cleanup_confirmed": true,
+      "log": {
+        "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-01/sdk.log",
+        "bytes": 744,
+        "sha256": "5df91f55850e6fe14f3fc3a44f68838ee48b533868ae04ec5024ecc70860c949"
+      },
+      "execution": {
+        "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-01/execution.json",
+        "bytes": 442,
+        "sha256": "d467d53a30ca1e6208180d2cd674e7704c0bfe904af1976d68365765991aed43"
+      }
+    },
+    {
+      "id": "beeaefd4f30441fb9c66cd03113b555b446635328194a27222c9c583f1c1df0a",
+      "baseline_or_probe_issue": "probe treated the SDK baseline missing Tk library as a required Pillow import",
+      "cleanup_confirmed": true,
+      "log": {
+        "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-02/sdk.log",
+        "bytes": 2618,
+        "sha256": "24e4e8a0c3a40e3e319e09ce2a732b368a49a8ae43e4fadd1e541b7a8185ffc7"
+      },
+      "execution": {
+        "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-02/execution.json",
+        "bytes": 442,
+        "sha256": "2fafe6f65633acc370ca940ff48c4b01e99ee4ce9e6968f3d228af19385e1d6f"
+      }
+    }
+  ],
+  "boundaries": {
+    "overlay_in_container_tmpfs": true,
+    "linked_notice_delivery_checked_with_actual_pip_report": true,
+    "final_sdk_image_built": false,
+    "joint_docker_workflow_run": false
+  },
+  "evidence": [
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-03/sdk.log",
+      "bytes": 11838,
+      "sha256": "7e3e9556dc9c46aed5eb2b129727728844c7aa36b3fdfe61f495146278bf67da"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-03/command.json",
+      "bytes": 1004,
+      "sha256": "90fe2cfda09d2bfaf489d84dd41d6073979f089f065b65f0242cd8f96c9db809"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-03/container.json",
+      "bytes": 861,
+      "sha256": "4e4749fd32d16f97893a4d6c157735cf78e7de29e50c76cbe08062006f1611e6"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-03/state.json",
+      "bytes": 269,
+      "sha256": "c8c3e95c4ad6f3bd3abaac73c3b65b8f2ad62627d64d82e5266dbc7a92cd6a74"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/sdk-runtime-03/execution.json",
+      "bytes": 428,
+      "sha256": "9ba059c3a6808d510e84bd539bfe2c9d91cf4fd925afcf8ba94b43e631a3b8df"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/inputs/pillow-sdk-recheck.py",
+      "bytes": 12094,
+      "sha256": "7f0bf18c3de62ce77afe274b034cb6db484583a129481d3bb842a8e588d31875"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/inputs/sdk-python",
+      "bytes": 82,
+      "sha256": "f9a4537d19c92b8597377303abe5ff3995fa63eb138cb48e7493fbf71e1b45f1"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/run-container.py",
+      "bytes": 4153,
+      "sha256": "e19a557cabe3616050353ebece9390681667c989c3fb1c3a6498e979c8f74bf2"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/inputs/sdk-check.test",
+      "bytes": 16679115,
+      "sha256": "5654205f317e22e89b2bbd0d64137b220bb058c39ff4bc92324ed06b34f08455"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/inputs/DejaVuSans.ttf",
+      "bytes": 725132,
+      "sha256": "138f2fc25d4677bf2cc0ba53d722056decdaed202d77fb0ced20921f5db361f6"
+    },
+    {
+      "path": "tmp/pillow-sdk-recheck-20261121/inputs/fribidi/libfribidi.so.0",
+      "bytes": 135488,
+      "sha256": "9a9ae05f18a08307ebc9ca7fe7558ce5a2b671e01cc250f6b700c1509b6a19de"
+    }
+  ]
+}

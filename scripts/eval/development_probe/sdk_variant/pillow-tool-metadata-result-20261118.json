@@ -1,0 +1,303 @@
+{
+  "schema_version": "pillow_tool_metadata_result.v1",
+  "date": "2026-11-18",
+  "status": "stopped_at_ninja_deadline",
+  "plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json",
+    "bytes": 13352,
+    "sha256": "6fcab5de6b61f8cd69f92b5ec368ba52b0de1c59a8560f7b391c2c56a2c26fa2"
+  },
+  "evidence_directory": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk",
+  "window_record": {
+    "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/result.json",
+    "bytes": 19701,
+    "sha256": "46ca3a340dde78b6bea752e888526066a5900c0db459971302ba38d6ade98b77"
+  },
+  "preflight": {
+    "reused_source_archives": 19,
+    "builder_manifest_and_config": 2,
+    "parser_source_files": 20,
+    "parser": {
+      "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/parser.stdout",
+      "bytes": 3609,
+      "sha256": "1295e69e2d737abe5c7e86bb84d155d0ce5a3202ef501bf6e0a690dd096a5a0c"
+    },
+    "passing_tests": 9,
+    "test_log": {
+      "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/tests.stderr",
+      "bytes": 1181,
+      "sha256": "1eb823d5dc1b0912437dc3b98b9fa7c5d3358cb1f151e31b9057584c0ea4e942"
+    }
+  },
+  "request_count": 4,
+  "verified_metadata_count": 3,
+  "body_bytes_including_partial": 629844,
+  "network_seconds": 47.471837,
+  "window_seconds": 71.636139,
+  "retained_evidence_bytes": 684341,
+  "requests": [
+    {
+      "tool": "setuptools",
+      "url": "https://pypi.org/pypi/setuptools/83.0.0/json",
+      "http_status_from_headers": 200,
+      "content_length": 11091,
+      "elapsed_seconds": 1.616045,
+      "exit_code": 0,
+      "receipt": "200 11091 1.605634",
+      "evidence": {
+        "body": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/setuptools.body",
+          "bytes": 11091,
+          "sha256": "1c509b89f744e798fb7c60d3c5236e293a397cc582cd8e2aed1a443ad1dc2e5c"
+        },
+        "headers": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/setuptools.headers",
+          "bytes": 2755,
+          "sha256": "4195202bb7bdce611fe483f215056e6913142d62ddfd64fedb2d22334aee8e14"
+        },
+        "receipt": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/setuptools.receipt",
+          "bytes": 19,
+          "sha256": "bb71fd04fc5a5d71e7e4fa7e7e3ea923c367c3dafb9a8389fcffaeac388c7f5c"
+        },
+        "stderr": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/setuptools.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "status": "verified",
+      "validation": {
+        "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/setuptools.validation.stdout",
+        "bytes": 3426,
+        "sha256": "26dc5038d9a98e5b7c458af55058e9763bb9921eaa1433386329dea2c4618a48"
+      },
+      "version": "83.0.0",
+      "candidate_wheels": [
+        {
+          "filename": "setuptools-83.0.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl",
+          "bytes": 1008090,
+          "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+          "tags": [
+            "py3-none-any"
+          ],
+          "matched_tags": [
+            "py3-none-any"
+          ],
+          "requires_python": ">=3.10"
+        }
+      ],
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "pytest!=8.1.*,>=6; extra == \"test\"",
+        "virtualenv>=13.0.0; extra == \"test\"",
+        "wheel>=0.44.0; extra == \"test\"",
+        "pip>=19.1; extra == \"test\"",
+        "packaging>=24.2; extra == \"test\"",
+        "jaraco.envs>=2.2; extra == \"test\"",
+        "pytest-xdist>=3; extra == \"test\"",
+        "jaraco.path>=3.7.2; extra == \"test\"",
+        "build[virtualenv]>=1.0.3; extra == \"test\"",
+        "filelock>=3.4.0; extra == \"test\"",
+        "ini2toml[lite]>=0.14; extra == \"test\"",
+        "tomli-w>=1.0.0; extra == \"test\"",
+        "pytest-timeout; extra == \"test\"",
+        "pytest-perf; sys_platform != \"cygwin\" and extra == \"test\"",
+        "jaraco.develop>=7.21; (python_version >= \"3.9\" and sys_platform != \"cygwin\") and extra == \"test\"",
+        "pytest-home>=0.5; extra == \"test\"",
+        "pytest-subprocess; extra == \"test\"",
+        "pyproject-hooks!=1.1; extra == \"test\"",
+        "jaraco.test>=5.5; extra == \"test\"",
+        "sphinx>=3.5; extra == \"doc\"",
+        "jaraco.packaging>=9.3; extra == \"doc\"",
+        "rst.linker>=1.9; extra == \"doc\"",
+        "furo; extra == \"doc\"",
+        "sphinx-lint; extra == \"doc\"",
+        "jaraco.tidelift>=1.4; extra == \"doc\"",
+        "pygments-github-lexers==0.0.5; extra == \"doc\"",
+        "sphinx-favicon; extra == \"doc\"",
+        "sphinx-inline-tabs; extra == \"doc\"",
+        "sphinx-reredirects; extra == \"doc\"",
+        "sphinxcontrib-towncrier; extra == \"doc\"",
+        "sphinx-notfound-page<2,>=1; extra == \"doc\"",
+        "pyproject-hooks!=1.1; extra == \"doc\"",
+        "towncrier<24.7; extra == \"doc\"",
+        "packaging>=24.2; extra == \"core\"",
+        "more_itertools>=8.8; extra == \"core\"",
+        "jaraco.text>=3.7; extra == \"core\"",
+        "importlib_metadata>=6; python_version < \"3.10\" and extra == \"core\"",
+        "tomli>=2.0.1; python_version < \"3.11\" and extra == \"core\"",
+        "wheel>=0.43.0; extra == \"core\"",
+        "jaraco.functools>=4; extra == \"core\"",
+        "more_itertools; extra == \"core\"",
+        "pytest-checkdocs>=2.14; extra == \"check\"",
+        "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+        "ruff>=0.13.0; sys_platform != \"cygwin\" and extra == \"check\"",
+        "pytest-cov; extra == \"cover\"",
+        "pytest-enabler>=3.4; extra == \"enabler\"",
+        "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\"",
+        "mypy==1.18.*; extra == \"type\"",
+        "importlib_metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
+        "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\""
+      ]
+    },
+    {
+      "tool": "pybind11",
+      "url": "https://pypi.org/pypi/pybind11/json",
+      "http_status_from_headers": 200,
+      "content_length": 116982,
+      "elapsed_seconds": 10.277787,
+      "exit_code": 0,
+      "receipt": "200 116982 10.267977",
+      "evidence": {
+        "body": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/pybind11.body",
+          "bytes": 116982,
+          "sha256": "e2d97126dcabc46e116d8ec6ef918ee80f6e27114571e5bdf39ffe8ac467eb88"
+        },
+        "headers": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/pybind11.headers",
+          "bytes": 2786,
+          "sha256": "3fb4f5fb0de03e5e1cb69688d04d50bae683124c655b8313266e7f8b49025975"
+        },
+        "receipt": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/pybind11.receipt",
+          "bytes": 21,
+          "sha256": "25ad25e44e8b26d1e8e5f060d23bb0950d70b76d82fa6337110c88974dd82cdb"
+        },
+        "stderr": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/pybind11.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "status": "verified",
+      "validation": {
+        "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/pybind11.validation.stdout",
+        "bytes": 962,
+        "sha256": "d356ccf0e14076e3df27b73c349aa1d144c2b34fc95ae002e4733724cd3916ea"
+      },
+      "version": "3.1.0",
+      "candidate_wheels": [
+        {
+          "filename": "pybind11-3.1.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/33/fd/8762f7ee3e4e4be6d1d846cffb4916dd9bb02b2f800d3603718a0efe494c/pybind11-3.1.0-py3-none-any.whl",
+          "bytes": 319402,
+          "sha256": "b8488090f8acffbcb6b5d6a85571a6827a0a2981ffb75e5a0b27b87c4a6b7dd0",
+          "tags": [
+            "py3-none-any"
+          ],
+          "matched_tags": [
+            "py3-none-any"
+          ],
+          "requires_python": ">=3.9"
+        }
+      ],
+      "requires_python": ">=3.9",
+      "requires_dist": [
+        "pybind11-global==3.1.0; extra == \"global\""
+      ]
+    },
+    {
+      "tool": "meson",
+      "url": "https://pypi.org/pypi/meson/json",
+      "http_status_from_headers": 200,
+      "content_length": 210955,
+      "elapsed_seconds": 15.576325,
+      "exit_code": 0,
+      "receipt": "200 210955 15.566718",
+      "evidence": {
+        "body": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/meson.body",
+          "bytes": 210955,
+          "sha256": "34801ae0bdba0e23dd7261e35a3868fdbac647d7006739dc086a8310a654c612"
+        },
+        "headers": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/meson.headers",
+          "bytes": 2786,
+          "sha256": "9f8cb73cfa6844e7c435f3a14b0e7fea85d440f259a21e88fc97177c063363ab"
+        },
+        "receipt": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/meson.receipt",
+          "bytes": 21,
+          "sha256": "7f01ad26abbe0101e98d2cfaa45b18333efa94dc659a79b8a2dea3a8c0df30ba"
+        },
+        "stderr": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/meson.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "status": "verified",
+      "validation": {
+        "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/meson.validation.stdout",
+        "bytes": 1091,
+        "sha256": "a01c669591a62160dd2bd5ca13aca81e015b19a8c7089c98d3e5147814ca67f3"
+      },
+      "version": "1.12.1",
+      "candidate_wheels": [
+        {
+          "filename": "meson-1.12.1-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/57/99/36cd25f9598eef70db97577440a70a360af505f6f01c2338a18d1556079c/meson-1.12.1-py3-none-any.whl",
+          "bytes": 1108668,
+          "sha256": "930bc7542cbd9f57009e182fd014eba48cf1a0180a7b9006d2d32d8f168d8b02",
+          "tags": [
+            "py3-none-any"
+          ],
+          "matched_tags": [
+            "py3-none-any"
+          ],
+          "requires_python": ">=3.10"
+        }
+      ],
+      "requires_python": ">=3.10",
+      "requires_dist": [
+        "ninja>=1.8.2; extra == \"ninja\"",
+        "tqdm; extra == \"progress\"",
+        "mypy; extra == \"typing\"",
+        "typing_extensions; python_version < \"3.8\" and extra == \"typing\""
+      ]
+    },
+    {
+      "tool": "ninja",
+      "url": "https://pypi.org/pypi/ninja/json",
+      "http_status_from_headers": 200,
+      "content_length": 380593,
+      "elapsed_seconds": 20.00168,
+      "exit_code": -9,
+      "receipt": "",
+      "evidence": {
+        "body": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/ninja.body",
+          "bytes": 290816,
+          "sha256": "55c53f8a219927876c64e616a103e93b52a7c97cc05779f8613bbcfc0dd3eec1"
+        },
+        "headers": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/ninja.headers",
+          "bytes": 2787,
+          "sha256": "51a715c21a787770ac0b1755ca12d40a6e72b3776b1fae6fa0449a09b4f359ae"
+        },
+        "receipt": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/ninja.receipt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/ninja.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "status": "incomplete_deadline",
+      "stop": "20 秒到期，监控器终止并回收 curl。最终回执为空，响应头与部分正文已留存。"
+    }
+  ],
+  "decision": "暂停 Pillow 单 wheel 候选的后续获取与构建，保留三项已验元数据。待能取得完整且来源可核的 Ninja PyPI JSON 后，先核验目标 wheel，再核定唯一构建器、实际工具闭包和投入上限。",
+  "remaining": [
+    "Ninja 工具元数据及发布物候选",
+    "构建器层、工具实物与依赖闭包",
+    "CPython 动态库归属、cryptography、两份 certifi 与 regex 来源缺口",
+    "最终告知、伴随源码交付与正式采用复评"
+  ]
+}

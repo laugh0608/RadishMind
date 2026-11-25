@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "authorized_evidence_window_closed_source_scope_open",
+  "plan": "sdk-delivery-source-gap-plan-20261121.json",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "wheel_lock_sha256": "c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab",
+  "window": {
+    "https_request_attempts": 14,
+    "response_body_bytes": 483682,
+    "staged_file_bytes_before_receipt": 841941,
+    "elapsed_seconds": 55.651,
+    "certifi_requests": 0
+  },
+  "cryptography": {
+    "jobs": [
+      {
+        "job_id": 109937603244,
+        "url": "https://api.github.com/repos/pyca/cryptography/actions/jobs/109937603244/logs",
+        "status": "blocked",
+        "reason": "cryptography-job-109937603244-download: connection failed (URLError)"
+      },
+      {
+        "job_id": 109937607325,
+        "url": "https://api.github.com/repos/pyca/cryptography/actions/jobs/109937607325/logs",
+        "status": "blocked",
+        "reason": "cryptography-job-109937607325-download: connection failed (URLError)"
+      }
+    ],
+    "response_trace": [
+      {
+        "group": "cryptography",
+        "item": "cryptography-job-109937603244",
+        "host": "api.github.com",
+        "body_bytes": 0,
+        "path": "/repos/pyca/cryptography/actions/jobs/109937603244/logs",
+        "status": 302
+      },
+      {
+        "group": "cryptography",
+        "item": "cryptography-job-109937603244-download",
+        "host": "productionresultssa6.blob.core.windows.net",
+        "body_bytes": 0,
+        "network_error": "URLError"
+      },
+      {
+        "group": "cryptography",
+        "item": "cryptography-job-109937607325",
+        "host": "api.github.com",
+        "body_bytes": 0,
+        "path": "/repos/pyca/cryptography/actions/jobs/109937607325/logs",
+        "status": 302
+      },
+      {
+        "group": "cryptography",
+        "item": "cryptography-job-109937607325-download",
+        "host": "productionresultssa6.blob.core.windows.net",
+        "body_bytes": 0,
+        "network_error": "URLError"
+      }
+    ],
+    "bound_to_frozen_wheel": false,
+    "historical_builder_digest_verified": false,
+    "artifacts_downloaded": 0,
+    "remaining": "两个日志端点均重定向到同一 GitHub 日志存储主机，连接失败。需要这两个作业的日志实物或等价的不可变构建记录，才能绑定精确 ABI、wheel、镜像与材料。"
+  },
+  "certifi": {
+    "versions": [
+      "2026.10.23",
+      "2024.8.30"
+    ],
+    "historical_generation_inputs_verified": false,
+    "remaining": "与各自发行提交对应的历史响应、生成器版本与 Mozilla 输入提交。"
+  },
+  "regex": {
+    "releases": [
+      {
+        "tag": "v2.6",
+        "commit": "5927786e61c62bd6b28031f5f9b851411cf1cb00",
+        "files": [
+          {
+            "upstream_path": "Modules/_sre.c",
+            "git_blob_sha1": "1aea53bf94e6ce4e78204d5fa360c5138ef1cb5d",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v2.6-Modules__sre.c",
+            "bytes": 114637,
+            "sha256": "a1341be0e562dfaf8c954326bd6d186c82dcd550c6fec54630c763984591df86"
+          },
+          {
+            "upstream_path": "Lib/re.py",
+            "git_blob_sha1": "ee962bbc8f85bb4c94faa18ca5b8f2310d7f65bd",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v2.6-Lib_re.py",
+            "bytes": 12841,
+            "sha256": "c768efed090aab18d14f82a8d334d6c8f0ff8f57f1ce7f9910b0ce89e074cca2"
+          },
+          {
+            "upstream_path": "Lib/sre_parse.py",
+            "git_blob_sha1": "47810193d16d34d852a6af5e37edbb7393a507f6",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v2.6-Lib_sre_parse.py",
+            "bytes": 26878,
+            "sha256": "a05c7c65022cb871f280e195c0a1941eb49b1d75885f260e9c702b8c358f0201"
+          },
+          {
+            "upstream_path": "Lib/sre_compile.py",
+            "git_blob_sha1": "65d2ccf016f0c73af02a6c8e2bf7597b65e9e9fb",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v2.6-Lib_sre_compile.py",
+            "bytes": 16507,
+            "sha256": "35636ee385de8f1a552d785d15acb43ad02dee4402c1de33ffed851048ceed5d"
+          }
+        ]
+      },
+      {
+        "tag": "v3.1",
+        "commit": "1da43e5e916949c8e849e656d9d05fa4b9d6836c",
+        "files": [
+          {
+            "upstream_path": "Modules/_sre.c",
+            "git_blob_sha1": "45b92f319d6c5f94ce7ae5bfa1dab45854a313aa",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v3.1-Modules__sre.c",
+            "bytes": 115880,
+            "sha256": "ab312b366a21d64e2bdab3ec7e64461ecc8ddef40417d5d808f6e5a5b60e6000"
+          },
+          {
+            "upstream_path": "Lib/re.py",
+            "git_blob_sha1": "9bd913a68ddbcfa7ee07c0ad6a47ad6a3ce3cad0",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v3.1-Lib_re.py",
+            "bytes": 14330,
+            "sha256": "1f2badcd19a7d3d19116d890d0b7f0568ae9698007283193914f8f67031a9c92"
+          },
+          {
+            "upstream_path": "Lib/sre_parse.py",
+            "git_blob_sha1": "bc71b587751c5527f2da1aaccd0cb71be50e7416",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v3.1-Lib_sre_parse.py",
+            "bytes": 27664,
+            "sha256": "9bf449bc4b912912d33261c22d4cda6f7a2843b0b57e502c5a7f5c473962895d"
+          },
+          {
+            "upstream_path": "Lib/sre_compile.py",
+            "git_blob_sha1": "47e1701d2f0ed8d9cd34f8763182fbf5f3e6e592",
+            "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/cpython-v3.1-Lib_sre_compile.py",
+            "bytes": 16293,
+            "sha256": "86b347730ab924166482f4994f51674b50fdcec2d0c17c55a7cba0318f575f55"
+          }
+        ]
+      }
+    ],
+    "matching_spans": [
+      {
+        "tag": "v2.6",
+        "commit": "5927786e61c62bd6b28031f5f9b851411cf1cb00",
+        "upstream_path": "Modules/_sre.c",
+        "upstream_lines": [
+          26,
+          34
+        ],
+        "regex_path": "src/_regex.c",
+        "regex_lines": [
+          27,
+          35
+        ],
+        "correspondence": "Secret Labs 和 CNRI Python 1.6 告知"
+      },
+      {
+        "tag": "v2.6",
+        "commit": "5927786e61c62bd6b28031f5f9b851411cf1cb00",
+        "upstream_path": "Lib/re.py",
+        "upstream_lines": [
+          6,
+          14
+        ],
+        "regex_path": "regex/_main.py",
+        "regex_lines": [
+          4,
+          12
+        ],
+        "correspondence": "Python 入口的 Secret Labs 和 CNRI 告知"
+      },
+      {
+        "tag": "v3.1",
+        "commit": "1da43e5e916949c8e849e656d9d05fa4b9d6836c",
+        "upstream_path": "Modules/_sre.c",
+        "upstream_lines": [
+          26,
+          34
+        ],
+        "regex_path": "src/_regex.c",
+        "regex_lines": [
+          27,
+          35
+        ],
+        "correspondence": "Secret Labs 和 CNRI Python 1.6 告知"
+      },
+      {
+        "tag": "v3.1",
+        "commit": "1da43e5e916949c8e849e656d9d05fa4b9d6836c",
+        "upstream_path": "Modules/_sre.c",
+        "upstream_lines": [
+          3901,
+          3907
+        ],
+        "regex_path": "src/_regex.c",
+        "regex_lines": [
+          26679,
+          26685
+        ],
+        "correspondence": "Pattern、Match、Scanner 类型的初始化顺序"
+      },
+      {
+        "tag": "v3.1",
+        "commit": "1da43e5e916949c8e849e656d9d05fa4b9d6836c",
+        "upstream_path": "Lib/re.py",
+        "upstream_lines": [
+          6,
+          14
+        ],
+        "regex_path": "regex/_main.py",
+        "regex_lines": [
+          4,
+          12
+        ],
+        "correspondence": "Python 入口的 Secret Labs 和 CNRI 告知"
+      }
+    ],
+    "matches_normalized_by": "strip_each_line_outer_whitespace",
+    "method": "逐行定位相同区间，复核归档成员、固定提交、Git blob 对象和 SHA-256。",
+    "remaining": "可定位所声明的 SRE 继承及部分 C 初始化实现。两版共同区间不能定位唯一的起点，解析和编译主体未形成可独立归属的长段。完整继承范围和告知裁决保留。",
+    "license_texts": "保留 regex 精确 wheel 的 Apache 与 Secret Labs 告知、已装 CNRI 1.6 正文，以及 CPython 2.6 / 3.1 顶层 1.6.1 差异证据。"
+  },
+  "acquisition_receipt": {
+    "path": "tmp/sdk-source-evidence-20261121.gHIhhN8L/acquisition.json",
+    "bytes": 7841,
+    "sha256": "f3a118b0f37ea0e60bbe434febeeb9bfa781b834671cced76addf2f45227ab7d"
+  },
+  "package_assembled": false,
+  "recipient_retrieval_verified": false,
+  "stage_0_exited": false
+}

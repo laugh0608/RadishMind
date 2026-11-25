@@ -1,0 +1,166 @@
+{
+  "schema_version": "pillow_xcb_alternative_result.v1",
+  "date": "2026-11-11",
+  "evidence_directory": "tmp/pillow-xcb-alternative-20261111.1sk84d0j",
+  "alternative_plan_sha256": "5a160720d456c4b5420d84f9f7f2b969bec4d4bf60cae1528e56307b74d144c2",
+  "authorization": "所有者确认从 GWDG 获取 xcb-proto 1.17.0 xz，大小、双摘要及静态核验通过后接续剩余清单；任一失败或超限全窗停止。",
+  "proxy": "http://127.0.0.1:10808",
+  "requests": [
+    {
+      "phase": "source_archives",
+      "name": "xcb-proto",
+      "url_without_query": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/fa/xcb-proto-1.17.0.tar.xz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "200 151748 4.038345",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c"
+    },
+    {
+      "phase": "source_archives",
+      "name": "libxcb-0",
+      "url_without_query": "https://www.x.org/releases/individual/lib/libxcb-1.17.0.tar.gz",
+      "query_redacted": false,
+      "exit_code": 0,
+      "receipt": "301 95 5.307237",
+      "bytes": 95,
+      "sha256": "190509d5e13645f079e3892338cb25e33f1b0193a269363e5fa143382630019a"
+    }
+  ],
+  "archives": [
+    {
+      "id": "xcb-proto",
+      "filename": "xcb-proto-1.17.0.tar.xz",
+      "evidence_file": "xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf",
+      "published_digests_matched": true,
+      "inspection": {
+        "members": 64,
+        "declared_bytes": 1088372,
+        "safe_internal_links": 0,
+        "expected_root": "xcb-proto-1.17.0",
+        "roots": [
+          "xcb-proto-1.17.0"
+        ],
+        "selected_text_count": 2,
+        "selected_text_bytes": 1989,
+        "extracted_to_filesystem": false
+      },
+      "source_review": {
+        "version": "1.17.0",
+        "configuration_member": "xcb-proto-1.17.0/configure.ac",
+        "configuration_sha256": "d6ae5134c07eb1a8ef7bf973541ca8096131a8a76312224a0156d576f3314343",
+        "license_member": "xcb-proto-1.17.0/COPYING",
+        "license_sha256": "c5ffbfeaa501071ceeb97b7de2c0d703fdaa35de01c0fb6cbac1c28453a3e9fd",
+        "declared_autoconf_minimum": "2.57",
+        "declared_python_minimum": "2.5",
+        "optional_validation_tool": "xmllint",
+        "license_observation": "COPYING 包含版权与许可保留条款、免责声明及未经许可不以作者 / 机构名称用于推广的限制；原文已保留，尚未接入最终告知包。",
+        "boundary": "仅静态源码声明；不证明构建器实物、实际构建或历史 wheel 使用这些输入。"
+      }
+    }
+  ],
+  "reused_artifacts": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    }
+  ],
+  "completed_phases": [
+    "local_reuse_verified",
+    "xcb_proto_verified"
+  ],
+  "archive_declared_bytes": 20411514,
+  "selected_text_bytes": 420368,
+  "request_count": 2,
+  "download_bytes": 151843,
+  "stop_reason": "archive_source_host_mismatch: libxcb",
+  "status": "xcb_proto_verified_stopped_on_libxcb_http_downgrade",
+  "plan_reference": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-xcb-alternative-plan-20261111.json",
+    "sha256": "5a160720d456c4b5420d84f9f7f2b969bec4d4bf60cae1528e56307b74d144c2"
+  },
+  "transfer_seconds": 9.345582,
+  "stop": {
+    "id": "libxcb",
+    "http_status": 301,
+    "curl_exit_code": 0,
+    "location": "http://www.x.org/archive/individual/lib/libxcb-1.17.0.tar.gz",
+    "reason": "redirect_scheme_not_https",
+    "clarification": "原执行器将来源校验失败统一记为 archive_source_host_mismatch；本次实际是 scheme 从 HTTPS 降级 HTTP，www.x.org 仍在该项允许域名内。",
+    "followed": false,
+    "action": "立即停止整个窗口；未跟随 HTTP，未自行改写 Location 为 HTTPS，也未替换 libxcb 来源或继续后续清单。"
+  },
+  "remaining": {
+    "source_archives": 16,
+    "tool_metadata_requests": 4,
+    "image_layers_downloaded": 0
+  },
+  "verified_archive_count_including_reuse": 3,
+  "boundaries": [
+    "xcb-proto 大小、双摘要、64 项成员结构、版本及许可 / 构建声明通过；没有展开到文件系统或执行源码。",
+    "取得的是上游发布 xz 包，不是旧 gz 字节；后续配方需显式适配名称与解压方式。",
+    "未验证 OpenPGP 签名，不证明历史 wheel 实际使用这些输入，尚未完成最终许可交付。",
+    "manifest / config 与 XZ / zlib-ng 本地复算复用；没有重新下载。",
+    "没有镜像层、Docker 守护进程访问、容器运行、安装、构建、运行锁修改或发布；阶段 0 仍不退出。"
+  ],
+  "raw_receipts": [
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto.headers",
+      "bytes": 425,
+      "sha256": "acb498a4dd99bff2df8a925cd1f274b09b6e1b0a8e35a528f405a80231d261cb"
+    },
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto.receipt",
+      "bytes": 20,
+      "sha256": "e690dd4c4d38f9877716b017cb3869fe4a07128ab5e56562c2c232fa7a095fd5"
+    },
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/libxcb-0.headers",
+      "bytes": 437,
+      "sha256": "5dead9e00f445322672e28f9041d04b4861057cb7dbeff9e2238c4de98e14ef6"
+    },
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/libxcb-0.receipt",
+      "bytes": 16,
+      "sha256": "02e85b5df48d0bbb888b462bb01120a8875a10d84a61e8b6a634b0fb12661998"
+    },
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/libxcb-0.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto.source-texts.json",
+      "bytes": 2367,
+      "sha256": "1af117e00e8c8e70b03ad97b2e9c20cbc8303f89991fcf005357b36097fcbdf3"
+    }
+  ]
+}

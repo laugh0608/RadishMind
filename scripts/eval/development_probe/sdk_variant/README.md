@@ -1,8 +1,8 @@
 # SDK 遥测可选依赖候选
 
-状态：`1.59.0+radishmind.1` 已于 2026-10-31 在单独授权窗口完成构建、119 项依赖冻结安装及真实 SDK / 固定响应联合复验，登记为技术候选。原始 `1.59.0` 的 138 项锁和镜像保持历史试验基线；本变体有独立证据，正式采用与整镜像分发许可仍未闭合。
+`1.59.0+radishmind.1` 于 2026-10-31 完成变体构建、119 项冻结安装和固定响应联合复验。原始 `1.59.0` 的 138 项锁和镜像保留为历史试验基线。2026-11-21 最终 ARM64 SDK 采用修复后的 Pillow wheel，已通过禁网构建、告知读取和 SDK / 联合回归。本地伴随源码和告知已组装并逐项复核，待接收方确认后复评正式采用。[最终交付记录](#最终-sdk-本地交付)
 
-11 月 5 日当前准备器和 Dockerfile 已接入六包 14 份 wheel 补充告知，以及 pip 25.0.1 的 21 份内嵌告知。wheel 校验绑定安装报告中的版本 / 归档摘要；pip 独立校验同一安装的元数据与全部 280 个内嵌文件。旧构建上下文不会自动更新，后续获准构建须重新准备新目录，保留旧材料及摘要。下文 10 月 31 日的镜像与复验记录不包含本次新增告知的实际安装验收；最终镜像 / 伴随源码仍未交付。
+原变体准备器与构建校验覆盖六包 14 份 wheel 补充告知、pip 25.0.1 的 21 份内嵌告知和 CPython 3.12.16 的 Expat / libmpdec 两份告知。wheel 校验绑定安装报告中的版本与归档摘要。pip 独立校验同一安装的元数据及 280 个内嵌文件。CPython 校验绑定保留镜像的 `pyexpat` 和 `_decimal` 扩展字节。下文 10 月 31 日的历史镜像早于补充告知的接入。最终配方使用[独立离线上下文](#最终-sdk-交付离线准备)。
 
 ## 来源与改动
 
@@ -14,9 +14,11 @@
 
 `prepare_sdk_variant.py` 只消费本地归档，不联网、不安装、不构建、不导入 SDK。它只创建仓库 `tmp/` 内的新目录，拒绝错误摘要、路径逃逸、重复路径、链接与特殊文件；先检查补丁再应用，核对结果摘要，移除副本中的旧发行元数据并记录完整构建输入摘要。准备器还通过 `sdk_notice_delivery.py` 校验并复制清单中的补充告知：精确 wheel 必须匹配已验冻结锁，正文与目标路径必须一致；缺失、篡改、路径越界、重复或未登记正文均拒绝。失败保留不完整目录，不覆盖已有证据。
 
+CPython 告知放在镜像的 `/usr/local/share/radishmind/third-party/cpython/`。Expat 保留 `Modules/expat/COPYING` 原文。libmpdec 从 `Modules/_decimal/libmpdec/mpdecimal.c` 复制完整首段许可注释，仅追加一个末尾 LF。源码证据见[工具链清单](license-toolchain-image-result-20261105.parts/python.json)。Dockerfile 现有校验入口会同时检查两份正文和对应扩展的精确字节。
+
 `build-requirements.lock` 仅锁定构建工具；原 138 项锁派生的 `constraints.txt` 仅约束既有版本，不强制安装未被使用的包。正常 pip 解析决定新的依赖闭包；只有明确构建的本地 SDK wheel 可使用本地 URL，其余发行物必须为有 SHA-256 的 PyPI wheel，出现 `lmnr` 或代理包即拒绝生成候选锁。实际生成的独立锁为 [requirements-linux-arm64-py312.lock](requirements-linux-arm64-py312.lock)，运行解析、全部 wheel 与安装报告的版本 / 摘要已逐项核对。
 
-`--no-deps` 仅用于单独构建 SDK wheel。依赖解析、下载和最终安装均保留依赖检查，最终执行 `pip check`；没有安装后删包。最终镜像的冻结安装阶段禁用网络，只读取导出的 wheel 集合与锁。构建配方会将补充告知与其部分范围清单复制到 `/usr/local/share/radishmind/third-party/`，再使用 pip 安装报告检查六包版本 / wheel 摘要及告知字节；不一致时构建失败。目录 / 文件按 `0755` / `0644` 准备，供镜像内非 root 用户读取。此配方更新尚未构建验收，旧构建目录必须重新准备，不能声称历史镜像已安装补充告知。
+`--no-deps` 仅用于单独构建 SDK wheel。依赖解析、下载和最终安装均保留依赖检查，最终执行 `pip check`；没有安装后删包。最终镜像的冻结安装阶段禁用网络，只读取导出的 wheel 集合与锁。构建配方会将补充告知与其部分范围清单复制到 `/usr/local/share/radishmind/third-party/`，再使用 pip 安装报告检查版本、wheel 摘要及告知字节；不一致时构建失败。目录 / 文件按 `0755` / `0644` 准备，供镜像内非 root 用户读取。告知的实际安装与可读性以 2026-11-21 的最终镜像验收为准。
 
 ## 已验候选与证据
 
@@ -127,3 +129,47 @@ python3 scripts/eval/development_probe/run_joint.py \
 ### 工具链与历史来源补证
 
 [工具链结果](license-toolchain-image-result-20261105.json)记录已授权的八次镜像复制、80 个 ELF 静态对象及 Go `cmd/vendor` 853 个文件的源码对应，两个容器始终未启动且已清理。[历史来源结果](license-historical-provenance-result-20261105.json)记录 27 次 HTTP 200、11 份源码文本和发布声明摘要核对；发布证明不含构建材料，本轮未验证签名信任。所有窗口已关闭，原计划的准备状态不作为当前执行结论。新增外部库、内嵌告知、历史输入及最终交付仍有缺口；完整判断见[框架采用评审](../../../../docs/features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)。
+
+### Pillow 工具元数据离线核对
+
+`../pillow_tool_metadata.py` 只读取本地 PyPI JSON，向标准输出写候选记录，错误返回非零；没有网络、安装或构建入口。显式使用仓库 `.venv` 中已有的 `pip._vendor.packaging`，不自动回退或安装依赖。该内嵌 API 仅用于当前批次，先保存解析器版本 / 源码指纹并完成预检；环境变化时重新核对，不视为新的长期依赖约定。
+
+从仓库根目录执行离线预检：
+
+```sh
+.venv/bin/python -B scripts/eval/development_probe/pillow_tool_metadata.py --preflight
+.venv/bin/python -B -m unittest discover -s scripts/eval/development_probe -p test_pillow_tool_metadata.py -v
+```
+
+取得明确授权并留存真实响应后，才以 `--tool setuptools|pybind11|meson|ninja --input <本地响应路径>` 核对。目标为 CPython 3.12.16 / manylinux_2_28_aarch64，保留原始依赖 marker；声明为空则如实记录，不解析完整依赖闭包。标签匹配不等于构建器实物、工具安装或 Ninja 二进制版本已验。[预检记录](pillow-tool-metadata-preflight-20261112.json)与[四项获取计划](pillow-tool-metadata-plan-20261112.json)分别记录离线证据和编制时的窗口快照。所有者已于 11 月 12 日确认该方案，按收尾安排留到下次执行，见[任务卡](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-12-收尾与下次接续)；旧失败回执不改写。
+
+### Pillow 离线 before-all 绑定
+
+暂存项目的 `.radishmind/pillow/` 包含 `pillow-before-all.sh`、`native-build.sh`、`pillow-test.sh` 和对应的哈希清单。将已验输入目录只读挂载到 `/opt/radishmind/pillow-inputs`。`CIBW_BEFORE_ALL_LINUX` 从 `/project` 调用 `bash .radishmind/pillow/pillow-before-all.sh`。将脚本的 `--cibw-environment` 输出设为 `CIBW_ENVIRONMENT_LINUX`，使后续的构建和修复复用 `before-all` 的搜索路径。脚本要求固定的 CPython 3.12.15，在新虚拟环境按哈希安装 Meson 和 Ninja，再调用本地 `native-build.sh`。
+
+原生配方须把已核验的原生输入安装到 `/opt/radishmind/pillow-native`，库目录为 `lib`。`pkg-config` 使用 `/usr/bin/pkg-config`，先查前缀下的 `lib/pkgconfig`、`share/pkgconfig`，再查 `system-pc` 中显式放行的镜像 `xau.pc` 及其 `Requires: xproto` 对应的 `xproto.pc`。检查要求 `xcb-proto` 和 `xcb` 的 `.pc` 版本为 1.17.0，`libxcb.so`、zlib-ng 兼容模式的 `libz.so` 均解析到前缀内且 SONAME 对应 `libxcb.so.1`、`libz.so.1`。LibXau 使用构建器 `/usr/lib64/libXau.so.6.0.0`。实际 wheel 的 ELF 依赖在修复后核对。
+
+测试阶段将 `--cibw-test-environment` 输出设为 `CIBW_TEST_ENVIRONMENT_LINUX`，从已验 RPM 展开的 `/opt/radishmind/pillow-inputs/fribidi/usr/lib64` 加载 FriBidi。将 `CIBW_TEST_COMMAND_LINUX` 设为 `cd {project} && bash .radishmind/pillow/pillow-test.sh`，由脚本把已验图片放入 `Tests/images/` 并运行上游测试命令。`pillow-test-requirements.lock` 记录 Pillow `tests` extra 与 NumPy 的完整哈希闭包。`native-build.sh --prepare-only ARCHIVES NEW_DIRECTORY` 只校验哈希、解包、应用补丁并提取告知。本地暂存目录、文件指纹和主控限制均已记录。[实物预检回执](pillow-offline-build-inputs-result-20261119.json) · [测试来源锁定记录](pillow-offline-test-sources-20261119.json)
+
+### Pillow 候选的伴随告知与 SDK 复验
+
+`pillow-notice-supplements/` 内的五份补充告知与 `13.0.0+radishmind.1` wheel 摘要绑定。使用 `sdk_notice_delivery.verify` 对照目标 SDK 中真实离线安装的 pip 报告和告知正文。已有冻结锁仍用于识别目标镜像的原始安装，复验将候选安装到容器的临时目录。正式交付时须将伴随告知纳入最终镜像的交付清单并复核实际可读性。[告知清单](pillow-notice-supplements/manifest.json) · [许可来源](pillow-notice-sources-20261121.json) · [SDK 复验](pillow-sdk-recheck-result-20261121.json)
+
+### 最终 SDK 交付离线准备
+
+从仓库根目录准备一个新的 `tmp/` 上下文。准备器核对历史锁、119 个原始 wheel 和替换 wheel 的摘要，只把最终 119 个 wheel、配方及告知写入新上下文。生成的 `delivery-inputs.json` 记录冻结锁、配方、源码索引和逐个 wheel 的摘要。
+
+```sh
+python3 scripts/eval/development_probe/prepare_sdk_delivery.py \
+  --wheelhouse tmp/development-sdk-variant-20261031/context/resolution/wheels \
+  --pillow-wheel "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/output/pillow-13.0.0+radishmind.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl" \
+  --directory tmp/sdk-delivery-context-new
+```
+
+获准构建后，以本地已验的固定基础镜像及 `linux/arm64` 运行新 Dockerfile。构建器的 registry 访问须在构建窗口内关闭，步骤使用 `--network=none`。wheelhouse 作为只读构建挂载使用。pip 安装报告与完整冻结锁及告知由 `65532:65532` 校验。完成后按实际镜像摘要在禁网、只读根容器内再次核对告知和源码获取说明，并执行目标 SDK 与联合验收。伴随源码按实际交付镜像摘要及接收方获取路径复验。[源码清单](sdk-delivery-sources-20261121.json) · [预检回执](sdk-delivery-preflight-20261121.json) · [验收条件](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-21-最终-sdk-交付离线预检)
+
+### 最终 SDK 本地交付
+
+`deploy/Dockerfile.development-sdk-delivery` 使用独立离线上下文和固定基础镜像。最终镜像已核对 119 项冻结安装、`pip check`、`65532:65532` 读取 42 份补充告知、CPython 动态库归属及三个 SDK 联合用例。[构建与运行回执](sdk-delivery-build-runtime-20261121.json) · [联合验收回执](sdk-delivery-runtime-closeout-20261121.json)
+
+已按最终镜像清单摘要将本地配套源码与告知放在 `dist/sdk-delivery/sources/<SDK-image-sha256>/`。目录内的 `manifest.json` 绑定镜像、冻结锁与全部材料，可用随附的 `verify_manifest.py` 离线逐项核对。交付记录保留 OpenSSL 补丁清单未证实的边界，历史构建取证已结束。所有者确认能取得该目录后，再复评正式采用。[组装与回读回执](sdk-delivery-local-source-result-20261121.json)

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "offline_plan_awaiting_acquisition_authorization",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "regex_wheel": {
+    "version": "2026.9.29",
+    "sha256": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca",
+    "elf_member": "regex/_regex.cpython-312-aarch64-linux-gnu.so",
+    "elf_sha256": "84790e1b2b1e4b0c543f80e2003d19e2dbdb88552efab4f6a018ffcf5ddac10e"
+  },
+  "sdist": {
+    "filename": "regex-2026.9.29.tar.gz",
+    "retained_path": "tmp/development-license-audit-20261031/downloads-stage2/32c8b489dbbf868a4ba4fa04.1.0.body",
+    "bytes": 419199,
+    "uncompressed_tar_bytes": 3706880,
+    "sha256": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb"
+  },
+  "generator": {
+    "sdist_member": "tools/build_regex_unicode.py",
+    "bytes": 56091,
+    "sha256": "80f9ac959211bfcb2bc1b96920d9dc2f38c9528b3c475d6a39546ce9768a259f",
+    "required_unicode_version": "18.0.0",
+    "input_basename": "UCD.zip",
+    "diagnostic_output": "Unicode 18.0.0.txt",
+    "interpreter_preflight": "CPython 3.14.5",
+    "environment": {
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "PYTHONHASHSEED": "0"
+    },
+    "python_options": [
+      "-S",
+      "-B",
+      "-X",
+      "utf8"
+    ],
+    "preflight": "已复算精确生成器和两个基准输出。原脚本缺少 UCD 时退出 1 且未写出文件，审计钩子已用本地 socket 创建探针验证。完整生成等待精确输入。"
+  },
+  "expected_outputs": [
+    {
+      "sdist_member": "src/_regex_unicode.c",
+      "bytes": 1983129,
+      "sha256": "a0c26f0cc64e733f429cbe8251e8156c4d80508eec1920626b3b868d86bd1642",
+      "generated_name": "_regex_unicode.c"
+    },
+    {
+      "sdist_member": "src/_regex_unicode.h",
+      "bytes": 10827,
+      "sha256": "41c981143516f6cd244ae3aaaf9dfca2d7b38ff907a2d04190d56d898b466531",
+      "generated_name": "_regex_unicode.h"
+    }
+  ],
+  "acquisition": {
+    "url": "https://www.unicode.org/Public/18.0.0/ucd/UCD.zip",
+    "method": "GET",
+    "availability_verified": false,
+    "expected_archive_sha256": null,
+    "acceptance": [
+      "仅在授权后向 Unicode, Inc. 的固定发行地址发出一次经 TLS 校验证书和主机名的 HTTPS GET。禁用客户端默认配置、自动重试和跳转。HTTP 200 后核对实际接收字节数及存在的 Content-Length，并登记来源、响应头和整个 ZIP 的 SHA-256。",
+      "以中央目录和逐成员流读核验路径、类型、解压上限、数据完整性与 CRC-32。拒绝重复成员、路径越界、加密、链接或非普通数据成员。完整 ZIP 保存在暂存目录，成员不批量写盘。",
+      "必须存在原始大小写及路径完全一致的 28 个生成器输入。保留 ZIP 内 ReadMe.txt 和输入原文，确认正式 Unicode 18.0.0 UCD，登记 28 个成员的大小、CRC-32 与 SHA-256。归档摘要为实收材料指纹，本地尚无独立预期摘要。"
+    ],
+    "consumed_members": [
+      "Blocks.txt",
+      "CaseFolding.txt",
+      "DerivedCoreProperties.txt",
+      "DerivedNormalizationProps.txt",
+      "HangulSyllableType.txt",
+      "IndicPositionalCategory.txt",
+      "IndicSyllabicCategory.txt",
+      "LineBreak.txt",
+      "PropList.txt",
+      "PropertyAliases.txt",
+      "PropertyValueAliases.txt",
+      "ReadMe.txt",
+      "ScriptExtensions.txt",
+      "Scripts.txt",
+      "auxiliary/GraphemeBreakProperty.txt",
+      "auxiliary/SentenceBreakProperty.txt",
+      "auxiliary/WordBreakProperty.txt",
+      "emoji/emoji-data.txt",
+      "extracted/DerivedBidiClass.txt",
+      "extracted/DerivedBinaryProperties.txt",
+      "extracted/DerivedCombiningClass.txt",
+      "extracted/DerivedDecompositionType.txt",
+      "extracted/DerivedEastAsianWidth.txt",
+      "extracted/DerivedGeneralCategory.txt",
+      "extracted/DerivedJoiningGroup.txt",
+      "extracted/DerivedJoiningType.txt",
+      "extracted/DerivedNumericType.txt",
+      "extracted/DerivedNumericValues.txt"
+    ]
+  },
+  "notices": {
+    "retained_unicode_license": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-notice-supplements/pillow-13.0.0-radishmind.1-Raqm-Unicode-LICENSE.txt",
+      "source_url": "https://www.unicode.org/license.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    "checks": [
+      "审核 ZIP 内 ReadMe.txt、附带许可文件及 28 个输入的版权和条款指引。保存归档原文与其摘要，包括对实际输入适用的额外说明。",
+      "归档许可或官方指引与留存 Unicode License V3 对应时，将对应版权及许可全文与生成输入登记到 regex 伴随告知。出现未能核定的条款、版权版本冲突或不同适用许可则停窗。"
+    ]
+  },
+  "offline_replay": [
+    "复核 sdist 全部字节的 SHA-256，以受限的一次流读提取精确生成器与两个 src/ 基准成员。将基准文件保存至独立 reference/，复算字节数和 SHA-256。",
+    "在全新的 run/ 中仅放精确脚本与已校验的原始 UCD.zip。使用本机 CPython 标准库，最小环境与固定散列种子，经已离线验证的 Python 审计钩子拒绝 socket 或子进程操作。runpy 执行原脚本并为 -S 下缺少的 quit 提供 sys.exit，执行命令设 CPU、单文件大小和墙钟上限。",
+    "要求退出码为 0 且两个目标文件在 run/ 中重新产生，Unicode 18.0.0.txt 只作诊断记录。对生成的 C 和头文件分别复算字节数和 SHA-256，并用 cmp -s 与对应 src/ 原始基准逐字节比较，保留行尾与末尾换行。两个 cmp 都须退出 0。",
+    "失败时登记阶段、退出状态、已验证输入、两侧大小和摘要。已有两个文件时登记首个不同字节或长度差。成功时记录解释器版本、命令、输出摘要、归档摘要和证据路径，供接收方复算。"
+  ],
+  "limits": {
+    "https_requests": 1,
+    "redirects": 0,
+    "automatic_retries": 0,
+    "response_body_bytes": 16777216,
+    "expanded_archive_bytes": 67108864,
+    "generator_input_decompressed_bytes": 16777216,
+    "reference_sdist_decompressed_bytes": 8388608,
+    "all_decompressed_bytes": 100663296,
+    "peak_staging_bytes": 50331648,
+    "connect_seconds": 8,
+    "request_seconds": 90,
+    "generator_processes": 1,
+    "generator_cpu_seconds": 120,
+    "generator_wall_seconds": 150,
+    "generator_output_bytes_per_file": 8388608,
+    "combined_log_output_bytes": 1048576,
+    "wall_seconds": 300
+  },
+  "staging": "仅使用仓库 tmp/ 下新建的专用目录，保留原 ZIP、成员指纹、生成输出与回执供后续复核。失败材料标记为诊断证据。目录上限含输出、日志和回执。",
+  "boundary": {
+    "network_requests_this_turn": 0,
+    "delivery_assembled": false,
+    "cryptography_build_changes": "等待可绑定冻结 wheel 的新证据",
+    "stage_0_exited": false
+  }
+}

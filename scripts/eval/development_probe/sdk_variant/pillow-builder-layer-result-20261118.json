@@ -1,0 +1,138 @@
+{
+  "schema_version": "pillow_builder_layer_evidence_result.v1",
+  "date": "2026-11-18",
+  "status": "stopped",
+  "plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-builder-layer-plan-20261118.json",
+    "bytes": 21204,
+    "sha256": "75cbb2802fd1e4b95897cc066fb3d01b597dc884685a9ff430ab0a66f6c1f891"
+  },
+  "image": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+  "evidence_directory": "tmp/pillow-builder-layers-20261118.YGHQJ7GY",
+  "window_record": {
+    "path": "tmp/pillow-builder-layers-20261118.YGHQJ7GY/session.json",
+    "bytes": 1196,
+    "sha256": "0fc7ee7ca949641c39cc52ae909101ae96be9f9f8b7ee9f32280a1b3673137d7"
+  },
+  "started_utc": "2026-11-18T14:03:31.277936+00:00",
+  "space": {
+    "required_at_start_bytes": 2147483648,
+    "initial_available_bytes": 300975013888,
+    "minimum_observed_available_bytes": 299077099520,
+    "new_allocation_cap_bytes": 1073741824,
+    "peak_observed_window_allocation_bytes": 19062784
+  },
+  "network": {
+    "http_request_count": 2,
+    "distinct_blob_digests_requested": 1,
+    "blob_body_bytes_retained": 18874368,
+    "other_response_body_bytes": 1359,
+    "network_seconds_including_subprocess_cleanup": 1104.766746,
+    "requests": [
+      {
+        "position": 1,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "body_bytes_retained_or_counted": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 1.211092,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 1,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "body_bytes_retained_or_counted": 18874368,
+        "content_length": 71996907,
+        "elapsed_seconds": 1103.555654,
+        "curl_exit": 18
+      }
+    ]
+  },
+  "verified_unique_object_count": 0,
+  "verified_layer_position_count": 0,
+  "first_pass_complete_tar_bytes": 0,
+  "verified_positions": [],
+  "unverified_positions": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "partial_or_unaccepted_objects": [
+    {
+      "position": 1,
+      "declared_compressed_bytes": 71996907,
+      "file": {
+        "path": "tmp/pillow-builder-layers-20261118.YGHQJ7GY/3f7637ada877c9f78220f3e8d50d33e50c99f467bc2d51e769ec3455bac469a0.part",
+        "bytes": 18874368,
+        "sha256": "512e8fab65f94e35a5cac0154da7f167fdde4663919e126d61efa32f0cda3594"
+      },
+      "expected_compressed_digest": "sha256:3f7637ada877c9f78220f3e8d50d33e50c99f467bc2d51e769ec3455bac469a0",
+      "expected_diff_id": "sha256:4792d3e37654227fe41f30e5520cc2d66a3d858ef988e5a20447bcee7c482f02",
+      "missing_bytes": 53122539
+    }
+  ],
+  "stop": {
+    "position": 1,
+    "reason": "curl exit 18",
+    "remaining_unrequested_distinct_objects": 20,
+    "single_blob_time_limit_seconds": 2700,
+    "time_limit_reached": false,
+    "partial_resumed": false,
+    "retry_count": 0
+  },
+  "final_view": {
+    "status": "unavailable_incomplete_layer_set",
+    "target_results": [
+      {
+        "group": "构建解释器与 ABI",
+        "status": "未取得最终文件视图，实物待核"
+      },
+      {
+        "group": "编译与链接",
+        "status": "未取得最终文件视图，实物待核"
+      },
+      {
+        "group": "原生配置与构建工具",
+        "status": "未取得最终文件视图，实物待核"
+      },
+      {
+        "group": "构建后端与 wheel 修复",
+        "status": "未取得最终文件视图，实物待核"
+      },
+      {
+        "group": "构建器提供的库与头文件",
+        "status": "未取得最终文件视图，实物待核"
+      },
+      {
+        "group": "已有原生源码与镜像同名库",
+        "status": "未取得最终文件视图，实物待核"
+      }
+    ]
+  },
+  "decision": "传输在单对象时限内以 curl 18 结束。当前暂停，等待可按固定摘要取得完整对象的输入或另行确认的传输方案。部分响应保留作审计，最终视图与构建准入均待验。"
+}

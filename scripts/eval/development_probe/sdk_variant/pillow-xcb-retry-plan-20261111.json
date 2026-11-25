@@ -1,0 +1,120 @@
+{
+  "schema_version": "pillow_xcb_retry_plan.v1",
+  "date": "2026-11-11",
+  "status": "prepared_not_authorized",
+  "parent_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-material-acquisition-plan-20261111.json",
+    "sha256": "e10dbe741f6236b58d9dd022738504dfbf3d42e5a6517b0d7bc56c0b72bb8ca5"
+  },
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-material-continuation-result-20261111.json",
+    "sha256": "9b17c89e867e550db9d576e998efdcb72a9a3e1c3f4a106aecb7cc48170d6da1"
+  },
+  "reuse_verified_locally": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    }
+  ],
+  "reuse_rule": "执行前只复算本地文件指纹，匹配即直接复用；不再请求 manifest、config、XZ 或 zlib-ng。缺失或不匹配即停，不自动重新下载。",
+  "retry": {
+    "id": "xcb-proto",
+    "url": "https://xorg.freedesktop.org/archive/individual/proto/xcb-proto-1.17.0.tar.gz",
+    "logical_acquisition_attempts": 1,
+    "curl_retries": 0,
+    "connect_seconds": 20,
+    "total_seconds_including_redirects": 90,
+    "max_bytes_including_redirect_responses": 2097152,
+    "allowed_hosts": [
+      "xorg.freedesktop.org",
+      "www.x.org"
+    ],
+    "max_redirects": 2,
+    "max_http_requests": 3,
+    "acceptance": "HTTP 200 后核对归档结构、xcb-proto-1.17.0 版本目录和版本声明、许可及构建约束；通过后才继续。",
+    "failure": "任何连接 / TLS / HTTP 失败、超时、字节超限、跨域或内容不符即停止整个窗口；不换源、不加第二次自动重试，不跳过继续。",
+    "single_hop_command": "/usr/bin/curl -q --silent --show-error --proto =https --connect-timeout 20 --max-time <90 秒逻辑获取剩余额度> --max-filesize <2 MiB 逻辑获取剩余额度> --dump-header <私有新目录/响应头> --output <私有新目录/响应> --write-out \"%{http_code} %{size_download} %{time_total}\\n\" <原 URL 或核准跳转 URL>"
+  },
+  "then_remaining_archives": {
+    "ids_in_order": [
+      "libxcb",
+      "libjpeg-turbo",
+      "zstd",
+      "tiff",
+      "libavif",
+      "libpng",
+      "lcms2",
+      "openjpeg",
+      "libwebp",
+      "brotli",
+      "freetype",
+      "harfbuzz",
+      "bzip2",
+      "aom",
+      "dav1d",
+      "libyuv"
+    ],
+    "count": 16,
+    "source_rule": "逐项原样消费 parent_plan 中对应 id 的 URL、允许域名、max_bytes；不改变版本或来源。",
+    "connect_seconds": 8,
+    "seconds_per_archive_including_redirects": 60,
+    "max_bytes_per_archive": 33554432,
+    "max_redirects_per_archive": 2,
+    "max_http_requests": 48,
+    "retries": 0
+  },
+  "then_tool_metadata": {
+    "names_in_order": [
+      "setuptools",
+      "pybind11",
+      "meson",
+      "ninja"
+    ],
+    "source_rule": "逐项原样消费 parent_plan 的四个工具元数据 URL 与选择规则，不下载 wheel 或自动采用版本。",
+    "max_http_requests": 4,
+    "connect_seconds": 8,
+    "seconds_per_request": 20,
+    "max_bytes_per_request": 4194304,
+    "max_total_bytes": 16777216,
+    "redirects": 0,
+    "retries": 0
+  },
+  "aggregate_limits": {
+    "max_http_requests": 55,
+    "max_archive_body_bytes_including_xcb_proto": 268435456,
+    "max_total_body_bytes": 285212672,
+    "max_network_seconds": 1130,
+    "max_window_seconds_including_static_inspection": 2700,
+    "max_retained_bytes": 335544320,
+    "concurrency": 1
+  },
+  "inspection": "沿原静态归档边界；每档最多 100000 项 / 512 MiB 展开声明体积 / 60 秒，合计 2 GiB；文本单文件最多 1 MiB、合计 16 MiB。合计核算纳入已复用 XZ / zlib-ng，不展开、不执行。",
+  "output_directory_rule": "仓库 tmp/pillow-xcb-retry-20261111. 随机后缀新目录，权限 0700；只保留新响应与对旧材料的引用，不复制原归档。",
+  "boundaries": [
+    "准备状态不授权网络请求；所有者确认后才执行。",
+    "本轮不做预先 HEAD / ping / DNS 探测，不读取凭据；直接进行一次限定获取，避免额外请求。",
+    "没有镜像 layer 请求、Docker 守护进程访问、容器运行、依赖安装、构建、模型或运行锁修改。",
+    "任一阶段失败立即全窗停止，回执与失败材料保留，签名查询参数不进入提交资产。"
+  ],
+  "completion": "成功后保留总计 19 份原生归档（2 份复用 + 17 份新取）和四项工具元数据；分别记录新取与复用证据，不宣称镜像实物、工具完整安装或正式采用通过。"
+}

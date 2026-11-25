@@ -1,0 +1,375 @@
+{
+  "schema_version": "pillow_libxcb_alternative_plan.v1",
+  "date": "2026-11-11",
+  "status": "prepared_not_authorized",
+  "parent_plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-material-acquisition-plan-20261111.json",
+    "sha256": "e10dbe741f6236b58d9dd022738504dfbf3d42e5a6517b0d7bc56c0b72bb8ca5"
+  },
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-xcb-alternative-result-20261111.json",
+    "sha256": "edce68973495e36a75585db070b8517d7a28fa0906ea79f1e6e870797c641768"
+  },
+  "research": {
+    "evidence_directory": "tmp/pillow-libxcb-source-research-20261111.f33va1ez",
+    "curl_metadata_requests": [
+      {
+        "name": "announcement",
+        "url": "https://lists.x.org/archives/xorg-announce/2024-April/003507.html",
+        "method": "GET",
+        "exit_code": 56,
+        "receipt": "000 0 2.078125",
+        "retained_response_bytes": 0,
+        "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "xorg-archive-head",
+        "url": "https://www.x.org/archive/individual/lib/libxcb-1.17.0.tar.gz",
+        "method": "HEAD",
+        "exit_code": 0,
+        "receipt": "301 0 5.113842",
+        "retained_response_bytes": 429,
+        "response_sha256": "53b42c9b144b791e4b8cdaa1f9371eb5926937364626b42b64ded1ea11e41b69"
+      },
+      {
+        "name": "xcb-dist-head",
+        "url": "https://xcb.freedesktop.org/dist/libxcb-1.17.0.tar.gz",
+        "method": "HEAD",
+        "exit_code": 56,
+        "receipt": "000 0 7.269232",
+        "retained_response_bytes": 39,
+        "response_sha256": "f55260227c507b4e203ec14ceb78ce8e64d11734111bed9bd18936a3bd4d48f3"
+      },
+      {
+        "name": "gentoo-manifest",
+        "url": "https://gitweb.gentoo.org/repo/gentoo.git/plain/x11-libs/libxcb/Manifest",
+        "method": "GET",
+        "exit_code": 0,
+        "receipt": "200 306 6.928955",
+        "retained_response_bytes": 306,
+        "response_sha256": "7b603cbb13e04ee85f9217bd88d6a07c35995b98d5f1ad8a2be5193d52a050fd"
+      },
+      {
+        "name": "announcement-socks",
+        "url": "https://lists.x.org/archives/xorg-announce/2024-April/003507.html",
+        "method": "GET",
+        "proxy": "socks5h://127.0.0.1:10808",
+        "exit_code": 56,
+        "receipt": "000 0 2.234260",
+        "retained_response_bytes": 0,
+        "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gwdg-gentoo",
+        "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/c1/",
+        "method": "GET",
+        "proxy": "http://127.0.0.1:10808",
+        "exit_code": 0,
+        "receipt": "200 40403 5.351490",
+        "retained_response_bytes": 40403,
+        "response_sha256": "974739e058fd1f145b32b323f24375f397157b4b1db0dad1e659a61d1f2aa22d"
+      },
+      {
+        "name": "official-mailbox",
+        "url": "https://lists.x.org/archives/xorg-announce/2024-April.txt",
+        "method": "GET",
+        "exit_code": 56,
+        "receipt": "000 0 1.534073",
+        "retained_response_bytes": 0,
+        "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "announcement-freedesktop",
+        "url": "https://lists.freedesktop.org/archives/xorg-announce/2024-April/003507.html",
+        "method": "GET",
+        "exit_code": 56,
+        "receipt": "000 0 1.373809",
+        "retained_response_bytes": 0,
+        "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "announcement-direct",
+        "url": "https://lists.x.org/archives/xorg-announce/2024-April/003507.html",
+        "method": "GET",
+        "proxy": "disabled_for_this_request",
+        "exit_code": 28,
+        "receipt": "000 0 8.005390",
+        "retained_response_bytes": 0,
+        "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "freebsd-distinfo",
+        "url": "https://raw.githubusercontent.com/freebsd/freebsd-ports/main/x11/libxcb/distinfo",
+        "method": "GET",
+        "exit_code": 0,
+        "receipt": "200 175 1.940580",
+        "retained_response_bytes": 175,
+        "response_sha256": "aaf1110d62c5e019404eee65daf8635978d6c65b87d6accc43b8d14aba226669"
+      },
+      {
+        "name": "announcement-tls12",
+        "url": "https://lists.x.org/archives/xorg-announce/2024-April/003507.html",
+        "method": "GET",
+        "tls_version": "1.2",
+        "tls_verification": true,
+        "http_version": "1.1",
+        "exit_code": 0,
+        "receipt": "200 4276 2.203269",
+        "retained_response_bytes": 4276,
+        "response_sha256": "dd246803902d4a46d2cd5aab129cd88a584b9502fa4c72c66436fc4621c0585c"
+      },
+      {
+        "name": "official-archive-tls12-head",
+        "url": "https://xorg.freedesktop.org/archive/individual/lib/libxcb-1.17.0.tar.gz",
+        "method": "HEAD",
+        "tls_version": "1.2",
+        "tls_verification": true,
+        "http_version": "1.1",
+        "exit_code": 28,
+        "receipt": "000 0 8.006731",
+        "retained_response_bytes": 39,
+        "response_sha256": "f55260227c507b4e203ec14ceb78ce8e64d11734111bed9bd18936a3bd4d48f3"
+      },
+      {
+        "name": "gwdg-file-head",
+        "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/c1/libxcb-1.17.0.tar.xz",
+        "method": "HEAD",
+        "exit_code": 63,
+        "receipt": "200 0 3.899597",
+        "retained_response_bytes": 425,
+        "response_sha256": "8aa6f562daef47284e00fe0f356773c4a9b408974f9b8afe468f2ce55757b875"
+      }
+    ],
+    "python_metadata_request": {
+      "name": "announcement-python",
+      "url": "https://lists.x.org/archives/xorg-announce/2024-April/003507.html",
+      "method": "GET",
+      "client": "Python urllib",
+      "tls_library": "OpenSSL 3.5.6 7 Apr 2026",
+      "proxy": "http://127.0.0.1:10808",
+      "tls_verification": true,
+      "status": "failed",
+      "error_type": "SSLError",
+      "error": "[SSL: TLSV1_ALERT_PROTOCOL_VERSION] tlsv1 alert protocol version (_ssl.c:2711)",
+      "elapsed_seconds": 2.505041,
+      "retained_response_bytes": 0,
+      "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "local_request_count": 14,
+    "local_response_body_bytes": 45160,
+    "scope": "只读公告 / 目录 / 发行版记录及 HEAD；没有取得源码归档、签名或密钥。网页工具检索不并入本机请求计数。",
+    "head_exit_63": "GWDG 精确文件 HEAD 返回 HTTP 200 与 Content-Length 455208；curl 因该 HEAD 命令 max-filesize=65536 对声明实体长度执行限制，退出 63。实际响应正文为 0，头部已保留，不将命令记为退出成功或归档已验。"
+  },
+  "source_evidence": {
+    "announcement": {
+      "url": "https://lists.x.org/archives/xorg-announce/2024-April/003507.html",
+      "author": "Matt Turner",
+      "published_utc": "2024-04-15T15:11:53Z",
+      "path": "tmp/pillow-libxcb-source-research-20261111.f33va1ez/announcement-tls12.response",
+      "sha256": "dd246803902d4a46d2cd5aab129cd88a584b9502fa4c72c66436fc4621c0585c",
+      "retrieval": "默认 curl、Python、两种代理模式及直连未取得正文；仅最后一项公告读取限定 TLS 1.2 + HTTP/1.1 后 HTTP 200。全过程保留证书校验，未修改系统配置。不能据此断言故障根因，也不把诊断选项全局施加给源码下载。"
+    },
+    "release_archives": {
+      "gz": {
+        "filename": "libxcb-1.17.0.tar.gz",
+        "sha256": "2c69287424c9e2128cb47ffe92171e10417041ec2963bceafb65cb3fcf8f0b85",
+        "sha512": "58624a33d39371a7ff58368ed5a09c1c31bea3abd040173db1d41018de4208bc52d2fb8cfd7382ff34d01b98d01a3e314a71a808533880564cd51cd96624a7bb"
+      },
+      "xz": {
+        "filename": "libxcb-1.17.0.tar.xz",
+        "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+        "sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0"
+      }
+    },
+    "gentoo_manifest": {
+      "url": "https://gitweb.gentoo.org/repo/gentoo.git/plain/x11-libs/libxcb/Manifest",
+      "path": "tmp/pillow-libxcb-source-research-20261111.f33va1ez/gentoo-manifest.response",
+      "sha256": "7b603cbb13e04ee85f9217bd88d6a07c35995b98d5f1ad8a2be5193d52a050fd",
+      "matched": "xz 大小与公告 SHA-512 一致。"
+    },
+    "freebsd_distinfo": {
+      "url": "https://raw.githubusercontent.com/freebsd/freebsd-ports/main/x11/libxcb/distinfo",
+      "path": "tmp/pillow-libxcb-source-research-20261111.f33va1ez/freebsd-distinfo.response",
+      "sha256": "aaf1110d62c5e019404eee65daf8635978d6c65b87d6accc43b8d14aba226669",
+      "matched": "xz 大小与公告 SHA-256 一致。"
+    },
+    "directory": {
+      "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/c1/",
+      "path": "tmp/pillow-libxcb-source-research-20261111.f33va1ez/gwdg-gentoo.response",
+      "sha256": "974739e058fd1f145b32b323f24375f397157b4b1db0dad1e659a61d1f2aa22d",
+      "listed_bytes": 455208,
+      "provenance": "GWDG 的 Gentoo distfiles 镜像，不是 X.Org 原始发布路径。目录 HTTP 200；上游公告双摘要为归档验收依据。"
+    },
+    "layout": {
+      "url": "https://distfiles.gentoo.org/distfiles/layout.conf",
+      "observed_rule": "0=filename-hash BLAKE2B 8",
+      "filename_digest_prefix": "c1",
+      "boundary": "由官方布局规则定位 c1 目录，再以实际目录条目确认；不是凭摘要推测文件已经存在。"
+    },
+    "entry_observations": [
+      "旧 www.x.org/releases/ URL 的降级跳转已在前轮保存，不重发。",
+      "www.x.org/archive/ 精确 gz URL 的 HEAD 返回 301 到 xorg.freedesktop.org HTTPS 地址；没有跟随。",
+      "xcb.freedesktop.org/dist/ 精确 gz HEAD 仍为 TLS 告警；官方 xorg.freedesktop.org/archive/ gz HEAD 限定 TLS 1.2 后仍超时。",
+      "GWDG 镜像响应头有 HTTP 200、长度 455208，未观察到 Location；HEAD 不能证明未来 GET 成功。"
+    ],
+    "verification_boundary": "已固定官方公告原文及发布摘要；尚未取得归档复算或验证 OpenPGP 签名，不证明历史 Pillow wheel 使用这些字节。"
+  },
+  "reuse_verified_locally": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    },
+    {
+      "id": "xcb-proto",
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+    }
+  ],
+  "reuse_rule": "执行前重算这五份本地材料，匹配即直接复用；缺失或不符立即停止，不重新请求 manifest、config 或三份已验归档。",
+  "source_override": {
+    "id": "libxcb",
+    "old_declared_input": "libxcb-1.17.0.tar.gz",
+    "old_url": "https://www.x.org/releases/individual/lib/libxcb-1.17.0.tar.gz",
+    "filename": "libxcb-1.17.0.tar.xz",
+    "url": "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/c1/libxcb-1.17.0.tar.xz",
+    "expected_bytes": 455208,
+    "expected_sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+    "expected_sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0",
+    "expected_root": "libxcb-1.17.0",
+    "change": "保持版本 1.17.0，将旧 gz 获取项换为上游 xz 发布包，从已核对的 GWDG 镜像取得；不重新压缩或用 Git 快照替代。",
+    "recipe_boundary": "必须保留 .tar.xz 名称；本轮不修改配方或运行锁，后续接线须显式适配 xz，不冒充原 .tar.gz。"
+  },
+  "first_acquisition": {
+    "proxy": "http://127.0.0.1:10808",
+    "proxy_bypass_disabled": true,
+    "tls_verification": true,
+    "tls_protocol_override": null,
+    "http_protocol_override": null,
+    "max_http_requests": 1,
+    "redirects": 0,
+    "retries": 0,
+    "connect_seconds": 20,
+    "total_seconds": 90,
+    "max_body_bytes": 2097152,
+    "max_header_bytes": 65536,
+    "acceptance": "HTTP 200、精确大小及公告 SHA-256 / SHA-512 先通过，再静态核对归档结构、版本、许可及构建约束；全部通过才接续。",
+    "failure": "任何失败、跳转、大小 / 摘要不符、超时或超限即全窗停止，不改写 Location、不切源、不调整 TLS、不切格式。"
+  },
+  "then_remaining_archives": {
+    "ids_in_order": [
+      "libjpeg-turbo",
+      "zstd",
+      "tiff",
+      "libavif",
+      "libpng",
+      "lcms2",
+      "openjpeg",
+      "libwebp",
+      "brotli",
+      "freetype",
+      "harfbuzz",
+      "bzip2",
+      "aom",
+      "dav1d",
+      "libyuv"
+    ],
+    "count": 15,
+    "source_rule": "逐项原样消费 parent_plan 对应 id 的 URL、版本、allowed_hosts、expected_sha256 和 max_bytes，不扩清单。",
+    "connect_seconds": 8,
+    "seconds_per_archive_including_redirects": 60,
+    "max_bytes_per_archive": 33554432,
+    "max_redirects_per_archive": 2,
+    "max_http_requests": 45,
+    "retries": 0
+  },
+  "then_tool_metadata": {
+    "names_in_order": [
+      "setuptools",
+      "pybind11",
+      "meson",
+      "ninja"
+    ],
+    "source_rule": "原四项元数据 URL 与选择规则不变，不下载或采用工具发行物。",
+    "max_http_requests": 4,
+    "connect_seconds": 8,
+    "seconds_per_request": 20,
+    "max_bytes_per_request": 4194304,
+    "max_total_bytes": 16777216,
+    "redirects": 0,
+    "retries": 0
+  },
+  "aggregate_limits": {
+    "max_http_requests": 50,
+    "max_archive_body_bytes_including_libxcb": 268435456,
+    "max_total_body_bytes": 285212672,
+    "max_network_seconds": 1070,
+    "max_window_seconds_including_static_inspection": 2700,
+    "max_retained_bytes": 335544320,
+    "concurrency": 1
+  },
+  "inspection": {
+    "max_members_per_archive": 100000,
+    "max_declared_bytes_per_archive": 536870912,
+    "max_total_declared_bytes": 2147483648,
+    "max_seconds_per_archive": 60,
+    "max_text_bytes_per_file": 1048576,
+    "max_total_text_bytes": 16777216,
+    "reused_declared_bytes": 20411514,
+    "reused_text_bytes": 420368,
+    "rule": "累计包含已验三份源码；只静态读取，不展开到文件系统或执行，不跟随链接。"
+  },
+  "output_directory_rule": "仓库 tmp/pillow-libxcb-alternative-20261111. 随机后缀新目录，权限 0700；仅保存新响应、回执及静态检查结果，旧材料引用复用；失败材料保留，不启动后台服务。",
+  "single_request_argv": [
+    "/usr/bin/curl",
+    "-q",
+    "--silent",
+    "--show-error",
+    "--proxy",
+    "http://127.0.0.1:10808",
+    "--noproxy",
+    "",
+    "--proto",
+    "=https",
+    "--connect-timeout",
+    "20",
+    "--max-time",
+    "90",
+    "--max-filesize",
+    "2097152",
+    "--dump-header",
+    "<新目录>/libxcb.headers",
+    "--output",
+    "<新目录>/libxcb-1.17.0.tar.xz",
+    "--write-out",
+    "%{http_code} %{size_download} %{time_total}\\n",
+    "https://ftp.gwdg.de/pub/linux/gentoo/distfiles/c1/libxcb-1.17.0.tar.xz"
+  ],
+  "boundaries": [
+    "本轮仅来源核查与计划准备，新来源 / 压缩格式及接续下载须所有者确认后执行。",
+    "首项只 GET 一次，不追加 HEAD 或探测；单次请求即使剩余额度充足也不自动重试。",
+    "镜像层、Docker 守护进程访问、容器运行、安装、构建、签名密钥下载、运行锁修改、发布与推送不包含在内。",
+    "已研究的入口不构成自动回退链；新窗口仅选 GWDG。"
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "schema_version": "pillow_fixed_inputs_result.v1",
+  "date": "2026-11-11",
+  "status": "source_rules_verified_build_inputs_incomplete",
+  "evidence_directory": "tmp/pillow-fixed-inputs-20261111.nwv2gzu8",
+  "request_count": 6,
+  "download_bytes": 848472,
+  "transfer_seconds": 12.004498,
+  "requests": [
+    {
+      "name": "cibuildwheel",
+      "url": "https://api.github.com/repos/python-pillow/Pillow/git/blobs/053d68b469ebcd5fb88a3cd40a5644cb20b816ee",
+      "exit_code": 0,
+      "receipt": "200 347 1.221505",
+      "limit_bytes": 65536,
+      "bytes": 347,
+      "sha256": "de8f06cdb96a07037658fa994da50a7df2951eba060f6983a02ff489e16b9703",
+      "decoded_bytes": 20,
+      "git_blob_sha1": "053d68b469ebcd5fb88a3cd40a5644cb20b816ee",
+      "decoded_sha256": "3bb50043e276cbdf7602a54234ebc4e04cd02310647bde55e4dc11b4d6c42b80",
+      "verified": true
+    },
+    {
+      "name": "aom",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/5ec5d58f6f0909183e05fb055a3b4c83f0d994f1",
+      "exit_code": 0,
+      "receipt": "200 9637 2.620588",
+      "limit_bytes": 65536,
+      "bytes": 9637,
+      "sha256": "31f3551753b78a6be7c7832aa4ff654221bbbce7c5a7043c85b688f14d92e623",
+      "decoded_bytes": 6760,
+      "git_blob_sha1": "5ec5d58f6f0909183e05fb055a3b4c83f0d994f1",
+      "decoded_sha256": "ac10e1e393aaebdc814a422d7ffd38c2edb2e416971020d9c72f3259c929031c",
+      "verified": true
+    },
+    {
+      "name": "dav1d",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/b03bab83128de7080471999529cbb5a62d12a4b0",
+      "exit_code": 0,
+      "receipt": "200 8149 1.558950",
+      "limit_bytes": 65536,
+      "bytes": 8149,
+      "sha256": "69298ef4ab0961593667debc0b6bf2f4f52e5b8c0c296e81e5ca3081f58aac08",
+      "decoded_bytes": 5681,
+      "git_blob_sha1": "b03bab83128de7080471999529cbb5a62d12a4b0",
+      "decoded_sha256": "f9971a87e5fcc74e47305490e442eec7ba187dc0f822d6f0b6838f1811cffd68",
+      "verified": true
+    },
+    {
+      "name": "libyuv",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/ec70b2ca588ace9c78d3c414677cf71c4180589f",
+      "exit_code": 0,
+      "receipt": "200 4759 1.667567",
+      "limit_bytes": 65536,
+      "bytes": 4759,
+      "sha256": "40aaaf301b3baf4cbb36fb304f708f1549112efa6946a380f94fc1570ba98480",
+      "decoded_bytes": 3221,
+      "git_blob_sha1": "ec70b2ca588ace9c78d3c414677cf71c4180589f",
+      "decoded_sha256": "e0bb97e920eaec8442c84ebf99c55a6bfb17ae61228d750a1c135d495aad23df",
+      "verified": true
+    },
+    {
+      "name": "libsharpyuv",
+      "url": "https://api.github.com/repos/AOMediaCodec/libavif/git/blobs/7d6507c6f0d93a5f2d6442f1ec3fdad1fc6c2f9f",
+      "exit_code": 0,
+      "receipt": "200 3655 1.447312",
+      "limit_bytes": 65536,
+      "bytes": 3655,
+      "sha256": "f8e709b5297173a5d469bb87b660c0ccb6c3e2eaa339129503622e12d83cfad8",
+      "decoded_bytes": 2421,
+      "git_blob_sha1": "7d6507c6f0d93a5f2d6442f1ec3fdad1fc6c2f9f",
+      "decoded_sha256": "8f1aa9d1299c7cba1e7e93690516a2b902d32ad04d97166d1cdf69424d0ba709",
+      "verified": true
+    },
+    {
+      "name": "multibuild",
+      "url": "https://codeload.github.com/matthew-brett/multibuild/tar.gz/c893f305c6066b6d940e10d3333be8cb27fa3947",
+      "exit_code": 0,
+      "receipt": "200 821925 3.488576",
+      "limit_bytes": 2097152,
+      "bytes": 821925,
+      "sha256": "e50c410a625333404ba318f109b082ff04b1edb1e18e92109e38897c9561db09",
+      "initial_verified": false,
+      "verification_after_offline_review": true,
+      "initial_error": "file_metadata_mismatch: .github/workflows/lint_python.yml"
+    }
+  ],
+  "multibuild_review": {
+    "verified": true,
+    "entries": 39,
+    "regular_files": 34,
+    "total_file_bytes": 909792,
+    "mode_rule": "Git 文件类型及可执行位与归档一致；归档普通文件为 0664，可执行文件为 0775，不把组写位差异当成 Git 内容变化。"
+  },
+  "initial_verifier_note": "首次逐位比较 tar 权限与 Git mode，停止于 0664 与 100644 的组写位差异。保留原结果；仅离线复核，34 个文件的内容摘要、长度、路径及 Git 可执行语义全部一致。",
+  "cibuildwheel": "4.3.1",
+  "avif_sources": [
+    {
+      "component": "aom",
+      "repository": "https://aomedia.googlesource.com/aom.git",
+      "ref": "v3.14.1",
+      "ref_kind": "tag",
+      "local_directory": "ext/aom",
+      "remaining": "标签对应完整提交及源码归档未固定；FetchContent 名为 libaom，本地变量却设置 FETCHCONTENT_SOURCE_DIR_AOM。候选须核对辅助函数和实际源码目录接线，在禁网环境验证，不推定该模块已可直接离线使用。"
+    },
+    {
+      "component": "dav1d",
+      "repository": "https://code.videolan.org/videolan/dav1d.git",
+      "ref": "1.5.3",
+      "ref_kind": "tag",
+      "local_directory": "ext/dav1d",
+      "remaining": "标签对应完整提交及源码归档未固定；本地目录可避开 ExternalProject 下载，Meson / Ninja 必须预置。"
+    },
+    {
+      "component": "libyuv",
+      "repository": "https://chromium.googlesource.com/libyuv/libyuv",
+      "ref": "644251f252a84bf8ce91ff0aca86a9b16b069ab8",
+      "ref_kind": "commit",
+      "local_directory": "ext/libyuv",
+      "remaining": "完整提交已固定，归档未取得；本地 FetchContent 源目录与禁网构建待验证。"
+    },
+    {
+      "component": "libsharpyuv",
+      "repository": "https://chromium.googlesource.com/webm/libwebp",
+      "ref": "v1.6.0",
+      "ref_kind": "tag",
+      "local_directory": "ext/libwebp",
+      "remaining": "拟与直接 libwebp 1.6.0 输入共享同一归档；须核对源码包含 sharpyuv 及候选构建功能，不重复取第二套 libwebp。"
+    }
+  ],
+  "decision": "保留一条单 wheel 候选，允许继续固定具名构建输入；尚未达到构建、最终交付或正式采用条件。其余 118 项运行 wheel 不变。",
+  "boundaries": [
+    "本轮仅六次 GET 和静态核验，未安装、构建、执行源码或启动容器。",
+    "所取配置不证明历史 wheel 使用了这些字节。",
+    "原始请求结果与修正后的离线核验分别保留。"
+  ]
+}

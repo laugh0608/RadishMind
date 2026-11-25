@@ -1,0 +1,255 @@
+{
+  "schema_version": "pillow_tool_metadata_preflight.v1",
+  "date": "2026-11-12",
+  "status": "offline_preflight_passed_no_fetch",
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-result-20261112.json",
+    "bytes": 32642,
+    "sha256": "d66a4c1d831998fdb7876ad8a329e8210d498e2201f7bf418ee87d7581677962"
+  },
+  "validator": {
+    "path": "scripts/eval/development_probe/pillow_tool_metadata.py",
+    "bytes": 8799,
+    "sha256": "7468c8ffd6a7f733b9a7c6d749f43a6964a5ca4d55cd5f71df3154bf32d2beb2"
+  },
+  "tests": {
+    "path": "scripts/eval/development_probe/test_pillow_tool_metadata.py",
+    "bytes": 8397,
+    "sha256": "66479b67726849d701a9c549ee7d96bd5b6e74ccef6c154777221ebe4bf14356"
+  },
+  "local_parser": {
+    "python_version": "3.14.5",
+    "pip_version": "26.1.1",
+    "packaging_version": "26.2",
+    "provider": "pip._vendor.packaging",
+    "source_files": [
+      {
+        "path": "__init__.py",
+        "bytes": 494,
+        "sha256": "42130474fbb65e882b2735774b42964bab7b97423d93c11e0d1265e1f9f0f3bb"
+      },
+      {
+        "path": "_elffile.py",
+        "bytes": 3211,
+        "sha256": "fac2a4a6d62acd8c36fb1dd007225ae66078adf3d6bb5a719191d1c755801426"
+      },
+      {
+        "path": "_manylinux.py",
+        "bytes": 9559,
+        "sha256": "1dfea707470eadac84b3debea77a085c08069c5aaebf6d033b997ea36fd79efd"
+      },
+      {
+        "path": "_musllinux.py",
+        "bytes": 2707,
+        "sha256": "67ab308c7dcc03b5d2dea5e798c37b40f86a3f77e7a18234790d7c7bdf878001"
+      },
+      {
+        "path": "_parser.py",
+        "bytes": 11698,
+        "sha256": "29fda7b03c38739e17f36a58f1b6b8174d81bdee8eca018c0232fe05e82a71ec"
+      },
+      {
+        "path": "_structures.py",
+        "bytes": 1109,
+        "sha256": "eb48d16c5efca7ccf930a9cd77a700a6b80e69d0891d5d03966526441a8565cb"
+      },
+      {
+        "path": "_tokenizer.py",
+        "bytes": 5391,
+        "sha256": "b455365abf996497406e45cb109a3ba9440325a2247dfb7d0ea6a27e210d0fb0"
+      },
+      {
+        "path": "dependency_groups.py",
+        "bytes": 10218,
+        "sha256": "5d92005452bdb871b84421a9ae6267dd522751631eb3185afe4cad26e30ef5e6"
+      },
+      {
+        "path": "direct_url.py",
+        "bytes": 10917,
+        "sha256": "78a99b0e23cfd6c2d5e0c8ff902499aaa927ac8c953bd4abec9a45f0a0a3a785"
+      },
+      {
+        "path": "errors.py",
+        "bytes": 2680,
+        "sha256": "ea17c461701ff2ffc817ae7e94569d24e30889e04fdb120ab721178c6d67188b"
+      },
+      {
+        "path": "licenses/__init__.py",
+        "bytes": 7293,
+        "sha256": "fc9c745d1883ff9f296a5b169f22eb2ee879f59a4608f20f5cb29d668f4e26f4"
+      },
+      {
+        "path": "licenses/_spdx.py",
+        "bytes": 51122,
+        "sha256": "596ec35e2ca0ebcba9fd8343ff0a51625af548786257815f24b41f7e08613314"
+      },
+      {
+        "path": "markers.py",
+        "bytes": 17067,
+        "sha256": "422c4155c6fd0f61e3c04622ba1a4d91baa4f739cf45b53cccd5f4911d5122b5"
+      },
+      {
+        "path": "metadata.py",
+        "bytes": 38770,
+        "sha256": "72b021d04dc654656a3e5bba11d445b1a1be63a518ce74d4aa3b8629118fbfa7"
+      },
+      {
+        "path": "pylock.py",
+        "bytes": 33890,
+        "sha256": "1bfd609dc4e60db44b6358e8e150c8f54c3e6f9204ae1fd0f55fc16d5253983f"
+      },
+      {
+        "path": "requirements.py",
+        "bytes": 4395,
+        "sha256": "43e05d107556e4aefce46057b7b45c3f8504b1d20a5a8585aa5ac78d1e16579d"
+      },
+      {
+        "path": "specifiers.py",
+        "bytes": 71550,
+        "sha256": "dd705c4ac966f984041043bfcebbf817a751e70471b3812b26f274be33417c63"
+      },
+      {
+        "path": "tags.py",
+        "bytes": 34236,
+        "sha256": "00d607671610569f4194e41838753902b0cd548a53165e0a95ba1c6150569c5b"
+      },
+      {
+        "path": "utils.py",
+        "bytes": 9848,
+        "sha256": "33bf8930a89cdac3f562d57ff1a5bb795181fb1dc00ee282892aec55e09dd94a"
+      },
+      {
+        "path": "version.py",
+        "bytes": 38393,
+        "sha256": "31cbbb4dfe98d62d20438157bf8b7483c71b2f98e8004b218e0229cffdaf2122"
+      }
+    ],
+    "target_python": "3.12.16",
+    "target_platforms": [
+      "manylinux_2_28_aarch64",
+      "manylinux_2_27_aarch64",
+      "manylinux_2_26_aarch64",
+      "manylinux_2_25_aarch64",
+      "manylinux_2_24_aarch64",
+      "manylinux_2_23_aarch64",
+      "manylinux_2_22_aarch64",
+      "manylinux_2_21_aarch64",
+      "manylinux_2_20_aarch64",
+      "manylinux_2_19_aarch64",
+      "manylinux_2_18_aarch64",
+      "manylinux_2_17_aarch64",
+      "manylinux2014_aarch64"
+    ],
+    "target_tag_count": 366,
+    "network_requests": 0
+  },
+  "dependency_policy": "显式使用当前仓库 .venv 已有 pip._vendor.packaging，不安装依赖、不回退到顶层 packaging，不修改 requirements-dev 或构建锁。私有内嵌 API 仅用于本次批次，版本 / 源码指纹变化须重新离线预检。",
+  "test_result": {
+    "passed": 9,
+    "failed": 0,
+    "log": {
+      "path": "tmp/pillow-tool-metadata-preflight-20261112/tests.log",
+      "bytes": 1181,
+      "sha256": "1e3dac0bcd2cef371a2948b79a7c62f0cf5174108fccef12e3919a893347f708"
+    },
+    "command": ".venv/bin/python -B -m unittest discover -s scripts/eval/development_probe -p test_pillow_tool_metadata.py -v",
+    "coverage": [
+      "四工具正常元数据与原始依赖 marker 留存",
+      "目标 CPython 3.12 / ABI / aarch64 / manylinux 版本与跨宿主标签",
+      "项目名、版本、Requires-Python / Requires-Dist 缺失或非法",
+      "wheel 身份、URL / 主机 / 凭据 / 查询 / 片段、正整数字节和十六进制摘要",
+      "setuptools 83.0.0 及锁定摘要、Meson 0.60.0 下限、撤回和无兼容候选",
+      "重复 JSON 键 / 非有限常量 / 非 UTF-8 / 不完整正文 / 超过 4 MiB",
+      "CLI 成功和失败退出、无成功伪报、无输入改写",
+      "CLI 导入前以 Python audit hook 禁止 socket 和进程派生",
+      "禁用 site-packages 模拟依赖缺失，立即失败且无回退"
+    ]
+  },
+  "reused_material_audit": {
+    "source_archive_count": 19,
+    "source_archive_bytes": 77948232,
+    "manifest_config_count": 2,
+    "materials_count": 21,
+    "result": "全部大小与 SHA-256 匹配；两份 xz 的 SHA-512 也匹配。仅复算已验文件，未展开 / 执行源码或重新下载。",
+    "accepted_lcms2_review": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json",
+      "sha256": "98c4ccf07f225093332196e131b0f7365cd56b757b36f0e939463be5af46337f"
+    },
+    "previous_receipts_and_scripts_verified": 38
+  },
+  "known_source_requirements": {
+    "pillow_sdist": {
+      "path": "tmp/development-license-audit-20261031/downloads-stage2/81a456d521ad51af908614e5.1.0.body",
+      "bytes": 47058631,
+      "sha256": "cdcd1ba258178f7356d74170c9a81ba4eab6a5d55748bc402a5a2a6fe6be3510"
+    },
+    "pyproject_member": "pillow-13.0.0/pyproject.toml",
+    "pyproject_sha256": "31d2050093c5a24f8239adcac1ebbc2ce72bd893622a0ed247c8ba8b09bb25f3",
+    "build_requires": [
+      "pybind11",
+      "setuptools>=77"
+    ],
+    "meson_declarations": [
+      {
+        "selected_texts": {
+          "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/dav1d.source-texts.json",
+          "bytes": 69275,
+          "sha256": "d8663b6cbe33e0976feb305e2ae38fc583acb1062980b70e1317c7fae5be29dc"
+        },
+        "member": "dav1d-b546257f770768b2c88258c533da38b91a06f737/meson.build",
+        "member_sha256": "e08310e6714f74d41e45f7afd590fceff9a9de15a5ce2cac961301c408843b60",
+        "declaration": "meson_version: '>= 0.49.0')"
+      },
+      {
+        "selected_texts": {
+          "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/freetype.source-texts.json",
+          "bytes": 445328,
+          "sha256": "4bb431e537c8b8c7dd947ae7fd978cddd28b6d430edc7041a8a972881799fa54"
+        },
+        "member": "freetype-2.14.3/meson.build",
+        "member_sha256": "ab1f596d835fb4e49aa3b42f632d1c1d7de358857f5084f2d189599cbf29b39d",
+        "declaration": "meson_version: '>= 0.55.0',"
+      },
+      {
+        "selected_texts": {
+          "path": "tmp/pillow-freetype-sourceforge-20261112.6xnhatc6/harfbuzz.source-texts.json",
+          "bytes": 168660,
+          "sha256": "043bd791af295577b19e271a8843df390edad068d4546a938708e43d3cde6b95"
+        },
+        "member": "harfbuzz-14.5.0/meson.build",
+        "member_sha256": "b88e0ede9f66e5a2f9a80decad8e58df63d96eb50046aa92f6a3e092d35053cd",
+        "declaration": "meson_version: '>= 0.60.0',"
+      },
+      {
+        "selected_texts": {
+          "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/lcms2.source-texts.json",
+          "bytes": 104556,
+          "sha256": "6d432448be6e212051d6416b0eb8ed9fbeca45bf694d031c0ad31f695c975d3c"
+        },
+        "member": "lcms2-2.19.1/meson.build",
+        "member_sha256": "227cfbdddd5bb7ee649431209c267bf653d38f4a1c8c81cbe4ef8881e37b6bf9",
+        "declaration": "meson_version: '>=0.52.0',"
+      },
+      {
+        "selected_texts": {
+          "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd.source-texts.json",
+          "bytes": 266925,
+          "sha256": "a7472138316b2104fa2c019fde31784e5062b8bd4ac4818c6950f7cf6d261e0b"
+        },
+        "member": "zstd-1.5.7/build/meson/meson.build",
+        "member_sha256": "d921dcbcf241630348c92372de6e31e6f3665f74a272e8adcf5e2b0c20a2bb98",
+        "declaration": "meson_version: '>=0.50.0')"
+      }
+    ],
+    "meson_known_minimum": "0.60.0",
+    "ninja": "Python 分发包版本不能替代内含 Ninja 二进制实测版本；实际工具闭包仍待核定。"
+  },
+  "network_requests": 0,
+  "downloads": 0,
+  "installed_dependencies": 0,
+  "boundaries": [
+    "合成样例仅证明核对逻辑；四项真实元数据仍未取得，不证明网络可达性或远端数据会通过。",
+    "目标平台来自已有 manylinux_2_28_aarch64 候选声明；匹配标签不证明 glibc / 二进制或完整依赖在实物环境中可用。",
+    "十九份源码沿已接受静态记录复用，未新增发布签名 / Git 树 / 历史 wheel 来源证明；旧失败回执及旧脚本未改。"
+  ]
+}

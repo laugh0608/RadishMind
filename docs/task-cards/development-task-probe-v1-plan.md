@@ -1,10 +1,383 @@
 # 受控开发阶段 0：代表任务、SDK 与执行合同
 
-更新时间：2026-11-05
+更新时间：2026-11-19
 
-状态：离线准备、人工任务复验、SDK LLM 子合同及单尝试持久事务 / 当前资格 / 内部通道固定响应验证已完成；受限 SDK Agent / 完整允许事件、工具往返及等待取消已通过固定响应验收；固定 Go 沙箱 / 受限工具 / 归属终止已真实验收；开发产物合同与 SQLite 显式保存 / 导出已实现并定向验证；真实 SDK 联合技术任务已通过；采用复评已完成但正式采用暂不通过：原生 HTTP 已通过固定上游技术验证，许可、阶段 1 合同范围与视觉依据仍未闭合。
+状态：离线准备、人工任务复验、SDK LLM 子合同及单尝试持久事务 / 当前资格 / 内部通道固定响应验证已完成；受限 SDK Agent / 完整允许事件、工具往返及等待取消已通过固定响应验收；固定 Go 沙箱 / 受限工具 / 归属终止已真实验收；开发产物合同与 SQLite 显式保存 / 导出已实现并定向验证；真实 SDK 联合技术任务已通过；采用复评已完成但正式采用暂不通过：原生 HTTP 已通过固定上游技术验证，阶段 1 合同范围与 A 级画板已确认，许可交付仍待闭合。
 
 所属功能：[受控软件开发团队](../features/workflow/controlled-software-development-team-v1.md)。本卡集中记录阶段 0 探针、单尝试控制合同与工具边界，不为各层再建任务卡或检查器。
+
+## 2026-11-18 候选选型
+
+19 份原生源码、构建器 manifest / config、计划和引用摘要均匹配，解析器版本及 20 份源码指纹一致，9 项离线测试通过。依序请求四项 PyPI JSON 后，setuptools 83.0.0 的 wheel 摘要与构建锁匹配，pybind11 3.1.0 和 Meson 1.12.1 各有一个符合目标声明的 wheel。Ninja 返回 HTTP 200，但在单项 20 秒到期时仅留存 290816 / 380593 字节，监控器终止 curl，当即停窗。四次请求共留存正文 629844 字节，含部分 Ninja 响应，没有重试或续传。[逐项回执、候选版本与摘要](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-result-20261118.json)
+
+首窗结束时因缺少完整 Ninja 响应而暂停。随后获准单独向同一 PyPI 地址重新 GET 一次。新窗内 HTTP 200、curl 正常退出，正文与 Content-Length 同为 380593 字节。离线核验确认 Ninja Python 分发包 1.13.2 有一个匹配目标标签的 aarch64 wheel，声明大小 177180 字节。内含二进制版本待实物核验。[Ninja 单项回执及 wheel 摘要](../../scripts/eval/development_probe/sdk_variant/pillow-ninja-metadata-result-20261118.json)
+
+**四个构建工具 wheel 已逐项核验。** 每个精确地址各 GET 一次，四次均为 HTTP 200。四包共 2613340 字节，大小和 SHA-256 均与预选记录匹配，786 条 `RECORD` 记录核对通过。下表为包内顶层许可正文及与 PyPI 声明一致的依赖条数。[逐包许可文件、依赖声明和摘要](../../scripts/eval/development_probe/sdk_variant/pillow-tool-wheel-result-20261118.json)
+
+| 工具 | 实收字节 | 顶层许可正文 | `Requires-Dist` 条数 |
+| --- | ---: | --- | ---: |
+| setuptools 83.0.0 | 1008090 | MIT | 50 |
+| pybind11 3.1.0 | 319402 | BSD-3-Clause | 1 |
+| Meson 1.12.1 | 1108668 | Apache-2.0 | 4 |
+| Ninja 1.13.2 | 177180 | Apache-2.0 | 0 |
+
+55 条依赖声明均带可选功能（extra）条件。Ninja 的 `METADATA` 没有 `Requires-Dist` 字段，PyPI 对应值为 `null`。setuptools 另含 12 个内嵌分发包，其中 autocommand 附 LGPLv3 正文，配置目录的两份 NOTICE 涉及 MPL-2.0 和 BSD-3-Clause。Meson 的顶层许可与 COPYING 一致，`mesonbuild/dependencies/python.py` 首行 SPDX 标识写为 `Apache-2.`，已按包内原文留痕。
+
+### 固定构建器的 23 层取证方案
+
+已用留存的 manifest 和 config 复算固定 `manylinux_2_28_aarch64` 镜像摘要，逐项对齐 23 个压缩层描述符、23 个 `rootfs.diff_ids` 和 42 条 history 中的 23 条文件系统记录。第 4、15、16 个位置引用相同的 32 字节对象，压缩摘要和 DiffID 均相同。取证覆盖全部 23 个位置，按摘要只取 21 个对象；最大对象为第 22 层，274790712 字节。[逐层摘要、取证目标和预算明细](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-plan-20261118.json)
+
+| 预算项 | 核定值及计量方式 |
+| --- | --- |
+| 下载 | 23 个位置按序相加为 572782550 字节。冷缓存逐个获取唯一对象的正文为 **572782486 字节（546.25 MiB）**。另给鉴权、跳转和错误响应正文合计 1 MiB。 |
+| 新增磁盘 | 建议静态取证峰值上限 **1 GiB**。压缩对象占 572782486 字节，路径索引含日志和临时文件最多 192 MiB，定向证据最多 128 MiB，请求回执与运行日志最多 8 MiB，余下 157026410 字节留给文件系统分配开销。串行写入的部分对象计入对应对象额度，同卷改名。 |
+| 解压与空间 | 在镜像外流式读取 gzip/tar，最多两遍，每遍累计解压流量上限 8 GiB。只落盘索引及定向证据。执行前目标卷至少可用 2 GiB，运行中保留 1 GiB；达到限额即停止。实际展开大小和未来构建峰值均待实测。 |
+
+| 待核对象 | 静态验收依据 |
+| --- | --- |
+| 解释器与 ABI | 解析 `/opt/python/cp312-cp312` 的链接终点，把构建目标和 PATH 中的 `python3`、`pip` 分开。以 ELF 架构、`patchlevel.h`、`pyconfig.h` 与 sysconfig 核对 AArch64、3.12 补丁版本及扩展 ABI。 |
+| 系统与打包工具 | 核对 GCC/G++ 与 Clang 的实际搜索顺序、binutils、Make、CMake（libavif 至少 3.22）、Autotools、pkg-config、Meson、Ninja，以及补丁和解档工具。另对照 cibuildwheel 的 CPython 约束核查 build、auditwheel、patchelf 等入口与包归属，四个已验 wheel 单独标为外部输入。 |
+| 系统库和原生依赖 | 核对 glibc 与动态加载器、C/C++ 运行库及启动对象、LibXau/XCB、系统 zlib、FriBidi 加载项、Tcl/Tk 及 CPython 实际引用的库。对照 19 份原生源码区分系统提供与候选自建的同名头文件、`.pc` 和库，尤其是 zlib-ng 的兼容构建与 SDK 侧的 `libz.so.1`。 |
+
+### 第 1 层传输中断
+
+执行前目标卷可用 300975013888 字节，满足 2 GiB 起始要求。首个对象经 quay.io 的一次 302 跳转至获准的 cdn01.quay.io 摘要路径。CDN 返回 HTTP 200，Content-Length 为 71996907 字节，实际只收到 18874368 字节，curl 以退出码 18 结束。两次 HTTP 共计 1104.77 秒，未触及单对象 45 分钟上限。按方案立即停窗，新增磁盘占用观测峰值 19062784 字节，低于 1 GiB。[请求回执、部分文件指纹与未验位置](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-result-20261118.json)
+
+| 核验项 | 本窗实物证据与缺口 |
+| --- | --- |
+| 层对象 | 第 1 层的 18 MiB 部分正文留存在独立目录，缺 53122539 字节，完整对象 SHA-256 与 DiffID 均待核。其余 20 个唯一对象未请求。通过核验的唯一对象为 0/21，层位置为 0/23。 |
+| 解释器与 ABI | 最终视图无法形成，CPython 和引导 Python 的链接终点、版本头、sysconfig 与 ELF 架构均待核。 |
+| 工具 | 编译器、链接器、原生构建工具、打包后端和 wheel 修复工具的镜像内路径、版本与归属均待核。此前验过的四个外部 wheel 只记录为构建输入。 |
+| 库与头文件 | glibc、启动对象、系统库及与 19 份源码同名的库缺少最终可见成员；头文件、SONAME、动态依赖、覆盖关系和 RPM 归属均待核。 |
+
+当前暂停层获取，等待可核对摘要的完整对象来源，或另行确认的传输方案。本窗没有重试、续传、运行容器或构建。CPython 在 SDK 中的动态库归属、其它具名来源和最终许可交付仍待核定。
+
+### 2026-11-19 接续决定
+
+离线复算了方案、manifest、config、停窗回执和 18 MiB 残片的摘要。在已检查的本地留存中未找到完整层对象。上次 CDN 正文平均约 16.70 KiB/s；仅按 90 分钟网络上限计算，传完 21 个唯一对象至少需要平均 103.58 KiB/s，尚须留出连接与跳转时间。保留单一 Pillow 候选，优先等待本地完整压缩对象；若改用网络，先确认有实质改善的来源与传输预算。
+
+可接收固定摘要的 OCI 目录 `blobs/sha256/`，或按 SHA-256 十六进制值命名的原始压缩对象目录。对象就地只读，逐个核对大小和压缩摘要；齐备后再验证 23 个层位置的 DiffID，按原方案形成最终文件视图。重新压缩所得对象不能替代原始压缩摘要。已有 manifest、config、19 份源码和四个工具 wheel 可复用。本轮仅完成离线接续预检，实物验收仍为 0/21 个对象、0/23 个层位置。
+
+#### 直连元数据核对与拟获取窗口
+
+第 1 层经原代理及直连、第 22 层经直连均在 `quay.io` 返回 HEAD 200。三次响应的 `Docker-Content-Digest` 和 `Content-Length` 与固定描述符一致，直连第 1、22 层分别耗时约 0.84、0.92 秒。HEAD 正文共 0 字节，未收到 `Accept-Ranges`，GET 路径与实际正文吞吐仍待验证。[OCI Distribution Spec](https://specs.opencontainers.org/distribution-spec/) · [RFC 9110 §14.2](https://www.rfc-editor.org/rfc/rfc9110.html#section-14.2)
+
+拟从 `quay.io` 直连按原摘要串行 GET。第 1 层从零开始，计入连接及可能的一次跳转，在 16 秒内收齐首 2 MiB 才继续同一响应，检查点相当于 128 KiB/s。失败即停窗并只保留本次残片和回执。首层及后续各唯一对象的大小、压缩 SHA-256 和 DiffID 逐个核验，全部通过后才形成最终文件视图。
+
+拟延用单对象 45 分钟、累计网络 90 分钟、目标卷至少 2 GiB 可用、新增占用上限 1 GiB；最多 42 次 HTTPS，请求对象正文共 572782486 字节，其他响应正文上限 1 MiB。每对象最多一次具名 `cdn01.quay.io` HTTPS 跳转并核对摘要路径。无鉴权、重试、续传或代理回退。旧残片留存原处，本次只使用独立临时目录，不安装工具、启动容器或构建。待项目所有者授权实际正文获取。
+
+#### 直连执行与最终文件视图
+
+所有者随后批准本次直连窗口。首层在 4.295 秒收齐 2 MiB，沿同一响应继续；21 次原站 GET 均返回 302，21 次具名 CDN GET 均返回 200。实收层正文 **572782486 字节**，累计网络 191.913 秒，新增占用观测峰值 652251136 字节（约 622.0 MiB）。21 个唯一对象的大小、压缩 SHA-256 与全部 23 个层位置的 DiffID 均匹配。按层序合并后可见 77554 条路径，定向读取 265 条路径，RPM 数据库解析 338 个包记录。原残片独立留存，本窗已结束。[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-direct-result-20261119.json) · [定向文件证据](../../scripts/eval/development_probe/sdk_variant/pillow-builder-layer-direct-result-20261119.parts/static-findings.json)
+
+| 核验项 | 实物与剩余差异 |
+| --- | --- |
+| 系统与解释器 | AlmaLinux 8.10。`/opt/python/cp312-cp312/bin/python` 指向 `/opt/_internal/cpython-3.12.15/bin/python3.12`，ELF 为 AArch64，版本头为 3.12.15，SOABI 为 `cpython-312-aarch64-linux-gnu`。系统 `/usr/bin/python3.12` 是另一个 RPM 文件。按既有目标 3.12.16 复评补丁版本差异。 |
+| 编译与配置 | PATH 优先使用 GCC/G++ 14.2.1、binutils 2.41；Make 4.2.1 由 RPM 归属核对。CMake 入口指向 pipx，4.4.4 有 `dist-info` 路径及原生 ELF 摘要，运行版本待核。已定位 `/usr/local/bin` 的 Autoconf、Automake 和 Libtool，版本依据目前为镜像历史及文件路径。`/opt/clang` 未定位到工具文件。 |
+| Python 工具 | 目标解释器内的 pip 26.2.1、build 1.6.1、packaging 26.3、pyproject-hooks 1.3.3，以及独立 pipx 环境中的 auditwheel 6.8.2、patchelf 分发包 0.19.1.0 和 pyelftools 0.33 已核对。PATH 的 pkgconf 1.4.2 与约束 `3.0.7.post0` 有差异，未定位到约束中的 virtualenv 21.14.6。Meson、Ninja 与 pybind11 的已验 wheel 为外部构建输入，配方仍须明确各工具的实际入口及离线供给。 |
+| 系统库与原生输入 | 核对了 glibc 2.28、启动对象与主要 C/C++ 库。镜像已有 LibXau 1.0.9、XCB 1.13.1、zlib 1.2.11 和 Tcl/Tk 8.6.8；已绑定可见路径及对应 RPM。配方还须绑定自建 XCB 1.17.0、zlib-ng 等输入的实际头文件、`.pc` 与链接目标。目标 CPython 扩展声明 `libssl.so.1.1`、`libffi.so.6` 和 Tcl/Tk 8.6 的 ELF 依赖，已定位同名文件及归属 RPM。定向路径未定位 FriBidi/raqm，`libgcc_s.so.1` 和 `libcrypt.so.1` 的实际文件尚缺 RPM 归属。 |
+
+固定对象获取与静态视图已验收。选型继续保留这一固定候选，先裁决 CPython 补丁差异，核定实际工具与原生构建输入，再决定是否进入构建窗口。容器、工具执行、候选构建和最终许可交付仍待各自验收。
+
+#### CPython 兼容性与离线配方复评
+
+**保留固定构建器作为单 wheel 候选，当前暂缓进入构建窗口。** 复算了 Pillow 13.0.0 源码包、发布工作流和 cibuildwheel 4.3.1 精确源码。按 `cp312-manylinux_aarch64` 的默认 `build` 前端、`pinned` 约束和启用的 Pillow 测试复核实际调用。[复评回执与精确 wheel 元数据](../../scripts/eval/development_probe/sdk_variant/pillow-builder-compatibility-review-20261119.json)
+
+| 核验项 | 裁决与依据 |
+| --- | --- |
+| CPython 3.12.15 → 3.12.16 | 两端为 AArch64，SOABI 均为 `cpython-312-aarch64-linux-gnu`。固定构建器的已装头文件和 3.12.16 精确源码中有 213 个同路径头文件，212 个逐字节相同，唯一差异为 `patchlevel.h`。历史 Pillow wheel 的 8 个扩展共引用 108 个 CPython 动态符号，包括 `_PyBytes_Resize` 等私有符号，全部可在留存的 3.12.16 SDK `libpython` 找到。静态结果支持沿用 3.12.15 编译。新产物修复后须验证 `cp312-cp312-manylinux_2_28_aarch64` 标签、ELF 依赖，以及在固定 3.12.16 SDK 中的安装、导入和 Pillow 功能。 |
+| pkgconf | Pillow 的 `setup.py` 读取 `PKG_CONFIG`，默认调用 `pkg-config`。镜像 `/usr/bin/pkg-config` 解析到 RPM 提供的 `/usr/bin/pkgconf` 1.4.2，满足 libxcb 生成脚本的 0.9.0 版本比较，`xcb-proto >= 1.17.0` 是独立的 `.pc` 模块要求。cibuildwheel 4.3.1 的 Android 分支显式安装 `pkgconf==3.0.7.post0`，本 Linux 路径直接复用镜像工具。配方应绑定该入口，并确定自建 XCB、zlib-ng 与允许复用的系统库对应的 `.pc` 搜索范围。 |
+| virtualenv | Linux 默认 `build` 前端先执行隔离构建，测试阶段才由目标解释器的 pip 通过 `-c /constraints.txt` 安装 `virtualenv==21.14.6`，随后使用内嵌 pip 和 `--no-periodic-update` 创建测试环境。精确版本闭包含 virtualenv 本身和 `distlib 0.4.3`、`filelock 4.1.0`、`packaging 26.3`、`platformdirs 4.12.4`、`python-discovery 1.6.2`。本地仅有可按原摘要复用的 packaging wheel，另外五个 wheel 的发布元数据已核对，声明合计 6162608 字节，实物待取得。 |
+| 原生构建工具 | Linux `before-all` 把 `/opt/python/cp39-cp39/bin` 放在 PATH 首位，镜像实物是 3.9.25。原依赖脚本通过该 `python3` 安装 Meson 和 Ninja，已验 Meson 1.12.1 要求 Python ≥3.10。离线配方须把这两个工具的安装及调用显式绑定到兼容的固定入口，本路线采用构建器的 CPython 3.12.15 作为该配方设计的入口。 |
+
+测试 pip 应保留 `constraints-python312.txt` 的版本约束，通过 `PIP_NO_INDEX=1` 和 `PIP_FIND_LINKS` 使用已验摘要的本地 wheelhouse。现有测试约定还包含 Pillow 的 `tests` extra、NumPy、FriBidi 和测试图片。原脚本仍有 `yum` 和可变归档下载，原生配方也仍需接入固定归档和工具 wheel。进入构建窗口前，先取得缺少的 virtualenv wheel，固定测试输入和离线供给，并让配方明确解释器、`.pc` 搜索与链接目标。实际构建和 SDK 运行验收留待有边界的运行窗口。[CPython ABI 稳定性](https://docs.python.org/3.12/c-api/stable.html) · [3.12.16 变更记录](https://docs.python.org/3.12/whatsnew/changelog.html#python-3-12-16-final)
+
+#### 离线工具与测试来源锁定
+
+按复评记录逐个取得五个 wheel，共 **6162608 字节**，与留存的 packaging 26.3 一起核对。六个 wheel 的大小、SHA-256、231 条 `RECORD` 记录、许可文件和 CPython 3.12.15 Linux 上生效的依赖均通过。distlib 为 PSF-2.0，virtualenv、filelock、platformdirs 和 python-discovery 为 MIT。virtualenv 的第三方告知和四个内嵌 pip / setuptools wheel 也单独登记。[逐包回执](../../scripts/eval/development_probe/sdk_variant/pillow-virtualenv-wheel-result-20261119.json)
+
+| 项目 | 已固定的输入和边界 |
+| --- | --- |
+| FriBidi | AlmaLinux 8.10 AppStream 的 `fribidi-1.0.4-9.el8.aarch64.rpm`，89632 字节，SHA-256 已由官方 `repomd.xml` 指向的 primary 元数据核对。仅用于 Pillow 测试加载 `libfribidi.so.0`，RPM 实物、签名和库路径待取得后核验。 |
+| 测试图片 | `python-pillow/test-images` 提交 `073ab5ff1895abf8cf5c8d797c1066ed394ce207`，Git 树 `c62a7f86bd84166a002332db858b020361dfeea0`。已重算 Git 树，锁定 78 个 blob 的路径、模式、字节数和 Git 摘要，共 68635563 字节。按提交获取归档后逐项核验，限定为离线测试输入。 |
+| `before-all` 与链接 | 新入口校验 `/opt/python/cp312-cp312/bin/python` 为 3.12.15，用它建立独立工具环境并按哈希安装 Meson 1.12.1 和 Ninja 1.13.2。原生前缀为 `/opt/radishmind/pillow-native`，`.pc` 先查前缀 `lib/pkgconfig`、`share/pkgconfig`，再查 `system-pc` 中镜像的 `xau.pc` 和它声明的 `xproto.pc`。配置锁定 XCB 1.17.0 和 zlib-ng 兼容库的链接目标，LibXau 复用镜像实物。独立测试环境从测试输入目录加载 FriBidi。 |
+
+**当前仍不具备进入构建窗口的条件。** `before-all` 已有可审查入口，仍需准备 `/project/.radishmind/pillow/native-build.sh`，接入已验原生归档及补丁，并替换原配方的联网入口。FriBidi RPM、测试图片归档及 Pillow `tests` extra 与 NumPy 的离线材料仍待取得或核验。完成这些输入的准备后再核定单 wheel 构建、修复和测试窗口。本次检查覆盖 Bash 语法、环境输出、工具哈希及镜像路径。[测试来源锁定记录](../../scripts/eval/development_probe/sdk_variant/pillow-offline-test-sources-20261119.json) · [离线入口说明](../../scripts/eval/development_probe/sdk_variant/README.md#pillow-离线-before-all-绑定)
+
+#### 原生配方与离线实物预检
+
+| 项目 | 复核结果 |
+| --- | --- |
+| FriBidi | 89632 字节的 RPM 匹配锁定 SHA-256。校验了 OpenPGP RSA/SHA-256 主头签名，并核对签名主头中的压缩 payload 摘要。签名子钥指纹为 `E53CF5EF91CEB0AD1812ECB851D6647EC21AD6EA`。测试目录已准备 AArch64 `libfribidi.so.0`、链接终点和原包许可文件。 |
+| 测试图片 | 57430295 字节的提交归档已留存，78 个 blob 逐项核对相对路径、字节数、可执行位与 Git 摘要。测试目录只用于 Pillow 验收。 |
+| Python 测试 | Pillow `tests` extra 和 NumPy 2.5.5 共 17 个精确 wheel。按 CPython 3.12.15 / Linux AArch64 解析，最终目录用 `--no-index --require-hashes --dry-run` 全部解析成功。合并构建工具及 virtualenv 后，离线 wheelhouse 共 25 个不同工件。 |
+| 原生配方 | `native-build.sh` 直接消费 19 份锁定归档，按 Pillow 原配方的 `-p0` 应用 sdist 内的 OpenJPEG 补丁。AOM、dav1d、libyuv 和 libwebp 显式使用本地源码。保留 FreeType → HarfBuzz → FreeType 次序，并从对应归档收集原生告知。`--prepare-only` 已验归档、解包、补丁和告知生成。`pillow-test.sh` 使用本地 FriBidi 和图片，保留上游三个测试命令。 |
+
+**容器内构建输入与静态配方已备齐，实际构建窗口仍未开启。** 已组装 `13.0.0+radishmind.1` 的本地暂存项目和供只读挂载的输入目录。运行前须确认 `cibuildwheel 4.3.1` 主控和依赖的离线供给，确认选定引擎已具备精确 `linux/arm64` 镜像，并核定禁网资源与清理范围。仓库 `.venv` 当前无可导入的 cibuildwheel。真实编译、修复和 wheel 测试留待该窗口验收。[实物与预检回执](../../scripts/eval/development_probe/sdk_variant/pillow-offline-build-inputs-result-20261119.json) · [AlmaLinux 签名密钥](https://almalinux.org/security/#gpg-keys) · [签名子钥指纹](https://wiki.almalinux.org/release-notes/8.8)
+
+#### 禁网构建窗口预检
+
+| 项目 | 实测结果 |
+| --- | --- |
+| 宿主主控 | 获准串行获取 7 个 wheel，共 438341 字节。与 4 个已锁 wheel 合并后，11 个工件的大小、SHA-256、许可文件、312 条 `RECORD` 和 Darwin arm64 / CPython 3.14.5 依赖闭包均已核验。pip 隔离、禁网、强制哈希的试解析成功。宿主工具及其依赖只供本地构建使用。 |
+| 固定镜像 | OrbStack 起始无该镜像。获准从 21 个本地已验压缩层流式导入，耗时 9.088 秒。导入后的 `linux/arm64` 镜像 ID 与 Quay manifest 原摘要一致，23 个有序 DiffID 与原 config 逐项匹配，可按完整摘要查询。保留本批唯一标签供构建使用。 |
+| 构建命令 | 已验 sdist 中 71 个包内文件与 cibuildwheel 4.3.1 wheel 对应文件一致。直接从这些源码及依赖 wheel 运行 `--print-build-identifiers`，只得到 `cp312-manylinux_aarch64`。实际主控对本机摘要解析出 `--platform=linux/arm64 --pull=never`。配置解析确认显式 `--pull=never`、`--network=none`、关闭 `/host` 挂载，并仅只读挂载已验输入。 |
+
+**预检通过，可申请一次禁网构建窗口。** 本次授权完成了依赖获取和镜像导入。宿主 wheel 安装、容器启动和编译计数为零。运行前复核镜像摘要、输入哈希、磁盘与标签归属。拟运行上限为一个容器、4 核 CPU 配额、8 GiB 内存、512 个 PID、90 分钟，测试并行度为 4。启动时至少保留 12 GiB 可用盘，降至 8 GiB 以下、超过时限或发生错误时结束本次运行。结束时核对并清理本次标签对应的容器，保留镜像和工作区内的日志及输出。
+
+窗口验收要求原生配方、Pillow 编译、`auditwheel repair` 与三条上游测试全部通过。成功时只接收一个 CPython 3.12 / manylinux_2_28 AArch64 候选 wheel，并记录 SHA-256、动态链接和许可告知。随后在目标 SDK CPython 3.12.16 验证实际加载和受影响流程，再完成阶段 0 的许可交付复评。[主控、导入与运行参数回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-preflight-20261119.json)
+
+#### 首次禁网构建停窗
+
+所有者批准一次构建。运行前逐项复核暂存项目、离线输入、宿主工具和固定镜像，通过后启动 cibuildwheel 4.3.1。主控在宿主执行 `CIBW_CACHE_PATH.mkdir` 时试图创建 `~/Library/Caches/cibuildwheel`，被沙盒拒绝，2.075 秒后以状态码 1 退出。此前 `--print-build-identifiers` 在缓存初始化前返回，预检漏掉了这一步。
+
+按失败即停结束本次窗口。Docker 标签查询和事件记录均为空，容器创建和残留各为零。输出目录为空，原生编译、`auditwheel repair`、三条上游测试与产物核对均待实际运行。完整日志及其 SHA-256 已留存。[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-result-20261119.json)
+
+后续构建应在启动前将 `CIBW_CACHE_PATH` 指向本次工作区内的独立可写目录。已用同一 cibuildwheel 版本离线验证目录和 `CACHEDIR.TAG` 可创建，验证未调用构建入口。再次提交构建命令须获准开启新窗口。
+
+#### 2026-11-21 禁网重试与停窗
+
+所有者批准一次重试。cibuildwheel 4.3.1 使用工作区本次专用的 `CIBW_CACHE_PATH`，通过缓存初始化后启动唯一容器。容器使用同一固定镜像，实测为 `--network=none`、4 核 CPU 配额、8 GiB 内存和只读的离线输入挂载。Meson 和 Ninja 从本地 wheelhouse 安装，原生构建进入 HarfBuzz 与第二轮 FreeType。
+
+Codex Desktop 更新重启打断宿主构建进程。宿主日志停在 HarfBuzz，恢复取得的容器日志末尾显示第二轮 FreeType 安装和 `before_all` 命令返回 0。Docker 事件记录一次创建、启动、SIGTERM、退出和删除，容器运行约 3 分 27 秒。已按本次标签及完整 ID 清理，复核残留为零。宿主日志、容器日志末尾及事件摘要均已留存。[重试执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-retry-result-20261121.json)
+
+本次输出目录为空。Pillow wheel 编译、`auditwheel repair`、三条上游测试与产物 SHA-256、动态链接和许可告知核对仍待完成。本次授权的一次重试已结束。下次获准运行时，构建监督与退出记录应可在桌面重启后接续。
+
+#### 2026-11-21 独立监督构建与 wheel 验收
+
+所有者批准一次重试。宿主使用用户域的一次性 `launchd` 任务。探针在启动命令返回后写入记录，实测父进程为 PID 1，`launchd` 保留探针退出码 23。正式任务以同样方式保存监督日志、退出状态与 Docker 生命周期，运行期间未人为重启 Codex Desktop。构建复用固定镜像、只读离线输入及本次专用缓存。唯一容器实测禁网、4 核 CPU 配额和 8 GiB 内存，运行窗口共 211.215 秒，主控退出码为 0。构建容器与一次性监督任务均已清理。
+
+`auditwheel repair` 通过，产出一个 CPython 3.12 AArch64 wheel，包含 `manylinux_2_27_aarch64` 和 `manylinux_2_28_aarch64` 两个标签。上游 `selftest.py` 通过 59 项，`checks/check_wheel.py` 通过 3 项，全量 pytest 通过 5697 项、跳过 119 项，3 项预期失败。wheel 为 22597945 字节，宿主复算与构建日志的 SHA-256 一致，138 条 `RECORD` 核对通过。
+
+核对了 26 个 AArch64 ELF 中的动态链接，包括 8 个扩展、18 个随包共享库和 23 条通过 `$ORIGIN` 解析的包内依赖。另登记 8 个外部 SONAME。候选引用的 108 个 CPython 符号均在 SDK CPython 3.12.16 的已验 `libpython` 中找到，目标 SDK 的实际加载和受影响流程仍待运行。
+
+wheel 内的 `LICENSE` 逐字节匹配 Pillow 正文与 28 段已准备的告知。验收发现 Raqm 已编入扩展，其源码专属版权声明未出现在 wheel 告知中。LibXau 由 `auditwheel` 随 Libxcb 带入，构建器 RPM 声明为 MIT，wheel 中尚未对照到它的专属许可正文。FriBidi 共享库仅供容器测试，成品保留动态加载 shim。后续先闭合具名告知，再完成目标 SDK 运行复验和阶段 0 许可交付复评。[构建、测试、摘要与许可回执](../../scripts/eval/development_probe/sdk_variant/pillow-build-window-launchd-result-20261121.json)
+
+#### 2026-11-21 候选告知与目标 SDK 复验
+
+以构建用 Pillow 13.0.0 源码归档为准，确认 Raqm 0.11.0 的 `COPYING`、版本头内的 Google 许可正文及生成表所用的 Unicode 17.0.0 数据与告知。LibXau 1.0.9-3.el8 的 AlmaLinux AArch64 二进制 RPM 和对应源码 RPM 均通过签名与 payload 摘要验证。两包的 `COPYING` 逐字节一致。二进制 RPM 的 ELF 匹配固定构建器，且 `.text` 与修复后 wheel 中的 LibXau 一致。五份正文与候选 wheel SHA-256 `ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460` 绑定，并通过实际 pip 安装报告核验。[许可来源](../../scripts/eval/development_probe/sdk_variant/pillow-notice-sources-20261121.json) · [伴随告知清单](../../scripts/eval/development_probe/sdk_variant/pillow-notice-supplements/manifest.json)
+
+在固定 SDK 镜像的 CPython 3.12.16 / AArch64 中，以 UID 65532 在禁网、只读根容器的 `/tmp` 安装该精确 wheel，`pip check` 通过。实际映射 26 个候选 ELF 和 8 个系统库。7 个扩展完成导入，Tk 扩展因基础镜像缺少 `libtk8.6.so` 维持原有行为。六种图像编解码与 ICC 色彩转换通过。默认环境缺少 FriBidi，与旧 wheel 一致，基础文本渲染通过。单独使用已验 FriBidi 实物后，Raqm 0.11.0 的从右到左文字渲染通过。
+
+SDK 同步与异步请求通过回环固定响应验证，分别将 1 张图缩至 8000 像素长边、21 张图缩至 2000 像素长边。4 项遥测可选依赖检查、7 项 LLM 子合同及 3 项 SDK 工作进程用例通过。前两次探针分别修正了告知文件名和 Tk 可选行为的断言。最终复验退出码为 0，三次探针的所属容器均已清理。最终 SDK 镜像、告知的镜像内交付、伴随源码交付和联合运行仍待单独验收。[SDK 离线执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-sdk-recheck-result-20261121.json)
+
+#### 2026-11-21 最终 SDK 交付离线预检
+
+固定目标为 `linux/arm64`、CPython 3.12.16 和历史验收的 `python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159`。从已验 119 项锁仅替换 Pillow 一行，其他 118 个 wheel 逐字节复用。新锁 SHA-256 为 `c2c214b42b3f443d89854bb24a8dab29c3d2336b2cd4d2d57b401fa8f89304ab`。以目标平台和 Python marker 执行禁网、强制哈希的 pip 试解析，119 项均命中本地 wheel。五份 Pillow 告知已并入交付清单，连同已有 wheel、pip 和 CPython 补充告知共 42 份。[离线预检回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-preflight-20261121.json)
+
+伴随源码按新锁绑定。复算了 181 个 SDK 相关留存归档、61 份 Debian `.dsc` 和各自 `Checksums-Sha256` 文件集，另核对 15 个首批覆盖源码映射条目、Pillow 的 31 个源码及配方输入和 SDK 变体的 3 个构建输入。历史归档和取证文件的字节齐备记录沿用已验分片。精确来源与完整覆盖范围仍有具名待办，接收方获取尚待验收。[伴随源码清单](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-sources-20261121.json)
+
+| 验收环节 | 通过条件 |
+| --- | --- |
+| 禁网构建 | 选定构建器能在本地按完整摘要解析固定 AArch64 基础镜像，禁止访问外部 registry，构建步骤使用 `--network=none`。pip 安装报告须与 119 项锁的名称、版本和本地 wheel SHA-256 全量一致，`pip check` 通过，并记录实际镜像身份。 |
+| 非 root 告知读取 | 以最终镜像默认身份 `65532:65532`，在禁网、只读根文件系统的容器内执行告知校验。直接读取镜像自带的 19 份 wheel 告知、21 份 pip 告知、2 份 CPython 告知和源码获取说明，核对安装报告与文件摘要。 |
+| 伴随源码交付 | 以交付镜像的实际摘要封定 `sources/<SDK-image-sha256>/` 和 `manifest.json`。清单绑定镜像、新锁、组件和相对路径。接收方通过实际交付渠道取得全套对应文件，并复算每项大小及 SHA-256。 |
+| SDK 与联合复验 | 用最终镜像摘要复验 Pillow 实际加载、SDK 图像处理、遥测可选依赖、LLM 子合同及 SDK 工作进程。联合用例覆盖正常修改、测试、保存和导出，旧测试证据失效及命令中取消。沿用现有隔离和权限断言，记录容器清理结果。 |
+
+预检生成并验证了本地构建上下文，当时 OrbStack 查不到固定基础镜像引用。[交付配方与准备命令](../../scripts/eval/development_probe/sdk_variant/README.md#最终-sdk-交付离线准备)
+
+#### 2026-11-21 固定基础镜像离线解析通过
+
+首次导入保留原 OCI 索引和 ARM64 运行层，因缺少索引关联的 ARM64 构建证明清单被 OrbStack 拒绝。获准重试一次后，补齐证明清单、配置、SBOM 和构建来源声明共 4 个对象。重建归档只取原索引、ARM64 镜像及对应证明，共核验 11 个对象的大小和 SHA-256，并按顺序核对 4 个解压层的 DiffID。下载 43.6 MiB、解压校验 141.9 MiB、新增占用估算上界 444.4 MiB、耗时 153.0 秒，均在授权范围内。暂存已清理。
+
+`docker image load --platform linux/arm64` 成功。脚本误将指定平台查询返回的清单 `Id` 与配置摘要比较。独立复核通过 OrbStack 本地 Docker Unix socket 确认原索引摘要、ARM64 清单摘要、`linux/arm64/v8`、CPython 3.12.16 及 4 个有序 DiffID，ARM64 清单及对应证明均可用。[导入与离线解析回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-base-image-20261121.json)
+
+#### 2026-11-21 最终 SDK 禁网构建与运行停窗
+
+获准后，从 OrbStack 本地镜像导出并重新核对原 OCI 索引和 11 个对象。用 BuildKit 源策略拒绝 registry 和远程来源，回环 registry 反例明确被策略拒绝。正式构建只消费本地 OCI 上下文与已验 wheel，不使用构建缓存，所有 `RUN` 禁网。一次正式构建成功，最终 `linux/arm64` 清单为 `sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf`。Buildx 活动记录在求解前改用工作区临时目录，配置摘要由本地镜像描述符与构建导出日志交叉核对。
+
+同一摘要的禁网、只读根容器以默认 `65532:65532` 通过 119 项安装报告与冻结锁的全量核对、`pip check`、镜像内 42 份告知及源码获取说明读取。Pillow 实际加载、六种编解码、ICC 转换、Raqm 夹具和 SDK 同步 / 异步图像处理通过。4 项遥测可选依赖、7 项 LLM 子合同及 3 项 SDK 工作进程用例通过。
+
+随后，CPython 动态库归属探针将 `dpkg-query --search` 的 diversion 提示误作包名，容器退出码为 1。按约定停窗并清理所属容器，该窗口未启动联合用例。解析器修正在宿主机用归属和 diversion 样例核对。[构建与运行回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json)
+
+#### 2026-11-21 最终 SDK 联合回归通过
+
+获准复用最终镜像后，在禁网、只读根、默认 `65532:65532` 容器中，对解释器、`libpython` 和 78 个标准库扩展执行动态库解析。20 个解析到的库文件均核对路径、SHA-256 和归属。Debian 库对应 14 组精确源包，`.dsc` 的 `Checksums-Sha256` 与 33 个留存源码文件逐项一致，`libpython` 对应 CPython 3.12.16 源码。`_tkinter` 引用的 Tcl / Tk 库在镜像中缺失，保留为可选功能边界。
+
+同一摘要通过正常修改、测试、保存与导出，旧测试证据失效，以及命令中取消三个联合用例。取消在 121 毫秒内确认终止并保留未知结果。三例均确认 SDK 身份为 `65532:65532`、capability 为空、Docker 管理 socket 与控制数据访问被拒。控制与代码容器已清理，宿主无须补救。本运行窗口耗时 22.634 秒。[联合运行与源码归属回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-runtime-closeout-20261121.json)
+
+已按最终镜像和冻结锁重核 301 份留存材料的大小与摘要，形成拟交付路径清单。项目所有者确认由本人接收，走本地离线交付，目录按最终镜像清单摘要封定。接收方取得全套对应文件并复算后，再复评正式采用与阶段 0 出口。[来源裁决](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#closeout-decision)
+
+#### 2026-11-21 具名源码缺口复核
+
+本地复算确认 `cryptography 50.0.2` 的内嵌 OpenSSL 4.0.3 归档匹配精确 wheel 的 SBOM，原拟交付清单漏列此归档，已登记到候选清单补项。历史构建容器和 Rust 来源范围仍待用精确 ABI 的作业证据核对。两个 `certifi` 发行 PEM 均匹配已留存源码，历史原始响应、生成器和 Mozilla 输入仍缺。`regex` 的声明、精确发行源码和已装告知均有留存，仍待逐文件比对继承依据。
+
+方案限定两个同名 ARM64 构建作业的日志、必要的同作业工件及 CPython 两个发行提交的指定文件。`certifi` 等待与对应发行关联的历史材料。[补证范围、校验与上限](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-plan-20261121.json)
+
+#### 2026-11-21 具名源码补证结果
+
+一次授权窗口完成 14 次 HTTPS 请求尝试，共取得 483682 字节正文，耗时 55.651 秒。`certifi` 零请求。两个 `cryptography` 作业的日志端点均返回 GitHub 存储跳转，下载连接失败，日志正文和同作业工件均未取得。精确 wheel 与作业、历史构建镜像摘要、构建材料集合的绑定仍缺。
+
+CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文件的 Git blob ID、大小与 SHA-256。`regex` 的 `src/_regex.c` 与 `regex/_main.py` 可定位到两版上游的 Secret Labs 与 CNRI 告知。与 CPython 3.1 `_sre.c` 的三类对象初始化还存在相同实现区间。共同区间仍无法确定唯一继承提交，解析器和编译器主体及完整告知范围待裁决。继续保留 CNRI 1.6 正文与 1.6.1 差异记录。联网窗口已结束，本地交付组装待授权。[执行与比对回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-source-gap-result-20261121.json)
+
+#### 2026-11-21 本地告知裁决与 cryptography 最小补证方案
+
+所有者确认 standalone `certifi 2026.10.23` 与 pip `25.0.1` 内嵌的 `certifi 2024.8.30` 以各自已验发行源码、PEM、生成配方及告知交付。内嵌版本保留实际 pip vendored 树和版本记录。原始生成响应、生成器版本及 Mozilla 输入提交归历史复现。
+
+`regex 2026.9.29` 已复算精确 wheel 与 sdist 摘要、wheel 九项带摘要的 `RECORD` 条目、两份 Python 实现和 `LICENSE.txt` 的归档对应、八个 CPython 文件的 Git blob ID 与 SHA-256，以及五处共同区间。两版 `sre_parse.py` 和 `sre_compile.py` 与当前核心只有短顺序匹配，唯一继承提交和完整演进链归历史复现。最终镜像原验收已在默认 `65532:65532` 下按锁校验 CNRI Python 1.6 全文。轮内保留 Apache 2.0、Secret Labs 及可读的 Python 前端改动记录。两份历史 CPython `LICENSE`、完整继承告知与改动摘要按镜像摘要随源码同交付。**本地同交付路线无需为这项告知重建镜像。** 授权组装后按清单复验接收方实际取得的告知字节。[伴随源码告知](../../scripts/eval/development_probe/sdk_variant/regex-source-notice-20261121.md) · [原镜像验收回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json)
+
+同时确认 `_regex_unicode.c` 已编入该 AArch64 扩展，保留其源文件名和字符属性符号。精确发行源码带生成脚本与生成表，二者声明 Unicode 18.0.0。复用已核验的通用 Unicode License V3 全文，以明确关联 `regex` 表的伴随文档满足该正文的关联文档告知选项。离线留存尚未找到对应 `UCD.zip` 或逐文件对应输入。按现行生成输入交付口径，该项仍阻塞完整源码交付。接续应以原生成器离线重生成并逐字节比较两份生成文件来验证候选输入，另核其原始版权与许可。该项单独裁决，未计入下述窗口。
+
+`cryptography 50.0.2` 精确发行源码的 `Cargo.lock` SHA-256 为 `98778208027ce05bfff0db88c290f28355eb20e685f0c728775359fb91a1a4c4`。32 个 registry 项中，12 个 wheel SBOM `required` 项和 4 个 `excluded` 项已在本机 Cargo 缓存按锁逐项复算通过。下表列出其余 13 个 `required` 项。ELF 路径是目标构件的源码范围下限，`all_targets=true` 的标签仍需和目标图及过程宏输入交叉核对。
+
+| crate | 固定版本 | `Cargo.lock` 的 SHA-256 | 补证依据 |
+| --- | --- | --- | --- |
+| `asn1` | `0.24.1` | `c9795210620c0cb3f9a7ce4f882808c38e1ef7b347c90591dceae0886e031fb1` | ELF 路径 |
+| `base64` | `0.23.0` | `b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9` | ELF 路径 |
+| `openssl` | `0.10.81` | `77823a27f0babb03091cb9ed9ef80af3b39dbc82f97e8fa530374b7dafd87a45` | ELF 路径，Rust crate |
+| `pem` | `4.0.0` | `d354a98a3d1251555de99e8fdd8afda05573c31b82f59063a7b0a29b5527f120` | ELF 路径 |
+| `pyo3` | `0.29.2` | `4688ddedf473e32662b9b067670129a8afb8c18e351482c70d62ba4a88171e8b` | ELF 路径 |
+| `pyo3-ffi` | `0.29.2` | `e591a95526fead067432c3b3a33fc74770b87b1e04e73671090d9c2055a2b327` | ELF 路径 |
+| `asn1_derive` | `0.24.1` | `909e307f1cc32bb8bccbd98f446e6d1bf03fa30f7b53a4337da7181ad30fa11a` | `asn1` 的过程宏 |
+| `foreign-types` | `0.3.2` | `f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1` | `openssl` 的依赖 |
+| `foreign-types-shared` | `0.1.1` | `00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b` | `foreign-types` 的依赖 |
+| `openssl-macros` | `0.1.1` | `a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c` | `openssl` 的过程宏 |
+| `portable-atomic` | `1.14.0` | `3d20d5497ef88037a52ff98267d066e7f11fcc5e99bbfbd58a42336193aacec3` | `pyo3` 的依赖，核对目标和特性 |
+| `pyo3-macros` | `0.29.2` | `73225868fc1cd84eef2c3c230ddb91273bf1de46aeb8a4248da76d32a0924a1c` | `pyo3` 的过程宏 |
+| `pyo3-macros-backend` | `0.29.2` | `571575aa3749fa6216757dd47d2a3e7ef360f329a40f0666a9fbd14889024952` | `pyo3-macros` 的依赖 |
+
+1. 先复用本机已验归档和 OpenSSL 4.0.3 精确归档。下载仅使用 `https://static.crates.io/crates/<name>/<name>-<version>.crate`，按表每项最多一次，先取 ELF 已定位的六项。对其余七项，已有同一目标和特性下的编译材料、依赖图或宏调用证据足以排除时可省去相应归档。对其余仍有范围疑问的项保守取精确归档。逐项在解压前核对锁内 SHA-256，再流式读取 `Cargo.toml` 的名称、版本、许可表达式及 `LICENSE` / `COPYING` / `NOTICE` 等原文。拒绝越界、链接和重复成员。区分运行组件、构建输入及宏生成代码的归属。
+2. 实际构建改动优先接收可离线验证的上游同作业工件、材料清单或可验签的溯源。线上仅在有可用的新证据入口时，核对 `pyca/cryptography` 提交 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a`、运行 `36713008517` 第 2 次尝试、作业 `109937603244` / `109937607325`。来源限 `https://api.github.com/repos/pyca/cryptography/actions/jobs/<id>/logs`、日志指向的至多一个同作业 `https://api.github.com/repos/pyca/cryptography/actions/artifacts/<id>/zip`，或已证实与该作业绑定的不可变配方与补丁对象。Rust SBOM 时间落在两个作业的构建区间内，发行矩阵的 `abi3-py39` 与 `abi3-py311` 都使用 `cp311-cp311` 构建解释器。由工件中的 wheel SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04` 或可信证明中的 subject digest 确认归属，并查实际 ARM64 构建器和内置 `/opt/pyca/cryptography/openssl` 材料的不可变引用。
+3. 精确 wheel 已提供 OpenSSL `4.0.3` 源码摘要、`linux/aarch64` 和配置 flags。留存发行工作流提供 `OPENSSL_STATIC=1`、`pyo3/abi3-py311` 路径与 `auditwheel repair` 流程。将新证据与这些记录、源归档、`Cargo.lock` 及精确提交的 `.github/requirements/build-requirements.txt` 对齐，核对实际执行的 `VERSION.dat` / `SHLIB_VERSION` 改动、其他补丁、生成步骤和构建后随 wheel 带入的材料。通过固定配方与材料、补丁摘要或可核对的变更清单记录改动。通用 macOS / 外部产物脚本以及当前多架构容器 tag 都没有建立该绑定。两次日志跳转已失败，原路径无新依据时继续等待。实际来源和告知范围闭合后再裁决只用于重放的工具链记录。
+
+拟申请一次单线程窗口，合计至多 **18 次 HTTPS 请求**（crate 至多 13 次，构建证据至多 5 次，跳转和失败计入各自额度）、**20 MiB 正文、32 MiB 累计解压、64 MiB 峰值暂存、5 分钟总时限**。crate 正文合计至多 8 MiB、单项 2 MiB；单份日志至多 2 MiB，唯一可选工件至多 12 MiB，同时受总额限制。仅暂存于仓库 `tmp/` 中独立目录，按连接 8 秒、单请求 20 秒和总时限逐次计量，无自动重试。遇到归属错误、摘要不符、请求失败或任一上限即停并记录已验与缺项。原始 UCD、其他组件、容器层、构建与打包均在该窗口之外。本轮只完成离线核对和记录。
+
+#### 2026-11-21 cryptography ARM64 crate 补证回执
+
+所有者授权后先依序取得 ELF 源码路径命中的 6 项，再取 ARM64 下保留的 6 项，全部 HTTP 200。逐项匹配精确 `Cargo.lock` SHA-256、归档成员路径、`Cargo.toml` 的名称与版本，离线复算 23 份许可文件。配合先前本机缓存核验，wheel SBOM 的 25 个 registry `required` 项中，24 个已有精确归档，余下 `portable-atomic 1.14.0` 按本目标排除。冻结锁中它的唯一父项是 `pyo3`。精确 `pyo3` 的依赖声明和对应 `AtomicI64` 导入均受 `cfg(not(target_has_atomic = "64"))` 约束，本地 `rustc --print cfg --target aarch64-unknown-linux-gnu` 验出 `target_has_atomic="64"`。该裁决只用于最终 ARM64 wheel 的候选交付范围。
+
+单线程窗口共 12 次 HTTPS 请求、1950911 字节正文、7937024 字节解压，暂存峰值保守上界 2952716 字节，累计请求用时 18.504 秒、总窗口 63.440 秒，零跳转和失败。冻结 wheel 的 ELF 直接保留了 OpenSSL 4.0.3 的平台、构建时间、`OPENSSLDIR` 及 GCC 编译参数，可供后续与来源材料交叉核对。当前留存中仍没有可绑定冻结 wheel 的新作业日志、同作业工件或溯源，因此构建改动方向零请求。实际 ARM64 构建器所用 OpenSSL 材料、`SHLIB_VERSION` 及其他补丁仍待对应证据。Unicode UCD 零请求，源码待实际交付与接收方验收，阶段 0 继续等待。[逐归档摘要、告知和窗口回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-source-result-20261121.json)
+
+#### 2026-11-21 regex Unicode 18.0.0 UCD 最小补证方案
+
+已复算精确 `regex 2026.9.29` sdist、原生成器和两份生成文件，确认生成器使用标准库，从同目录的 `UCD.zip` 读取 28 个固定成员，并在脚本目录生成 C、头文件及诊断摘要。缺少 UCD 时，已离线验证退出 1 且无生成文件。固定候选获取地址为 `https://www.unicode.org/Public/18.0.0/ucd/UCD.zip`，本地尚无该 ZIP 的发布摘要或实收指纹。[28 项输入、基准摘要与执行参数](../../scripts/eval/development_probe/sdk_variant/regex-ucd-source-plan-20261121.json)
+
+获准后仅 GET 一次。保存响应来源、长度和原始 ZIP 的 SHA-256，流读核对成员路径、展开量和 CRC-32，登记 28 个输入的 SHA-256。核对 `ReadMe.txt` 的正式 Unicode 18.0.0 版本、成员版权和适用条款，与留存的 Unicode License V3 正文对照。原生成器在单独 `run/` 目录、固定环境和拒绝网络与子进程操作的审计钩子下执行。两份新输出分别按长度、SHA-256 和 `cmp -s` 与 sdist 的 `src/_regex_unicode.c`、`src/_regex_unicode.h` 原始字节核对。两项全等才认定该 UCD 足以复现发布表；原发布者是否曾使用同一 ZIP 压缩字节仍缺历史材料。
+
+窗口拟定上限为 **1 次 HTTPS 请求、16 MiB 正文、96 MiB 累计解压、48 MiB 峰值暂存、5 分钟总时限**。连接 8 秒、单请求 90 秒、单生成进程 CPU 120 秒及墙钟 150 秒，零跳转和自动重试。任何获取、版本、许可、完整性、字节复核或预算失败即停并登记。当前零联网与零组装。`cryptography` 实际构建改动继续等待能绑定冻结 wheel 的新证据。
+
+#### 2026-11-21 regex Unicode UCD 获取与校验停窗
+
+获准后向固定地址发出一次 HTTPS GET，HTTP 200、TLS 校验通过，实收 5657953 字节与 `Content-Length` 一致，SHA-256 为 `7b3e555514060b92290d154f53655c5eb0fa62b16eb04c03434ff72d1a66a0d8`。零跳转、零重试。请求用时 32.689 秒，至停窗 32.845 秒。停窗前累计解压 36538931 字节，暂存峰值上界 16867328 字节，均在授权额度内。
+
+流程在 `ReadMe.txt` 版本门禁停止。对停窗证据只读复核确认，原文明确声明这是 Unicode Character Database 18.0.0 的正式数据，且指向 Unicode 的官方许可条款。执行器把历史 `ReadMe` 中的 `of the Unicode Standard` 字面当成必要条件，误判了新版的 `of the Unicode Character Database` 表述。接续版本验证以正式发行、精确版本及 Unicode 归属为准。完整归档和许可核验尚未完成，生成器未运行。原始 ZIP 已完整留存，后续获准可使用同一字节从离线核验接续。`cryptography` 本轮零请求，源码未组装。[停窗回执与版次证据](../../scripts/eval/development_probe/sdk_variant/regex-ucd-source-result-20261121.json)
+
+#### 2026-11-21 regex Unicode UCD 离线重生成通过
+
+获准后修正 `ReadMe.txt` 版本判定，以同一段落的正式发行声明、精确版本与 Unicode 归属为依据。离线预检兼容新旧官方措辞，并拒绝 beta 与其他版本。留存 ZIP 的大小和 SHA-256 与首次回执一致。流读完整归档，核验 71 个普通文件及 3 个目录条目；登记 28 个生成器输入成员的字节数、CRC-32 和 SHA-256。核对 ZIP 内版权、许可指引和留存的 Unicode License V3 全文，原始 ZIP 与对应告知登记为精确镜像的伴随源码候选材料。
+
+在固定环境用校验过摘要的原生成器离线重生成，退出码为 0。`_regex_unicode.c` 的 1983129 字节和 `_regex_unicode.h` 的 10827 字节分别与精确 sdist 中对应文件的长度和 SHA-256 一致，两个 `cmp -s` 均退出 0。该输入已证实能复现发行源码中的生成表。全程零 HTTPS 请求，累计解压上界 48593336 字节、暂存峰值上界 40390656 字节，续跑用时 0.816 秒。`regex` 的 UCD 补证已收口，伴随源码实际组装与接收验收仍待授权。`cryptography` 实际构建改动继续等待能绑定冻结 wheel 的新证据，阶段 0 继续等待交付复评。[离线续跑回执](../../scripts/eval/development_probe/sdk_variant/regex-ucd-offline-replay-result-20261121.json)
+
+#### 2026-11-21 cryptography 工件入口离线复核
+
+在留存的 GitHub `Wheel Builder` 运行 `36713008517` 第 2 次尝试记录中确认了此前未请求的 `artifacts_url`。其事件是 `50.0.2` 标签的 `push`，构建提交为 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a`。留存 `wheel-builder.yml` 的 Git blob `7510c096ae38737238dad0ccf10f4fb727f75d72` 与该提交的树一致。由上传模板和矩阵推导候选工件名 `cryptography--manylinux_2_34_aarch64-cp311-cp311-abi3-py311`，中间的空版本字段来自标签事件。两个同名候选作业 `109937603244` 与 `109937607325` 均有成功上传步骤，现有记录未给出工件 ID 或它与作业的关联。待授权的首查是 [按名称筛选的工件目录](https://api.github.com/repos/pyca/cryptography/actions/runs/36713008517/artifacts?name=cryptography--manylinux_2_34_aarch64-cp311-cp311-abi3-py311&per_page=10)，可用性与留存状态尚未核实。
+
+两份本地 PyPI 发布证明字节一致，声明 subject 为冻结 ARM64 wheel 的 SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04`。离线复核通过随附证书公钥的 DSSE 签名和留存透明日志的 payload 摘要。证书中的发布工作流为 `pypi-publish.yml`，调用位置指向运行 `36731020563` 第 1 次尝试，保留为独立发布线索。本轮未验证 Sigstore 信任链或透明日志包含证明；声明类型为 `publish/v1`，`predicate` 为空，实际 OpenSSL 构建材料尚无发布声明证据。[既有发布证明记录](../../scripts/eval/development_probe/sdk_variant/license-historical-provenance-result-20261105.parts/publication.json)
+
+最小证据链包含两段，可由一份可信构建溯源提供，也可用彼此绑定的同作业记录闭合。
+
+1. **冻结 wheel 到实际作业**。目录返回唯一未过期的目标工件时，保存 ID、运行及提交标识、长度和可用的 ZIP 摘要。按 ID 取至多一份归档，校验归档摘要及成员完整性，并对其中精确 wheel 复算冻结 SHA-256。用同作业上传记录的工件 ID 或可信溯源关联到对应尝试与 ABI 作业。工件名和时间用于筛选。若采用签发的构建溯源，验证发布者身份、证书链与透明日志证明，以及精确 wheel 的 subject digest。
+2. **实际作业到 OpenSSL 输入和补丁**。取得该作业固定的 `linux/arm64` 构建器或静态 OpenSSL 材料摘要，以及它确实执行的源清单、配置和有序补丁。核对已留存 OpenSSL 4.0.3 源归档 SHA-256 `325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9`、wheel 内 SBOM 的 `no-shared` 等实际配置及 ELF 的 ABI 和安装路径。逐项校验配方及补丁摘要，确认 `VERSION.dat` 中的 `SHLIB_VERSION` 和其他补丁的实际处置。若配方无补丁，留存与该材料绑定的明确记录。目标 wheel 的上传归档路径是 `wheelhouse/`，仍需同作业日志或不可变材料证明来闭合第二段。
+
+后续仅在授权后执行单线程窗口。至多 **5 次 HTTPS 请求、20 MiB 正文、32 MiB 累计解压、64 MiB 峰值暂存、5 分钟总时限**。先查一份按名筛选的目录（至多 256 KiB），在未过期且唯一匹配时取一份 ZIP（至多 12 MiB），API 请求及至多一次验证来源的官方 HTTPS 跳转均计量。剩余额度只用于与该工件或同作业直接绑定的日志、溯源或固定配方（单项至多 2 MiB）。连接至多 8 秒，普通请求至多 20 秒，ZIP 请求至多 60 秒，零自动重试。缺失、过期、归属不明、摘要不符或任一触限即停，保留前次已验证的 wheel 与 OpenSSL 归档。容器层、重建和打包另行授权，本轮零联网。
+
+阶段 0 当前阻塞为 `cryptography` 的冻结 wheel 与实际 OpenSSL 构建输入和补丁尚未闭合。`regex` 已收口。随后仍须按最终镜像摘要完成伴随源码及告知交付、接收方实取复核，再复评正式采用。[阶段 0 退出条件](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)
+
+#### 2026-11-21 cryptography 定向工件目录通过与下载停窗
+
+获准后按名查询 `36713008517` 的工件目录，HTTP 200，唯一命中未过期的 `abi3-py311` 工件 `11095506118`。目录声明 ZIP 为 4689642 字节，SHA-256 为 `f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f`，过期时间 `2026-12-29T12:09:40Z`。目录绑定了构建运行与提交 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a`，作业 ID 与运行尝试字段仍缺。
+
+随后只请求 [该工件的 ZIP 端点](https://api.github.com/repos/pyca/cryptography/actions/artifacts/11095506118/zip)，收到 HTTP 401 `Requires authentication`，按约停窗。共 2 次 HTTPS 请求、1048 字节正文、零解压，暂存峰值保守上界 12677120 字节，总用时 2.013 秒，零跳转和重试。ZIP 尚未取得，工件内 wheel、同作业绑定和实际 OpenSSL 构建材料仍待核验，OpenSSL 方向零请求。接续可在另行授权后使用具备仓库工件读取权限的 GitHub 身份，或接收同一工件的原始 ZIP 后按目录摘要离线核验。阶段 0 仍待该证据链、最终交付与采用复评；本轮未重建、未打包。[目录和停窗回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-result-20261121.json)
+
+#### 2026-11-21 cryptography 工件认证续取超时停窗
+
+获准后复用本机 GitHub CLI 登录，仅向 `11095506118` 的 ZIP 端点发出一次认证请求，HTTP 302。随后按约口径跟随一次官方存储跳转，GitHub 认证头仅用于 GitHub API。`productionresultssa6.blob.core.windows.net` 在 8 秒连接窗口内未返回 HTTP 响应，curl 退出码为 28，未收到 ZIP 数据，立即停窗。共 2 次 HTTPS 请求、零正文和解压、1 次跳转、零重试，暂存峰值保守上界 12673024 字节，总用时 8.932 秒。回执保留存储主机及失败状态。
+
+已通过 GitHub API 认证门槛，当前阻塞为同一工件的存储传输。工件 ZIP 及其中冻结 ARM64 wheel 仍待校验，与实际作业、OpenSSL 输入及补丁的链仍待闭合。OpenSSL 方向零请求，未重建或组装。接续可先接收原始工件 ZIP，按目录声明的大小和摘要离线验收。[认证续取停窗回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-auth-result-20261121.json)
+
+#### 2026-11-21 cryptography 工件 ZIP 与冻结 ARM64 wheel 核验通过
+
+本机浏览器同样在官方工件存储地址超时，下载目录与仓库暂存区均未找到原始 ZIP。获准后仅调用一次 GitHub 连接器获取工件 `11095506118`，用返回的文件引用取回原始字节。ZIP 的 4689642 字节及 SHA-256 `f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f` 与工件目录一致，已留存于 `tmp/cryptography-artifact-11095506118.zip`。工件中唯一成员 `cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl` 的 4737859 字节和 SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04` 均匹配最终镜像的冻结 wheel。
+
+冻结 wheel 已与运行 `36713008517` 目录中的工件建立字节级对应。实际上传作业及尝试、OpenSSL 构建输入和补丁仍需同作业记录绑定。该方向本轮零请求，未重建、未打包，阶段 0 继续等待证据链和交付复评。[连接器取件与双层摘要回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-connector-result-20261121.json)
+
+#### 2026-11-21 cryptography 第 2 次尝试上传作业定位与补证上限
+
+离线复算工件 `11095506118` 的 ZIP 和唯一成员，均匹配已登记摘要。GitHub 工件目录的 UTC 创建时间 `2026-09-30T12:11:30Z` 落在运行 `36713008517` 第 2 次尝试作业 `109937607325` 的上传步骤 `12:11:29Z–12:11:30Z` 内。同名作业 `109937603244` 的上传步骤为 `12:11:32Z–12:11:33Z`。ZIP 内唯一 wheel 成员的 DOS 时间为 `12:11:22`，与前一作业 `auditwheel repair` 结束的秒值一致，ZIP 字段没有时区信息。两个作业的构建区间都覆盖 wheel 的 Rust SBOM 时间 `12:10:49.011344866Z`。因此优先核对 `109937607325`，作业归属以能直接绑定工件的新增证据确认。[双层摘要回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-artifact-connector-result-20261121.json)
+
+1. **确认上传作业**。首查 `109937607325` 的完整作业日志，核对运行 `36713008517`、尝试 `2`、构建提交 `4dda5c7fe4ae71b8925f2551910a0ef959df9c7a` 及 `abi3-py311` 构建参数。上传记录须明确包含工件 ID `11095506118`，或由可信构建溯源直接绑定该作业及冻结 wheel 的 SHA-256 `87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04`。若日志提供 ZIP 摘要，同时与已验 ZIP SHA-256 `f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f` 核对。缺少直接绑定时保持作业待证状态。[目标作业日志端点](https://api.github.com/repos/pyca/cryptography/actions/jobs/109937607325/logs)
+2. **绑定作业实际使用的 OpenSSL 材料**。从同一日志或可信溯源取 ARM64 构建器清单摘要，或作业使用的静态 OpenSSL 材料摘要。若记录给出 OCI 索引，核对其 ARM64 子清单描述符；沿该不可变引用核对实际配方、OpenSSL 4.0.3 源归档、配置及已链接材料。与冻结 wheel 的 OpenSSL SBOM、`no-shared` 等配置、ELF 和工作流的 `/opt/pyca/cryptography/openssl` 及 `OPENSSL_STATIC=1` 交叉核验。仅从已确认作业指向的不可变对象补取材料，按字节复算摘要。
+3. **核定补丁**。留存实际执行的配方及有序补丁清单、逐项摘要与涉及文件。已复算精确 OpenSSL 原始归档，其中 `VERSION.dat` 为 100 字节，SHA-256 `10a0068332a55a6621fe7f2a8b6f6c775cb6b30b5530a91f8513b347da4d9d6e`，基线 `SHLIB_VERSION=4`。核对该作业实际输入是否应用将其设为 `100` 的改动，以及其他补丁的内容；无补丁时须有绑定到实际材料的明确记录。配方或补丁证据按归档基线逐项复核，构建和链接复验另行授权。
+
+**下一次拟授权窗口**优先用 GitHub 连接器只调用一次 `109937607325` 的日志。仅当返回的解码日志不超过 2 MiB 时继续处理。连接器内部的请求与跳转次数、正文和解码量无法在调用前强制计量，授权时明确采用此口径。若需可计量的直接 HTTPS 方案，则全窗至多 5 次请求（目标作业日志及其至多一次官方跳转占用前两次，其余额度只查日志绑定的不可变材料）、20 MiB 正文、32 MiB 累计解压、64 MiB 峰值暂存、5 分钟总时限，单份日志或材料至多 2 MiB，连接至多 8 秒，单请求至多 20 秒，零自动重试。两种方式均以本地已验 ZIP 和 OpenSSL 归档为交叉校验基准。连接器方式若在日志中取得新材料入口，后续获取另行授权。缺少作业关联、摘要不符或触限即停。本轮零联网、零重建、零打包。
+
+#### 2026-11-21 cryptography 上传作业及实际构建器确认
+
+获准后仅调用一次 GitHub 连接器读取 `109937607325` 的作业日志，解码 89161 字节。日志第 928 行的 ZIP SHA-256 和第 931 行的工件 ID `11095506118`、大小 4689642 字节均匹配本地已验 ZIP。第 581 行记录目标 `manylinux_2_34_aarch64` wheel 的修复输出，先前已复算 ZIP 内该成员与冻结 wheel 摘要一致。结合第 372 行的运行 `36713008517`、第 338 行的构建提交、第 400 行的 `abi3-py311` 和留存作业记录，确认第 2 次尝试的上传作业为 `109937607325`。
+
+同一日志第 52、195、196 行确认实际拉取 `ghcr.io/pyca/cryptography-manylinux_2_34:aarch64`，拉取摘要为 `sha256:977bf9d088ba2d1b24b20981ac58fd81b4631122edbba51e232746ef6d8efb85`。第 406–408 行记录从 `/opt/pyca/cryptography/openssl` 静态链接并纳入该目录的 SBOM，第 823–824 行验证加载与链接版本均为 OpenSSL 4.0.3。冻结 wheel 自带 SBOM 所声明的 OpenSSL 源归档摘要已与本机留存归档复算一致。日志未提供容器内 OpenSSL 材料的实际构建配方或补丁清单，`VERSION.dat` 的实际处置仍待证据。
+
+阶段 0 的剩余来源阻塞已收窄到从固定构建器摘要核验 ARM64 材料，取得其内置 OpenSSL 的实际源输入和补丁记录。关闭后再按最终镜像摘要交付伴随源码与告知、验收接收方实取，最后复评正式采用。本轮只查上述作业日志，未请求构建器或其他网络材料，未重建、未打包。[同作业日志与拉取摘要回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-cryptography-job-log-result-20261121.json)
+
+#### 2026-11-21 本地伴随源码和告知交付目录验收
+
+所有者确认按本人接收的本地交付范围收口。保留已验 OpenSSL 4.0.3 原始归档、冻结 wheel 的绑定及告知，交付记录明确写入实际构建器的 OpenSSL 补丁清单未证实，包括 `SHLIB_VERSION` 是否被改动。停止追查历史构建。本机 OrbStack 只读检查了最终镜像 `sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf`，仍为 `linux/arm64`，默认 UID/GID `65532:65532`。
+
+获准后以该镜像摘要封定 `dist/sdk-delivery/sources/5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf/`。以 301 份已验源码及配方底稿为基础，补入 `cryptography` 的 24 份 ARM64 范围 crate 归档和 OpenSSL 源归档、`regex` 原始 Unicode 18.0.0 UCD、两版 `certifi` 告知及镜像内验过的 42 份补充告知。完整 pip sdist 保留实际内嵌 `certifi 2024.8.30` 的源树与版本记录。
+
+`manifest.json` 绑定最终镜像清单与 119 项冻结锁，列出 390 项材料、578794065 字节，清单自身 SHA-256 为 `ea3e0cd100971f4e47cb765b83e932579a35ab558cb8db2229df93a446633192`。已在最终路径独立运行随附的 `verify_manifest.py`，逐项核对路径、大小与 SHA-256 并核对文件集合。新增磁盘占用 579756032 字节，组装与首次回读用时 1.357 秒，符合 768 MiB 源码、1 GiB 新增占用及 10 分钟上限。本轮零外网、零重建。接收方实际取得仍待所有者确认，正式采用复评尚未开始。[本地组装与回读回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-local-source-result-20261121.json)
+
+## 2026-11-12 收尾与下次接续
+
+所有者已确认[仅四项工具元数据的新方案](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)，并要求今晚先提交、回顾近期提交和更新文档后结束。本次不执行获取；下次复核原输入、核对器 / 解析器指纹和九项离线测试后，可在原四请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 留存范围内执行，无需重复确认同一范围。方案文件保留编制时的 `prepared_not_authorized` 快照，本段及[收尾记录](../devlogs/2026-W46.parts/2026-11-12.md#2026-11-12-近期提交复核与收尾)登记后续确认，不能把确认当作已获取。
+
+十九份源码继续复用；四项元数据仍未请求。成功后先复核构建器 / 工具实物、依赖闭包与资源预算，不自动追取。任何失败按原约定结束全窗；镜像层、容器、工具安装、构建、发布仍另行确认，许可交付与正式采用复评尚未完成。
+
+## 2026-11-10 规划收口接续
+
+本卡继续记录原有技术结果。单 Agent [公开合同](../contracts/development-task-delivery-v1.md)及六幅代表面的修订要求已确认。原画板修订出图已获项目所有者最终视觉确认。许可仍需按具名来源缺口裁决，并完成一个最终候选的交付验收。具体退出条件和阶段 1 后的真实单 Agent 价值复核见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)。
+
+11 月 11 日完成 Pillow 单 wheel 候选首轮六次输入取证：五份 blob 精确匹配，multibuild 快照按 Git 类型 / 可执行位、路径、长度和内容摘要完整核对，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-fixed-inputs-result-20261111.json)与[周志](../devlogs/2026-W46.md#2026-11-11-pillow-首轮取证与交付阻塞复核)。本窗口已结束；构建镜像 / 工具、嵌套源码和最终交付未完成，保留单一候选，阶段 0 不退出。
+
+同日获准执行四次输入解析，取得 AOM / dav1d 完整提交和 cibuildwheel 精确源码包内的构建器镜像摘要 / 工具约束，见[结果](../../scripts/eval/development_probe/sdk_variant/pillow-input-resolution-result-20261111.json)。窗口已结束；尚未拉取或验证构建镜像实物，源码归档和工具闭包仍缺，未构建或修改运行锁。
+
+随后获准的源码 / 镜像描述符 / 工具元数据下载窗口，在第二次请求返回 config HTTP 302 时按零重定向规则立即停止，见[停窗结果](../../scripts/eval/development_probe/sdk_variant/pillow-material-acquisition-result-20261111.json)。manifest 摘要已匹配，列出 23 层 / 572782550 字节压缩体积；config、平台与层实物未验，19 份源码与四项工具元数据均未请求。具名 CDN 接续范围须另行确认，阶段 0 仍不退出。
+
+同日获准一次具名 CDN 跳转后，config 摘要、`linux/arm64` 声明与 23 层 rootfs 对应通过；取得 XZ / zlib-ng 两份源码并完成静态路径、版本头与指纹核对。第七次请求在 xcb-proto TLS 连接超时后按约定停窗，未重试或换源，见[接续结果](../../scripts/eval/development_probe/sdk_variant/pillow-material-continuation-result-20261111.json)。剩余 17 份归档与四项工具元数据待恢复窗口；镜像层、工具实物及最终交付仍未验收。
+
+随后获准的 xcb-proto 一次有界重试已执行：四份已验材料本地复算匹配；原 URL 首请求在 10.100353 秒返回 curl `56` 与 TLS 协议版本告警，HTTP `000`、正文 0 字节，见[重试结果](../../scripts/eval/development_probe/sdk_variant/pillow-xcb-retry-result-20261111.json)。已全窗停止，没有后续请求、换源或 TLS 参数调整；剩余清单不变，不将本次告警归因为上次连接超时，也不推断归档不存在。网络处置需结合现有证据另定，镜像层和容器运行仍另行确认。
+
+显式 SOCKS5 代理尝试及所有者手动访问也未取得归档后，按要求核查官方来源。已直接取得 2024-04-15 发布公告中的 gz / xz 摘要；已验四份材料复算匹配。[替代计划](../../scripts/eval/development_probe/sdk_variant/pillow-xcb-alternative-plan-20261111.json)选择目录可访问且列出目标的 GWDG Gentoo 镜像，以原版 `1.17.0.tar.xz` 和公告双摘要替代旧 gz 获取项，尚未下载或授权执行。该路径不是 X.Org 原始发布路径，后续配方须显式适配 xz；其它归档、镜像层和阶段退出结论保持。
+
+随后所有者确认执行替代计划，xcb-proto 实际取得 151748 字节，SHA-256 / SHA-512 与公告一致；64 项成员、`1.17.0` 版本声明、许可及构建要求已核对。原 libxcb URL 随后返回指向 HTTP 的 301，按 HTTPS 限制未跟随并停窗，见[替代执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-xcb-alternative-result-20261111.json)。本轮两次请求、151843 字节；已验源码累计三份，剩余 16 份及四项工具元数据。没有自行改写跳转、换源或下载镜像层。
+
+后续只读核查已取得 libxcb `1.17.0` 官方公告双摘要，并与 Gentoo / FreeBSD 的 xz 大小及摘要记录交叉匹配；GWDG 目录与精确文件 HEAD 响应头列出 455208 字节。[新替代计划](../../scripts/eval/development_probe/sdk_variant/pillow-libxcb-alternative-plan-20261111.json)固定同版本 `.tar.xz` 镜像 URL，五份已验材料复算后直接复用，首项验过再接续 15 份归档及四项元数据。当前仅方案准备，未取得 libxcb 正文、未变更配方或运行锁；镜像层及容器运行仍另行确认。
+
+同日获准执行后，libxcb 的 455208 字节与公告双摘要一致，静态核验通过；随后原清单中的 libjpeg-turbo / zstd / TIFF 也完成归档结构、版本及许可 / 构建声明核对。libavif 在一次允许的 HTTPS 跳转后返回 HTTP 200，但只收到 7836809 / 14665927 字节即达到该项总时限、curl 退出 28，立即全窗停止，见[执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-libxcb-alternative-result-20261111.json)。九次请求合计 17348190 字节；已验源码累计七份，剩余 12 份完整归档和四项元数据。部分 libavif 正文保留但不计验收，未重试、续传或继续后项；镜像层、构建和阶段出口状态不变。
+
+11 月 12 日按要求完成[离线复核](../../scripts/eval/development_probe/sdk_variant/pillow-material-recheck-20261112.json)：manifest / config 与七份归档摘要匹配，所选文本与归档原文一致；历史文本累计比留存文本多 96719 字节，原因尚未完整确定，新窗口仍按较大历史占用扣预算。[libavif 新方案](../../scripts/eval/development_probe/sdk_variant/pillow-libavif-retry-plan-20261112.json)保持原 URL / 版本与代理，拟将本项含跳转时限改为 240 秒，完整核验后接续 11 份归档及四项元数据。方案待授权；本轮零网络请求，无镜像层、容器或构建操作，阶段 0 状态不变。
+
+随后所有者确认执行新获取方案。九份复用材料及计划 / 回执绑定复算匹配；libavif 完整 14665927 字节与旧部分正文前缀一致，libpng 完整取得并静态验过。lcms2 归档标称 2.19.1，但 configure.ac / CMake / Meson 均声明 2.19，按约定全窗停止，未计源码验收；七次请求合计 21978198 字节，见[执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-libavif-retry-result-20261112.json)。已验源码累计九份，尚有含 lcms2 在内的十份未验收及四项工具元数据；没有继续后项、换源、重试或镜像层 / 容器操作，阶段 0 不退出。
+
+随后按要求复用 lcms2 归档并查阅官方来源：[版本复核](../../scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json)确认 ChangeLog 含 2.19.1 修补节，且三个版本声明文件及 ChangeLog 的 Git blob 全部匹配发布页所指提交 `21c582a594fe5279f90c0b93437c398f93bf62b0`。建议分别登记发布版本 2.19.1、源码声明 2.19，接受此精确摘要归档的具名差异；仅提出裁决建议，尚未确认采纳，验过源码仍计九份。未证明整个归档与 Git 树一致、未验证发布签名或恢复后续下载。
+
+所有者随后确认接受该精确 lcms2 归档的具名差异，[复核记录](../../scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json)已追加接受决定，分别保留发布版本 2.19.1、源码声明 2.19、头文件值 2190 和归档摘要；不改写旧停窗回执。十二份材料复算匹配，已验源码累计十份。[剩余获取方案](../../scripts/eval/development_probe/sdk_variant/pillow-remaining-acquisition-plan-20261112.json)限定九份归档和四项工具元数据，31 次请求 / 272 MiB 正文 / 620 秒网络时间 / 45 分钟总窗口，任一失败或超限停窗。版本复核额外文本已纳入静态预算；本轮零网络请求，下载、镜像层和容器运行均待另行确认。
+
+随后按所有者授权执行剩余获取：十二份复用材料与引用复算匹配；OpenJPEG 2.5.4、libwebp 1.6.0、brotli 1.2.0 完整取得并核对结构、版本、许可和构建声明。freetype 原 URL 返回 302 至允许域名外的 ftp.cc.uoc.gr，未跟随并立即停窗，见[执行结果](../../scripts/eval/development_probe/sdk_variant/pillow-remaining-acquisition-result-20261112.json)。六次请求共 7099413 字节，已验源码累计十三份；剩余六份归档和四项元数据。未换源、重试、跳过继续或进行镜像层 / 容器操作，阶段 0 不退出。
+
+随后按要求复核 freetype 来源：十五份复用材料与本地 302 回执摘要匹配；FreeType 官网指向 Savannah，Savannah 文档确认该入口分配镜像，GNU 官方清单列有 ftp.cc.uoc.gr 的 GNU 镜像路径。结合本地精确 Location，已准备[新方案](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-plan-20261112.json)：直接请求该精确 HTTPS 地址一次、零跳转，核验后接续五份归档与四项元数据。网页工具未能读取目标目录，未取得目标正文或独立摘要；当前仅计划准备，下载 / 镜像层 / 容器待另行确认。
+
+随后所有者确认执行精确镜像方案。十五份复用材料与引用复算匹配；freetype 唯一请求在 8.005493 秒返回 curl `28`、`SSL connection timeout`，HTTP `000`、正文 0 字节，见[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-result-20261112.json)。立即停止全窗，后续五份归档及四项工具元数据未请求；没有重试、换源、调整协议或跳过。验过源码仍为十三份，剩余六份归档与四项元数据；镜像层及容器未操作，阶段 0 状态不变。来源候选依据保持，本次超时不证明目标归档不存在或具体网络根因。
+
+随后按要求仅复核本地超时材料：十五份复用文件、回执与执行脚本绑定匹配；CONNECT 200 后 curl 自身 8 秒连接时限失败，执行器未主动终止，未达到总时限。缺少分阶段时间与代理上游证据，无法在链路、代理转发、镜像响应或 TLS 交互之间确定根因。[有界获取方案](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-bounded-retry-plan-20261112.json)保持同 URL / 代理和零跳转，首项拟调整为连接 20 秒、总计 90 秒，增加有限 verbose 与阶段计时；验过后才接续原清单，全窗仍 20 次请求 / 208 MiB 正文，网络上限改为 470 秒。方案待授权；本轮未探测镜像或恢复下载，镜像层及容器仍另行确认。
+
+随后所有者确认执行该有界方案。十五份复用材料与引用匹配；同一 freetype URL / 代理的唯一请求在 20.005775 秒返回 curl `28`、`SSL connection timeout`，源站 HTTP `000`、正文 0 字节，见[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-bounded-retry-result-20261112.json)。诊断记录连到本地代理 TCP 为 0.000379 秒、CONNECT 200、发出 ClientHello；未记录 ServerHello / TLS 完成，不能据此区分代理上游、链路或镜像根因，也不将 `ssl_verify_result=1` 单独判作证书错误。立即全窗停止，未请求后续五份归档和四项元数据；未重试、换源、调整协议或继续加时。十三份已验源码及阶段 0 状态保持，镜像层和容器未操作。
+
+随后按要求只读核查官方备用来源与成本。FreeType 官网列出 SourceForge 稳定发布渠道，2.14.3 目录 README 给出原 tar.gz 的 SHA-256，并列有 833 字节签名文件；未获取签名 / 公钥或验签。[新获取方案](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-plan-20261112.json)固定原格式与发布摘要，拟从 SourceForge FRS 入口获取，最多两次具名主机 / 精确路径内跳转；首项 8 MiB / 20 秒连接 / 90 秒全过程，验过后接续原清单，全窗 22 次 HTTP / 184 MiB / 470 秒网络时间。十五份既有材料及 Pillow sdist 复算匹配；[路线成本复核](../../scripts/eval/development_probe/sdk_variant/pillow-route-cost-review-20261112.json)建议仅调整获取渠道、有条件继续单 wheel 路线，构建暂缓。23 层压缩总量 572782550 字节可确认，展开体积 / 工具闭包 / 编译成本仍未知。方案及建议待确认，本轮没有归档、签名、镜像下载或容器运行，阶段 0 不退出。
+
+所有者随后确认执行 SourceForge 方案。freetype 取得 4134916 字节并匹配发布 SHA-256；harfbuzz、bzip2、AOM、dav1d、libyuv 五份也完成结构、版本 / 提交 URL 绑定及许可 / 构建声明核对，见[执行回执](../../scripts/eval/development_probe/sdk_variant/pillow-freetype-sourceforge-result-20261112.json)。八次 HTTP 共 33962305 字节，源码累计十九份。工具元数据核对脚本在联网前导入 packaging 失败，立即停窗，四项元数据均未请求；未安装依赖、修复后重跑或继续后项。已验成果保留，构建器实物、工具闭包、最终交付与阶段 0 状态不由源码齐备推定通过。
+
+随后按要求修正元数据核对器：改为独立的本地 JSON 输入 / 标准输出入口，显式使用仓库 pip 内嵌 packaging 并留存源码指纹，无安装或导入回退；目标标签固定为 CPython 3.12 / manylinux_2_28_aarch64。九项离线正反例通过，十九份源码及 manifest / config 共二十一份输入复算匹配，见[预检记录](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-preflight-20261112.json)。[新计划](../../scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-plan-20261112.json)只含原四项 PyPI JSON，四次请求 / 16 MiB 正文 / 80 秒网络 / 10 分钟总窗 / 32 MiB 新留存，任一失败停窗。当前零联网、方案待确认；镜像层、容器、构建和阶段 0 出口保持原边界。
 
 ## 本轮范围
 
@@ -25,9 +398,9 @@
 | 受限 SDK 工作进程 | 固定响应验收通过 | 真实 Agent / LocalConversation 经 Go 专属通道完成工具往返、允许事件、错误不重试、未知用量与模型等待取消；父存活管道失联退出已验，工具观察值仍为合成值 |
 | 固定 Go 沙箱与工具 | 真实容器验收通过 | 私有副本读取 / 原子替换，按候选摘要测试，只读源码、资源限制、硬期限、取消 / 遗留归属清理与输出超限；SDK 收尾接线已定向验证 |
 | 开发产物保存 / 导出 | 本轮实现并定向验证 | 独立负责模块、严格包合同、计划 / 基准 / 候选 / patch / 测试绑定、显式确认、独立权限、SQLite 配额 / 幂等 / 重启与失败恢复；未开放 HTTP / Web |
-| 联合任务 / 正式采用 | 联合技术验收通过，复评暂不通过正式采用 | 同次任务覆盖 SDK 修改候选、真实代码测试、保存 / 导出、旧测试失效与命令中取消；资格 / 提供方为合成适配，旧 Gateway 保持建议语义；原生 HTTP 已于 11 月 5 日通过固定上游技术验证；新候选已移除默认专有代理链并复验，剩余许可及阶段 1 范围 / 视觉依据待确认 |
+| 联合任务 / 正式采用 | 联合技术验收通过，复评暂不通过正式采用 | 同次任务覆盖 SDK 修改候选、真实代码测试、保存 / 导出、旧测试失效与命令中取消；资格 / 提供方为合成适配，旧 Gateway 保持建议语义；原生 HTTP 已于 11 月 5 日通过固定上游技术验证；新候选已移除默认专有代理链并复验，阶段 1 公开合同与最终视觉已确认，剩余许可交付 |
 
-本轮阶段 0 设计：公开操作 / 权限、SQLite 原子启动、独立执行槽、请求回执、取消与重启核对、保存 / 导出及保留边界已写入公开交付合同；六个 Pencil 代表面已保存并静态复核。它们尚未获得项目所有者具体确认，也未实现公开 API / Web。
+本轮阶段 0 设计：公开操作 / 权限、SQLite 原子启动、独立执行槽、请求回执、取消与重启核对、保存 / 导出及保留边界已写入公开交付合同；六个 Pencil 代表面已保存并静态复核。具体合同与最终视觉已于 11 月 10 日获得项目所有者确认，公开 API / Web 仍未实现。
 
 ## 已确认的依赖调整
 
@@ -46,4 +419,4 @@
 
 已完成 Go race / 覆盖率定向测试、schema / 冻结摘要 / 锁生成测试，以及合成任务先失败后通过的人工复验。完整命令、摘要及仓库门禁记录见 [W44 周志](../devlogs/2026-W44.md#2026-10-31-受控开发代表任务与离线探针)。
 
-已按明确授权完成候选镜像、完整锁、接口核对与固定响应子合同检查，详情见[SDK 检查说明](../../scripts/eval/development_probe/README.md)和 [W44 运行记录](../devlogs/2026-W44.md#2026-10-31-sdk-候选镜像与固定响应契约验收)。上述合同、持久尝试 / 提议 / 事件事务、真实资格与专属回环接线已实现，见[尝试控制合同](../contracts/development-attempt-control-v1.md)。随后已按单独授权复用锁定镜像，以真实 SDK Agent 验证受限工作进程、完整允许事件、两次模型请求 / 合成工具观察值往返、模型失败不重试、工具失败、缺失用量、等待取消及父存活管道失联退出，见[本轮记录](../devlogs/2026-W44.parts/development-sdk-worker-20261031.md)。适配显式关闭 SDK 默认重试 / 动态上下文等旁路，`summary` 单独转换，Go 保留未知账目，完成须等待真实 OS 退出和空进程组。固定 Go 探针代码沙箱、受限文件 / 固定测试工具和资源归属终止已实施并真实验收，详见[沙箱合同](../contracts/development-code-sandbox-v1.md)及[运行记录](../devlogs/2026-W44.parts/development-code-sandbox-20261031.md)。开发产物保存 / 导出合同和内部 SQLite 链已完成，见[开发产物合同](../contracts/development-artifact-v1.md)及[本轮记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。真实 SDK 与代码容器同次任务的修改、测试、保存 / 导出及取消已按独立授权完成，见[联合验收记录](../devlogs/2026-W44.parts/development-joint-20261031.md)。[采用复评已完成](../devlogs/2026-W44.parts/development-adoption-20261031.md)，暂不通过正式采用；遥测可选化候选已构建并独立复验；11 月 5 日已核对 OpenSSL 精确归档与 CNRI 最终 1.6 正文、接通五包告知的离线准备与构建配方（未重建镜像），并完成原生 HTTP 配置 / 凭据接线、两轮工具往返及固定上游正反例验证，见 [W45 周志](../devlogs/2026-W45.md)。原生组件离线对应已覆盖 26 个 wheel / 63 个 ELF / 10 份 SBOM，八个外部库的实际镜像文件 / 归属已静态核对，容器未启动且已清理；随后已核对 Pillow 静态符号 / 来源差异及 hf-xet 的两项 MPL 来源，六包 14 份 wheel 告知与基础镜像 pip 21 份内嵌告知已接入离线准备及构建校验（未重建镜像）；覆盖源码采用伴随精确镜像的候选布局，范围已扩至 119 个 wheel / 61 个 Debian 源包 / 10 个 Alpine origin，Pillow 来源差异、certifi 生成步骤及 pip / Go 内嵌源码对应已核对；历史构建输入和实际源码交付仍待完成。11 月 5 日本轮又完成双镜像工具链静态核对与有界历史来源取证，两个停止态容器已删除，下载窗口已关闭；Go 853 个工具链内嵌文件与精确源码一致，CPython 78 个扩展已静态枚举。正式采用仍有历史输入、内嵌告知和最终交付缺口。固定 Go 单 Agent 的[公开交付合同](../contracts/development-task-delivery-v1.md)及六个 Pencil 代表面已形成可评审设计，具体范围 / 视觉待项目所有者确认。下一工作以[本轮采用评审](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)的剩余项为准，不将更多元数据自动等同采用通过。四项剩余退出条件见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。阶段 0 尚未退出；暂不真实用户试用或真实模型，不启动固定 A/B/C/D/R 团队，不自动合并 / 推送 / 发布。
+已按明确授权完成候选镜像、完整锁、接口核对与固定响应子合同检查，详情见[SDK 检查说明](../../scripts/eval/development_probe/README.md)和 [W44 运行记录](../devlogs/2026-W44.md#2026-10-31-sdk-候选镜像与固定响应契约验收)。上述合同、持久尝试 / 提议 / 事件事务、真实资格与专属回环接线已实现，见[尝试控制合同](../contracts/development-attempt-control-v1.md)。随后已按单独授权复用锁定镜像，以真实 SDK Agent 验证受限工作进程、完整允许事件、两次模型请求 / 合成工具观察值往返、模型失败不重试、工具失败、缺失用量、等待取消及父存活管道失联退出，见[本轮记录](../devlogs/2026-W44.parts/development-sdk-worker-20261031.md)。适配显式关闭 SDK 默认重试 / 动态上下文等旁路，`summary` 单独转换，Go 保留未知账目，完成须等待真实 OS 退出和空进程组。固定 Go 探针代码沙箱、受限文件 / 固定测试工具和资源归属终止已实施并真实验收，详见[沙箱合同](../contracts/development-code-sandbox-v1.md)及[运行记录](../devlogs/2026-W44.parts/development-code-sandbox-20261031.md)。开发产物保存 / 导出合同和内部 SQLite 链已完成，见[开发产物合同](../contracts/development-artifact-v1.md)及[本轮记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。真实 SDK 与代码容器同次任务的修改、测试、保存 / 导出及取消已按独立授权完成，见[联合验收记录](../devlogs/2026-W44.parts/development-joint-20261031.md)。[采用复评已完成](../devlogs/2026-W44.parts/development-adoption-20261031.md)，暂不通过正式采用；遥测可选化候选已构建并独立复验；11 月 5 日已核对 OpenSSL 精确归档与 CNRI 最终 1.6 正文、接通五包告知的离线准备与构建配方（未重建镜像），并完成原生 HTTP 配置 / 凭据接线、两轮工具往返及固定上游正反例验证，见 [W45 周志](../devlogs/2026-W45.md)。原生组件离线对应已覆盖 26 个 wheel / 63 个 ELF / 10 份 SBOM，八个外部库的实际镜像文件 / 归属已静态核对，容器未启动且已清理；随后已核对 Pillow 静态符号 / 来源差异及 hf-xet 的两项 MPL 来源，六包 14 份 wheel 告知与基础镜像 pip 21 份内嵌告知已接入离线准备及构建校验（未重建镜像）；覆盖源码采用伴随精确镜像的候选布局，范围已扩至 119 个 wheel / 61 个 Debian 源包 / 10 个 Alpine origin，Pillow 来源差异、certifi 生成步骤及 pip / Go 内嵌源码对应已核对；历史构建输入和实际源码交付仍待完成。11 月 5 日本轮又完成双镜像工具链静态核对与有界历史来源取证，两个停止态容器已删除，下载窗口已关闭；Go 853 个工具链内嵌文件与精确源码一致，CPython 78 个扩展已静态枚举。正式采用仍有历史输入、内嵌告知和最终交付缺口。固定 Go 单 Agent 的[公开交付合同](../contracts/development-task-delivery-v1.md)及六个 Pencil 代表面已形成可评审设计，具体合同与画板修订要求已获项目所有者确认，源画板已修订和出图，最终视觉已确认。剩余缺口依据[11 月 5 日采用评审](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#2026-11-05-框架采用评审)，当前顺位以[收口入口](../radishmind-current-focus.md#next-actions)为准，不将更多元数据自动等同采用通过。四项剩余退出条件见[实施专题](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。阶段 0 尚未退出；暂不真实用户试用或真实模型，不启动固定 A/B/C/D/R 团队，不自动合并 / 推送 / 发布。

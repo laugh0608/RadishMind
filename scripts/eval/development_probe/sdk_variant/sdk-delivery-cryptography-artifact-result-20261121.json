@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "status": "stopped_on_artifact_download_authentication",
+  "final_image": "sha256:5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf",
+  "run_id": 36713008517,
+  "frozen_wheel": {
+    "path": "tmp/sdk-delivery-preflight-20261121/context-final/wheels/cryptography-50.0.2-cp311-abi3-manylinux_2_34_aarch64.whl",
+    "bytes": 4737859,
+    "sha256": "87e9ce85beb6b328ba370cc6e6aea483c92617b4c95b1d33a49297eb662bfb04"
+  },
+  "build_candidate_jobs": [
+    109937603244,
+    109937607325
+  ],
+  "catalog": {
+    "http_status": 200,
+    "exact_matches": 1,
+    "artifact_name": "cryptography--manylinux_2_34_aarch64-cp311-cp311-abi3-py311",
+    "artifact_id": 11095506118,
+    "expired": false,
+    "expires_at": "2026-12-29T12:09:40Z",
+    "created_at": "2026-09-30T12:11:30Z",
+    "archive_download_url": "https://api.github.com/repos/pyca/cryptography/actions/artifacts/11095506118/zip",
+    "archive_size_declared": 4689642,
+    "archive_sha256_declared": "sha256:f84df52829526f0e93ccf16062b316b4a7c116aa1990500fe8e4d29e056b751f",
+    "workflow_run": {
+      "id": 36713008517,
+      "repository_id": 11939484,
+      "head_repository_id": 11939484,
+      "head_branch": "50.0.2",
+      "head_sha": "4dda5c7fe4ae71b8925f2551910a0ef959df9c7a"
+    },
+    "job_id": null,
+    "run_attempt": null
+  },
+  "window": {
+    "https_requests": 2,
+    "response_body_bytes": 1048,
+    "decompressed_bytes": 0,
+    "peak_staging_upper_bound_bytes": 12677120,
+    "wall_seconds": 2.013,
+    "redirects": 0,
+    "retries": 0,
+    "limits": {
+      "requests": 5,
+      "body_bytes": 20971520,
+      "decompressed_bytes": 33554432,
+      "staging_bytes": 67108864,
+      "seconds": 300
+    }
+  },
+  "stop": {
+    "http_status": 401,
+    "server_message": "Requires authentication",
+    "archive_obtained": false,
+    "wheel_sha256_verified_from_archive": false,
+    "same_job_binding_verified": false,
+    "openssl_material_and_patch_requests": 0,
+    "openssl_actual_inputs_and_patches_verified": false
+  },
+  "requests": [
+    {
+      "label": "catalog",
+      "host": "api.github.com",
+      "path": "/repos/pyca/cryptography/actions/runs/36713008517/artifacts",
+      "allowed_body_bytes": 262144,
+      "query": "name=cryptography--manylinux_2_34_aarch64-cp311-cp311-abi3-py311&per_page=10",
+      "http_status": 200,
+      "curl_exit": 0,
+      "body_bytes": 928,
+      "tls_verify_code": 0,
+      "seconds": 0.931,
+      "body_sha256": "701acc13cfb67db100c6b2718bd2deb9b8e4119be3760368e6ef464197d7f0e9",
+      "body_path": "tmp/cryptography-artifact-window-20261121.164ii3/catalog.body"
+    },
+    {
+      "label": "artifact",
+      "host": "api.github.com",
+      "path": "/repos/pyca/cryptography/actions/artifacts/11095506118/zip",
+      "allowed_body_bytes": 12582912,
+      "http_status": 401,
+      "curl_exit": 0,
+      "body_bytes": 120,
+      "tls_verify_code": 0,
+      "seconds": 1.079,
+      "body_sha256": "b7dbd173f33b19650f61b1c528737e2037cf768d90076fdfce5d32541765e29e",
+      "body_path": "tmp/cryptography-artifact-window-20261121.164ii3/artifact.body",
+      "server_message": "Requires authentication"
+    }
+  ],
+  "raw_receipt": {
+    "path": "tmp/cryptography-artifact-window-20261121.164ii3/receipt.json",
+    "bytes": 2759,
+    "sha256": "77ef2c885e85a81f6c540a8043b43616d6c3dba97ca5ddcfa153f4ce3ff2dadb"
+  },
+  "boundary": {
+    "rebuild_started": false,
+    "delivery_assembled": false,
+    "stage_0_exited": false
+  }
+}

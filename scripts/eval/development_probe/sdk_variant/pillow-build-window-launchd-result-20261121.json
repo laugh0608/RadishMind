@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-21",
+  "source_profile": "pillow-build-window-preflight-20261119.json",
+  "prior_attempt": "pillow-build-window-retry-result-20261121.json",
+  "status": "wheel_built_repaired_and_tested_notice_followup_open",
+  "launchd": {
+    "job": "gui/501/org.radishmind.pillow.build-501-run03",
+    "probe_exit_code": 23,
+    "probe_parent_pid": 1,
+    "build_job_parent_pid": 1,
+    "reported_exit_code": 0,
+    "observed_job_runs": 1,
+    "job_unloaded": true,
+    "manual_desktop_restart_tested": false
+  },
+  "execution": {
+    "build_identifier": "cp312-manylinux_aarch64",
+    "builder_image": "sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+    "build_python": "3.12.15",
+    "cibuildwheel": "4.3.1",
+    "start_utc": "2026-11-21T05:50:12.749317+00:00",
+    "end_utc": "2026-11-21T05:53:43.964309+00:00",
+    "elapsed_seconds": 211.215,
+    "exit_code": 0,
+    "cache_path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/cibuildwheel-cache",
+    "container_label": "org.radishmind.pillow-build=20261121-run-03-abd1230aa9e4",
+    "container_id": "ec1beb4d868b50a0cfa4f6bbd4bcd9c9b4ec5fe0ec9e74f667efd1227230ccd3",
+    "container_lifecycle": [
+      "create",
+      "start",
+      "die",
+      "destroy"
+    ],
+    "containers_remaining": 0,
+    "container_limit": 1,
+    "network_mode": "none",
+    "readonly_container_input": true,
+    "cpu_quota_cores": 4,
+    "memory_bytes": 8589934592,
+    "wall_time_limit_minutes": 90
+  },
+  "upstream": {
+    "auditwheel_repair": "passed",
+    "selftest": {
+      "passed": 59
+    },
+    "checks/check_wheel.py": {
+      "passed": 3
+    },
+    "pytest": {
+      "passed": 5697,
+      "skipped": 119,
+      "expected_failures": 3,
+      "warnings": 41,
+      "elapsed_seconds": 13.42
+    }
+  },
+  "wheel": {
+    "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/output/pillow-13.0.0+radishmind.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+    "bytes": 22597945,
+    "sha256": "ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460",
+    "tags": [
+      "cp312-cp312-manylinux_2_27_aarch64",
+      "cp312-cp312-manylinux_2_28_aarch64"
+    ],
+    "verified_record_rows": 138
+  },
+  "dynamic_linking": {
+    "aarch64_elf_objects": 26,
+    "pillow_extensions": 8,
+    "bundled_shared_libraries": 18,
+    "bundled_needed_edges_resolved_by_origin": 23,
+    "external_sonames": [
+      "ld-linux-aarch64.so.1",
+      "libc.so.6",
+      "libdl.so.2",
+      "libgcc_s.so.1",
+      "libm.so.6",
+      "libpthread.so.0",
+      "libstdc++.so.6",
+      "libz.so.1"
+    ],
+    "sdk_cpython_3_12_16_libpython_sha256": "f4f1070a5d40133e1baa396c53db518c96171f16f93aeda425b5c6e36d49b15a",
+    "python_symbols_found_in_target_libpython": 108,
+    "sdk_runtime_loading_tested": false
+  },
+  "license_review": {
+    "license_expression_declared": "MIT-CMU",
+    "wheel_license_files": {
+      "pillow-13.0.0+radishmind.1.dist-info/licenses/LICENSE": {
+        "bytes": 168818,
+        "sha256": "2ec3b69b8cf43c083b66805181e1ba899f6d97ac8fb3d824008a1c6be1beb8b2"
+      }
+    },
+    "pillow_license_plus_28_prepared_notices_match": true,
+    "prepared_notice_count": 28,
+    "sboms": {
+      "pillow-13.0.0+radishmind.1.dist-info/sboms/auditwheel.cdx.json": "57ca991a693710ce8e4d696fd38fd568694415e45b6f13ada106f5fe97dcc324"
+    },
+    "raqm": {
+      "source_header_sha256": "3dddec0171362d91e7d3db93742e1bf67f7cac226ef697e98f63bb8d5f2cbe5a",
+      "specific_attribution_found": false
+    },
+    "libxau": {
+      "version": "1.0.9-3.el8",
+      "arch": "aarch64",
+      "license_declaration": "MIT",
+      "license_paths": [],
+      "builder_rpmdb_sha256": "0ebdffa495c17d783c265c7693d9000354a181f51945a6762424f5aa4079b916",
+      "bundled_member": "pillow.libs/libXau-7926f62a.so.6.0.0",
+      "clients": [
+        "pillow.libs/libxcb-adae32bb.so.1.1.0"
+      ],
+      "named_notice_in_wheel": false
+    },
+    "fribidi": {
+      "shim_source_header_sha256": "0d610043a90e9bd8e685bb6f0a11d98d476050dd5921d3072f94f7d4f7281d70",
+      "shared_library_bundled": false
+    }
+  },
+  "evidence": [
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/launchd-probe.json",
+      "bytes": 49,
+      "sha256": "eedebf564356e5ad42afc265ef0802870f62778ed559e3d7902fbf75f9ea803b"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/launchd-probe-exit.txt",
+      "bytes": 31,
+      "sha256": "5bf943eb90663f6f7424ce4254aef79491da483629cece22552c606c054b8790"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/launchd-status.json",
+      "bytes": 233,
+      "sha256": "d20e5777b8594351a535cd803aa77e4b66de6143a2781fee395c48b40d924aa4"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/launchd-exit.txt",
+      "bytes": 51,
+      "sha256": "838ee018e297dada57def99d4805cf905e638b7ccf16868ae219011a5c77c90c"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/execution.json",
+      "bytes": 865,
+      "sha256": "d214f9b6d8ab3b824c7ccf7479699f14424f6eb7c90413d44e6bd0bc7adc1ae8"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/container.json",
+      "bytes": 548,
+      "sha256": "ab500f22ea3863632aa6bdad3f54d97b3edd2a3503966a7995427a605c2e8932"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/engine-events.jsonl",
+      "bytes": 7649,
+      "sha256": "09c901c14d0262d0f91b8c585e9b6542d1df36060f8f8a9b31bde8470df0199f"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/build.log",
+      "bytes": 2346372,
+      "sha256": "be5136e51748ae031902b3453d50b84cfa74491fd61c5364bb32db34edd35fb0"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/wheel-review.json",
+      "bytes": 13158,
+      "sha256": "f1a57a7fba8f1b646c6b61587a0a77d227c664ace3baea2600c4ebfb67194be2"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/cpython-target-symbols.json",
+      "bytes": 7445,
+      "sha256": "f9184c19367be22532e1c2476c02800c05eac515ad8e0a3c65a9743d5a170646"
+    },
+    {
+      "path": "tmp/pillow-build-window-20261119.7zt4q4x4/run-03/license-component-review.json",
+      "bytes": 706,
+      "sha256": "c97a593b7d19dff3f62a823dac533df361ab0ec4e3f454479e398a7bfc98d529"
+    }
+  ]
+}

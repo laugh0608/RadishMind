@@ -33,7 +33,7 @@
 
 ## 下一批开发方向
 
-1. 下一顺位为工作区成员邀请、认领与到期治理批次 D：批次 A 至 C 的 canonical、memory、双数据库 durable owner 与 local Session strict HTTP 已完成，完整 Pencil 仍等待独立授权；当前不读取或修改 Pencil，也不并行打开 React。账户安全与 production auth 停止线继续有效。
+1. 工作区成员邀请、认领与到期治理批次 A 至 E 已关闭，批次 D 的设计评审与批次 E 的 React、双数据库和浏览器验收见[邀请专题](admin-control-plane/workspace-member-invitation-claim-expiry-governance-dev-test-v1.md#下一实现入口)。新管理端工作按[当前推进焦点](../radishmind-current-focus.md)选择。账户安全与 production auth 停止线继续有效。
 2. `S7 R1` 七资源页面族、S7 User / Role 成员管理升级与 `S9 R1` Admin Quota Admission 均已完成功能纵向切片；不建立 S11，也不把目录管理并入 Provider / Profile / Route、quota 或 Pricing owner。
 3. `Radish OIDC Integration Test Runtime v1` deterministic resource-server 与 browser OIDC 本地批次均已完成；真实 Radish 联调继续 deferred，不阻塞 local identity Admin 产品链，也不为其提供目录或 grant。
 4. Provider Profile assignment 与 Model Route 的开发测试态受控配置已完成；Admin 只保存既有 runtime inventory 引用，审批不自动启用，Gateway 只消费显式启用的不可变快照。不得从现有 Web 原地扩 production 配置。

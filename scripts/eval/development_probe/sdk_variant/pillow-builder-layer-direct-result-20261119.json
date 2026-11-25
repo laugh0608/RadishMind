@@ -1,0 +1,724 @@
+{
+  "schema_version": "pillow_builder_layer_evidence_result.v1",
+  "date": "2026-11-19",
+  "status": "layers_verified",
+  "plan": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-builder-layer-plan-20261118.json",
+    "bytes": 21204,
+    "sha256": "75cbb2802fd1e4b95897cc066fb3d01b597dc884685a9ff430ab0a66f6c1f891"
+  },
+  "image": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+  "evidence_directory": "tmp/pillow-builder-transport-20261119.Qwh4ZViK",
+  "window_plan_and_head_evidence": {
+    "path": "tmp/pillow-builder-transport-20261119.Qwh4ZViK/proposed-window.json",
+    "bytes": 3061,
+    "sha256": "37005bccf15c47a35d4173324bf48890e634ec5e0b4d6e154a8b667418052ac8"
+  },
+  "window_record": {
+    "path": "tmp/pillow-builder-transport-20261119.Qwh4ZViK/session.json",
+    "bytes": 20875,
+    "sha256": "d260df9cce4b659176c6537887a73c039b9bffc321be3963d64dc13d86ed9d7f"
+  },
+  "started_utc": "2026-11-19T12:27:24.015728+00:00",
+  "route": "direct_https",
+  "space": {
+    "required_at_start_bytes": 2147483648,
+    "initial_available_bytes": 303104000000,
+    "minimum_observed_available_bytes": 302284800000,
+    "new_allocation_cap_bytes": 1073741824,
+    "peak_observed_window_allocation_bytes": 652251136
+  },
+  "network": {
+    "http_request_count": 42,
+    "distinct_blob_digests_requested": 21,
+    "blob_body_bytes_retained": 572782486,
+    "other_response_body_bytes": 28539,
+    "network_seconds_including_subprocess_cleanup": 191.91316,
+    "pilot_elapsed_seconds": 4.29539,
+    "pilot_body_bytes": 2097152,
+    "requests": [
+      {
+        "position": 1,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.895255,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 1,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 71996907,
+        "content_length": 71996907,
+        "pilot_elapsed_seconds": 4.29539,
+        "pilot_bytes": 2097152,
+        "elapsed_seconds": 22.261767,
+        "curl_exit": 0
+      },
+      {
+        "position": 2,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.866338,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 2,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 720,
+        "content_length": 720,
+        "elapsed_seconds": 1.159038,
+        "curl_exit": 0
+      },
+      {
+        "position": 3,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 1.44957,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 3,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 3024,
+        "content_length": 3024,
+        "elapsed_seconds": 1.015649,
+        "curl_exit": 0
+      },
+      {
+        "position": 4,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.939154,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 4,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 32,
+        "content_length": 32,
+        "elapsed_seconds": 0.858898,
+        "curl_exit": 0
+      },
+      {
+        "position": 5,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.959265,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 5,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 368,
+        "content_length": 368,
+        "elapsed_seconds": 2.186893,
+        "curl_exit": 0
+      },
+      {
+        "position": 6,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.879952,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 6,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 3106,
+        "content_length": 3106,
+        "elapsed_seconds": 2.198282,
+        "curl_exit": 0
+      },
+      {
+        "position": 7,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 1.16583,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 7,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 207346824,
+        "content_length": 207346824,
+        "elapsed_seconds": 37.376939,
+        "curl_exit": 0
+      },
+      {
+        "position": 8,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 1.181488,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 8,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 978,
+        "content_length": 978,
+        "elapsed_seconds": 1.377102,
+        "curl_exit": 0
+      },
+      {
+        "position": 9,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.974031,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 9,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 1009099,
+        "content_length": 1009099,
+        "elapsed_seconds": 2.301171,
+        "curl_exit": 0
+      },
+      {
+        "position": 10,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.896133,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 10,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 1095,
+        "content_length": 1095,
+        "elapsed_seconds": 1.08498,
+        "curl_exit": 0
+      },
+      {
+        "position": 11,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.915783,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 11,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 719467,
+        "content_length": 719467,
+        "elapsed_seconds": 2.195252,
+        "curl_exit": 0
+      },
+      {
+        "position": 12,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.847197,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 12,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 643,
+        "content_length": 643,
+        "elapsed_seconds": 0.916086,
+        "curl_exit": 0
+      },
+      {
+        "position": 13,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 4.392204,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 13,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 705683,
+        "content_length": 705683,
+        "elapsed_seconds": 2.430295,
+        "curl_exit": 0
+      },
+      {
+        "position": 14,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.853468,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 14,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 1112,
+        "content_length": 1112,
+        "elapsed_seconds": 0.936587,
+        "curl_exit": 0
+      },
+      {
+        "position": 17,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.928943,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 17,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 88697,
+        "content_length": 88697,
+        "elapsed_seconds": 1.496864,
+        "curl_exit": 0
+      },
+      {
+        "position": 18,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.810293,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 18,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 288508,
+        "content_length": 288508,
+        "elapsed_seconds": 1.9021,
+        "curl_exit": 0
+      },
+      {
+        "position": 19,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.809126,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 19,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 2325908,
+        "content_length": 2325908,
+        "elapsed_seconds": 3.118099,
+        "curl_exit": 0
+      },
+      {
+        "position": 20,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.868197,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 20,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 13386360,
+        "content_length": 13386360,
+        "elapsed_seconds": 11.517266,
+        "curl_exit": 0
+      },
+      {
+        "position": 21,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.878728,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 21,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 104595,
+        "content_length": 104595,
+        "elapsed_seconds": 1.677222,
+        "curl_exit": 0
+      },
+      {
+        "position": 22,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.928404,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 22,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 274790712,
+        "content_length": 274790712,
+        "elapsed_seconds": 69.413293,
+        "curl_exit": 0
+      },
+      {
+        "position": 23,
+        "phase": "origin",
+        "host": "quay.io",
+        "status": 302,
+        "bytes": 1359,
+        "content_length": 1359,
+        "elapsed_seconds": 0.953387,
+        "curl_exit": 0,
+        "redirect_host": "cdn01.quay.io",
+        "digest_path_match": true
+      },
+      {
+        "position": 23,
+        "phase": "cdn",
+        "host": "cdn01.quay.io",
+        "status": 200,
+        "bytes": 8648,
+        "content_length": 8648,
+        "elapsed_seconds": 1.096631,
+        "curl_exit": 0
+      }
+    ]
+  },
+  "verified_unique_object_count": 21,
+  "verified_layer_position_count": 23,
+  "first_pass_complete_tar_bytes": 1916141568,
+  "verified_positions": [
+    {
+      "position": 1,
+      "digest": "sha256:3f7637ada877c9f78220f3e8d50d33e50c99f467bc2d51e769ec3455bac469a0",
+      "compressed_bytes": 71996907,
+      "diff_id": "sha256:4792d3e37654227fe41f30e5520cc2d66a3d858ef988e5a20447bcee7c482f02",
+      "tar_bytes": 221057536,
+      "entries": 9183
+    },
+    {
+      "position": 2,
+      "digest": "sha256:8de72cf234436e796b05947f9bc5981245f21a25a240107b6c00a6c4dadbd1c3",
+      "compressed_bytes": 720,
+      "diff_id": "sha256:29a4a930ce6f467b22d8120acc68679d79d7d137d03a184a9a2f4aaa8cf39666",
+      "tar_bytes": 4608,
+      "entries": 4
+    },
+    {
+      "position": 3,
+      "digest": "sha256:98deaa0830e466dcc2aef120c8229bbf4b7b91059a1d832dca3af40066b19298",
+      "compressed_bytes": 3024,
+      "diff_id": "sha256:ef9e57f9cd09724d0035f97deaf5764fdff3de4dc2a252219bc4063896264757",
+      "tar_bytes": 12800,
+      "entries": 6
+    },
+    {
+      "position": 4,
+      "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "compressed_bytes": 32,
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "tar_bytes": 1024,
+      "entries": 0
+    },
+    {
+      "position": 5,
+      "digest": "sha256:f88c413e2f588feeed4dd1707f42dd45fba2d3111d7cc915fdb17eebdb8ae1df",
+      "compressed_bytes": 368,
+      "diff_id": "sha256:5bb9b19c9683da50ef9484360f280188ab4f3270310e823edda4d13d2812e303",
+      "tar_bytes": 3584,
+      "entries": 4
+    },
+    {
+      "position": 6,
+      "digest": "sha256:cdd8310e80dd0ccdb95ab223884c2838fc1ee81230c4b797015105797f796158",
+      "compressed_bytes": 3106,
+      "diff_id": "sha256:b334ab908ba17bcec9c1775674f64568bf315afcdddd92f08f0e508a67eddd84",
+      "tar_bytes": 11264,
+      "entries": 4
+    },
+    {
+      "position": 7,
+      "digest": "sha256:fc83fd2dc24843a04106fc0707f455316e1b4751f435a7ebb9bb9a2861932b37",
+      "compressed_bytes": 207346824,
+      "diff_id": "sha256:101818c0a0458a8434ddf3cf99df43f3fc8c7bacabc8383dafb8a764fa123639",
+      "tar_bytes": 589075456,
+      "entries": 13158
+    },
+    {
+      "position": 8,
+      "digest": "sha256:c60d21311bbf789da894c83188f1613059a96c6fdec2c987a7d1d33ec6c9df70",
+      "compressed_bytes": 978,
+      "diff_id": "sha256:c2a4d6131abb778921d6a7590981f61a9a038957acad9015dbb717d0456ef2e8",
+      "tar_bytes": 4608,
+      "entries": 4
+    },
+    {
+      "position": 9,
+      "digest": "sha256:72557bf57b954185d5397b23147e59681de4ccc8e6592760d7e41dcc583d7ddb",
+      "compressed_bytes": 1009099,
+      "diff_id": "sha256:bad1100ccc3c60146d0332fa4898256403bac5636881a0c220dd10ec0159f673",
+      "tar_bytes": 3577856,
+      "entries": 79
+    },
+    {
+      "position": 10,
+      "digest": "sha256:e85f491dae263eeca55e93ff89fbcee260cb20267f1353492c8116574792aa96",
+      "compressed_bytes": 1095,
+      "diff_id": "sha256:511c0709f7a327a437caae476cff47feec63bf17d1dc989dbaa537d6c3508870",
+      "tar_bytes": 5120,
+      "entries": 4
+    },
+    {
+      "position": 11,
+      "digest": "sha256:91a449722867f3f181735227b9238ffafde8a505c872bcf3f43d5493209c100e",
+      "compressed_bytes": 719467,
+      "diff_id": "sha256:07762c09138064c1d2e58169d27636da207d127fa8c7bb486ff50c607549f4b6",
+      "tar_bytes": 2411008,
+      "entries": 143
+    },
+    {
+      "position": 12,
+      "digest": "sha256:3a0b7354039d49ee3f7beba8bc53798145a14107bdd415f9d23177c5bf006510",
+      "compressed_bytes": 643,
+      "diff_id": "sha256:268563666b0257fe6b718bb44abbc02aa5ded3e5d8e9385a2127ec8e25b64d1f",
+      "tar_bytes": 4096,
+      "entries": 4
+    },
+    {
+      "position": 13,
+      "digest": "sha256:143c71c674791eefa5db60248eda0466b1007c72c70fa55d7b71b07ef217658e",
+      "compressed_bytes": 705683,
+      "diff_id": "sha256:f755cf357a83f89ee5d67f614330935fc5a82e2a71094d0360e12790164370a1",
+      "tar_bytes": 2855936,
+      "entries": 83
+    },
+    {
+      "position": 14,
+      "digest": "sha256:1bb7f757fe46a2fe488dd7dc11066c588f3a77f88eafe9197e14c49b551b60f6",
+      "compressed_bytes": 1112,
+      "diff_id": "sha256:83e1924da652182df6fef6e72c8ffe5e55b93343b1a387aa0d5e9b809a8c49dd",
+      "tar_bytes": 5120,
+      "entries": 4
+    },
+    {
+      "position": 15,
+      "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "compressed_bytes": 32,
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "tar_bytes": 1024,
+      "entries": 0,
+      "reused_position": 4
+    },
+    {
+      "position": 16,
+      "digest": "sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1",
+      "compressed_bytes": 32,
+      "diff_id": "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+      "tar_bytes": 1024,
+      "entries": 0,
+      "reused_position": 4
+    },
+    {
+      "position": 17,
+      "digest": "sha256:57f40f79ecceacee44c46736873741b7ca3238e185f213e7d0a84984bdc2957b",
+      "compressed_bytes": 88697,
+      "diff_id": "sha256:71ac8d3feeed7bbb2eef3248a56953eb0e310255e6b713b03c3198bdbcde6d85",
+      "tar_bytes": 206336,
+      "entries": 11
+    },
+    {
+      "position": 18,
+      "digest": "sha256:1af535a2b02cda38a26ee61cdff4eaa0fc4c4531c9e98a5453a77d7daf1e3170",
+      "compressed_bytes": 288508,
+      "diff_id": "sha256:51b428db55dd7efc58b75f59a7c22f729c6bd1d655f34757087347341145ae32",
+      "tar_bytes": 631808,
+      "entries": 7
+    },
+    {
+      "position": 19,
+      "digest": "sha256:81d84ce1506f2c7e0213ce6e006ef7da24f3eb3c1947ec46cf192af0a756f05a",
+      "compressed_bytes": 2325908,
+      "diff_id": "sha256:a2b6a5d019230f8a6af108eda057c09a7acacaf2b2059f72a5715fdb0971fb0d",
+      "tar_bytes": 4795392,
+      "entries": 19
+    },
+    {
+      "position": 20,
+      "digest": "sha256:ef64416b013202b038039ae4d518aa2868802bcce3c821d9020763ccd74659c6",
+      "compressed_bytes": 13386360,
+      "diff_id": "sha256:291363dec0031c0dcf7f4db019fdba6cee259fe38e96cade90c99b6d122474f2",
+      "tar_bytes": 26728448,
+      "entries": 274
+    },
+    {
+      "position": 21,
+      "digest": "sha256:0177f60d47982bdbd0961524681b9d55782e1f6a17e840257a807328834a701c",
+      "compressed_bytes": 104595,
+      "diff_id": "sha256:3824150e188b509616b9e5f3c0b075762f4f2c1e472f7dcde28fbccd4a429a68",
+      "tar_bytes": 222208,
+      "entries": 48
+    },
+    {
+      "position": 22,
+      "digest": "sha256:716f8e2a211f1658bf8a8e94398e22de200852ea9fcf5837e5be4c57c8095a2d",
+      "compressed_bytes": 274790712,
+      "diff_id": "sha256:a3bcfe617325bbb554d6fe0ce5e51e23cdf997c1f7f5ef0bbc74107461af8928",
+      "tar_bytes": 1064481792,
+      "entries": 62347
+    },
+    {
+      "position": 23,
+      "digest": "sha256:8fa1dd37f61504229792589d7e1e42c630eb6732292bf7864864112bdee4ea3b",
+      "compressed_bytes": 8648,
+      "diff_id": "sha256:02c2a9ae82392b4c15e9b372e3037f3e82a8ce775c11c962cd0495c20f0ca823",
+      "tar_bytes": 45568,
+      "entries": 29
+    }
+  ],
+  "unverified_positions": [],
+  "partial_or_unaccepted_objects": [],
+  "final_view": {
+    "status": "static_index_reviewed",
+    "inventory": {
+      "path": "tmp/pillow-builder-transport-20261119.Qwh4ZViK/inventory.json",
+      "bytes": 263987,
+      "sha256": "8a2bfcfacc7b26d82eb7db6c924ba58067abb0bbcce6f7f35b90249233b544ca"
+    },
+    "path_count": 77554,
+    "target_file_count": 265,
+    "whiteout_count": 133,
+    "overrides": 7579,
+    "overlay_gap_count": 0,
+    "rpm_status": [
+      {
+        "db": "tmp/pillow-builder-transport-20261119.Qwh4ZViK/rpm-0ebdffa495c17d783c265c7693d9000354a181f51945a6762424f5aa4079b916.db",
+        "packages": 338
+      }
+    ],
+    "second_pass_tar_bytes": 1883459584,
+    "checked_findings": {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-builder-layer-direct-result-20261119.parts/static-findings.json",
+      "bytes": 31357,
+      "sha256": "23d1bcd60918d73c02ae969e1a1c0be7b62bdb2ca8239e3a97e7d271f04c7f47"
+    }
+  }
+}

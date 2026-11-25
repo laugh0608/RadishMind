@@ -1,0 +1,197 @@
+{
+  "schema_version": "pillow_freetype_mirror_result.v1",
+  "date": "2026-11-12",
+  "status": "stopped",
+  "authorization": "所有者确认按精确镜像计划执行，首项核验通过后接续五份归档和四项工具元数据；任一失败立即停窗，不重试、换源或跳过；镜像层和容器另行确认。",
+  "plan_reference": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-freetype-mirror-plan-20261112.json",
+    "sha256": "408646e41a51e25c2bf0ca5fea0784c024812c22efb74be516c872ddc53fa3a3"
+  },
+  "accepted_lcms2_review": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-lcms2-version-review-20261112.json",
+    "sha256": "98c4ccf07f225093332196e131b0f7365cd56b757b36f0e939463be5af46337f"
+  },
+  "reused_artifacts": [
+    {
+      "id": "builder_manifest",
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    {
+      "id": "builder_config",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/config-cdn.body",
+      "bytes": 13544,
+      "sha256": "33379df2404032431e7e2c57f042e67acc026e240cdb9a4e67a2adc9c2723a14"
+    },
+    {
+      "id": "xz",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/xz-1.body",
+      "bytes": 2799797,
+      "sha256": "0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9"
+    },
+    {
+      "id": "zlib-ng",
+      "path": "tmp/pillow-material-continuation-20261111.4cr3h0j6/zlib-ng-1.body",
+      "bytes": 2447397,
+      "sha256": "f9c65aa9c852eb8255b636fd9f07ce1c406f061ec19a2e7d508b318ca0c907d1"
+    },
+    {
+      "id": "xcb-proto",
+      "path": "tmp/pillow-xcb-alternative-20261111.1sk84d0j/xcb-proto-1.17.0.tar.xz",
+      "bytes": 151748,
+      "sha256": "2c1bacd2110f4799f74de6ebb714b94cf6f80fb112316b1219480fd22562148c",
+      "sha512": "34c3795e5a48a66d89b72ee1777fb0bede489d5ec07018e6c9ef3c13bdd60b0358fc2c04a1f0ed0acb5b681aeeb92033db579036e4f5edd967fe56714c03acdf"
+    },
+    {
+      "id": "libxcb",
+      "bytes": 455208,
+      "sha256": "599ebf9996710fea71622e6e184f3a8ad5b43d0e5fa8c4e407123c88a59a6d55",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libxcb-1.17.0.tar.xz",
+      "sha512": "945b1f28e8b407a4d0ebf88c99ef3cbef763fd75e6eaa8e971946e44ce8dbe9b478c56ae85aaaadab7fdb25987e88570d9d4fb9ad2febd6d6bf21d644a0e10d0"
+    },
+    {
+      "id": "libjpeg-turbo",
+      "bytes": 2537858,
+      "sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/libjpeg-turbo-1.body"
+    },
+    {
+      "id": "zstd",
+      "bytes": 2434947,
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/zstd-2.body"
+    },
+    {
+      "id": "tiff",
+      "bytes": 4083368,
+      "sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "path": "tmp/pillow-libxcb-alternative-20261111.x4w7s115/tiff-0.body"
+    },
+    {
+      "id": "libavif",
+      "bytes": 14665927,
+      "sha256": "2b645287340ba5a631d268b551dc2d72bd73ac33335962dd36dcdb6d8366921d",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libavif-1.body"
+    },
+    {
+      "id": "libpng",
+      "bytes": 1582074,
+      "sha256": "8c9b05b675ca7301a458df2c2e46f26e1d41ff36b8863f8c33530bc58c2e6225",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/libpng-2.body"
+    },
+    {
+      "id": "lcms2",
+      "bytes": 5728743,
+      "sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8",
+      "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/lcms2-1.body"
+    },
+    {
+      "id": "openjpeg",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/openjpeg-1.body",
+      "bytes": 2157028,
+      "sha256": "a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a"
+    },
+    {
+      "id": "libwebp",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/libwebp-0.body",
+      "bytes": 4296070,
+      "sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
+    },
+    {
+      "id": "brotli",
+      "path": "tmp/pillow-remaining-acquisition-20261112.rcguwwuy/brotli-1.body",
+      "bytes": 646315,
+      "sha256": "816c96e8e8f193b40151dad7e8ff37b1221d019dbcb9c35cd3fadbfe6477dfec"
+    }
+  ],
+  "requests": [
+    {
+      "name": "freetype-0",
+      "phase": "source_archives",
+      "url_without_query": "https://ftp.cc.uoc.gr/mirrors/nongnu.org/freetype/freetype-2.14.3.tar.gz",
+      "query_redacted": false,
+      "exit_code": 28,
+      "receipt": "000 0 8.005493",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_seconds": 8.058112957980484,
+      "monitor_stop": null
+    }
+  ],
+  "archives": [],
+  "tool_metadata": [],
+  "request_count": 1,
+  "download_bytes": 0,
+  "network_seconds": 8.058112957980484,
+  "archive_declared_bytes": 117919827,
+  "selected_text_bytes": 2306503,
+  "started_unix": 1794486197.1176698,
+  "stop_reason": "request_failed_or_limit_exceeded: freetype-0",
+  "finished_step_unix": 1794486205.176768,
+  "evidence_directory": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp",
+  "raw_receipts": [
+    {
+      "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/freetype-0.headers",
+      "bytes": 39,
+      "sha256": "f55260227c507b4e203ec14ceb78ce8e64d11734111bed9bd18936a3bd4d48f3"
+    },
+    {
+      "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/freetype-0.receipt",
+      "bytes": 15,
+      "sha256": "2374898abd6c036f536d467eed42dee54f53b4720311f0d5acd648b7a8e720b3"
+    },
+    {
+      "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/freetype-0.stderr",
+      "bytes": 34,
+      "sha256": "2d4a033283d9a669f5a9d073665c1a087a87bb61341e1811a0e068f1efa0425f"
+    }
+  ],
+  "body_file_exists": false,
+  "execution_script": {
+    "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/acquire.py",
+    "bytes": 11010,
+    "sha256": "477d3f278558b8e1fcd176b1cb66b6721fb80b4632a7ad03e7a84579ffe7c6fc"
+  },
+  "plan_snapshot": {
+    "path": "tmp/pillow-freetype-mirror-20261112.t3fq4vmp/retry-plan.json",
+    "bytes": 16034,
+    "sha256": "408646e41a51e25c2bf0ca5fea0784c024812c22efb74be516c872ddc53fa3a3"
+  },
+  "window_closed_unix": 1794486205.176768,
+  "window_elapsed_seconds": 8.059098243713379,
+  "curl_transfer_seconds": 8.005493,
+  "retained_directory_bytes_at_audit": 48413,
+  "stop": {
+    "id": "freetype",
+    "reason": "ssl_connection_timeout",
+    "curl_exit_code": 28,
+    "http_status": "000",
+    "body_bytes": 0,
+    "redirect_followed": false,
+    "automatic_retry": false,
+    "diagnostic": "SSL connection timeout；响应头只有代理隧道 200 Connection established，不是源站归档 HTTP 200。"
+  },
+  "verified_archive_count_including_reuse": 13,
+  "remaining": {
+    "source_archives": 6,
+    "source_ids_in_order": [
+      "freetype",
+      "harfbuzz",
+      "bzip2",
+      "aom",
+      "dav1d",
+      "libyuv"
+    ],
+    "tool_metadata_requests": 4,
+    "image_layers_downloaded": 0
+  },
+  "boundaries": [
+    "本轮仅一次精确镜像请求，8 秒连接时限内未建立 SSL 连接；正文为零，没有新增验过源码。",
+    "失败后立即全窗停止，没有重试、续传、换源、协议调整、代理探测或跳过后续项目；子进程已退出。",
+    "十三份源码及 manifest / config 共十五份复用材料仍匹配，lcms2 具名接受记录保持。",
+    "不据本次连接超时推断归档不存在、镜像不可信或具体网络根因；来源候选依据与文件可用性分开记录。",
+    "未执行镜像层、Docker、容器、工具发行物获取、安装、构建、运行锁修改或发布；阶段 0 不退出。"
+  ],
+  "offline_audit": "十五份复用材料、计划 / 接受记录 / 历史回执绑定、唯一请求回执、零正文、错误信息及累计限额独立复核通过。"
+}

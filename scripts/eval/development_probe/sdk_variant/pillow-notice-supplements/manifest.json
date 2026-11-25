@@ -1,0 +1,40 @@
+{
+  "schema_version": "development_sdk_notice_delivery.v1",
+  "scope": "partial_supplements_only",
+  "license_gate_closed": false,
+  "evidence_sha256": "af1f3d4667401382ee8b916f88625d593a1fc88867a9f4ee7d54675a306f8060",
+  "packages": [
+    {
+      "name": "pillow",
+      "version": "13.0.0+radishmind.1",
+      "wheel_sha256": "ff0629b09d29f5cf5f1d560aa0dcdddc64edff0c3df3842bccabb32de26d8460",
+      "files": [
+        {
+          "file": "pillow-13.0.0-radishmind.1-Raqm-COPYING.txt",
+          "bytes": 1180,
+          "sha256": "f6baa5c872ed0c35cde377735f930d97a23e08065d87cf34d766b3aad5beed1e"
+        },
+        {
+          "file": "pillow-13.0.0-radishmind.1-Raqm-version-header-LICENSE.txt",
+          "bytes": 1108,
+          "sha256": "9ab73303a11c52541626fbafc16011d3a2e1bb7c4a619f0507929d12e63ae056"
+        },
+        {
+          "file": "pillow-13.0.0-radishmind.1-Raqm-Unicode-17.0.0-ReadMe.txt",
+          "bytes": 740,
+          "sha256": "9fe1a90bd32659d7953616283dc2bffaa165518aae9ace026040c42c559ba606"
+        },
+        {
+          "file": "pillow-13.0.0-radishmind.1-Raqm-Unicode-LICENSE.txt",
+          "bytes": 1995,
+          "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+        },
+        {
+          "file": "pillow-13.0.0-radishmind.1-LibXau-COPYING.txt",
+          "bytes": 1148,
+          "sha256": "56abe29bb1d9806a9e04fa9f80fed2c0f18027594df3f098148d814aef6bddfa"
+        }
+      ]
+    }
+  ]
+}

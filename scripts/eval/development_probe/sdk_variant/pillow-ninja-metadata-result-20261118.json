@@ -1,0 +1,156 @@
+{
+  "schema_version": "pillow_ninja_metadata_result.v1",
+  "date": "2026-11-18",
+  "status": "ninja_metadata_verified",
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-result-20261118.json",
+    "bytes": 12663,
+    "sha256": "bfd36fe8a2342ef4f3fc1dd4e38d4fcbde0ffb17132867ba45841210217807a7"
+  },
+  "single_request_plan": {
+    "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/single-window-plan.json",
+    "bytes": 1736,
+    "sha256": "7f936e8aef02e0045a3a03d2af2e0146b67bf5a2c205b7a743946e95b8c0b582"
+  },
+  "window_record": {
+    "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/result.json",
+    "bytes": 11156,
+    "sha256": "5f1f3d470a20e9bd0880c90361df933d3c129deb75564848b06d82491937cb37"
+  },
+  "limits": {
+    "max_http_requests": 1,
+    "concurrency": 1,
+    "connect_seconds": 8,
+    "seconds_per_request": 45,
+    "max_network_seconds": 45,
+    "max_body_bytes_per_request": 1048576,
+    "max_total_body_bytes": 1048576,
+    "max_header_bytes_per_request": 65536,
+    "max_stderr_bytes_per_request": 65536,
+    "max_receipt_bytes_per_request": 4096,
+    "max_validation_seconds_per_response": 10,
+    "max_window_seconds_including_preflight_and_validation": 120,
+    "max_new_retained_bytes": 4194304,
+    "redirects": 0,
+    "retries": 0,
+    "resume": false
+  },
+  "request_count": 1,
+  "preflight": {
+    "reused_archives": 19,
+    "builder_descriptors": 2,
+    "parser_source_files": 20,
+    "tests_passed": 9,
+    "parser": {
+      "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/parser.stdout",
+      "bytes": 3609,
+      "sha256": "1295e69e2d737abe5c7e86bb84d155d0ce5a3202ef501bf6e0a690dd096a5a0c"
+    },
+    "test_log": {
+      "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/tests.stderr",
+      "bytes": 1181,
+      "sha256": "bf846b79cfc0ee2b64e1f6feb33311d5ea68592f0b137f07bb9a5d508e92ca1f"
+    }
+  },
+  "url": "https://pypi.org/pypi/ninja/json",
+  "http_status": 200,
+  "curl_exit_code": 0,
+  "receipt": "200 380593 23.066602",
+  "content_length": 380593,
+  "body_bytes": 380593,
+  "network_seconds": 23.076207,
+  "window_seconds": 23.506797,
+  "retained_evidence_bytes": 415863,
+  "previous_partial_prefix_matches": true,
+  "evidence": {
+    "body": {
+      "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/ninja.body",
+      "bytes": 380593,
+      "sha256": "26598570bad73a8041639468aa383df7900ddf25d3e16b9ebb7e269d387083ba"
+    },
+    "headers": {
+      "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/ninja.headers",
+      "bytes": 2789,
+      "sha256": "874298c9493720dcfa333052d007953fb7ef1e1df7ddbbad7f15445c3f8ac932"
+    },
+    "receipt": {
+      "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/ninja.receipt",
+      "bytes": 21,
+      "sha256": "ef7de12cee78a83b3e7f25e8f81a1a384ad7c767d52131341aad6db0b24c64a6"
+    },
+    "stderr": {
+      "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/ninja.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "validation": {
+    "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/ninja.validation.stdout",
+    "bytes": 3162,
+    "sha256": "bfa8cd39b424bfca7fae04e8b578a700d6bfb4f7e6be070a11fba56130739a2c"
+  },
+  "version": "1.13.2",
+  "requires_python": ">=3.8",
+  "requires_dist": null,
+  "candidate_wheels": [
+    {
+      "filename": "ninja-1.13.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "url": "https://files.pythonhosted.org/packages/35/54/7368ce188625e39acc03ee362bb86cc9bfa6ad15e25c50889ae36e2889b3/ninja-1.13.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "bytes": 177180,
+      "sha256": "d775a5e43e9088f507a6250d57fcf5678eb31268c545feb5064ffeee33735622",
+      "tags": [
+        "py3-none-manylinux2014_aarch64",
+        "py3-none-manylinux_2_17_aarch64"
+      ],
+      "matched_tags": [
+        "py3-none-manylinux2014_aarch64",
+        "py3-none-manylinux_2_17_aarch64"
+      ],
+      "requires_python": ">=3.8"
+    }
+  ],
+  "excluded_wheel_count": 17,
+  "acquisition_review": {
+    "target_python": "3.12.16",
+    "target_platform": "linux/arm64",
+    "declared_wheel_count": 4,
+    "declared_wheel_bytes": 2613340,
+    "builder": "quay.io/pypa/manylinux_2_28_aarch64@sha256:abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6",
+    "builder_layer_count": 23,
+    "builder_compressed_bytes": 572782550,
+    "builder_manifest": {
+      "path": "tmp/pillow-material-acquisition-20261111.61nl9h3k/registry-manifest.body",
+      "bytes": 5125,
+      "sha256": "abd1230aa9e4058a74b89d27cd14ba18c0db036d7bfe6e6f219a29ea63c24eb6"
+    },
+    "local_search_scope": "本仓库 tmp/ 内的普通文件，按声明大小及 SHA-256 匹配，各候选最多列一个可复用路径。",
+    "local_wheel_review": [
+      {
+        "filename": "setuptools-83.0.0-py3-none-any.whl",
+        "bytes": 1008090,
+        "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+        "local_match": null
+      },
+      {
+        "filename": "pybind11-3.1.0-py3-none-any.whl",
+        "bytes": 319402,
+        "sha256": "b8488090f8acffbcb6b5d6a85571a6827a0a2981ffb75e5a0b27b87c4a6b7dd0",
+        "local_match": null
+      },
+      {
+        "filename": "meson-1.12.1-py3-none-any.whl",
+        "bytes": 1108668,
+        "sha256": "930bc7542cbd9f57009e182fd014eba48cf1a0180a7b9006d2d32d8f168d8b02",
+        "local_match": null
+      },
+      {
+        "filename": "ninja-1.13.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+        "bytes": 177180,
+        "sha256": "d775a5e43e9088f507a6250d57fcf5678eb31268c545feb5064ffeee33735622",
+        "local_match": null
+      }
+    ],
+    "wheel_bytes_without_local_match": 2613340
+  },
+  "decision": "继续核定 Pillow 单 wheel 候选的构建输入，对四个工具发行物及固定构建器分别核定获取与磁盘预算。Ninja 内含二进制版本、构建兼容性及最终许可交付尚待验证。"
+}

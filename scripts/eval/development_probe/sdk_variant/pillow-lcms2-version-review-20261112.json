@@ -1,0 +1,170 @@
+{
+  "schema_version": "pillow_lcms2_version_review.v1",
+  "date": "2026-11-12",
+  "status": "accepted_named_version_difference_by_owner",
+  "previous_result": {
+    "path": "scripts/eval/development_probe/sdk_variant/pillow-libavif-retry-result-20261112.json",
+    "sha256": "e427e55cda1ffc907f065415e8b67937de98952d49bac969d6dfd685794da278"
+  },
+  "archive": {
+    "path": "tmp/pillow-libavif-retry-20261112.kbf0umpb/lcms2-1.body",
+    "filename": "lcms2-2.19.1.tar.gz",
+    "bytes": 5728743,
+    "sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8"
+  },
+  "upstream_release": {
+    "url": "https://github.com/mm2/Little-CMS/releases/tag/lcms2.19.1",
+    "tag": "lcms2.19.1",
+    "commit": "21c582a594fe5279f90c0b93437c398f93bf62b0",
+    "finding": "发布页明确为 2.19.1 修补版，列出构建说明、autotools soname、内存写入功能及 Visual Studio 文档路径修正；本地 ChangeLog 有同名修补节。"
+  },
+  "official_source_chain": [
+    {
+      "url": "https://www.littlecms.com/color-engine/",
+      "finding": "官方主页的色彩引擎页同时指向 SourceForge 所有版本与 mm2/Little-CMS 开发仓库。"
+    },
+    {
+      "url": "https://sourceforge.net/projects/lcms/files/lcms/2.19.1/",
+      "finding": "官方发布目录列出 lcms2-2.19.1.tar.gz，页面显示 2026-05-12、约 5.7 MB；目录显示不是完整文件摘要验证。"
+    }
+  ],
+  "file_evidence": [
+    {
+      "path": "configure.ac",
+      "git_blob_sha1": "7b9ab7debe12f6e069a45e50b419a8dcb6d849a6",
+      "url": "https://github.com/mm2/Little-CMS/blob/21c582a594fe5279f90c0b93437c398f93bf62b0/configure.ac",
+      "source": "GitHub connector, fixed commit",
+      "archive_member": "lcms2-2.19.1/configure.ac",
+      "bytes": 12430,
+      "sha256": "914a384fc0560109ab36177b73711c5e084f9928fcf738f33a71e1c41d8227e5",
+      "git_blob_matched": true
+    },
+    {
+      "path": "CMakeLists.txt",
+      "git_blob_sha1": "cf8dcb832d7468a461e4874565c1412bf0b45e05",
+      "url": "https://github.com/mm2/Little-CMS/blob/21c582a594fe5279f90c0b93437c398f93bf62b0/CMakeLists.txt",
+      "source": "GitHub connector, fixed commit",
+      "archive_member": "lcms2-2.19.1/CMakeLists.txt",
+      "bytes": 578,
+      "sha256": "53a88dc57a4e0e77aec471e65d903730cd9aad404e0113214fe129a4385803ef",
+      "git_blob_matched": true
+    },
+    {
+      "path": "meson.build",
+      "git_blob_sha1": "57795f569ae7fb3482eabdae728e4392a47d5a87",
+      "url": "https://github.com/mm2/Little-CMS/blob/21c582a594fe5279f90c0b93437c398f93bf62b0/meson.build",
+      "source": "GitHub connector, fixed commit",
+      "archive_member": "lcms2-2.19.1/meson.build",
+      "bytes": 2681,
+      "sha256": "227cfbdddd5bb7ee649431209c267bf653d38f4a1c8c81cbe4ef8881e37b6bf9",
+      "git_blob_matched": true
+    },
+    {
+      "path": "ChangeLog",
+      "git_blob_sha1": "788c0a97713a3a943949d0a8a4a9247a7ccb4784",
+      "url": "https://github.com/mm2/Little-CMS/blob/21c582a594fe5279f90c0b93437c398f93bf62b0/ChangeLog",
+      "source": "GitHub connector, fixed commit",
+      "archive_member": "lcms2-2.19.1/ChangeLog",
+      "bytes": 15622,
+      "sha256": "47d631ce67d64d412cfedec8d55539182baac524e2b623eb79057459c741731d",
+      "git_blob_matched": true
+    },
+    {
+      "archive_member": "lcms2-2.19.1/include/lcms2.h",
+      "bytes": 108852,
+      "sha256": "67f73413d7168a0cf7fa94ff3eb0d795fb75668b07d02e6ff583110166ca0f38",
+      "observations": [
+        {
+          "line": 97,
+          "text": "#define LCMS_VERSION        2190"
+        }
+      ],
+      "git_blob_matched": null
+    },
+    {
+      "archive_member": "lcms2-2.19.1/configure",
+      "bytes": 736474,
+      "sha256": "f46786e67a0c1e241201aec5df969e8d967443d1494d1779dc141e69529a40f2",
+      "observations": [
+        {
+          "line": 614,
+          "text": "PACKAGE_VERSION='2.19'"
+        },
+        {
+          "line": 615,
+          "text": "PACKAGE_STRING='lcms2 2.19'"
+        }
+      ],
+      "git_blob_matched": null
+    },
+    {
+      "archive_member": "lcms2-2.19.1/lcms2.pc.in",
+      "bytes": 263,
+      "sha256": "cd79df904ff9671a3a83561e3ae6ba2e4c8439258576f0ba43f2364b87b53a7b",
+      "observations": [
+        {
+          "line": 8,
+          "text": "Version: @VERSION@"
+        }
+      ],
+      "git_blob_matched": null
+    },
+    {
+      "archive_member": "lcms2-2.19.1/README.md",
+      "bytes": 1260,
+      "sha256": "cb96825e32b2f40d034aff0644b5f21075663510043a72ede1243db76ca8bf18",
+      "observations": [
+        {
+          "line": 5,
+          "text": "[www.littlecms.com](https://www.littlecms.com)"
+        }
+      ],
+      "git_blob_matched": null
+    }
+  ],
+  "findings": [
+    "本地归档 ChangeLog 明确包含 2.19.1 hot fix，且与发布页所指精确提交的同文件 Git blob 一致。",
+    "configure.ac、CMakeLists.txt、meson.build 与同一发布提交的 Git blob 全部一致；这些文件均保留 2.19 声明。",
+    "本地 include/lcms2.h 为 LCMS_VERSION 2190，生成的 configure 为 PACKAGE_VERSION 2.19，lcms2.pc.in 消费 VERSION；这些附加文件仅本地检查，未与远端逐字节比较。",
+    "因此版本差异确实存在于上游 2.19.1 发布提交，不能仅凭内部 2.19 判定下载了旧包；未取得维护者关于保留版本号动机的明确说明。",
+    "修补内容包括功能修改，不能简化为只改压缩包或纯重新打包。"
+  ],
+  "recommendation": {
+    "decision": "建议接受此精确归档的具名版本差异；不放宽所有依赖的版本核验规则。",
+    "release_archive_version": "2.19.1",
+    "source_declared_version": "2.19",
+    "header_macro": 2190,
+    "identity": "固定已有归档 SHA-256 与大小，同时保留发布版本、源码声明及上游提交的独立字段。",
+    "scope": "仅允许将本包的版本差异从未解释冲突改为有依据的已知差异，不改源码版本、不改文件名、不替换候选，也不重写历史停窗回执。",
+    "approval_state": "所有者已于 2026-11-12 确认接受此精确归档的具名版本差异；详见 owner_decision。历史停窗回执不改写。",
+    "future_validation": "获准构建时核对真实安装 / 链接 / 报告，预期可能报告 2.19；仅凭版本字符串不能区分 2.19 与该修补包，须关联固定输入和构建记录。"
+  },
+  "limits": [
+    "只比较四个关键源码文件，不证明整个 SourceForge 归档与 Git 提交逐文件相同。",
+    "未取得该完整归档的独立官方 SHA-256 或验证发布签名；现有摘要为本次取得字节的候选指纹。",
+    "不证明历史 Pillow wheel 使用本包，不证明候选构建、最终告知或覆盖源码交付通过。"
+  ],
+  "actions": {
+    "local_archives_reused": 1,
+    "new_archive_downloads": 0,
+    "github_file_reads": 4,
+    "web_page_reads": "官方网站、发布页和 SourceForge 目录；GitHub 提交页面一次读取超时，未追加源码归档请求。",
+    "later_acquisition_resumed": false,
+    "image_layers": false,
+    "containers": false,
+    "source_executed": false
+  },
+  "owner_decision": {
+    "date": "2026-11-12",
+    "decision": "accepted",
+    "release_archive_version": "2.19.1",
+    "source_declared_version": "2.19",
+    "header_macro": 2190,
+    "archive_sha256": "bfc54f7bab59fbc921012014a8032e4cba4abd46db47d46b76416a8c0b2815c8",
+    "archive_bytes": 5728743,
+    "scope": "仅此精确归档的已知版本差异；结合已完成结构、许可与源码声明核对，登记为第十份已验可复用源码，不推定构建或最终交付通过。",
+    "downloads_authorized": false,
+    "image_layers_authorized": false,
+    "containers_authorized": false
+  }
+}

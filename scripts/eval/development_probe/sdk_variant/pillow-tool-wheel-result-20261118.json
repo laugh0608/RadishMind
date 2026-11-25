@@ -1,0 +1,317 @@
+{
+  "schema_version": "pillow_tool_wheel_review.v1",
+  "date": "2026-11-18",
+  "status": "four_archives_verified",
+  "selections": [
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-tool-metadata-result-20261118.json",
+      "bytes": 12663,
+      "sha256": "bfd36fe8a2342ef4f3fc1dd4e38d4fcbde0ffb17132867ba45841210217807a7"
+    },
+    {
+      "path": "scripts/eval/development_probe/sdk_variant/pillow-ninja-metadata-result-20261118.json",
+      "bytes": 6088,
+      "sha256": "7d0775552bd463118be4203d17c8b53d1c5b57eeb99757ffc3de383bdebebe02"
+    }
+  ],
+  "evidence_directory": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv",
+  "retrieval": {
+    "request_count": 4,
+    "successful_responses": 4,
+    "redirects": 0,
+    "retries": 0,
+    "resume": false,
+    "connect_seconds_per_request": 8,
+    "timeout_seconds_per_request": 180,
+    "total_wheel_bytes": 2613340,
+    "curl_transfer_seconds": 150.90646
+  },
+  "checks": [
+    "依序对每个候选的精确 PyPI 发行物 URL 发起一次 GET，逐件核对实际大小与预选 SHA-256。",
+    "包内项目、版本、标签、顶层许可声明与正文、Requires-Python、Provides-Extra 和带 marker 的 Requires-Dist 与已留存的 PyPI 发行资料核对。",
+    "逐件核验 RECORD 覆盖及成员大小与摘要，RECORD 本身按格式保留空摘要与空大小。四份归档留存后离线复验通过。"
+  ],
+  "wheels": [
+    {
+      "tool": "setuptools",
+      "version": "83.0.0",
+      "url": "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl",
+      "wheel": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/setuptools-83.0.0-py3-none-any.whl",
+        "bytes": 1008090,
+        "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3"
+      },
+      "http_status": 200,
+      "receipt": "200 1008090 70.355959 0",
+      "raw_audit": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/setuptools.audit.json",
+        "bytes": 7650,
+        "sha256": "7720176c5cf1a31b71b039481d629043aae5d00be612633d3b6a5fbeba1861ac"
+      },
+      "release_metadata": {
+        "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/setuptools.body",
+        "bytes": 11091,
+        "sha256": "1c509b89f744e798fb7c60d3c5236e293a397cc582cd8e2aed1a443ad1dc2e5c"
+      },
+      "record_entries": 441,
+      "record_sha256": "9dfe956672a9afd8504e50feddb626727f53def6a3590219ce9ff3a05e302c91",
+      "metadata_sha256": "26e45e90de763c6938d93d1df2ecd6782a0f1514d41cbd22ebef4e0ab6475771",
+      "wheel_tags": [
+        "py3-none-any"
+      ],
+      "license_expression_field": "MIT",
+      "license_field": null,
+      "primary_license_text": "MIT",
+      "declared_license_members": [
+        "setuptools-83.0.0.dist-info/licenses/LICENSE"
+      ],
+      "license_and_notice_member_sha256": {
+        "setuptools-83.0.0.dist-info/licenses/LICENSE": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+        "setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE": "ade78d04982d69972d444a8e14a94f87a2334dd3855cc80348ea8e240aa0df2d",
+        "setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+        "setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE": "458502e12d97bbf64438606a20044aa85eb05fb0a8a807bb35dbec253fd1fc04",
+        "setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+        "setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE": "9755a18519666e5f0f4cae3daad3d7012bcae48a600b31237d75e9fe134e6683",
+        "setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE": "5a57cb4db85e2a2dd88c290628908add57e3451449e0a9a71fdfb38776fd759d",
+        "setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+        "setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+        "setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.APACHE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+        "setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.BSD": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+        "setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6",
+        "setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe",
+        "setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt": "30c23618679108f3e8ea1d2a658c7ca417bdfc891c98ef1a89fa4ff0c9828654",
+        "setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE": "5a57cb4db85e2a2dd88c290628908add57e3451449e0a9a71fdfb38776fd759d",
+        "setuptools/config/NOTICE": "2dddf08818297a3b89d43d95ff659d8da85741108c9136dfa3a4d856c0623bd8",
+        "setuptools/config/_validate_pyproject/NOTICE": "09c9bcea95ca086f8bc5bed174e40bc835b297d40fb5f86bbbb570fe0a5581a7"
+      },
+      "requires_python": ">=3.10",
+      "provides_extra": [
+        "test",
+        "doc",
+        "ssl",
+        "certs",
+        "core",
+        "check",
+        "cover",
+        "enabler",
+        "type"
+      ],
+      "requires_dist": [
+        "pytest!=8.1.*,>=6; extra == \"test\"",
+        "virtualenv>=13.0.0; extra == \"test\"",
+        "wheel>=0.44.0; extra == \"test\"",
+        "pip>=19.1; extra == \"test\"",
+        "packaging>=24.2; extra == \"test\"",
+        "jaraco.envs>=2.2; extra == \"test\"",
+        "pytest-xdist>=3; extra == \"test\"",
+        "jaraco.path>=3.7.2; extra == \"test\"",
+        "build[virtualenv]>=1.0.3; extra == \"test\"",
+        "filelock>=3.4.0; extra == \"test\"",
+        "ini2toml[lite]>=0.14; extra == \"test\"",
+        "tomli-w>=1.0.0; extra == \"test\"",
+        "pytest-timeout; extra == \"test\"",
+        "pytest-perf; sys_platform != \"cygwin\" and extra == \"test\"",
+        "jaraco.develop>=7.21; (python_version >= \"3.9\" and sys_platform != \"cygwin\") and extra == \"test\"",
+        "pytest-home>=0.5; extra == \"test\"",
+        "pytest-subprocess; extra == \"test\"",
+        "pyproject-hooks!=1.1; extra == \"test\"",
+        "jaraco.test>=5.5; extra == \"test\"",
+        "sphinx>=3.5; extra == \"doc\"",
+        "jaraco.packaging>=9.3; extra == \"doc\"",
+        "rst.linker>=1.9; extra == \"doc\"",
+        "furo; extra == \"doc\"",
+        "sphinx-lint; extra == \"doc\"",
+        "jaraco.tidelift>=1.4; extra == \"doc\"",
+        "pygments-github-lexers==0.0.5; extra == \"doc\"",
+        "sphinx-favicon; extra == \"doc\"",
+        "sphinx-inline-tabs; extra == \"doc\"",
+        "sphinx-reredirects; extra == \"doc\"",
+        "sphinxcontrib-towncrier; extra == \"doc\"",
+        "sphinx-notfound-page<2,>=1; extra == \"doc\"",
+        "pyproject-hooks!=1.1; extra == \"doc\"",
+        "towncrier<24.7; extra == \"doc\"",
+        "packaging>=24.2; extra == \"core\"",
+        "more_itertools>=8.8; extra == \"core\"",
+        "jaraco.text>=3.7; extra == \"core\"",
+        "importlib_metadata>=6; python_version < \"3.10\" and extra == \"core\"",
+        "tomli>=2.0.1; python_version < \"3.11\" and extra == \"core\"",
+        "wheel>=0.43.0; extra == \"core\"",
+        "jaraco.functools>=4; extra == \"core\"",
+        "more_itertools; extra == \"core\"",
+        "pytest-checkdocs>=2.14; extra == \"check\"",
+        "pytest-ruff>=0.2.1; sys_platform != \"cygwin\" and extra == \"check\"",
+        "ruff>=0.13.0; sys_platform != \"cygwin\" and extra == \"check\"",
+        "pytest-cov; extra == \"cover\"",
+        "pytest-enabler>=3.4; extra == \"enabler\"",
+        "pytest-mypy>=1.0.1; platform_python_implementation != \"PyPy\" and extra == \"type\"",
+        "mypy==1.18.*; extra == \"type\"",
+        "importlib_metadata>=7.0.2; python_version < \"3.10\" and extra == \"type\"",
+        "jaraco.develop>=7.21; sys_platform != \"cygwin\" and extra == \"type\""
+      ],
+      "pypi_requires_dist_null": false,
+      "vendored_distributions": [
+        "autocommand==2.2.2",
+        "backports.tarfile==1.2.0",
+        "importlib_metadata==8.7.1",
+        "jaraco.text==4.0.0",
+        "jaraco.context==6.1.0",
+        "jaraco.functools==4.4.0",
+        "more-itertools==10.8.0",
+        "packaging==26.0",
+        "platformdirs==4.4.0",
+        "tomli==2.4.0",
+        "wheel==0.46.3",
+        "zipp==3.23.0"
+      ],
+      "embedded_license_notes": [
+        "autocommand 2.2.2 的 METADATA 声明 LGPLv3，随附 LGPL 第 3 版正文。",
+        "packaging 26.0 随附 Apache 与 BSD 两份许可及选择条款。",
+        "两份配置 NOTICE 涉及 validate-pyproject 的 MPL-2.0 及 fastjsonschema 的 BSD-3-Clause。"
+      ]
+    },
+    {
+      "tool": "pybind11",
+      "version": "3.1.0",
+      "url": "https://files.pythonhosted.org/packages/33/fd/8762f7ee3e4e4be6d1d846cffb4916dd9bb02b2f800d3603718a0efe494c/pybind11-3.1.0-py3-none-any.whl",
+      "wheel": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/pybind11-3.1.0-py3-none-any.whl",
+        "bytes": 319402,
+        "sha256": "b8488090f8acffbcb6b5d6a85571a6827a0a2981ffb75e5a0b27b87c4a6b7dd0"
+      },
+      "http_status": 200,
+      "receipt": "200 319402 16.679056 0",
+      "raw_audit": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/pybind11.audit.json",
+        "bytes": 1995,
+        "sha256": "557ef210115a5987c4d978e5f0be68dac9c4c514746bf169df99ffa4a3187e75"
+      },
+      "release_metadata": {
+        "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/pybind11.body",
+        "bytes": 116982,
+        "sha256": "e2d97126dcabc46e116d8ec6ef918ee80f6e27114571e5bdf39ffe8ac467eb88"
+      },
+      "record_entries": 77,
+      "record_sha256": "64739f73ade0745fbb0b6bf23e895f3a283c1aaeee5501df6760ec426f553264",
+      "metadata_sha256": "b00ce3708f23fe41c44be8cd46545c9a16c91d9a3e1c51a4047ac683cebe060c",
+      "wheel_tags": [
+        "py3-none-any"
+      ],
+      "license_expression_field": "BSD-3-Clause",
+      "license_field": null,
+      "primary_license_text": "BSD-3-Clause",
+      "declared_license_members": [
+        "pybind11-3.1.0.dist-info/licenses/LICENSE"
+      ],
+      "license_and_notice_member_sha256": {
+        "pybind11-3.1.0.dist-info/licenses/LICENSE": "83965b843b98f670d3a85bd041ed4b372c8ec50d7b4a5995a83ac697ba675dcb"
+      },
+      "requires_python": ">=3.9",
+      "provides_extra": [
+        "global"
+      ],
+      "requires_dist": [
+        "pybind11-global==3.1.0; extra == \"global\""
+      ],
+      "pypi_requires_dist_null": false
+    },
+    {
+      "tool": "meson",
+      "version": "1.12.1",
+      "url": "https://files.pythonhosted.org/packages/57/99/36cd25f9598eef70db97577440a70a360af505f6f01c2338a18d1556079c/meson-1.12.1-py3-none-any.whl",
+      "wheel": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/meson-1.12.1-py3-none-any.whl",
+        "bytes": 1108668,
+        "sha256": "930bc7542cbd9f57009e182fd014eba48cf1a0180a7b9006d2d32d8f168d8b02"
+      },
+      "http_status": 200,
+      "receipt": "200 1108668 52.896469 0",
+      "raw_audit": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/meson.audit.json",
+        "bytes": 2154,
+        "sha256": "fe6e4e3dc029bbf721384020508cc7c1993bb67031657c7917a5085a341dd576"
+      },
+      "release_metadata": {
+        "path": "tmp/pillow-tool-metadata-acquisition-20261112.2kic5fhk/meson.body",
+        "bytes": 210955,
+        "sha256": "34801ae0bdba0e23dd7261e35a3868fdbac647d7006739dc086a8310a654c612"
+      },
+      "record_entries": 256,
+      "record_sha256": "492969ec33ef0f844f1fce88b79e49d12be3ef3a6f84be1166818cbd714b75b6",
+      "metadata_sha256": "690a6190f8fe2f15822a341150963bcb79615657460e0b8cab755ce1912aeb22",
+      "wheel_tags": [
+        "py3-none-any"
+      ],
+      "license_expression_field": null,
+      "license_field": "Apache License, Version 2.0",
+      "primary_license_text": "Apache-2.0",
+      "declared_license_members": [
+        "meson-1.12.1.dist-info/licenses/COPYING"
+      ],
+      "license_and_notice_member_sha256": {
+        "meson-1.12.1.dist-info/licenses/COPYING": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "requires_python": ">=3.10",
+      "provides_extra": [
+        "ninja",
+        "progress",
+        "typing"
+      ],
+      "requires_dist": [
+        "ninja>=1.8.2; extra == \"ninja\"",
+        "tqdm; extra == \"progress\"",
+        "mypy; extra == \"typing\"",
+        "typing_extensions; python_version < \"3.8\" and extra == \"typing\""
+      ],
+      "pypi_requires_dist_null": false,
+      "source_header_observation": {
+        "member": "mesonbuild/dependencies/python.py",
+        "line": 1,
+        "text": "# SPDX-License-Identifier: Apache-2.",
+        "scope": "归档成员中的标识不完整。顶层 METADATA 与 COPYING 分别记录并已核对。"
+      }
+    },
+    {
+      "tool": "ninja",
+      "version": "1.13.2",
+      "url": "https://files.pythonhosted.org/packages/35/54/7368ce188625e39acc03ee362bb86cc9bfa6ad15e25c50889ae36e2889b3/ninja-1.13.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "wheel": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/ninja-1.13.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+        "bytes": 177180,
+        "sha256": "d775a5e43e9088f507a6250d57fcf5678eb31268c545feb5064ffeee33735622"
+      },
+      "http_status": 200,
+      "receipt": "200 177180 10.974976 0",
+      "raw_audit": {
+        "path": "tmp/pillow-four-tool-wheels-20261118.Pupf5dJv/ninja.audit.json",
+        "bytes": 2064,
+        "sha256": "74a60e31d295666a1d64c806164728f3a4fab4752b253c18d395e3b19fcbb400"
+      },
+      "release_metadata": {
+        "path": "tmp/pillow-ninja-single-20261118.lucXyI8b/fetch-r9sqss5w/ninja.body",
+        "bytes": 380593,
+        "sha256": "26598570bad73a8041639468aa383df7900ddf25d3e16b9ebb7e269d387083ba"
+      },
+      "record_entries": 12,
+      "record_sha256": "5a9a118cbb976a6ef8822a572f1498a28d223d13d444d10497a7ebe81ee1152d",
+      "metadata_sha256": "9628f3ee4355eb4805e7afdb4b01e20129fb76dfb76e6f8c4ce86150842d611c",
+      "wheel_tags": [
+        "py3-none-manylinux2014_aarch64",
+        "py3-none-manylinux_2_17_aarch64"
+      ],
+      "license_expression_field": "Apache-2.0",
+      "license_field": null,
+      "primary_license_text": "Apache-2.0",
+      "declared_license_members": [
+        "ninja-1.13.2.dist-info/licenses/LICENSE_Apache_20"
+      ],
+      "license_and_notice_member_sha256": {
+        "ninja-1.13.2.dist-info/licenses/LICENSE_Apache_20": "73ba74dfaa520b49a401b5d21459a8523a146f3b7518a833eea5efa85130bf68"
+      },
+      "requires_python": ">=3.8",
+      "provides_extra": [],
+      "requires_dist": [],
+      "pypi_requires_dist_null": true
+    }
+  ],
+  "scope": "核验构建工具的归档内容。四包合计 55 条 Requires-Dist 均带 extra 条件。构建器系统工具、实际安装、Ninja 二进制版本、最终分发的告知与源码交付另行验收。"
+}
