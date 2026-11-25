@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (c *TaskCoordinator) storePlan(ctx context.Context, conn *sql.Conn, s TaskScope, choice TaskChoice, r *TaskReceipt) error {
+func (c *TaskMetadata) storePlan(ctx context.Context, conn *sql.Conn, s TaskScope, choice TaskChoice, r *TaskReceipt) error {
 	p, _, err := c.host.FixedProfile(ctx, s, choice)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (c *TaskCoordinator) storePlan(ctx context.Context, conn *sql.Conn, s TaskS
 	return nil
 }
 
-func (c *TaskCoordinator) Create(ctx context.Context, s TaskScope, request, source string, choice TaskChoice) (TaskReceipt, error) {
+func (c *TaskMetadata) Create(ctx context.Context, s TaskScope, request, source string, choice TaskChoice) (TaskReceipt, error) {
 	if source != taskSource || !choice.valid() {
 		return TaskReceipt{}, ErrTaskInvalid
 	}
@@ -35,11 +35,11 @@ func (c *TaskCoordinator) Create(ctx context.Context, s TaskScope, request, sour
 		TaskChoice
 	}{source, choice}
 	return c.write(ctx, s, TaskCreate, "", request, input, func(conn *sql.Conn, _ Task, r *TaskReceipt) error {
-		var count int
-		if err := conn.QueryRowContext(ctx, `SELECT count(*) FROM development_tasks WHERE tenant_ref=? AND workspace_id=? AND account_id=?`, s.TenantRef, s.WorkspaceID, s.AccountID).Scan(&count); err != nil {
-			return ErrUnavailable
+		available, err := hasTaskCapacity(ctx, conn, s)
+		if err != nil {
+			return err
 		}
-		if count >= 256 {
+		if !available {
 			return ErrTaskCapacity
 		}
 		id, err := randomID("task_")
@@ -47,7 +47,7 @@ func (c *TaskCoordinator) Create(ctx context.Context, s TaskScope, request, sour
 			return err
 		}
 		r.TaskID, r.Revision = id, 1
-		now := c.runtime.now().UnixMilli()
+		now := c.now().UnixMilli()
 		_, err = conn.ExecContext(ctx, `INSERT INTO development_tasks(task_id,tenant_ref,workspace_id,account_id,application_id,record_version,plan_revision,created_at_ms,updated_at_ms) VALUES(?,?,?,?,?,1,1,?,?)`, id, s.TenantRef, s.WorkspaceID, s.AccountID, s.ApplicationID, now, now)
 		if err != nil {
 			return ErrUnavailable
@@ -56,7 +56,7 @@ func (c *TaskCoordinator) Create(ctx context.Context, s TaskScope, request, sour
 	})
 }
 
-func (c *TaskCoordinator) Revise(ctx context.Context, s TaskScope, task, request string, version int64, choice TaskChoice) (TaskReceipt, error) {
+func (c *TaskMetadata) Revise(ctx context.Context, s TaskScope, task, request string, version int64, choice TaskChoice) (TaskReceipt, error) {
 	if !validTaskVersion(version) || !choice.valid() {
 		return TaskReceipt{}, ErrTaskInvalid
 	}
@@ -75,7 +75,7 @@ func (c *TaskCoordinator) Revise(ctx context.Context, s TaskScope, task, request
 		if err := c.storePlan(ctx, conn, s, choice, r); err != nil {
 			return err
 		}
-		_, err := conn.ExecContext(ctx, `UPDATE development_tasks SET plan_revision=?,record_version=record_version+1,updated_at_ms=max(updated_at_ms,?) WHERE task_id=?`, r.Revision, c.runtime.now().UnixMilli(), task)
+		_, err := conn.ExecContext(ctx, `UPDATE development_tasks SET plan_revision=?,record_version=record_version+1,updated_at_ms=max(updated_at_ms,?) WHERE task_id=?`, r.Revision, c.now().UnixMilli(), task)
 		if err != nil {
 			return ErrUnavailable
 		}

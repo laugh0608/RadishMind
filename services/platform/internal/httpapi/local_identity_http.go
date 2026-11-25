@@ -534,30 +534,43 @@ func (service *localIdentityHTTPService) requireAuthenticatedWriteRequest(
 	expected string,
 	csrfCookieValid bool,
 ) bool {
-	if !service.requireSameOriginJSONRequest(writer, request, trace) {
-		return false
-	}
-	headerValues := request.Header.Values(localIdentityCSRFHeader)
-	if len(headerValues) != 1 || !csrfCookieValid || expected == "" ||
-		subtle.ConstantTimeCompare([]byte(headerValues[0]), []byte(expected)) != 1 {
-		writeLocalIdentityHTTPError(writer, trace, localIdentityCSRFInvalid)
+	if failure := service.authenticatedWriteFailure(request, expected, csrfCookieValid); failure != "" {
+		writeLocalIdentityHTTPError(writer, trace, failure)
 		return false
 	}
 	return true
 }
 
-func (service *localIdentityHTTPService) requireSameOriginJSONRequest(writer http.ResponseWriter, request *http.Request, trace requestTrace) bool {
-	origins := request.Header.Values("Origin")
-	if len(origins) != 1 || strings.TrimSpace(origins[0]) != service.allowedOrigin {
-		writeLocalIdentityHTTPError(writer, trace, localIdentityOriginForbidden)
-		return false
+func (service *localIdentityHTTPService) authenticatedWriteFailure(request *http.Request, expected string, csrfCookieValid bool) string {
+	if failure := service.sameOriginJSONFailure(request); failure != "" {
+		return failure
 	}
-	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
-	if err != nil || mediaType != "application/json" {
-		writeLocalIdentityHTTPError(writer, trace, localIdentityPayloadInvalid)
+	headerValues := request.Header.Values(localIdentityCSRFHeader)
+	if len(headerValues) != 1 || !csrfCookieValid || expected == "" ||
+		subtle.ConstantTimeCompare([]byte(headerValues[0]), []byte(expected)) != 1 {
+		return localIdentityCSRFInvalid
+	}
+	return ""
+}
+
+func (service *localIdentityHTTPService) requireSameOriginJSONRequest(writer http.ResponseWriter, request *http.Request, trace requestTrace) bool {
+	if failure := service.sameOriginJSONFailure(request); failure != "" {
+		writeLocalIdentityHTTPError(writer, trace, failure)
 		return false
 	}
 	return true
+}
+
+func (service *localIdentityHTTPService) sameOriginJSONFailure(request *http.Request) string {
+	origins := request.Header.Values("Origin")
+	if len(origins) != 1 || strings.TrimSpace(origins[0]) != service.allowedOrigin {
+		return localIdentityOriginForbidden
+	}
+	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		return localIdentityPayloadInvalid
+	}
+	return ""
 }
 
 func (service *localIdentityHTTPService) buildRegistration(input localIdentityRegistrationRequest, requestID string) (UserAccount, LocalCredential, WebSession, string, error) {

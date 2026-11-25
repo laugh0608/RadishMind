@@ -80,20 +80,40 @@ type TaskHost interface {
 	FixedProfile(context.Context, TaskScope, TaskChoice) (TaskProfile, time.Time, error)
 }
 
-type TaskCoordinator struct {
-	runtime *Runtime
-	host    TaskHost
+// TaskMetadata owns workbench planning and history. It has no runtime,
+// credential issuer or worker to activate from a metadata request.
+type TaskMetadata struct {
+	store *SQLiteStore
+	host  TaskHost
+	now   func() time.Time
 }
 
-func NewTaskCoordinator(r *Runtime, h TaskHost) (*TaskCoordinator, error) {
-	if r == nil || h == nil {
+type TaskCoordinator struct {
+	*TaskMetadata
+	runtime *Runtime
+}
+
+func NewTaskMetadata(store *SQLiteStore, h TaskHost) (*TaskMetadata, error) {
+	if store == nil || h == nil {
 		return nil, ErrUnavailable
 	}
 	var name string
-	if err := r.store.db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='development_tasks'").Scan(&name); err != nil {
+	if err := store.db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='development_tasks'").Scan(&name); err != nil {
 		return nil, ErrUnavailable
 	}
-	return &TaskCoordinator{r, h}, nil
+	return &TaskMetadata{store: store, host: h, now: time.Now}, nil
+}
+
+func NewTaskCoordinator(r *Runtime, h TaskHost) (*TaskCoordinator, error) {
+	if r == nil {
+		return nil, ErrUnavailable
+	}
+	metadata, err := NewTaskMetadata(r.store, h)
+	if err != nil {
+		return nil, err
+	}
+	metadata.now = func() time.Time { return r.now() }
+	return &TaskCoordinator{metadata, r}, nil
 }
 
 type Task struct {

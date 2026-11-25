@@ -65,6 +65,15 @@ func newRequestTrace(request *http.Request, route string) requestTrace {
 	}
 }
 
+func newServerGeneratedRequestTrace(request *http.Request, route string) requestTrace {
+	traceRequest := request.Clone(request.Context())
+	traceRequest.Header = request.Header.Clone()
+	traceRequest.Header.Del("X-Request-Id")
+	traceRequest.Header.Del("X-Request-ID")
+	traceRequest.Header.Del("OpenAI-Request-ID")
+	return newRequestTrace(traceRequest, route)
+}
+
 func (trace *requestTrace) applySelection(selection northboundSelection) {
 	trace.selection = selection
 	trace.hasSelection = true

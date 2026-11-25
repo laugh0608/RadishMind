@@ -39,6 +39,7 @@ type Server struct {
 	developmentMu                 sync.Mutex
 	developmentClosed             bool
 	developmentRuntime            *developmentcontrol.Runtime
+	developmentStore              *developmentcontrol.SQLiteStore
 	developmentHTTP               *http.Server
 	workbenchLock                 *workbench.Lock
 	closeWorkbenchAssets          func() error
@@ -473,6 +474,7 @@ func NewServerWithError(cfg config.Config, options Options) (*Server, error) {
 		}
 	}
 	registerLocalIdentityHTTPRoutes(mux, server)
+	registerDevelopmentTaskRoutes(mux, server)
 
 	mux.HandleFunc("GET /healthz", server.handleHealthz)
 	mux.HandleFunc("GET /v1/platform/overview", server.handlePlatformOverview)

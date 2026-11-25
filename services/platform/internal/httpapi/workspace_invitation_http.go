@@ -72,7 +72,7 @@ func registerWorkspaceInvitationHTTPRoutes(mux *http.ServeMux, server *Server) {
 }
 
 func (server *Server) handleWorkspaceInvitationAdminList(writer http.ResponseWriter, request *http.Request) {
-	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationAdminListRoute)
+	trace := newServerGeneratedRequestTrace(request, workspaceInvitationAdminListRoute)
 	service, actor, ok := server.requireWorkspaceInvitationAdministrator(
 		writer, request, trace, false, workspacepolicy.PermissionMembersRead, workspacepolicy.PermissionRolesRead,
 	)
@@ -96,7 +96,7 @@ func (server *Server) handleWorkspaceInvitationAdminList(writer http.ResponseWri
 }
 
 func (server *Server) handleWorkspaceInvitationAdminCreate(writer http.ResponseWriter, request *http.Request) {
-	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationAdminCreateRoute)
+	trace := newServerGeneratedRequestTrace(request, workspaceInvitationAdminCreateRoute)
 	service, actor, ok := server.requireWorkspaceInvitationAdministrator(
 		writer, request, trace, true, workspacepolicy.PermissionMembershipsWrite, workspacepolicy.PermissionRolesAssign,
 	)
@@ -129,7 +129,7 @@ func (server *Server) handleWorkspaceInvitationAdminCreate(writer http.ResponseW
 }
 
 func (server *Server) handleWorkspaceInvitationAdminRevoke(writer http.ResponseWriter, request *http.Request) {
-	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationAdminRevokeRoute)
+	trace := newServerGeneratedRequestTrace(request, workspaceInvitationAdminRevokeRoute)
 	service, actor, ok := server.requireWorkspaceInvitationAdministrator(
 		writer, request, trace, true, workspacepolicy.PermissionMembershipsWrite, workspacepolicy.PermissionRolesAssign,
 	)
@@ -160,7 +160,7 @@ func (server *Server) handleWorkspaceInvitationAdminRevoke(writer http.ResponseW
 }
 
 func (server *Server) handleWorkspaceInvitationPreview(writer http.ResponseWriter, request *http.Request) {
-	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationClaimPreviewRoute)
+	trace := newServerGeneratedRequestTrace(request, workspaceInvitationClaimPreviewRoute)
 	service, actor, _, ok := server.requireWorkspaceInvitationClaimant(writer, request, trace, false)
 	if !ok {
 		return
@@ -181,7 +181,7 @@ func (server *Server) handleWorkspaceInvitationPreview(writer http.ResponseWrite
 }
 
 func (server *Server) handleWorkspaceInvitationClaim(writer http.ResponseWriter, request *http.Request) {
-	trace := newWorkspaceInvitationRequestTrace(request, workspaceInvitationClaimRoute)
+	trace := newServerGeneratedRequestTrace(request, workspaceInvitationClaimRoute)
 	service, actor, requestSession, ok := server.requireWorkspaceInvitationClaimant(writer, request, trace, true)
 	if !ok {
 		return
@@ -343,15 +343,6 @@ func workspaceInvitationHTTPRefs(trace requestTrace, action string) (string, str
 	action = strings.TrimSpace(action)
 	digest := localIdentityDigest("workspace_invitation_http_v1", trace.requestID, action)
 	return "request:workspace-invitation:" + digest, "audit:workspace-invitation:" + action + ":" + digest
-}
-
-func newWorkspaceInvitationRequestTrace(request *http.Request, route string) requestTrace {
-	traceRequest := request.Clone(request.Context())
-	traceRequest.Header = request.Header.Clone()
-	traceRequest.Header.Del("X-Request-Id")
-	traceRequest.Header.Del("X-Request-ID")
-	traceRequest.Header.Del("OpenAI-Request-ID")
-	return newRequestTrace(traceRequest, route)
 }
 
 func (server *Server) writeWorkspaceInvitationError(

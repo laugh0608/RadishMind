@@ -16,9 +16,8 @@ type artifactSourceFixture struct{ input artifact.Input }
 func (s artifactSourceFixture) Snapshot(context.Context, artifact.Scope, string) (artifact.Input, error) {
 	return s.input, nil
 }
-func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
-	f := newDevelopmentServerFixture(t)
-	ctx := context.Background()
+func developmentArtifactInput(t *testing.T, scope artifact.Scope) artifact.Input {
+	t.Helper()
 	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "scripts", "eval", "fixtures", "development-control", "artifact.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -27,7 +26,7 @@ func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b.Scope = artifact.Scope{TenantRef: f.identity.TenantRef, WorkspaceID: f.identity.WorkspaceID, AccountID: f.identity.AccountID, ApplicationID: f.plan.ApplicationID}
+	b.Scope = scope
 	b.Origin.AccountID = b.Scope.AccountID
 	b.Origin.WorkspaceID = b.Scope.WorkspaceID
 	b.Origin.ApplicationID = b.Scope.ApplicationID
@@ -37,12 +36,19 @@ func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
 		t.Fatal(err)
 	}
 	now := time.Now().UTC()
-	in := artifact.Input{Scope: b.Scope, Origin: b.Origin, Plan: b.Plan, Probe: b.Probe, AttemptState: "completed", SourceCreatedAt: now.Add(-time.Minute), SnapshotAt: now, Files: b.Files, Tests: []artifact.Test{}}
+	return artifact.Input{Scope: b.Scope, Origin: b.Origin, Plan: b.Plan, Probe: b.Probe, AttemptState: "completed", SourceCreatedAt: now.Add(-time.Minute), SnapshotAt: now, Files: b.Files, Tests: []artifact.Test{}}
+}
+
+func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
+	f := newDevelopmentServerFixture(t)
+	ctx := context.Background()
+	in := developmentArtifactInput(t, artifact.Scope{TenantRef: f.identity.TenantRef, WorkspaceID: f.identity.WorkspaceID, AccountID: f.identity.AccountID, ApplicationID: f.plan.ApplicationID})
+	now := time.Now().UTC()
 	service, err := f.server.ConnectDevelopmentArtifacts(f.request, artifactSourceFixture{in})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = service.Preview(ctx, b.Scope, b.Origin.AttemptID); err != artifact.ErrDenied {
+	if _, err = service.Preview(ctx, in.Scope, in.Origin.AttemptID); err != artifact.ErrDenied {
 		t.Fatal("existing admin implicitly gained permission", err)
 	}
 	role := f.role
@@ -54,18 +60,18 @@ func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
 	if err = f.identityRepository.CreateRoleAssignment(ctx, role); err != nil {
 		t.Fatal(err)
 	}
-	preview, err := service.Preview(ctx, b.Scope, b.Origin.AttemptID)
+	preview, err := service.Preview(ctx, in.Scope, in.Origin.AttemptID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	saved, err := service.Save(ctx, b.Scope, b.Origin.AttemptID, "save_artifact_fixture", preview.Digest)
+	saved, err := service.Save(ctx, in.Scope, in.Origin.AttemptID, "save_artifact_fixture", preview.Digest)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Saved content reading must not depend on a live model or price policy.
 	f.server.bridge = nil
 	f.server.gatewayModelPricingRepository = nil
-	exported, err := service.Export(ctx, b.Scope, saved.ArtifactID, "export_artifact_fixture")
+	exported, err := service.Export(ctx, in.Scope, saved.ArtifactID, "export_artifact_fixture")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +79,7 @@ func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
 	if _, err = artifact.ParseExport(encoded); err != nil {
 		t.Fatal(err)
 	}
-	other := b.Scope
+	other := in.Scope
 	other.AccountID = "account_other"
 	if _, err = service.Read(ctx, other, saved.ArtifactID); err != artifact.ErrDenied {
 		t.Fatal("cross owner read")
@@ -81,7 +87,7 @@ func TestDevelopmentArtifactCurrentIdentityAndIndependentGrants(t *testing.T) {
 	if _, err = f.identityRepository.RevokeRoleAssignment(ctx, role.AssignmentID, role.RecordVersion, now.Add(time.Second), "audit:artifact-revoke"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = service.Read(ctx, b.Scope, saved.ArtifactID); err != artifact.ErrDenied {
+	if _, err = service.Read(ctx, in.Scope, saved.ArtifactID); err != artifact.ErrDenied {
 		t.Fatal("role revocation ignored", err)
 	}
 	if _, err = f.server.ConnectDevelopmentArtifacts(httptest.NewRequest("POST", "/", nil), nil); err != artifact.ErrDenied {

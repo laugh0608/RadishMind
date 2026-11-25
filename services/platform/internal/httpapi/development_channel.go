@@ -23,7 +23,7 @@ func (s *Server) ConnectDevelopmentControl(backend developmentcontrol.NativeBack
 	if s.developmentRuntime != nil {
 		return nil, developmentcontrol.ErrConflict
 	}
-	store, err := developmentcontrol.NewSQLiteStore(s.localPersistenceRuntime.DB())
+	store, err := s.developmentStoreLocked()
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +33,21 @@ func (s *Server) ConnectDevelopmentControl(backend developmentcontrol.NativeBack
 	}
 	s.developmentRuntime = runtime
 	return runtime, nil
+}
+
+// All task writers share the store's SQLite writer gate, including the probe.
+func (s *Server) developmentStoreLocked() (*developmentcontrol.SQLiteStore, error) {
+	if s.developmentClosed || s.localPersistenceRuntime == nil {
+		return nil, developmentcontrol.ErrUnavailable
+	}
+	if s.developmentStore == nil {
+		store, err := developmentcontrol.NewSQLiteStore(s.localPersistenceRuntime.DB())
+		if err != nil {
+			return nil, err
+		}
+		s.developmentStore = store
+	}
+	return s.developmentStore, nil
 }
 
 func (s *Server) developmentIssuer(request *http.Request) (developmentcontrol.Identity, *developmentcontrol.Runtime, error) {

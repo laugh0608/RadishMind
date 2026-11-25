@@ -45,18 +45,18 @@ func readTaskReceipt(ctx context.Context, q queryer, scope TaskScope, request st
 	return r, taskReadError(err)
 }
 
-func (c *TaskCoordinator) ReadTask(ctx context.Context, scope TaskScope, id string) (Task, error) {
+func (c *TaskMetadata) ReadTask(ctx context.Context, scope TaskScope, id string) (Task, error) {
 	if !scope.valid() || !idPattern.MatchString(id) {
 		return Task{}, ErrTaskInvalid
 	}
 	if err := c.host.AuthorizeTask(ctx, scope, TaskRead); err != nil {
 		return Task{}, err
 	}
-	return readTask(ctx, c.runtime.store.db, scope, id)
+	return readTask(ctx, c.store.db, scope, id)
 }
 
 // ReadAttempt returns a private control record for projection by the host.
-func (c *TaskCoordinator) ReadAttempt(ctx context.Context, s TaskScope, task, attempt string) (*Record, error) {
+func (c *TaskMetadata) ReadAttempt(ctx context.Context, s TaskScope, task, attempt string) (*Record, error) {
 	if !idPattern.MatchString(attempt) {
 		return nil, ErrTaskInvalid
 	}
@@ -67,7 +67,7 @@ func (c *TaskCoordinator) ReadAttempt(ctx context.Context, s TaskScope, task, at
 	if t.AttemptID != attempt {
 		return nil, ErrNotFound
 	}
-	record, err := c.runtime.Read(ctx, s.Identity, attempt)
+	record, err := c.store.Read(ctx, s.Identity, attempt)
 	if err != nil {
 		return nil, err
 	}
@@ -77,21 +77,21 @@ func (c *TaskCoordinator) ReadAttempt(ctx context.Context, s TaskScope, task, at
 	return record, nil
 }
 
-func (c *TaskCoordinator) ReadPlan(ctx context.Context, scope TaskScope, task string, revision int) (TaskPlan, error) {
+func (c *TaskMetadata) ReadPlan(ctx context.Context, scope TaskScope, task string, revision int) (TaskPlan, error) {
 	if !scope.valid() || !idPattern.MatchString(task) || revision < 1 || revision > 16 {
 		return TaskPlan{}, ErrTaskInvalid
 	}
 	if err := c.host.AuthorizeTask(ctx, scope, TaskRead); err != nil {
 		return TaskPlan{}, err
 	}
-	return readTaskPlan(ctx, c.runtime.store.db, scope, task, revision)
+	return readTaskPlan(ctx, c.store.db, scope, task, revision)
 }
 
-func (c *TaskCoordinator) ReadReceipt(ctx context.Context, scope TaskScope, request string) (TaskReceipt, error) {
+func (c *TaskMetadata) ReadReceipt(ctx context.Context, scope TaskScope, request string) (TaskReceipt, error) {
 	if !scope.valid() || !idPattern.MatchString(request) {
 		return TaskReceipt{}, ErrTaskInvalid
 	}
-	r, err := readTaskReceipt(ctx, c.runtime.store.db, scope, request)
+	r, err := readTaskReceipt(ctx, c.store.db, scope, request)
 	if err != nil {
 		return TaskReceipt{}, err
 	}
@@ -110,7 +110,7 @@ func (c *TaskCoordinator) ReadReceipt(ctx context.Context, scope TaskScope, requ
 
 // A write reads the current owner and operation permission before consulting a
 // receipt. Only first submissions evaluate time-sensitive prerequisites.
-func (c *TaskCoordinator) write(ctx context.Context, s TaskScope, op TaskOperation, task, request string, input any, apply func(*sql.Conn, Task, *TaskReceipt) error) (TaskReceipt, error) {
+func (c *TaskMetadata) write(ctx context.Context, s TaskScope, op TaskOperation, task, request string, input any, apply func(*sql.Conn, Task, *TaskReceipt) error) (TaskReceipt, error) {
 	if !s.valid() || !idPattern.MatchString(request) || op != TaskCreate && !idPattern.MatchString(task) {
 		return TaskReceipt{}, ErrTaskInvalid
 	}
@@ -122,7 +122,7 @@ func (c *TaskCoordinator) write(ctx context.Context, s TaskScope, op TaskOperati
 		return TaskReceipt{}, err
 	}
 	r := TaskReceipt{RequestID: request, Operation: op, RequestDigest: digest, TaskID: task}
-	err = c.runtime.store.transaction(ctx, func(conn *sql.Conn) error {
+	err = c.store.transaction(ctx, func(conn *sql.Conn) error {
 		if err := c.host.AuthorizeTask(ctx, s, op); err != nil {
 			return err
 		}
