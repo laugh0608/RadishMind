@@ -1,8 +1,8 @@
 # 受控开发：产物保存与导出合同 v1
 
-更新时间：2026-10-31
+更新时间：2026-11-25
 
-状态：固定三文件 Go 探针的 canonical schema、Go 构造 / 严格消费、SQLite 显式保存 / 精确读取 / 导出及可信宿主接线已实现；真实 SDK 与代码沙箱同次任务的固定响应保存 / 导出已验收。正式 HTTP 与 Web 按阶段 1 公开合同实施。[阶段顺位](../radishmind-current-focus.md#next-actions)
+状态：固定 Go 探针已验证真实 SDK 与代码沙箱同次任务的固定响应保存 / 导出。阶段 1 正式会话已可列出、读取与导出已保存包。任务协调器的保存事务已用隔离 SQLite 验证，面向正式会话的临时候选预览和显式保存仍待接入。[公开 HTTP 面](development-task-delivery-v1.md#公开-http-面)
 
 所属功能：[隔离代码执行与候选交付](../features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)。本轮范围由项目所有者明确批准，沿用[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
 
@@ -71,11 +71,11 @@
 | 保存 | 上述读取权限 + `development_artifacts:save`，应用活跃 |
 | 导出 | 上述读取权限 + `development_artifacts:export` |
 
-三项权限登记到既有权限目录，但本轮不改内置角色目录版本，也不自动给既有管理员 / Builder 授权。当前仅可信宿主通过既有身份负责模块显式建立精确授权后使用；正式角色目录与 Web 分配流程在阶段 1 确定。旧 `application_result_artifacts:*`、应用执行权限及任务 bearer 均不代替这三项权限。
+角色目录 `local_identity_builtin_roles_v3` 将三项产物权限纳入 `workspace_developer`，由管理员在精确工作区显式分配。通过正式任务预览临时候选还需对应任务读取权限。原 v1 / v2 角色分配按其冻结授权核对。[身份权限与角色分配](development-task-delivery-v1.md#身份权限与角色分配)
 
 适配器每次重读 Web Session、账户、活跃成员关系、权限和精确应用所有者，撤销 Session / 成员 / 权限或禁用账户立即影响后续操作。跨租户、工作区、账户、应用拒绝，不提供管理员跨用户正文读取特例。历史读取不要求原模型 / 定价仍在线。
 
-导出仅为单份精确已保存记录的 JSON 投影，服务端重新校验内容、摘要与敏感策略，并绑定新请求和导出时间；不落第二份内容、不建导出历史、公开链接、分享 token、压缩包或任意路径下载接口。未来 HTTP 必须使用 `Cache-Control: no-store`，当前没有该路由。本轮只在隔离测试目录验证序列化，不进行外部上传或发布。
+正式会话通过 `GET development-artifacts/{artifact_id}/export` 请求单份已保存记录的 JSON 投影。服务端重新校验内容、摘要和敏感策略，绑定本次请求及导出时间，返回 `Cache-Control: no-store`。已保存内容只有一份，导出时即时生成响应。
 
 ## 容量与保留
 
@@ -121,4 +121,4 @@
 
 合成验证覆盖实际 patch 应用、来源 / 候选 / 策略错绑、旧测试、未知退出、截断 / OOM、非法 UTF-8、敏感文本、严格字段、显式保存失败与重试、并发配额、数据库不可变、损坏拒绝、撤权和重启精确重读。schema 验证在既有平台 Python 聚合中使用本地 registry；未新增平行任务卡或 readiness checker。
 
-运行证据见 [W44 记录](../devlogs/2026-W44.parts/development-artifacts-20261031.md)。该分层窗口没有运行 Docker 或 SDK。后续[联合验收](../devlogs/2026-W44.parts/development-joint-20261031.md)已完成正常、旧证据失效及取消后的可信包保存 / 导出、失败重试与重启重读；固定响应及合成资格不证明真实提供方、正式身份入口、自主编码质量或阶段 0 退出。下一动作按实施规划补齐采用条件；真实模型和用户试用仍暂停。
+阶段 0 的[分层验证](../devlogs/2026-W44.parts/development-artifacts-20261031.md)与[联合验收](../devlogs/2026-W44.parts/development-joint-20261031.md)分别记录 SQLite 和真实 SDK / 代码沙箱的证据。阶段 1 已另行验证正式会话读取与导出，以及保存事务的失败回滚。下一步按公开合同接入临时候选预览和显式保存。[阶段 1 记录](../devlogs/2026-W48.md)

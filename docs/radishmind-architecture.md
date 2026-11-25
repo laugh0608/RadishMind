@@ -1,6 +1,6 @@
 # RadishMind 系统架构
 
-更新时间：2026-11-05
+更新时间：2026-11-25
 
 ## 架构职责
 
@@ -94,7 +94,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 拟新增团队版本、运行、任务 / 尝试、脱敏事件与开发产物引用，由明确领域负责模块维护；账户、Gateway 与现有结果负责模块不复制。开发包已由独立 `developmentartifact` 负责，使用共享 SQLite 的独立 `development_artifacts` 组件；显式保存、不可变包、配额与精确导出遵守[产物合同](contracts/development-artifact-v1.md)，不写入旧 Session 或文本结果字段。团队事件正文仍须按后续合同处理。阶段 1 单 Agent 的 Go 任务协调器使用同库独立迁移，在单个事务中持久化确认消费、唯一尝试、执行槽和回执。正式会话通过任务元数据接口按当前授权和应用所有者读写计划、回执与历史。已保存包的分页、读取及导出复用产物模块。可信 Go 宿主在启动提交后一次性交付工作进程凭据；工作台持锁启动时按原实例和资源账册核对旧执行槽。工作台在显式冻结配置下，通过正式会话确认、启动和取消固定任务；内部模型通道独立于真实提供方。冻结环境的实际容器验收另排。[公开交付合同](contracts/development-task-delivery-v1.md) 重启默认只读回记录，不自动重放代码 / 工具命令。
 
-现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用；这些当前边界不变。专属编码工具往返、任务级委托和单尝试状态 / 事件已取得固定响应证据；正式公开任务接口与运行协调留待阶段 1，通用仓库和团队并发不由探针结果推定通过。现有 API 语义、工作进程与默认运行配置保持；新增 `internal/developmentprobe` 及 `cmd/radishmind-development-probe` 仅消费独立探针 schema，校验计划、准备合成副本和检查候选身份，不持有平台凭据、不发起模型或执行命令。
+现有 Agent Profile 固定 `allow_tool_calls=false`，建议调用限时 30 秒，northbound 桥接亦禁止工具调用。工作台的固定 Go 任务使用独立的受限执行档案与生命周期。离线 `internal/developmentprobe` 和 `cmd/radishmind-development-probe` 只消费探针 schema，校验计划、准备合成副本和检查候选身份。通用仓库与团队并发仍属后续范围。
 
 `internal/developmentcontrol` 承接单尝试合同、SDK 参数转换、预算 / 取消规则、共享 SQLite 的独立 `development_attempts` 组件、提议 / 事件事务及严格原生 HTTP 消费；`internal/strictjson` 由两者复用。`httpapi` 通过显式 Go 接口连接现有身份、应用 AuthorityDigest、精确模型目录与定价，签发须验证本地 Session、当前管理员资格和逐任务计划确认；专属监听器只在明确调用时绑定回环临时端口。没有默认配置开关或公开管理路由。`ConnectDevelopmentNativeHTTP` 已实现单一非流式 `openai-compatible` HTTP 接线，复用 Go 配置 / 凭据来源并重查当前目录；固定上游工具往返已验证，真实厂商资格和完整输入计量仍未验收。它不改变旧建议型 Gateway 的工具关闭语义。工具只入队，文件 / 命令只在显式接线的固定 Go 探针沙箱中执行；新组件仅 SQLite，不继承其它负责模块的双数据库声明。
 

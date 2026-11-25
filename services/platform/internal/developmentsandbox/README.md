@@ -2,7 +2,7 @@
 
 本包是可信 Go 宿主显式启用的受限执行器，接入 `WorkerLaunch.Sandbox`，实现 `Binding / HandleTool / Close`。它只接受三文件代表任务与独立确认的控制计划，不是宿主 shell 或通用执行 API。边界、私有 schema、归属与停止语义见[沙箱合同](../../../../docs/contracts/development-code-sandbox-v1.md)。
 
-`Config.Directory` 必须是新的私有绝对路径，调用方明确来源、镜像、Docker 程序及 Linux watchdog 摘要；watchdog 复制到该目录后固定挂载，不复用可变外部程序。实际验证快照全只读，候选替换由 Go 完成。该目录保存候选、快照、日志与资源账册；清理容器不删除唯一证据，创建时固定 24 小时临时保留期限；关闭后通过 `NewDeliverySource` 提供可信开发包来源，`RemoveExpiredArtifacts` 显式清理到期自有材料。保存 / 导出由[开发产物模块](../developmentartifact/README.md)负责，没有后台清理或公开下载入口。
+`Config.Directory` 必须是新的私有绝对路径，调用方明确来源、镜像、Docker 程序及 Linux watchdog 摘要。watchdog 复制到该目录后固定挂载。实际验证快照全只读，候选替换由 Go 完成。该目录保存候选、快照、日志与资源账册。创建时固定 24 小时临时保留期限，关闭后由 `NewDeliverySource` 提供可信开发包来源，`RemoveExpiredArtifacts` 显式清理到期自有材料。已保存包由[开发产物模块](../developmentartifact/README.md)读取和导出。
 
 常规验证不安装依赖、启动 Docker 或运行 SDK：
 
@@ -23,6 +23,6 @@ RADISHMIND_SANDBOX_CASES="$PWD/../../tmp/development-sandbox-20261031/cases" \
 GOPROXY=off go test -race -cover -count=1 -run '^TestDockerSandbox' -v -timeout 8m ./internal/developmentsandbox
 ```
 
-没有真实模型或用户试用。其他架构、Windows 控制端、通用仓库、恶意代码防护、团队共享资源及正式交付仍未验证；不能从本机固定任务结果扩展声明。`CleanupRecovered` 只用于可信宿主显式收口旧账册，不自动重放命令。
+工作台持锁启动时可调用 `TaskWorkers.RecoverCode` 按原实例、尝试、Docker 实例和容器身份核对遗留资源。此次恢复路径使用 Docker CLI 替身做了隔离测试，实际容器回收与冻结 SDK 联调另排。其他架构、Windows 控制端、通用仓库及团队共享资源仍待验收。[工作台核对与交接](../../../../docs/contracts/development-task-delivery-v1.md#sqlite-实现与宿主接线)
 
 真实 SDK 同次任务的候选修改、测试、保存 / 导出、旧测试失效和命令中取消已固定响应联合验收，见[运行入口](../../../../scripts/eval/development_probe/README.md#sdk代码沙箱与产物联合验收2026-10-31)。联合用例默认 skip，仅在明确授权的可信控制容器中启用；不替代真实提供方、正式身份入口、Web 或模型效果验收。

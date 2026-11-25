@@ -1,6 +1,6 @@
 # RadishMind 功能设计文档入口
 
-更新时间：2026-11-01
+更新时间：2026-11-25
 
 ## 文档目的
 
@@ -10,7 +10,7 @@
 
 ## 当前目标
 
-当前开发主线与停止线由[当前推进焦点](../radishmind-current-focus.md)维护；受控开发团队的阶段 0 工作集中在[任务卡](../task-cards/development-task-probe-v1-plan.md)，四项退出条件见[实施与评测子专题](workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-0-采用复评与剩余退出条件)。登记与局部技术验收不代表正式采用。
+受控开发已进入正式 Web 单 Agent 技术交付。阶段 0 的冻结 SDK 采用依据见[集中任务卡](../task-cards/development-task-probe-v1-plan.md#2026-11-25-sdk-接收确认与阶段-0-采用复评)。阶段 1 的目标与验收见[实施与评测子专题](workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md#阶段-1单-agent-隔离开发交付)，近期工作见[当前推进焦点](../radishmind-current-focus.md#next-actions)。
 
 [本机持久工作台](user-workspace/local-persistent-workbench-delivery-v1.md)是交付基座；技术证据、独立用户及未验平台按该专题分别记录。真实模型继续暂停；既有完成专题不由本次导航整理派生续批。未来 Gateway 解释与尝试轨迹随受控开发阶段 1 统筹，应用运行观测保持 `no_entry`。
 

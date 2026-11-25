@@ -1,6 +1,6 @@
 # 受控开发尝试：工具通道、委托、事件与取消 / 预算合同 v1
 
-更新时间：2026-11-05
+更新时间：2026-11-25
 
 状态：单尝试领域规则、SQLite 持久状态 / 提议 / 事件事务、当前资格读取、任务凭据与独立回环通道已实现并以固定响应验证。默认未启用；受限 SDK Agent 工作进程 / 事件、模型等待取消及所属 SDK 进程组终止已固定响应验证；固定 Go 探针代码沙箱、受限工具与归属清理现已真实验收，SDK 收尾接线已定向验证；真实 SDK 与固定代码容器同次任务的候选 / 测试 / 产物及命令中取消已联合验证；原生 HTTP 已通过固定上游验证，真实厂商资格及通用沙箱仍待收口。所属功能见[主专题](../features/workflow/controlled-software-development-team-v1.md)，实施记录见[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
 
@@ -16,7 +16,7 @@
 | `GET /internal/development/v1/attempts/{attempt_id}/tool-catalog` | 读取本通道唯一冻结工具目录 | 不开放 SDK 默认终端、MCP 或递归委派 |
 | `GET /internal/development/v1/attempts/{attempt_id}/events` | `after_sequence` / `limit` 增量读取 | 最多 50 项，显式 `next_sequence / has_more / record_version`；读取不触发执行 |
 
-这些路由不注册到公开 `/v1` 或主监听器，不扩大旧建议型 Agent Profile 的 30 秒边界。HTTP 同时核对回环来源与 Host、拒绝 Origin；浏览器 Session、Cookie、长期 API key 和自报身份均不能替代任务 bearer。没有 SDK 自报权威事件、签发或取消成功的入口。正式 Web 启动 / 取消 / 结果资源接口仍待阶段 1。
+这些路由只注册在内部回环监听器，核对来源与 Host、拒绝 Origin，并要求短期任务 bearer。SDK 无权签发凭据、写入权威事件或确认取消成功。工作台正式会话经单独的公开接口确认、启动和取消固定响应任务，读取尝试详情。公开事件分页待接入。[公开 HTTP 面](development-task-delivery-v1.md#公开-http-面)
 
 模型请求只接受 `model / messages / max_completion_tokens / tools` 及显式为 `false` 的 `stream / parallel_tool_calls`。未知、重复、空值、大小写别名、尾随 JSON 拒绝；总请求最多 262144 字节、消息最多 64 条、单条文本最多 65536 UTF-8 字节。消息仅文本及原生 assistant `tool_calls` / tool `tool_call_id`；不解析答案正文里的 JSON。模型必须精确匹配冻结模型名，单响应最多一个工具调用，多个调用整体拒绝。
 
@@ -58,7 +58,7 @@
 
 ## 真实资格、确认与凭据
 
-首个内部开发档案复用现有本地身份负责模块，要求当前活跃账户、工作区成员、`applications:read`、`local_identity_roles:assign` 及实际管理员管理资格。仅有成员或应用运行权限不足以签发；管理员身份也不自动发起任务，还须确认精确计划及当前选择。未新增全局角色或权限目录，团队角色资格后续另定。
+阶段 0 的内部探针要求活跃账户、工作区成员、`applications:read`、`local_identity_roles:assign`、实际管理员管理资格和逐任务确认。阶段 1 的工作台固定响应任务使用应用所有权、精确任务权限与逐任务确认，开发者角色在当前工作区显式分配。[身份权限与角色分配](development-task-delivery-v1.md#身份权限与角色分配)
 
 `Server.PrepareDevelopmentAttempt(request, plan)` 与 `IssueDevelopmentAttempt(request, plan, confirmationID, prepared)` 只供可信 Go 宿主调用。请求必须已经过现有本地 Session 中间件验证并选定工作区；账户 / 租户 / 工作区从验证上下文取得。相同确认身份只能创建一次尝试，失败或响应丢失不恢复原文凭据，也不自动重建执行。
 
@@ -77,7 +77,7 @@ Go 生成 256 位随机不透明 `devtask_` bearer，仅可信 SDK 工作进程�
 
 ## 受限 SDK 工作进程与私有事件
 
-可信宿主显式调用 `Runtime.RunWorker`，按当前作用域 / 凭据、精确首次消息和私有空目录核对后，先持久提交 `worker_claimed` 再启动一次进程。已有认领、旧实例或旧凭据不能重放。当前仅支持 Linux / macOS 进程组，未开放 Windows 执行、公开启动路由或自动启用配置。详细运行边界见[SDK 模块说明](../../services/runtime/development_sdk/README.md)。
+可信宿主用 `Runtime.RunWorker` 启动一次进程。它核对当前作用域、凭据、精确首次消息和私有空目录，先提交 `worker_claimed` 再启动。进程组支持 Linux / macOS，旧实例或已认领尝试不能重放。工作台公开任务由 `TaskCoordinator.StartWorker` 交接，冻结执行档案限 `linux/arm64`。[SDK 模块说明](../../services/runtime/development_sdk/README.md)
 
 stdin 一次交接任务凭据与计划输入，后续只交回已提交的事件确认和可信工具观察值；stdout 帧只允许既定类型、最多 128 项和每帧 262144 字节。Go 校验 SDK 序号、类型、请求身份和工具摘要后才写事件 / 回复确认。SDK 普通日志不公开，错误只接受固定诊断码；未知帧或失败报告立即停止，不解析原始错误文本猜授权。
 
@@ -136,7 +136,7 @@ Go 在返回真实后端模型响应之前，登记提议身份、父模型请�
 
 SDK 进程由独立控制路径立即发出软停止，两秒未退出则强制终止，有界等待仍不能核对退出或空组时记录未确认；额外 FD 3 失联会终止 SDK 所属组。真实 SDK 等待取消和存活管道断开已验，Go 测试另验证拒绝软停止的子进程组。固定 Go 沙箱已验证取消后强制删除、空资源查询及显式遗留清理；五秒内强制终止、十秒内归属核对无法满足时如实记未确认。分层实际证据与联合任务分别记录，不能仅据 SDK 退出宣布完整本地取消成功。仅凭 SDK pause、浏览器断线、PID 不存在或自报布尔值不足以标记已取消；本地取消也不证明上游停止或零费用。
 
-每次运行生成新的实例身份；重启只读回元数据、账目与事件，旧 bearer 不再可用，不自动认领、续签、补跑模型或命令。可信宿主显式 `Interrupt` 才将遗留活动尝试收口为未知并吊销，后续新尝试需新确认。当前没有自动恢复或持久租约调度器。
+每次运行生成新的实例身份，旧 bearer 随重启失效。内部探针由可信宿主显式调用 `Interrupt`。持久工作台在持锁启动时将遗留活动尝试记为 `outcome_unknown`，按账册核对旧实例的资源，结束未确认时继续占用执行槽。历史重读不会重新签发凭据、恢复命令或再次执行。
 
 ## 验证与下一实施
 

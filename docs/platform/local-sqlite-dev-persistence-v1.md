@@ -10,7 +10,7 @@
 
 2026-10-31 受控开发探针在同一共享数据库新增独立 `development_attempts` 与 `development_artifacts` 迁移族，分别保存尝试 / 提议 / 事件事务和显式确认的不可变开发包；不复用应用结果资产正文或自动保存 SDK transcript。两组件仅由可信宿主显式接线，不因迁移存在启动 SDK、代码容器或公开路由。旧工作台需停服、冷备份后显式 `upgrade`；本轮隔离测试没有升级日常运行库，早期工作台 88 张表的验收快照不能当作新增迁移后的表数。合同见[尝试控制](../contracts/development-attempt-control-v1.md)与[开发产物](../contracts/development-artifact-v1.md)。
 
-2026-11-25 新增 `development_tasks` 迁移族，保存任务、计划、确认与请求回执。启动和显式保存分别与原尝试、产物共享事务，工作台升级沿用上述流程。[公开交付合同](../contracts/development-task-delivery-v1.md#sqlite-实现与宿主接线)
+`development_tasks` 迁移族现有三项迁移。`0001_development_tasks` 保存任务、计划修订、确认与请求回执，启动和保存分别与原尝试、开发包共享事务。`0002_development_task_resources` 保存执行实例和逐项资源账册，供工作台重启时核对旧执行槽。`0003_development_task_tool_activity` 记录当前工具、序号、候选摘要和起始时间，供尝试详情读取。旧库沿用工作台的停服、备份和显式升级流程。[公开交付合同](../contracts/development-task-delivery-v1.md#sqlite-实现与宿主接线)
 
 RadishMind 增加 `sqlite_dev`，用于无需 PostgreSQL 服务即可完成本地产品开发、前后端联调和服务重启恢复。它与现有 `memory_dev`、`postgres_dev_test` 并行，不替代任何一层：
 

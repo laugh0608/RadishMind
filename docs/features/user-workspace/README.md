@@ -1,6 +1,6 @@
 # 用户工作区细专题入口
 
-更新时间：2026-10-26
+更新时间：2026-11-25
 
 本目录承接用户工作区中跨应用、模型发现、接入、调用与审查的具体功能专题。产品面长期边界继续以 [用户工作区设计与开发文档](../user-workspace.md) 为准。
 
@@ -37,7 +37,7 @@
 
 ## Agent 协作开发设计
 
-[多 Agent 协同与受控软件开发团队](../workflow/controlled-software-development-team-v1.md)已纳入下一功能设计，正式 Web 拟提供团队、计划确认、任务 / 群聊与交付审阅。运行与隔离合同由 Workflow / Agent Runtime 主专题负责，本目录不另建平行团队状态；当前没有新页面或可执行入口。
+阶段 1 的应用内开发任务页将提供计划确认、运行详情、候选审阅与保存。工作台正式会话已有任务执行和已保存开发包接口，React 页面及浏览器验收待实施。团队与群聊属于后续阶段。[单 Agent 界面专题](../workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md)
 
 ## 下一步
 

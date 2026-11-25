@@ -1,6 +1,6 @@
 # 受控开发：固定 Go 探针代码沙箱合同 v1
 
-更新时间：2026-10-31
+更新时间：2026-11-25
 
 所属功能：[隔离代码执行与候选交付](../features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。当前实现只覆盖已冻结的三文件 Go 代表任务；不是通用仓库执行服务、正式开发产物或生产多租户沙箱。
 
@@ -8,9 +8,9 @@
 
 可信 Go 宿主显式创建 `developmentsandbox.New(Config)`，核对已确认的 `Plan / Delegation`、基准摘要、精确可读 / 可写路径、镜像与 watchdog 摘要。探针计划提供文件集合、固定验证命令及单命令期限，尝试的模型 / 工具次数仍由独立确认的控制计划限制。依赖、镜像与运行影响须另按具体窗口授权；SDK / 模型不能选择 Docker 程序、镜像、挂载、命令或宿主目录。
 
-`WorkerLaunch.Sandbox` 只接受绑定相同尝试、执行器、计划和基准的可信 `WorkerSandbox`，与旧合成 `ToolHandler` 不可同时使用。SDK 工具仍先由 Go 持久消费提议 / 预留，再调用 `HandleTool`；SDK 无法直接调用该 Go 对象。正常平台 / 工作台不创建此对象，没有公开启动路由或默认启用开关。
+`WorkerLaunch.Sandbox` 只接受绑定相同尝试、执行器、计划和基准的可信 `WorkerSandbox`，与旧合成 `ToolHandler` 不可同时使用。Go 持久消费工具提议和预留后才调用 `HandleTool`。工作台的公开启动接口通过已确认的固定任务间接使用此对象，执行须显式配置。[公开交付合同](development-task-delivery-v1.md#sqlite-实现与宿主接线)
 
-单次工具串行执行，重复请求身份拒绝；重启只提供显式 `CleanupRecovered`，不恢复对象、重新执行工具或重放命令。SQLite 仍是尝试状态、资格、事件与预算的权威；资源账册只记录容器归属和清理事实，不成为第二套任务状态机。
+单次工具串行执行，重复请求身份拒绝。内部探针提供显式 `CleanupRecovered`。持久工作台取得数据锁后，按旧实例与尝试的账册核对资源，Docker 不可用或归属未明时保留未确认状态和执行槽。SQLite 保存尝试状态、资格、事件与预算，重启只核对和清理原资源。
 
 ## 文件与验证边界
 
@@ -49,4 +49,4 @@ watchdog 与 Go 的 Docker 输出捕获各自最多保留 65536 字节，SDK 观
 
 当前真实容器验收覆盖冻结基准 / 修正候选、只读挂载、宿主秘密不继承、网络拒绝、磁盘 / 进程上限、取消、硬期限、遗留运行容器清理和输出超限。SDK 收尾接线另有 Go 定向验证；首次沙箱窗口未再次启动真实 SDK 或运行真实模型，不据分层证据宣布真实 SDK 与代码容器同次任务的联合验收、恶意代码安全或正式采用完成。运行入口见[模块说明](../../services/platform/internal/developmentsandbox/README.md)，历史证据见[本轮记录](../devlogs/2026-W44.parts/development-code-sandbox-20261031.md)。
 
-开发产物接线现由[保存与导出合同](development-artifact-v1.md)承接：创建时固定 24 小时保留元数据，关闭后从可信测试结果和精确源码构造候选包；内部 SQLite 保存链已定向验证，公开下载未开放；随后已完成[真实 SDK 同次任务联合验收](../devlogs/2026-W44.parts/development-joint-20261031.md)，覆盖修改、测试、保存 / 导出及命令中取消。原有资源账册与容器清理语义保持，清理容器不会提前删除未保存证据。
+开发产物从关闭后的可信测试结果与精确源码构造，保留创建时固定的 24 小时临时期限。清理容器独立于清理候选材料。阶段 0 的真实 SDK 联合任务覆盖修改、测试、保存 / 导出及命令中取消。阶段 1 的已保存包可经工作台正式会话读取与导出。[保存与导出合同](development-artifact-v1.md) · [联合验收记录](../devlogs/2026-W44.parts/development-joint-20261031.md)
