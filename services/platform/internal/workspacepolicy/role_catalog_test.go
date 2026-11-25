@@ -65,7 +65,7 @@ func TestRoleCatalogJSONContract(t *testing.T) {
 	if err := json.Unmarshal(catalog["roles"], &roles); err != nil {
 		t.Fatal(err)
 	}
-	if len(roles) != 4 {
+	if len(roles) != 5 {
 		t.Fatalf("unexpected role count: %d", len(roles))
 	}
 	for _, role := range roles {
@@ -75,12 +75,12 @@ func TestRoleCatalogJSONContract(t *testing.T) {
 
 func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
 	catalog := BuiltInRoleCatalog()
-	if catalog.DefinitionDigest != "sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae" {
+	if catalog.DefinitionDigest != "sha256:7a9265bf9b1883c199d177e4fdc2014b420282e1d5b960138e4a7ac6df8225a1" {
 		t.Fatalf("role catalog changed without an explicit catalog version decision: %s", catalog.DefinitionDigest)
 	}
 	if catalog.SchemaVersion != RoleCatalogSchemaVersion ||
 		catalog.CatalogVersion != RoleCatalogVersion ||
-		len(catalog.Roles) != 4 || !strings.HasPrefix(catalog.DefinitionDigest, "sha256:") {
+		len(catalog.Roles) != 5 || !strings.HasPrefix(catalog.DefinitionDigest, "sha256:") {
 		t.Fatalf("role catalog contract drifted: %#v", catalog)
 	}
 	byKey := make(map[string]RoleDefinition, len(catalog.Roles))
@@ -114,11 +114,22 @@ func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
 		!localIdentityGrantSubset(reviewer.PermissionGrants, administrator.PermissionGrants) {
 		t.Fatal("built-in role grants are not cumulative")
 	}
-	// Stage-0 development artifact permissions are explicit grants only.
-	// Existing immutable built-in roles must not silently gain them.
-	allowed := slices.DeleteFunc(PermissionNames(), func(p string) bool { return strings.HasPrefix(p, "development_artifacts:") })
+	allowed := slices.DeleteFunc(PermissionNames(), func(p string) bool { return strings.HasPrefix(p, "development_") })
 	if !slices.Equal(administrator.PermissionGrants, allowed) {
-		t.Fatalf("workspace_admin must cover the shipped allowlist excluding explicit stage-0 grants:\nwant=%v\n got=%v", allowed, administrator.PermissionGrants)
+		t.Fatalf("workspace_admin grants drifted:\nwant=%v\n got=%v", allowed, administrator.PermissionGrants)
+	}
+	wantDeveloperGrants := []string{
+		"applications:read",
+		"development_artifacts:export",
+		"development_artifacts:read",
+		"development_artifacts:save",
+		"development_tasks:cancel",
+		"development_tasks:execute",
+		"development_tasks:read",
+		"development_tasks:write",
+	}
+	if developer := byKey[RoleWorkspaceDeveloper]; !slices.Equal(developer.PermissionGrants, wantDeveloperGrants) {
+		t.Fatalf("workspace_developer grant drift: %v", developer.PermissionGrants)
 	}
 	for _, definition := range catalog.Roles {
 		wantManagement := definition.RoleKey == RoleWorkspaceAdmin
@@ -134,6 +145,43 @@ func TestLocalIdentityBuiltInRoleCatalogContract(t *testing.T) {
 	catalog.Roles[0].PermissionGrants[0] = "applications:archive"
 	if BuiltInRoleCatalog().Roles[0].PermissionGrants[0] == "applications:archive" {
 		t.Fatal("role catalog caller mutated canonical grants")
+	}
+}
+
+func TestHistoricalRoleCatalogsPreserveFrozenGrants(t *testing.T) {
+	for _, test := range []struct {
+		catalog RoleCatalog
+		digest  string
+	}{
+		{builtInRoleCatalogV1, "sha256:d784ef5d5595f4fa3ed96f32c86f3fd12edbd4098da46668366f97ce42e2d4d0"},
+		{builtInRoleCatalogV2, "sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae"},
+	} {
+		if test.catalog.DefinitionDigest != test.digest || len(test.catalog.Roles) != 4 {
+			t.Fatalf("original catalog %s drifted: %s", test.catalog.CatalogVersion, test.catalog.DefinitionDigest)
+		}
+		if _, ok := BuiltInRoleAtVersion(test.catalog.CatalogVersion, RoleWorkspaceDeveloper); ok {
+			t.Fatalf("developer exists in historical catalog %s", test.catalog.CatalogVersion)
+		}
+		for _, want := range test.catalog.Roles {
+			got, ok := BuiltInRoleAtVersion(test.catalog.CatalogVersion, want.RoleKey)
+			if !ok || !reflect.DeepEqual(got, want) {
+				t.Fatalf("incorrect versioned lookup: %s/%s", test.catalog.CatalogVersion, want.RoleKey)
+			}
+			got.PermissionGrants[0] = "unknown:write"
+			fresh, _ := BuiltInRoleAtVersion(test.catalog.CatalogVersion, want.RoleKey)
+			if !reflect.DeepEqual(fresh, want) {
+				t.Fatal("versioned lookup exposed canonical grant storage")
+			}
+			if test.catalog.CatalogVersion == roleCatalogVersionV2 {
+				current, _ := BuiltInRole(want.RoleKey)
+				if !slices.Equal(current.PermissionGrants, want.PermissionGrants) {
+					t.Fatalf("v3 changed deployed grants for %s", want.RoleKey)
+				}
+			}
+		}
+	}
+	if _, ok := BuiltInRoleAtVersion("local_identity_builtin_roles_v99", RoleWorkspaceAdmin); ok {
+		t.Fatal("unknown version resolved a role")
 	}
 }
 

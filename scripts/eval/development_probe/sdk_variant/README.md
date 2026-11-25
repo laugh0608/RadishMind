@@ -1,6 +1,6 @@
 # SDK 遥测可选依赖候选
 
-`1.59.0+radishmind.1` 于 2026-10-31 完成变体构建、119 项冻结安装和固定响应联合复验。原始 `1.59.0` 的 138 项锁和镜像保留为历史试验基线。2026-11-21 最终 ARM64 SDK 采用修复后的 Pillow wheel，已通过禁网构建、告知读取和 SDK / 联合回归。本地伴随源码和告知已组装并逐项复核，待接收方确认后复评正式采用。[最终交付记录](#最终-sdk-本地交付)
+`1.59.0+radishmind.1` 于 2026-10-31 完成变体构建、119 项冻结安装和固定响应联合复验。原始 `1.59.0` 的 138 项锁和镜像保留为历史试验基线。2026-11-21 最终 ARM64 SDK 采用修复后的 Pillow wheel，通过禁网构建、告知读取和 SDK / 联合回归。2026-11-25 确认本机材料可取得后，按阶段 1 固定 Go 单 Agent 的受限执行范围正式采用。[最终交付记录](#最终-sdk-本地交付)
 
 原变体准备器与构建校验覆盖六包 14 份 wheel 补充告知、pip 25.0.1 的 21 份内嵌告知和 CPython 3.12.16 的 Expat / libmpdec 两份告知。wheel 校验绑定安装报告中的版本与归档摘要。pip 独立校验同一安装的元数据及 280 个内嵌文件。CPython 校验绑定保留镜像的 `pyexpat` 和 `_decimal` 扩展字节。下文 10 月 31 日的历史镜像早于补充告知的接入。最终配方使用[独立离线上下文](#最终-sdk-交付离线准备)。
 
@@ -172,4 +172,4 @@ python3 scripts/eval/development_probe/prepare_sdk_delivery.py \
 
 `deploy/Dockerfile.development-sdk-delivery` 使用独立离线上下文和固定基础镜像。最终镜像已核对 119 项冻结安装、`pip check`、`65532:65532` 读取 42 份补充告知、CPython 动态库归属及三个 SDK 联合用例。[构建与运行回执](sdk-delivery-build-runtime-20261121.json) · [联合验收回执](sdk-delivery-runtime-closeout-20261121.json)
 
-已按最终镜像清单摘要将本地配套源码与告知放在 `dist/sdk-delivery/sources/<SDK-image-sha256>/`。目录内的 `manifest.json` 绑定镜像、冻结锁与全部材料，可用随附的 `verify_manifest.py` 离线逐项核对。交付记录保留 OpenSSL 补丁清单未证实的边界，历史构建取证已结束。所有者确认能取得该目录后，再复评正式采用。[组装与回读回执](sdk-delivery-local-source-result-20261121.json)
+已按最终镜像清单摘要将本地配套源码与告知放在 `dist/sdk-delivery/sources/<SDK-image-sha256>/`。目录内的 `manifest.json` 绑定镜像、冻结锁与全部材料，可用随附的 `verify_manifest.py` 离线逐项核对。交付记录保留 OpenSSL 补丁清单未证实的边界，历史构建取证已结束。[组装与回读回执](sdk-delivery-local-source-result-20261121.json) · [接收确认与采用复评](../../../../docs/task-cards/development-task-probe-v1-plan.md#2026-11-25-sdk-接收确认与阶段-0-采用复评)

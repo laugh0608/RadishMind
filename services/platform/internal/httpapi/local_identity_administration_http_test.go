@@ -29,7 +29,7 @@ func TestLocalIdentityAdministrationHTTPSevenRouteVerticalChain(t *testing.T) {
 	}
 	var catalogDocument localIdentityAdminRoleCatalogResponse
 	decodeLocalIdentityHTTPResponse(t, catalogResponse, &catalogDocument)
-	reader := roleDefinitionByKey(t, catalogDocument.Catalog, workspacepolicy.RoleWorkspaceReader)
+	developer := roleDefinitionByKey(t, catalogDocument.Catalog, workspacepolicy.RoleWorkspaceDeveloper)
 
 	membershipResponse := fixture.request(t, http.MethodPost, strings.Replace(
 		localIdentityAdminMembershipCreatePath, "{workspace_id}", "workspace_demo", 1,
@@ -45,9 +45,9 @@ func TestLocalIdentityAdministrationHTTPSevenRouteVerticalChain(t *testing.T) {
 	assignmentResponse := fixture.request(t, http.MethodPost, strings.Replace(
 		localIdentityAdminRoleAssignPath, "{workspace_id}", "workspace_demo", 1,
 	), map[string]any{
-		"user_id": fixture.target.Account.UserID, "role_key": reader.RoleKey,
-		"expected_catalog_version":        reader.CatalogVersion,
-		"expected_role_definition_digest": reader.DefinitionDigest,
+		"user_id": fixture.target.Account.UserID, "role_key": developer.RoleKey,
+		"expected_catalog_version":        developer.CatalogVersion,
+		"expected_role_definition_digest": developer.DefinitionDigest,
 		"confirmed":                       true,
 	}, fixture.adminCookies)
 	if assignmentResponse.Code != http.StatusCreated {
@@ -55,7 +55,7 @@ func TestLocalIdentityAdministrationHTTPSevenRouteVerticalChain(t *testing.T) {
 	}
 	var assignmentDocument localIdentityAdminRoleAssignmentResponse
 	decodeLocalIdentityHTTPResponse(t, assignmentResponse, &assignmentDocument)
-	if !assignmentDocument.RoleAssignment.Effective || assignmentDocument.RoleAssignment.RoleKey != reader.RoleKey {
+	if !assignmentDocument.RoleAssignment.Effective || assignmentDocument.RoleAssignment.RoleKey != developer.RoleKey {
 		t.Fatalf("role assignment projection mismatch: %#v", assignmentDocument.RoleAssignment)
 	}
 
@@ -96,9 +96,9 @@ func TestLocalIdentityAdministrationHTTPSevenRouteVerticalChain(t *testing.T) {
 	reassignmentResponse := fixture.request(t, http.MethodPost, strings.Replace(
 		localIdentityAdminRoleAssignPath, "{workspace_id}", "workspace_demo", 1,
 	), map[string]any{
-		"user_id": fixture.target.Account.UserID, "role_key": reader.RoleKey,
-		"expected_catalog_version":        reader.CatalogVersion,
-		"expected_role_definition_digest": reader.DefinitionDigest,
+		"user_id": fixture.target.Account.UserID, "role_key": developer.RoleKey,
+		"expected_catalog_version":        developer.CatalogVersion,
+		"expected_role_definition_digest": developer.DefinitionDigest,
 		"confirmed":                       true,
 	}, fixture.adminCookies)
 	if reassignmentResponse.Code != http.StatusCreated {

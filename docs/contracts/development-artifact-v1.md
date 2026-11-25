@@ -2,7 +2,7 @@
 
 更新时间：2026-10-31
 
-状态：固定三文件 Go 探针的 canonical schema、Go 构造 / 严格消费、SQLite 显式保存 / 精确读取 / 导出及可信宿主接线已实现；已追加真实 SDK 与代码沙箱同次任务的固定响应保存 / 导出验收。正式 HTTP、Web、团队与生产能力未开放，阶段 0 尚未退出。
+状态：固定三文件 Go 探针的 canonical schema、Go 构造 / 严格消费、SQLite 显式保存 / 精确读取 / 导出及可信宿主接线已实现；真实 SDK 与代码沙箱同次任务的固定响应保存 / 导出已验收。正式 HTTP 与 Web 按阶段 1 公开合同实施。[阶段顺位](../radishmind-current-focus.md#next-actions)
 
 所属功能：[隔离代码执行与候选交付](../features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)。本轮范围由项目所有者明确批准，沿用[集中任务卡](../task-cards/development-task-probe-v1-plan.md)。
 

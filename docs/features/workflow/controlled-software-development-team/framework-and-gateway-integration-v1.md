@@ -1,22 +1,22 @@
 # 受控开发团队：框架选型与 Gateway 接入 v1
 
-更新时间：2026-11-12（源码与离线核对进度复核，正式采用仍待闭合）
+更新时间：2026-11-25（冻结 ARM64 SDK 的阶段 0 采用复评通过）
 
-状态：离线基础与 SDK 1.59.0 的 LLM 固定响应契约试验完成；`linux/arm64` / Python 3.12 完整 wheel 哈希锁已实装复建。单尝试持久事务、当前资格、任务凭据与专属回环通道已用 Go 固定响应验证；受限 SDK Agent 已通过私有协议、完整工具往返、允许事件、未知量及实际取消 / 父管道退出验证；固定 Go 隔离执行 / 归属清理已另行真实验证，真实 SDK 同次候选修改 / 测试 / 保存 / 导出及命令中取消已固定响应联合验收；Go 原生 HTTP 已完成固定上游技术验证；真实厂商资格与正式采用条件仍未满足。
+状态：正式采用最终 ARM64 镜像中的 OpenHands SDK `1.59.0+radishmind.1` 及其冻结锁，供阶段 1 固定 Go 单 Agent 的受限执行层使用。SDK、原生 HTTP 与隔离执行已有固定响应技术证据。真实厂商资格另验，通道默认关闭。[采用复评](../../../task-cards/development-task-probe-v1-plan.md#2026-11-25-sdk-接收确认与阶段-0-采用复评)
 
 所属功能：[多 Agent 协同与受控软件开发团队](../controlled-software-development-team-v1.md)。本页只负责执行框架、模型协议和采用证据；团队权威状态见[运行状态专题](team-runtime-state-and-artifacts-v1.md)，工具影响边界见[隔离执行专题](isolated-code-execution-and-delivery-v1.md)。
 
 ## 选型结论与依据
 
-优先验证 OpenHands Software Agent SDK 作为单角色编码执行层。Go 保有有限团队流程、授权、预算和状态，不将这些职责转交 SDK，也不新建通用工作流引擎。
+首版采用冻结的 OpenHands Software Agent SDK 作为单角色编码执行层。Go 负责流程、授权、预算和状态。
 
 2026-10-31 核对的[官方 SDK 说明](https://docs.openhands.dev/sdk)介绍了面向软件开发的 Python / REST 接口；[自定义工具说明](https://docs.openhands.dev/sdk/guides/custom-tools)提供工具动作、观察值和执行器的扩展方式。这些是候选依据，不证明其默认工具已满足本项目隔离策略。
 
-[SDK 项目声明](https://github.com/OpenHands/software-agent-sdk/blob/main/openhands-sdk/pyproject.toml)当次记录 Python `>=3.12`，包含 LiteLLM 等额外依赖；仓库当前 `requirements-dev.txt` 仅声明 `jsonschema>=4.0`，工作台镜像使用 Python 3.12。这条初始观察只确定版本下限有交集；后续候选已完成下文记录的锁定安装与固定响应验证，整镜像许可和工作台正式接入仍未验收。上游 `main` 是观察来源，不是采用版本锁。
+[SDK 项目声明](https://github.com/OpenHands/software-agent-sdk/blob/main/openhands-sdk/pyproject.toml)当次记录 Python `>=3.12`，包含 LiteLLM 等额外依赖。采用版本以已验独立镜像及冻结锁为准，工作台正式接入在阶段 1 验收。
 
 | 候选 | 本项目中的位置 | 决策 |
 | --- | --- | --- |
-| [OpenHands SDK](https://github.com/OpenHands/software-agent-sdk) | 单角色编码执行、受控工具适配 | 首选候选；试验版本与依赖已锁定，满足下表关键条件后才正式采用 |
+| [OpenHands SDK](https://github.com/OpenHands/software-agent-sdk) | 单角色编码执行、受控工具适配 | 阶段 1 采用已验的冻结变体及 ARM64 锁 |
 | [LangGraph](https://github.com/langchain-ai/langgraph) | 后续复杂编排候选 | 首版不引入，避免重复状态和恢复权威 |
 | [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | 编排替代候选 | 首选方案不能满足关键条件时，使用同一任务另作比较 |
 | [CrewAI](https://github.com/crewAIInc/crewAI)、[MetaGPT](https://github.com/FoundationAgents/MetaGPT) | 角色和协作流程参考 | 不移植完整框架，不并存多套执行与调度机制 |
@@ -49,7 +49,7 @@
 
 ## 采用前必须取得的证据
 
-以下试验需要明确依赖、镜像、隔离目录和服务范围；真实模型仍暂停。当前已完成 SDK LLM 的固定响应工具往返、错误 / 超时及严格消费试验，并用捕获请求核对旧 Gateway；任务级内部委托、受限 Agent 事件、模型等待取消与 SDK 进程组退出已追加固定响应证据；下表仍为正式采用条件，真实提供方、许可证完整核验与正式交付仍待收口；固定 Go 代码沙箱及联合任务本地资源终止已取得证据。
+下表保留采用时核对的技术条件。阶段 0 的固定响应、隔离执行、冻结镜像与本机伴随源码交付证据见[集中任务卡](../../../task-cards/development-task-probe-v1-plan.md#2026-11-25-sdk-接收确认与阶段-0-采用复评)。真实模型窗口仍暂停，提供方资格按后续真实验证记录。
 
 每次试验在下载前固定候选版本及依赖锁输入，记录实际解析结果与镜像摘要；验证通过后再形成正式采用锁，不以浮动 `latest` 作为可复验依据。
 
@@ -115,7 +115,7 @@ SDK 试验候选来自 [PyPI 1.59.0](https://pypi.org/project/openhands-sdk/1.59
 
 下一批明确精确输入、影响范围、投入上限、复核点与结束决定；没有有效新来源就不重复历史取证。只保留一条选定候选，原锁和镜像作历史证据，不并行维护多套变体。路线仍不可行时登记阻塞、改选或等待，不自动扩展到递归工具链取证 / 通用构建。
 
-公开合同和六幅设计已获确认；许可最终交付仍是阶段 0 出口的一部分。原生 HTTP 固定上游技术项已通过，未改变的路径不机械重跑，真实厂商 / 模型资格另验。新候选构建、重锁、下载、镜像读取和实际交付均不由本次文档操作授权。
+2026-11-25 所有者确认本机材料可取得。原生 HTTP、公开合同与六幅最终设计保留既有证据，阶段 0 复评通过。真实厂商及模型资格按后续真实验证记录，新候选构建、重锁、下载、镜像读取和实际交付按具体窗口授权。[采用复评](../../../task-cards/development-task-probe-v1-plan.md#2026-11-25-sdk-接收确认与阶段-0-采用复评)
 
 2026-11-10 已接入 [CPython 告知准备与校验](../../../../scripts/eval/development_probe/sdk_variant/README.md)。本地新准备目录的正文已与留存镜像的 `pyexpat`、`_decimal` 扩展字节一起通过离线校验。最终镜像构建、实际安装、非 root 读取和伴随源码交付待另行验收。Pillow 指定历史取证路线已结束，单 wheel 替换范围已获确认，其余 118 个 wheel 逐字节沿用。[候选输入清单](../../../devlogs/2026-W46.md#2026-11-10-pillow-候选精确输入清单)已展开 Linux 构建配方的 16 个直接归档候选。11 月 11 日首轮六项取证已完成，cibuildwheel 版本、四项 AVIF 实际来源规则及 multibuild 完整快照已核对；随后[四次输入解析](../../../devlogs/2026-W46.md#2026-11-11-pillow-输入解析完成)取得 AOM / dav1d 完整提交及精确 cibuildwheel 源码配置所指的构建器镜像摘要。两个窗口均已关闭。后续已验 manifest / config 及十九份原生源码，原生源码获取阶段完成；来源例外、逐项摘要和静态核验见[集中任务卡](../../../task-cards/development-task-probe-v1-plan.md)。11 月 18 日首窗核验三项，Ninja 元数据随后在获准的单项窗口补齐并通过核验。随后四个目标工具 wheel 均取得，实物摘要、包内许可和依赖声明已核验，详见[选型决定](../../../task-cards/development-task-probe-v1-plan.md#2026-11-18-候选选型)。11 月 19 日已完成[固定构建器的静态取证](../../../task-cards/development-task-probe-v1-plan.md#直连执行与最终文件视图)，21 个唯一对象及 23 个层位置均验收。[兼容性与离线配方复评](../../../task-cards/development-task-probe-v1-plan.md#cpython-兼容性与离线配方复评)支持保留 CPython 3.12.15 构建器，SDK 保留 3.12.16 用于产物验收。[离线输入与配方](../../../task-cards/development-task-probe-v1-plan.md#原生配方与离线实物预检)已通过静态预检。实际构建窗口待确认主控、镜像及资源。最终告知和伴随源码交付仍待验收。
 

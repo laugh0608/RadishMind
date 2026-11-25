@@ -661,8 +661,9 @@ func (repository *memoryLocalIdentityRepository) AuthorizeWorkspace(_ context.Co
 	assignments := make([]LocalRoleAssignment, 0)
 	grantSet := make(map[string]struct{})
 	for _, assignment := range repository.roleAssignments {
-		if assignment.UserID != userID || assignment.TenantRef != tenantRef || assignment.LifecycleState != localIdentityStateActive ||
-			assignment.WorkspaceID != "" && assignment.WorkspaceID != workspaceID || assignment.ExpiresAt != nil && !assignment.ExpiresAt.After(now) {
+		if assignment.UserID != userID || assignment.TenantRef != tenantRef ||
+			assignment.WorkspaceID != "" && assignment.WorkspaceID != workspaceID ||
+			!localIdentityRoleAssignmentEffective(assignment, now) || !localIdentityAssignmentGrantsValid(assignment) {
 			continue
 		}
 		assignments = append(assignments, cloneLocalRoleAssignment(assignment))

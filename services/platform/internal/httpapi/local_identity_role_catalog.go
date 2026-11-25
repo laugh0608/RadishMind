@@ -19,7 +19,10 @@ func validLocalIdentityRoleCatalogMetadata(assignment LocalRoleAssignment) bool 
 	version := strings.TrimSpace(assignment.RoleCatalogVersion)
 	digest := strings.TrimSpace(assignment.RoleDefinitionDigest)
 	if version == "" && digest == "" {
-		return true
+		return assignment.RoleKey != workspacepolicy.RoleWorkspaceDeveloper &&
+			!slices.ContainsFunc(assignment.PermissionGrants, func(grant string) bool {
+				return strings.HasPrefix(strings.TrimSpace(grant), "development_tasks:")
+			})
 	}
 	return version != "" && version == assignment.RoleCatalogVersion &&
 		validControlPlaneReadAuthReference(version, false) &&
@@ -51,14 +54,22 @@ func localIdentityRoleDefinitionMatchesAssignment(
 		slices.Equal(assignment.PermissionGrants, definition.PermissionGrants)
 }
 
+func localIdentityAssignmentMatchesCatalog(assignment LocalRoleAssignment) bool {
+	definition, known := workspacepolicy.BuiltInRoleAtVersion(assignment.RoleCatalogVersion, assignment.RoleKey)
+	return known && localIdentityRoleDefinitionMatchesAssignment(definition, assignment)
+}
+
+func localIdentityAssignmentGrantsValid(assignment LocalRoleAssignment) bool {
+	if assignment.RoleCatalogVersion == "" && assignment.RoleDefinitionDigest == "" {
+		return validLocalIdentityRoleCatalogMetadata(assignment)
+	}
+	return (assignment.RoleKey != workspacepolicy.RoleWorkspaceDeveloper || assignment.WorkspaceID != "") &&
+		localIdentityAssignmentMatchesCatalog(assignment)
+}
+
 func localIdentityAssignmentCanManage(assignment LocalRoleAssignment, now time.Time) bool {
-	if assignment.LifecycleState != localIdentityStateActive ||
-		assignment.ExpiresAt != nil && !assignment.ExpiresAt.After(now.UTC()) {
-		return false
-	}
-	definition, exists := workspacepolicy.BuiltInRole(assignment.RoleKey)
-	if !exists || !definition.CanManageLocalIdentity {
-		return false
-	}
-	return workspacepolicy.HasManagementPermissions(assignment.PermissionGrants)
+	return assignment.RoleKey == workspacepolicy.RoleWorkspaceAdmin &&
+		localIdentityRoleAssignmentEffective(assignment, now) &&
+		localIdentityAssignmentGrantsValid(assignment) &&
+		workspacepolicy.HasManagementPermissions(assignment.PermissionGrants)
 }

@@ -1,8 +1,8 @@
 # 单 Agent 开发任务：公开交付合同 v1
 
-更新时间：2026-11-10（确认回执、幂等及重启归属）
+更新时间：2026-11-25（落地公开 schema 和版本化开发角色）
 
-状态：阶段 0 的公开交付合同与固定 Go 单 Agent 首版范围已获项目所有者确认。公开 API、任务协调器和 Web 属于阶段 1 实现。
+状态：阶段 1 已落地公开交付 schema 和本地身份目录 v3 的 `workspace_developer` 角色。任务协调器、公开 API 和任务 Web 页面待接续。
 
 所属功能：[实施与评测](../features/workflow/controlled-software-development-team/implementation-and-evaluation-plan-v1.md)、[运行状态与证据](../features/workflow/controlled-software-development-team/team-runtime-state-and-artifacts-v1.md)、[协作界面](../features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md)。本页维护新增公开任务合同；底层委托、工具、事件与产物字段继续由[尝试控制](development-attempt-control-v1.md)和[开发产物](development-artifact-v1.md)负责。
 
@@ -45,9 +45,9 @@
 | 保存、导出 | 产物读取分别加既有 `development_artifacts:save / export` |
 | 查询自己的请求回执 | 任务操作回执需 `development_tasks:read`，保存回执需 `development_artifacts:read` |
 
-拟在阶段 1 的版本化角色目录增加叠加角色 `workspace_developer`：仅授予本表四项任务权限、三项产物权限及 `applications:read`，不拥有成员管理或其它应用执行权限。应用创建仍由既有 Builder 等角色负责。现有 Reader / Builder / Reviewer / Admin 的已存授权不得自动获得代码执行权限；管理员使用现有角色分配流程显式授予新角色，预览新增权限与目录版本。
+角色目录 `local_identity_builtin_roles_v3` 增加叠加角色 `workspace_developer`，授予本表四项任务权限、三项产物权限及 `applications:read`。应用创建仍由既有 Builder 等角色负责。管理员通过正式 Web 的现有角色分配流程，在精确工作区预览目录版本和权限并显式授予该角色。Reader、Builder、Reviewer 和 Admin 继续持有原有授权。
 
-角色目录升级必须保留旧版本分配的明确识别和冻结权限，不按新目录重算旧授权；版本未知或摘要不符拒绝。阶段 1 在原身份模块实现目录升级与管理界面的精确分配，不能用阶段 0 的 `local_identity_roles:assign` 管理资格直接包装正式执行接口，也不另建身份系统。
+已存 v1 / v2 分配按原目录版本、定义摘要和冻结权限核对。版本未知、摘要或授权集合不符的分配不参与授权。无目录版本的历史授权沿既有路径处理，新任务权限仅由版本化角色显式授予。正式任务执行检查本表精确权限和资源所有权。`local_identity_roles:assign` 继续只负责角色分配。
 
 取消不要求原模型配置仍可用，也不要求保留执行权限；它要求当前取消权限和原任务所有权。执行资格撤销、成员失效、应用归档或会话失效时，协调器主动停止新动作并请求终止，不依赖已失权用户再次点击取消。历史读取 / 导出不要求原模型在线；归档应用禁止新建、启动和新快照保存，自己的已保存包仍按现有合同读取。
 
@@ -80,7 +80,7 @@
 
 ## JSON、摘要与错误
 
-阶段 1 首项代码工作将上述字段物化为一个 `contracts/development-task-delivery.schema.json`，Go 与 TypeScript 消费同一版本，不各自扩字段。本页是设计源，不把尚未物化的 schema 标作已验证。已有 attempt / artifact 子对象直接引用其 canonical schema，不复制新定义。
+[`development-task-delivery.schema.json`](../../contracts/development-task-delivery.schema.json) 是 Go 和 TypeScript 共用的公开结构合同。每个路由选择对应 `$defs`，例如任务创建使用 `create_task_request`，任务详情使用 `task_detail`。尝试计划、控制枚举、预算、事件和产物直接引用已有 canonical schema。
 
 | 字段组 | 设计约束 |
 | --- | --- |
@@ -89,9 +89,9 @@
 | 计划 | 嵌入既有 `development_attempt_plan.v1`；另记录固定来源版本、SDK / Go 镜像与执行器摘要、固定响应模式和保留规则版本 |
 | 确认 | `preparation_id / task_id / task_version / plan_revision / confirmation_digest / prepared_at_ms / expires_at_ms`，并展示其绑定的完整计划及安全资格摘要 |
 | 尝试投影 | 原 `phase / termination_status / record_version / budget`、明确 `usage_status`；资源核对 `not_requested / pending / unconfirmed / confirmed` 不合并进“成功” |
-| 受控执行投影 | `resource_status` 按模型连接 / SDK / 代码环境给出有界枚举；`active_tool` 绑定工具序号、名称、候选摘要与起始时间，空闲时明确无活动项。由可信协调器记录，不从 SDK 文本猜测；枚举与空值形式在物化 schema 时统一 |
+| 受控执行投影 | `resource_status` 分别表示模型连接、SDK 进程和代码环境的状态。`active_tool.state` 为 `idle` 或 `active`，活动项绑定工具序号、名称、候选摘要与起始时间。可信协调器记录投影，资源核对状态保持独立 |
 | 操作资格 | 每项操作分别为 `allowed` 与允许列表 `reason`；按钮和服务端使用相同原因语义，不能以缺字段当允许 |
-| 时间与金额 | UTC 毫秒安全整数；金额为整数 microUSD；未知用量保留明确状态，前端不能把账目占位零显示为实际零消耗 |
+| 时间与金额 | 新公开字段使用 UTC 毫秒安全整数，引用的既有产物合同沿用其日期格式。金额是整数 microUSD，未知用量保留明确状态 |
 
 拒绝未知 / 缺失 / 重复 / 大小写别名字段、非法 UTF-8、尾随 JSON、null 和不支持的枚举。元数据写请求最多 16 KiB；任务详情最多 64 KiB；事件页最多 256 KiB；开发包仍最多 1 MiB，读取 / 导出信封最多 2 MiB，全部以 UTF-8 字节计。
 

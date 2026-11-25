@@ -143,6 +143,64 @@ func TestSQLiteLocalIdentityAdministrationMigrationUpgradeAndReapply(t *testing.
 	}
 }
 
+func TestSQLiteLocalIdentityAuthorizationPreservesVersionedGrants(t *testing.T) {
+	ctx := context.Background()
+	now := localIdentityTestNow
+	databasePath := filepath.Join(t.TempDir(), "identity-role-version.db")
+	runtime := openSQLiteLocalIdentityAdministrationRuntime(t, databasePath, sqlitelocalidentitymigrations.Migrations())
+	t.Cleanup(func() { _ = runtime.Close() })
+	repository := newSQLiteLocalIdentityRepository(runtime.DB())
+	service := newLocalIdentityAdministrationService(repository)
+	service.now = func() time.Time { return now }
+	actor := LocalIdentityAdministrationActor{
+		UserID: "usr_0000000000000da1", TenantRef: "tenant_demo", WorkspaceID: "workspace_demo", AuthenticatedAt: now,
+	}
+	createDurableLocalIdentityAdministrationAccount(t, repository, actor.UserID, 0xda1, now)
+	bootstrap, err := service.BootstrapWorkspaceAdministrator(ctx, LocalIdentityBootstrapWorkspaceAdministratorInput{
+		TenantRef: actor.TenantRef, WorkspaceID: actor.WorkspaceID, UserID: actor.UserID, AuditRef: "audit:bootstrap",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	oldAdmin, _ := workspacepolicy.BuiltInRoleAtVersion("local_identity_builtin_roles_v2", workspacepolicy.RoleWorkspaceAdmin)
+	if _, err := runtime.DB().ExecContext(ctx, `UPDATE local_role_assignments
+		SET role_catalog_version=?, role_definition_digest=? WHERE assignment_id=?`,
+		oldAdmin.CatalogVersion, oldAdmin.DefinitionDigest, bootstrap.RoleAssignment.AssignmentID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := repository.AuthorizeWorkspace(ctx, actor.UserID, actor.TenantRef, actor.WorkspaceID,
+		[]string{workspacepolicy.PermissionRolesAssign}, now); err != nil {
+		t.Fatalf("known historical administrator was denied: %v", err)
+	}
+	developer, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceDeveloper)
+	assignment, err := service.AssignWorkspaceRole(ctx, actor, LocalIdentityAssignWorkspaceRoleInput{
+		TenantRef: actor.TenantRef, WorkspaceID: actor.WorkspaceID, UserID: actor.UserID,
+		RoleKey: developer.RoleKey, ExpectedCatalogVersion: developer.CatalogVersion,
+		ExpectedRoleDefinitionDigest: developer.DefinitionDigest, AuditRef: "audit:developer",
+	})
+	if err != nil {
+		t.Fatalf("store developer assignment: %v", err)
+	}
+	if err := runtime.Close(); err != nil {
+		t.Fatal(err)
+	}
+	restarted := openSQLiteLocalIdentityAdministrationRuntime(t, databasePath, sqlitelocalidentitymigrations.Migrations())
+	t.Cleanup(func() { _ = restarted.Close() })
+	restored := newSQLiteLocalIdentityRepository(restarted.DB())
+	required := []string{"applications:read", workspacepolicy.PermissionDevelopmentTasksExecute}
+	if _, err := restored.AuthorizeWorkspace(ctx, actor.UserID, actor.TenantRef, actor.WorkspaceID, required, now); err != nil {
+		t.Fatalf("developer assignment lost its grants after reopening SQLite: %v", err)
+	}
+	if _, err := restarted.DB().ExecContext(ctx, `UPDATE local_role_assignments
+		SET role_definition_digest=? WHERE assignment_id=?`, oldAdmin.DefinitionDigest, assignment.AssignmentID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := restored.AuthorizeWorkspace(ctx, actor.UserID, actor.TenantRef, actor.WorkspaceID, required, now); !errors.Is(err, errLocalIdentityPermissionDenied) {
+		t.Fatalf("wrong definition digest granted development execution: %v", err)
+	}
+}
+
 func runDurableLocalIdentityAdministrationContract(
 	t *testing.T,
 	repository durableLocalIdentityAdministrationRepository,

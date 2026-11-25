@@ -10,7 +10,7 @@
 
 2026-10-26 全项目复审后，项目所有者已批准正式规划整合：以[本机持久工作台交付](../features/user-workspace/local-persistent-workbench-delivery-v1.md)为当前主线，跨版本回归审查转为候选。实施范围已确认，运行档、命令、Web 接线和冷备份恢复已实现；2026-10-31 宿主机浏览器与本机 `linux/arm64` Docker 构建 / 运行、挂载限制和备份迁移已有技术证据，独立用户验收仍待完成，不把技术通过当作整体交付关闭。下节保留审阅时的发现与建议，执行以[当前焦点](../radishmind-current-focus.md)为准。
 
-2026-10-31 项目所有者又将[受控软件开发团队](../features/workflow/controlled-software-development-team-v1.md)纳入下一功能设计，先收口阶段 0、再单 Agent 隔离交付；当前仅登记方案，不重开 R2 至 R6，也不自动开放通用 Agent 循环或代码工具。
+2026-10-31 项目所有者将[受控软件开发团队](../features/workflow/controlled-software-development-team-v1.md)纳入功能设计，先收口阶段 0、再单 Agent 隔离交付。当时仅登记方案，R2 至 R6 继续关闭，通用 Agent 循环和工具按各自能力边界管理。执行顺位见[当前焦点](../radishmind-current-focus.md)。
 
 复审证据见下节；2026-07 的审阅、决议和 R2 至 R6 记录用于追溯，不重新成为待实施清单。
 

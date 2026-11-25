@@ -386,7 +386,7 @@ function LocalIdentityAdministrationWorkspace({
       membershipId: membership.membershipId,
       expectedRecordVersion: membership.recordVersion,
       activeAssignmentCount: detail.roleAssignments.filter((assignment) =>
-        assignment.scope === "workspace" && assignment.effective
+        assignment.scope === "workspace" && assignment.lifecycleState === "active"
       ).length,
     });
   }
@@ -475,7 +475,7 @@ function LocalIdentityAdministrationWorkspace({
     members.find((member) => member.userId === selectedUserId) ?? null;
   const membership = detail ? effectiveMembership(detail, selectedSummary) : null;
   const activeAssignments = detail?.roleAssignments.filter((assignment) =>
-    assignment.effective && assignment.scope === "workspace" && assignment.workspaceId === config.workspaceId
+    assignment.lifecycleState === "active" && assignment.scope === "workspace" && assignment.workspaceId === config.workspaceId
   ) ?? [];
   const selfMembership = detail?.userId === profile.account.userId;
   const roleAlreadyAssigned = activeAssignments.some((assignment) => assignment.roleKey === selectedRoleKey);
@@ -871,7 +871,7 @@ function RoleAssignmentWorkspace({
                 <article key={assignment.assignmentId} className={assignment.catalogDrift ? "has-drift" : ""}>
                   <span><strong>{assignment.roleKey}</strong><small>{assignment.assignmentId} · v{assignment.recordVersion} · {assignment.roleCatalogVersion ?? t($ => $.members.legacyCatalog)}</small></span>
                   <em>{assignment.catalogDrift ? t($ => $.members.catalogDrift) : t($ => $.members.states[assignment.lifecycleState])}</em>
-                  {assignment.effective && assignment.scope === "workspace" ? (
+                  {assignment.lifecycleState === "active" && assignment.scope === "workspace" ? (
                     <button type="button" className="secondary-action" disabled={!mutationsEnabled || mutationPending} onClick={() => onReviewRevoke(assignment)}>{t($ => $.members.reviewRevoke)}</button>
                   ) : null}
                 </article>

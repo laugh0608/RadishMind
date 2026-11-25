@@ -475,7 +475,7 @@ func (repository *memoryLocalIdentityRepository) authorizeAdministrationActorLoc
 	for _, assignment := range repository.roleAssignments {
 		if assignment.UserID != userID || assignment.TenantRef != tenantRef ||
 			(assignment.WorkspaceID != "" && assignment.WorkspaceID != workspaceID) ||
-			!localIdentityRoleAssignmentEffective(assignment, now) {
+			!localIdentityRoleAssignmentEffective(assignment, now) || !localIdentityAssignmentGrantsValid(assignment) {
 			continue
 		}
 		if slices.Contains(assignment.PermissionGrants, requiredPermission) {
@@ -517,8 +517,7 @@ func localIdentityRoleAssignmentView(
 	effective bool,
 	now time.Time,
 ) LocalIdentityWorkspaceRoleAssignmentView {
-	definition, known := workspacepolicy.BuiltInRole(assignment.RoleKey)
-	drift := !known || !localIdentityRoleDefinitionMatchesAssignment(definition, assignment)
+	drift := !localIdentityAssignmentMatchesCatalog(assignment)
 	scope := "workspace"
 	if assignment.WorkspaceID == "" {
 		scope = "tenant"

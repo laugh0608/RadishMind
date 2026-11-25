@@ -6,8 +6,6 @@ import (
 	"slices"
 	"strings"
 	"time"
-
-	"radishmind.local/services/platform/internal/workspacepolicy"
 )
 
 func localIdentityAdministrationScopeLockKey(tenantRef string, workspaceID string) int64 {
@@ -31,11 +29,13 @@ func buildLocalIdentityWorkspaceMemberSummary(
 			if !localIdentityRoleAssignmentEffective(assignment, asOf) {
 				continue
 			}
-			roleSet[assignment.RoleKey] = struct{}{}
-			definition, known := workspacepolicy.BuiltInRole(assignment.RoleKey)
-			if !known || !localIdentityRoleDefinitionMatchesAssignment(definition, assignment) {
+			if !localIdentityAssignmentMatchesCatalog(assignment) {
 				drift = true
 			}
+			if !localIdentityAssignmentGrantsValid(assignment) {
+				continue
+			}
+			roleSet[assignment.RoleKey] = struct{}{}
 			canManage = canManage || localIdentityAssignmentCanManage(assignment, asOf)
 		}
 	}
@@ -90,7 +90,8 @@ func buildLocalIdentityWorkspaceMemberDetail(
 	assignmentViews := make([]LocalIdentityWorkspaceRoleAssignmentView, 0, len(assignments))
 	canManage := false
 	for _, assignment := range assignments {
-		effective := hasEffectiveMembership && localIdentityRoleAssignmentEffective(assignment, asOf)
+		effective := hasEffectiveMembership && localIdentityRoleAssignmentEffective(assignment, asOf) &&
+			localIdentityAssignmentGrantsValid(assignment)
 		view := localIdentityRoleAssignmentView(assignment, effective, asOf)
 		canManage = canManage || view.CanManageLocalIdentity
 		assignmentViews = append(assignmentViews, view)

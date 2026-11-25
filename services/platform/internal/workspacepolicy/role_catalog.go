@@ -9,12 +9,15 @@ import (
 
 const (
 	RoleCatalogSchemaVersion = "local_identity_role_catalog.v1"
-	RoleCatalogVersion       = "local_identity_builtin_roles_v2"
+	RoleCatalogVersion       = "local_identity_builtin_roles_v3"
+	roleCatalogVersionV1     = "local_identity_builtin_roles_v1"
+	roleCatalogVersionV2     = "local_identity_builtin_roles_v2"
 
-	RoleWorkspaceReader   = "workspace_reader"
-	RoleWorkspaceBuilder  = "workspace_builder"
-	RoleWorkspaceReviewer = "workspace_reviewer"
-	RoleWorkspaceAdmin    = "workspace_admin"
+	RoleWorkspaceReader    = "workspace_reader"
+	RoleWorkspaceBuilder   = "workspace_builder"
+	RoleWorkspaceDeveloper = "workspace_developer"
+	RoleWorkspaceReviewer  = "workspace_reviewer"
+	RoleWorkspaceAdmin     = "workspace_admin"
 )
 
 // RoleDefinition is an immutable server-owned role policy.
@@ -36,7 +39,11 @@ type RoleCatalog struct {
 	Roles            []RoleDefinition `json:"roles"`
 }
 
-var builtInRoleCatalog = buildRoleCatalog()
+var (
+	builtInRoleCatalogV1 = buildRoleCatalog(roleCatalogVersionV1)
+	builtInRoleCatalogV2 = buildRoleCatalog(roleCatalogVersionV2)
+	builtInRoleCatalog   = buildRoleCatalog(RoleCatalogVersion)
+)
 
 // BuiltInRoleCatalog returns an independent copy of the canonical directory.
 func BuiltInRoleCatalog() RoleCatalog {
@@ -45,7 +52,26 @@ func BuiltInRoleCatalog() RoleCatalog {
 
 // BuiltInRole looks up a trimmed, case-sensitive key and copies its grants.
 func BuiltInRole(roleKey string) (RoleDefinition, bool) {
-	for _, definition := range builtInRoleCatalog.Roles {
+	return builtInRoleAtVersion(builtInRoleCatalog, roleKey)
+}
+
+// BuiltInRoleAtVersion resolves a frozen definition for an existing assignment.
+// New assignments use BuiltInRole and the current catalog.
+func BuiltInRoleAtVersion(catalogVersion string, roleKey string) (RoleDefinition, bool) {
+	switch catalogVersion {
+	case roleCatalogVersionV1:
+		return builtInRoleAtVersion(builtInRoleCatalogV1, roleKey)
+	case roleCatalogVersionV2:
+		return builtInRoleAtVersion(builtInRoleCatalogV2, roleKey)
+	case RoleCatalogVersion:
+		return BuiltInRole(roleKey)
+	default:
+		return RoleDefinition{}, false
+	}
+}
+
+func builtInRoleAtVersion(catalog RoleCatalog, roleKey string) (RoleDefinition, bool) {
+	for _, definition := range catalog.Roles {
 		if definition.RoleKey == strings.TrimSpace(roleKey) {
 			return cloneRoleDefinition(definition), true
 		}
@@ -53,17 +79,15 @@ func BuiltInRole(roleKey string) (RoleDefinition, bool) {
 	return RoleDefinition{}, false
 }
 
-func buildRoleCatalog() RoleCatalog {
+func buildRoleCatalog(version string) RoleCatalog {
 	reader := []string{
 		"applications:read",
 		"api_keys:read",
 		"application_drafts:read",
 		"application_evaluations:read",
-		"application_publish_candidates:read",
 		"application_sessions:read",
 		"agent_copilot_profiles:read",
 		"prompt_application_templates:read",
-		"prompt_application_runtime:read",
 		"runs:read",
 		"usage:read",
 		"workflow_definitions:read",
@@ -72,6 +96,9 @@ func buildRoleCatalog() RoleCatalog {
 		"workflow_rag_promotions:read",
 		"workflow_rag_snapshots:read",
 		"workflow_runs:read",
+	}
+	if version != roleCatalogVersionV1 {
+		reader = append(reader, "application_publish_candidates:read", "prompt_application_runtime:read")
 	}
 	builder := mergeRoleGrants(reader, []string{
 		"applications:write",
@@ -128,6 +155,7 @@ func buildRoleCatalog() RoleCatalog {
 	}, managementPermissions)
 	roles := []RoleDefinition{
 		newRoleDefinition(
+			version,
 			RoleWorkspaceReader,
 			"Workspace reader",
 			"Read workspace applications, runs, workflows, sessions, evaluations, and usage metadata.",
@@ -135,6 +163,7 @@ func buildRoleCatalog() RoleCatalog {
 			false,
 		),
 		newRoleDefinition(
+			version,
 			RoleWorkspaceBuilder,
 			"Workspace builder",
 			"Create and execute workspace applications, workflows, sessions, profiles, and evaluations.",
@@ -142,6 +171,7 @@ func buildRoleCatalog() RoleCatalog {
 			false,
 		),
 		newRoleDefinition(
+			version,
 			RoleWorkspaceReviewer,
 			"Workspace reviewer",
 			"Build workspace resources and perform explicit review, activation, and confirmation actions.",
@@ -149,6 +179,7 @@ func buildRoleCatalog() RoleCatalog {
 			false,
 		),
 		newRoleDefinition(
+			version,
 			RoleWorkspaceAdmin,
 			"Workspace administrator",
 			"Manage the workspace, destructive lifecycle actions, policy surfaces, members, and role assignments.",
@@ -156,23 +187,43 @@ func buildRoleCatalog() RoleCatalog {
 			true,
 		),
 	}
+	if version == RoleCatalogVersion {
+		roles = append(roles, newRoleDefinition(
+			version,
+			RoleWorkspaceDeveloper,
+			"Workspace developer",
+			"Run and review your own development tasks, and save or export their artifacts.",
+			[]string{
+				"applications:read",
+				PermissionDevelopmentTasksRead,
+				PermissionDevelopmentTasksWrite,
+				PermissionDevelopmentTasksExecute,
+				PermissionDevelopmentTasksCancel,
+				"development_artifacts:read",
+				"development_artifacts:save",
+				"development_artifacts:export",
+			},
+			false,
+		))
+	}
 	slices.SortFunc(roles, func(left, right RoleDefinition) int {
 		return strings.Compare(left.RoleKey, right.RoleKey)
 	})
 	digests := make([]string, 0, len(roles)+2)
-	digests = append(digests, RoleCatalogSchemaVersion, RoleCatalogVersion)
+	digests = append(digests, RoleCatalogSchemaVersion, version)
 	for _, role := range roles {
 		digests = append(digests, role.DefinitionDigest)
 	}
 	return RoleCatalog{
 		SchemaVersion:    RoleCatalogSchemaVersion,
-		CatalogVersion:   RoleCatalogVersion,
+		CatalogVersion:   version,
 		DefinitionDigest: catalogDigest(digests...),
 		Roles:            roles,
 	}
 }
 
 func newRoleDefinition(
+	version string,
 	roleKey string,
 	displayName string,
 	summary string,
@@ -185,7 +236,7 @@ func newRoleDefinition(
 		capability = "true"
 	}
 	digestParts := []string{
-		RoleCatalogVersion,
+		version,
 		roleKey,
 		displayName,
 		summary,
@@ -193,7 +244,7 @@ func newRoleDefinition(
 	}
 	digestParts = append(digestParts, grants...)
 	return RoleDefinition{
-		CatalogVersion:         RoleCatalogVersion,
+		CatalogVersion:         version,
 		RoleKey:                roleKey,
 		DisplayName:            displayName,
 		Summary:                summary,

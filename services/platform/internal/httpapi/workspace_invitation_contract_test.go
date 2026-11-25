@@ -97,6 +97,16 @@ func TestWorkspaceInvitationTTLRoleAndFailureContracts(t *testing.T) {
 	if workspaceInvitationRoleEligible(administrator) {
 		t.Fatal("workspace_admin became invitation-eligible")
 	}
+	developer, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceDeveloper)
+	if workspaceInvitationRoleEligible(developer) {
+		t.Fatal("workspace_developer must be explicitly assigned by an administrator")
+	}
+	oldReader, _ := workspacepolicy.BuiltInRoleAtVersion("local_identity_builtin_roles_v2", workspacepolicy.RoleWorkspaceReader)
+	if workspaceInvitationMatchesCurrentRole(WorkspaceInvitation{
+		RoleKey: oldReader.RoleKey, RoleCatalogVersion: oldReader.CatalogVersion, RoleDefinitionDigest: oldReader.DefinitionDigest,
+	}) {
+		t.Fatal("a pending invitation from the previous role catalog remained claimable")
+	}
 
 	failures := []struct {
 		err  error

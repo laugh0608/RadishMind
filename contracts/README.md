@@ -6,6 +6,8 @@
 
 单尝试控制合同包含 `development-attempt-plan / delegation / reservation / receipt / event` 与 `development-tool-action / call` 七份 schema（文件名均带 `.schema.json`）。字段、可信来源、SDK 元数据、预算与取消边界见[尝试控制合同](../docs/contracts/development-attempt-control-v1.md)。现已实现 SQLite 单尝试事务、可信 Go 签发 / 当前资格与独立回环通道；默认关闭，固定响应已验，工具只入队，新增 `development-sdk-worker.schema.json` 定义受限 SDK 私有输入 / 事件 / 确认消息，不是公开接口。真实 SDK Agent 的固定响应、完整允许事件与模型等待取消已验；新增私有 `development-code-sandbox.schema.json` 定义固定 Go 沙箱观察值与归属账册，已取得实际容器证据；字段和执行边界见[沙箱合同](../docs/contracts/development-code-sandbox-v1.md)。联合任务、实际提供方原生传输与真实模型仍待验证。
 
+阶段 1 的 [`development-task-delivery.schema.json`](development-task-delivery.schema.json) 统一正式 Web 固定 Go 单 Agent 的任务、确认、尝试、事件页、产物和回执结构。每个操作消费对应 `$defs`，计划、事件与产物引用已有 canonical schema。身份、时间、摘要及请求边界见[公开交付合同](../docs/contracts/development-task-delivery-v1.md)。
+
 更新时间：2026-10-31
 
 本目录承载 `RadishMind` 第一版真实契约文件。

@@ -1,12 +1,12 @@
 # RadishMind 项目总览与使用指南
 
-更新时间：2026-11-21
+更新时间：2026-11-25
 
 ## 当前交付方向
 
 本机交付基座是[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)，统一正式 Web、配置、本地身份与持久化、应用运行和结果恢复。统一运行档、命令、Web 接线和恢复已实现，操作见[工作台运行指南](platform/local-persistent-workbench-operations-v1.md)；宿主机浏览器主链、重启与恢复已于 2026-10-31 验收；`linux/arm64` Docker 构建 / 运行、挂载限制及备份迁移已验收；独立用户试用仍待完成。下文保留既有开发入口，不与工作台共用数据目录。真实模型试用继续暂停，阶段条件见[路线图](radishmind-roadmap.md)。
 
-当前开发主线是[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)。阶段 0 的单尝试 SQLite 事务、任务凭据与独立通道、受限 SDK 工作进程、固定 Go 沙箱和开发产物保存 / 导出已通过固定响应联合验收。Go 原生 HTTP 已用固定上游验证工具往返、失败与取消，真实厂商及模型资格另验。所有者已确认单 Agent 公开合同和六个视觉代表面。最终 SDK 与本地伴随源码已通过本方核对，待所有者确认接收后复评正式采用。正式 Web 单 Agent 列入阶段 1，通用仓库和团队交付后置，通道默认关闭。见[当前推进焦点](radishmind-current-focus.md)和[代表任务说明](../scripts/eval/fixtures/development-task/README.md)。
+当前开发主线是[受控开发阶段 1 单 Agent](features/workflow/controlled-software-development-team-v1.md)。阶段 0 的固定 Go 沙箱、受限 SDK、原生 HTTP 和开发产物已取得固定响应技术证据，项目所有者也已确认本机配套源码和告知可取得。阶段 1 按已确认的公开合同和六个视觉代表面交付正式 Web。通道默认关闭，真实厂商和模型资格另验。[当前推进焦点](radishmind-current-focus.md) · [代表任务说明](../scripts/eval/fixtures/development-task/README.md)
 
 ## 这份文档讲什么
 
@@ -391,7 +391,7 @@ docker compose -f deploy/docker-compose.local.yaml down
 ## 当前还不能算完成的能力
 
 - 本机持久工作台的独立用户首次与持续使用验收；宿主机和 `linux/arm64` 容器已有实际技术证据，Windows PowerShell 与 `linux/amd64` 容器仍未验收。
-- 受控软件开发团队的 SDK 正式采用、正式 Web 单 Agent 交付、通用仓库及固定团队能力。固定 Go 任务的 SDK、代码沙箱与产物联合验收已通过，正式采用复评待本地材料接收确认。见[阶段顺位](radishmind-current-focus.md#next-actions)。
+- 正式 Web 单 Agent 交付、通用仓库及固定团队能力。冻结 SDK 已按固定 Go 单 Agent 范围完成采用复评。[阶段顺位](radishmind-current-focus.md#next-actions)
 - 真实模型的任务效果、独立用户使用收益和真实提供方故障回退。
 - 正式产品 Web 的共享 / 生产部署包、镜像发布、生产密钥后端、进程监管、环境隔离与目标环境恢复演练；本机工作台镜像不代表这些条件成立。
 - 真实 Radish OIDC 联调、生产认证、生产 API 密钥 / 配额 / 计费；本地身份和成员能力已有开发测试实现。

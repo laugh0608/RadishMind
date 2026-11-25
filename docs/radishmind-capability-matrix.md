@@ -1,6 +1,6 @@
 # RadishMind 能力矩阵
 
-更新时间：2026-11-05
+更新时间：2026-11-25
 
 ## 读取口径
 
@@ -13,7 +13,7 @@
 | 能力 | 开发测试态实现与证据 | 仍未成立或未完成 | 权威专题 |
 | --- | --- | --- | --- |
 | 本机持久工作台 | 已实现统一运行档、启动命令、同源 Web / 公开配置、显式身份初始化、冷备份 / 升级 / 新目录恢复；复用既有领域与 SQL；2026-10-31 宿主机 Chrome 完成 Prompt / Workflow、显式保存、冷重启与新目录恢复，`linux/arm64` 容器构建 / 运行、挂载限制及容器与宿主机备份迁移通过 | `linux/amd64` 容器、Windows PowerShell、独立用户持续使用与真实模型效果尚未验收 | [交付专题](features/user-workspace/local-persistent-workbench-delivery-v1.md) |
-| 多 Agent 受控软件开发团队 | 阶段 0 已有主 / 子专题、冻结合成任务、严格探针 schema 与 Go 离线准备 / 候选检查 CLI；人工候选 8 项通过；SDK LLM 固定响应 7 项通过，arm64 完整依赖锁与镜像复建完成；七份计划 / 控制 / 工具合同；SQLite 状态 / 提议 / 事件事务、真实资格、任务凭据与独立通道固定响应验证通过，受限 SDK Agent 实际工具往返、允许事件、失败 / 未知量及等待取消 / 父管道失联终止已验；固定 Go 沙箱 / 文件 / 测试工具、只读快照、资源限制、取消 / 遗留清理与硬期限已真实验收，不属于真实 Agent 效果证据；固定探针开发包合同、独立 SQLite 保存 / 导出、权限 / 配额与恢复已定向验证；真实 SDK 同次修改 / 测试 / 保存 / 导出及命令中取消已固定响应联合验收；Go 原生 HTTP 已通过固定上游工具往返、配置 / 凭据、失败及取消验证 | SDK 尚未正式采用；旧 Gateway 不支持工具往返，通道默认关闭；真实厂商 / 模型资格、依赖许可证完整核验、通用仓库、正式团队产物展示、Web 与效果评测未完成；单 Agent 公开合同已确认，六个 Pencil 代表面的修订图已获最终视觉确认，下一实施目标为该纵向交付 | [功能专题](features/workflow/controlled-software-development-team-v1.md) |
+| 多 Agent 受控软件开发团队 | 固定 Go 探针的任务 / 权限 / 预算、SQLite、独立通道、原生 HTTP、受限 SDK、隔离执行及产物保存 / 导出已有固定响应技术证据。阶段 0 复评通过，冻结 ARM64 SDK 已按固定 Go 单 Agent 范围正式采用；公开合同和六幅视觉代表面已确认 | 通道默认关闭。正式 Web 单 Agent 交付、真实厂商 / 模型资格、任务效果、通用仓库及固定团队待实施或验收 | [功能专题](features/workflow/controlled-software-development-team-v1.md) |
 | Workflow 草案与定义 | v1 / v2 网页创建、有序合同编辑、保存 / 历史恢复、Definition 派生与两版运行审查；晋级选择隔离、冲突重读及 Case / Suite 交接已通过双语隔离验收 | 新增局部设计未登记项目所有者视觉批准；独立用户使用和真实模型质量未验收。任意节点执行、通用 replay、自动 release 与业务写回仍关闭 | [Workflow](features/workflow/README.md) |
 | 应用工作区 | 配置、Prompt / Agent 档案、Prompt 结构化输出契约网页编辑与审查、调用 / Session 结构化变量输入与四项失败恢复修复（双语隔离验收通过）、受控会话、结果保存 / 资产库、精确运行交接与浏览器链 | 通用 transcript、公开分享、永久 purge、自治 agent loop | [User Workspace](features/user-workspace/README.md) |
 | 应用评测 | Comparison、Case / Suite、人工 decision、Plan / Campaign、受控 Schedule / Occurrence 与双数据库证据；Prompt 计划结构化样本编辑、参考模板及 CAS 恢复已通过无服务、双语连续交互与三视口浏览器验收；Workflow v2 表单 / JSON 单一状态、显式采用 Definition 引用与确认失效已完成双语隔离验收 | 跨计划版本批次配对不受支持。真实模型答案质量与用户耗时收益尚无结论；真实 Provider 调度、production worker、通用 scheduler 与持续团队收益指标仍未成立 | [评测计划](features/user-workspace/application-evaluation-campaign-controlled-execution-dev-test-v1.md)、[定时回归](features/user-workspace/application-evaluation-scheduled-regression-campaign-dev-test-v1.md) |
@@ -35,7 +35,7 @@
 
 2026-10-26 全项目复审后的正式规划选定[本机持久工作台交付](features/user-workspace/local-persistent-workbench-delivery-v1.md)为主线；[跨版本回归审查](features/user-workspace/application-cross-version-regression-review-dev-test-v1.md)转为候选、暂不排期。规划不改变已有实现与验证结论，跨计划版本批次配对仍未实现；现有比较主要审查运行元数据，不判断答案质量。
 
-2026-10-31 项目所有者明确将受控软件开发团队纳入下一功能设计；该方向先验证单 Agent 隔离开发交付，再推进固定团队。方向已登记不代表 SDK 选型通过或执行权限已开放，跨版本回归审查仍为候选。
+受控软件开发先交付固定 Go 单 Agent，再根据真实价值复核决定是否推进固定团队。阶段 0 的 SDK 选型与阶段 1 的执行权限、正式交付和真实任务效果各自验收。
 
 当前执行项只在[当前推进焦点](radishmind-current-focus.md)维护。邀请状态为 `workspace_member_invitation_claim_expiry_governance_dev_test_v1_completed`；R2 至 R6 与已关闭产品专题不因本次复审重开批次。
 

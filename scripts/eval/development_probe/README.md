@@ -67,7 +67,7 @@ docker rm -f radishmind-sdk-worker-20261031-check
 
 最终全部通过：真实 `Agent / LocalConversation` 经 Go 完成两次模型请求与合成工具观察值往返，核对系统提示、用户 / 助手消息、动作与观察事件；原生失败仅一次请求，工具失败保留未知状态，缺失 usage 不采用 SDK 零值；模型等待中取消后进程组为空，单独关闭父存活管道也能终止 SDK。合成观察值不访问文件、不执行代码。普通 Go 测试未配置 SDK 路径时会明确 skip，不能将其算作镜像验收。
 
-Go 对每条 SDK 报告先提交事件再确认，最终完成须核对真实退出和最新资格。Python 仅使用内存会话、唯一自定义工具与受限模型转换，关闭默认工具 / MCP / 动态上下文等旁路。模块边界见[SDK 工作进程说明](../../../services/runtime/development_sdk/README.md)。固定 Go 代码沙箱已在下一节完成联合验收，真实厂商资格和 SDK 正式采用仍待验收。
+Go 对每条 SDK 报告先提交事件再确认，最终完成须核对真实退出和最新资格。Python 仅使用内存会话、唯一自定义工具与受限模型转换，关闭默认工具 / MCP / 动态上下文等旁路。模块边界见[SDK 工作进程说明](../../../services/runtime/development_sdk/README.md)。固定 Go 代码沙箱已在下一节完成联合验收，阶段 1 采用的冻结镜像见[SDK 最终交付](sdk_variant/README.md#最终-sdk-本地交付)。真实厂商资格另验。
 
 ## SDK、代码沙箱与产物联合验收（2026-10-31）
 

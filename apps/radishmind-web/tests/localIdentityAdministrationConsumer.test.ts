@@ -174,6 +174,40 @@ test("administration reads reject forbidden identity fields, scope drift, unknow
   }
 });
 
+test("role catalogs accept the versioned developer role and reject inconsistent definitions", async () => {
+  const originalFetch = globalThis.fetch;
+  const document = roleCatalogDocument();
+  const version = "local_identity_builtin_roles_v3";
+  document.catalog.catalog_version = version;
+  document.catalog.roles.splice(2, 0, roleDefinition("workspace_developer", digest("e"), false, [
+    "applications:read", "development_artifacts:export", "development_artifacts:read", "development_artifacts:save",
+    "development_tasks:cancel", "development_tasks:execute", "development_tasks:read", "development_tasks:write",
+  ]));
+  for (const role of document.catalog.roles) role.catalog_version = version;
+  try {
+    globalThis.fetch = async () => jsonResponse(document);
+    const { catalog } = await readLocalIdentityRoleCatalog(config);
+    const developer = catalog.roles.find((role) => role.roleKey === "workspace_developer");
+    assert.equal(developer?.catalogVersion, version);
+    assert.equal(developer?.canManageLocalIdentity, false);
+    assert.ok(developer?.permissionGrants.includes("development_tasks:execute"));
+
+    for (const change of [
+      (catalog: typeof document.catalog) => { catalog.catalog_version = "local_identity_builtin_roles_v99"; },
+      (catalog: typeof document.catalog) => { catalog.roles.splice(2, 1); },
+      (catalog: typeof document.catalog) => { catalog.roles[2].catalog_version = "local_identity_builtin_roles_v2"; },
+      (catalog: typeof document.catalog) => { catalog.roles[2].can_manage_local_identity = true; },
+    ]) {
+      const invalid = structuredClone(document);
+      change(invalid.catalog);
+      globalThis.fetch = async () => jsonResponse(invalid);
+      await assert.rejects(() => readLocalIdentityRoleCatalog(config), responseInvalid);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("stable administration errors preserve only reviewed recovery metadata and classify key UI states", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => jsonResponse(administrationErrorDocument(

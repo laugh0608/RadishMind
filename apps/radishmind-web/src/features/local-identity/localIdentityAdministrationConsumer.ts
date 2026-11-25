@@ -12,6 +12,14 @@ const MEMBER_DETAIL_SCHEMA = "local_identity_workspace_member_detail.v1";
 const MEMBERSHIP_SCHEMA = "local_identity_workspace_membership_view.v1";
 const ASSIGNMENT_SCHEMA = "local_identity_workspace_role_assignment_view.v1";
 const ROLE_CATALOG_SCHEMA = "local_identity_role_catalog.v1";
+const LEGACY_ROLE_KEYS = ["workspace_admin", "workspace_builder", "workspace_reader", "workspace_reviewer"];
+const ROLE_KEYS_BY_CATALOG_VERSION = new Map([
+  ["local_identity_builtin_roles_v1", LEGACY_ROLE_KEYS],
+  ["local_identity_builtin_roles_v2", LEGACY_ROLE_KEYS],
+  ["local_identity_builtin_roles_v3", [
+    "workspace_admin", "workspace_builder", "workspace_developer", "workspace_reader", "workspace_reviewer",
+  ]],
+]);
 
 const USER_ID = /^usr_[a-z0-9]{16,64}$/u;
 const MEMBERSHIP_ID = /^mbr_[a-z0-9]{16,64}$/u;
@@ -663,14 +671,15 @@ function parseRoleAssignment(
 function parseRoleCatalog(value: unknown): LocalIdentityRoleCatalog {
   if (!isExactRecord(value, ["schema_version", "catalog_version", "definition_digest", "roles"]) ||
     value.schema_version !== ROLE_CATALOG_SCHEMA || !isReference(value.catalog_version) ||
-    !DIGEST.test(String(value.definition_digest)) || !Array.isArray(value.roles) || value.roles.length !== 4) {
+    !DIGEST.test(String(value.definition_digest)) || !Array.isArray(value.roles)) {
     throw invalidResponse();
   }
+  const roleKeys = ROLE_KEYS_BY_CATALOG_VERSION.get(value.catalog_version);
+  if (!roleKeys || value.roles.length !== roleKeys.length) throw invalidResponse();
   const roles = value.roles.map(parseRoleDefinition);
-  if (!isCanonicalStringValues(roles.map((role) => role.roleKey)) ||
-    roles.some((role) => role.catalogVersion !== value.catalog_version) ||
-    roles.filter((role) => role.canManageLocalIdentity).length !== 1 ||
-    roles.find((role) => role.canManageLocalIdentity)?.roleKey !== "workspace_admin") {
+  if (roles.some((role, index) => role.roleKey !== roleKeys[index] ||
+    role.catalogVersion !== value.catalog_version ||
+    role.canManageLocalIdentity !== (role.roleKey === "workspace_admin"))) {
     throw invalidResponse();
   }
   return {

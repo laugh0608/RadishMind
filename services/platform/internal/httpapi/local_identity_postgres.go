@@ -660,7 +660,7 @@ func (repository *postgresLocalIdentityRepository) AuthorizeWorkspace(ctx contex
 		if scanErr != nil {
 			return LocalWorkspaceAuthorization{}, scanErr
 		}
-		if assignment.ExpiresAt != nil && !assignment.ExpiresAt.After(now.UTC()) {
+		if !localIdentityRoleAssignmentEffective(assignment, now) || !localIdentityAssignmentGrantsValid(assignment) {
 			continue
 		}
 		assignments = append(assignments, assignment)

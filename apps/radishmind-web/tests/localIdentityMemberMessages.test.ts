@@ -83,6 +83,7 @@ test("member and invitation dates preserve UTC and role descriptions never repla
     const role = identityRoleCopy(t, roleKey);
     assert.equal(role.name, locale === "en-US" ? "Workspace administrator" : "工作区管理员");
     assert.equal(roleKey, "workspace_admin");
+    assert.equal(identityRoleCopy(t, "workspace_developer").name, locale === "en-US" ? "Workspace developer" : "工作区开发者");
     assert.equal(identityRoleCopy(t, "toString").name, locale === "en-US" ? "Unrecognized role" : "未识别的角色");
   }
 });

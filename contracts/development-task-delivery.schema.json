@@ -1,0 +1,435 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://radishmind.local/contracts/development-task-delivery.schema.json",
+  "title": "单 Agent 开发任务公开交付合同 v1",
+  "description": "每个 HTTP 操作使用对应定义。作用域、摘要绑定、时间关系、UTF-8 字节上限及重复键由服务端在结构校验之外核对。",
+  "oneOf": [
+    {"$ref": "#/$defs/capabilities"},
+    {"$ref": "#/$defs/create_task_request"},
+    {"$ref": "#/$defs/task_page"},
+    {"$ref": "#/$defs/task_detail"},
+    {"$ref": "#/$defs/revise_plan_request"},
+    {"$ref": "#/$defs/plan_revision"},
+    {"$ref": "#/$defs/prepare_request"},
+    {"$ref": "#/$defs/preparation"},
+    {"$ref": "#/$defs/start_request"},
+    {"$ref": "#/$defs/attempt_reference"},
+    {"$ref": "#/$defs/attempt"},
+    {"$ref": "#/$defs/event_page"},
+    {"$ref": "#/$defs/cancel_request"},
+    {"$ref": "#/$defs/cancel_result"},
+    {"$ref": "#/$defs/artifact_preview"},
+    {"$ref": "#/$defs/save_artifact_request"},
+    {"$ref": "#/$defs/artifact_page"},
+    {"$ref": "#/$defs/artifact_record"},
+    {"$ref": "#/$defs/artifact_export"},
+    {"$ref": "#/$defs/request_receipt"}
+  ],
+  "$defs": {
+    "id": {"$ref": "development-attempt-plan.schema.json#/properties/application_id"},
+    "digest": {"$ref": "development-attempt-plan.schema.json#/properties/baseline_digest"},
+    "model_ref": {"$ref": "development-attempt-plan.schema.json#/properties/model_ref"},
+    "record_version": {"type": "integer", "minimum": 1, "maximum": 9007199254740991},
+    "timestamp": {"$ref": "development-attempt-event.schema.json#/properties/occurred_at_ms"},
+    "source_profile_id": {"const": "probe_list_filter"},
+    "plan_revision_number": {"type": "integer", "minimum": 1, "maximum": 16},
+    "limits": {
+      "$ref": "development-attempt-delegation.schema.json#/properties/limits",
+      "properties": {
+        "max_model_calls": {"maximum": 4},
+        "max_tool_calls": {"maximum": 3}
+      }
+    },
+    "cursor": {"type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^[A-Za-z0-9._~-]+(?![\\s\\S])"},
+    "next_cursor": {"anyOf": [{"const": ""}, {"$ref": "#/$defs/cursor"}]},
+    "page_limit": {"type": "integer", "minimum": 1, "maximum": 50},
+    "page_query": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {"$ref": "#/$defs/cursor"},
+        "limit": {"$ref": "#/$defs/page_limit", "default": 20}
+      }
+    },
+    "event_sequence": {"type": "integer", "minimum": 0, "maximum": 200},
+    "event_query": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "after_sequence": {"$ref": "#/$defs/event_sequence", "default": 0},
+        "limit": {"$ref": "#/$defs/page_limit"}
+      }
+    },
+    "artifact_export_query": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id"],
+      "properties": {"request_id": {"$ref": "#/$defs/id"}}
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "reason"],
+      "properties": {
+        "allowed": {"type": "boolean"},
+        "reason": {
+          "enum": [
+            "allowed", "permission_denied", "application_archived", "execution_disabled",
+            "source_unavailable", "model_unavailable", "capacity_exceeded", "plan_changed",
+            "task_already_started", "preparation_required", "preparation_expired", "execution_slot_busy",
+            "attempt_not_active", "artifact_unavailable", "resource_termination_unconfirmed"
+          ]
+        }
+      },
+      "if": {"properties": {"allowed": {"const": true}}},
+      "then": {"properties": {"reason": {"const": "allowed"}}},
+      "else": {"properties": {"reason": {"not": {"const": "allowed"}}}}
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_profile_id", "source_version", "baseline_digest", "mode", "model_refs", "limits",
+        "max_command_timeout_ms", "max_attempt_lifetime_ms", "eligibility"
+      ],
+      "properties": {
+        "source_profile_id": {"$ref": "#/$defs/source_profile_id"},
+        "source_version": {"$ref": "#/$defs/id"},
+        "baseline_digest": {"$ref": "#/$defs/digest"},
+        "mode": {"const": "fixed_response_only"},
+        "model_refs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/model_ref"}},
+        "limits": {"$ref": "#/$defs/limits"},
+        "max_command_timeout_ms": {"const": 120000},
+        "max_attempt_lifetime_ms": {"const": 600000},
+        "eligibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["create_task", "read_tasks", "read_artifacts"],
+          "properties": {
+            "create_task": {"$ref": "#/$defs/eligibility"},
+            "read_tasks": {"$ref": "#/$defs/eligibility"},
+            "read_artifacts": {"$ref": "#/$defs/eligibility"}
+          }
+        }
+      }
+    },
+    "create_task_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "source_profile_id", "model_ref", "limits"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "source_profile_id": {"$ref": "#/$defs/source_profile_id"},
+        "model_ref": {"$ref": "#/$defs/model_ref"},
+        "limits": {"$ref": "#/$defs/limits"}
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id", "source_profile_id", "record_version", "created_at_ms", "updated_at_ms", "plan_revision", "attempt_id"
+      ],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/id"},
+        "source_profile_id": {"$ref": "#/$defs/source_profile_id"},
+        "record_version": {"$ref": "#/$defs/record_version"},
+        "created_at_ms": {"$ref": "#/$defs/timestamp"},
+        "updated_at_ms": {"$ref": "#/$defs/timestamp"},
+        "plan_revision": {"$ref": "#/$defs/plan_revision_number"},
+        "attempt_id": {"anyOf": [{"const": ""}, {"$ref": "#/$defs/id"}]}
+      }
+    },
+    "task_page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tasks", "next_cursor", "has_more"],
+      "properties": {
+        "tasks": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/task"}},
+        "next_cursor": {"$ref": "#/$defs/next_cursor"},
+        "has_more": {"type": "boolean"}
+      },
+      "if": {"properties": {"has_more": {"const": true}}},
+      "then": {"properties": {"next_cursor": {"$ref": "#/$defs/cursor"}}},
+      "else": {"properties": {"next_cursor": {"const": ""}}}
+    },
+    "task_detail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "plan", "eligibility", "saved_artifact_ids"],
+      "properties": {
+        "task": {"$ref": "#/$defs/task"},
+        "plan": {"$ref": "#/$defs/plan_revision"},
+        "saved_artifact_ids": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/artifact_id"}
+        },
+        "eligibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["revise_plan", "prepare", "start", "cancel", "preview_artifact", "save_artifact"],
+          "properties": {
+            "revise_plan": {"$ref": "#/$defs/eligibility"},
+            "prepare": {"$ref": "#/$defs/eligibility"},
+            "start": {"$ref": "#/$defs/eligibility"},
+            "cancel": {"$ref": "#/$defs/eligibility"},
+            "preview_artifact": {"$ref": "#/$defs/eligibility"},
+            "save_artifact": {"$ref": "#/$defs/eligibility"}
+          }
+        }
+      }
+    },
+    "revise_plan_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "expected_version", "model_ref", "limits"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "expected_version": {"$ref": "#/$defs/record_version"},
+        "model_ref": {"$ref": "#/$defs/model_ref"},
+        "limits": {"$ref": "#/$defs/limits"}
+      }
+    },
+    "plan_revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_revision", "plan_digest", "attempt_plan", "source_profile_id", "source_version", "execution_mode",
+        "sdk_image_digest", "go_image_digest", "executor_digest", "retention_policy_version"
+      ],
+      "properties": {
+        "plan_revision": {"$ref": "#/$defs/plan_revision_number"},
+        "plan_digest": {"$ref": "#/$defs/digest"},
+        "attempt_plan": {
+          "$ref": "development-attempt-plan.schema.json",
+          "properties": {
+            "limits": {"$ref": "#/$defs/limits"},
+            "tools": {
+              "properties": {
+                "read_paths": {
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": {"enum": ["go.mod", "list.go", "list_test.go"]}
+                },
+                "write_paths": {"const": ["list.go"]}
+              }
+            }
+          }
+        },
+        "source_profile_id": {"$ref": "#/$defs/source_profile_id"},
+        "source_version": {"$ref": "#/$defs/id"},
+        "execution_mode": {"const": "fixed_response_only"},
+        "sdk_image_digest": {"$ref": "#/$defs/digest"},
+        "go_image_digest": {"$ref": "#/$defs/digest"},
+        "executor_digest": {"$ref": "#/$defs/digest"},
+        "retention_policy_version": {"$ref": "#/$defs/id"}
+      }
+    },
+    "prepare_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "expected_version", "plan_digest"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "expected_version": {"$ref": "#/$defs/record_version"},
+        "plan_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "preparation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preparation_id", "task_id", "task_version", "plan_revision", "confirmation_digest",
+        "prepared_at_ms", "expires_at_ms", "plan", "eligibility_digest"
+      ],
+      "properties": {
+        "preparation_id": {"$ref": "#/$defs/id"},
+        "task_id": {"$ref": "#/$defs/id"},
+        "task_version": {"$ref": "#/$defs/record_version"},
+        "plan_revision": {"$ref": "#/$defs/plan_revision_number"},
+        "confirmation_digest": {"$ref": "#/$defs/digest"},
+        "prepared_at_ms": {"$ref": "#/$defs/timestamp"},
+        "expires_at_ms": {"$ref": "#/$defs/timestamp"},
+        "plan": {"$ref": "#/$defs/plan_revision"},
+        "eligibility_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "start_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "expected_version", "preparation_id", "confirmation_digest"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "expected_version": {"$ref": "#/$defs/record_version"},
+        "preparation_id": {"$ref": "#/$defs/id"},
+        "confirmation_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "attempt_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "attempt_id"],
+      "properties": {
+        "task_id": {"$ref": "#/$defs/id"},
+        "attempt_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "resource_state": {"enum": ["not_requested", "pending", "active", "stopping", "unconfirmed", "confirmed"]},
+    "active_tool": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {"state": {"const": "idle"}}
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "sequence", "name", "candidate_digest", "started_at_ms"],
+          "properties": {
+            "state": {"const": "active"},
+            "sequence": {"type": "integer", "minimum": 1, "maximum": 3},
+            "name": {"enum": ["read_file", "replace_file", "run_tests"]},
+            "candidate_digest": {"$ref": "#/$defs/digest"},
+            "started_at_ms": {"$ref": "#/$defs/timestamp"}
+          }
+        }
+      ]
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempt_id", "record_version", "phase", "termination_status", "usage_status", "budget",
+        "resource_check_status", "resource_status", "active_tool"
+      ],
+      "properties": {
+        "attempt_id": {"$ref": "#/$defs/id"},
+        "record_version": {"$ref": "#/$defs/record_version"},
+        "phase": {"$ref": "development-attempt-event.schema.json#/properties/phase"},
+        "termination_status": {"$ref": "development-attempt-event.schema.json#/properties/termination_status"},
+        "usage_status": {"$ref": "development-attempt-event.schema.json#/properties/usage_status"},
+        "budget": {"$ref": "development-attempt-event.schema.json#/properties/budget"},
+        "resource_check_status": {"$ref": "development-attempt-event.schema.json#/properties/termination_status"},
+        "resource_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model_connection", "sdk_worker", "code_environment"],
+          "properties": {
+            "model_connection": {"$ref": "#/$defs/resource_state"},
+            "sdk_worker": {"$ref": "#/$defs/resource_state"},
+            "code_environment": {"$ref": "#/$defs/resource_state"}
+          }
+        },
+        "active_tool": {"$ref": "#/$defs/active_tool"}
+      }
+    },
+    "event_page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events", "next_sequence", "has_more", "record_version"],
+      "properties": {
+        "events": {"type": "array", "maxItems": 50, "items": {"$ref": "development-attempt-event.schema.json"}},
+        "next_sequence": {"$ref": "#/$defs/event_sequence"},
+        "has_more": {"type": "boolean"},
+        "record_version": {"$ref": "#/$defs/record_version"}
+      }
+    },
+    "cancel_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "expected_version"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "expected_version": {"$ref": "#/$defs/record_version"}
+      }
+    },
+    "cancel_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cancellation_requested", "attempt"],
+      "properties": {
+        "cancellation_requested": {"type": "boolean"},
+        "attempt": {"$ref": "#/$defs/attempt"}
+      }
+    },
+    "artifact_id": {"$ref": "development-artifact.schema.json#/$defs/record/properties/artifact_id"},
+    "artifact_verification_state": {"$ref": "development-artifact.schema.json#/$defs/bundle/properties/verification_state"},
+    "artifact_preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bundle", "digest", "verification_state", "expires_at_ms"],
+      "properties": {
+        "bundle": {"$ref": "development-artifact.schema.json#/$defs/bundle"},
+        "digest": {"$ref": "#/$defs/digest"},
+        "verification_state": {"$ref": "#/$defs/artifact_verification_state"},
+        "expires_at_ms": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "save_artifact_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "expected_digest"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "expected_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "artifact_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "task_id", "attempt_id", "digest", "verification_state", "saved_at_ms"],
+      "properties": {
+        "artifact_id": {"$ref": "#/$defs/artifact_id"},
+        "task_id": {"$ref": "#/$defs/id"},
+        "attempt_id": {"$ref": "#/$defs/id"},
+        "digest": {"$ref": "#/$defs/digest"},
+        "verification_state": {"$ref": "#/$defs/artifact_verification_state"},
+        "saved_at_ms": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "artifact_page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifacts", "next_cursor", "has_more"],
+      "properties": {
+        "artifacts": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/artifact_summary"}},
+        "next_cursor": {"$ref": "#/$defs/next_cursor"},
+        "has_more": {"type": "boolean"}
+      },
+      "if": {"properties": {"has_more": {"const": true}}},
+      "then": {"properties": {"next_cursor": {"$ref": "#/$defs/cursor"}}},
+      "else": {"properties": {"next_cursor": {"const": ""}}}
+    },
+    "artifact_record": {"$ref": "development-artifact.schema.json#/$defs/record"},
+    "artifact_export": {"$ref": "development-artifact.schema.json#/$defs/export"},
+    "request_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_id", "operation", "request_digest", "task_id"],
+      "properties": {
+        "request_id": {"$ref": "#/$defs/id"},
+        "operation": {"enum": ["create_task", "revise_plan", "prepare", "start", "cancel", "save_artifact"]},
+        "request_digest": {"$ref": "#/$defs/digest"},
+        "task_id": {"$ref": "#/$defs/id"},
+        "attempt_id": {"$ref": "#/$defs/id"},
+        "artifact_id": {"$ref": "#/$defs/artifact_id"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"operation": {"enum": ["start", "cancel", "save_artifact"]}}},
+          "then": {"required": ["attempt_id"]},
+          "else": {"properties": {"attempt_id": false}}
+        },
+        {
+          "if": {"properties": {"operation": {"const": "save_artifact"}}},
+          "then": {"required": ["artifact_id"]},
+          "else": {"properties": {"artifact_id": false}}
+        }
+      ]
+    }
+  }
+}

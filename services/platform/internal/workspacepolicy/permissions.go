@@ -6,10 +6,14 @@ import (
 )
 
 const (
-	PermissionMembersRead      = "local_identity_members:read"
-	PermissionMembershipsWrite = "local_identity_memberships:write"
-	PermissionRolesRead        = "local_identity_roles:read"
-	PermissionRolesAssign      = "local_identity_roles:assign"
+	PermissionMembersRead             = "local_identity_members:read"
+	PermissionMembershipsWrite        = "local_identity_memberships:write"
+	PermissionRolesRead               = "local_identity_roles:read"
+	PermissionRolesAssign             = "local_identity_roles:assign"
+	PermissionDevelopmentTasksRead    = "development_tasks:read"
+	PermissionDevelopmentTasksWrite   = "development_tasks:write"
+	PermissionDevelopmentTasksExecute = "development_tasks:execute"
+	PermissionDevelopmentTasksCancel  = "development_tasks:cancel"
 )
 
 var managementPermissions = []string{
@@ -50,6 +54,10 @@ var permissionAllowlist = map[string]struct{}{
 	"development_artifacts:read":               {},
 	"development_artifacts:save":               {},
 	"development_artifacts:export":             {},
+	PermissionDevelopmentTasksRead:             {},
+	PermissionDevelopmentTasksWrite:            {},
+	PermissionDevelopmentTasksExecute:          {},
+	PermissionDevelopmentTasksCancel:           {},
 	"prompt_application_templates:read":        {},
 	"prompt_application_templates:read_source": {},
 	"prompt_application_templates:write":       {},

@@ -10,7 +10,7 @@
 
 ## 新增设计：受控软件开发团队
 
-[多 Agent 协同与受控软件开发团队 v1](workflow/controlled-software-development-team-v1.md)已于 2026-10-31 纳入下一功能设计，提供主专题与五个职责子专题。先验证单 Agent 隔离编辑 / 测试 / 候选交付，再实现固定团队、有限并行、独立审查和有上限返修。Go 保有权威状态，OpenHands SDK 是编码执行首选候选，未锁定依赖或验证接入。
+[多 Agent 协同与受控软件开发团队 v1](workflow/controlled-software-development-team-v1.md)先交付单 Agent 隔离编辑 / 测试 / 候选交付，再按真实价值复核决定固定团队、有限并行、独立审查和有上限返修。Go 保有权威状态，已验冻结 OpenHands SDK 用于阶段 1 固定 Go 单 Agent 编码执行。
 
 该场景需要专属代码隔离、长任务、工具与证据合同，当前均未实现；不原地放宽既有 Workflow、Agent Profile、Action Safety 或通用 Tooling 合同。群聊是用户交互，不能成为任务完成或扩大权限的依据。工作台独立用户与真实模型质量继续待验收，规划登记不授予运行权限。
 

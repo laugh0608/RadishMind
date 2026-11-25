@@ -73,6 +73,8 @@
 
 批次 A 首次冻结的目录为 `local_identity_builtin_roles_v1`。2026-09-01 在 Prompt Application 定时回归产品链验收中确认，`workspace_reader` 缺少既有 `application_publish_candidates:read` 与 `prompt_application_runtime:read`，会导致已经存在的 Publish Candidate / Runtime Assignment owner 无法由最小只读角色到达。目录因此显式推进为 `local_identity_builtin_roles_v2`，catalog digest 为 `sha256:44c8a3a41eb90b2da25859662abf13ba91cef00505eb5191767dc5b17eb4abae`；只向 reader 及其累积角色增加这两项 canonical read grant，不增加 mutation、review、activation 或执行权限，也不静默改写历史 v1 assignment。四角色仍按 reader → builder → reviewer → administrator 累积既有 canonical grants；`workspace_admin` 覆盖完整 workspace permission allowlist，并且只有它包含四项本地身份管理权限。catalog、角色 definition digest、allowlist 完整覆盖和不可变复制均由 Go 测试固定；后续 grant 变化仍必须显式评估 catalog version。
 
+受控开发阶段 1 将当前目录升为 `local_identity_builtin_roles_v3`，增加由管理员在精确工作区显式授予的 `workspace_developer`。v3 的原四角色维持 v2 的 grants，已存 v1 / v2 分配按各自冻结定义核对。历史目录和当前定义的摘要均由 Go 测试固定。升级后旧版本的未认领邀请沿既有规则失效，开发者角色由管理员分配。[任务权限合同](../../contracts/development-task-delivery-v1.md#身份权限与角色分配) · [邀请边界](workspace-member-invitation-claim-expiry-governance-dev-test-v1.md)
+
 ## 目录、详情与 cursor
 
 成员目录只列出 exact `tenant_ref + workspace_id` 下存在 membership 历史的本地账户，不提供全局未分配账户列表。首版固定：

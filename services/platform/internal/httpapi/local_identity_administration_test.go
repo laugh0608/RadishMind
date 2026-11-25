@@ -556,6 +556,96 @@ func TestMemoryLocalIdentityAdministrationRoleRevocationCASSingleWinner(t *testi
 	}
 }
 
+func TestLocalIdentityDevelopmentRoleAndFrozenAssignments(t *testing.T) {
+	fixture := newLocalIdentityAdministrationTestFixture(t)
+	ctx := context.Background()
+	tenant, workspace := fixture.actor.TenantRef, fixture.actor.WorkspaceID
+	administrator := fixture.bootstrap.RoleAssignment
+	historical, _ := workspacepolicy.BuiltInRoleAtVersion("local_identity_builtin_roles_v2", administrator.RoleKey)
+	administrator.RoleCatalogVersion = historical.CatalogVersion
+	administrator.RoleDefinitionDigest = historical.DefinitionDigest
+	administrator.PermissionGrants = historical.PermissionGrants
+	fixture.repository.roleAssignments[administrator.AssignmentID] = administrator
+
+	userID := "usr_0000000000000de1"
+	createLocalIdentityAdministrationTestAccount(t, fixture.repository, userID, 0xde1, fixture.now)
+	membership, err := fixture.service.CreateWorkspaceMembership(ctx, fixture.actor, LocalIdentityCreateWorkspaceMembershipInput{
+		TenantRef: tenant, WorkspaceID: workspace, UserID: userID, AuditRef: "audit:developer-member",
+	})
+	if err != nil {
+		t.Fatalf("historical administrator lost access: %v", err)
+	}
+	permissions := []string{"applications:read", workspacepolicy.PermissionDevelopmentTasksExecute}
+	if _, err := fixture.repository.AuthorizeWorkspace(ctx, fixture.actor.UserID, tenant, workspace, permissions, fixture.now); !errors.Is(err, errLocalIdentityPermissionDenied) {
+		t.Fatalf("historical administrator inherited developer grants: %v", err)
+	}
+	detail, err := fixture.service.ReadWorkspaceMember(ctx, fixture.actor, tenant, workspace, fixture.actor.UserID)
+	if err != nil || len(detail.RoleAssignments) != 1 || detail.RoleAssignments[0].CatalogDrift || !detail.RoleAssignments[0].CanManageLocalIdentity {
+		t.Fatalf("known historical assignment was not recognized: %#v, %v", detail.RoleAssignments, err)
+	}
+
+	developer, _ := workspacepolicy.BuiltInRole(workspacepolicy.RoleWorkspaceDeveloper)
+	assignment, err := fixture.service.AssignWorkspaceRole(ctx, fixture.actor, LocalIdentityAssignWorkspaceRoleInput{
+		TenantRef: tenant, WorkspaceID: workspace, UserID: userID,
+		RoleKey: developer.RoleKey, ExpectedCatalogVersion: developer.CatalogVersion,
+		ExpectedRoleDefinitionDigest: developer.DefinitionDigest, AuditRef: "audit:developer-assign",
+	})
+	if err != nil || !slices.Equal(assignment.PermissionGrants, developer.PermissionGrants) {
+		t.Fatalf("explicit developer assignment mismatch: %#v, %v", assignment, err)
+	}
+	if _, err := fixture.repository.AuthorizeWorkspace(ctx, userID, tenant, workspace, permissions, fixture.now); err != nil {
+		t.Fatalf("developer grants did not reach workspace authorization: %v", err)
+	}
+	if _, err := fixture.repository.AuthorizeWorkspace(ctx, userID, tenant, workspace, []string{workspacepolicy.PermissionRolesAssign}, fixture.now); !errors.Is(err, errLocalIdentityPermissionDenied) {
+		t.Fatalf("developer gained role assignment permission: %v", err)
+	}
+
+	membership.MembershipID, membership.WorkspaceID = "mbr_0000000000000de2", "workspace_other"
+	if err := fixture.repository.CreateWorkspaceMembership(ctx, membership); err != nil {
+		t.Fatalf("seed other workspace membership: %v", err)
+	}
+	if _, err := fixture.repository.AuthorizeWorkspace(ctx, userID, tenant, membership.WorkspaceID, permissions, fixture.now); !errors.Is(err, errLocalIdentityPermissionDenied) {
+		t.Fatalf("developer assignment escaped its workspace: %v", err)
+	}
+	legacy := assignment
+	legacy.AssignmentID, legacy.RoleKey = "rla_0000000000000de1", "legacy_developer"
+	legacy.RoleCatalogVersion, legacy.RoleDefinitionDigest = "", ""
+	if err := fixture.repository.CreateRoleAssignment(ctx, legacy); !errors.Is(err, errLocalIdentityContractMismatch) {
+		t.Fatalf("unversioned assignment accepted task grants: %v", err)
+	}
+
+	for _, test := range []struct {
+		name   string
+		change func(*LocalRoleAssignment)
+	}{
+		{"unknown_version", func(role *LocalRoleAssignment) { role.RoleCatalogVersion = "local_identity_builtin_roles_v99" }},
+		{"wrong_digest", func(role *LocalRoleAssignment) { role.RoleDefinitionDigest = historical.DefinitionDigest }},
+		{"wrong_grants", func(role *LocalRoleAssignment) {
+			role.PermissionGrants = append(slices.Clone(role.PermissionGrants), "runs:read")
+		}},
+		{"tenant_scope", func(role *LocalRoleAssignment) { role.WorkspaceID = "" }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			changed := assignment
+			test.change(&changed)
+			fixture.repository.roleAssignments[changed.AssignmentID] = changed
+			if _, err := fixture.repository.AuthorizeWorkspace(ctx, userID, tenant, workspace, permissions, fixture.now); !errors.Is(err, errLocalIdentityPermissionDenied) {
+				t.Fatalf("invalid frozen assignment granted execution: %v", err)
+			}
+		})
+	}
+	invalid := assignment
+	invalid.RoleDefinitionDigest = historical.DefinitionDigest
+	fixture.repository.roleAssignments[assignment.AssignmentID] = invalid
+	revoked, err := fixture.service.RevokeWorkspaceRole(ctx, fixture.actor, LocalIdentityRevokeWorkspaceRoleInput{
+		TenantRef: tenant, WorkspaceID: workspace, AssignmentID: assignment.AssignmentID,
+		ExpectedVersion: assignment.RecordVersion, Confirmed: true, AuditRef: "audit:reject-invalid-developer",
+	})
+	if err != nil || revoked.LifecycleState != localIdentityStateRevoked {
+		t.Fatalf("administrator could not revoke an invalid assignment: %#v, %v", revoked, err)
+	}
+}
+
 func TestMemoryLocalIdentityAdministrationBootstrapSingleWinner(t *testing.T) {
 	repository := newMemoryLocalIdentityRepository()
 	now := localIdentityTestNow.Add(24 * time.Hour)

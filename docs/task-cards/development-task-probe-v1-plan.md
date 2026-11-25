@@ -1,8 +1,8 @@
 # 受控开发阶段 0：代表任务、SDK 与执行合同
 
-更新时间：2026-11-19
+更新时间：2026-11-25
 
-状态：离线准备、人工任务复验、SDK LLM 子合同及单尝试持久事务 / 当前资格 / 内部通道固定响应验证已完成；受限 SDK Agent / 完整允许事件、工具往返及等待取消已通过固定响应验收；固定 Go 沙箱 / 受限工具 / 归属终止已真实验收；开发产物合同与 SQLite 显式保存 / 导出已实现并定向验证；真实 SDK 联合技术任务已通过；采用复评已完成但正式采用暂不通过：原生 HTTP 已通过固定上游技术验证，阶段 1 合同范围与 A 级画板已确认，许可交付仍待闭合。
+状态：固定 Go 探针的 SDK、原生 HTTP、隔离执行与产物联合技术链已验证。项目所有者已确认接收本机伴随源码和告知，阶段 0 四项退出条件复评通过。正式采用冻结的 OpenHands SDK `1.59.0+radishmind.1` 作为阶段 1 固定 Go 单 Agent 的受限编码执行层。
 
 所属功能：[受控软件开发团队](../features/workflow/controlled-software-development-team-v1.md)。本卡集中记录阶段 0 探针、单尝试控制合同与工具边界，不为各层再建任务卡或检查器。
 
@@ -325,7 +325,20 @@ CPython `v2.6` 与 `v3.1` 已分别解析到完整提交并核对 8 个指定文
 
 获准后以该镜像摘要封定 `dist/sdk-delivery/sources/5e8c4c4473d5497febada6cb563b6630c495b1dcd54651de7c270df38bdd1daf/`。以 301 份已验源码及配方底稿为基础，补入 `cryptography` 的 24 份 ARM64 范围 crate 归档和 OpenSSL 源归档、`regex` 原始 Unicode 18.0.0 UCD、两版 `certifi` 告知及镜像内验过的 42 份补充告知。完整 pip sdist 保留实际内嵌 `certifi 2024.8.30` 的源树与版本记录。
 
-`manifest.json` 绑定最终镜像清单与 119 项冻结锁，列出 390 项材料、578794065 字节，清单自身 SHA-256 为 `ea3e0cd100971f4e47cb765b83e932579a35ab558cb8db2229df93a446633192`。已在最终路径独立运行随附的 `verify_manifest.py`，逐项核对路径、大小与 SHA-256 并核对文件集合。新增磁盘占用 579756032 字节，组装与首次回读用时 1.357 秒，符合 768 MiB 源码、1 GiB 新增占用及 10 分钟上限。本轮零外网、零重建。接收方实际取得仍待所有者确认，正式采用复评尚未开始。[本地组装与回读回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-local-source-result-20261121.json)
+`manifest.json` 绑定最终镜像清单与 119 项冻结锁，列出 390 项材料、578794065 字节，清单自身 SHA-256 为 `ea3e0cd100971f4e47cb765b83e932579a35ab558cb8db2229df93a446633192`。已在最终路径独立运行随附的 `verify_manifest.py`，逐项核对路径、大小与 SHA-256 并核对文件集合。新增磁盘占用 579756032 字节，组装与首次回读用时 1.357 秒，符合 768 MiB 源码、1 GiB 新增占用及 10 分钟上限。本轮零外网、零重建。该轮以组装和回读完成收尾，接收与复评见下节。[本地组装与回读回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-local-source-result-20261121.json)
+
+## 2026-11-25 SDK 接收确认与阶段 0 采用复评
+
+项目所有者确认能打开上述最终镜像摘要交付目录，并读取源码、告知和 `manifest.json`。协作者从同一交付目录用独立留存的清单 SHA-256 再次执行 `verify_manifest.py`，核对通过 390 项、578794065 字节，镜像摘要与 119 项冻结锁摘要均匹配。接收可读性由所有者确认，文件集合、大小和摘要由本次离线复核验证。
+
+| 退出条件 | 复评依据 |
+| --- | --- |
+| 许可交付 | 已确认的遥测可选化 SDK 通过禁网构建、119 项冻结安装、非 root 读取 42 份补充告知及 SDK 和三个联合用例。伴随源码与告知已在获准的本机交付范围实际可取得。保留 OpenSSL 4.0.3 原始归档与冻结 wheel 的证据关系，实际构建器应用的补丁清单未证实，沿用已确认的来源裁决。[构建回执](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-build-runtime-20261121.json) · [联合验收](../../scripts/eval/development_probe/sdk_variant/sdk-delivery-runtime-closeout-20261121.json) · [来源裁决](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#closeout-decision) |
+| 原生传输 | Go 原生 HTTP 已在固定上游验证工具往返、当前配置与凭据负责模块、预算回执、失败与取消。真实提供方资格、计量和费用仍另验。[原生传输证据](../features/workflow/controlled-software-development-team/framework-and-gateway-integration-v1.md#原生-http-传输档案与验证2026-11-05) |
+| 合同与范围 | 所有者已确认固定三文件 Go 首版、公开资源与权限、幂等回执和重启不重放。阶段 1 实施沿已确认合同推进。[公开交付合同](../contracts/development-task-delivery-v1.md) |
+| 视觉依据 | 所有者已确认六幅 A 级代表面的最终视觉。React 页面与浏览器验收进入阶段 1。[视觉确认记录](../features/workflow/controlled-software-development-team/collaboration-workspace-ui-v1.md#阶段-1-单-agent-范围与设计判定) |
+
+四项条件通过，阶段 0 退出。正式采用最终 ARM64 镜像中的 OpenHands SDK `1.59.0+radishmind.1` 及其已验冻结锁，适用范围为阶段 1 在本机工作台交付固定 Go 单 Agent 的受限编码执行层。Go 继续负责授权、预算和任务状态。下一工作包从公开 canonical schema 与版本化权限目录开始，再贯通 SQLite、严格 HTTP、Web、隔离运行与浏览器验收。真实模型窗口保持暂停，正式 Web 执行能力待阶段 1 实现与验收。
 
 ## 2026-11-12 收尾与下次接续
 

@@ -88,7 +88,7 @@ Prompt / Agent Runtime Assignment、Session / Turn、Run 投影、Action Safety 
 
 ## 拟新增的受控开发团队边界
 
-[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已进入阶段 0，单尝试控制基座已实现，完整团队尚未启用。Go 继续拥有团队 / 任务 / 尝试权威状态及授权、预算、取消和证据判定；Python 编码 SDK 只执行一次角色任务，OpenHands 为首选候选。长任务使用独立生命周期，不长期占用已有短请求桥接池，不新建第二套通用工作流与恢复权威。
+[多 Agent 协同与受控软件开发团队](features/workflow/controlled-software-development-team-v1.md)已完成阶段 0 选型，单尝试控制基座已实现，正式 Web 单 Agent 属于阶段 1，完整团队尚未启用。Go 继续拥有团队 / 任务 / 尝试权威状态及授权、预算、取消和证据判定，Python 环境内已验的冻结 OpenHands SDK 负责一次受限编码尝试。长任务使用独立生命周期，不长期占用已有短请求桥接池，不新建第二套通用工作流与恢复权威。
 
 固定 Go 探针已采用可信执行控制层与独立代码容器分离：SDK 经受限 Gateway 通道访问模型，经授权工具入口操作隔离副本；代码进程不继承平台 / 提供方密钥，不挂载平台数据库、用户原工作树或 Docker socket。工作台容器验收不替代这一新增边界，具体方案见[隔离执行子专题](features/workflow/controlled-software-development-team/isolated-code-execution-and-delivery-v1.md)。
 
