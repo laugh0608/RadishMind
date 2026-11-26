@@ -110,3 +110,9 @@ Accepted
 - 需要维护远端 `master` 保护设置
 - 直接在 `dev` 连续开发时，需要维护者按改动风险主动执行并如实记录本地验证
 - CI 需要随着产品面推进继续保持分层：仓库治理、正式 web 产品面、Go 平台服务和后续发布验证不应混成一个难定位的状态
+
+## 二进制资产门禁
+
+本仓采用 [Radish 系列资产规则 v1](https://github.com/RadishIntelligence/.github/tree/main/asset-policy/v1)。单个二进制超过 5 MiB 时须登记例外，新增二进制合计超过 10 MiB 时提示复核。本仓的输出路径和例外以 [policy.tsv](../../.radish-assets/policy.tsv) 为准。
+
+新克隆在仓库根目录运行 `git config --local core.hooksPath .githooks` 启用本地钩子。PR 检查会核对新增提交中的资产。可用 `bash .radish-assets/check.sh --staged` 检查暂存区。
